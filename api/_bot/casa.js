@@ -19,6 +19,7 @@ import { operacion, quienEscribe, TIPO_OPERACION, QUE_FUE, autorDelTurno, avisar
 import { leerFamilia, escribirPersonas, leerCasaConSobre, escribirDato, leerPreferencias, escribirPreferencias } from "./datos.js";
 import { conLibretaDeFilas, sinLibreta, cambiosDePreferencias } from "../../src/lib/libretaEnData.js";
 import { PreferenciaInvalida } from "../../src/lib/preferencias.js";
+import { textoDeChoque } from "../../src/lib/choques.js";
 import { cambiosDePersonas, conOrdenDeTodos, textosDeAvisos, revSiguiente } from "../../src/lib/personas.js";
 import { CANAL_DATO, REF_OPERACION } from "../../src/lib/vocabularios.js";
 import { CAMPOS_CON_AMBITO_CON_SOBRE } from "../../src/lib/estadoDeDato.js";
@@ -111,7 +112,7 @@ async function leerCasa(householdId) {
   // documento, como antes. Sin poder leerla por otra cosa, leerFamilia lanza (FamiliaSinLeer) y la casa no se
   // lee: con una familia a medias se generaría un menú sin las alergias, o se borraría a quien no salió.
   // Los datos de la casa con sobre (trozos 12 y 13), de ficha_casa v2; sin poder leerlos, la casa no se lee.
-  // Las preferencias (trozo 14), de sus filas; sin la 0109, null: la libreta sigue en el documento.
+  // Las preferencias (trozo 14), de sus filas; sin poder leerlas (también sin la RPC), la casa no se lee.
   const [familia, conSobre, preferencias, activos, recetasPropias, deLaCasa] = await Promise.all([
     leerFamilia(householdId),
     leerCasaConSobre(householdId),
@@ -159,9 +160,8 @@ async function leerCasa(householdId) {
     // Los datos con sobre tal como se leyeron (`{ campo: { valor, conSobre } }`): de ellos sale lo que cambia al
     // guardar.
     conSobre,
-    // Las filas de preferencia tal como se leyeron (de ellas, los ids de lo que cambia al guardar). null: la libreta
-    // vive en el documento (la 0109 sin aplicar) y se guarda con él.
-    preferencias: preferencias?.preferencias ?? null,
+    // Las filas de preferencia tal como se leyeron (de ellas, los ids de lo que cambia al guardar).
+    preferencias: preferencias.preferencias,
     // Fuera de `state`: no se escriben de vuelta en household_state (propias.js).
     recetasPropias,
     deLaCasa,
@@ -188,9 +188,8 @@ export function conFamilia(state, { members, groups }) {
   return { ...state, data: { ...(state?.data ?? {}), members, groups } };
 }
 
-/** Pura. El documento con la libreta de sus filas de preferencia y su proyección en `data` (sin la 0109, tal cual). */
+/** Pura. El documento con la libreta de sus filas de preferencia y su proyección en `data`. */
 function conPreferencias(state, preferencias, hoy) {
-  if (!preferencias) return state;
   return { ...state, data: conLibretaDeFilas(state?.data ?? {}, preferencias.preferencias, { hoy }) };
 }
 
@@ -201,7 +200,7 @@ function conPreferencias(state, preferencias, hoy) {
  * regla no cabe en una fila (un ámbito sin su grupo), antes de guardar nada.
  */
 function separarPreferencias(state, casa) {
-  if (!state?.data || !casa.preferencias) return { documento: state, preferencias: [] };
+  if (!state?.data) return { documento: state, preferencias: [] };
   const preferencias = cambiosDePreferencias(casa.state?.data, state.data, casa.preferencias);
   return { documento: { ...state, data: sinLibreta(state.data) }, preferencias };
 }
@@ -326,7 +325,7 @@ function escribirDatoDeCasa(casa, { campo, ...cambio }) {
 export async function guardarCasa(casa, { state = null, semana = null, activar = null } = {}, { sinDeshacer = false } = {}) {
   const familiaTras = familiaDeData({ ...(casa.state?.data ?? {}), ...(state?.data ?? {}) });
   // La libreta (trozo 14): lo que cambió va a escribir_preferencias, detrás de la familia (un ámbito de un grupo
-  // nuevo necesita su fila); sin la 0109 (`casa.preferencias` null), en el documento.
+  // nuevo necesita su fila).
   let sinPreferencias;
   let preferencias;
   try {
@@ -379,8 +378,17 @@ export async function guardarCasa(casa, { state = null, semana = null, activar =
     }
     if (preferencias.length) {
       const r = await escribirLibreta(casa, preferencias);
-      if (!r.guardado) sinGuardar.push(`las preferencias: ${r.fallo ?? r.error ?? r.estado ?? "sin motivo"}`);
-      else {
+      // Lo que chocó con lo que ya tenía la casa (método de choques): Lola lo dice o lo pregunta, no se calla.
+      for (const c of r.choques ?? []) {
+        const texto = textoDeChoque(c, preferencias[c.nueva]);
+        if (texto) avisarEnElChat(texto);
+      }
+      // Si no se escribió nada porque todo chocó, no es un fallo: el aviso de arriba dice qué pasó. Si solo chocó una
+      // parte y lo demás no se guardó, sí lo es, y se dice.
+      const todoChoco = !r.fallo && r.apartadas?.length === preferencias.length;
+      if (!r.guardado) {
+        if (!todoChoco) sinGuardar.push(`las preferencias: ${r.fallo ?? r.error ?? r.estado ?? "sin motivo"}`);
+      } else {
         const tras = seguida ? revSiguiente(botRev, r.rev) : null;
         if (tras != null) botRev = tras;
       }

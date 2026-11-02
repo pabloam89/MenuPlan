@@ -130,6 +130,9 @@
   "recipe_votes": [
     "src/lib/recipeVotes.js"
   ],
+  "senal": [
+    "api/_bot/aprender.js"
+  ],
   "shared_menus": [
     "api/_bot/compartir.js",
     "src/lib/social.js",

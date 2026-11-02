@@ -38,13 +38,13 @@ export const FORMA_DE_PROYECCION = Object.freeze({
   excluidos: { nivel: "plato", medida: "valor", operador: "no_es", marca: true, fuerza: "obligatoria" },
 });
 /** Lo visto y lo supuesto solo sesgan (notepad.js, matizDe): nunca mandan. */
-const FUERZA_BLANDA = "bajo";
+export const FUERZA_BLANDA = "bajo";
 
 /**
  * El ámbito de la libreta (AMBITOS) y el tipo de grupo de la casa (TIPOS_GRUPO) que lo es: el mismo nombre, salvo
  * «bebes», que en los grupos es «bebe». Comprobado al cargar contra las dos listas.
  */
-const TIPO_DE_AMBITO = Object.freeze(Object.fromEntries(AMBITOS.filter((a) => a !== "todos").map((a) => [a, a === "bebes" ? "bebe" : a])));
+export const TIPO_DE_AMBITO = Object.freeze(Object.fromEntries(AMBITOS.filter((a) => a !== "todos").map((a) => [a, a === "bebes" ? "bebe" : a])));
 const AMBITO_DE_TIPO = Object.freeze(Object.fromEntries(Object.entries(TIPO_DE_AMBITO).map(([a, t]) => [t, a])));
 /** El servicio de la libreta (SERVICIOS, sin «ambos») y la comida (COMIDAS) que lo es: la de ese nombre. */
 const COMIDA_DE_SERVICIO = Object.freeze(Object.fromEntries(SERVICIOS.filter((s) => s !== "ambos")

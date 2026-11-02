@@ -9,6 +9,8 @@
 // en Node, sin red, y la compra de esa semana, completa.
 
 export { generateMenuWithAI, pickCatalogReplacement, chocaConElGrupo, choquesDelPlan } from "../lib/aiPlanner.js";
+export { entradaDelMotor } from "../lib/entradaMotor.js";
+export { resumenCumplimiento } from "../lib/cumplimiento.js";
 export { buildShoppingList } from "../lib/shoppingBuilder.js";
 export { registerRecipes, RECIPES_BY_ID } from "../data/recipes.js";
 export { DAYS, getDayMeals } from "../lib/planner.js";

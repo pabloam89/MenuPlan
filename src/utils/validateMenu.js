@@ -15,6 +15,7 @@ import { esCasqueria } from "../lib/casqueria.js";
 import { clavesDeReceta } from "../lib/bases.js";
 import { chocaConHueco, textoDeItem } from "../lib/excluirHueco.js";
 import { SLUGS_DIA, DIAS_LABORABLES, slugDeDia } from "../lib/dias.js";
+import { rompe } from "../lib/preferenciasSistema.js";
 
 // Health profiles that trigger a correctable violation below. `anemia` is a
 // presence-based profile ("must contain iron-rich flag") rather than
@@ -22,7 +23,7 @@ import { SLUGS_DIA, DIAS_LABORABLES, slugDeDia } from "../lib/dias.js";
 // would flag almost every slot in the week as a violation and fight the
 // variety/carb-repetition rules. It stays pure LLM soft-bias, matching the
 // "prioriza" (not "excluye") wording in the SYSTEM_PROMPT.
-const CORRECTABLE_HEALTH_PROFILES = new Set(
+export const CORRECTABLE_HEALTH_PROFILES = new Set(
   Object.keys(HEALTH_PROFILE_BADGE).filter((id) => id !== "anemia"),
 );
 
@@ -776,6 +777,9 @@ export function huecoDe(slotId, ctx = {}, extra = {}) {
  * ordenada por día y `slotAssignments` viene como la devolvió quien la montó.
  * Cambiar cuál usa cada regla cambiaría el orden de `violations`, y de eso
  * depende qué hueco repara `applyFallback` primero.
+ *
+ * Cada unaria es una preferencia del sistema (preferenciasSistema.js): en su
+ * hueco, como mucho 0 platos que no la cumplen. El veredicto lo da `rompe`.
  */
 function evaluarUnaria(regla, huecos, poolById, contextBySlot, extra) {
   const out = [];
@@ -783,7 +787,7 @@ function evaluarUnaria(regla, huecos, poolById, contextBySlot, extra) {
     const receta = poolById[recipeId];
     if (!receta) continue;
     const hueco = huecoDe(slotId, contextBySlot[slotId] ?? {}, extra);
-    if (regla.cumple(receta, hueco)) continue;
+    if (!rompe(regla.rule, regla.cumple(receta, hueco) ? 0 : 1)) continue;
     out.push({ rule: regla.rule, slotId, message: regla.mensaje(receta, hueco) });
   }
   return out;
@@ -1396,8 +1400,9 @@ export function validateMenu(
     // ANY key still over its cap — resolves both without a redundant swap.
     const claimedExcess = new Set();
     for (const [key, target] of Object.entries(freqs)) {
+      // «Como mucho `target`» de la familia en la semana (preferenciasSistema.js).
+      if (!rompe("freq_max_exceeded", freqCounts[key] ?? 0, target)) continue;
       const excess = (freqCounts[key] ?? 0) - target;
-      if (excess <= 0) continue;
 
       // Offenders: slots counting toward this over-cap key, not already
       // claimed by another key's excess this pass. Walked in mealOrder for a

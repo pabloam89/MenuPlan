@@ -18,6 +18,7 @@ import {
   toggleMenuFavorite,
   activateMenu,
   saveAndActivateMenu,
+  descartarMenuNuevo,
   deactivateMenu,
   queueSaveMenuWeek,
 } from "./menusSync.js";
@@ -297,6 +298,36 @@ describe("queueSaveMenuWeek espera a que el menú recién generado esté subido 
     const orden = client.log.filter((c) => c.method === "upsert" || c.method === "rpc").map((c) => c.table);
     expect(orden).toEqual(["user_menus", "user_menu_weeks", "rpc:activate_user_menu", "user_menu_weeks"]);
     expect(client.log.filter((c) => c.method === "upsert").at(-1).args[0].shopping).toEqual(tachada.shopping);
+  });
+});
+
+describe("descartarMenuNuevo (mocked client)", () => {
+  it("espera a la subida del menú nuevo, reactiva el de antes y lo borra", async () => {
+    const client = mockClient({ __rpc: [{ error: null }, { error: null }] });
+    Object.assign(supabase, client);
+    const subida = saveAndActivateMenu("user-1", { id: "blanco", weeks: {} }, [], "casa-1");
+    const r = await descartarMenuNuevo("user-1", "blanco", "anterior", "casa-1");
+    await subida;
+    expect(r.ok).toBe(true);
+    const pasos = client.log
+      .filter((l) => l.method === "rpc" || l.method === "delete")
+      .map((l) => (l.method === "rpc" ? l.args[0].p_menu_id : "borrar"));
+    expect(pasos).toEqual(["blanco", "anterior", "borrar"]);
+  });
+
+  it("sin menú anterior solo borra", async () => {
+    const client = mockClient({});
+    Object.assign(supabase, client);
+    expect((await descartarMenuNuevo("user-1", "blanco", null)).ok).toBe(true);
+    expect(client.rpc).not.toHaveBeenCalled();
+    expect(client.log.some((l) => l.method === "delete")).toBe(true);
+  });
+
+  it("si no puede reactivar, borra igual y avisa del fallo", async () => {
+    const client = mockClient({ __rpc: [{ error: { message: "no" } }] });
+    Object.assign(supabase, client);
+    expect((await descartarMenuNuevo("user-1", "blanco", "anterior")).ok).toBe(false);
+    expect(client.log.some((l) => l.method === "delete")).toBe(true);
   });
 });
 

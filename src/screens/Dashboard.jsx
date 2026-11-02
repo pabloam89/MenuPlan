@@ -278,13 +278,20 @@ function RotatingPhoto({ photos, objectPosition = "center", interval = 2000 }) {
  * «Generar menú» ahora se le pide a ella en Telegram. Tarjeta blanca y baja,
  * no un héroe: lo primero de Inicio sigue siendo ver qué toca hoy.
  * Quien aún no habla con ella lee «Conecta con Lola»; el botón es el mismo
- * (abrirLola lleva el código que conecta). Mientras no se sabe, «Pídeselo».
+ * (abrirLola lleva el código que conecta). Si no se puede saber, «Pídeselo».
+ * Mientras se pregunta (undefined) el texto no se ve: salía «Pídeselo» y
+ * saltaba a «Conecta». La última respuesta se recuerda para que volver a
+ * Inicio, o un fallo de red, no lo haga cambiar.
  */
-function LolaCard() {
-  const [conectada, setConectada] = useState(null);
+let conectadaSabida;
+export function LolaCard() {
+  const [conectada, setConectada] = useState(conectadaSabida);
   useEffect(() => {
     let vivo = true;
-    lolaConectada().then((c) => { if (vivo) setConectada(c); });
+    lolaConectada().then((c) => {
+      conectadaSabida = c ?? conectadaSabida ?? null;
+      if (vivo) setConectada(conectadaSabida);
+    });
     return () => { vivo = false; };
   }, []);
   return (
@@ -304,7 +311,7 @@ function LolaCard() {
         alt=""
         style={{ width: 52, height: 52, borderRadius: "50%", objectFit: "cover", objectPosition: "center 30%", flexShrink: 0, background: "#f4f8f5" }}
       />
-      <span style={{ flex: 1, minWidth: 0, fontSize: 16, fontWeight: 900, color: INK, letterSpacing: "-.2px" }}>
+      <span style={{ flex: 1, minWidth: 0, fontSize: 16, fontWeight: 900, color: INK, letterSpacing: "-.2px", visibility: conectada === undefined ? "hidden" : "visible" }}>
         {conectada === false ? "Conecta con Lola" : "Pídeselo a Lola"}
       </span>
       <span

@@ -24,6 +24,9 @@ import {
   IndividualMenuSheet,
 } from "./screens/Onboarding.jsx";
 import { OnboardingProgressContext } from "./screens/onboardingProgressContext.js";
+import { PORTADA, decidirPortada } from "./lib/portada.js";
+import { veloFoto } from "./design/tokens.js";
+import { EsqueletoInicio } from "./components/EsqueletoInicio.jsx";
 import { buildSharedMenuPayload } from "./lib/sharedMenu.js";
 import { publishMenu, unpublishMenu, loadMyPublishedMenus, createMenuShareToken, loadMenuFromLink } from "./lib/social.js";
 import { loadNotifications, countUnread } from "./lib/socialNotifications.js";
@@ -57,7 +60,8 @@ const HouseholdsScreen = lazy(() => import("./screens/HouseholdsScreen.jsx").the
 const BibliotecaScreen = lazy(() => import("./screens/BibliotecaScreen.jsx").then(m => ({ default: m.BibliotecaScreen })));
 const UserStatsScreen = lazy(() => import("./screens/UserStatsScreen.jsx").then(m => ({ default: m.UserStatsScreen })));
 const MenuPeek = lazy(() => import("./screens/FeedScreen.jsx").then(m => ({ default: m.MenuPeek })));
-import { generateMenuWithAI, pickCatalogReplacement, catalogToFrontendRecipe, activeDiscardIds, createPlannerStats } from "./lib/aiPlanner.js";
+import { generateMenuWithAI, pickCatalogReplacement, motivoDelChoque, catalogToFrontendRecipe, createPlannerStats } from "./lib/aiPlanner.js";
+import { activeDiscardIds } from "./lib/entradaMotor.js";
 import { sugerenciasDeHueco } from "./lib/sugerenciasDeHueco.js";
 import { minimosQueFaltan } from "./lib/minimosParaGenerar.js";
 import { resolvePlannerModel, resolvePlannerFormat } from "./lib/aiModels.js";
@@ -122,7 +126,7 @@ import {
 } from "./lib/menuArchive.js";
 import { todayDayIdx, getWeekDatesByMenuWeek } from "./lib/weekCalendar.js";
 import { diaDeFecha, indiceDeFecha } from "./lib/dias.js";
-import { pizarraActiva, huecosDelPlan, conHuecosAlDia, conSemanasAlDia, semanaEnBlanco, conHuecoAnadido, sinHueco, franjasDelDia } from "./lib/pizarra.js";
+import { pizarraActiva, fotoAntesDePizarra, volverAntesDePizarra, huecosDelPlan, conHuecosAlDia, conSemanasAlDia, semanaEnBlanco, conHuecoAnadido, sinHueco, franjasDelDia } from "./lib/pizarra.js";
 import { aplicarDiasDeSemana, diasPorDefecto, buildCalendarWeeks } from "./lib/semanaDias.js";
 import { reglaDeInvitado, invitadosPorHueco, sinInvitadosDelHueco } from "./lib/reglas.js";
 import {
@@ -131,6 +135,7 @@ import {
   loadMenuWeekRanges as loadMenuWeekRangesRemote,
   loadMenuDetail as loadMenuDetailRemote,
   activateMenu as activateMenuRemote,
+  descartarMenuNuevo,
   deleteMenu as deleteMenuRemote,
   deactivateMenu as deactivateMenuRemote,
   toggleMenuFavorite as toggleMenuFavoriteRemote,
@@ -173,9 +178,10 @@ import { loadUserState, saveUserState, clearUserState } from "./lib/userState.js
 import { loadHouseholdState, saveHouseholdState, loadHouseholdBotRev, empezarCasaVacia, CASA_VACIA } from "./lib/householdState.js";
 import { leerBotRevVisto, guardarBotRevVisto } from "./lib/botRevVisto.js";
 import { guardandoCasa, guardadosDeCasa } from "./lib/versionCasa.js";
-import { leerFamiliaDeCasa, conFamiliaLeida, sinFamilia, familiaDeCasa, cargaSinSeguir, guardarFamiliaYDocumento, MODO_FAMILIA } from "./lib/familiaCasa.js";
+import { leerFamiliaDeCasa, conFamiliaLeida, sinFamilia, familiaDeCasa, cargaSinSeguir, guardarFamiliaYDocumento, MODO_FAMILIA, contarSenales } from "./lib/familiaCasa.js";
+import { senalesDeCambio, senalesDePlato } from "./lib/senales.js";
 import { leerDatosDeCasa, conCasaLeida, sinCasa, casaDeCasa, guardarCasaEnCola, colaDeLaApp } from "./lib/casaDatos.js";
-import { leerLibretaDeCasa, conLibretaLeida, sinLibretaLeida, libretaDeCasa, guardarLibretaEnCola, MODO_LIBRETA } from "./lib/libretaCasa.js";
+import { leerLibretaDeCasa, conLibretaLeida, sinLibretaLeida, libretaDeCasa, guardarLibretaEnCola } from "./lib/libretaCasa.js";
 import { resolveModeData, prepararSemana } from "./lib/prepararGeneracion.js";
 import BotEnlace from "./components/BotEnlace.jsx";
 import { loadHouseholdDiscards, saveHouseholdDiscard, deleteHouseholdDiscard, subirDescartesUnaVez } from "./lib/householdDiscardsSync.js";
@@ -217,6 +223,9 @@ import { EMBUDO, PANTALLA_EMBUDO } from "./lib/embudo.js";
 import { leerDestino, olvidarDestino } from "./lib/destinoBot.js";
 import { traeLlaveDeLola } from "./lib/llaveLola.js";
 import { RASTRO, MOTIVO_CAMBIO, ORIGEN_RECETA, idBase } from "./lib/rastro.js";
+
+/** La receta de un hueco, para las señales (trozo 15): la registrada o, sin ella, la del catálogo por su id. */
+const recetaDelPlato = (id) => (id ? RECIPES_BY_ID[id] ?? recipeCatalogById[idBase(id)] ?? null : null);
 import { registrarDescartes, recetasDelPlan, refrescarDescartadas } from "./lib/descartes.js";
 import { ALCANCE_DESCARTE } from "./lib/vocabularios.js";
 import { barrerDias } from "./lib/barridoDia.js";
@@ -1487,6 +1496,7 @@ export default function App() {
   useEffect(() => {
     if (!user?.id) {
       cloudReadyRef.current = false;
+      setNubeLista(false);
       hydratedUserRef.current = null;
       setPersonalRecipeVotes({});
       return;
@@ -1549,7 +1559,7 @@ export default function App() {
         householdId ? leerFamiliaDeCasa(householdId) : Promise.resolve(null),
         // Los datos de la casa con sobre (trozos 12 y 13), todos de ficha_casa v2; si no, error de carga (lib/casaDatos.js).
         householdId ? leerDatosDeCasa(householdId) : Promise.resolve(null),
-        // La libreta, de sus filas de preferencia (trozo 14); sin la 0109, del documento (lib/libretaCasa.js).
+        // La libreta, de sus filas de preferencia (trozo 14; lib/libretaCasa.js); sin poder leerlas, la casa no se carga.
         householdId ? leerLibretaDeCasa(householdId) : Promise.resolve(null),
         loadUserRecipes(householdReadOnly ? menuUserId : user.id),
         loadRecipeVotes(user.id),
@@ -1611,7 +1621,7 @@ export default function App() {
         ? {
           casa: householdId,
           carga: cargaLibreta,
-          guardada: cargaLibreta.modo === MODO_LIBRETA.FILAS ? libretaDeCasa({ casa: householdId, carga: cargaLibreta, conocida: remoteData }) : null,
+          guardada: libretaDeCasa({ casa: householdId, carga: cargaLibreta, conocida: remoteData }),
         }
         : null;
       casaDatosRef.current = householdId && cargaCasa
@@ -2268,7 +2278,16 @@ export default function App() {
     return true;
   }, []);
 
+  // Inicio sale antes de que llegue la nube: hasta entonces no se crea menú con
+  // una familia que puede estar vieja (una alergia nueva) o ser de otra cuenta.
+  const casaSinConfirmarRef = useRef(false);
+  const pararSiCasaSinConfirmar = useCallback(() => {
+    if (!casaSinConfirmarRef.current) return false;
+    showToast("Un momento, estamos poniendo al día tu casa");
+    return true;
+  }, [showToast]);
   const regenerateMenu = useCallback(async (nextData) => {
+    if (pararSiCasaSinConfirmar()) return;
     if (householdReadOnly) {
       showToast("Solo lectura: no puedes editar el menú");
       return;
@@ -3055,6 +3074,7 @@ export default function App() {
   // siguientes, y desmarcar dejaba semanas sin días.
   const empezarPizarra = useCallback(() => {
     setPizarraArrancando(false);
+    antesDePizarraRef.current = null;
     const menuId = data.activeMenuId;
     const actual = data.menus?.[menuId];
     if (actual?.origin !== "pizarra") return;
@@ -3091,23 +3111,9 @@ export default function App() {
   // Mientras es `true`, la pizarra recién creada enseña el tablero vacío con
   // la hoja de «¿Qué días?» delante y sin franja de mandos.
   const [pizarraArrancando, setPizarraArrancando] = useState(false);
-
-  // Claro u oscuro, SOLO para el tablero de la pizarra. No es el tema de la
-  // app: el resto de pantallas se quedan en claro a propósito, porque el
-  // oscuro se lleva por delante el tono cartoon de las ilustraciones. Vive en
-  // localStorage y no en `data` porque es del aparato, no de la casa: si lo
-  // pones oscuro en el móvil, el portátil del otro no tiene por qué cambiar.
-  const [temaPizarra, setTemaPizarra] = useState(() => {
-    try { return localStorage.getItem("mp_tema_pizarra") === "oscuro" ? "oscuro" : "claro"; }
-    catch { return "claro"; }
-  });
-  const alternarTemaPizarra = useCallback(() => {
-    setTemaPizarra((t) => {
-      const otro = t === "oscuro" ? "claro" : "oscuro";
-      try { localStorage.setItem("mp_tema_pizarra", otro); } catch { /* modo incógnito */ }
-      return otro;
-    });
-  }, []);
+  // Cómo estaba todo antes de abrirla: mientras la hoja sigue delante, cerrarla
+  // devuelve el menú de antes. El nuevo ya ha sustituido al activo.
+  const antesDePizarraRef = useRef(null);
 
   // Sube cada vez que caen varios platos de golpe: es la señal para que el
   // tablero los reparta como cartas en vez de enseñarlos ya puestos.
@@ -3185,6 +3191,8 @@ export default function App() {
     });
     const firstWeekPlan = primeraSemana.plan;
 
+    antesDePizarraRef.current = fotoAntesDePizarra({ data, menuPlan, shopping, aiRecipes, pantalla: screen });
+
     const newMenu = {
       id: createMenuId(),
       createdAt: Date.now(),
@@ -3198,6 +3206,7 @@ export default function App() {
       origin: "pizarra",
       weeks,
     };
+    antesDePizarraRef.current.menuNuevoId = newMenu.id;
 
     setMenuPlan(firstWeekPlan);
     setShopping({ items: [] });
@@ -3250,14 +3259,33 @@ export default function App() {
       weekCount: weekOffsets.length,
       huecos: huecosDelPlan(firstWeekPlan),
     });
-    // El tablero entra DESNUDO —sin avatares ni baldosas— y encima aparece la
+    // El tablero entra DESNUDO —sin chips ni baldosas— y encima aparece la
     // hoja de arranque preguntando los días. Los mandos llegan al darle a
     // «Empezar». Es transitorio a propósito: no es un estado del menú sino un
     // momento de esta sesión, y guardarlo dejaría una pizarra a medio arrancar
     // esperándote mañana.
     setPizarraArrancando(true);
     fwd(() => setScreen("menu"));
-  }, [data, user, householdReadOnly, showToast, syncHouseholdId, pararSiFaltanMinimos]);
+  }, [data, menuPlan, shopping, aiRecipes, screen, user, householdReadOnly, showToast, syncHouseholdId, pararSiFaltanMinimos]);
+
+  // La X de la hoja de arranque: el menú en blanco desaparece y vuelve el de antes.
+  const salirDePizarra = useCallback(() => {
+    const antes = antesDePizarraRef.current;
+    antesDePizarraRef.current = null;
+    setPizarraArrancando(false);
+    if (antes) {
+      setMenuPlan(antes.menuPlan);
+      setShopping(antes.shopping);
+      setAiRecipes(antes.aiRecipes);
+      setData((d) => volverAntesDePizarra(antes, d).data);
+      if (user) {
+        descartarMenuNuevo(user.id, antes.menuNuevoId, antes.data.activeMenuId, syncHouseholdId).then((res) => {
+          if (!res.ok) showToast("No se pudo deshacer en la nube. Puede reaparecer al recargar.");
+        });
+      }
+    }
+    back(() => setScreen(antes?.pantalla ?? "dashboard"));
+  }, [user, showToast, syncHouseholdId]);
 
   // Switches which week of the ACTIVE menú is displayed (menús spanning
   // several weeks) — materializes that week's plan/shopping into the live
@@ -3586,6 +3614,7 @@ export default function App() {
   // logistics (schedule) always, and either clones its dishes verbatim or
   // regenerates fresh ones for new dates, per the user's choice.
   const reuseMenu = useCallback(async (menuId, { weekCount, sameRecipes } = {}) => {
+    if (pararSiCasaSinConfirmar()) return;
     if (householdReadOnly) return;
     if (pararSiFaltanMinimos(data)) return;
     let old = data.menus?.[menuId];
@@ -4003,6 +4032,7 @@ export default function App() {
   }, []);
 
   const handleGenerateMenu = useCallback(() => {
+    if (pararSiCasaSinConfirmar()) return;
     if (householdReadOnly) {
       showToast("Solo lectura: no puedes generar menú aquí");
       return;
@@ -4089,6 +4119,8 @@ export default function App() {
       if (v.guardar == null) deleteRecipeVote(user.id, baseId);
       else saveRecipeVote(user.id, baseId, v.guardar);
     }
+    // Un voto que se pone es una señal (trozo 15); uno que se quita, no.
+    if (voteOf(v.personal[baseId]) === vote) contarSenales(casaActivaRef.current, senalesDePlato(recetaDelPlato(recipeId), vote === "down" ? -1 : 1));
   }, [data.recipeVotes, personalRecipeVotes, user, householdReadOnly]);
 
   // Favorite (personal collection)
@@ -4236,6 +4268,8 @@ export default function App() {
         ? "Lo dejamos para luego"
         : "Descartado esta semana";
     trackEvent(user, "dish_discarded", "menu", { reason, recipeId: baseId });
+    // «No nos gusta» es una señal (trozo 15); «lo comimos hace poco» o «esta semana no», no.
+    if (reason === "dislike") contarSenales(syncHouseholdId, senalesDePlato(recetaDelPlato(baseId), -1));
     return label;
   }, [slotBaseRecipeId, data.discards, user, householdReadOnly, syncHouseholdId]);
 
@@ -4308,12 +4342,15 @@ export default function App() {
   // quien entra desde Lola pulsa «Empezar ya» antes de que se vea su familia
   // y cae en el alta de la app (Avatares → Alergias) con lo que ya contó.
   // Con plazo: sin red o sin casa, se deja pasar igual.
-  const [splashSinEspera, setSplashSinEspera] = useState(false);
+  // El plazo es de una cuenta: el vencido sin sesión (un login lento en el
+  // móvil) no vale para la que acaba de entrar.
+  const [plazoVencidoDe, setPlazoVencidoDe] = useState(undefined);
+  const cuentaEnEspera = user?.id ?? null;
+  const splashSinEspera = plazoVencidoDe === cuentaEnEspera;
   useEffect(() => {
-    setSplashSinEspera(false);
-    const t = window.setTimeout(() => setSplashSinEspera(true), ESPERA_DESTINO_MS);
+    const t = window.setTimeout(() => setPlazoVencidoDe(cuentaEnEspera), ESPERA_DESTINO_MS);
     return () => window.clearTimeout(t);
-  }, [user?.id]);
+  }, [cuentaEnEspera]);
   const abriendoCasa = !splashSinEspera && ((conLlave && !user && !falloLlave) || (Boolean(user) && !nubeLista));
   useEffect(() => {
     if (!falloLlave) return;
@@ -4373,6 +4410,65 @@ export default function App() {
     if (d.pantalla === "recipes") setRecetasInicio({ categoria: d.categoria ?? null, mias: Boolean(d.mias), clave: Date.now() });
     fwd(() => setScreen(d.pantalla));
   }, [destinoBot, authLoading, user, nubeLista, esperaVencida, data.members, screen, handleOpenCatalogRecipe, showToast]);
+
+  const [saliendoDeCuenta, setSaliendoDeCuenta] = useState(false);
+  const inicioSinNubeRef = useRef(false);
+  // De quién es la copia de este dispositivo: la de otra cuenta no se enseña.
+  const [cuentaDeLaCopia, setCuentaDeLaCopia] = useState(() => {
+    try {
+      return localStorage.getItem("mp_cuenta_copia");
+    } catch {
+      return null;
+    }
+  });
+  const copiaAjena = Boolean(user) && !nubeLista && cuentaDeLaCopia !== user.id;
+  useEffect(() => {
+    if (!user?.id || !nubeLista) return;
+    try {
+      localStorage.setItem("mp_cuenta_copia", user.id);
+    } catch {
+      // sin almacenamiento, la próxima vez se espera a la nube
+    }
+    setCuentaDeLaCopia(user.id);
+  }, [user?.id, nubeLista]);
+  casaSinConfirmarRef.current = (authLoading || (Boolean(user) && !nubeLista)) && !splashSinEspera;
+  useEffect(() => {
+    if (copiaAjena && abriendoCasa && screen === "dashboard") setScreen("splash");
+  }, [copiaAjena, abriendoCasa, screen]);
+  const hayFamiliaGuardada = !FORCE_VALUE_PROPS && !copiaAjena && data.members.length > 0;
+  const portada = decidirPortada({
+    cargando: (authLoading && !splashSinEspera) || abriendoCasa,
+    conSesion: Boolean(user),
+    nubeLista,
+    hayFamilia: hayFamiliaGuardada,
+    hayDestino: Boolean(destinoBot),
+    pidioEntrar: avisoEntrarRef.current,
+    saliendo: saliendoDeCuenta,
+    conLlave,
+  });
+  const empezarAlta = () =>
+    fwd(() => {
+      // Sin familia guardada: alguien nuevo, con o sin sesión. Se fuerza el
+      // paso 1 porque onbStep puede venir de un intento abandonado.
+      trackEvent(user, EMBUDO.ARRANQUE, PANTALLA_EMBUDO, { canal: "app" });
+      setFirstRunOnboarding(true);
+      setHomeCoachSeen(false); // spotlight siempre al llegar al dashboard tras el tutorial
+      setOnbStep(1);
+      setScreen(FORCE_VALUE_PROPS || (GUIAS_ACTIVAS && !valuePropsSeen) ? "valueProps" : "onboarding");
+    });
+  useEffect(() => {
+    if (screen !== "splash") return;
+    if (portada === PORTADA.INICIO) {
+      inicioSinNubeRef.current = !nubeLista;
+      setScreen("dashboard");
+    } else if (portada === PORTADA.ALTA) empezarAlta();
+  }, [screen, portada]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Se pasó a Inicio por el plazo y la nube dice luego que no hay familia.
+  useEffect(() => {
+    if (!nubeLista || !inicioSinNubeRef.current) return;
+    inicioSinNubeRef.current = false;
+    if (data.members.length === 0 && !["splash", "onboarding", "valueProps"].includes(screen)) empezarAlta();
+  }, [nubeLista]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /**
    * Copiar una receta de Gente a mi biblioteca. Es una INSTANTÁNEA: nace con
@@ -4827,6 +4923,7 @@ export default function App() {
       oldRecipeId: idBase(platoAntes), newRecipeId: idBase(recipeId),
       motivo: MOTIVO_CAMBIO.OTRO, ...(reason ? { reason } : {}),
     });
+    contarSenales(casaActivaRef.current, senalesDeCambio({ sale: recetaDelPlato(platoAntes), entra: frontendRecipe, motivo: MOTIVO_CAMBIO.OTRO }));
     // Lo que se quita es una señal de que no apetecía: se apunta para medirlo y bajarlo de prioridad.
     registrarDescartes({ user, householdId: casaActivaRef.current, recetaIds: [platoAntes], ambito: ALCANCE_DESCARTE.PLATO });
   }, [data, menuPlan, showToast, user, applyDiscardReason]);
@@ -4896,6 +4993,7 @@ export default function App() {
   // slot on a working clone so carb/protein dedup stays correct within the day.
   // Defined AFTER applyShoppingFor since it depends on it (const TDZ).
   const handleRegenerateDay = useCallback(async (day, { groupIds = null } = {}) => {
+    if (pararSiCasaSinConfirmar()) return;
     if (householdReadOnly) return;
     if (pararSiFaltanMinimos(data)) return;
     const groups = gruposVigentes(data);
@@ -5062,6 +5160,7 @@ export default function App() {
    * plato. Es lo mismo que hace `handleRegenerateDay`.
    */
   const handleFillSlots = useCallback(async (ambito) => {
+    if (pararSiCasaSinConfirmar()) return;
     if (householdReadOnly) return;
     // Las dos preferencias eran dos interruptores en la pizarra y ya no lo
     // son, porque ninguna de las dos era una pregunta de verdad: nadie apunta
@@ -5600,6 +5699,8 @@ export default function App() {
     // Plato único takes over the WHOLE comida (single dish, no primero/segundo),
     // so force it into the main course regardless of which one was long-pressed.
     const placeCourse = kind === "plato_unico" ? "main" : course;
+    // El plato que había en el hueco tocado, para las señales (trozo 15).
+    const platoAntes = menuPlan?.[groupId]?.[`${day}-${meal}`]?.[placeCourse === "first" ? "firstRecipeId" : "recipeId"] ?? null;
 
     // Con el filtro en "Todos", el hueco vacío que has tocado representa a
     // TODOS los menús que tienen esa franja ese día, así que el plato entra en
@@ -5615,7 +5716,14 @@ export default function App() {
       const r = pickCatalogReplacement(data, menuPlan, { groupId: d.gid, day: d.day, meal: d.meal, course: d.course, forcedRecipe: catalogRecipe });
       if (r) colocados.push({ ...d, ...r });
     }
-    if (colocados.length === 0) { showToast("No se pudo colocar esa receta aquí"); setSlotPicker(null); return; }
+    if (colocados.length === 0) {
+      const motivo = destinos
+        .map((d) => motivoDelChoque(catalogRecipe, data, (data.groups ?? []).find((g) => g.id === d.gid), meal))
+        .find(Boolean);
+      showToast(motivo ?? "No se pudo colocar esa receta aquí");
+      setSlotPicker(null);
+      return;
+    }
     const frontendRecipe = colocados[0].frontendRecipe;
     registerRecipes(colocados.map((c) => c.frontendRecipe));
     setAiRecipes((cur) => {
@@ -5668,6 +5776,7 @@ export default function App() {
         : `Colocado «${frontendRecipe.name}»`,
     );
     trackEvent(user, "dish_manual_pick", "menu", { day, meal, kind, menus: colocados.length });
+    contarSenales(casaActivaRef.current, senalesDeCambio({ sale: recetaDelPlato(platoAntes), entra: frontendRecipe, motivo: MOTIVO_CAMBIO.MANUAL }));
   }, [slotPicker, data, menuPlan, showToast, user, applyShoppingFor]);
 
   // Reset intents: "soft" keeps the profile (family, recipes, preferences) and
@@ -5798,8 +5907,13 @@ export default function App() {
     setOnbStep(0);
     setAiRecipes([]);
     setMenuError(null);
+    setSaliendoDeCuenta(true);
     setScreen("splash");
-    await signOut();
+    try {
+      await signOut();
+    } finally {
+      setSaliendoDeCuenta(false);
+    }
   }, [signOut, user, session, showToast]);
 
   // Order: Members → Menu Model → School Menu → Restrictions → Week → Schedule →
@@ -6228,23 +6342,13 @@ export default function App() {
         ref={containerRef}
         style={{ minHeight: "100dvh", display: "flex", flexDirection: "column" }}
       >
-        {screen === "splash" && (
+        {screen === "splash" && portada !== PORTADA.VER && (
+          <EsqueletoInicio />
+        )}
+        {screen === "splash" && portada === PORTADA.VER && (
           <SplashScreen
-            onNext={() =>
-              fwd(() => {
-                // hasSaved is false here (see below), so this is always a
-                // brand-new visitor: after this they only fill in "¿quién
-                // come en casa?" and land straight on Home. Force onbStep
-                // back to 0 too — it may still be pointing at a later step
-                // left over from a previous (abandoned) attempt.
-                trackEvent(user, EMBUDO.ARRANQUE, PANTALLA_EMBUDO, { canal: "app" });
-                setFirstRunOnboarding(true);
-                setHomeCoachSeen(false); // spotlight siempre al llegar al dashboard tras el tutorial
-                setOnbStep(1);
-                setScreen(FORCE_VALUE_PROPS || (GUIAS_ACTIVAS && !valuePropsSeen) ? "valueProps" : "onboarding");
-              })
-            }
-            hasSaved={FORCE_VALUE_PROPS ? false : data.members.length > 0}
+            onNext={empezarAlta}
+            hasSaved={hayFamiliaGuardada}
             onResume={() => fwd(() => setScreen("dashboard"))}
             isAuthed={Boolean(user)}
             onGoogle={signInWithGoogle}
@@ -6349,7 +6453,6 @@ export default function App() {
                 ))
                 : wizard.bubble}
               modoPizarra={esPizarra}
-              temaPizarra={esPizarra ? temaPizarra : "claro"}
               repartoKey={esPizarra ? repartoKey : 0}
               onAddSlot={esPizarra ? setAddSlotDay : null}
               onRemoveSlot={esPizarra ? handleRemoveSlot : null}
@@ -6376,8 +6479,6 @@ export default function App() {
                       onVaciar={handleVaciarPizarra}
                       onFavorito={householdReadOnly ? undefined : toggleActiveFavorite}
                       esFavorito={Boolean(data.menus?.[data.activeMenuId]?.isFavorite)}
-                      tema={temaPizarra}
-                      onTema={alternarTemaPizarra}
                       onCompartir={householdReadOnly ? undefined : handleShareMenuLink}
                     />
                   </Suspense>
@@ -6429,6 +6530,7 @@ export default function App() {
               setData={setData}
               onAplicar={aplicarCambioPizarra}
               onEmpezar={empezarPizarra}
+              onSalir={salirDePizarra}
             />
           </Suspense>
         )}
@@ -6592,7 +6694,7 @@ export default function App() {
             key="dashboard"
             className={animDir === "forward" ? "mp-nav-fwd" : "mp-nav-back"}
           >
-            <Suspense fallback={null}>
+            <Suspense fallback={<EsqueletoInicio />}>
               <DashboardScreen
                 user={user}
                 data={data}
@@ -7471,7 +7573,7 @@ function FlipCaseLetter({ upper, lower, active, activeColor, inactiveColor, dela
 function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle, onApple, abriendoCasa = false }) {
   const handleEnter = () => (hasSaved ? onResume() : onNext());
 
-  // El vídeo de bienvenida ocupa la pantalla entera sobre negro verdoso, y el
+  // La foto de bienvenida ocupa casi toda la pantalla sobre negro verdoso, y el
   // reloj cae encima: en oscuro desapareceria.
   useStatusBarSobreFondo("oscuro");
 
@@ -7495,7 +7597,7 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle, onApple,
   const nDelay = isMenu ? 0 : 300;
 
   // Solo los botones entran: antes TODA la pantalla era un «Entrar sin
-  // cuenta», y un toque despistado en el vídeo te metía en el alta.
+  // cuenta», y un toque despistado en la foto te metía en el alta.
   return (
     <div
       style={{
@@ -7525,6 +7627,20 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle, onApple,
         @keyframes shimmer {
           0%   { transform: translateX(-120%) skewX(-18deg); }
           100% { transform: translateX(320%) skewX(-18deg); }
+        }
+        .portada-foto { object-position: center 35%; }
+        .portada-titulo { padding: 56px 32px 0; }
+        .portada-logo { width: 84px; height: 84px; }
+        .portada-letras { font-size: clamp(58px, 17vw, 84px); margin: 0 0 10px; }
+        .portada-lema { font-size: 20px; }
+        /* Móvil con las barras del navegador: el título encoge y la foto baja el
+           encuadre para que las cuatro caras quepan entre él y los botones. */
+        @media (max-height: 800px) {
+          .portada-foto { object-position: center 72%; }
+          .portada-titulo { padding-top: 28px; }
+          .portada-logo { width: 52px; height: 52px; }
+          .portada-letras { font-size: 48px; margin-bottom: 4px; }
+          .portada-lema { font-size: 16px; }
         }
         @keyframes btnGlow {
           0%, 100% { box-shadow: 0 8px 28px rgba(61,122,82,.45), 0 2px 8px rgba(0,0,0,.25); }
@@ -7567,47 +7683,58 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle, onApple,
         }}
       />
 
-      {/* Vídeo a pantalla completa */}
-      <video
-        autoPlay
-        muted
-        loop
-        playsInline
+      {/* Foto fija de fondo. */}
+      <img
+        className="portada-foto"
+        src="/portada.jpg"
+        alt=""
         aria-hidden="true"
         style={{
           position: "absolute",
-          inset: 0,
+          top: 0,
+          left: 0,
           width: "100%",
-          height: "100%",
+          // Más corta que la pantalla: su borde inferior se funde con el fondo.
+          height: "78%",
           objectFit: "cover",
+          WebkitMaskImage: "linear-gradient(180deg, #000 82%, transparent 100%)",
+          maskImage: "linear-gradient(180deg, #000 82%, transparent 100%)",
           zIndex: 1,
           pointerEvents: "none",
           animation: "fadeIn 1.2s ease-out",
         }}
-      >
-        <source src="/splash.mp4" type="video/mp4" />
-      </video>
+      />
+      {/* Oscurece arriba y abajo para que título y botones se lean sobre la foto. */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          inset: 0,
+          zIndex: 1,
+          pointerEvents: "none",
+          background: `linear-gradient(180deg, ${veloFoto(.62)} 0%, ${veloFoto(.12)} 42%, ${veloFoto(.12)} 58%, ${veloFoto(.72)} 100%)`,
+        }}
+      />
 
       {/* Título arriba */}
       <div
+        className="portada-titulo"
         style={{
           position: "absolute",
           top: 0,
           left: 0,
           right: 0,
           zIndex: 2,
-          padding: "56px 32px 0",
           color: "#fff",
           textAlign: "center",
           animation: "fadeUp .8s ease-out both",
         }}
       >
         <div
+          className="portada-logo"
           role="img"
           aria-hidden="true"
           style={{
-            width: 84,
-            height: 84,
             margin: "0 auto 6px",
             backgroundColor: isMenu ? GREEN : WHITE,
             WebkitMaskImage: "url(/logo-homenu.svg)",
@@ -7624,10 +7751,9 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle, onApple,
         />
 
         <h1
+          className="portada-letras"
           style={{
-            fontSize: "clamp(58px, 17vw, 84px)",
             fontWeight: 900,
-            margin: "0 0 10px",
             letterSpacing: "-3px",
             lineHeight: 1,
             fontFamily: "'Playfair Display', Georgia, serif",
@@ -7644,9 +7770,9 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle, onApple,
         </h1>
 
         <p
+          className="portada-lema"
           style={{
             margin: 0,
-            fontSize: 20,
             fontWeight: 700,
             fontStyle: "italic",
             letterSpacing: ".2px",

@@ -516,13 +516,12 @@ describe("la libreta en filas de preferencia (trozo 14)", () => {
     expect(op.preferencias).toEqual([expect.objectContaining({ id: FILA.id, valor: "pescado", cantidad: 3, operador: "como_mucho" })]);
   });
 
-  it("sin la 0109, la libreta sigue en el documento y se guarda en él; escribir_preferencias no se llama", async () => {
+  it("sin la RPC (la 0109 ya está aplicada), la casa no se lee: ni la libreta del documento ni un guardado sin sus filas", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
     conLibretaEnDocumento();
     responde(RUTA_PREFS, SIN_RPC(RPC_PREFERENCIAS_DE_CASA));
-    const { r } = await enTurno(() => cambiarLibreta((c) => { c["freqs.carne"] = { ...c["freqs.carne"], valor: 2 }; }));
-    expect(r).toMatchObject({ ok: true });
-    expect(escrituras().find((l) => /bot_save_casa/.test(l.ruta)).cuerpo.p_state.data.notepad.campos["freqs.carne"].valor).toBe(2);
-    expect(prefs()).toEqual([]);
+    await expect(cargarCasa(CASA)).rejects.toThrow(/preferencias sin leer: rpc_ausente/);
+    expect(escrituras()).toEqual([]);
   });
 
   it("si escribir_preferencias no guarda, vuelve el error con su fallo (no se calla)", async () => {
@@ -530,6 +529,29 @@ describe("la libreta en filas de preferencia (trozo 14)", () => {
     const { r } = await enTurno(() => cambiarLibreta((c) => { c["freqs.pescado"] = { valor: 1, origen: "texto" }; }));
     expect(r).toMatchObject({ ok: false });
     expect(r.error).toMatch(/las preferencias: rpc_ausente/);
+  });
+
+  it("cambiar a su contraria lo que dijo otra persona no se escribe: Lola lo dice y pregunta (método de choques, trozo 33)", async () => {
+    const HORNO = { ...FILA, id: "00000000-0000-4000-8000-0000000000f3", nivel: "plato", eje: "tecnica", medida: "valor", operador: "mas", valor: "horno", cantidad: 1, fuerza: "medio", dicho_by: "u2" };
+    responde(RUTA_PREFS, { status: 200, cuerpo: { v: 1, rev: 7, preferencias: [HORNO], planes: [] } });
+    const { r, avisos } = await enTurno(() => cambiarLibreta((c) => { c["tecnica.horno"] = { ...c["tecnica.horno"], valor: -1 }; }));
+    expect(r).toMatchObject({ ok: true });
+    expect(prefs()).toEqual([]);
+    expect(avisos).toEqual(["No he apuntado «menos horno»: otra persona de la casa dijo lo contrario; pregunta quién decide y no lo cambies sin su respuesta"]);
+  });
+
+  it("si solo choca una parte y lo demás no se guarda, Lola dice el choque y también el fallo (no se calla)", async () => {
+    const HORNO = { ...FILA, id: "00000000-0000-4000-8000-0000000000f3", nivel: "plato", eje: "tecnica", medida: "valor", operador: "mas", valor: "horno", cantidad: 1, fuerza: "medio", dicho_by: "u2" };
+    responde(RUTA_PREFS, { status: 200, cuerpo: { v: 1, rev: 7, preferencias: [FILA, HORNO], planes: [] } });
+    responde(RUTA_ESCRIBIR, { status: 200, cuerpo: { ...HECHA, estado: "rechazada" } });
+    const { r, avisos } = await enTurno(() => cambiarLibreta((c) => {
+      c["tecnica.horno"] = { ...c["tecnica.horno"], valor: -1 };
+      c["freqs.pescado"] = { ...c["freqs.pescado"], valor: 3 };
+    }));
+    expect(prefs()).toHaveLength(1);
+    expect(avisos).toEqual(["No he apuntado «menos horno»: otra persona de la casa dijo lo contrario; pregunta quién decide y no lo cambies sin su respuesta"]);
+    expect(r).toMatchObject({ ok: false });
+    expect(r.error).toMatch(/las preferencias: rechazada/);
   });
 
   it("las reglas de veto salen de sus filas; una nueva va a escribir_preferencias y al documento solo vuelven las presente", async () => {

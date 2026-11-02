@@ -15,7 +15,8 @@
  * ── La decisión de diseño que lo sostiene ─────────────────────────────────
  * `validateMenu` es la ÚNICA fuente de verdad de las reglas, también aquí.
  *
- * La tentación era reimplementar las 24 reglas como comprobaciones
+ * La tentación era reimplementar las reglas (todas, declaradas como
+ * preferencias del sistema en preferenciasSistema.js) como comprobaciones
  * incrementales (más rápido: mirar solo el hueco que acabas de tocar). Sería
  * repetir exactamente el error que llevamos toda la auditoría persiguiendo —
  * la misma regla escrita dos veces, divergiendo en silencio, como el prompt y
@@ -53,6 +54,17 @@ import { recipeMatchesPreferType } from "../utils/filterRecipes.js";
 import { esAnadido, topeDe } from "./cocinaTopes.js";
 import { aporteDe } from "./aporte.js";
 import { precioDePlato, precioAlto } from "./presupuesto.js";
+import { casaCon, pesoDe } from "./cumplimiento.js";
+import { OPERADOR_PREFERENCIA as OP } from "./vocabularios.js";
+import { RELAJABLES, ESCALONES_RELAJAR, PREFERENCIA_DEL_SISTEMA } from "./preferenciasSistema.js";
+
+// Los pesos de dos objetivos de la casa en el orden del solver (los explica
+// resolverMenu, paso 5). Exportados para que la entrada del motor
+// (entradaMotor.js) diga con qué peso cuenta cada uno.
+export const PESO_RECIENTE = 6e3;
+export const PESO_PRESUPUESTO = 8e3;
+// El orden del pool (por puesto) y el ruido de la semilla (< ruidoDe(pool)): un gusto pesa más que los dos (cumplimiento.test.js).
+export const PESO_ORDEN_POOL = 0.5, ruidoDe = (n) => Math.max(30, n);
 
 /**
  * ¿Está encendido? Apagado por defecto: el motor de siempre no cambia hasta
@@ -211,12 +223,17 @@ export function familiasDe(r) {
  * @param {Set<string>} [opciones.descartados] platos que la casa ha tirado lo bastante
  *                                             como para ir los últimos (ver
  *                                             lib/descartesPrioridad.js)
+ * @param {object[]} [opciones.preferencias]   las de la casa para este grupo
+ *                                             (cumplimiento.js): «más X» y
+ *                                             «menos X» ordenan con su peso; un
+ *                                             tope obligatorio no se pasa nunca
  * @param {number}   [opciones.semilla]        para reproducir un resultado
  * @param {number}   [opciones.maxNodos]       tope de nodos antes de rendirse
  * @param {number}   [opciones.maxMs]          tope de tiempo antes de rendirse
  * @returns {{ asignaciones: {slotId,recipeId}[], completo: boolean,
  *            sinCandidatos: string[], sinCombinacion: string[],
- *            relajados: string[], nodos: number, ms: number }}
+ *            relajados: string[], relajadoPor: Record<string, string>,
+ *            nodos: number, ms: number }}
  *
  * ── Cómo elige, que es donde vive la calidad ──────────────────────────────
  * El solver coge el primer candidato que no rompe nada, así que el ORDEN de
@@ -253,6 +270,7 @@ export function resolverMenu(slots, pool, {
   // € por ración que cabe en el presupuesto de la casa (lib/presupuesto.js,
   // topePorRacion), o null sin presupuesto. Ver PESO_PRESUPUESTO.
   topeRacion = null,
+  preferencias = [],
   // false: la fase 3 rellena SOLO sin relajar (el pase estricto, que es el que
   // cierra muchas semanas limpias) y se salta el relajado. Lo usan los intentos
   // de resolverConReintentos: relajar se deja para el último.
@@ -295,6 +313,22 @@ export function resolverMenu(slots, pool, {
       orden.push(pareja);
       puesto.add(pareja.slotId);
     }
+  }
+
+  // Un tope OBLIGATORIO de la casa («como mucho 2 de pescado», dicho) no se
+  // pasa nunca: ni con la holgura de los topes, ni relajando en la fase 3.
+  // Si no hay semana sin pasarse, el hueco se queda vacío y se dice (trozo 31
+  // de #1037). Los topes de siempre (el reparto con holgura) sí se relajan.
+  const obligatorios = {};
+  for (const p of preferencias) {
+    if (pesoDe(p) !== Infinity || p.operador !== OP.COMO_MUCHO || p.campo !== "freqs") continue; // obligatoria: no se pesa, es regla
+    obligatorios[p.valor] = Math.min(obligatorios[p.valor] ?? Infinity, p.cantidad);
+  }
+  freqs = { ...freqs };
+  for (const [f, n] of Object.entries(obligatorios)) freqs[f] = Math.min(freqs[f] ?? Infinity, n);
+  if (objetivo) {
+    objetivo = { ...objetivo };
+    for (const [f, n] of Object.entries(obligatorios)) if (objetivo[f] > n) objetivo[f] = n;
   }
 
   const familias = new Map(pool.map((r) => [r.id, familiasDe(r)]));
@@ -423,6 +457,20 @@ export function resolverMenu(slots, pool, {
     || slot.preferType === "plato_unico"
     || (slot.mealType === "cena" && !slot.position);
 
+  // 3c. Lo que la casa prefiere, cada cosa con su peso (cumplimiento.js,
+  //     pesoDe): «más horno» adelanta los platos al horno y «menos arroz»
+  //     atrasa los de arroz, tanto más cuanto más fuerte y cuanto más DICHO
+  //     (lo visto y lo supuesto pesan la mitad y un cuarto). Un escalón pesa
+  //     más que el orden del pool y el ruido juntos, así que un gusto dicho
+  //     se nota de verdad, y menos que lo reciente, el presupuesto y el
+  //     déficit del reparto: ordena dentro del reparto, no lo desequilibra.
+  //     Antes los sesgos solo ordenaban el pool (el término 5, ×0,5 por
+  //     puesto), y el ruido de la semilla se los comía.
+  const ordenan = preferencias.filter((p) => p.operador === OP.MAS || p.operador === OP.MENOS);
+  const gustoPorId = new Map(pool.map((r) => [r.id, ordenan.reduce(
+    (g, p) => (casaCon(p, r) ? g + (p.operador === OP.MAS ? -1 : 1) * pesoDe(p) : g), 0,
+  )]));
+
   // 4. El tiempo, solo donde significa algo: un PRIMERO es un plato de
   //    entrada, y entre dos que valen es mejor el corto — deja sitio al
   //    segundo dentro del presupuesto de la comida (regla 7c). Sin esto el
@@ -461,7 +509,7 @@ export function resolverMenu(slots, pool, {
   //    varias familias a la vez ganan siempre, semilla aparte. Para una casa
   //    que genera la misma semana una y otra vez, eso se ve como "siempre lo
   //    mismo". Entre semanas no pasa, porque poolForWeek parte el recetario.
-  const RUIDO = Math.max(30, pool.length);
+  const RUIDO = ruidoDe(pool.length);
 
   // Lo que saliste comiendo la semana pasada se va al final de su escalón.
   //
@@ -472,8 +520,7 @@ export function resolverMenu(slots, pool, {
   // martes pasado— pero entre dos platos igual de útiles gana el que hace más
   // que no ves. Subirlo por encima del déficit convertiría el reparto en
   // decorado; bajarlo al nivel del ruido lo dejaría sin efecto, que es
-  // exactamente de donde venimos.
-  const PESO_RECIENTE = 6e3;
+  // exactamente de donde venimos. (PESO_RECIENTE, arriba del fichero.)
   // Un plato que la casa ha tirado varias veces (lib/descartesPrioridad.js) va detrás de todo
   // lo demás: más que cualquier otro término de la clave, pero sigue en el dominio.
   const PESO_DESCARTADO = 2e4;
@@ -490,8 +537,7 @@ export function resolverMenu(slots, pool, {
   // cuentan como 4 €. Sin ningún precio, y si el tope está por debajo de la
   // mediana del pool (el presupuesto aprieta), lleva el castigo entero: lo
   // desconocido no puede ganar a lo que se sabe barato; con menos castigo,
-  // el ahorro saldría de no saber el precio (#958).
-  const PESO_PRESUPUESTO = 8e3;
+  // el ahorro saldría de no saber el precio (#958). (PESO_PRESUPUESTO, arriba.)
   const precios = topeRacion > 0 ? new Map(pool.map((r) => [r.id, precioDePlato(r.id)])) : new Map();
   const conocidos = [...precios.values()].filter((p) => p?.completo).map((p) => p.porRacion).sort((a, b) => a - b);
   const aprieta = conocidos.length > 0 && topeRacion < conocidos[Math.floor(conocidos.length / 2)];
@@ -525,8 +571,9 @@ export function resolverMenu(slots, pool, {
           + (recientes?.get(r.id) ?? 0) * PESO_RECIENTE
           + (descartados?.has(r.id) ? PESO_DESCARTADO : 0)
           + costePresupuesto(r) * PESO_PRESUPUESTO
+          + gustoPorId.get(r.id)
           + costeTiempo(r, slot) * 1e3
-          + indice.get(r.id) * 0.5
+          + indice.get(r.id) * PESO_ORDEN_POOL
           + (hash(r.id + slot.slotId, semilla) % RUIDO),
       }))
       .sort((a, b) => a.clave - b.clave)
@@ -690,8 +737,13 @@ export function resolverMenu(slots, pool, {
   //   1. estricta: un plato que cabe con TODAS las reglas. La poda de la fase
   //      2 puede haberse rendido antes de probarlo (medido: 42 candidatos que
   //      cabían en huecos que se quedaron vacíos);
-  //   2. relajada: se ignoran SOLO los perfiles de salud y los topes
-  //      semanales (REGLAS_RELAJABLES). Son las dos reglas que el prompt del
+  //   2. relajada, por escalones (ESCALONES_RELAJAR, método de choques: de
+  //      la clase que menos manda a la que más): primero las reglas del
+  //      sistema (segundo sin proteína, guarnición con legumbre), luego los
+  //      topes que no dijo nadie y al final el perfil de salud. Un hueco se
+  //      llena en el primer escalón que lo deja llenar, rompiendo lo menos
+  //      importante. Al último escalón se ignoran SOLO los perfiles de salud y
+  //      los topes semanales (REGLAS_RELAJABLES). Son las dos reglas que el prompt del
   //      modelo describe como preferencia —"ORIENTACIÓN, nunca exclusión",
   //      "nunca dejes un hueco sin cubrir por cumplir un perfil"— y que el
   //      validador trata como duras. Medido sobre 26 unidades aleatorias:
@@ -701,6 +753,8 @@ export function resolverMenu(slots, pool, {
   // Lo relajado se devuelve con nombre, para avisar al usuario y para que la
   // revalidación de después no lo "repare" con el fallback.
   const relajados = [];
+  // Hueco relajado → la clase del escalón en que se llenó (o de la regla que culpa).
+  const relajadoPor = {};
   if (!completo) {
     const porId = new Map(pool.map((r) => [r.id, r]));
     const slotPorId = new Map(slots.map((s) => [s.slotId, s]));
@@ -725,13 +779,26 @@ export function resolverMenu(slots, pool, {
     };
     rellenar(parcialValida);
     const estrictos = new Set(asignadas.map((a) => a.slotId));
-    const relajadaValida = () => {
-      const { violations } = validateMenu(asignadas, pool, contexto, [], {}, basesPedidas);
-      // Perfiles y topes ya no entran (los [] y {} de arriba); el resto de
-      // REGLAS_RELAJABLES (el segundo con proteína, #894) se ignora aquí.
-      return !violations.some((v) => !IGNORAR_EN_PARCIAL.has(v.rule) && !REGLAS_RELAJABLES.has(v.rule));
+    // Válida ignorando las reglas de `sueltas` (los escalones ya relajados); un
+    // tope obligatorio no se relaja nunca. Con los perfiles o los topes sueltos
+    // ni se miran (los [] y solo los topes obligatorios, como siempre).
+    const relajadaValida = (sueltas) => () => {
+      const perfiles = sueltas.has("health_profile_conflict") ? [] : healthProfiles;
+      const topes = sueltas.has("freq_max_exceeded") ? obligatorios : freqs;
+      const { violations } = validateMenu(asignadas, pool, contexto, perfiles, topes, basesPedidas);
+      return !violations.some((v) => !IGNORAR_EN_PARCIAL.has(v.rule)
+        && (!sueltas.has(v.rule) || (v.rule === "freq_max_exceeded" && v.targetKey in obligatorios)));
     };
-    if (relajar) rellenar(relajadaValida);
+    if (relajar) {
+      const sueltas = new Set();
+      for (const { clase, reglas } of ESCALONES_RELAJAR) {
+        if (vacios().length === 0) break;
+        for (const r of reglas) sueltas.add(r);
+        const antes = new Set(asignadas.map((a) => a.slotId));
+        rellenar(relajadaValida(new Set(sueltas)));
+        for (const a of asignadas) if (!antes.has(a.slotId)) relajadoPor[a.slotId] = clase;
+      }
+    }
     for (const a of asignadas) if (!estrictos.has(a.slotId)) relajados.push(a.slotId);
     // Una regla relajable entre DOS platos (`guarnicion_legumbre`, #896) culpa
     // al segundo del par, que puede ser un hueco puesto en la pasada estricta
@@ -740,7 +807,10 @@ export function resolverMenu(slots, pool, {
     if (relajados.length > 0) {
       const { violations } = validateMenu(asignadas, pool, contexto, [], {}, basesPedidas);
       for (const v of violations) {
-        if (REGLAS_RELAJABLES.has(v.rule) && !relajados.includes(v.slotId)) relajados.push(v.slotId);
+        if (REGLAS_RELAJABLES.has(v.rule) && !relajados.includes(v.slotId)) {
+          relajados.push(v.slotId);
+          relajadoPor[v.slotId] = PREFERENCIA_DEL_SISTEMA[v.rule].clase;
+        }
       }
     }
 
@@ -759,6 +829,8 @@ export function resolverMenu(slots, pool, {
     sinCombinacion,
     // Huecos colocados saltándose una de REGLAS_RELAJABLES (tope, perfil, segundo sin proteína).
     relajados,
+    // De cada uno, la clase (CLASES_CHOQUE) de lo que se cedió: sistema, supuesto o deseo.
+    relajadoPor,
     // Cocina → platos que la casa pidió y no han cabido.
     cocinasSinSitio: Object.fromEntries(
       Object.entries(cuotaCocinas)
@@ -776,16 +848,11 @@ export function resolverMenu(slots, pool, {
  * revalidación de generateGroupMenu las ignora en los huecos `relajados`.
  * `segundo_sin_proteina_principal` (#894): el prompt pide proteína en el
  * segundo, pero una casa vegana no tiene ninguno; antes un segundo sin ella
- * que un hueco vacío.
+ * que un hueco vacío. `guarnicion_legumbre` (#896): la legumbre-hidrato con
+ * arroz, pasta o patatas el mismo día; dos arroces (`guarnicion_repetida`)
+ * siguen siendo duros. Cuáles son lo dice su fuerza, en preferenciasSistema.js.
  */
-export const REGLAS_RELAJABLES = new Set([
-  "health_profile_conflict",
-  "freq_max_exceeded",
-  "segundo_sin_proteina_principal",
-  // #896: la legumbre-hidrato con arroz, pasta o patatas el mismo día. Solo
-  // ese cruce; dos arroces (`guarnicion_repetida`) siguen siendo duros.
-  "guarnicion_legumbre",
-]);
+export const REGLAS_RELAJABLES = new Set(RELAJABLES);
 
 /**
  * El solver con REINTENTOS (1 oct 2026).
