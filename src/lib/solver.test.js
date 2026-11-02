@@ -1,6 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { resolverMenu, resolverConReintentos, candidatosDeHueco, REGLAS_RELAJABLES } from "./solver.js";
-import { buildGroupContext } from "./aiPlanner.js";
+import { buildGroupContext, generateMenuWithAI, choquesDelPlan } from "./aiPlanner.js";
+import { entradaDelMotor } from "./entradaMotor.js";
+import { casaCon } from "./cumplimiento.js";
+import { dataConLibreta } from "./libretaEnData.js";
 import { filterRecipes } from "../utils/filterRecipes.js";
 import { validateMenu, splitAchievableFreqs, FREQ_KEY_MATCHERS, CENA_KCAL_SOFT_CAP, VECES_MISMA_SOPA } from "../utils/validateMenu.js";
 import { weeklySlotBudget } from "./planner.js";
@@ -359,4 +362,72 @@ describe("segundo_sin_proteina_principal es relajable (#894): sin proteína anim
       expect(sinProteina.filter((id) => !relajados.includes(id))).toEqual([]);
     }, 60000);
   }
+});
+
+describe("las preferencias de la casa en el solver (trozo 31 de #1037)", () => {
+  const pref = (extra = {}) => ({ id: "p", campo: "tecnica", valor: "horno", operador: "mas", cantidad: null, fuerza: "medio", origen: "dicho", ambito: null, ...extra });
+  const cuantos = (res, p) => {
+    const porId = new Map(res.pool.map((r) => [r.id, r]));
+    return res.asignaciones.filter((a) => casaCon(p, porId.get(a.recipeId))).length;
+  };
+
+  it("«más horno» dicho saca más platos al horno que sin decirlo; visto, no más que dicho", () => {
+    const sin = cuantos(resolverPara(casa(), { semilla: 3 }), pref());
+    const dicho = cuantos(resolverPara(casa(), { semilla: 3, preferencias: [pref()] }), pref());
+    const visto = cuantos(resolverPara(casa(), { semilla: 3, preferencias: [pref({ origen: "visto", fuerza: "bajo" })] }), pref());
+    expect(dicho).toBeGreaterThan(sin);
+    expect(dicho).toBeGreaterThanOrEqual(visto);
+  }, 60000);
+
+  it("«menos arroz» dicho saca menos arroz que sin decirlo", () => {
+    const arroz = pref({ campo: "base", valor: "arroz", operador: "menos" });
+    const sin = cuantos(resolverPara(casa(), { semilla: 5 }), arroz);
+    expect(sin).toBeGreaterThan(0);
+    expect(cuantos(resolverPara(casa(), { semilla: 5, preferencias: [arroz] }), arroz)).toBeLessThan(sin);
+  }, 60000);
+
+  it("un tope obligatorio no se pasa ni relajando: con solo pescado posible, el hueco se queda vacío", () => {
+    const data = casa();
+    const ctx = buildGroupContext(data, data.groups[0]);
+    const pool = filterRecipes(ctx.filterOpts).recipes.filter((r) => FREQ_KEY_MATCHERS.pescado(r));
+    const tope = pref({ campo: "freqs", valor: "pescado", operador: "como_mucho", cantidad: 2, fuerza: "obligatoria" });
+    const opts = { freqs: { pescado: 2 }, maxMs: 120000, semilla: 1 };
+    // Sin la preferencia, el tope de pescado es orientación: se relaja para no dejar huecos.
+    const sin = resolverMenu(ctx.slots, pool, opts);
+    expect(cuantos({ ...sin, pool }, tope)).toBeGreaterThan(2);
+    const con = resolverMenu(ctx.slots, pool, { ...opts, preferencias: [tope] });
+    expect(cuantos({ ...con, pool }, tope)).toBeLessThanOrEqual(2);
+    expect(con.sinCombinacion.length).toBeGreaterThan(0);
+  }, 60000);
+});
+
+describe("las alergias y los vetos nunca empeoran por una preferencia (trozo 31 de #1037)", () => {
+  afterEach(() => { vi.unstubAllGlobals(); });
+  // La casa pide más huevo y más coliflor; una persona es alérgica al huevo y la coliflor está vetada.
+  const libreta = (campos) => ({ v: 1, campos: Object.fromEntries(Object.entries(campos).map(([k, valor]) => [k, { valor, origen: "texto" }])) });
+  const pide = { "favoritos.huevo": true, "favoritos.coliflor": true, "tecnica.horno": 1 };
+  const generar = async (data) => {
+    vi.stubGlobal("localStorage", { getItem: (k) => (k === "mp_motor" ? "solver" : null) });
+    const entrada = entradaDelMotor(data, { hoy: "2026-11-02" });
+    const { plan, recipes } = await generateMenuWithAI(entrada);
+    return { entrada, plan, recipes };
+  };
+  const conHuevo = (recipes) => recipes.filter((r) => (r.allergens ?? []).includes("huevos") || (r.ingredients ?? []).some((i) => /huevo/i.test(i?.name ?? "")));
+  const conColiflor = (recipes) => recipes.filter((r) => (r.ingredients ?? []).some((i) => /coliflor/i.test(i?.name ?? "")));
+
+  it("la preferencia tira de verdad (sin alergia ni veto salen platos con huevo), y con ellas no sale ninguno", async () => {
+    const libre = await generar(dataConLibreta(casa(), libreta(pide)));
+    expect(conHuevo(libre.recipes).length).toBeGreaterThan(0);
+
+    const data = dataConLibreta(
+      casa({ members: [{ id: "m1", age: 38, allergies: ["huevos"] }, { id: "m2", age: 40 }] }),
+      libreta({ ...pide, "excluidos.coliflor": true }),
+    );
+    const { entrada, plan, recipes } = await generar(data);
+    expect(entrada.preferencias.map((p) => p.id)).toEqual(expect.arrayContaining(["favoritos.huevo", "favoritos.coliflor"]));
+    expect(recipes.length).toBeGreaterThan(10);
+    expect(choquesDelPlan(entrada, plan)).toEqual([]);
+    expect(conHuevo(recipes).map((r) => r.name)).toEqual([]);
+    expect(conColiflor(recipes).map((r) => r.name)).toEqual([]);
+  }, 120000);
 });
