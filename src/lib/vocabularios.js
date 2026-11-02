@@ -436,6 +436,20 @@ export const ACCIONES_ALERGIAS = ["apuntada", "recordada"];
  */
 export const MOTIVOS_TOPE_DIARIO = ["tope_alcanzado", "sin_redis", "error_redis"];
 
+// ── Los de la ficha Trato (plan fichas con estado, trozo 16): cómo quiere cada cuenta que le hable Lola.
+
+/** Ritmo con Lola: directo (decide y avisa, pregunta lo justo) o guiado (va paso a paso y pregunta más). */
+export const RITMOS_TRATO = ["directo", "guiado"];
+export const RITMO_TRATO = porNombre(RITMOS_TRATO);
+
+/** Cuánto se afina antes de generar un menú: nada (lo hace ya), poco, mucho, o preguntar cada vez (la pregunta del trozo 17). */
+export const PROFUNDIDADES_TRATO = ["nada", "poco", "mucho", "preguntar"];
+export const PROFUNDIDAD_TRATO = porNombre(PROFUNDIDADES_TRATO);
+
+/** Largo de los mensajes de Lola: corto (lo justo) o largo (con explicación). */
+export const LARGOS_TRATO = ["corto", "largo"];
+export const LARGO_TRATO = porNombre(LARGOS_TRATO);
+
 /**
  * Qué hizo la escritura con un valor en la línea de log `vocabulario_escritura` (paraEscribir,
  * más abajo, #539): `quitado`, un retirado sin sucesor que no se escribe.
@@ -512,6 +526,9 @@ export const VOCABULARIOS = Object.freeze({
   motivos_sin_puerta: MOTIVOS_SIN_PUERTA,
   motivos_tope_diario: MOTIVOS_TOPE_DIARIO,
   acciones_escritura: ACCIONES_ESCRITURA,
+  ritmos_trato: RITMOS_TRATO,
+  profundidades_trato: PROFUNDIDADES_TRATO,
+  largos_trato: LARGOS_TRATO,
 });
 
 /** La lista de un vocabulario por su nombre, o null si no existe. */
