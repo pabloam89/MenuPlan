@@ -24,8 +24,7 @@ import { GRUPOS } from "./rasgosBusqueda.js";
 import { platoVetado } from "./vetos.js";
 import { TECNICAS } from "../data/recipeSchema.js";
 
-/** Lo que lleva delante una técnica en la lista («tecnica:sarten»); lo lee también reglasEnFilas.js. */
-export const PREFIJO_TECNICA = "tecnica:";
+export const PREFIJO_TECNICA = "tecnica:"; // «tecnica:sarten»; lo lee también reglasEnFilas.js
 
 /** ¿Es un valor que se sabe aplicar? Para validar antes de guardar una regla. */
 export function itemValido(item) {

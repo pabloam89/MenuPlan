@@ -84,11 +84,13 @@ describe("las reglas de veto y sesgo como preferencias (0109, trozo 14)", () => 
     expect(cambios).toEqual([
       expect.objectContaining({ id: leidas[0].id, dias: ["Mar"], valor: "grupo:carne" }),
       expect.not.objectContaining({ id: expect.anything() }),
-      { id: leidas[1].id, borrar: true },
-    ]);
+      { id: leidas[1].id, borrar: true }]);
     // La que se creó en este guardado vuelve con el id de ids.regla; tras releer, su fila tiene otro: se borra por su firma.
     const conNueva = [...filas, comoLaBase(filaDeRegla(nueva, CTX), "00000000-0000-4000-8000-0000000000ff")];
     expect(cambiosDeReglas([...leidas, nueva], leidas, conNueva, CTX)).toEqual([{ id: "00000000-0000-4000-8000-0000000000ff", borrar: true }]);
+    expect(cambiosDeReglas([...leidas, nueva], [...leidas, { ...nueva, ambito: { dias: ["Sáb"] } }], conNueva, CTX)).toEqual([expect.objectContaining({ id: "00000000-0000-4000-8000-0000000000ff", dias: ["Sáb"] })]);
+    const coliflor = r({ sujeto: { tipo: "casa" }, efecto: { tipo: "excluir", valor: "coliflor" } });
+    expect(cambiosDeReglas([coliflor], [], filasDe([coliflor]), CTX)).toEqual([{ id: filasDe([coliflor])[0].id, borrar: true }]);
   });
 
   it("en data: las reglas de las filas junto a las presente del documento; las de veto del documento no se leen y no vuelven a él", () => {
@@ -102,8 +104,7 @@ describe("las reglas de veto y sesgo como preferencias (0109, trozo 14)", () => 
     const sinRegla = { ...conLibreta, reglas: [invitado] };
     expect(cambiosDePreferencias(data, sinRegla, filas)).toEqual([
       expect.objectContaining({ eje: "subtipoIngrediente", valor: "queso", operador: "mas" }),
-      { id: filas[0].id, borrar: true },
-    ]);
+      { id: filas[0].id, borrar: true }]);
     expect(cambiosDePreferencias(data, { groups: GRUPOS }, filas)).toEqual([]);
   });
 });

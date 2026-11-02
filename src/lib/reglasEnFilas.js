@@ -5,7 +5,7 @@
  * (un invitado no es de la casa); ámbito: dias, comidas, semanas, su salvedad (salvo_*) y la vigencia (desde, hasta).
  */
 import { CAMPOS, CAMPOS_POR_ID } from "./notepadFields.js";
-import { apunteDeFila, PreferenciaInvalida, FORMA_DE_PROYECCION, valorDelEje, valorIdDelEje, dia } from "./preferencias.js";
+import { apunteDeFila, PreferenciaInvalida, FORMA_DE_PROYECCION, valorDelEje, valorIdDelEje, dia, sesgoEnFila, esSesgo, sesgoDeFila } from "./preferencias.js";
 import { PREFIJO_TECNICA } from "./excluirHueco.js";
 import { normalizarRegla, EFECTOS } from "./reglas.js";
 import { COMIDAS, DIAS } from "./vocabularios.js";
@@ -48,7 +48,7 @@ function efectoEnFila(efecto) {
   }
   const { campo, valor, peso } = efecto.valor;
   const eje = CAMPOS_POR_ID[campo].eje;
-  return { ...SESGO, eje, valor: valorDelEje(eje, valor), operador: peso < 0 ? "menos" : "mas", cantidad: Math.abs(peso) };
+  return { ...SESGO, eje, valor: valorDelEje(eje, valor), ...sesgoEnFila(peso) };
 }
 
 /** Pura. Una regla de excluir o sesgo como fila (sin id). PreferenciaInvalida si no lo es o no cabe en la tabla. */
@@ -61,16 +61,10 @@ export function filaDeRegla(regla, ctx = {}) {
   return {
     ...sujetoEnFila(r.sujeto, ctx),
     ...efectoEnFila(r.efecto),
-    dias: lista(a.dias, DIAS, "días"),
-    comidas: lista(a.comidas, COMIDAS, "comidas"),
-    semanas: a.semanas?.length ? [...a.semanas] : null,
-    salvo_dias: lista(s.dias, DIAS, "días de la salvedad"),
-    salvo_comidas: lista(s.comidas, COMIDAS, "comidas de la salvedad"),
+    dias: lista(a.dias, DIAS, "días"), comidas: lista(a.comidas, COMIDAS, "comidas"), semanas: a.semanas?.length ? [...a.semanas] : null,
+    salvo_dias: lista(s.dias, DIAS, "días de la salvedad"), salvo_comidas: lista(s.comidas, COMIDAS, "comidas de la salvedad"),
     salvo_semanas: s.semanas?.length ? [...s.semanas] : null,
-    desde: r.vigencia?.desde ?? null,
-    hasta: r.vigencia?.hasta ?? null,
-    frase: r.frase ?? null,
-    origen: ORIGEN_FILA,
+    desde: r.vigencia?.desde ?? null, hasta: r.vigencia?.hasta ?? null, frase: r.frase ?? null, origen: ORIGEN_FILA,
   };
 }
 
@@ -82,11 +76,10 @@ function efectoDeFila(fila) {
     if (fila.eje === EJE_EXCLUIR) return { tipo: "excluir", valor: String(fila.valor) };
     return null;
   }
-  if (!["mas", "menos"].includes(fila.operador) || fila.cantidad == null) return null;
+  if (!esSesgo(fila)) return null;
   const campo = CAMPOS.find((c) => c.proyecta === "sesgos" && c.eje === fila.eje);
   if (!campo) return null;
-  const peso = Number(fila.cantidad) * (fila.operador === "menos" ? -1 : 1);
-  return { tipo: "sesgo", valor: { campo: campo.id, valor: valorIdDelEje(fila.valor), peso } };
+  return { tipo: "sesgo", valor: { campo: campo.id, valor: valorIdDelEje(fila.valor), peso: sesgoDeFila(fila) } };
 }
 
 const ambitoDe = (dias, comidas, semanas) => ({
@@ -102,13 +95,9 @@ export function reglaDeFila(fila, ctx = {}) {
     : fila.grupo_id ? { tipo: "grupo", ref: fila.grupo_id } : { tipo: "casa" };
   const salvedad = ambitoDe(fila.salvo_dias, fila.salvo_comidas, fila.salvo_semanas);
   return normalizarRegla({
-    id: fila.id,
-    sujeto,
-    ambito: ambitoDe(fila.dias, fila.comidas, fila.semanas),
+    id: fila.id, sujeto, efecto, origen: ORIGEN_REGLA, ambito: ambitoDe(fila.dias, fila.comidas, fila.semanas),
     vigencia: { ...(fila.desde ? { desde: fila.desde } : {}), ...(fila.hasta ? { hasta: fila.hasta } : {}) },
-    efecto,
     ...(Object.keys(salvedad).length ? { salvedad } : {}),
-    origen: ORIGEN_REGLA,
     ...(fila.frase ? { frase: fila.frase } : {}),
     ...(fila.created_at ? { creadaEn: dia(fila.created_at) } : {}),
   });
@@ -125,12 +114,11 @@ export const CLAVES_DE_FIRMA = ["persona_id", "grupo_id", "plan_id", "nivel", "e
 const firma = (fila) => JSON.stringify(CLAVES_DE_FIRMA.map((k) => fila[k] ?? null));
 
 /**
- * Pura. Lo que cambió entre dos listas de reglas (las de preferencia), como la lista `preferencias` de
- * escribir_preferencias: crear (sin id), cambiar y borrar (con el id de su fila: el de la regla o, si aún lleva el de
- * ids.regla porque se acaba de crear, el de la fila con su misma firma). `filas`: las de preferencias_de_casa.
+ * Pura. Lo que cambió entre dos listas de reglas (las de preferencia), para escribir_preferencias: crear, cambiar y
+ * borrar con el id de su fila: el de la regla o, si aún lleva el de ids.regla, el de la fila con la firma de como era.
  */
 export function cambiosDeReglas(antes, despues, filas, ctx = {}) {
-  const idPorFirma = new Map((filas ?? []).filter((f) => reglaDeFila(f, ctx)).map((f) => [firma(f), f.id]));
+  const idPorFirma = new Map((filas ?? []).map((f) => [firma(f), f.id]));
   const deFila = new Set(idPorFirma.values());
   const idDeFila = (regla, fila) => (deFila.has(regla.id) ? regla.id : idPorFirma.get(firma(fila ?? filaDeRegla(regla, ctx))));
   const previas = new Map((antes ?? []).filter(esReglaDePreferencia).map((r) => [r.id, r]));
@@ -139,7 +127,7 @@ export function cambiosDeReglas(antes, despues, filas, ctx = {}) {
   for (const regla of nuevas) {
     if (JSON.stringify(previas.get(regla.id)) === JSON.stringify(regla)) continue;
     const fila = filaDeRegla(regla, ctx);
-    const id = idDeFila(regla, fila);
+    const id = idDeFila(previas.get(regla.id) ?? regla, previas.has(regla.id) ? undefined : fila);
     cambios.push(id ? { ...fila, id } : fila);
   }
   const siguen = new Set(nuevas.map((r) => r.id));
