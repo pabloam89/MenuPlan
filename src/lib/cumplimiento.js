@@ -101,6 +101,9 @@ export function estadoDePreferencia(p, veces, platos = 0, posibles = 0, tamano =
   }
 }
 
+/** Pura. Los ids de las preferencias que piden un plato como `receta`: las de «más» o «al menos» que casan con él. */
+export const pidieronElPlato = (prefs, receta) => prefs.filter((p) => (p.operador === OP.MAS || p.operador === OP.AL_MENOS) && casaCon(p, receta)).map((p) => p.id);
+
 /** Pura. Cuánto cumple el menú de un grupo (`asignaciones`: { slotId, recipeId }) cada preferencia sobre `pool`; por hueco, las `mas`/`al_menos` del plato que salió. */
 export function cumplimientoDelGrupo(prefs, asignaciones, pool) {
   const porId = new Map((pool ?? []).map((r) => [r.id, r]));
@@ -115,7 +118,7 @@ export function cumplimientoDelGrupo(prefs, asignaciones, pool) {
   const porHueco = {};
   for (const a of asignaciones ?? []) {
     const r = porId.get(a.recipeId);
-    const ids = prefs.filter((p) => (p.operador === OP.MAS || p.operador === OP.AL_MENOS) && casaCon(p, r)).map((p) => p.id);
+    const ids = pidieronElPlato(prefs, r);
     if (ids.length) porHueco[a.slotId] = ids;
   }
   return { preferencias, porHueco };

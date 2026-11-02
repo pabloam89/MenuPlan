@@ -185,6 +185,7 @@ const MAPA = [
   c("tareas", "apuntar, corregir o cerrar algo pendiente", "casa", "recordar", "charla", { aProposito: "es la memoria de la charla" }),
   c("recordatorios", "programar, ver o cancelar un recordatorio", "casa", "recordar", "charla", { aProposito: "un recordatorio llega por el chat" }),
   c("empezar_de_nuevo", "empezar una charla nueva", "casa", "deshacer", "charla", { aProposito: "es de la charla" }),
+  c("trato", "decir cómo quiere cada uno que le hable Lola: ritmo, cuánto afinar, fotos y largo", "casa", "cambiar", "charla", { aProposito: "es cómo habla Lola a cada cuenta: se dice en su chat (trozo 16)" }),
 ];
 
 export const CAPACIDADES = Object.freeze(MAPA.map(conLola));
