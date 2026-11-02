@@ -3259,7 +3259,7 @@ export default function App() {
       weekCount: weekOffsets.length,
       huecos: huecosDelPlan(firstWeekPlan),
     });
-    // El tablero entra DESNUDO —sin avatares ni baldosas— y encima aparece la
+    // El tablero entra DESNUDO —sin chips ni baldosas— y encima aparece la
     // hoja de arranque preguntando los días. Los mandos llegan al darle a
     // «Empezar». Es transitorio a propósito: no es un estado del menú sino un
     // momento de esta sesión, y guardarlo dejaría una pizarra a medio arrancar
