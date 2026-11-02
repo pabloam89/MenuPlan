@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { marcasDe, listaConMarcas, compraQueSeVe, esCompraConMarcas, articulosDe } from "./compraMarcas.js";
+import { marcasDe, listaConMarcas, compraQueSeVe, compraParaGuardar, esCompraConMarcas, articulosDe } from "./compraMarcas.js";
 import { MARCAS_COMPRA, MARCA_COMPRA } from "./vocabularios.js";
 
 const leche = { id: "leche|ml", name: "Leche", unit: "ml", qty: 1000, have: false, atHome: false, manual: false, sources: [{ recipeId: "r1" }] };
@@ -79,6 +79,23 @@ describe("la compra guarda solo marcas (trozo 18)", () => {
     const guardada = { marcas: [{ id: "pan|ud", nombre: "Pan", unidad: "ud", marcas: [MARCA_COMPRA.COMPRADO] }] };
     const vista = compraQueSeVe(guardada, () => derivados);
     expect(vista.items.find((it) => it.id === "pan|ud").have).toBe(true);
+  });
+
+  it("lo quitado viaja aparte en la vista y se vuelve a guardar aunque no se vea", () => {
+    const guardada = { marcas: [
+      { id: "pan|ud", nombre: "Pan", unidad: "ud", marcas: [MARCA_COMPRA.QUITADO] },
+      { id: "leche|ml", nombre: "Leche", unidad: "ml", marcas: [MARCA_COMPRA.COMPRADO] },
+    ] };
+    const vista = compraQueSeVe(guardada, () => derivados);
+    expect(vista.quitados.map((q) => q.id)).toEqual(["pan|ud"]);
+    // Sin la lista derivada a mano (la app), lo quitado sale de `quitados`.
+    const otraVez = compraParaGuardar(vista);
+    expect(otraVez.marcas.map((m) => [m.id, m.marcas])).toEqual([["leche|ml", [MARCA_COMPRA.COMPRADO]], ["pan|ud", [MARCA_COMPRA.QUITADO]]]);
+    // Si vuelve a la lista (se apunta otra vez), deja de estar quitado.
+    const devuelto = compraParaGuardar({ ...vista, items: [...vista.items, { ...pan, manual: true }] });
+    expect(devuelto.marcas.find((m) => m.id === "pan|ud").marcas).toEqual([MARCA_COMPRA.ANADIDO]);
+    // Lo ya guardado como marcas se guarda tal cual.
+    expect(compraParaGuardar(guardada)).toBe(guardada);
   });
 
   it("articulosDe junta lo del súper y lo que cubre la despensa", () => {

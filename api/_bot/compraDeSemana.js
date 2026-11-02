@@ -8,7 +8,7 @@
  *
  * Una semana con la forma de antes (`{ items }`) se lee y se guarda tal cual.
  */
-import { esCompraConMarcas, compraQueSeVe, marcasDe, articulosDe } from "../../src/lib/compraMarcas.js";
+import { esCompraConMarcas, compraQueSeVe, compraParaGuardar, articulosDe } from "../../src/lib/compraMarcas.js";
 
 // menu.js importa casa.js, que importa esto: el motor se pide al usarlo, no al cargar.
 const deMenu = () => import("./menu.js");
@@ -18,12 +18,12 @@ const deMenu = () => import("./menu.js");
  * @param {object} m el motor (menu.js, motor())
  * @param {object} casa
  * @param {object} semana
- * @param {object[] | null} despensa
+ * @param {object[]} despensa
  */
 export async function derivadaDe(m, casa, semana, despensa) {
   const { grupos } = await deMenu();
   const gs = grupos({ ...casa, semana });
-  return articulosDe(m.buildShoppingList(semana?.plan ?? {}, gs, m.getDayMeals(casa?.state?.data ?? {}), despensa ?? []));
+  return articulosDe(m.buildShoppingList(semana?.plan ?? {}, gs, m.getDayMeals(casa?.state?.data ?? {}), despensa));
 }
 
 /**
@@ -37,6 +37,8 @@ export async function conCompraQueSeVe(casa) {
   const { motor, leerDespensa } = await deMenu();
   const m = await motor();
   const despensa = await leerDespensa(m, casa.householdId);
+  // Sin la despensa, lo que hay en casa saldría por comprar: la casa no se lee (como con la familia).
+  if (despensa == null) throw new Error("no he podido leer la despensa, y sin ella no sé qué falta comprar");
   for (const s of conMarcas) {
     const derivada = await derivadaDe(m, casa, s, despensa);
     s.compraGuardada = s.shopping;
@@ -53,9 +55,10 @@ export async function conCompraQueSeVe(casa) {
  */
 export async function semanaParaGuardar(casa, semana) {
   if (!semana?.shopping || !esCompraConMarcas(casa?.semana?.compraGuardada)) return semana;
-  const { motor, leerDespensa } = await deMenu();
+  const { motor } = await deMenu();
   const m = await motor();
   const plan = semana.plan ?? casa.semana.plan;
-  const derivada = await derivadaDe(m, casa, { ...casa.semana, plan }, await leerDespensa(m, casa.householdId));
-  return { ...semana, shopping: marcasDe(semana.shopping.items, derivada) };
+  // Sin despensa a propósito: solo cuentan los ids de lo que pide el menú (lo quitado), y la despensa no los cambia.
+  const derivada = await derivadaDe(m, casa, { ...casa.semana, plan }, []);
+  return { ...semana, shopping: compraParaGuardar(semana.shopping, derivada) };
 }

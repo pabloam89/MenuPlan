@@ -19,6 +19,7 @@
  * Puro: sin base ni red.
  */
 import { MARCA_COMPRA } from "./vocabularios.js";
+import { articuloAMano } from "./compraIdentidad.js";
 
 const { ANADIDO, COMPRADO, EN_CASA, QUITADO } = MARCA_COMPRA;
 
@@ -80,11 +81,7 @@ export function listaConMarcas(derivados, guardada) {
   for (const m of guardada?.marcas ?? []) {
     if (usados.has(m.id) || !tiene(m, ANADIDO)) continue;
     const extra = Object.fromEntries(CAMPOS_ANADIDO.filter((c) => m[c] != null).map((c) => [c, m[c]]));
-    lista.push({
-      category: "Otros", qty: null, displayQty: "", sources: [], adapted: false, ...extra,
-      id: m.id, name: m.nombre, unit: m.unidad ?? "", manual: true,
-      have: tiene(m, COMPRADO), atHome: tiene(m, EN_CASA),
-    });
+    lista.push(articuloAMano({ id: m.id, name: m.nombre, unit: m.unidad ?? "", have: tiene(m, COMPRADO), atHome: tiene(m, EN_CASA) }, extra));
   }
   return lista;
 }
@@ -92,14 +89,32 @@ export function listaConMarcas(derivados, guardada) {
 /**
  * Lo que se ve de una compra guardada: con marcas, la derivada con ellas
  * encima; con la forma de antes (`{ items }`), esa lista tal cual. `derivar`
- * solo se llama si hace falta (cuesta recorrer el menú).
+ * solo se llama si hace falta (cuesta recorrer el menú). Con marcas, lo quitado
+ * viaja aparte (`quitados`), para volver a guardarlo aunque no se vea.
  * @param {object | null | undefined} guardada
  * @param {() => object[]} derivar
- * @returns {{ items: object[] }}
+ * @returns {{ items: object[], quitados?: object[] }}
  */
 export function compraQueSeVe(guardada, derivar) {
-  if (esCompraConMarcas(guardada)) return { items: listaConMarcas(derivar(), guardada) };
-  return { items: guardada?.items ?? [] };
+  if (!esCompraConMarcas(guardada)) return { items: guardada?.items ?? [] };
+  const quitados = guardada.marcas.filter((m) => m.marcas?.includes(QUITADO));
+  return { items: listaConMarcas(derivar(), guardada), quitados };
+}
+
+/**
+ * Lo que se guarda de la compra que se ve: sus marcas (marcasDe frente a
+ * `derivados`, si se tienen) más lo quitado que viajaba aparte y no ha vuelto
+ * a la lista. Si ya son marcas, tal cual.
+ * @param {{ items?: object[], quitados?: object[], marcas?: object[] } | null | undefined} vista
+ * @param {object[]} [derivados]
+ * @returns {{ marcas: object[] }}
+ */
+export function compraParaGuardar(vista, derivados = []) {
+  if (esCompraConMarcas(vista)) return vista;
+  const { marcas } = marcasDe(vista?.items, derivados);
+  const ya = new Set([...marcas.map((m) => m.id), ...(vista?.items ?? []).map((it) => it?.id)]);
+  for (const q of vista?.quitados ?? []) if (!ya.has(q.id)) marcas.push(q);
+  return { marcas };
 }
 
 /** Los artículos derivados de una lista de buildShoppingList: los del súper y los que cubre la despensa. */

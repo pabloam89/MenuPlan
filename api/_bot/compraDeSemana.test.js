@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeAll } from "vitest";
+import { describe, it, expect, vi, beforeAll, beforeEach } from "vitest";
 import { familiaDeFilas, RPC_FAMILIA, RPC_FICHA, fichaDePrueba, RPC_PREFERENCIAS_DE_CASA, preferenciasDeFilas } from "./familiaDePrueba.js";
 import { MARCA_COMPRA } from "../../src/lib/vocabularios.js";
 
@@ -10,11 +10,13 @@ const pan = { id: "pan|ud", name: "Pan", unit: "ud", have: false, atHome: false,
 const huevos = { id: "huevo|ud", name: "Huevos", unit: "ud", have: false, atHome: false, manual: false, sources: [] };
 
 let semanaGuardada;
+let despensaRota = false;
 const llamadas = [];
 vi.mock("./db.js", () => ({
   select: vi.fn(async (tabla) => {
     if (tabla === "household_state") return [{ state: { data: {} }, bot_rev: 1, updated_at: "2026-11-02T10:00:00Z" }];
     if (tabla === "households") return [{ owner_user_id: "u1" }];
+    if (tabla === "user_pantry" && despensaRota) throw new Error("caída");
     if (tabla === "user_menus") return [{ id: "m1", user_id: "u1", is_active: true, updated_at: "2026-11-01T10:00:00Z" }];
     if (tabla === "user_menu_weeks") {
       return [{ menu_id: "m1", week_start: "2026-11-02", week_end: "2026-11-08", week_offset: 0, start_day_idx: 0, active_days: null, plan: { g1: {} }, shopping: semanaGuardada }];
@@ -48,13 +50,20 @@ const { cargarCasa, guardarCasa } = await import("./casa.js");
 const { usarMotor } = await import("./menu.js");
 beforeAll(() => usarMotor(motorDePrueba));
 
+// Cada test pone su semana: ninguno depende de lo que deja otro.
+const conMarcas = () => ({ marcas: [
+  { id: "leche|ml", nombre: "Leche", unidad: "ml", marcas: [MARCA_COMPRA.COMPRADO] },
+  { id: "pan|ud", nombre: "Pan", unidad: "ud", marcas: [MARCA_COMPRA.QUITADO] },
+  { id: "manual:cafe:x", nombre: "Café", unidad: "", marcas: [MARCA_COMPRA.ANADIDO] },
+] });
+
 describe("la compra de la semana en Lola: derivada más marcas", () => {
+  beforeEach(() => {
+    despensaRota = false;
+  });
+
   it("una semana con marcas se lee como la lista que se ve", async () => {
-    semanaGuardada = { marcas: [
-      { id: "leche|ml", nombre: "Leche", unidad: "ml", marcas: [MARCA_COMPRA.COMPRADO] },
-      { id: "pan|ud", nombre: "Pan", unidad: "ud", marcas: [MARCA_COMPRA.QUITADO] },
-      { id: "manual:cafe:x", nombre: "Café", unidad: "", marcas: [MARCA_COMPRA.ANADIDO] },
-    ] };
+    semanaGuardada = conMarcas();
     const casa = await cargarCasa("h1", { fresca: true });
     expect(casa.semana.shopping.items.map((it) => [it.name, it.have, Boolean(it.manual)])).toEqual([
       ["Leche", true, false],
@@ -65,6 +74,7 @@ describe("la compra de la semana en Lola: derivada más marcas", () => {
   });
 
   it("al guardar, vuelven a ser marcas: lo tachado ahora se suma, lo quitado sigue quitado", async () => {
+    semanaGuardada = conMarcas();
     const casa = await cargarCasa("h1", { fresca: true });
     const items = casa.semana.shopping.items.map((it) => (it.name === "Huevos" ? { ...it, have: true } : it));
     llamadas.length = 0;
@@ -78,6 +88,12 @@ describe("la compra de la semana en Lola: derivada más marcas", () => {
       ["manual:cafe:x", [MARCA_COMPRA.ANADIDO]],
       ["pan|ud", [MARCA_COMPRA.QUITADO]],
     ]);
+  });
+
+  it("sin poder leer la despensa, la casa no se lee: lo que hay en casa saldría por comprar", async () => {
+    semanaGuardada = conMarcas();
+    despensaRota = true;
+    await expect(cargarCasa("h1", { fresca: true })).rejects.toThrow(/despensa/);
   });
 
   it("una semana con la lista de antes se lee y se guarda tal cual, sin cargar el motor", async () => {
