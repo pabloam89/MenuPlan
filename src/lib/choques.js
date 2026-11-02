@@ -14,7 +14,7 @@
 import {
   CLASES_CHOQUE, CLASE_CHOQUE as CL, CRITERIOS_CHOQUE, CRITERIO_CHOQUE as CR, RESPUESTA_CHOQUE as R, ORIGEN_DATO, FUERZAS_PREFERENCIA,
 } from "./vocabularios.js";
-import { papelDe, puede } from "./papeles.js";
+import { puede } from "./papeles.js";
 
 /** La fuerza que no se rompe (la primera de FUERZAS_PREFERENCIA). */
 const OBLIGATORIA = FUERZAS_PREFERENCIA[0];
@@ -47,8 +47,8 @@ export function rangoDeClase({ clase, fuerza }) {
   return CLASES_CHOQUE.length - i;
 }
 
-/** Quién está detrás, del que más decide al que menos: un adulto que edita la casa, un lector, alguien sin papel. */
-const rangoDePapel = (papel) => (papel == null ? 0 : puede(papel, "editar_casa") ? 2 : papelDe(papel) === "viewer" ? 1 : 0);
+/** Quién está detrás, del que más decide al que menos: un adulto que edita la casa, otro papel (lector), sin papel. */
+const rangoDePapel = (papel) => (papel == null ? 0 : puede(papel, "editar_casa") ? 2 : 1);
 /** Lo más concreto gana: de quién (persona > grupo > casa) y para cuándo (un día > la semana > siempre). */
 export const SUJETOS = Object.freeze(["casa", "grupo", "persona"]);
 export const CUANDOS = Object.freeze(["siempre", "semana", "dia"]);

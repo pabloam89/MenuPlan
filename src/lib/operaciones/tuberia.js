@@ -202,8 +202,7 @@ export async function operarPreferencias(pedido, { papel, rpc, falloDeError }) {
     apuntarSinGuardar({ fallo, motivo: contra.motivo, canal: op.canal, campo });
     return { guardado: false, fallo, error: contra.motivo };
   }
-  // Choques al guardar, con lo que ya tiene la casa. Sin poder leerla no se escribe: sin saber con qué choca, se
-  // podría pisar lo que dijo otra persona.
+  // Choques con lo que ya tiene la casa. Sin poder leerla no se escribe: se podría pisar lo de otra persona.
   const leidas = await llamarRpc(RPC_LEER_PREFERENCIAS, { p_casa: op.casa }, { rpc, falloDeError, canal: op.canal, campo });
   if (leidas.fallo) return { guardado: false, fallo: leidas.fallo };
   const at = op.pedida_at ?? new Date().toISOString();
@@ -213,7 +212,7 @@ export async function operarPreferencias(pedido, { papel, rpc, falloDeError }) {
   const { preferencias, apartadas } = trasLosChoques(op.preferencias, choques);
   // Lo apartado se contesta (Lola lo dice o lo pregunta); si no queda nada que escribir, no hay operación.
   const contestar = (res) => (choques.length ? { ...res, choques, apartadas } : res);
-  if (!preferencias.length && !(op.planes ?? []).length) return contestar({ guardado: false, error: "choque" });
+  if (!preferencias.length && !(op.planes ?? []).length) return contestar({ guardado: false });
   const { r, fallo } = await llamarRpc(RPC_PREFERENCIAS, { p_operacion: { ...op, preferencias, choques } }, { rpc, falloDeError, canal: op.canal, campo });
   return contestar(fallo ? { guardado: false, fallo } : resultadoDeOperacion(r));
 }

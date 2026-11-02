@@ -14,7 +14,7 @@
  * household_members; Lola lo tiene de papelDeQuien).
  */
 import { REGISTRO_CAMPOS } from "../registroCampos.js";
-import { puede } from "../papeles.js";
+import { puede, PAPELES } from "../papeles.js";
 import {
   CANAL_DATO, ORIGENES_DE_LA_FAMILIA, MOTIVO_PUERTA, FALLO_DATO, OPERADOR_PREFERENCIA as OP, MOMENTO_CHOQUE,
   RESPUESTA_CHOQUE as R, CRITERIO_CHOQUE as CR,
@@ -52,12 +52,13 @@ export function comprobar(op, { papel }) {
  */
 export const falloDePuerta = (motivo) => (motivo === MOTIVO_PUERTA.SIN_PERMISO ? FALLO_DATO.SIN_PERMISO : FALLO_DATO.INVALIDO);
 
-// ── Choques al guardar (método de choques, trozo 33: src/lib/choques.js) ────────────────────────────────────────
 /** Los operadores que no pueden cumplirse a la vez sobre el mismo eje y valor; los de cantidad, solo si no caben. */
 const OPUESTO = Object.freeze({ [OP.MAS]: OP.MENOS, [OP.MENOS]: OP.MAS, [OP.ES]: OP.NO_ES, [OP.NO_ES]: OP.ES, [OP.AL_MENOS]: OP.COMO_MUCHO, [OP.COMO_MUCHO]: OP.AL_MENOS });
 const CON_CANTIDAD = [OP.AL_MENOS, OP.COMO_MUCHO];
 const cortan = (x, y) => !x || !y || x.some((v) => y.includes(v));
 const sujetoDe = (p) => p.persona_id ?? p.grupo_id ?? null;
+// Lo dicho por otra persona lo dijo alguien que edita la casa (la puerta no deja otra cosa): el menor papel que puede.
+const QUIEN_EDITA = PAPELES.filter((p) => puede(p, "editar_casa")).at(-1);
 
 /** Pura. ¿Se contradicen dos filas de preferencia? Mismo eje, nivel y valor, sujetos y ámbitos que se cruzan, operadores opuestos. */
 export function seContradicen(a, b) {
@@ -77,8 +78,7 @@ function ladoDe(p, { autor, papel, at }) {
   return {
     clase: claseDe({ origen: p.origen ?? ORIGENES_DE_LA_FAMILIA[0] }),
     fuerza: p.fuerza,
-    // Lo dicho lo dijo alguien que edita la casa (la puerta no deja otra cosa); lo visto o supuesto no tiene autor.
-    autor, papel: autor ? papel : null,
+    autor, papel: autor ? papel : null, // lo visto o supuesto no tiene autor
     ...alcanceDe(p),
     vigente: !p.hasta || p.hasta >= String(at).slice(0, 10),
     at: p.updated_at ?? at,
@@ -103,7 +103,7 @@ export function choquesAlGuardar(nuevas, guardadas, { autor, papel, at, delante 
       if (g.id === p.id ? delante : tocadas.has(g.id)) continue;
       if (!seContradicen(p, g)) continue;
       const dichaPor = deLaFamiliaP(g) ? g.dicho_by ?? null : null;
-      const guardada = ladoDe(g, { autor: dichaPor, papel: dichaPor === autor ? papel : "editor", at });
+      const guardada = ladoDe(g, { autor: dichaPor, papel: dichaPor === autor ? papel : QUIEN_EDITA, at });
       // De la casa: lo guardado lo dijo otra persona. Se pregunta a quien tiene autoridad, no a quien escribe.
       const de_la_casa = !!guardada.autor && guardada.autor !== nueva.autor;
       out.push(resolverChoque(nueva, guardada, { de_la_casa }, { momento: MOMENTO_CHOQUE.AL_GUARDAR, nueva: i, guardada: g.id }));
