@@ -153,6 +153,7 @@ import { outStateFor, isHomeState, nextSlotState, resolveQuickActions } from "..
 import { importSchoolMenuFile, selectBestWeek } from "../lib/schoolMenuImport.js";
 import { SchoolMenuDeck } from "./SchoolMenuDeck.jsx";
 import { estructuraDelGrupo, estructuraCenaDelGrupo, conEstructura } from "../lib/estructuraPlatos.js";
+import { conInterruptor, conPresupuesto, leerPresupuesto, PRESUPUESTO_DE_PARTIDA } from "../lib/presupuestoCasa.js";
 
 const MEAL_STRUCTURE_CARDS = [
   {
@@ -10924,13 +10925,16 @@ export function OnboardingBudget({ data, setData, onBack, onNext, onFinish, onRe
     return raw.length;
   }, [data.menuWeekOffsets, data.menuWeek]);
 
-  const hasBudget = Boolean(data.hasBudget);
+  // Un solo dato (presupuestoCasa.js): null es «sin presupuesto»; una cifra que no vale («sin_cifra») cuenta como
+  // encendido y se dice debajo del deslizador: la cifra de partida que enseña no se aplica hasta que se elige una.
+  const { estado: estadoPresupuesto, euros } = leerPresupuesto(data);
+  const hasBudget = estadoPresupuesto !== "sin";
   const primaryStore = data.supermarkets[0] ?? "";
   const mercadonaOn = hasBudget && primaryStore === "Mercadona";
 
   // Sin presupuesto no se vacían los súper: no es decir «no compro en ninguno», y borraría los que apuntó Lola.
   const setBudgetMode = (capped) => {
-    setData((d) => ({ ...d, hasBudget: capped, wantsPriceEstimates: capped }));
+    setData((d) => ({ ...conInterruptor(d, capped), wantsPriceEstimates: capped }));
   };
 
   // El elegido va el primero (el que se enseña aquí) y los demás se quedan (#958 C): sustituir la lista
@@ -10970,12 +10974,17 @@ export function OnboardingBudget({ data, setData, onBack, onNext, onFinish, onRe
         <div>
           <p style={onbBudgetFieldLabel}>¿Cuánto quieres gastar por semana?</p>
           <BudgetSliderEuroRow
-            value={data.budget}
+            value={euros ?? PRESUPUESTO_DE_PARTIDA}
             min={30}
             max={200}
             step={5}
-            onChange={(v) => setData((d) => ({ ...d, budget: v }))}
+            onChange={(v) => setData((d) => conPresupuesto(d, v))}
           />
+          {estadoPresupuesto === "sin_cifra" && (
+            <OnbBudgetStoreHint>
+              El presupuesto está activado pero sin una cifra válida, así que no se tiene en cuenta: elige cuánto quieres gastar.
+            </OnbBudgetStoreHint>
+          )}
         </div>
 
         <div style={{ marginTop: 20 }}>
