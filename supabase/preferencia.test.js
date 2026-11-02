@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { EJES } from "../src/data/axisRegistry.js";
 import { MOTIVOS_SIN_HACER_PREFERENCIA } from "../src/lib/vocabularios.js";
 import { MAX_PREFERENCIAS_OPERACION, ORIGEN_PREFERENCIA_POR_DEFECTO } from "../src/lib/operaciones/tuberia.js";
@@ -25,11 +25,14 @@ function cuerpo(nombre) {
 const TABLAS = ["registro_eje", "plan_preferencias", "preferencia", "senal", "ticket", "precio_observado", "cocinado"];
 
 describe("0109: preferencias, señales e historiales", () => {
-  it("registro_eje es EJES (axisRegistry.js) entero: mismo id y mismo tipo, ni uno más ni uno menos", () => {
-    const insert = codigo.match(/insert into public\.registro_eje \(id, tipo\) values([\s\S]*?);/);
-    expect(insert, "falta el INSERT de registro_eje").not.toBeNull();
-    const filas = [...insert[1].matchAll(/\('([^']+)', '([^']+)'\)/g)].map(([, id, tipo]) => [id, tipo]);
-    expect(filas).toEqual(EJES.map((e) => [e.id, e.tipo]));
+  it("registro_eje es EJES (axisRegistry.js) entero: los INSERT de la 0109 y de las que siguen (0117), mismo id y tipo", () => {
+    const dir = new URL("./migrations/", import.meta.url);
+    const inserts = readdirSync(dir).filter((f) => f.endsWith(".sql")).sort()
+      .flatMap((f) => [...sinComentarios(readFileSync(new URL(f, dir), "utf8")).matchAll(/insert into public\.registro_eje \(id, tipo\) values([\s\S]*?);/g)]);
+    expect(inserts.length, "faltan los INSERT de registro_eje").toBeGreaterThanOrEqual(2);
+    const filas = inserts.flatMap((m) => [...m[1].matchAll(/\('([^']+)', '([^']+)'\)/g)].map(([, id, tipo]) => `${id}:${tipo}`));
+    expect(new Set(filas).size, "un eje insertado dos veces").toBe(filas.length);
+    expect([...filas].sort()).toEqual(EJES.map((e) => `${e.id}:${e.tipo}`).sort());
   });
 
   it("cada tabla nace con RLS y sin permisos de usuario ni políticas: solo el servidor (como operacion y sobre)", () => {
