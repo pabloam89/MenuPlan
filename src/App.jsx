@@ -405,9 +405,8 @@ const INITIAL_DATA = {
   pantryPrefs: { consume: "onCook" },
   // Si el usuario ya respondió el cuestionario de despensa (modo avanzado).
   pantryPrefsSet: false,
-  // Si ya se ha mostrado el cuestionario de despensa al menos una vez (para no
-  // volver a abrirlo solo aunque respondan "más tarde"; el icono lo reabre).
-  pantryPrefsSeen: false,
+  // Si el cuestionario ya salió solo una vez no es de la casa sino de este
+  // móvil: lo recuerda marcasLocales.js (trozo 12 de #1037).
   // Deltas reversibles de la bajada "al generar el menú" (decisión D), por
   // semana — ver migración arriba para la explicación completa.
   pantryGenDeltas: {},
@@ -791,7 +790,6 @@ function migrate(state) {
     consume: ["endOfDay", "onGenerate", "onCook"].includes(d.pantryPrefs.consume) ? d.pantryPrefs.consume : "onCook",
   };
   if (typeof d.pantryPrefsSet !== "boolean") d.pantryPrefsSet = false;
-  if (typeof d.pantryPrefsSeen !== "boolean") d.pantryPrefsSeen = false;
   // Deltas reversibles de la última bajada "al generar el menú", por semana
   // (clave = startISO). Permiten deshacer al regenerar la misma semana sin
   // descontar dos veces. Nunca se muestran en UI, es solo contabilidad interna.

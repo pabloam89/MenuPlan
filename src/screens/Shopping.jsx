@@ -1,5 +1,6 @@
 import { FRONTAL_BOT, GUIAS_ACTIVAS, abrirLola } from "../lib/frontalBot.js";
 import { pedidoMenu } from "../lib/pedidoLola.js";
+import { abrirPrefsDespensaSola, apuntarMarcaLocal } from "../lib/marcasLocales.js";
 import lolaFoto from "../assets/lola/lola-perfil.jpg";
 import { Suspense, lazy, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -419,11 +420,12 @@ export function ShoppingScreen({
   // aparece sola la primera vez que entras en "En casa" con un menú activo
   // (antes de eso la pregunta es abstracta, no hay nada que descontar), y el
   // icono de ajustes de esa pestaña la reabre cuando quieras. Editable solo
-  // si hay setData (no en hogares de solo lectura).
+  // si hay setData (no en hogares de solo lectura). Que ya salió lo recuerda
+  // este móvil (marcasLocales.js), no la casa.
   const canEditPantryPrefs = Boolean(setData);
   const [showPantryPrefs, setShowPantryPrefs] = useState(false);
   useEffect(() => {
-    if (buyTab === "home" && canEditPantryPrefs && data?.activeMenuId && !data?.pantryPrefsSeen) {
+    if (abrirPrefsDespensaSola({ pestana: buyTab, puedeEditar: canEditPantryPrefs, menuActivo: data?.activeMenuId, casa: pantryHouseholdId })) {
       setShowPantryPrefs(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1532,14 +1534,14 @@ export function ShoppingScreen({
               ...d,
               pantryPrefs: { ...(d.pantryPrefs ?? {}), consume },
               pantryPrefsSet: true,
-              pantryPrefsSeen: true,
             }));
             setShowPantryPrefs(false);
+            apuntarMarcaLocal("pantryPrefsSeen", pantryHouseholdId);
             onToast?.("Preferencia guardada");
           }}
           onClose={() => {
-            setData((d) => (d.pantryPrefsSeen ? d : { ...d, pantryPrefsSeen: true }));
             setShowPantryPrefs(false);
+            apuntarMarcaLocal("pantryPrefsSeen", pantryHouseholdId);
           }}
         />
       )}
