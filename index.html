@@ -36,7 +36,9 @@
         if (conFamilia || entrando || Object.keys(localStorage).some(function (k) { return /^sb-.*-auth-token$/.test(k); })) {
           document.documentElement.classList.add("con-casa");
         }
-      } catch (e) {}
+      } catch (e) {
+        console.warn("[arranque] sin esqueleto: no se pudo leer el dispositivo", e);
+      }
     </script>
     <style>
       html:not(.con-casa) #root > .esq { display: none; }

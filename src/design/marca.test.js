@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { color, tamano } from './tokens.js'
 import { APP_SHELL_MAX_WIDTH, BOTTOM_NAV_HEIGHT } from '../components/ui.jsx'
@@ -42,6 +42,36 @@ describe('el esqueleto de index.html', () => {
     expect(conCasa({}, { search: '?code=x', hash: '' })).toBe(true)
     expect(conCasa({}, { search: '?entrar=x', hash: '' })).toBe(true)
     expect(conCasa({}, { search: '?tutorial=1', hash: '' })).toBe(false)
+  })
+
+  it('si no se puede leer el dispositivo, avisa y no marca', () => {
+    const script = leer('index.html').match(/<script>([\s\S]*?)<\/script>/)[1]
+    const aviso = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const add = vi.fn()
+    const almacen = { getItem: () => { throw new Error('bloqueado') } }
+    new Function('localStorage', 'document', 'location', script)(
+      almacen,
+      { documentElement: { classList: { add } } },
+      { search: '', hash: '' },
+    )
+    expect(add).not.toHaveBeenCalled()
+    expect(aviso).toHaveBeenCalledOnce()
+    aviso.mockRestore()
+  })
+
+  it('el de index.html y el de React son el mismo, con las medidas de la app', () => {
+    const html = leer('index.html')
+    const clases = (texto, atributo) =>
+      [...texto.matchAll(new RegExp(atributo + '="(esq[^"]*)"', 'g'))].map((m) => m[1])
+    const estatico = html.slice(html.indexOf('<div id="root">'))
+    expect(clases(estatico, 'class')).toEqual(clases(leer('src/components/EsqueletoInicio.jsx'), 'className'))
+    expect(html).toContain('max-width: ' + APP_SHELL_MAX_WIDTH + 'px')
+    expect(html).toContain('height: ' + BOTTOM_NAV_HEIGHT + 'px')
+  })
+
+  it('reconoce el parámetro de la llave de Lola', () => {
+    expect(leer('src/lib/llaveLola.js')).toContain('"entrar"')
+    expect(leer('index.html')).toContain('|entrar)=')
   })
 })
 
