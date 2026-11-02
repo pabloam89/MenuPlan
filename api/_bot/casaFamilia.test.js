@@ -515,13 +515,12 @@ describe("la libreta en filas de preferencia (trozo 14)", () => {
     expect(op.preferencias).toEqual([expect.objectContaining({ id: FILA.id, valor: "pescado", cantidad: 3, operador: "como_mucho" })]);
   });
 
-  it("sin la 0109, la libreta sigue en el documento y se guarda en él; escribir_preferencias no se llama", async () => {
+  it("sin la RPC (la 0109 ya está aplicada), la casa no se lee: ni la libreta del documento ni un guardado sin sus filas", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
     conLibretaEnDocumento();
     responde(RUTA_PREFS, SIN_RPC(RPC_PREFERENCIAS_DE_CASA));
-    const { r } = await enTurno(() => cambiarLibreta((c) => { c["freqs.carne"] = { ...c["freqs.carne"], valor: 2 }; }));
-    expect(r).toMatchObject({ ok: true });
-    expect(escrituras().find((l) => /bot_save_casa/.test(l.ruta)).cuerpo.p_state.data.notepad.campos["freqs.carne"].valor).toBe(2);
-    expect(prefs()).toEqual([]);
+    await expect(cargarCasa(CASA)).rejects.toThrow(/preferencias sin leer: rpc_ausente/);
+    expect(escrituras()).toEqual([]);
   });
 
   it("si escribir_preferencias no guarda, vuelve el error con su fallo (no se calla)", async () => {

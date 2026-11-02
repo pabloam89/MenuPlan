@@ -63,8 +63,8 @@ export const escribirPersonas = (pedido, { papel }) => operarPersonas(pedido, { 
 export const escribirPreferencias = (pedido, { papel }) => operarPreferencias(pedido, { papel, rpc, falloDeError });
 
 /**
- * Las preferencias de una casa, en filas (preferencias_de_casa, 0109): { preferencias, planes }. null si la base
- * aún no tiene la RPC (`rpc_ausente`, 0109 sin aplicar): la libreta sigue en el documento (plan B). Sin poder leerlas
+ * Las preferencias de una casa, en filas (preferencias_de_casa, 0109, aplicada): { preferencias, planes }. Sin la RPC
+ * (`rpc_ausente`) es como sin poder leerlas por otra cosa: lanza y la casa no se lee. Sin poder leerlas
  * por otra cosa lanza Error con su fallo y lo deja en el log: unas preferencias sin leer no son una casa sin ellas.
  */
 export async function leerPreferencias(householdId) {
@@ -73,7 +73,6 @@ export async function leerPreferencias(householdId) {
     r = await rpc(RPC_LEER_PREFERENCIAS, { p_casa: householdId });
   } catch (e) {
     const { fallo, motivo } = falloDeError(e);
-    if (fallo === FALLO_DATO.RPC_AUSENTE) return null;
     console.error(JSON.stringify({ evento: "preferencias_sin_leer", fallo, motivo }));
     throw new Error(`preferencias sin leer: ${fallo}`);
   }
