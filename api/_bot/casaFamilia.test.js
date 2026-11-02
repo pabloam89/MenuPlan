@@ -325,7 +325,7 @@ describe("los datos de la casa con sobre (trozo 12)", () => {
     expect(r).toMatchObject({ ok: true, botRev: 10 });
   });
 
-  it("el presupuesto (PR 8): con sobre, el par viejo del documento no cuenta; «nos ponemos 60 €» y «sin presupuesto» van con sobre y el par se va", async () => {
+  it("el presupuesto (PR 8): con sobre, el par viejo del documento no cuenta; «nos ponemos 60 €» y «sin presupuesto» van con sobre y el par se queda sin lector", async () => {
     respuestas.unshift([/household_state/, { status: 200, cuerpo: [{ state: { data: { ...DOCUMENTO.data, hasBudget: true, budget: 90 } }, bot_rev: 7, updated_at: "2026-11-01T10:00:00Z" }] }]);
     responde(RUTA_FICHA, { status: 200, cuerpo: fichaV2(porDefecto("presupuesto", null)) });
     const casa = await cargarCasa(CASA);
@@ -336,7 +336,8 @@ describe("los datos de la casa con sobre (trozo 12)", () => {
     await enTurno(() => conCasa(CASA, async (c) => ({ state: { ...c.state, data: aplicarCompra(c.state.data, { presupuesto: 60 }).data } })));
     const [doc, op] = escrituras();
     expect(op.cuerpo.p_operacion.datos).toEqual([{ campo: "presupuesto", persona_id: null, valor: 60, origen: "dicho" }]);
-    for (const k of ["presupuesto", "hasBudget", "budget"]) expect(doc.cuerpo.p_state.data).not.toHaveProperty(k);
+    expect(doc.cuerpo.p_state.data).not.toHaveProperty("presupuesto");
+    expect(doc.cuerpo.p_state.data).toMatchObject({ hasBudget: true, budget: 90 });
     olvidarCasa(CASA);
     llamadas = [];
     responde(RUTA_FICHA, { status: 200, cuerpo: fichaV2(dicho("presupuesto", 60)) });
