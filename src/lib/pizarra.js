@@ -50,8 +50,19 @@ const CAMPOS_DE_ABRIR_PIZARRA = [
   "groups", "menus", "activeMenuId", "menuWeek", "menuWeekDays", "menuWeekOffsets", "extraMeals",
 ];
 
-export function copiaAntesDePizarra(data) {
-  return Object.fromEntries(CAMPOS_DE_ABRIR_PIZARRA.map((campo) => [campo, data[campo]]));
+export function fotoAntesDePizarra({ data, menuPlan, shopping, aiRecipes, pantalla }) {
+  return {
+    data: Object.fromEntries(CAMPOS_DE_ABRIR_PIZARRA.map((campo) => [campo, data[campo]])),
+    menuPlan,
+    shopping,
+    aiRecipes,
+    pantalla,
+  };
+}
+
+/** `data` sobre la casa de ahora: lo que cambió en la hoja y no es del menú se queda. */
+export function deshacerPizarra(foto, dataActual) {
+  return { ...foto, data: { ...dataActual, ...foto.data } };
 }
 
 /**

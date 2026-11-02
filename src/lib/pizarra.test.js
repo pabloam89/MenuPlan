@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
-import { planVacio, copiaAntesDePizarra, huecosDelPlan, conHuecosAlDia, conSemanasAlDia, conHuecoAnadido, sinHueco, franjasDelDia } from "./pizarra.js";
+import { planVacio, fotoAntesDePizarra, deshacerPizarra, huecosDelPlan, conHuecosAlDia, conSemanasAlDia, conHuecoAnadido, sinHueco, franjasDelDia } from "./pizarra.js";
 import { DAYS, getDayMeals, slotKey } from "./planner.js";
 import { mondayISOForOffset } from "./weekCalendar.js";
 
@@ -271,10 +271,35 @@ describe("las semanas marcadas se abren en el menú", () => {
 });
 
 describe("salir de la hoja de arranque", () => {
-  it("la copia guarda lo que abrir una pizarra cambia, y nada más", () => {
-    const data = { menus: { a: {} }, activeMenuId: "a", kitchenTools: ["horno"], pantryGenDeltas: {} };
-    expect(Object.keys(copiaAntesDePizarra(data)).sort()).toEqual([
+  const antes = {
+    data: { menus: { a: {} }, activeMenuId: "a", kitchenTools: ["horno"], pantryGenDeltas: {} },
+    menuPlan: { g1: {} },
+    shopping: { items: [{ id: "i1" }] },
+    aiRecipes: [{ id: "r1" }],
+    pantalla: "dashboard",
+  };
+
+  it("la foto guarda lo que abrir una pizarra cambia, y nada más", () => {
+    expect(Object.keys(fotoAntesDePizarra(antes).data).sort()).toEqual([
       "activeMenuId", "extraMeals", "groups", "menuWeek", "menuWeekDays", "menuWeekOffsets", "menus",
     ]);
+  });
+
+  it("devuelve el menú, la compra y la pantalla de antes", () => {
+    const abierta = { menus: { b: {} }, activeMenuId: "b", kitchenTools: ["horno"], pantryGenDeltas: {} };
+    const vuelta = deshacerPizarra(fotoAntesDePizarra(antes), abierta);
+    expect(vuelta.data.menus).toEqual({ a: {} });
+    expect(vuelta.data.activeMenuId).toBe("a");
+    expect(vuelta.menuPlan).toEqual({ g1: {} });
+    expect(vuelta.shopping.items).toHaveLength(1);
+    expect(vuelta.aiRecipes).toEqual([{ id: "r1" }]);
+    expect(vuelta.pantalla).toBe("dashboard");
+  });
+
+  it("no toca lo que no es del menú: los aparatos ni el consumo ya devuelto", () => {
+    const abierta = { kitchenTools: ["horno", "airfryer"], pantryGenDeltas: { sinM1: true } };
+    const { data } = deshacerPizarra(fotoAntesDePizarra(antes), abierta);
+    expect(data.kitchenTools).toEqual(["horno", "airfryer"]);
+    expect(data.pantryGenDeltas).toEqual({ sinM1: true });
   });
 });

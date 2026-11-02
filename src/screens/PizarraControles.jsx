@@ -1568,6 +1568,9 @@ export function SelectorDeDias({ data, onAplicar }) {
  * que todavía no puedes tocar». Entran después, con el mismo gesto que cierra
  * la hoja.
  */
+// Lo que dura `mpArranqueOut` (index.css), atado por test.
+export const SALIDA_ARRANQUE_MS = 240;
+
 const PASOS_ARRANQUE = [
   { id: "dias", titulo: "¿Qué días quieres?" },
   { id: "cocina", titulo: "¿Qué tienes en la cocina?" },
@@ -1601,7 +1604,7 @@ export function ArranqueDePizarra({ data, setData, onAplicar, onEmpezar, onSalir
     setTimeout(() => {
       setFase("montando");
       setTimeout(onEmpezar, 1150);
-    }, 240);
+    }, SALIDA_ARRANQUE_MS);
   };
 
   // Sale igual que entra a «Empezar»: la hoja sigue puesta durante la salida, y
@@ -1609,7 +1612,7 @@ export function ArranqueDePizarra({ data, setData, onAplicar, onEmpezar, onSalir
   const salir = () => {
     if (saliendo) return;
     setFase("saliendo");
-    setTimeout(onSalir, 240);
+    setTimeout(onSalir, SALIDA_ARRANQUE_MS);
   };
 
   if (fase === "montando") {

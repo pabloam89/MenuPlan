@@ -126,7 +126,7 @@ import {
 } from "./lib/menuArchive.js";
 import { todayDayIdx, getWeekDatesByMenuWeek } from "./lib/weekCalendar.js";
 import { diaDeFecha, indiceDeFecha } from "./lib/dias.js";
-import { pizarraActiva, copiaAntesDePizarra, huecosDelPlan, conHuecosAlDia, conSemanasAlDia, semanaEnBlanco, conHuecoAnadido, sinHueco, franjasDelDia } from "./lib/pizarra.js";
+import { pizarraActiva, fotoAntesDePizarra, deshacerPizarra, huecosDelPlan, conHuecosAlDia, conSemanasAlDia, semanaEnBlanco, conHuecoAnadido, sinHueco, franjasDelDia } from "./lib/pizarra.js";
 import { aplicarDiasDeSemana, diasPorDefecto, buildCalendarWeeks } from "./lib/semanaDias.js";
 import { reglaDeInvitado, invitadosPorHueco, sinInvitadosDelHueco } from "./lib/reglas.js";
 import {
@@ -3208,13 +3208,7 @@ export default function App() {
     });
     const firstWeekPlan = primeraSemana.plan;
 
-    antesDePizarraRef.current = {
-      data: copiaAntesDePizarra(data),
-      menuPlan,
-      shopping,
-      aiRecipes,
-      pantalla: screen,
-    };
+    antesDePizarraRef.current = fotoAntesDePizarra({ data, menuPlan, shopping, aiRecipes, pantalla: screen });
 
     const newMenu = {
       id: createMenuId(),
@@ -3300,7 +3294,7 @@ export default function App() {
       setMenuPlan(antes.menuPlan);
       setShopping(antes.shopping);
       setAiRecipes(antes.aiRecipes);
-      setData((d) => ({ ...d, ...antes.data }));
+      setData((d) => deshacerPizarra(antes, d).data);
       if (user) {
         descartarMenuNuevo(user.id, antes.menuNuevoId, antes.data.activeMenuId, syncHouseholdId).then((res) => {
           if (!res.ok) showToast("No se pudo deshacer en la nube. Puede reaparecer al recargar.");
