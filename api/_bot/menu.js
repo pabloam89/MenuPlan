@@ -1460,7 +1460,9 @@ export function rehacerCompra(m, plan, data, gs, anterior, despensa) {
   const lista = m.buildShoppingList(plan, gs, m.getDayMeals(data), despensa ?? []);
   const nuevos = [...lista.byCategory.flatMap((c) => c.items), ...(lista.pantryItems ?? [])];
   const previos = new Map((anterior?.items ?? []).map((it) => [it.id, it]));
-  const items = nuevos.map((it) => {
+  // En una semana que guarda marcas (trozo 18), lo quitado viaja aparte (`quitados`) y sigue quitado con el plan nuevo.
+  const quitados = new Set((anterior?.quitados ?? []).map((q) => q.id));
+  const items = nuevos.filter((it) => !quitados.has(it.id)).map((it) => {
     const p = previos.get(it.id);
     const conMarcas = p ? { ...it, have: !!p.have, atHome: !!p.atHome } : it;
     return despensa == null && p?.fromPantry ? { ...conMarcas, fromPantry: true } : conMarcas;
