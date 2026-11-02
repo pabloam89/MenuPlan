@@ -7,7 +7,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { conCasa, cargarCasa, olvidarCasa, separarFamilia } from "./casa.js";
 import { conOperacion, ponerAutor, tomarAvisos } from "./operacion.js";
 import { FamiliaSinLeer, TEXTO_AVISO_PERSONA, AVISOS_PERSONA, RPC_FAMILIA } from "../../src/lib/personas.js";
-import { SUFIJO_CLAVE_PERSONA, RPC_OPERACION } from "../../src/lib/operaciones/tuberia.js";
+import { SUFIJO_CLAVE_PERSONA, RPC_OPERACION, RPC_PREFERENCIAS } from "../../src/lib/operaciones/tuberia.js";
 import { RPC_FICHA, fichaV1, RPC_PREFERENCIAS_DE_CASA, preferenciasDeFilas } from "./familiaDePrueba.js";
 import { PREGUNTAS_POR_ID } from "../../src/lib/wizardRegistry.js";
 import { aplicarCompra, aplicarModoDespensa } from "./ajustes.js";
@@ -45,7 +45,7 @@ let llamadas;
 let respuestas;
 const responde = (patron, r) => respuestas.unshift([patron, r]);
 // Lo que escribe: personas_de_casa es una lectura aunque vaya por POST (las RPC van todas así).
-const escrituras = () => llamadas.filter((l) => l.metodo !== "GET" && !(/bot_deshacer|preferencias_de_casa/.test(l.ruta) || RUTA_FAMILIA.test(l.ruta) || RUTA_FICHA.test(l.ruta)));
+const escrituras = () => llamadas.filter((l) => l.metodo !== "GET" && !(/bot_deshacer/.test(l.ruta) || l.ruta.endsWith(`/rpc/${RPC_PREFERENCIAS_DE_CASA}`) || RUTA_FAMILIA.test(l.ruta) || RUTA_FICHA.test(l.ruta)));
 beforeEach(() => {
   vi.stubEnv("SUPABASE_URL", "https://base.invalid");
   vi.stubEnv("VITE_SUPABASE_URL", "https://base.invalid");
@@ -491,7 +491,8 @@ describe("la Rutina con ámbito con sobre (trozo 13)", () => {
 });
 
 describe("la libreta en filas de preferencia (trozo 14)", () => {
-  const RUTA_PREFS = /rpc\/preferencias_de_casa/;
+  const RUTA_PREFS = new RegExp(`rpc/${RPC_PREFERENCIAS_DE_CASA}`);
+  const RUTA_ESCRIBIR = new RegExp(`rpc/${RPC_PREFERENCIAS}`);
   const FILA = {
     id: "00000000-0000-4000-8000-0000000000f1", persona_id: null, grupo_id: null, plan_id: null, nivel: "semana", eje: "composicion",
     medida: "cuenta", operador: "como_mucho", valor: "pescado", cantidad: 2, nota: null, fuerza: "obligatoria", dias: null, comidas: null,
@@ -501,7 +502,7 @@ describe("la libreta en filas de preferencia (trozo 14)", () => {
   const conLibretaEnDocumento = () => responde(/household_state/, { status: 200, cuerpo: [{
     state: { data: { ...DOCUMENTO.data, notepad: { v: 1, campos: { "freqs.carne": { valor: 1, origen: "pregunta", confirmado: true } } }, freqs: { carne: 1 } } },
     bot_rev: 7, updated_at: "2026-11-01T10:00:00Z" }] });
-  const prefs = () => escrituras().filter((l) => /escribir_preferencias/.test(l.ruta));
+  const prefs = () => escrituras().filter((l) => RUTA_ESCRIBIR.test(l.ruta));
   const cambiarLibreta = (cambiar) => conCasa(CASA, async (casa) => {
     const data = structuredClone(casa.state.data);
     cambiar(data.notepad.campos);
@@ -519,7 +520,7 @@ describe("la libreta en filas de preferencia (trozo 14)", () => {
   it("lo que cambia de la libreta va a escribir_preferencias con el id de su fila, y el documento ya no la lleva", async () => {
     conLibretaEnDocumento();
     responde(RUTA_PREFS, { status: 200, cuerpo: { v: 1, rev: 7, preferencias: [FILA], planes: [] } });
-    responde(/rpc\/escribir_preferencias/, { status: 200, cuerpo: { ...HECHA, rev: 9 } });
+    responde(RUTA_ESCRIBIR, { status: 200, cuerpo: { ...HECHA, rev: 9 } });
     const { r } = await enTurno(() => cambiarLibreta((c) => { c["freqs.pescado"] = { ...c["freqs.pescado"], valor: 3 }; }));
     expect(r).toMatchObject({ ok: true });
     const doc = escrituras().find((l) => /bot_save_casa/.test(l.ruta)).cuerpo.p_state.data;
@@ -532,7 +533,7 @@ describe("la libreta en filas de preferencia (trozo 14)", () => {
 
   it("sin la 0109, la libreta sigue en el documento y se guarda en él; escribir_preferencias no se llama", async () => {
     conLibretaEnDocumento();
-    responde(RUTA_PREFS, SIN_RPC("preferencias_de_casa"));
+    responde(RUTA_PREFS, SIN_RPC(RPC_PREFERENCIAS_DE_CASA));
     const { r } = await enTurno(() => cambiarLibreta((c) => { c["freqs.carne"] = { ...c["freqs.carne"], valor: 2 }; }));
     expect(r).toMatchObject({ ok: true });
     expect(escrituras().find((l) => /bot_save_casa/.test(l.ruta)).cuerpo.p_state.data.notepad.campos["freqs.carne"].valor).toBe(2);
@@ -540,7 +541,7 @@ describe("la libreta en filas de preferencia (trozo 14)", () => {
   });
 
   it("si escribir_preferencias no guarda, vuelve el error con su fallo (no se calla)", async () => {
-    responde(/rpc\/escribir_preferencias/, SIN_RPC("escribir_preferencias"));
+    responde(RUTA_ESCRIBIR, SIN_RPC(RPC_PREFERENCIAS));
     const { r } = await enTurno(() => cambiarLibreta((c) => { c["freqs.pescado"] = { valor: 1, origen: "texto" }; }));
     expect(r).toMatchObject({ ok: false });
     expect(r.error).toMatch(/las preferencias: rpc_ausente/);
