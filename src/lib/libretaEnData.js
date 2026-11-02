@@ -160,8 +160,7 @@ export const CLAVES_EN_PREFERENCIAS = Object.freeze(["notepad", "reglas"]);
 /**
  * Pura. `data` con la libreta de sus filas de preferencia (preferencias_de_casa, 0109) y su proyección, en vez de lo
  * que el documento aún guarde de ella (sin convivencia: una casa sin filas estrena la libreta vacía), y con las reglas
- * de veto y sesgo de sus filas junto a las del documento que no son preferencias. Los ámbitos de la libreta (niños,
- * adultos) salen de los grupos de `data`.
+ * de veto y sesgo de sus filas tras las presente del documento. Los ámbitos salen de los grupos de `data`.
  */
 export function conLibretaDeFilas(data, filas, { hoy } = {}) {
   const ctx = { grupos: data?.groups };
@@ -177,10 +176,8 @@ export function sinLibreta(data) {
 }
 
 /**
- * Pura. Lo que cambió en las preferencias entre los datos leídos (`antes`, los de conLibretaDeFilas) y los que se
- * guardan, como la lista `preferencias` de escribir_preferencias: la libreta (cambiosDeLibreta) y las reglas de veto
- * y sesgo (cambiosDeReglas). Lo que `despues` no trae no cambia. `filas`: las de preferencias_de_casa. Lanza
- * PreferenciaInvalida si algo no cabe en una fila (un ámbito sin su grupo, una regla de una persona que no está).
+ * Pura. Lo que cambió en las preferencias (libreta y reglas de veto y sesgo) entre los datos leídos y los que se
+ * guardan, como la lista de escribir_preferencias; lo que `despues` no trae no cambia. PreferenciaInvalida si no cabe.
  */
 export function cambiosDePreferencias(antes, despues, filas) {
   const ctx = { grupos: despues?.groups ?? antes?.groups ?? [], miembros: despues?.members ?? antes?.members ?? [] };

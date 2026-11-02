@@ -1,7 +1,4 @@
-/**
- * Los vetos y sesgos de las reglas como filas de preferencia (trozo 14 de #1037): de ida y vuelta, el motor recibe lo
- * mismo; lo que no cabe falla en alto; y los cambios son la operación de escribir_preferencias.
- */
+// Los vetos y sesgos de las reglas como filas de preferencia (trozo 14 de #1037).
 import { describe, it, expect } from "vitest";
 import { filaDeRegla, reglaDeFila, reglasDeFilas, cambiosDeReglas } from "./reglasEnFilas.js";
 import { PreferenciaInvalida, filaDeApunte } from "./preferencias.js";
@@ -24,18 +21,16 @@ function comoLaBase(fila, id) {
 const filasDe = (reglas) => reglas.map((r, i) => comoLaBase(filaDeRegla(r, CTX), `00000000-0000-4000-8000-0000000000${String(10 + i)}`));
 
 /** Las reglas que se dicen hoy (Lola, gustosPorDias) y las que la tabla tiene que saber guardar. */
-function reglasDePrueba() {
-  const r = (o) => nuevaRegla({ origen: "texto", hoy: HOY, ...o });
-  return [
-    r({ sujeto: { tipo: "casa" }, efecto: { tipo: "excluir", valor: "grupo:carne" }, ambito: { dias: ["Lun"] }, frase: "los lunes sin carne" }),
-    r({ sujeto: { tipo: "casa" }, efecto: { tipo: "excluir", valor: "tecnica:sarten" }, ambito: { dias: ["Lun", "Mar", "Mié", "Jue", "Vie"], comidas: ["Cena"] } }),
-    r({ sujeto: { tipo: "casa" }, efecto: { tipo: "excluir", valor: "coliflor" }, ambito: { comidas: ["Comida"] }, salvedad: { dias: ["Sáb"] }, vigencia: { desde: "2026-11-01", hasta: "2026-11-30" } }),
-    r({ sujeto: { tipo: "casa" }, efecto: { tipo: "excluir", valor: "grupo:pescado" }, vigencia: { hasta: "2026-11-20" } }),
-    r({ sujeto: { tipo: "miembro", ref: "p-leo" }, efecto: { tipo: "excluir", valor: "pescado" }, ambito: { semanas: ["2026-11-02"] } }),
-    r({ sujeto: { tipo: "casa" }, efecto: { tipo: "sesgo", valor: { campo: "cocina", valor: "mexicana", peso: -1 } }, ambito: { dias: ["Vie"] } }),
-    r({ sujeto: { tipo: "casa" }, efecto: { tipo: "sesgo", valor: { campo: "salsa", valor: "si", peso: 2 } }, ambito: { dias: ["Sáb", "Dom"] }, vigencia: { desde: "2026-11-03" } }),
-  ];
-}
+const r = (o) => nuevaRegla({ origen: "texto", hoy: HOY, ...o });
+const reglasDePrueba = () => [
+  r({ sujeto: { tipo: "casa" }, efecto: { tipo: "excluir", valor: "grupo:carne" }, ambito: { dias: ["Lun"] }, frase: "los lunes sin carne" }),
+  r({ sujeto: { tipo: "casa" }, efecto: { tipo: "excluir", valor: "tecnica:sarten" }, ambito: { dias: ["Lun", "Mar", "Mié", "Jue", "Vie"], comidas: ["Cena"] } }),
+  r({ sujeto: { tipo: "casa" }, efecto: { tipo: "excluir", valor: "coliflor" }, ambito: { comidas: ["Comida"] }, salvedad: { dias: ["Sáb"] }, vigencia: { desde: "2026-11-01", hasta: "2026-11-30" } }),
+  r({ sujeto: { tipo: "casa" }, efecto: { tipo: "excluir", valor: "grupo:pescado" }, vigencia: { hasta: "2026-11-20" } }),
+  r({ sujeto: { tipo: "miembro", ref: "p-leo" }, efecto: { tipo: "excluir", valor: "pescado" }, ambito: { semanas: ["2026-11-02"] } }),
+  r({ sujeto: { tipo: "casa" }, efecto: { tipo: "sesgo", valor: { campo: "cocina", valor: "mexicana", peso: -1 } }, ambito: { dias: ["Vie"] } }),
+  r({ sujeto: { tipo: "casa" }, efecto: { tipo: "sesgo", valor: { campo: "salsa", valor: "si", peso: 2 } }, ambito: { dias: ["Sáb", "Dom"] }, vigencia: { desde: "2026-11-03" } }),
+];
 
 const DATA = { members: MIEMBROS.map((m) => ({ ...m, role: "adulto" })), groups: GRUPOS, schedule: {}, meals: ["Comida", "Cena"] };
 const delta = (reglas) => proyectarReglas(reglas, DATA, { hoy: HOY, semana: SEMANA }).delta;
@@ -60,15 +55,10 @@ describe("las reglas de veto y sesgo como preferencias (0109, trozo 14)", () => 
   });
 
   it("lo que no es una preferencia de la casa falla en alto: un presente, un invitado, una persona o un grupo que no están, una comida fuera de la lista", () => {
-    const veto = (o) => nuevaRegla({ sujeto: { tipo: "casa" }, efecto: { tipo: "excluir", valor: "coliflor" }, hoy: HOY, ...o });
-    const malas = [
-      reglaDeInvitado({ dia: "Mié", comida: "Cena", hoy: HOY }),
-      veto({ sujeto: { tipo: "invitado", nombre: "mi tío" } }),
-      veto({ sujeto: { tipo: "miembro", ref: "p-otro" } }),
-      veto({ sujeto: { tipo: "grupo", ref: "g-otro" } }),
-      veto({ ambito: { comidas: ["Aperitivo"] } }),
-    ];
-    for (const r of malas) expect(() => filaDeRegla(r, CTX), JSON.stringify(r)).toThrow(PreferenciaInvalida);
+    const veto = (o) => r({ sujeto: { tipo: "casa" }, efecto: { tipo: "excluir", valor: "coliflor" }, ...o });
+    const malas = [reglaDeInvitado({ dia: "Mié", comida: "Cena", hoy: HOY }), veto({ sujeto: { tipo: "invitado", nombre: "mi tío" } }),
+      veto({ sujeto: { tipo: "miembro", ref: "p-otro" } }), veto({ sujeto: { tipo: "grupo", ref: "g-otro" } }), veto({ ambito: { comidas: ["Aperitivo"] } })];
+    for (const m of malas) expect(() => filaDeRegla(m, CTX), JSON.stringify(m)).toThrow(PreferenciaInvalida);
   });
 
   it("la libreta lee primero: un veto de toda la casa sin días es un excluido de la libreta, y uno de un grupo de búsqueda no", () => {

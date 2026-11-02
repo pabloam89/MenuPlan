@@ -1,23 +1,12 @@
 /**
- * Los vetos y sesgos de las reglas como preferencias (plan fichas con estado, trozo 14; tabla preferencia, 0109).
- *
- * Una regla (reglas.js) con efecto `excluir` o `sesgo` es una fila de `preferencia`, y al revés: las reglas que leen
- * la app, Lola y el motor se calculan de las filas al leer, como la libreta (preferencias.js). Las de efecto
- * `presente` (quién come dónde un día) no son preferencias: siguen en el documento hasta la Rutina.
- *
- *   filaDeRegla      una regla → la fila que se pide a escribir_preferencias (sin id)
- *   reglaDeFila      una fila → la regla, o null si no lo es (o si la libreta la reclama: la libreta lee primero)
- *   reglasDeFilas    las filas de preferencias_de_casa → las reglas
- *   cambiosDeReglas  lo que cambió entre dos listas de reglas → la lista `preferencias` de la operación
- *
- * Cómo es cada cosa:
- *   sujeto       casa → sin sujeto; grupo → grupo_id; miembro → persona_id. Un invitado no es una persona de la casa
- *                (PreferenciaInvalida).
- *   excluir      un plato sin ese valor: nivel plato, medida valor, operador no_es, obligatoria. «tecnica:horno» es
- *                el eje tecnica; lo demás («coliflor», «grupo:carne», que excluirHueco.js entiende tal cual) es del
- *                eje subtipoIngrediente, como los excluidos de la libreta.
- *   sesgo        el eje del campo de la libreta, mas/menos por el signo del peso y su tamaño de cantidad, medio.
- *   ámbito       dias, comidas, semanas; salvedad → salvo_*; vigencia → desde, hasta.
+ * Los vetos y sesgos de las reglas como preferencias (trozo 14; tabla preferencia, 0109). Una regla (reglas.js) de
+ * `excluir` o `sesgo` es una fila de `preferencia`, y las reglas se calculan de las filas al leer, como la libreta
+ * (preferencias.js). Las de `presente` (quién come dónde) siguen en el documento.
+ *   sujeto   casa → sin sujeto; grupo → grupo_id; miembro → persona_id; un invitado no es de la casa (falla).
+ *   excluir  nivel plato, medida valor, no_es, obligatoria: «tecnica:horno» en el eje tecnica; lo demás («coliflor»,
+ *            «grupo:carne», que excluirHueco.js entiende tal cual) en subtipoIngrediente, como los excluidos de la libreta.
+ *   sesgo    el eje de su campo de la libreta, mas/menos por el signo del peso y su tamaño de cantidad, medio.
+ *   ámbito   dias, comidas, semanas; salvedad → salvo_*; vigencia → desde, hasta.
  */
 import { CAMPOS, CAMPOS_POR_ID } from "./notepadFields.js";
 import { apunteDeFila, PreferenciaInvalida } from "./preferencias.js";
@@ -49,17 +38,12 @@ function lista(valores, vocabulario, que) {
   return [...valores];
 }
 
-function sujetoEnFila(sujeto, { grupos, miembros }) {
-  if (sujeto.tipo === "casa") return { persona_id: null, grupo_id: null };
-  if (sujeto.tipo === "grupo") {
-    if (!(grupos ?? []).some((g) => g.id === sujeto.ref)) throw new PreferenciaInvalida(`el grupo ${sujeto.ref} no es de la casa`);
-    return { persona_id: null, grupo_id: sujeto.ref };
-  }
-  if (sujeto.tipo === "miembro") {
-    if (!(miembros ?? []).some((m) => m.id === sujeto.ref)) throw new PreferenciaInvalida(`la persona ${sujeto.ref} no es de la casa`);
-    return { persona_id: sujeto.ref, grupo_id: null };
-  }
-  throw new PreferenciaInvalida(`una regla de ${sujeto.tipo} no es una preferencia de la casa`);
+function sujetoEnFila({ tipo, ref }, { grupos, miembros }) {
+  if (tipo === "casa") return { persona_id: null, grupo_id: null };
+  const de = { grupo: grupos, miembro: miembros }[tipo];
+  if (!de) throw new PreferenciaInvalida(`una regla de ${tipo} no es una preferencia de la casa`);
+  if (!de.some((x) => x.id === ref)) throw new PreferenciaInvalida(`${tipo === "grupo" ? "el grupo" : "la persona"} ${ref} no es de la casa`);
+  return tipo === "grupo" ? { persona_id: null, grupo_id: ref } : { persona_id: ref, grupo_id: null };
 }
 
 function efectoEnFila(efecto) {
@@ -75,10 +59,7 @@ function efectoEnFila(efecto) {
   return { ...SESGO, eje, valor: enEje, operador: peso < 0 ? "menos" : "mas", cantidad: Math.abs(peso) };
 }
 
-/**
- * Pura. Una regla de excluir o sesgo como fila de preferencia (sin id). Lanza PreferenciaInvalida si no lo es (un
- * `presente`, un invitado, una regla que no valida) o si su sujeto o su ámbito no caben en la tabla.
- */
+/** Pura. Una regla de excluir o sesgo como fila (sin id). PreferenciaInvalida si no lo es o no cabe en la tabla. */
 export function filaDeRegla(regla, ctx = {}) {
   const r = normalizarRegla(regla);
   if (!r) throw new PreferenciaInvalida(`la regla ${regla?.id ?? "sin id"} no es válida`);
@@ -121,10 +102,7 @@ const ambitoDe = (dias, comidas, semanas) => ({
   ...(dias ? { dias: [...dias] } : {}), ...(comidas ? { comidas: [...comidas] } : {}), ...(semanas ? { semanas: [...semanas] } : {}),
 });
 
-/**
- * Pura. Una fila de preferencias_de_casa como regla, o null si no es de una regla (o si es de la libreta, que la
- * lee antes: un veto de toda la casa sin días es un excluido de la libreta, y se lee como tal).
- */
+/** Pura. Una fila como regla, o null si no lo es o si es de la libreta (que lee antes: un veto de toda la casa sin días). */
 export function reglaDeFila(fila, ctx = {}) {
   if (apunteDeFila(fila, ctx)) return null;
   const efecto = efectoDeFila(fila);
@@ -156,10 +134,9 @@ const CLAVES_DE_FIRMA = ["persona_id", "grupo_id", "nivel", "eje", "medida", "op
 const firma = (fila) => JSON.stringify(CLAVES_DE_FIRMA.map((k) => fila[k] ?? null));
 
 /**
- * Pura. Lo que cambió entre dos listas de reglas (solo las de preferencia: `presente` no), como la lista
- * `preferencias` de escribir_preferencias: crear (sin id) o cambiar (con el de su fila), y borrar la que ya no está.
- * `filas`: las de preferencias_de_casa, de donde salen los ids: el de la regla si es el de su fila y, si no (una regla
- * recién creada, que aún lleva el id de ids.regla), el de la fila con su misma firma. `ctx`: { grupos, miembros }.
+ * Pura. Lo que cambió entre dos listas de reglas (las de preferencia), como la lista `preferencias` de
+ * escribir_preferencias: crear (sin id), cambiar y borrar (con el id de su fila: el de la regla o, si aún lleva el de
+ * ids.regla porque se acaba de crear, el de la fila con su misma firma). `filas`: las de preferencias_de_casa.
  */
 export function cambiosDeReglas(antes, despues, filas, ctx = {}) {
   const idPorFirma = new Map((filas ?? []).filter((f) => reglaDeFila(f, ctx)).map((f) => [firma(f), f.id]));
@@ -176,8 +153,7 @@ export function cambiosDeReglas(antes, despues, filas, ctx = {}) {
   }
   const siguen = new Set(nuevas.map((r) => r.id));
   for (const [idRegla, regla] of previas) {
-    if (siguen.has(idRegla)) continue;
-    const id = idDeFila(regla);
+    const id = siguen.has(idRegla) ? null : idDeFila(regla);
     if (id) cambios.push({ id, borrar: true });
   }
   return cambios;

@@ -55,12 +55,11 @@ export const enviarPreferencias = ({ casa, preferencias }, opciones) => enviarOp
 const enPreferencias = (data) => Object.fromEntries(CLAVES_EN_PREFERENCIAS.filter((k) => data?.[k] !== undefined).map((k) => [k, data[k]]));
 
 /**
- * Las preferencias de una casa tal como la conoce la app: las leídas (`conocida`, los datos de conLibretaLeida: la
- * libreta y las reglas) y, tras cada guardado que entra, las guardadas, con sus filas (`carga.filas`; de ellas, el id
- * de lo que cambia). `guardar(datos)` manda lo que cambió (cambiosDePreferencias), uno tras otro; tras un guardado
- * que entra, vuelve a leer las filas (`releer`) para tener el id de lo recién creado (si no puede, `conflict`:
- * App.jsx recarga la casa en vez de seguir con filas viejas). Un apunte o una regla que no cabe en una fila
- * (PreferenciaInvalida) no se manda y vuelve como `{ ok: false, error }`.
+ * Las preferencias de una casa tal como la conoce la app: las leídas (`conocida`, los datos de conLibretaLeida) y, tras
+ * cada guardado que entra, las guardadas, con sus filas (`carga.filas`; de ellas, el id de lo que cambia). `guardar(datos)` manda lo que cambió (cambiosDePreferencias), uno tras
+ * otro; tras un guardado que entra, vuelve a leer las filas (`releer`) para tener el id de lo recién creado (si no
+ * puede, `conflict`: App.jsx recarga la casa en vez de seguir con filas viejas). Un
+ * apunte o una regla que no cabe en una fila (PreferenciaInvalida) no se manda y vuelve como `{ ok: false, error }`.
  */
 export function libretaDeCasa({ casa, carga, conocida: leida, enviar = enviarPreferencias, releer = leerLibretaDeCasa }) {
   let filas = carga.filas;
