@@ -21,6 +21,8 @@ import { conCasa, cargarCasa, hoyISO } from "./casa.js";
 import { datosDelMotor } from "../../src/lib/recetasDeLaCasa.js";
 import { propiasDe } from "./propias.js";
 import { rastro } from "./embudo.js";
+import { sumarSenales } from "./aprender.js";
+import { senalesDeCambio } from "../../src/lib/senales.js";
 // Con otro nombre: en marcarCompra, `resultado` es una variable suya.
 import { resultado as resultadoDeEscritura, NO_GUARDADO } from "./resultado.js";
 import { cargaMedida } from "./medidaTurno.js";
@@ -1133,6 +1135,8 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
   const rf = restriccionesDeFuera(deFuera);
   // Lo que se ha cambiado, para el rastro (src/lib/rastro.js), una fila por grupo.
   const cambios = [];
+  // El plato que sale y el que entra en el hueco pedido, para las señales (trozo 15): una vez por cambio, no por grupo.
+  let senal = null;
   const r = await conCasa(householdId, async (cargada) => {
     const rd = resolverDia(cargada, diaPedido, semana, { escribe: true });
     if (rd.error) { texto = rd.error; motivoSin = SIN_CAMBIAR.DIA; return null; }
@@ -1183,6 +1187,10 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
     const elegido = m.pickCatalogReplacement(paraElegir, casa.semana.plan, { hoy: hoyISO(), groupId: g.id, day: dia, meal: franja, course, forcedRecipe });
     if (!elegido?.recipeId) { texto = "No he encontrado otro plato que encaje en ese hueco con vuestras preferencias."; motivoSin = SIN_CAMBIAR.SIN_CANDIDATAS; return null; }
     const antes = m.RECIPES_BY_ID[course === "first" ? hueco.firstRecipeId : hueco.recipeId]?.name;
+    // Con quien viene de fuera, el cambio es por él, no un gusto de la casa: no cuenta.
+    // Sin su foto registrada, la del catálogo por su id (como baseDelHueco).
+    const idSale = course === "first" ? hueco.firstRecipeId : hueco.recipeId;
+    senal = rf ? null : { sale: idSale ? m.RECIPES_BY_ID[idSale] ?? m.recipeCatalogById?.[idBase(idSale)] ?? null : null, entra: elegido.frontendRecipe };
     m.registerRecipes([elegido.frontendRecipe]);
 
     const plan = structuredClone(casa.semana.plan);
@@ -1260,6 +1268,8 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
   if (!r.ok) return `No he podido guardar el cambio: ${r.error}.`;
   const porque = motivo ?? (receta ? MOTIVO_CAMBIO.PEDIDO : MOTIVO_CAMBIO.OTRO);
   for (const c of cambios) await rastro(householdId, RASTRO.PLATO_CAMBIADO, { ...c, motivo: porque });
+  // Lo que dice el cambio de los gustos de la casa (src/lib/senales.js): si no se cuenta, el plato ya está cambiado.
+  if (senal) await sumarSenales(householdId, senalesDeCambio({ ...senal, motivo: porque })).catch(fallaCon("menu_senales"));
   return texto;
 }
 

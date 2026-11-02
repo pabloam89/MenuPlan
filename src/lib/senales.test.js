@@ -1,7 +1,12 @@
 // Señales que olvidan (plan fichas con estado, trozo 15): de las filas de senal a las preferencias vistas.
 import { describe, it, expect } from "vitest";
-import { vistasDeSenales, UMBRAL_APRENDIDO } from "./senales.js";
-import { apunteDeFila } from "./preferencias.js";
+import { vistasDeSenales, valoresDelPlato, senalesDeCambio, UMBRAL_APRENDIDO } from "./senales.js";
+import { apunteDeFila, valorIdDelEje } from "./preferencias.js";
+import { CAMPOS_POR_ID } from "./notepadFields.js";
+import { sesgoScoreBoost } from "./sesgos.js";
+import { catalogToFrontendRecipe } from "./aiPlanner.js";
+import { recipeCatalog } from "../data/recipeCatalog.js";
+import { MOTIVO_CAMBIO } from "./rastro.js";
 
 const senal = (eje, valor, peso, extra = {}) => ({ user_id: null, eje, valor, peso, ...extra });
 // Una preferencia como la devuelve preferencias_de_casa: la que el sistema aprendió (vista, canal sistema).
@@ -83,5 +88,54 @@ describe("senales: lo que dice la familia manda", () => {
       aprendida("cocina", "china", "mas", { id: "a4", persona_id: "p1" }),
     ];
     expect(vistasDeSenales([], ajenas)).toEqual([]);
+  });
+});
+
+describe("senales: lo que cuenta un cambio de plato", () => {
+  it("los valores de un plato son justo los que su sesgo sube (sesgoScoreBoost), en todo el catálogo tal como lo da el motor", () => {
+    const distintos = [];
+    let suben = 0;
+    for (const r of recipeCatalog.map((c) => catalogToFrontendRecipe(c, 2))) {
+      const tiene = new Set(valoresDelPlato(r).map((x) => `${x.eje}|${valorIdDelEje(x.valor)}`));
+      for (const campo of ["base", "tecnica", "salsa"]) {
+        const { eje, dominio } = CAMPOS_POR_ID[campo];
+        for (const v of dominio) {
+          const sube = sesgoScoreBoost(r, { [campo]: { [v]: 1 } }) > 0;
+          suben += sube;
+          if (tiene.has(`${eje}|${v}`) !== sube) distintos.push(`${r.id} ${campo}.${v}`);
+        }
+      }
+      // La cocina la mira la puerta de cocinas (r.cocina), no el sesgo.
+      expect(tiene.has(`cocina|${r.cocina}`), r.id).toBe(CAMPOS_POR_ID.cocina.dominio.includes(r.cocina));
+    }
+    expect(distintos).toEqual([]);
+    expect(suben).toBeGreaterThan(200);
+  });
+
+  const sale = { mainBase: "arroz", tecnica: "horno", llevaSalsa: true };
+  const entra = { mainBase: "pasta", tecnica: "horno", cocina: "italiana" };
+
+  it("lo que sale baja y, si lo eligió alguien de la casa, lo que entra sube; lo que tienen los dos se anula", () => {
+    expect(senalesDeCambio({ sale, entra, motivo: MOTIVO_CAMBIO.PEDIDO })).toEqual([
+      { eje: "basePrincipal", valor: "arroz", delta: -1 },
+      { eje: "llevaSalsa", valor: true, delta: -1 },
+      { eje: "basePrincipal", valor: "pasta", delta: 1 },
+      { eje: "cocina", valor: "italiana", delta: 1 },
+    ]);
+    expect(senalesDeCambio({ sale: null, entra, motivo: MOTIVO_CAMBIO.ELECCION })).toHaveLength(3);
+  });
+
+  it("si el que entra lo eligió el motor («cámbialo», «elige tú»), solo baja lo que sale", () => {
+    for (const motivo of [MOTIVO_CAMBIO.OTRO, MOTIVO_CAMBIO.ELIGE_TU]) {
+      expect(senalesDeCambio({ sale, entra, motivo }).map((x) => x.delta), motivo).toEqual([-1, -1, -1]);
+    }
+  });
+
+  it("un valor que el campo no tiene en su dominio no cuenta (una técnica o una cocina que no existen)", () => {
+    expect(valoresDelPlato({ tecnica: "a_la_brasa", cocina: "marciana", mainBase: "arroz" })).toEqual([{ eje: "basePrincipal", valor: "arroz" }]);
+  });
+
+  it("un motivo que no es de MOTIVO_CAMBIO lanza", () => {
+    expect(() => senalesDeCambio({ sale, entra, motivo: "porque_si" })).toThrow(/MOTIVO_CAMBIO/);
   });
 });
