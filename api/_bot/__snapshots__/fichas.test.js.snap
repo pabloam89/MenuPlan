@@ -989,26 +989,61 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
   "input_schema": {
    "type": "object",
    "properties": {
-    "supermercados": {
-     "type": "array",
-     "items": {
-      "type": "string"
-     },
-     "description": "La lista ENTERA (sustituye). Los habituales: Mercadona, Lidl, Alcampo, Carrefour, Dia, Aldi, Eroski, Consum, Hipercor, Supercor, El Corte Inglés, Bonpreu, Gadis, Ahorramás, Froiz, Deza, Alimerka."
-    },
     "supermercadosMas": {
      "type": "array",
      "items": {
-      "type": "string"
+      "type": "string",
+      "enum": [
+       "Mercadona",
+       "Lidl",
+       "Alcampo",
+       "Carrefour",
+       "Dia",
+       "Aldi",
+       "Eroski",
+       "Consum",
+       "Hipercor",
+       "Supercor",
+       "El Corte Inglés",
+       "Bonpreu",
+       "Gadis",
+       "Ahorramás",
+       "Froiz",
+       "Deza",
+       "Alimerka"
+      ]
      },
      "description": "Súper que se añaden."
     },
     "supermercadosMenos": {
      "type": "array",
      "items": {
-      "type": "string"
+      "type": "string",
+      "enum": [
+       "Mercadona",
+       "Lidl",
+       "Alcampo",
+       "Carrefour",
+       "Dia",
+       "Aldi",
+       "Eroski",
+       "Consum",
+       "Hipercor",
+       "Supercor",
+       "El Corte Inglés",
+       "Bonpreu",
+       "Gadis",
+       "Ahorramás",
+       "Froiz",
+       "Deza",
+       "Alimerka"
+      ]
      },
      "description": "Súper que dejan."
+    },
+    "supermercadoOtro": {
+     "type": "string",
+     "description": "Un súper o tienda que no está en la lista, como lo digan: se suma a los de fuera ya apuntados. Vacío (\\"\\") si ya no compran en los de fuera."
     },
     "presupuesto": {
      "type": "number",
@@ -1023,7 +1058,7 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
    "required": [],
    "additionalProperties": false
   },
-  "description": "Dónde hace la compra la casa y cuánto quiere gastar. «También compramos en Lidl» es supermercadosMas [Lidl]; «ya no vamos al Dia», supermercadosMenos [Dia]: los demás se quedan. supermercados (la lista entera) SOLO cuando dicen todos los sitios donde compran, porque sustituye. Si es otro súper, como lo digan. Con Mercadona, en la app la lista de la compra enseña el precio de cada cosa. presupuesto: euros por semana; sinPresupuesto=true si dicen que no tienen."
+  "description": "Dónde hace la compra la casa y cuánto quiere gastar. «También compramos en Lidl» es supermercadosMas [Lidl]; «ya no vamos al Dia», supermercadosMenos [Dia]: los demás se quedan. Uno que no está en la lista («compramos en la frutería de abajo»), supermercadoOtro. Con Mercadona, en la app la lista de la compra enseña el precio de cada cosa. presupuesto: euros por semana; sinPresupuesto=true si dicen que no tienen."
  },
  {
   "type": "custom",

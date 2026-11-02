@@ -10928,17 +10928,15 @@ export function OnboardingBudget({ data, setData, onBack, onNext, onFinish, onRe
   const primaryStore = data.supermarkets[0] ?? "";
   const mercadonaOn = hasBudget && primaryStore === "Mercadona";
 
+  // Sin presupuesto no se vacían los súper: no es decir «no compro en ninguno», y borraría los que apuntó Lola.
   const setBudgetMode = (capped) => {
-    setData((d) => ({
-      ...d,
-      hasBudget: capped,
-      wantsPriceEstimates: capped,
-      ...(capped ? {} : { supermarkets: [] }),
-    }));
+    setData((d) => ({ ...d, hasBudget: capped, wantsPriceEstimates: capped }));
   };
 
+  // El elegido va el primero (el que se enseña aquí) y los demás se quedan (#958 C): sustituir la lista
+  // borraba los que la casa dijo en Lola.
   const pickStore = (name) => {
-    setData((d) => ({ ...d, supermarkets: [name] }));
+    setData((d) => ({ ...d, supermarkets: [name, ...(d.supermarkets ?? []).filter((s) => s !== name)] }));
   };
 
   return (
