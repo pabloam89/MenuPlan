@@ -11,7 +11,10 @@
  * recuerda unos segundos) y SIN el motor: cargarlo son ~2 s en frío. Por eso
  * solo importa módulos sin dependencias (stages, intolerances, notepad,
  * reglasTexto) y las etiquetas de los gustos salen del build
- * (dominiosGustos.json). Se monta en cada mensaje, en milisegundos, y así
+ * (dominiosGustos.json). Los datos de la ficha Casa con sobre
+ * (CAMPOS_CASA_CON_SOBRE: modelo de menú, aparatos, nivel, despensa, súper,
+ * presupuesto) llegan en ese mismo `data`: casa.js lo rellena con su sobre de
+ * ficha_casa v2 y, sin la 0112, son los del documento (plan B). Se monta en cada mensaje, en milisegundos, y así
  * nunca está desfasada: el spec pedía guardarla ya montada para no cargar el
  * motor; sin motor no hace falta guardarla, y una ficha vieja con las
  * alergias de ayer es justo lo que no puede pasar.
@@ -43,6 +46,8 @@ import { botonRehacer } from "./semanaPedida.js";
 import { estadoDelMenu, lineaEstadoMenu } from "./estadoMenu.js";
 import { estructuraEfectiva } from "../../src/lib/estructuraPlatos.js";
 import { aparatosParaEnsenar, conSuNota } from "../../src/lib/aparatosDeCasa.js";
+import { modoDespensaAlGenerar, MODOS_DESPENSA_TEXTO } from "../../src/lib/modoDespensa.js";
+import { DATOS_CASA } from "../../src/lib/registroFicha.js";
 
 const DIA_CORTO = Object.fromEntries(DIAS.map((d) => [d, d.toLowerCase()]));
 const DIA_LARGO = DIA_LARGO_MINUSCULAS;
@@ -306,6 +311,9 @@ function cocinaBloque(data, hoy, marcas = []) {
   }
   const trastos = aparatosParaEnsenar(data);
   if (trastos.length) lineas.push(`- Aparatos: ${trastos.join(", ")}.`);
+  // La despensa como la usará el menú al generar (la misma función que generar.js); la de por defecto no se dice.
+  const modo = modoDespensaAlGenerar(data);
+  if (modo !== DATOS_CASA.pantryMode.defecto) lineas.push(`- Despensa: el menú se hace ${MODOS_DESPENSA_TEXTO[modo]}.`);
   const tanda = tandaPedida(data);
   if (tanda) lineas.push(`- ${tanda}.`);
   if ((data.menuModel ?? "same") === "separate") lineas.push("- Los peques cenan aparte (ajustar_menu_peques).");
