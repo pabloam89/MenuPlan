@@ -51,6 +51,10 @@ const COMIDA_DE_SERVICIO = Object.freeze(Object.fromEntries(SERVICIOS.filter((s)
   .map((s) => [s, COMIDAS.find((c) => c.nombre === s)?.id])));
 const SERVICIO_DE_COMIDA = Object.freeze(Object.fromEntries(Object.entries(COMIDA_DE_SERVICIO).map(([s, c]) => [c, s])));
 
+/** Las columnas del ámbito de una fila (días, comidas, semanas, salvedades y vigencia), y si no lleva ninguna. */
+export const COLUMNAS_DE_AMBITO = Object.freeze(["dias", "comidas", "semanas", "salvo_dias", "salvo_comidas", "salvo_semanas", "desde", "hasta"]);
+export const sinAmbito = (fila) => COLUMNAS_DE_AMBITO.every((k) => fila?.[k] == null);
+
 export const dia = (iso) => (typeof iso === "string" ? iso.slice(0, 10) : undefined);
 
 /** El valor del eje como lo guarda la tabla: sí/no en un eje booleano, texto en los demás. */
