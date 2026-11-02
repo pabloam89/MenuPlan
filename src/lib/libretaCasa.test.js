@@ -7,7 +7,8 @@ import { readFileSync } from "node:fs";
 
 vi.mock("./supabase.js", () => ({ supabase: null }));
 
-const { leerLibretaDeCasa, conLibretaLeida, sinLibretaLeida, enviarPreferencias, libretaDeCasa, guardarLibretaEnCola, MODO_LIBRETA, REF_LIBRETA } = await import("./libretaCasa.js");
+const { leerLibretaDeCasa, conLibretaLeida, sinLibretaLeida, enviarPreferencias, libretaDeCasa, guardarLibretaEnCola, MODO_LIBRETA, REF_LIBRETA, ACCION_LIBRETA } = await import("./libretaCasa.js");
+const { PGRST_SIN_FUNCION } = await import("./postgrest.js");
 const { RPC_LEER_PREFERENCIAS } = await import("./operaciones/tuberia.js");
 const { poner } = await import("./notepad.js");
 const { FALLO_DATO } = await import("./vocabularios.js");
@@ -30,7 +31,7 @@ describe("leer la libreta", () => {
   });
 
   it("sin la 0109 (la RPC no existe), del documento, como antes", async () => {
-    expect(await leerLibretaDeCasa(CASA, cliente({ data: null, error: { code: "PGRST202" } }))).toEqual({ modo: MODO_LIBRETA.DOCUMENTO });
+    expect(await leerLibretaDeCasa(CASA, cliente({ data: null, error: { code: PGRST_SIN_FUNCION } }))).toEqual({ modo: MODO_LIBRETA.DOCUMENTO });
   });
 
   it("sin poder leerla, o con otra forma, no es una casa sin preferencias: error", async () => {
@@ -64,7 +65,7 @@ describe("guardar la libreta", () => {
     const r = await enviarPreferencias({ casa: CASA, preferencias: [PESCADO] }, { token: async () => "tk", fetcher });
     expect(r).toMatchObject({ ok: true, rev: 4 });
     const cuerpo = JSON.parse(fetcher.mock.calls[0][1].body);
-    expect(cuerpo).toMatchObject({ casa: CASA, accion: "guardar_libreta", ref_id: REF_LIBRETA, preferencias: [PESCADO] });
+    expect(cuerpo).toMatchObject({ casa: CASA, accion: ACCION_LIBRETA, ref_id: REF_LIBRETA, preferencias: [PESCADO] });
     expect(cuerpo.clave).toMatch(/^[0-9a-f-]{36}$/);
   });
 

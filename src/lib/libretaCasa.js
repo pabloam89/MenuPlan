@@ -23,6 +23,9 @@ export const MODO_LIBRETA = Object.freeze({ FILAS: "filas", DOCUMENTO: "document
 /** La pantalla de la que sale un cambio de la libreta (la `ref` de la operación). */
 export const REF_LIBRETA = "libreta";
 
+/** La acción de la operación de un cambio de la libreta desde la app. */
+export const ACCION_LIBRETA = "guardar_libreta";
+
 /**
  * Las preferencias de una casa. `{ modo: FILAS, filas }`; `{ modo: DOCUMENTO }` si la base aún no tiene la RPC; o
  * `{ error: true }` si no se pudieron leer (sin red, o sin la forma v1): no es una casa sin preferencias.
@@ -58,7 +61,7 @@ export async function enviarPreferencias({ casa, preferencias }, { token = token
   let r;
   try {
     r = await enviarAlServidor({ token, url: urlOperacion(), fetchFn: fetcher })({
-      casa, clave: ids.claveOperacion.nuevo(), accion: "guardar_libreta", ref_id: REF_LIBRETA,
+      casa, clave: ids.claveOperacion.nuevo(), accion: ACCION_LIBRETA, ref_id: REF_LIBRETA,
       pedida_at: new Date().toISOString(), preferencias,
     });
   } catch (e) {

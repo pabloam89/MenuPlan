@@ -5,7 +5,8 @@
 // (trozo 41) va por la misma entrada a deshacer_operacion, con quien tiene la sesión.
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { escribirDato, falloDeMotivo } from "./datos.js";
-import { RPC_OPERACION, RPC_DESHACER, SUFIJO_CLAVE_PERSONA } from "../../src/lib/operaciones/tuberia.js";
+import { RPC_OPERACION, RPC_DESHACER, SUFIJO_CLAVE_PERSONA, RPC_PREFERENCIAS } from "../../src/lib/operaciones/tuberia.js";
+import { ACCION_LIBRETA } from "../../src/lib/libretaCasa.js";
 import handler from "../operacion.js";
 import { HTTP_DE_FALLO } from "../../src/lib/escribirDato.js";
 import { FALLO_DATO, MOTIVOS_FALLO, FALLOS_DATO, ESTADO_OPERACION, SEXO, CANAL_DATO, REF_OPERACION } from "../../src/lib/vocabularios.js";
@@ -302,11 +303,11 @@ describe("api/operacion.js: un cambio de la libreta (trozo 14) va a escribir_pre
 
   it("por la misma puerta y con el autor de la sesión, a escribir_preferencias y nunca al documento", async () => {
     responde(/household_members/, { status: 200, cuerpo: [{ role: "owner" }] });
-    responde(/rpc\/escribir_preferencias/, { status: 200, cuerpo: HECHA });
-    const res = await pedir({ body: { ...sinDato, accion: "guardar_libreta", preferencias: PREFERENCIAS, autor_user_id: "otro" } });
+    responde(new RegExp(`rpc/${RPC_PREFERENCIAS}`), { status: 200, cuerpo: HECHA });
+    const res = await pedir({ body: { ...sinDato, accion: ACCION_LIBRETA, preferencias: PREFERENCIAS, autor_user_id: "otro" } });
     expect(res.codigo).toBe(200);
     expect(res.body).toEqual({ guardado: true, ...HECHA });
-    const op = llamadas.find((l) => l.ruta.includes("escribir_preferencias")).cuerpo.p_operacion;
+    const op = llamadas.find((l) => l.ruta.includes(RPC_PREFERENCIAS)).cuerpo.p_operacion;
     expect(op).toMatchObject({ canal: "app", ref_tipo: "pantalla", autor_user_id: "u1", preferencias: PREFERENCIAS });
     expect(llamadas.filter((l) => DEL_DOCUMENTO.test(l.ruta))).toEqual([]);
   });
@@ -323,7 +324,7 @@ describe("api/operacion.js: un cambio de la libreta (trozo 14) va a escribir_pre
   it("sin la 0109 contesta rpc_ausente y no toca el documento", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     responde(/household_members/, { status: 200, cuerpo: [{ role: "owner" }] });
-    responde(/rpc\/escribir_preferencias/, SIN_RPC);
+    responde(new RegExp(`rpc/${RPC_PREFERENCIAS}`), SIN_RPC);
     const res = await pedir({ body: { ...sinDato, preferencias: PREFERENCIAS } });
     expect(res).toMatchObject({ codigo: HTTP_DE_FALLO[FALLO_DATO.RPC_AUSENTE], body: { fallo: FALLO_DATO.RPC_AUSENTE } });
     expect(llamadas.filter((l) => DEL_DOCUMENTO.test(l.ruta))).toEqual([]);
