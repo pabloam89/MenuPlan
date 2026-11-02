@@ -53,11 +53,11 @@ describe("la señal de la casa (trozo 20)", () => {
     beforeEach(() => vi.useFakeTimers());
     afterEach(() => vi.useRealTimers());
 
-    it("sondea mientras no hay señal; suscrita, deja de sondear y mira una vez; si se cae, vuelve a sondear", async () => {
+    it("sondea mientras no hay señal; suscrita, sondea lento y mira una vez; si se cae, vuelve a sondear", async () => {
       const c = clienteDePrueba();
       const mirar = vi.fn();
       const anotar = vi.fn();
-      const dejar = vigilarCasa(CASA, { mirar, cadaMs: 1000, anotar }, c);
+      const dejar = vigilarCasa(CASA, { mirar, cadaMs: 1000, cadaMsConSenal: 60_000, anotar }, c);
       await vi.advanceTimersByTimeAsync(1000);
       expect(mirar).toHaveBeenCalledTimes(1);
 
@@ -67,15 +67,18 @@ describe("la señal de la casa (trozo 20)", () => {
       expect(mirar).toHaveBeenCalledTimes(2);
       c.senal({ rev: 3 });
       expect(mirar).toHaveBeenCalledTimes(3);
+      // El respaldo lento, por si un aviso no llegó.
+      await vi.advanceTimersByTimeAsync(55_000);
+      expect(mirar).toHaveBeenCalledTimes(4);
 
       c.estado(ESTADO_SENAL.ERROR, new Error("caído"));
       await vi.advanceTimersByTimeAsync(1000);
-      expect(mirar).toHaveBeenCalledTimes(4);
+      expect(mirar).toHaveBeenCalledTimes(5);
       expect(anotar.mock.calls).toEqual([[ESTADO_SENAL.SUSCRITA, undefined], [ESTADO_SENAL.ERROR, "caído"]]);
 
       dejar();
-      await vi.advanceTimersByTimeAsync(5000);
-      expect(mirar).toHaveBeenCalledTimes(4);
+      await vi.advanceTimersByTimeAsync(120_000);
+      expect(mirar).toHaveBeenCalledTimes(5);
       expect(c.quitados).toBe(1);
     });
 

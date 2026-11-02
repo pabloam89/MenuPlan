@@ -25,6 +25,9 @@ export const ESTADO_SENAL = Object.freeze({
   CERRADA: "CLOSED",
 });
 
+/** Con la señal, se mira igual cada 2 min, por si un aviso no llegó. */
+export const SONDEO_CON_SENAL_MS = 120_000;
+
 /** El evento de `user_events` con cada cambio de estado del canal (metadata: estado, motivo). */
 export const EVENTO_SENAL = "casa_senal";
 
@@ -67,32 +70,31 @@ export function escucharCasa(cliente, householdId, { alCambiar, alEstado }) {
 
 /**
  * Vigila una casa: `mirar` (leer la versión y recargar si es nueva) con cada señal, al suscribirse (lo que pasó
- * mientras se conectaba) y cada `cadaMs` solo mientras no hay señal. Cada cambio de estado del canal va a `anotar`.
+ * mientras se conectaba), cada `cadaMs` mientras no hay señal y cada `cadaMsConSenal` mientras la hay (un aviso que
+ * la base no pudo mandar solo deja un warning en su log: sin este respaldo lento, la app no se enteraría hasta volver a
+ * la pestaña). Cada cambio de estado del canal va a `anotar`.
  * @param {string} householdId
- * @param {{ mirar: () => void, cadaMs: number, anotar: (estado: string, motivo?: string) => void }} opciones
+ * @param {{ mirar: () => void, cadaMs: number, cadaMsConSenal?: number, anotar: (estado: string, motivo?: string) => void }} opciones
  * @param {any} [cliente]
  * @returns {() => void} deja de vigilar
  */
-export function vigilarCasa(householdId, { mirar, cadaMs, anotar }, cliente = supabase) {
+export function vigilarCasa(householdId, { mirar, cadaMs, cadaMsConSenal = SONDEO_CON_SENAL_MS, anotar }, cliente = supabase) {
   let sondeo = null;
-  const sondear = (si) => {
-    if (si && sondeo == null) sondeo = setInterval(mirar, cadaMs);
-    if (!si && sondeo != null) {
-      clearInterval(sondeo);
-      sondeo = null;
-    }
+  const sondear = (ms) => {
+    if (sondeo != null) clearInterval(sondeo);
+    sondeo = ms == null ? null : setInterval(mirar, ms);
   };
-  sondear(true);
+  sondear(cadaMs);
   const dejar = escucharCasa(cliente, householdId, {
     alCambiar: () => mirar(),
     alEstado: (suscrita, estado, motivo) => {
-      sondear(!suscrita);
+      sondear(suscrita ? cadaMsConSenal : cadaMs);
       anotar(estado, motivo);
       if (suscrita) mirar();
     },
   });
   return () => {
     dejar();
-    sondear(false);
+    sondear(null);
   };
 }

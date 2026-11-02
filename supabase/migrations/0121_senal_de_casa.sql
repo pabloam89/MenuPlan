@@ -1,4 +1,11 @@
 -- La señal de la casa por Realtime (plan fichas con estado, trozo 20; #1037).
+-- AUDITADA: auditor-datos 2026-11-02 OK
+--   (un agente independiente, que no la escribió, leyendo producción: realtime.send envuelve el insert en un
+--   «exception when others then raise warning», así que el guardado sigue si Realtime falla; realtime.messages tiene
+--   RLS y ninguna política, así que esta es la única y nadie oye el tema de otra casa; sin política de insert nadie
+--   falsea la señal. Matices: create policy en realtime depende de que Supabase lo deje, como en storage (0039, 0050):
+--   lo dirá el ensayo; quien sale de una casa oye números de versión hasta reconectar, solo el número. Sugirió un
+--   sondeo lento de respaldo con la señal: hecho en realtimeCasa.js)
 --
 -- La app se entera de que otro (Lola, la pareja, otro aparato) ha escrito en la casa mirando household_state.bot_rev
 -- cada 20 s y al volver a la pestaña. Con esta migración, cada vez que bot_rev sube, la base manda un mensaje de
@@ -17,7 +24,7 @@
 -- household_state ni sus permisos, ni otras políticas, ni datos de familias.
 -- Toca RLS (una política nueva en realtime.messages): la lanza Pablo con --pablo.
 -- Plan B (regla migraciones): sin ella, la app no recibe ninguna señal y sigue con el sondeo de 20 s, como hoy
--- (realtimeCasa.js solo apaga el sondeo mientras el canal está suscrito).
+-- (realtimeCasa.js solo lo alarga a 2 min mientras el canal está suscrito).
 -- Testigo: la función public._puede_oir_casa(text).
 
 set lock_timeout = '5s';

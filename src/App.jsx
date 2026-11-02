@@ -2050,7 +2050,7 @@ export default function App() {
       if (rev != null && botRevRef.current != null && rev > botRevRef.current) recargarDesdeNubeRef.current();
     };
     document.addEventListener("visibilitychange", mirar);
-    // Con la señal de la casa por Realtime (trozo 20, 0121) se mira al momento; el sondeo, solo mientras no hay señal.
+    // Con la señal de la casa por Realtime (trozo 20, 0121) se mira al momento; el sondeo, cada 20 s sin señal y cada 2 min con ella.
     const dejar = vigilarCasa(syncHouseholdId, {
       mirar,
       cadaMs: BOT_REV_SONDEO_MS,
