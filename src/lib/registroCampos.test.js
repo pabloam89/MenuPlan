@@ -3,13 +3,15 @@ import { readFileSync, readdirSync } from "node:fs";
 
 import { REGISTRO_CAMPOS, TIPOS_CAMPO, POLITICAS, POR, APLICA } from "./registroCampos.js";
 import { DATOS_CASA, DATOS_PERSONA } from "./registroFicha.js";
+import { DIMENSIONES_AMBITO } from "./vocabularios.js";
 
 /**
  * La 0097 copió REGISTRO_CAMPOS en registro_campo, la 0105 la regeneró entera
- * con las columnas del eje, la 0112 con los campos de la ficha Casa y la 0113 con los de la Rutina. Este test es lo que impide que el SQL y el JS se
+ * con las columnas del eje, la 0112 con los campos de la ficha Casa, la 0113 con los de la Rutina y la 0114
+ * con el ámbito de cada campo (y los de la Rutina con ámbito). Este test es lo que impide que el SQL y el JS se
  * separen: un campo nuevo en JS sin migración no existiría en la base, y un
  * sobre suyo violaría la FK. Compara con el último INSERT de registro_campo de
- * las migraciones (hoy, el de la 0113): una migración que la regenere pasa a ser
+ * las migraciones (hoy, el de la 0114): una migración que la regenere pasa a ser
  * la que se mira.
  */
 const DIR = new URL("../../supabase/migrations/", import.meta.url);
@@ -30,8 +32,8 @@ function literales(constraint) {
 
 const ordenado = (xs) => [...xs].sort();
 
-/** Los trozos de una fila del INSERT separados por comas, sin partir un literal '…' (un defecto como '["Comida","Cena"]'). */
-const trozosDeFila = (fila) => fila.match(/'[^']*'(?:::jsonb)?|[^,\s][^,]*/g);
+/** Los trozos de una fila del INSERT separados por comas, sin partir un literal '…' (un defecto como '["Comida","Cena"]', un ámbito como '{dia,comida}'::text[]). */
+const trozosDeFila = (fila) => fila.match(/'[^']*'(?:::jsonb|::text\[\])?|[^,\s][^,]*/g);
 
 /** Las filas del INSERT de registro_campo, como objetos con las columnas de la migración. */
 function filasDelInsert() {
@@ -44,6 +46,8 @@ function filasDelInsert() {
     if (t === "true" || t === "false") return t === "true";
     // Un defecto jsonb: '<json>'::jsonb.
     if (/^'.*'::jsonb$/.test(t)) return JSON.parse(t.slice(1, t.lastIndexOf("'")));
+    // Un ámbito: '{dia,comida}'::text[] (sin comillas dentro: los valores son de DIMENSIONES_AMBITO).
+    if (/^'\{.*\}'::text\[\]$/.test(t)) return t.slice(2, t.lastIndexOf("}")).split(",").filter(Boolean);
     if (/^'.*'$/.test(t)) return t.slice(1, -1);
     return Number(t);
   };
@@ -54,11 +58,11 @@ function filasDelInsert() {
   });
 }
 
-describe("registro_campo (0097, regenerada en la 0105, la 0112 y la 0113) dice lo mismo que registroCampos.js", () => {
-  it("el último INSERT es el de la 0113, con las columnas del eje", () => {
-    expect(ULTIMA.fichero).toBe("0113_rutina_campos.sql");
+describe("registro_campo (0097, regenerada en la 0105, la 0112, la 0113 y la 0114) dice lo mismo que registroCampos.js", () => {
+  it("el último INSERT es el de la 0114, con las columnas del eje y el ámbito", () => {
+    expect(ULTIMA.fichero).toBe("0114_sobre_ambito.sql");
     const cols = codigo.match(RE_INSERT)[1].split(",").map((c) => c.trim());
-    for (const c of ["ficha", "clase", "defecto", "suposicion", "minimo_para_generar", "peso_menu", "escribe", "choque"]) expect(cols, c).toContain(c);
+    for (const c of ["ficha", "clase", "defecto", "suposicion", "minimo_para_generar", "peso_menu", "escribe", "choque", "ambito"]) expect(cols, c).toContain(c);
   });
 
   it("mismos campos y, en cada uno, mismas columnas", () => {
@@ -81,6 +85,16 @@ describe("registro_campo (0097, regenerada en la 0105, la 0112 y la 0113) dice l
     expect(literales("registro_campo_politica_vocabulario")).toEqual(POLITICAS);
     expect(literales("registro_campo_por_vocabulario")).toEqual(POR);
     expect(literales("registro_campo_aplica_vocabulario")).toEqual(APLICA);
+    expect(literales("registro_campo_ambito_vocabulario")).toEqual(DIMENSIONES_AMBITO);
+  });
+
+  it("el ámbito de cada campo es de DIMENSIONES_AMBITO, en su orden, y el de un grupo lleva el grupo y es de la casa", () => {
+    const conAmbito = Object.entries(REGISTRO_CAMPOS).filter(([, c]) => c.ambito.length);
+    expect(conAmbito.length, "ningún campo con ámbito: el test no prueba nada").toBeGreaterThan(0);
+    for (const [id, c] of conAmbito) expect(c.ambito, id).toEqual(DIMENSIONES_AMBITO.filter((x) => c.ambito.includes(x)));
+    const deGrupo = [...Object.values(DATOS_CASA), ...Object.values(DATOS_PERSONA)].filter((d) => d.campo && d.entidad === "grupo");
+    expect(deGrupo.length).toBeGreaterThan(0);
+    for (const d of deGrupo) expect([REGISTRO_CAMPOS[d.campo].por, REGISTRO_CAMPOS[d.campo].ambito.includes("grupo")], d.campo).toEqual(["casa", true]);
   });
 
   it("REGISTRO_CAMPOS es una proyección del registro de la ficha: los campos son los datos con `campo`", () => {

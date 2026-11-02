@@ -349,6 +349,10 @@
       "class": "identifier",
       "reason": "Nombre de campo o de lista de la ficha, clave de otro registro (REGISTRO_CAMPOS, VOCABULARIOS); no se enumera aquí"
     },
+    "sobre.grupo_id": {
+      "class": "identifier",
+      "reason": "Ámbito del sobre (0114): id de un grupo de la casa, FK compuesta a grupo"
+    },
     "sobre.persona_id": {
       "class": "identifier",
       "reason": "Id de una persona de la ficha de la casa"

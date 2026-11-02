@@ -16,7 +16,11 @@
  *    escribe y choque (0105): tal cual del dato; las leen ficha_casa v2 y
  *    aplicar_operacion.
  *  - por (POR): si el dato es de cada persona o de la casa entera; es la
- *    entidad del dato, que para un campo solo puede ser una de esas dos.
+ *    entidad del dato, que para un campo solo puede ser una de esas dos, o
+ *    un grupo: el de un grupo es de la casa, con el grupo en su ámbito.
+ *  - ambito (DIMENSIONES_AMBITO; 0114, trozo 55): las dimensiones de cada
+ *    sobre del campo, tal cual del dato y en el orden de la lista; las lee
+ *    sobre_valor_valido, que exige que el sobre las traiga todas y ninguna más.
  *
  * Añadir un campo es poner `campo` (y su política) a un dato del registro y
  * escribir la migración que lo lleve a registro_campo: el test de paridad
@@ -26,6 +30,7 @@
  * sesión con su catálogo: `alergias` nombra `alergenos` aunque aún no exista.
  */
 import { DATOS_CASA, DATOS_PERSONA, TIPOS_CAMPO, POLITICAS, APLICA } from "./registroFicha.js";
+import { DIMENSIONES_AMBITO } from "./vocabularios.js";
 
 export { TIPOS_CAMPO, POLITICAS, APLICA };
 
@@ -34,15 +39,23 @@ export const POR = ["persona", "casa"];
 
 const COLUMNAS = [
   "tipo", "vocabulario", "minimo", "maximo", "politica", "seguridad", "por", "aplica", "columna", "caduca_dias",
-  "ficha", "clase", "defecto", "suposicion", "minimo_para_generar", "peso_menu", "escribe", "choque",
+  "ficha", "clase", "defecto", "suposicion", "minimo_para_generar", "peso_menu", "escribe", "choque", "ambito",
 ];
 
 /** La fila de registro_campo de un dato con `campo`; falla alto si al dato le falta algo que la tabla exige. */
 function fila(clave, d) {
-  if (!POR.includes(d.entidad)) throw new Error(`${clave}: el campo «${d.campo}» es de «${d.entidad}», y registro_campo solo admite ${POR.join(" o ")}`);
+  const ambito = d.ambito ?? [];
+  const enOrden = DIMENSIONES_AMBITO.filter((x) => ambito.includes(x));
+  if (ambito.length !== enOrden.length || ambito.some((x, i) => x !== enOrden[i])) {
+    throw new Error(`${clave}: el ámbito [${ambito}] no es de DIMENSIONES_AMBITO, sin repetir y en su orden (${DIMENSIONES_AMBITO})`);
+  }
+  // El dato de un grupo es de la casa, con el grupo en su ámbito.
+  if ((d.entidad === "grupo") !== ambito.includes("grupo")) throw new Error(`${clave}: el campo «${d.campo}» es de «${d.entidad}» y su ámbito [${ambito}]: un dato de grupo lleva el grupo en su ámbito, y solo él`);
+  const por = d.entidad === "grupo" ? "casa" : d.entidad;
+  if (!POR.includes(por)) throw new Error(`${clave}: el campo «${d.campo}» es de «${d.entidad}», y registro_campo solo admite ${POR.join(" o ")}`);
   if (!TIPOS_CAMPO.includes(d.tipo)) throw new Error(`${clave}: el campo «${d.campo}» es de tipo «${d.tipo}», que registro_campo no admite`);
   if (!POLITICAS.includes(d.politica)) throw new Error(`${clave}: el campo «${d.campo}» no dice su política de pregunta`);
-  return Object.fromEntries(COLUMNAS.map((c) => [c, c === "por" ? d.entidad : d[c]]));
+  return Object.fromEntries(COLUMNAS.map((c) => [c, c === "por" ? por : c === "ambito" ? ambito : d[c]]));
 }
 
 export const REGISTRO_CAMPOS = Object.freeze(Object.fromEntries(
