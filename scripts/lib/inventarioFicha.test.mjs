@@ -93,15 +93,15 @@ describe("inventario de la ficha", async () => {
   it("dispara sin_ficha y defecto_distinto con un dato mal declarado (y no con los demás)", async () => {
     const casa = {
       ...DATOS_CASA,
-      // Uno que vive en data (menuModel ya vive en su sobre, trozo 12: su defecto lo da el registro, no INITIAL_DATA).
+      // Uno que vive en data (menuModel y meals ya viven en su sobre, trozos 12 y 13: su defecto lo da el registro, no INITIAL_DATA).
       menuVarietyPref: { ...DATOS_CASA.menuVarietyPref, ficha: null, defecto: "relaxed" }, // INITIAL_DATA siembra "strict"
-      meals: { ...DATOS_CASA.meals, defecto: ["Comida"] }, // una lista se compara entera
+      menuWeekOffsets: { ...DATOS_CASA.menuWeekOffsets, defecto: [0, 1] }, // una lista se compara entera
       menuWeek: { ...DATOS_CASA.menuWeek, ficha: null }, // una copia sin ficha también cuenta: todo dato tiene ficha (trozo 6)
     };
     const r = await inventario(raiz, { registro: { casa, persona: DATOS_PERSONA } });
     expect(r.fallos.sin_ficha).toEqual(["casa.menuWeek", "casa.menuVarietyPref"]);
     expect(r.fallos.defecto_distinto).toEqual([
-      'casa.meals: registro ["Comida"] ≠ INITIAL_DATA ["Comida","Cena"]',
+      'casa.menuWeekOffsets: registro [0,1] ≠ INITIAL_DATA [0]',
       'casa.menuVarietyPref: registro "relaxed" ≠ INITIAL_DATA "strict"',
     ]);
   }, 120_000);
@@ -121,7 +121,7 @@ describe("inventario de la ficha", async () => {
   it("dispara sin_declarar (hecho con defecto sin sembrar, derivado sin función), funcion_rota y en_resto con datos mal declarados", async () => {
     const casa = {
       ...DATOS_CASA,
-      tandaMinutos: { ...DATOS_CASA.tandaMinutos, defecto: 20 }, // un hecho con defecto que INITIAL_DATA no trae
+      profilePhoto: { ...DATOS_CASA.profilePhoto, defecto: "foto.png" }, // un hecho en data con defecto que INITIAL_DATA no trae
       cocinas: { ...DATOS_CASA.cocinas, funcion: null },
       menuWeek: { ...DATOS_CASA.menuWeek, funcion: "src/lib/semanaDias.js:noExiste" },
       cookedDishes: { ...DATOS_CASA.cookedDishes, funcion: "src/lib/noExiste.js:f" }, // fichero que no está
@@ -129,7 +129,7 @@ describe("inventario de la ficha", async () => {
     const persona = { ...DATOS_PERSONA, apodo: { ...DATOS_PERSONA.name } }; // una clave de la persona sin columna
     const r = await inventario(raiz, { registro: { casa, persona } });
     // etapaBebe, hecho sin defecto fuera de INITIAL_DATA, nace cuando se dice: no cuenta.
-    expect(r.fallos.sin_declarar).toEqual(["casa.cocinas: derivado sin función", "casa.tandaMinutos: defecto 20 que INITIAL_DATA no siembra"]);
+    expect(r.fallos.sin_declarar).toEqual(["casa.cocinas: derivado sin función", "casa.profilePhoto: defecto \"foto.png\" que INITIAL_DATA no siembra"]);
     expect(r.fallos.funcion_rota).toEqual(["casa.menuWeek → src/lib/semanaDias.js:noExiste", "casa.cookedDishes → src/lib/noExiste.js:f"]);
     expect(r.fallos.en_resto).toEqual(["persona.dislikes", "persona.apodo"]);
   }, 120_000);
