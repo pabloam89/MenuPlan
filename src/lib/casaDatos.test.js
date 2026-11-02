@@ -12,6 +12,7 @@ const { CAMPOS_CASA_CON_SOBRE } = await import("./estadoDeDato.js");
 const { crearColaDeDatos } = await import("./escribirDato.js");
 const { REGISTRO_CAMPOS } = await import("./registroCampos.js");
 const { PREGUNTAS_POR_ID } = await import("./wizardRegistry.js");
+const { conInterruptor, leerPresupuesto, PRESUPUESTO_DE_PARTIDA } = await import("./presupuestoCasa.js");
 
 const CASA = "00000000-0000-4000-8000-0000000000ca";
 const sobre = (campo, valor, origen = "dicho") => ({
@@ -34,7 +35,7 @@ describe("los campos con sobre", () => {
 describe("leer los datos de la casa", () => {
   it("con la 0112 aplicada, de su sobre, pidiéndolos a api/operacion.js con la sesión", async () => {
     const fetcher = servidor({ v: 2, datos: [sobre("wantsPriceEstimates", true), sobre("presupuesto", 80)] });
-    expect(await leer(fetcher)).toEqual({ valores: { wantsPriceEstimates: true } });
+    expect(await leer(fetcher)).toEqual({ valores: { wantsPriceEstimates: true, presupuesto: 80 } });
     expect(fetcher.mock.calls[0][0]).toBe(`/api/operacion?casa=${CASA}`);
     expect(fetcher.mock.calls[0][1].headers.Authorization).toBe("Bearer tok");
   });
@@ -197,6 +198,30 @@ describe("guardar los datos con sobre", () => {
       { campo: "supermarketsNota", persona_id: null, valor: "Frutería Paco", origen: "dicho" },
     ]);
     expect(sinCasa({ supermarkets: ["Mercadona"], reglas: [] }, { valores })).toEqual({ reglas: [] });
+  });
+
+  it("el presupuesto (PR 8): sin decir se lee null aunque el documento traiga el par viejo; encenderlo y apagarlo van con sobre, no al documento", async () => {
+    const m = new Map();
+    const enviados = [];
+    const cola = crearColaDeDatos({
+      almacen: { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, v) },
+      enviar: async (item) => { enviados.push(item.dato); return { status: 200, cuerpo: { guardado: true, estado: "hecha", rev: 3 + enviados.length } }; },
+      nuevaClave: () => `00000000-0000-4000-8000-00000000c1d${enviados.length}`, ahora: () => 0,
+    });
+    const carga = await leer(servidor({ v: 2, datos: [porDefecto("presupuesto", null)] }));
+    expect(carga).toEqual({ valores: { presupuesto: null } });
+    const data = conCasaLeida({ hasBudget: true, budget: 90, reglas: [] }, carga);
+    expect(leerPresupuesto(data)).toEqual({ estado: "sin", euros: null });
+    const casa = casaDeCasa({ casa: CASA, valores: carga.valores, cola });
+    expect(await casa.guardar(data, 3)).toEqual({ ok: true, enviado: false });
+    const encendido = conInterruptor(data, true);
+    expect(await casa.guardar(encendido, 3)).toEqual({ ok: true, enviado: true, botRev: 4 });
+    expect(await casa.guardar(conInterruptor(encendido, false), 4)).toEqual({ ok: true, enviado: true, botRev: 5 });
+    expect(enviados).toEqual([
+      { campo: "presupuesto", persona_id: null, valor: PRESUPUESTO_DE_PARTIDA, origen: "dicho" },
+      { campo: "presupuesto", persona_id: null, valor: null, origen: "dicho" },
+    ]);
+    expect(sinCasa(encendido, carga)).toEqual({ reglas: [] });
   });
 
   /** Una cola que contesta guardado con cada versión de `revs`, en orden. */

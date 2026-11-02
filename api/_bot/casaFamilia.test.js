@@ -12,6 +12,7 @@ import { CAMPOS_CASA_CON_SOBRE } from "../../src/lib/estadoDeDato.js";
 import { RPC_FICHA, fichaV1 } from "./familiaDePrueba.js";
 import { PREGUNTAS_POR_ID } from "../../src/lib/wizardRegistry.js";
 import { aplicarCompra } from "./ajustes.js";
+import { leerPresupuesto } from "../../src/lib/presupuestoCasa.js";
 
 const CASA = "3f2b8c1e-7a4d-4e0b-9c5a-1d2e3f4a5b6c";
 const A = "00000000-0000-4000-8000-00000000000a";
@@ -321,6 +322,27 @@ describe("los datos de la casa con sobre (trozo 12)", () => {
     ]);
     expect(escrituras()[0].cuerpo.p_state.data).not.toHaveProperty("supermarkets");
     expect(r).toMatchObject({ ok: true, botRev: 10 });
+  });
+
+  it("el presupuesto (PR 8): con sobre, el par viejo del documento no cuenta; «nos ponemos 60 €» y «sin presupuesto» van con sobre y el par se va", async () => {
+    respuestas.unshift([/household_state/, { status: 200, cuerpo: [{ state: { data: { ...DOCUMENTO.data, hasBudget: true, budget: 90 } }, bot_rev: 7, updated_at: "2026-11-01T10:00:00Z" }] }]);
+    responde(RUTA_FICHA, { status: 200, cuerpo: fichaV2(porDefecto("presupuesto", null)) });
+    const casa = await cargarCasa(CASA);
+    expect(leerPresupuesto(casa.state.data)).toEqual({ estado: "sin", euros: null });
+    olvidarCasa(CASA);
+    let rev = 8;
+    responde(RUTA_OPERACION, { status: 200, get cuerpo() { rev += 1; return { ...HECHA, rev }; } });
+    await enTurno(() => conCasa(CASA, async (c) => ({ state: { ...c.state, data: aplicarCompra(c.state.data, { presupuesto: 60 }).data } })));
+    const [doc, op] = escrituras();
+    expect(op.cuerpo.p_operacion.datos).toEqual([{ campo: "presupuesto", persona_id: null, valor: 60, origen: "dicho" }]);
+    for (const k of ["presupuesto", "hasBudget", "budget"]) expect(doc.cuerpo.p_state.data).not.toHaveProperty(k);
+    olvidarCasa(CASA);
+    llamadas = [];
+    responde(RUTA_FICHA, { status: 200, cuerpo: fichaV2(dicho("presupuesto", 60)) });
+    await enTurno(() => conCasa(CASA, async (c) => ({ state: { ...c.state, data: aplicarCompra(c.state.data, { sinPresupuesto: true }).data } })));
+    expect(escrituras().filter((l) => RUTA_OPERACION.test(l.ruta)).map((l) => l.cuerpo.p_operacion.datos[0])).toEqual([
+      { campo: "presupuesto", persona_id: null, valor: null, origen: "dicho" },
+    ]);
   });
 
   it("sin la 0112 (la ficha no trae la ficha Casa), con la v1 o sin la RPC, del documento y se guarda en él", async () => {

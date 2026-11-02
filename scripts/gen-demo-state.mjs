@@ -78,8 +78,7 @@ const data = {
   kitchenTools: ["Horno", "Microondas"],
   timeWeekday: 35,
   timeWeekend: 60,
-  hasBudget: false,
-  budget: 80,
+  presupuesto: null,
   supermarkets: [],
 };
 

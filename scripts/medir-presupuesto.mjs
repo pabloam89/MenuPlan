@@ -29,7 +29,7 @@ const casa = (presupuesto) => m.resolveModeData({
   groups: [{ id: "g1", label: "Adultos", memberIds: ["m1", "m2"] }],
   meals: ["Comida", "Cena"], schedule: {}, slotType: {}, cookLevel: "normal",
   timeWeekday: 45, timeWeekend: 60, freqs: { legumbres: 2, verdura: 3, pescado: 2 }, allergiesReviewed: true,
-  hasBudget: presupuesto != null, budget: presupuesto ?? 80,
+  presupuesto,
 });
 const semillas = process.argv[2] == null ? 2 : Number(process.argv[2]);
 if (!Number.isInteger(semillas) || semillas < 1) throw new Error(`el número de vueltas tiene que ser un entero positivo, no «${process.argv[2]}»`);
