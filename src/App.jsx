@@ -6453,11 +6453,6 @@ export default function App() {
                 ))
                 : wizard.bubble}
               modoPizarra={esPizarra}
-              pizarraOpciones={esPizarra && !householdReadOnly && !pizarraArrancando ? {
-                onNueva: () => handleStartPizarra(),
-                onVaciar: handleVaciarPizarra,
-                onCompartirEnlace: handleShareMenuLink,
-              } : null}
               repartoKey={esPizarra ? repartoKey : 0}
               onAddSlot={esPizarra ? setAddSlotDay : null}
               onRemoveSlot={esPizarra ? handleRemoveSlot : null}
@@ -6480,6 +6475,11 @@ export default function App() {
                       onAddDespensa={handleAddDespensa}
                       onQuitarDespensa={handleQuitarDespensa}
                       onQtyDespensa={handleQtyDespensa}
+                      onNuevaPizarra={() => handleStartPizarra()}
+                      onVaciar={handleVaciarPizarra}
+                      onFavorito={householdReadOnly ? undefined : toggleActiveFavorite}
+                      esFavorito={Boolean(data.menus?.[data.activeMenuId]?.isFavorite)}
+                      onCompartir={householdReadOnly ? undefined : handleShareMenuLink}
                     />
                   </Suspense>
                 ) : null

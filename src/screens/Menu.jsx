@@ -45,7 +45,6 @@ import {
   Microwave,
   Moon,
   Pizza,
-  Eraser,
   Plus,
   RotateCcw,
   RotateCw,
@@ -5130,9 +5129,6 @@ export const MenuScreen = memo(function MenuScreen({
   // sitio que la del asistente y por el mismo motivo: se lee como "esto de
   // aquí arriba controla lo de abajo".
   pizarraControles = null,
-  // Lo que se hace CON la pizarra, para el burger: { onNueva, onVaciar,
-  // onCompartirEnlace }. Nulo fuera de ella y en solo lectura.
-  pizarraOpciones = null,
   // Sube cada vez que "Rellenar" termina de colocar. Es lo que dispara el
   // reparto: no es un booleano porque dos rellenos seguidos tienen que volver
   // a animar, y un booleano que ya estaba a true no cambia nada.
@@ -5481,7 +5477,6 @@ export const MenuScreen = memo(function MenuScreen({
   }, [deckView, autoDemo]);
   const [filterPanelOpen, setFilterPanelOpen] = useState(true);
   const [headerMenuOpen, setHeaderMenuOpen] = useState(false);
-  const [confirmarVaciar, setConfirmarVaciar] = useState(false);
   // Las otras acciones del menú, plegadas en la fila de mandos. Ver
   // `accionesDelMenu` más abajo.
   const [accionesAbiertas, setAccionesAbiertas] = useState(false);
@@ -6124,7 +6119,6 @@ export const MenuScreen = memo(function MenuScreen({
                 </div>
                 <div style={{ padding: "8px 10px", overflowY: "auto" }}>
                   {[
-                    pizarraOpciones && { key: "nueva", label: "Nueva pizarra", Icon: Plus, action: pizarraOpciones.onNueva, tint: "var(--color-marca-fondo)", ink: "var(--color-marca)" },
                     // "Análisis" y "Borrar menú" quitados de momento (2026-08-27):
                     // para borrar, ahora se genera otro menú por encima.
                     onOpenMenus && { key: "menus", label: "Menús guardados", Icon: History, coach: "menu-menus", action: onOpenMenus, tint: "#f0e9fe", ink: "#7c3aed" },
@@ -6132,10 +6126,8 @@ export const MenuScreen = memo(function MenuScreen({
                     // allí sería mandar el menú a una pantalla que no se ve.
                     !FRONTAL_BOT && hasMenu && onPublishToFeed && { key: "feed", label: menuSharedInFeed ? "Menú publicado" : "Publicar en Gente", Icon: Users, action: () => setPublishSheetOpen(true), tint: "#e6efff", ink: "#4a6fd4" },
                     hasMenu && { key: "share", label: "Compartir fuera", Icon: Share2, action: handleShare, tint: "#e0f4f1", ink: "#0d9488" },
-                    hasMenu && pizarraOpciones && { key: "enlace", label: "Compartir enlace", Icon: Share2, action: pizarraOpciones.onCompartirEnlace, tint: "var(--color-info-fondo)", ink: "var(--color-info)" },
                     hasMenu && { key: "download", label: "Descargar PDF", Icon: Download, action: handleDownload, tint: "#fdf0e0", ink: "#d97706" },
                     !isGenerating && !readOnly && onRegenerate && { key: "regen", label: "Regenerar menú", Icon: RotateCw, action: onRegenerate, tint: "#e6f6ec", ink: "#16a34a" },
-                    hasMenu && pizarraOpciones && { key: "vaciar", label: "Vaciar pizarra", Icon: Eraser, action: () => setConfirmarVaciar(true), tint: "var(--color-aviso-fondo)", ink: "var(--color-aviso)" },
                   ]
                     .filter(Boolean)
                     .map((a, i, arr) => (
@@ -6681,67 +6673,6 @@ export const MenuScreen = memo(function MenuScreen({
           </div>
         </div>,
         document.body
-      )}
-
-      {/* Vaciar sí pregunta: se lleva por delante todo lo que has puesto y no
-          hay deshacer. Los huecos NO se tocan —el tablero que decidiste en el
-          arranque se queda— así que lo que se confirma es solo perder los
-          platos. */}
-      {confirmarVaciar && pizarraOpciones && createPortal(
-        <div
-          onClick={() => setConfirmarVaciar(false)}
-          className="mp-overlay-in"
-          style={{
-            position: "fixed", inset: 0, zIndex: "var(--capa-hoja)",
-            background: "var(--color-scrim)",
-            display: "flex", alignItems: "center", justifyContent: "center", padding: "var(--esp-24)",
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            role="dialog"
-            aria-modal="true"
-            aria-label="¿Vaciar la pizarra?"
-            style={{
-              width: "min(300px, 100%)", background: "var(--color-superficie)", borderRadius: "var(--radio-panel)",
-              padding: "var(--esp-16)", boxSizing: "border-box", boxShadow: "var(--sombra-3)",
-            }}
-          >
-            <p style={{ margin: "0 0 var(--esp-4)", fontSize: "var(--tipo-paso-16)", fontWeight: "var(--tipo-peso-900)", color: "var(--color-tinta)" }}>
-              ¿Vaciar la pizarra?
-            </p>
-            <p style={{ margin: "0 0 var(--esp-16)", fontSize: "var(--tipo-paso-13)", fontWeight: "var(--tipo-peso-700)", color: "var(--color-tinta-suave)" }}>
-              Se quitan los platos. Los huecos se quedan como están.
-            </p>
-            <div style={{ display: "flex", gap: "var(--esp-8)" }}>
-              <button
-                type="button"
-                className="mp-press"
-                onClick={() => setConfirmarVaciar(false)}
-                style={{
-                  flex: 1, height: "var(--tam-tactil)", borderRadius: "var(--radio-control)", cursor: "pointer",
-                  border: "1.5px solid var(--color-linea)", background: "var(--color-superficie)",
-                  color: "var(--color-tinta-suave)", fontSize: "var(--tipo-paso-14)", fontWeight: "var(--tipo-peso-800)", fontFamily: "inherit",
-                }}
-              >
-                Déjalo
-              </button>
-              <button
-                type="button"
-                className="mp-press"
-                onClick={() => { setConfirmarVaciar(false); pizarraOpciones.onVaciar(); }}
-                style={{
-                  flex: 1, height: "var(--tam-tactil)", borderRadius: "var(--radio-control)", cursor: "pointer",
-                  border: "none", background: "var(--color-aviso)", color: "var(--color-superficie)",
-                  fontSize: "var(--tipo-paso-14)", fontWeight: "var(--tipo-peso-800)", fontFamily: "inherit",
-                }}
-              >
-                Vaciar
-              </button>
-            </div>
-          </div>
-        </div>,
-        document.body,
       )}
 
       {pdfExportOpen && createPortal(
