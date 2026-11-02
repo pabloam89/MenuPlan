@@ -324,7 +324,7 @@ function huecosDeLaComida(data, group, meal, dia) {
   }
 }
 
-export function buildGroupContext(data, group) {
+export function buildGroupContext(data, group, tiempo = tiempoDeCocina(data)) {
   const meals = getMeals(data);
   const groupMembers = membersOfGroup(group, data.members);
   const isBabyGroup = isBabyMenuGroup(group, data.members);
@@ -360,7 +360,6 @@ export function buildGroupContext(data, group) {
 
   const kitchenTools = data.kitchenTools ?? [];
   const cookTime = migrateCookTime(data);
-  const tiempo = tiempoDeCocina(data);
 
   const slots = [];
   const schoolMenuByDay = {};
@@ -498,11 +497,14 @@ export const esEntrada = (x) => COMPILADAS.has(x);
  *   contexto      por grupo: sus huecos, el filtro de sus candidatos
  *                 (alergias, intolerancias, vetos, tiempo, aparatos…) y sus
  *                 topes (buildGroupContext)
- *   restricciones lo que no se discute: platos fijos, tipo de hueco, recetas
- *                 propias, bases de la tanda
+ *   restricciones lo que no se discute: platos fijos, recetas propias, bases
+ *                 de la tanda
  *   objetivos     lo que se prefiere, con el peso con que lo cuenta el motor y
- *                 el dato de la casa del que sale (`origen`)
- *   tiempo        minutos de cocina por día y comida
+ *                 el dato de la casa del que sale (`origen`); peso y origen
+ *                 los leerá el solver del trozo 31 de #1037, que pesa cada
+ *                 preferencia por separado
+ *   tiempo        minutos de cocina por día y comida: el tope de cada hueco
+ *                 del contexto
  *
  * `hoy` es la fecha con la que se leen los vetos y las reglas que caducan.
  * Se congela: el motor la lee y no la cambia.
@@ -512,7 +514,9 @@ export function entradaDelMotor(data, { hoy = null } = {}) {
   const personas = ficha?.members ?? [];
   const grupos = ficha?.groups ?? [];
   const activos = grupos.filter((g) => membersOfGroup(g, personas).length > 0);
-  const contexto = Object.fromEntries(activos.map((g) => [g.id, buildGroupContext(ficha, g)]));
+  // El tope de cada hueco del contexto sale de esta tabla, la misma que lleva la entrada.
+  const tiempo = tiempoDeCocina(ficha);
+  const contexto = Object.fromEntries(activos.map((g) => [g.id, buildGroupContext(ficha, g, tiempo)]));
   const dias = diasActivosDe(ficha);
   const accion = Object.fromEntries(dias.map((day) => [day, {
     Comida: kidsSlotAction(ficha, day, "Comida"),
@@ -522,7 +526,6 @@ export function entradaDelMotor(data, { hoy = null } = {}) {
     version: VERSION_ENTRADA,
     hoy: ficha?.vigenteEn ?? null,
     dias,
-    comidas: getMeals(ficha),
     personas,
     grupos,
     activos,
@@ -531,12 +534,11 @@ export function entradaDelMotor(data, { hoy = null } = {}) {
     huecos: activos.flatMap((g) => contexto[g.id].slots.map((s) => ({
       grupo: g.id, dia: s.day, comida: comidaDeTipo(s.mealType), plato: s.position ?? "cena", hueco: s.slotId, comensales: s.eaters,
     }))),
-    tiempo: tiempoDeCocina(ficha),
+    tiempo,
     ninos: { politica: householdKidPolicy(ficha), accion },
     extras: { comidas: ficha?.extraMeals ?? {}, seguridad: Object.fromEntries(activos.map((g) => [g.id, seguridadFueraDeMenu(ficha, g)])) },
     restricciones: {
       fijos: ficha?.fixedDishes ?? [],
-      tipoHueco: ficha?.slotType ?? {},
       propias: ficha?.userRecipes ?? [],
       tanda: basesPedidas(ficha?.tanda),
     },
