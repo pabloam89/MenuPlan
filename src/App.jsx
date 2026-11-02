@@ -7674,7 +7674,7 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle, onApple,
           // y su borde inferior se funde con el fondo.
           height: "78%",
           objectFit: "cover",
-          objectPosition: "center top",
+          objectPosition: "center 35%",
           WebkitMaskImage: "linear-gradient(180deg, #000 82%, transparent 100%)",
           maskImage: "linear-gradient(180deg, #000 82%, transparent 100%)",
           zIndex: 1,
