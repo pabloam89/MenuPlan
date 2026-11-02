@@ -205,12 +205,21 @@ export const FALLO_DATO = porNombre(FALLOS_DATO);
 export const MOTIVOS_PUERTA = ["sin_permiso", "origen_no_vale", "salud_sin_familia"];
 export const MOTIVO_PUERTA = porNombre(MOTIVOS_PUERTA);
 
-// ── Los del método de choques (specs/arquitectura-objetivo.md, «Choques», su única fuente; trozo 33). Su orden,
-// con su test, en src/lib/choques.js.
+// ── Los del método de choques (specs/arquitectura-objetivo.md, «Choques», su única fuente; trozo 33). Su orden y
+// sus respuestas, con su test, en src/lib/choques.js.
 
 /** Qué clase de cosa choca, de la que más manda a la que menos: la seguridad no se rompe nunca; el sistema cede ante lo dicho. */
 export const CLASES_CHOQUE = ["seguridad", "hecho", "deseo", "aprendido", "supuesto", "sistema"];
 export const CLASE_CHOQUE = porNombre(CLASES_CHOQUE);
+/** Los siete criterios que deciden un choque, en su orden: gana el primero que distingue a las dos cosas. */
+export const CRITERIOS_CHOQUE = ["riesgo", "clase", "fuerza", "autoridad", "alcance", "tiempo", "peso_aprendido"];
+export const CRITERIO_CHOQUE = porNombre(CRITERIOS_CHOQUE);
+/** Cómo se responde a un choque: aplicar sin decir nada, aplicar y avisar en una línea, preguntar, o una tarea de decisión. */
+export const RESPUESTAS_CHOQUE = ["aplicar_en_silencio", "aplicar_y_avisar", "preguntar", "tarea_de_decision"];
+export const RESPUESTA_CHOQUE = porNombre(RESPUESTAS_CHOQUE);
+/** Cuándo se ve un choque: al guardar (la puerta), al generar (el motor), al ejecutar (comprar, cocinar) o al pasar el tiempo. */
+export const MOMENTOS_CHOQUE = ["al_guardar", "al_generar", "al_ejecutar", "al_pasar_el_tiempo"];
+export const MOMENTO_CHOQUE = porNombre(MOMENTOS_CHOQUE);
 
 // ── Los del eje de la ficha (plan fichas con estado, trozo 5): columnas de registroFicha.js; la 0105 los lleva a registro_campo.
 
@@ -467,6 +476,9 @@ export const VOCABULARIOS = Object.freeze({
   fallos_dato: FALLOS_DATO,
   motivos_puerta: MOTIVOS_PUERTA,
   clases_choque: CLASES_CHOQUE,
+  criterios_choque: CRITERIOS_CHOQUE,
+  respuestas_choque: RESPUESTAS_CHOQUE,
+  momentos_choque: MOMENTOS_CHOQUE,
   origenes_de_la_familia: ORIGENES_DE_LA_FAMILIA,
   estados_dato: ESTADOS_DATO,
   fichas: FICHAS,

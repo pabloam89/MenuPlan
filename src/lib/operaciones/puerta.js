@@ -15,7 +15,11 @@
  */
 import { REGISTRO_CAMPOS } from "../registroCampos.js";
 import { puede } from "../papeles.js";
-import { CANAL_DATO, ORIGENES_DE_LA_FAMILIA, MOTIVO_PUERTA, FALLO_DATO } from "../vocabularios.js";
+import {
+  CANAL_DATO, ORIGENES_DE_LA_FAMILIA, MOTIVO_PUERTA, FALLO_DATO, OPERADOR_PREFERENCIA as OP, MOMENTO_CHOQUE,
+  RESPUESTA_CHOQUE as R, CRITERIO_CHOQUE as CR,
+} from "../vocabularios.js";
+import { claseDe, alcanceDe, resolverChoque } from "../choques.js";
 
 const deLaFamilia = (origen) => ORIGENES_DE_LA_FAMILIA.includes(origen);
 
@@ -47,3 +51,86 @@ export function comprobar(op, { papel }) {
  * no puede editar, sin_permiso; a lo demás, invalido (no se arregla repitiendo).
  */
 export const falloDePuerta = (motivo) => (motivo === MOTIVO_PUERTA.SIN_PERMISO ? FALLO_DATO.SIN_PERMISO : FALLO_DATO.INVALIDO);
+
+// ── Choques al guardar (método de choques, trozo 33: src/lib/choques.js) ────────────────────────────────────────
+
+/** Los operadores que no pueden cumplirse a la vez sobre el mismo eje y valor; los de cantidad, solo si no caben. */
+const OPUESTO = Object.freeze({ [OP.MAS]: OP.MENOS, [OP.MENOS]: OP.MAS, [OP.ES]: OP.NO_ES, [OP.NO_ES]: OP.ES, [OP.AL_MENOS]: OP.COMO_MUCHO, [OP.COMO_MUCHO]: OP.AL_MENOS });
+const CON_CANTIDAD = [OP.AL_MENOS, OP.COMO_MUCHO];
+const cortan = (x, y) => !x || !y || x.some((v) => y.includes(v));
+const sujetoDe = (p) => p.persona_id ?? p.grupo_id ?? null;
+
+/** Pura. ¿Se contradicen dos filas de preferencia? Mismo eje, nivel y valor, sujetos y ámbitos que se cruzan, operadores opuestos. */
+export function seContradicen(a, b) {
+  if (a.eje !== b.eje || a.nivel !== b.nivel || JSON.stringify(a.valor ?? null) !== JSON.stringify(b.valor ?? null)) return false;
+  if (OPUESTO[a.operador] !== b.operador) return false;
+  if (CON_CANTIDAD.includes(a.operador)) {
+    const [minimo, maximo] = a.operador === OP.AL_MENOS ? [a.cantidad, b.cantidad] : [b.cantidad, a.cantidad];
+    if (!(Number(minimo) > Number(maximo))) return false; // «al menos 2» y «como mucho 3» caben
+  }
+  // Lo de la casa entera se cruza con todo; dos personas o dos grupos distintos, no.
+  if (sujetoDe(a) && sujetoDe(b) && sujetoDe(a) !== sujetoDe(b)) return false;
+  return cortan(a.dias, b.dias) && cortan(a.comidas, b.comidas) && cortan(a.semanas, b.semanas);
+}
+
+/** Un lado del choque (choques.js) de una fila de preferencia: su clase, fuerza, quién la dijo y su alcance. */
+function ladoDe(p, { autor, papel, at }) {
+  return {
+    clase: claseDe({ origen: p.origen ?? ORIGENES_DE_LA_FAMILIA[0] }),
+    fuerza: p.fuerza,
+    // Lo dicho lo dijo alguien que edita la casa (la puerta no deja otra cosa); lo visto o supuesto no tiene autor.
+    autor, papel: autor ? papel : null,
+    ...alcanceDe(p),
+    vigente: !p.hasta || p.hasta >= String(at).slice(0, 10),
+    at: p.updated_at ?? at,
+  };
+}
+
+/**
+ * Pura. Los choques de las preferencias que se van a escribir con las que ya tiene la casa (al guardar): cada par
+ * que se contradice, ordenado y con su respuesta (resolverChoque). Lo que otra fila de la misma operación cambia,
+ * borra o rechaza ya no cuenta, ni lo rechazado. Cambiar una fila a su contraria (el mismo id: «más horno» pasa a
+ * «menos horno») también choca con lo que era, salvo en una pantalla (`delante`): allí lo guardado se ve, y
+ * cambiarlo es decidir. `nueva` es su posición en `nuevas`; `guardada`, el id de la fila. Sin valores.
+ * @param {object[]} nuevas      las filas de la operación (operacionDePreferencias().preferencias)
+ * @param {object[]} guardadas   las filas de preferencias_de_casa
+ * @param {{ autor: string|null, papel: string|null, at: string, delante?: boolean }} quien
+ */
+export function choquesAlGuardar(nuevas, guardadas, { autor, papel, at, delante = false }) {
+  const tocadas = new Set(nuevas.map((p) => p.id).filter(Boolean));
+  const vivas = (guardadas ?? []).filter((g) => !g.rechazada_at);
+  const deLaFamiliaP = (p) => deLaFamilia(p.origen ?? ORIGENES_DE_LA_FAMILIA[0]);
+  const out = [];
+  nuevas.forEach((p, i) => {
+    if (p.borrar || p.rechazar) return;
+    const nueva = ladoDe({ ...p, updated_at: at }, { autor: deLaFamiliaP(p) ? autor : null, papel, at });
+    for (const g of vivas) {
+      if (g.id === p.id ? delante : tocadas.has(g.id)) continue;
+      if (!seContradicen(p, g)) continue;
+      const dichaPor = deLaFamiliaP(g) ? g.dicho_by ?? null : null;
+      const guardada = ladoDe(g, { autor: dichaPor, papel: dichaPor === autor ? papel : "editor", at });
+      // De la casa: lo guardado lo dijo otra persona. Se pregunta a quien tiene autoridad, no a quien escribe.
+      const de_la_casa = !!guardada.autor && guardada.autor !== nueva.autor;
+      out.push(resolverChoque(nueva, guardada, { de_la_casa }, { momento: MOMENTO_CHOQUE.AL_GUARDAR, nueva: i, guardada: g.id }));
+    }
+  });
+  return out;
+}
+
+/**
+ * Pura. Lo que se escribe tras los choques: la nueva que pierde, o que hay que preguntar o decidir, se aparta (no se
+ * escribe: lo dicho por otro no se pisa en silencio); la vieja que pierde por tiempo (la misma persona cambió de
+ * idea) se borra en la misma operación. Lo que gana por alcance convive: cada una vale donde es más concreta.
+ * @returns {{ preferencias: object[], apartadas: number[] }}  `apartadas`: posiciones en `nuevas`
+ */
+export function trasLosChoques(nuevas, choques) {
+  const SE_APLICA = [R.APLICAR_EN_SILENCIO, R.APLICAR_Y_AVISAR];
+  const apartadas = new Set(choques.filter((c) => c.gana !== "a" || !SE_APLICA.includes(c.respuesta)).map((c) => c.nueva));
+  // La que se cambia en la misma operación (mismo id) no se borra: se reescribe.
+  const cambiadas = new Set(nuevas.map((p) => p.id).filter(Boolean));
+  const retirar = [...new Set(choques.filter((c) => !apartadas.has(c.nueva) && c.criterio === CR.TIEMPO && !cambiadas.has(c.guardada)).map((c) => c.guardada))];
+  return {
+    preferencias: [...nuevas.filter((_, i) => !apartadas.has(i)), ...retirar.map((id) => ({ id, borrar: true }))],
+    apartadas: [...apartadas].sort((a, b) => a - b),
+  };
+}

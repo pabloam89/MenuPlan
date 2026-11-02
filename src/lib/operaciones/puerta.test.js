@@ -1,7 +1,7 @@
 // La puerta de la tubería (plan fichas con estado, trozo 26): papel, quién habla y salud.
 // Cada caso malo cambia una cosa de una operación buena y dispara exactamente su motivo.
 import { describe, it, expect } from "vitest";
-import { comprobar } from "./puerta.js";
+import { comprobar, choquesAlGuardar, seContradicen, trasLosChoques } from "./puerta.js";
 import { REGISTRO_CAMPOS } from "../registroCampos.js";
 import { PAPELES, puede } from "../papeles.js";
 import { CANALES_DATO, CANAL_DATO, ORIGEN_DATO, ORIGENES_DE_LA_FAMILIA, MOTIVOS_PUERTA, MOTIVO_PUERTA, SEXO } from "../vocabularios.js";
@@ -83,4 +83,64 @@ it("cada motivo de MOTIVOS_PUERTA lo dispara algún caso", () => {
     motivo({ datos: [dato({ campo: "alergias", valor: [], origen: "supuesto" })] }),
   ]);
   expect([...vistos].sort()).toEqual([...MOTIVOS_PUERTA].sort());
+});
+
+// Choques al guardar (método de choques, trozo 33): una preferencia nueva contra las que ya tiene la casa.
+describe("puerta: choques al guardar", () => {
+  const AT = "2026-11-02T10:00:00Z";
+  const fila = (p = {}) => ({ nivel: "plato", eje: "tecnica", medida: "valor", operador: "mas", valor: "horno", fuerza: "medio", origen: "dicho", ...p });
+  const guardada = (p = {}) => fila({ id: "g1", dicho_by: "u1", updated_at: "2026-10-01T10:00:00Z", ...p });
+  const choques = (nuevas, guardadas, quien = {}) => choquesAlGuardar(nuevas, guardadas, { autor: "u1", papel: "owner", at: AT, ...quien });
+
+  it("se contradicen «más» y «menos», «es» y «no es», y «al menos» y «como mucho» solo si no caben", () => {
+    expect(seContradicen(fila(), fila({ operador: "menos" }))).toBe(true);
+    expect(seContradicen(fila({ operador: "es" }), fila({ operador: "no_es" }))).toBe(true);
+    expect(seContradicen(fila(), fila())).toBe(false);
+    expect(seContradicen(fila(), fila({ operador: "menos", valor: "plancha" }))).toBe(false);
+    const tope = (operador, cantidad) => fila({ nivel: "semana", medida: "cuenta", operador, cantidad });
+    expect(seContradicen(tope("al_menos", 3), tope("como_mucho", 2))).toBe(true);
+    expect(seContradicen(tope("como_mucho", 2), tope("al_menos", 3))).toBe(true);
+    expect(seContradicen(tope("al_menos", 2), tope("como_mucho", 3))).toBe(false);
+  });
+
+  it("dos personas o dos grupos distintos no chocan; la casa entera choca con todos; días que no se cruzan, tampoco", () => {
+    expect(seContradicen(fila({ persona_id: "p1" }), fila({ operador: "menos", persona_id: "p2" }))).toBe(false);
+    expect(seContradicen(fila({ grupo_id: "g1" }), fila({ operador: "menos" }))).toBe(true);
+    expect(seContradicen(fila({ dias: ["Lun"] }), fila({ operador: "menos", dias: ["Mar"] }))).toBe(false);
+    expect(seContradicen(fila({ dias: ["Lun", "Mar"] }), fila({ operador: "menos", dias: ["Mar"] }))).toBe(true);
+  });
+
+  it("la misma persona cambia de idea: gana lo nuevo por tiempo y se avisa", () => {
+    expect(choques([fila({ operador: "menos" })], [guardada()])).toEqual([
+      { momento: "al_guardar", nueva: 0, guardada: "g1", clases: ["deseo", "deseo"], gana: "a", criterio: "tiempo", respuesta: "aplicar_y_avisar" },
+    ]);
+  });
+
+  it("otra persona dijo lo contrario: el orden no decide y es de la casa, así que tarea de decisión", () => {
+    expect(choques([fila({ operador: "menos" })], [guardada({ dicho_by: "u2" })])).toMatchObject([{ gana: null, respuesta: "tarea_de_decision" }]);
+  });
+
+  it("lo que Lola vio no pisa lo dicho (gana lo guardado por clase), y lo dicho gana a lo visto", () => {
+    expect(choques([fila({ operador: "menos", origen: "visto", fuerza: "bajo" })], [guardada()], { autor: null, papel: null }))
+      .toMatchObject([{ clases: ["aprendido", "deseo"], gana: "b", criterio: "clase" }]);
+    expect(choques([fila({ operador: "menos" })], [guardada({ origen: "visto", fuerza: "bajo", dicho_by: null })]))
+      .toMatchObject([{ clases: ["deseo", "aprendido"], gana: "a", criterio: "clase", respuesta: "aplicar_y_avisar" }]);
+  });
+
+  it("lo de una persona sobre lo de la casa: gana por alcance (lo más concreto)", () => {
+    expect(choques([fila({ operador: "menos", persona_id: "p1" })], [guardada()])).toMatchObject([{ gana: "a", criterio: "alcance" }]);
+  });
+
+  it("cambiar a su contraria la fila que dijo otra persona choca (tarea de decisión); la propia, no se aparta; en una pantalla, no choca", () => {
+    expect(choques([fila({ id: "g1", operador: "menos" })], [guardada({ dicho_by: "u2" })])).toMatchObject([{ guardada: "g1", respuesta: "tarea_de_decision" }]);
+    const propia = choques([fila({ id: "g1", operador: "menos" })], [guardada()]);
+    expect(propia).toMatchObject([{ criterio: "tiempo", respuesta: "aplicar_y_avisar" }]);
+    expect(trasLosChoques([fila({ id: "g1", operador: "menos" })], propia)).toEqual({ preferencias: [fila({ id: "g1", operador: "menos" })], apartadas: [] });
+    expect(choques([fila({ id: "g1", operador: "menos" })], [guardada({ dicho_by: "u2" })], { delante: true })).toEqual([]);
+  });
+
+  it("lo que la misma operación borra, y lo ya rechazado, no chocan", () => {
+    expect(choques([{ id: "g1", borrar: true }, fila({ operador: "menos" })], [guardada()])).toEqual([]);
+    expect(choques([fila({ operador: "menos" })], [guardada({ rechazada_at: "2026-10-02T10:00:00Z" })])).toEqual([]);
+  });
 });
