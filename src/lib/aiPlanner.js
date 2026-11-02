@@ -3,6 +3,7 @@ import { isBabyMenuGroup, membersOfGroup, resolveMemberAge, tipoDeGrupo } from "
 import { DAYS, modeForGroupSlot, slotKey } from "./planner.js";
 import { ordenarPorSesgo, preferirPorSesgo } from "./sesgos.js";
 import { resolverConReintentos, solverActivo, REGLAS_RELAJABLES, familiasDe } from "./solver.js";
+import { ESCALONES_RELAJAR } from "./preferenciasSistema.js";
 import { DEFAULT_FREQS } from "./defaultFreqs.js";
 import { HOLGURA_TOPES } from "./reparto.js";
 import { esNino } from "./stages.js";
@@ -50,6 +51,19 @@ import { computeRecipeNutrition } from "./ingredients.js";
 import { isoLocalDate } from "./weekCalendar.js";
 import { DIA_SLUG as DAY_SLUG, DIA_LARGO_MINUSCULAS, diaDeSlug, tipoDeComida, comidaDeTipo, huecoMotor } from "./dias.js";
 import { HUECO_EN_AVISO } from "./huecosDelPlan.js";
+
+/** Cada regla relajable (REGLAS_RELAJABLES) en palabras, para el aviso: qué se salta el plato que se puso. */
+export const REGLA_EN_PALABRAS = Object.freeze({
+  segundo_sin_proteina_principal: "la proteína en el segundo",
+  guarnicion_legumbre: "la guarnición sin legumbre",
+  freq_max_exceeded: "el reparto semanal",
+  health_profile_conflict: "el perfil de salud",
+});
+for (const r of REGLAS_RELAJABLES) if (!REGLA_EN_PALABRAS[r]) throw new Error(`aiPlanner: la regla relajable ${r} no tiene palabras para el aviso`);
+/** Lo que se cede en cada escalón (ESCALONES_RELAJAR): sus reglas en palabras, sacadas de la declaración. */
+const saltarse = (reglas) => `saltarse ${reglas.map((r) => REGLA_EN_PALABRAS[r]).join(" ni ")}`;
+const CEDIDO = Object.freeze(Object.fromEntries(ESCALONES_RELAJAR.map(({ clase, reglas }) => [clase, saltarse(reglas)])));
+const cuentaPorClase = (por) => Object.values(por ?? {}).reduce((n, c) => ({ ...n, [c]: (n[c] ?? 0) + 1 }), {});
 
 /**
  * Los nombres por ración de los 24 micronutrientes. Los cuatro macros
@@ -325,6 +339,8 @@ export function createPlannerStats() {
     solverMs: 0,
     solverCompleto: null,
     solverRelajados: 0,
+    // Los relajados por la clase de lo que se cedió (CLASES_CHOQUE): sistema, supuesto, deseo.
+    solverRelajadosPorClase: {},
     solverSemilla: null,
   };
 }
@@ -1000,6 +1016,8 @@ function asignarConSolver({
     stats.solverMs = res.ms;
     stats.solverCompleto = res.completo;
     stats.solverRelajados = res.relajados.length;
+    // Choques al generar, por la clase de lo que se cedió (método de choques, trozo 33).
+    stats.solverRelajadosPorClase = cuentaPorClase(res.relajadoPor);
     // La que GANÓ, para poder reproducir el menú; y cuántos intentos costó.
     stats.solverSemilla = res.semilla;
     stats.solverIntentos = res.intentos;
@@ -1012,10 +1030,14 @@ function asignarConSolver({
       `${group.label}: no se encontró una combinación que cumpla todas las reglas a la vez; ${res.sinCombinacion.length} plato(s) se quedan ${HUECO_EN_AVISO.sin_asignar} (${res.sinCombinacion.join(", ")}).`,
     );
   }
+  // Aplicar y avisar en una línea (método de choques): qué se cedió, de lo que menos manda a lo que más. Un hueco
+  // sin clase (no debería: el solver la pone a todos) va con el texto de siempre, no se calla.
   if (res.relajados.length > 0) {
-    warnings.push(
-      `${group.label}: en ${res.relajados.join(", ")} no cabía ningún plato sin pasarse del reparto semanal o del perfil de salud; se ha puesto el mejor disponible.`,
-    );
+    const partes = [...ESCALONES_RELAJAR.map(({ clase }) => clase), null].map((clase) => {
+      const huecos = res.relajados.filter((id) => (CEDIDO[res.relajadoPor?.[id]] ? res.relajadoPor[id] : null) === clase);
+      return huecos.length ? `en ${huecos.join(", ")} no cabía ningún plato sin ${clase ? CEDIDO[clase] : saltarse([...REGLAS_RELAJABLES])}` : null;
+    }).filter(Boolean);
+    warnings.push(`${group.label}: ${partes.join("; ")}; se ha puesto el mejor disponible.`);
   }
   // La regla 11 culpa del exceso al ÚLTIMO plato de esa familia en orden de
   // comidas, no al que se relajó. Así que la revalidación no puede ignorar el
