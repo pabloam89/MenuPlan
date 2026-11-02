@@ -1,4 +1,3 @@
-import { etapasServibles } from "./babyStage.js";
 import { z } from "zod";
 import { isBabyMenuGroup, membersOfGroup, resolveMemberAge, tipoDeGrupo } from "./groups.js";
 import { DAYS, diasActivosDe, getMeals, modeForGroupSlot, slotKey } from "./planner.js";
@@ -7,13 +6,12 @@ import { ordenarPorSesgo, preferirPorSesgo } from "./sesgos.js";
 import { resolverConReintentos, solverActivo, REGLAS_RELAJABLES, familiasDe } from "./solver.js";
 import { DEFAULT_FREQS } from "./defaultFreqs.js";
 import { HOLGURA_TOPES } from "./reparto.js";
-import { esMenor, esNino } from "./stages.js";
+import { esNino } from "./stages.js";
 import { racionesDe } from "./raciones.js";
 import { presupuestoSemanal, topePorRacion } from "./presupuesto.js";
 import { filterRecipes, filterGarnishes, decisionCatalog, filterOffMenuRecipes, recipeMatchesPreferType, recipeViolatesHardSafety } from "../utils/filterRecipes.js";
 import { esAnadido, topeDe } from "./cocinaTopes.js";
 import { ajustarCuota } from "./cuotaCocinas.js";
-import { favoriteIdsForGroup } from "./recipeVotes.js";
 import { recetasRecientes } from "./recientes.js";
 import { descartadasVigentes, sinDescartadas } from "./descartesPrioridad.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
@@ -32,21 +30,22 @@ import { NUTRIENTES, CAMPOS_SECUNDARIOS } from "../data/nutrientes.js";
 import guarnicionesData from "../data/recipes/guarniciones.json" with { type: "json" };
 import salsasData from "../data/recipes/salsas.json" with { type: "json" };
 import { formatFixedDishesForAI, pinnedGarnishMap, pinnedSalsaMap, enforceFixedDishes, catalogMatchesForFixedDish } from "./fixedDishes.js";
-import { maxCookTime, maxCookTimeFilter, migrateCookTime } from "./cookTime.js";
+import { maxCookTime } from "./cookTime.js";
 import { applySeasonalFruit, filterPostrePool } from "./postres.js";
 import { pairGarnishes } from "../utils/pairGarnishes.js";
 import { pairSauces } from "../utils/pairSauces.js";
 import { guessIngredientCategory } from "./ingredientCategories.js";
 import { isQualitativeUnit, mergeIngredientLines } from "./ingredientUnits.js";
 import { buildAdaptationMap } from "./substitutions.js";
-import { normalizeAllergenId } from "./allergens.js";
 import { alergiasParaMenu, alergiasRevisadas } from "./alergias.js";
 import { DIET_RULES, INTOLERANCE_RULES } from "./intolerances.js";
 import { assignPreparedToPlan, indexFrozenDishes, indexFridgeDishes, itemPortions, slotUsesPrepared, catalogIdOfPlanRecipe } from "./freezer.js";
 import { dominantComponentOf } from "./dominantComponent.js";
 import { legumeSubtypeOf, mariscoSubtypeOf } from "./dishSubtype.js";
 import { householdKidPolicy, kidsSlotAction } from "./kidsMenu.js";
-import { activeDiscardIds, coleDelDia, huecosDeLaComida, topesDelGrupo } from "./entradaMotor.js";
+import { buildGroupContext } from "./entradaMotor.js";
+// Sus tests lo importan de aquí (12 ficheros); vive en entradaMotor.js.
+export { buildGroupContext };
 import { PLANNER_MODEL, FAST_MODEL } from "./aiModels.js";
 import { apiUrl } from "./apiUrl.js";
 import { lowerFirst } from "./dishNaming.js";
@@ -362,147 +361,6 @@ function recordCall(stats, kind, result) {
 
 
 // ── Context builders ────────────────────────────────────────────
-
-export function buildGroupContext(data, group) {
-  const meals = getMeals(data);
-  const groupMembers = membersOfGroup(group, data.members);
-  const isBabyGroup = isBabyMenuGroup(group, data.members);
-  // Niños de 3 a 11 (etapaDe): el filtro kidFriendly y el de alcohol.
-  const hasKids = !isBabyGroup && groupMembers.some((m) => esNino(m));
-  const allergies = Array.from(new Set(groupMembers.flatMap((m) => alergiasParaMenu(data, m))));
-  // Predefined intolerances + temporary dietary states (embarazo/lactancia)
-  // are aggregated together and handled by filterRecipes via lib/intolerances.js
-  // — most are hard exclusions, lactosa_fina is adapted (see substitutions.js).
-  const memberDietaryStates = groupMembers.flatMap((m) => m.dietaryStates ?? []);
-  // embarazo/lactancia imply "alcohol_cocina" (adaptable — real alcohol-free
-  // wine/beer swap) in addition to their own remaining hard exclusions (raw,
-  // cured, high-mercury fish, unpasteurized cheese). Not user-selectable on
-  // its own; see lib/intolerances.js#alcohol_cocina.
-  const impliesAlcoholCocina = memberDietaryStates.some(
-    (s) => s === "embarazo" || s === "lactancia",
-  );
-  // Gluten como alergia: en vez de quitar toda la pasta y el pan del menú, se
-  // cambian por su versión sin gluten donde la hay (substitutions.js sin_gluten).
-  const impliesSinGluten = allergies.some((a) => normalizeAllergenId(a) === "gluten");
-  const intolerances = Array.from(
-    new Set([
-      ...groupMembers.flatMap((m) => m.intolerances ?? []),
-      ...memberDietaryStates,
-      ...(impliesAlcoholCocina ? ["alcohol_cocina"] : []),
-      ...(impliesSinGluten ? ["sin_gluten"] : []),
-    ]),
-  );
-  // Los vetos («nada de coliflor»): la libreta, las reglas y los de cada
-  // persona del grupo, calculados al leer (lib/vetos.js). Duros en comida y
-  // cena (filterRecipes paso 2), blandos fuera de menú.
-  const dislikes = vetosDe(data, { grupo: group });
-
-  const kitchenTools = data.kitchenTools ?? [];
-  const cookTime = migrateCookTime(data);
-
-  const slots = [];
-  const schoolMenuByDay = {};
-
-  // Solo los días de la semana pedida (data.menuWeek; sin él, los siete): una
-  // semana de viernes a domingo no crea huecos de lunes a jueves (#1029). Un
-  // menú individual ad hoc («dieta blanda», group.days numérico) dura sus
-  // primeros N días DE LOS PLANIFICADOS: tres días de dieta que empiezan en
-  // viernes son Vie, Sáb y Dom, no un lunes que ya pasó.
-  const diasSemana = diasActivosDe(data);
-  const planDays =
-    Number.isInteger(group.days) && group.days > 0 ? diasSemana.slice(0, group.days) : diasSemana;
-
-  // Kid dinner = adults' lunch: adults' comida must avoid school proteins/carbs
-  // from household kids; kids' cena slots are skipped and filled after Adultos.
-  const linkKidDinner = Boolean(data.kidDinnerMatchesAdultLunch);
-  const isAdultsGroup = tipoDeGrupo(group) === "adultos";
-  const isKidsGroup = tipoDeGrupo(group) === "ninos";
-  const schoolSourceMembers =
-    linkKidDinner && isAdultsGroup
-      ? (data.members ?? []).filter((m) => esMenor(m))
-      : groupMembers;
-
-  for (const day of planDays) {
-    const daySlug = DAY_SLUG[day];
-    const isWeekend = day === "Sáb" || day === "Dom";
-
-    // Lo que el comedor sirvió ese día: lo que la cena no repite y su texto.
-    const { schoolProteins, schoolCarbs, schoolVeg, texto } = coleDelDia(data.schoolMenus, schoolSourceMembers, day);
-    if (texto) schoolMenuByDay[daySlug] = texto;
-
-    for (const meal of meals) {
-      slots.push(...huecosDeLaComida(data, group, meal, {
-        day, daySlug, isWeekend, groupMembers, isBabyGroup, isKidsGroup, isAdultsGroup, linkKidDinner, schoolProteins, schoolCarbs, schoolVeg,
-      }));
-    }
-  }
-
-  // Lo que una regla quita SOLO ciertos días («los lunes, sin carne»):
-  // reglas.js lo proyecta por hueco y aquí se cuelga de cada uno, para que lo
-  // vean el validador (excluido_en_hueco), la reparación y el solver. Misma
-  // clave que `data.slotType`: «Lun|Comida».
-  if (data.excluirPorHueco) {
-    for (const s of slots) {
-      const lista = data.excluirPorHueco[`${s.day}|${comidaDeTipo(s.mealType)}`];
-      if (lista?.length) s.excluirHueco = lista;
-    }
-  }
-
-  return {
-    group: { label: group.label, hasKids, allergies, dislikes },
-    slots,
-    schoolMenuByDay,
-    isBabyGroup,
-    filterOpts: {
-      allergies,
-      intolerances,
-      dislikes,
-      // Permanent + still-live weekly/cooldown discards, excluded by id.
-      excludeIds: activeDiscardIds(data),
-      hasKids,
-      // Cremas, sólidos o las dos. Solo lo mira el grupo de bebés; para el
-      // resto filterRecipes lo ignora.
-      etapasBebe: etapasServibles(data),
-      maxTime: maxCookTimeFilter(data),
-      kitchenTools,
-      cookLevel: data.cookLevel ?? "normal",
-      isBabyGroup,
-      // User-created recipes (from the recipe planner) join the same pool as
-      // the bundled catalog, so they go through the exact same filters and
-      // can be scheduled/scaled/hydrated like any other recipe.
-      extraRecipes: data.userRecipes ?? [],
-      // "preferred" (default) | "only" (solo mías) | "catalog" (solo catálogo).
-      recipeMode: data.recipeMode ?? "preferred",
-      // Favorites that apply to THIS group (scope "all" or this group's label).
-      favoriteIds: favoriteIdsForGroup(data.recipeVotes, group),
-      // Cocinas extranjeras pedidas desde la fila de mandos del menú. Vista
-      // proyectada de la libreta (ver useWizardMenu), no la libreta: aquí es un
-      // mapa cocina → platos por semana. `undefined` para quien nunca lo ha
-      // tocado, y entonces filterRecipes no filtra nada.
-      cocinas: data.cocinas ?? null,
-    },
-    config: {
-      targetKcal: data.kcalByGroup?.[group.id] ?? data.kcal ?? 2000,
-      // `freqs` son los topes y `objetivo` a dónde apuntar dentro de ellos
-      // (solo lo lee el solver). Ver topesDelGrupo.
-      ...topesDelGrupo(data, group, slots.length),
-      cookLevel: data.cookLevel ?? "normal",
-      cookTime,
-      // El día en que la casa cocina las tandas (Lun…Dom), si lo ha dicho. Sin él,
-      // el domingo de siempre.
-      diaTanda: data.diaTanda,
-      // "Menú más cuidado" profiles present in the group (soft bias for the LLM).
-      // An ad-hoc "dieta blanda" menu reuses the reflux profile as a bland-diet
-      // proxy (no fritos/picante/ácido), so the individual menu comes out gentle.
-      healthProfiles: Array.from(
-        new Set([
-          ...groupMembers.flatMap((m) => m.healthProfiles ?? []),
-          ...(group.adHoc && group.reason === "dieta_blanda" ? ["reflux"] : []),
-        ]),
-      ),
-    },
-  };
-}
 
 // Exported for tests only — not used elsewhere outside this module.
 // pantryMode: "strict" (solo con lo de casa, sin comprar) | "only" (partir de
