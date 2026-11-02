@@ -1,20 +1,16 @@
-import { etapasServibles } from "./babyStage.js";
 import { z } from "zod";
 import { isBabyMenuGroup, membersOfGroup, resolveMemberAge, tipoDeGrupo } from "./groups.js";
-import { DAYS, diasActivosDe, getMeals, modeForGroupSlot, slotKey } from "./planner.js";
-import { basesPedidas } from "./bases.js";
+import { DAYS, getMeals, modeForGroupSlot, slotKey } from "./planner.js";
 import { ordenarPorSesgo, preferirPorSesgo } from "./sesgos.js";
 import { resolverConReintentos, solverActivo, REGLAS_RELAJABLES, familiasDe } from "./solver.js";
 import { DEFAULT_FREQS } from "./defaultFreqs.js";
 import { HOLGURA_TOPES } from "./reparto.js";
-import { esMenor, esNino } from "./stages.js";
+import { esNino } from "./stages.js";
 import { racionesDe } from "./raciones.js";
-import { presupuestoSemanal, topePorRacion } from "./presupuesto.js";
+import { topePorRacion } from "./presupuesto.js";
 import { filterRecipes, filterGarnishes, decisionCatalog, filterOffMenuRecipes, recipeMatchesPreferType, recipeViolatesHardSafety } from "../utils/filterRecipes.js";
 import { esAnadido, topeDe } from "./cocinaTopes.js";
 import { ajustarCuota } from "./cuotaCocinas.js";
-import { favoriteIdsForGroup } from "./recipeVotes.js";
-import { recetasRecientes } from "./recientes.js";
 import { descartadasVigentes, sinDescartadas } from "./descartesPrioridad.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { isMontaje, PROTEIN_GROUP_BY_MAIN_PROTEIN } from "../data/recipeSchema.js";
@@ -32,27 +28,26 @@ import { NUTRIENTES, CAMPOS_SECUNDARIOS } from "../data/nutrientes.js";
 import guarnicionesData from "../data/recipes/guarniciones.json" with { type: "json" };
 import salsasData from "../data/recipes/salsas.json" with { type: "json" };
 import { formatFixedDishesForAI, pinnedGarnishMap, pinnedSalsaMap, enforceFixedDishes, catalogMatchesForFixedDish } from "./fixedDishes.js";
-import { maxCookTime, maxCookTimeFilter, migrateCookTime } from "./cookTime.js";
+import { maxCookTime } from "./cookTime.js";
 import { applySeasonalFruit, filterPostrePool } from "./postres.js";
 import { pairGarnishes } from "../utils/pairGarnishes.js";
 import { pairSauces } from "../utils/pairSauces.js";
 import { guessIngredientCategory } from "./ingredientCategories.js";
 import { isQualitativeUnit, mergeIngredientLines } from "./ingredientUnits.js";
 import { buildAdaptationMap } from "./substitutions.js";
-import { normalizeAllergenId } from "./allergens.js";
-import { alergiasParaMenu, alergiasRevisadas } from "./alergias.js";
+import { alergiasRevisadas } from "./alergias.js";
 import { DIET_RULES, INTOLERANCE_RULES } from "./intolerances.js";
 import { assignPreparedToPlan, indexFrozenDishes, indexFridgeDishes, itemPortions, slotUsesPrepared, catalogIdOfPlanRecipe } from "./freezer.js";
 import { dominantComponentOf } from "./dominantComponent.js";
 import { legumeSubtypeOf, mariscoSubtypeOf } from "./dishSubtype.js";
-import { householdKidPolicy, kidsSlotAction } from "./kidsMenu.js";
-import { activeDiscardIds, coleDelDia, huecosDeLaComida, topesDelGrupo } from "./entradaMotor.js";
+import { buildGroupContext, comoEntrada } from "./entradaMotor.js";
+// Sus tests lo importan de aquí (12 ficheros); vive en entradaMotor.js.
+export { buildGroupContext };
 import { PLANNER_MODEL, FAST_MODEL } from "./aiModels.js";
 import { apiUrl } from "./apiUrl.js";
 import { lowerFirst } from "./dishNaming.js";
 import { aporteDe, fundirMicros } from "./derive/aporteAcompanamiento.js";
 import { computeRecipeNutrition } from "./ingredients.js";
-import { vetosDe } from "./vetos.js";
 import { isoLocalDate } from "./weekCalendar.js";
 import { DIA_SLUG as DAY_SLUG, DIA_LARGO_MINUSCULAS, diaDeSlug, tipoDeComida, comidaDeTipo, huecoMotor } from "./dias.js";
 import { HUECO_EN_AVISO } from "./huecosDelPlan.js";
@@ -362,147 +357,6 @@ function recordCall(stats, kind, result) {
 
 
 // ── Context builders ────────────────────────────────────────────
-
-export function buildGroupContext(data, group) {
-  const meals = getMeals(data);
-  const groupMembers = membersOfGroup(group, data.members);
-  const isBabyGroup = isBabyMenuGroup(group, data.members);
-  // Niños de 3 a 11 (etapaDe): el filtro kidFriendly y el de alcohol.
-  const hasKids = !isBabyGroup && groupMembers.some((m) => esNino(m));
-  const allergies = Array.from(new Set(groupMembers.flatMap((m) => alergiasParaMenu(data, m))));
-  // Predefined intolerances + temporary dietary states (embarazo/lactancia)
-  // are aggregated together and handled by filterRecipes via lib/intolerances.js
-  // — most are hard exclusions, lactosa_fina is adapted (see substitutions.js).
-  const memberDietaryStates = groupMembers.flatMap((m) => m.dietaryStates ?? []);
-  // embarazo/lactancia imply "alcohol_cocina" (adaptable — real alcohol-free
-  // wine/beer swap) in addition to their own remaining hard exclusions (raw,
-  // cured, high-mercury fish, unpasteurized cheese). Not user-selectable on
-  // its own; see lib/intolerances.js#alcohol_cocina.
-  const impliesAlcoholCocina = memberDietaryStates.some(
-    (s) => s === "embarazo" || s === "lactancia",
-  );
-  // Gluten como alergia: en vez de quitar toda la pasta y el pan del menú, se
-  // cambian por su versión sin gluten donde la hay (substitutions.js sin_gluten).
-  const impliesSinGluten = allergies.some((a) => normalizeAllergenId(a) === "gluten");
-  const intolerances = Array.from(
-    new Set([
-      ...groupMembers.flatMap((m) => m.intolerances ?? []),
-      ...memberDietaryStates,
-      ...(impliesAlcoholCocina ? ["alcohol_cocina"] : []),
-      ...(impliesSinGluten ? ["sin_gluten"] : []),
-    ]),
-  );
-  // Los vetos («nada de coliflor»): la libreta, las reglas y los de cada
-  // persona del grupo, calculados al leer (lib/vetos.js). Duros en comida y
-  // cena (filterRecipes paso 2), blandos fuera de menú.
-  const dislikes = vetosDe(data, { grupo: group });
-
-  const kitchenTools = data.kitchenTools ?? [];
-  const cookTime = migrateCookTime(data);
-
-  const slots = [];
-  const schoolMenuByDay = {};
-
-  // Solo los días de la semana pedida (data.menuWeek; sin él, los siete): una
-  // semana de viernes a domingo no crea huecos de lunes a jueves (#1029). Un
-  // menú individual ad hoc («dieta blanda», group.days numérico) dura sus
-  // primeros N días DE LOS PLANIFICADOS: tres días de dieta que empiezan en
-  // viernes son Vie, Sáb y Dom, no un lunes que ya pasó.
-  const diasSemana = diasActivosDe(data);
-  const planDays =
-    Number.isInteger(group.days) && group.days > 0 ? diasSemana.slice(0, group.days) : diasSemana;
-
-  // Kid dinner = adults' lunch: adults' comida must avoid school proteins/carbs
-  // from household kids; kids' cena slots are skipped and filled after Adultos.
-  const linkKidDinner = Boolean(data.kidDinnerMatchesAdultLunch);
-  const isAdultsGroup = tipoDeGrupo(group) === "adultos";
-  const isKidsGroup = tipoDeGrupo(group) === "ninos";
-  const schoolSourceMembers =
-    linkKidDinner && isAdultsGroup
-      ? (data.members ?? []).filter((m) => esMenor(m))
-      : groupMembers;
-
-  for (const day of planDays) {
-    const daySlug = DAY_SLUG[day];
-    const isWeekend = day === "Sáb" || day === "Dom";
-
-    // Lo que el comedor sirvió ese día: lo que la cena no repite y su texto.
-    const { schoolProteins, schoolCarbs, schoolVeg, texto } = coleDelDia(data.schoolMenus, schoolSourceMembers, day);
-    if (texto) schoolMenuByDay[daySlug] = texto;
-
-    for (const meal of meals) {
-      slots.push(...huecosDeLaComida(data, group, meal, {
-        day, daySlug, isWeekend, groupMembers, isBabyGroup, isKidsGroup, isAdultsGroup, linkKidDinner, schoolProteins, schoolCarbs, schoolVeg,
-      }));
-    }
-  }
-
-  // Lo que una regla quita SOLO ciertos días («los lunes, sin carne»):
-  // reglas.js lo proyecta por hueco y aquí se cuelga de cada uno, para que lo
-  // vean el validador (excluido_en_hueco), la reparación y el solver. Misma
-  // clave que `data.slotType`: «Lun|Comida».
-  if (data.excluirPorHueco) {
-    for (const s of slots) {
-      const lista = data.excluirPorHueco[`${s.day}|${comidaDeTipo(s.mealType)}`];
-      if (lista?.length) s.excluirHueco = lista;
-    }
-  }
-
-  return {
-    group: { label: group.label, hasKids, allergies, dislikes },
-    slots,
-    schoolMenuByDay,
-    isBabyGroup,
-    filterOpts: {
-      allergies,
-      intolerances,
-      dislikes,
-      // Permanent + still-live weekly/cooldown discards, excluded by id.
-      excludeIds: activeDiscardIds(data),
-      hasKids,
-      // Cremas, sólidos o las dos. Solo lo mira el grupo de bebés; para el
-      // resto filterRecipes lo ignora.
-      etapasBebe: etapasServibles(data),
-      maxTime: maxCookTimeFilter(data),
-      kitchenTools,
-      cookLevel: data.cookLevel ?? "normal",
-      isBabyGroup,
-      // User-created recipes (from the recipe planner) join the same pool as
-      // the bundled catalog, so they go through the exact same filters and
-      // can be scheduled/scaled/hydrated like any other recipe.
-      extraRecipes: data.userRecipes ?? [],
-      // "preferred" (default) | "only" (solo mías) | "catalog" (solo catálogo).
-      recipeMode: data.recipeMode ?? "preferred",
-      // Favorites that apply to THIS group (scope "all" or this group's label).
-      favoriteIds: favoriteIdsForGroup(data.recipeVotes, group),
-      // Cocinas extranjeras pedidas desde la fila de mandos del menú. Vista
-      // proyectada de la libreta (ver useWizardMenu), no la libreta: aquí es un
-      // mapa cocina → platos por semana. `undefined` para quien nunca lo ha
-      // tocado, y entonces filterRecipes no filtra nada.
-      cocinas: data.cocinas ?? null,
-    },
-    config: {
-      targetKcal: data.kcalByGroup?.[group.id] ?? data.kcal ?? 2000,
-      // `freqs` son los topes y `objetivo` a dónde apuntar dentro de ellos
-      // (solo lo lee el solver). Ver topesDelGrupo.
-      ...topesDelGrupo(data, group, slots.length),
-      cookLevel: data.cookLevel ?? "normal",
-      cookTime,
-      // El día en que la casa cocina las tandas (Lun…Dom), si lo ha dicho. Sin él,
-      // el domingo de siempre.
-      diaTanda: data.diaTanda,
-      // "Menú más cuidado" profiles present in the group (soft bias for the LLM).
-      // An ad-hoc "dieta blanda" menu reuses the reflux profile as a bland-diet
-      // proxy (no fritos/picante/ácido), so the individual menu comes out gentle.
-      healthProfiles: Array.from(
-        new Set([
-          ...groupMembers.flatMap((m) => m.healthProfiles ?? []),
-          ...(group.adHoc && group.reason === "dieta_blanda" ? ["reflux"] : []),
-        ]),
-      ),
-    },
-  };
-}
 
 // Exported for tests only — not used elsewhere outside this module.
 // pantryMode: "strict" (solo con lo de casa, sin comprar) | "only" (partir de
@@ -939,7 +793,7 @@ export function poolForWeek(pool, crossWeek, slotCount) {
  */
 async function asignarConModelo({
   userMessage, format, plannerModel, signal, stats,
-  filteredPool, ctx, achievableFreqs, basesDeLaSemana, data, group, warnings,
+  filteredPool, ctx, achievableFreqs, basesDeLaSemana, entrada, group, warnings,
 }) {
   // The primary planner model is resolvable per-generation (A/B Sonnet vs
   // Haiku); format/correction retries stay on the cheap FAST_MODEL.
@@ -1076,7 +930,7 @@ async function asignarConModelo({
       // El fallback coge "el primero del pool que pasa", así que el orden ES
       // la preferencia. Ordenado por los sesgos de la casa (lib/sesgos.js):
       // estable, y el mismo array si no hay sesgos.
-      ordenarPorSesgo(filteredPool, data.sesgos, data.favoritos),
+      ordenarPorSesgo(filteredPool, entrada.objetivos.sesgos.valor, entrada.objetivos.favoritos.valor),
       ctx.slots,
       ctx.config.healthProfiles,
       achievableFreqs,
@@ -1109,13 +963,13 @@ async function asignarConModelo({
  * dicen hasta dónde se puede llegar. Ver el comentario de resolverMenu.
  */
 function asignarConSolver({
-  group, ctx, filteredPool, achievableFreqs, basesDeLaSemana, data, stats, warnings, topeRacion = null,
+  group, ctx, filteredPool, achievableFreqs, basesDeLaSemana, entrada, stats, warnings, topeRacion = null,
 }) {
   const semilla = semillaDeGeneracion();
   // Con reintentos: otra semilla sale del callejón antes que la fase 3 (solver.js).
   const res = resolverConReintentos(
     ctx.slots,
-    ordenarPorSesgo(filteredPool, data.sesgos, data.favoritos),
+    ordenarPorSesgo(filteredPool, entrada.objetivos.sesgos.valor, entrada.objetivos.favoritos.valor),
     {
       healthProfiles: ctx.config.healthProfiles,
       freqs: achievableFreqs,
@@ -1125,7 +979,7 @@ function asignarConSolver({
       // Lo que ya saliste comiendo, para no repetirlo. Las favoritas de este
       // grupo van exentas: si lo marcaste como favorito, que vuelva es lo que
       // querías.
-      recientes: recetasRecientes(data, { exentos: ctx.filterOpts.favoriteIds }),
+      recientes: entrada.objetivos.recientes.valor[group.id],
       // Los platos que la casa tira una y otra vez van los últimos (lib/descartesPrioridad.js);
       // las favoritas van exentas, como con los recientes.
       descartados: descartadasVigentes({ exentos: ctx.filterOpts.favoriteIds }),
@@ -1193,8 +1047,10 @@ function semillaDeGeneracion() {
   return (Date.now() % 1_000_000) >>> 0;
 }
 
-export async function generateGroupMenu(data, group, signal, pantryIngredients = [], crossWeek = null, plannerModel = DEFAULT_MODEL, pantryMode = "prefer", { stats = null, format = "json", topeRacion = null } = {}) {
-  const ctx = buildGroupContext(data, group);
+export async function generateGroupMenu(dataOEntrada, group, signal, pantryIngredients = [], crossWeek = null, plannerModel = DEFAULT_MODEL, pantryMode = "prefer", { stats = null, format = "json", topeRacion = null } = {}) {
+  const entrada = comoEntrada(dataOEntrada);
+  const ctx = entrada.contexto[group.id];
+  if (!ctx) throw new AIPlannerError(`${group.label}: el grupo no está en la casa o no tiene a nadie.`);
   // Pantry is family-wide (not per-group), so it's merged into filterOpts
   // here rather than inside buildGroupContext.
   const filterOpts = {
@@ -1255,7 +1111,7 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
   // dice, en vez de colocar un plato suelto y llamarlo tanda.
   const { alcanzables: basesDeLaSemana, warnings: baseWarnings } = basesAlcanzables(
     filteredPool,
-    basesPedidas(data?.tanda),
+    entrada.restricciones.tanda,
     ctx.slots.length,
   );
   for (const msg of baseWarnings) warnings.push(`${group.label}: ${msg}`);
@@ -1311,7 +1167,7 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
     ctx.slots,
     ctx.config,
     ctx.schoolMenuByDay,
-    data.fixedDishes,
+    entrada.restricciones.fijos,
     pantryIngredients
       .filter((p) => (p.itemType ?? "ingredient") !== "cooked_dish")
       .map((p) => p.ingredientName),
@@ -1338,7 +1194,7 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
   let slotsVacios = new Set();
   if (usarSolver) {
     const resuelto = asignarConSolver({
-      group, ctx, filteredPool, achievableFreqs, basesDeLaSemana, data, stats, warnings, topeRacion,
+      group, ctx, filteredPool, achievableFreqs, basesDeLaSemana, entrada, stats, warnings, topeRacion,
     });
     slotAssignments = resuelto.asignaciones;
     slotsRelajados = resuelto.relajados;
@@ -1347,7 +1203,7 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
   } else {
     slotAssignments = await asignarConModelo({
       userMessage, format, plannerModel, signal, stats,
-      filteredPool, ctx, achievableFreqs, basesDeLaSemana, data, group, warnings,
+      filteredPool, ctx, achievableFreqs, basesDeLaSemana, entrada, group, warnings,
     });
   }
 
@@ -1380,7 +1236,7 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
 
   // 4. Force fixed dishes to appear exactly timesPerWeek times (hard rule).
   //    The LLM is asked to do this but isn't reliable, so we guarantee it here.
-  const fixedDishesResult = enforceFixedDishes(slotAssignments, data.fixedDishes, poolById, filterOpts, ctx.slots);
+  const fixedDishesResult = enforceFixedDishes(slotAssignments, entrada.restricciones.fijos, poolById, filterOpts, ctx.slots);
   slotAssignments = fixedDishesResult.slotAssignments;
   if (fixedDishesResult.warnings.length > 0) warnings.push(...fixedDishesResult.warnings);
 
@@ -1401,7 +1257,7 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
   // WHICH dishes the planner can pick, only what a pin already made resolves
   // to for the checks that run after it's placed.
   const filteredPoolIds = new Set(filteredPool.map((r) => r.id));
-  for (const id of allFixedDishIds(data.fixedDishes)) {
+  for (const id of allFixedDishIds(entrada.restricciones.fijos)) {
     if (filteredPoolIds.has(id)) continue;
     const catalogRecipe = poolById[id] ?? recipeCatalogById[id];
     if (!catalogRecipe) continue;
@@ -1431,7 +1287,7 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
   //     plato fijado que cree un choque real lo ve la revalidación del paso 6.
   if (!usarSolver) {
     slotAssignments = breakProteinClusters(slotAssignments, {
-      data,
+      entrada,
       ctx,
       poolById,
       filteredPool,
@@ -1455,7 +1311,7 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
   //     cena rápida). Lo que no quepa lo avisa asignarConSolver.
   if (!usarSolver && ctx.filterOpts.cocinas && Object.keys(ctx.filterOpts.cocinas).length > 0) {
     const forzados = new Set(ctx.slots.filter((sl) => sl.preferType).map((sl) => sl.slotId));
-    const fijados = new Set(allFixedDishIds(data.fixedDishes));
+    const fijados = new Set(allFixedDishIds(entrada.restricciones.fijos));
     const cuota = ajustarCuota(slotAssignments, {
       pedido: ctx.filterOpts.cocinas,
       recetaDe: (id) => poolById[id] ?? recipeCatalogById[id] ?? null,
@@ -1478,7 +1334,7 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
   slotAssignments = pairGarnishes(
     slotAssignments,
     poolById,
-    pinnedGarnishMap(data.fixedDishes),
+    pinnedGarnishMap(entrada.restricciones.fijos),
     safeGarnishes,
   );
 
@@ -1492,7 +1348,7 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
   slotAssignments = pairSauces(
     slotAssignments,
     poolById,
-    pinnedSalsaMap(data.fixedDishes),
+    pinnedSalsaMap(entrada.restricciones.fijos),
   );
 
   // 6. Re-validate the FULLY-enforced menu. Steps 4/4b run AFTER the
@@ -1518,7 +1374,7 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
       basesDeLaSemana,
     );
     if (!postCheck.valid) {
-      const fixedIds = allFixedDishIds(data.fixedDishes);
+      const fixedIds = allFixedDishIds(entrada.restricciones.fijos);
       const forcedSlotIds = new Set(
         ctx.slots.filter((s) => s.preferType).map((s) => s.slotId),
       );
@@ -1544,7 +1400,7 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
         slotAssignments = applyFallback(
           slotAssignments,
           safeToFix,
-          ordenarPorSesgo(filteredPool, data.sesgos, data.favoritos),
+          ordenarPorSesgo(filteredPool, entrada.objetivos.sesgos.valor, entrada.objetivos.favoritos.valor),
           ctx.slots,
           ctx.config.healthProfiles,
           achievableFreqs,
@@ -1814,11 +1670,11 @@ export function catalogToFrontendRecipe(catalogRecipe, eaters, restrictions = []
 // unaffected.
 //
 // Returns [{ planKey: "Lun-Desayuno", recipeId, eaters, mealKey, when? }].
-function planExtraMealsForGroup(group, data, weekIndex = 0) {
+function planExtraMealsForGroup(group, entrada, weekIndex = 0) {
   const out = [];
-  if (isBabyMenuGroup(group, data.members)) return out;
-  const em = data.extraMeals ?? {};
-  const members = membersOfGroup(group, data.members);
+  if (isBabyMenuGroup(group, entrada.personas)) return out;
+  const em = entrada.extras.comidas;
+  const members = membersOfGroup(group, entrada.personas);
   if (members.length === 0) return out;
 
   // Quien come de VERDAD en un hueco, no cuanta gente hay en el grupo.
@@ -1833,26 +1689,21 @@ function planExtraMealsForGroup(group, data, weekIndex = 0) {
   // Se cuenta por hueco con el mismo criterio que comida y cena: en casa o con
   // tupper cuenta; fuera y cole, no.
   const comenEn = (dia, comida) => members.filter((m) => {
-    const estado = data.schedule?.[slotKey(m.id, dia, comida)] ?? "casa";
+    const estado = entrada.horario[slotKey(m.id, dia, comida)] ?? "casa";
     return estado === "casa" || estado === "tupper";
   });
   const kids = members.filter((m) => esNino(m));
   const hasKids = kids.length > 0;
 
-  const safety = {
-    allergies: [...new Set(members.flatMap((m) => alergiasParaMenu(data, m)))],
-    intolerances: [
-      ...new Set(members.flatMap((m) => [...(m.intolerances ?? []), ...(m.dietaryStates ?? [])])),
-    ],
-    dislikes: vetosDe(data, { grupo: group }),
-  };
+  // Alergias, intolerancias y vetos del grupo, compilados en la entrada.
+  const safety = entrada.extras.seguridad[group.id];
 
   const weekendIdx = (i) => i >= 5; // Sáb/Dom
 
   // Solo los días de la semana pedida (sin menuWeek, los siete). El índice de
   // rotación sigue siendo el del día en la semana (`i` sobre DAYS), para que el
   // mismo día reciba el mismo plato empiece la semana donde empiece.
-  const diasSemana = diasActivosDe(data);
+  const diasSemana = entrada.dias;
   const recorre = (dias, fn) => dias.forEach((day) => fn(day, DAYS.indexOf(day)));
 
   // Desayuno — off | variado | findes | igual
@@ -1862,7 +1713,7 @@ function planExtraMealsForGroup(group, data, weekIndex = 0) {
       recorre(diasSemana, (day, i) => {
         // Same rule as comida/cena: if nobody eats breakfast at home that day,
         // don't invent a desayuno slot.
-        if (!modeForGroupSlot(group, data.members, data.schedule, day, "Desayuno").cook) return;
+        if (!modeForGroupSlot(group, entrada.personas, entrada.horario, day, "Desayuno").cook) return;
         let r;
         if (em.desayuno === "igual") r = pool[0];
         else if (em.desayuno === "findes") {
@@ -1881,7 +1732,7 @@ function planExtraMealsForGroup(group, data, weekIndex = 0) {
     if (pool.length) {
       const days = em.merienda === "laborables" ? diasSemana.filter((d) => DAYS.indexOf(d) < 5) : diasSemana;
       recorre(days, (day, i) => {
-        if (!modeForGroupSlot(group, data.members, data.schedule, day, "Merienda").cook) return;
+        if (!modeForGroupSlot(group, entrada.personas, entrada.horario, day, "Merienda").cook) return;
         out.push({
           planKey: `${day}-Merienda`,
           recipeId: pool[(i + weekIndex) % pool.length].id,
@@ -1906,10 +1757,10 @@ function planExtraMealsForGroup(group, data, weekIndex = 0) {
         const when = em.postre;
         const cooksComida =
           (when === "comida" || when === "ambas") &&
-          modeForGroupSlot(group, data.members, data.schedule, day, "Comida").cook;
+          modeForGroupSlot(group, entrada.personas, entrada.horario, day, "Comida").cook;
         const cooksCena =
           (when === "cena" || when === "ambas") &&
-          modeForGroupSlot(group, data.members, data.schedule, day, "Cena").cook;
+          modeForGroupSlot(group, entrada.personas, entrada.horario, day, "Cena").cook;
         if (!cooksComida && !cooksCena) return;
         out.push({
           planKey: `${day}-Postre`,
@@ -1944,7 +1795,8 @@ function planExtraMealsForGroup(group, data, weekIndex = 0) {
  * el mismo día— cae siempre sobre el hueco propio y sí se arregla.
  */
 // Exported for tests only — not used elsewhere outside this module.
-export function validarNinosConCopias(data, adultsRes, kidsRes) {
+export function validarNinosConCopias(dataOEntrada, adultsRes, kidsRes) {
+  const entrada = comoEntrada(dataOEntrada);
   const adultBySlot = Object.fromEntries(adultsRes.slotAssignments.map((s) => [s.slotId, s]));
   const adultCtxBySlot = Object.fromEntries(adultsRes.slotsContext.map((s) => [s.slotId, s]));
   const adultPoolById = Object.fromEntries(adultsRes.filteredPool.map((r) => [r.id, r]));
@@ -1967,10 +1819,10 @@ export function validarNinosConCopias(data, adultsRes, kidsRes) {
     copiadasRecetas.set(receta.id, receta);
   };
 
-  for (const day of diasActivosDe(data)) {
+  for (const day of entrada.dias) {
     const slug = DAY_SLUG[day];
     for (const meal of ["Comida", "Cena"]) {
-      const action = kidsSlotAction(data, day, meal);
+      const action = entrada.ninos.accion[day][meal];
       if (action === "adultLunch" && meal === "Comida") {
         sintetiza(`${slug}_comida_1`, `${slug}_comida_1`, "comida", "primero");
         sintetiza(`${slug}_comida_2`, `${slug}_comida_2`, "comida", "segundo");
@@ -2020,14 +1872,13 @@ export function validarNinosConCopias(data, adultsRes, kidsRes) {
   }
 }
 
-export async function generateMenuWithAI(data, { signal, pantryIngredients = [], pantryMode = "prefer", crossWeek = null, plannerModel = DEFAULT_MODEL, groupCache = null, stats = null, plannerFormat = "json" } = {}) {
-  if (!data?.groups?.length) {
+export async function generateMenuWithAI(dataOEntrada, { signal, pantryIngredients = [], pantryMode = "prefer", crossWeek = null, plannerModel = DEFAULT_MODEL, groupCache = null, stats = null, plannerFormat = "json" } = {}) {
+  const entrada = comoEntrada(dataOEntrada);
+  if (!entrada.grupos.length) {
     throw new AIPlannerError("No hay grupos definidos en el onboarding.");
   }
 
-  const activeGroups = data.groups.filter(
-    (g) => membersOfGroup(g, data.members).length > 0,
-  );
+  const activeGroups = entrada.activos;
   if (activeGroups.length === 0) {
     throw new AIPlannerError("Ningún grupo tiene miembros asignados.");
   }
@@ -2040,10 +1891,10 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
   // El presupuesto (lib/presupuesto.js) repartido entre las raciones de comida
   // y cena de TODOS los grupos: es de la casa, no de cada menú. Solo lo usa el
   // solver; el camino del modelo no lo ve (el veredicto de después, sí).
-  const presupuesto = presupuestoSemanal(data);
+  const presupuesto = entrada.objetivos.presupuesto.valor;
   const topeRacion = presupuesto == null ? null : topePorRacion(
     presupuesto,
-    activeGroups.reduce((n, g) => n + buildGroupContext(data, g).slots.reduce((s, x) => s + (Number(x.eaters) || 0), 0), 0),
+    entrada.huecos.reduce((n, h) => n + (Number(h.comensales) || 0), 0),
   );
   const runGroup = async (group) => {
     const cached = groupCache?.get(group.id);
@@ -2052,7 +1903,7 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
       return cached;
     }
     const run = () =>
-      generateGroupMenu(data, group, signal, pantryIngredients, crossWeek, plannerModel, pantryMode, { stats, format: plannerFormat, topeRacion });
+      generateGroupMenu(entrada, group, signal, pantryIngredients, crossWeek, plannerModel, pantryMode, { stats, format: plannerFormat, topeRacion });
     let result;
     try {
       result = await run();
@@ -2082,15 +1933,15 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
   // copiados con el plato de los adultos, se valida el conjunto, y se reparan
   // SOLO los huecos propios del niño — los copiados son la comida de la
   // familia y no se tocan. Sin serializar los grupos: siguen en paralelo.
-  if (householdKidPolicy(data)) {
+  if (entrada.ninos.politica) {
     const adultsRes = results.find((r) => tipoDeGrupo(r.group) === "adultos");
     const kidsRes = results.find((r) => tipoDeGrupo(r.group) === "ninos");
-    if (adultsRes && kidsRes) validarNinosConCopias(data, adultsRes, kidsRes);
+    if (adultsRes && kidsRes) validarNinosConCopias(entrada, adultsRes, kidsRes);
   }
 
   const multi = results.length > 1;
   const plan = { _warnings: [] };
-  for (const group of data.groups) {
+  for (const group of entrada.grupos) {
     plan[group.id] = {};
   }
 
@@ -2104,14 +1955,14 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
   // el mismo criterio que `eaters`), cada uno con su factor.
   const racionesEn = (miembros, day, meal) => racionesDe(
     miembros.filter((m) => {
-      const status = data.schedule?.[slotKey(m.id, day, meal)] ?? "casa";
+      const status = entrada.horario[slotKey(m.id, day, meal)] ?? "casa";
       return status === "casa" || status === "tupper";
     }),
     resolveMemberAge,
   );
   // User-created recipes aren't in the static bundled catalog, so the final
   // hydration step (recipeId -> full frontend recipe) needs its own lookup.
-  const userRecipeById = Object.fromEntries((data.userRecipes ?? []).map((r) => [r.id, r]));
+  const userRecipeById = Object.fromEntries(entrada.restricciones.propias.map((r) => [r.id, r]));
 
   for (const { group, slotAssignments, slotsContext, restrictions, warnings } of results) {
     if (warnings?.length) plan._warnings.push(...warnings);
@@ -2131,11 +1982,11 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
     const positionBySlot = Object.fromEntries(
       slotsContext.map((s) => [s.slotId, s.position]),
     );
-    const miembrosDelGrupo = membersOfGroup(group, data.members);
+    const miembrosDelGrupo = membersOfGroup(group, entrada.personas);
     // El grupo del bebé cuenta por cabezas: sus recetas ya son de ración de
     // bebé, y la ración por edad (medio adulto a los 2 años) la encogería otra
     // vez. Sin entrada, abajo cae a `eaters`.
-    const racionesBySlot = isBabyMenuGroup(group, data.members) ? {} : Object.fromEntries(
+    const racionesBySlot = isBabyMenuGroup(group, entrada.personas) ? {} : Object.fromEntries(
       slotsContext.map((s) => [s.slotId, racionesEn(miembrosDelGrupo, s.day, comidaDeTipo(s.mealType))]),
     );
 
@@ -2249,12 +2100,12 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
   // (adultLunch), "cena como los padres" (adultDinner), "lo del mediodía" los
   // días de comedor (adultLunch), y finde juntos (ambos). kidsSlotAction decide
   // qué hueco copia de qué; aquí solo materializamos la copia.
-  const kidsPolicy = householdKidPolicy(data);
+  const kidsPolicy = entrada.ninos.politica;
   if (kidsPolicy) {
     const adults = activeGroups.find((g) => tipoDeGrupo(g) === "adultos");
     const kids = activeGroups.find((g) => tipoDeGrupo(g) === "ninos");
     if (adults && kids) {
-      const kidsMembers = membersOfGroup(kids, data.members);
+      const kidsMembers = membersOfGroup(kids, entrada.personas);
       // Clona un plato del menú de los adultos al espacio de nombres de los
       // niños (prefijo de grupo si hay varios menús), arrastrando su guarnición.
       const cloneForKids = (adultFrontendId, eaters, raciones) => {
@@ -2287,17 +2138,17 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
         return kidsFrontendId;
       };
 
-      for (const day of diasActivosDe(data)) {
+      for (const day of entrada.dias) {
         for (const meal of ["Comida", "Cena"]) {
-          const action = kidsSlotAction(data, day, meal);
+          const action = entrada.ninos.accion[day][meal];
           if (action !== "adultLunch" && action !== "adultDinner") continue;
           const srcMeal = action === "adultLunch" ? "Comida" : "Cena";
           const src = plan[adults.id]?.[`${day}-${srcMeal}`];
           if (!src?.recipeId && !src?.firstRecipeId) continue;
-          const mode = modeForGroupSlot(kids, data.members, data.schedule, day, meal);
+          const mode = modeForGroupSlot(kids, entrada.personas, entrada.horario, day, meal);
           if (!mode.cook) continue;
           const eaters = kidsMembers.filter((m) => {
-            const status = data.schedule[slotKey(m.id, day, meal)] ?? "casa";
+            const status = entrada.horario[slotKey(m.id, day, meal)] ?? "casa";
             return status === "casa" || status === "tupper";
           }).length;
           if (eaters <= 0) continue;
@@ -2340,7 +2191,7 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
   // week-shaped sequence forever.
   const extraMealsWeekIndex = crossWeek?.weekIndex ?? Math.floor(Math.random() * 1000);
   for (const group of activeGroups) {
-    for (const a of planExtraMealsForGroup(group, data, extraMealsWeekIndex)) {
+    for (const a of planExtraMealsForGroup(group, entrada, extraMealsWeekIndex)) {
       const catalogRecipe = recipeCatalogById[a.recipeId];
       if (!catalogRecipe) continue;
       const frontendId = (multi ? `${group.id}__` : "") + a.recipeId;
@@ -2371,7 +2222,7 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
   // que hay en casa, así que tampoco se toca el congelador.
   if (pantryMode !== "off") {
     assignPreparedToPlan(plan, pantryIngredients, {
-      days: diasActivosDe(data),
+      days: entrada.dias,
       mealLabels: ["Comida", "Cena"],
       // Un táper no sabe si se cocinó con pasta sin gluten: a un plato adaptado
       // para alguien no se le pone uno, por si acaso.
@@ -2673,7 +2524,7 @@ function allFixedDishIds(fixedDishes) {
  * when a compatible alternative exists), so it can only improve — or no-op — the
  * menu.
  */
-function breakProteinClusters(slotAssignments, { data, ctx, poolById, filteredPool, achievableFreqs }) {
+function breakProteinClusters(slotAssignments, { entrada, ctx, poolById, filteredPool, achievableFreqs }) {
   const result = slotAssignments.map((s) => ({ ...s }));
   const bySlot = new Map(result.map((s) => [s.slotId, s]));
   const contextBySlot = Object.fromEntries(ctx.slots.map((s) => [s.slotId, s]));
@@ -2682,7 +2533,7 @@ function breakProteinClusters(slotAssignments, { data, ctx, poolById, filteredPo
   // MEAL (its sanctioned placement) — a fixed recipe the fallback happened to
   // also drop into another meal is a fixable extra, not a pinned one.
   const fixedByMeal = { comida: new Set(), cena: new Set() };
-  for (const fd of data.fixedDishes ?? []) {
+  for (const fd of entrada.restricciones.fijos) {
     if (!fd) continue;
     const ids = allFixedDishIds([fd]);
     const meals = (fd.meals ?? ["Comida", "Cena"]).map((m) => String(m).toLowerCase());
