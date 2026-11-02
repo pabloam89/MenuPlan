@@ -57,7 +57,8 @@ const HouseholdsScreen = lazy(() => import("./screens/HouseholdsScreen.jsx").the
 const BibliotecaScreen = lazy(() => import("./screens/BibliotecaScreen.jsx").then(m => ({ default: m.BibliotecaScreen })));
 const UserStatsScreen = lazy(() => import("./screens/UserStatsScreen.jsx").then(m => ({ default: m.UserStatsScreen })));
 const MenuPeek = lazy(() => import("./screens/FeedScreen.jsx").then(m => ({ default: m.MenuPeek })));
-import { generateMenuWithAI, pickCatalogReplacement, motivoDelChoque, catalogToFrontendRecipe, activeDiscardIds, createPlannerStats } from "./lib/aiPlanner.js";
+import { generateMenuWithAI, pickCatalogReplacement, motivoDelChoque, catalogToFrontendRecipe, createPlannerStats } from "./lib/aiPlanner.js";
+import { activeDiscardIds } from "./lib/entradaMotor.js";
 import { sugerenciasDeHueco } from "./lib/sugerenciasDeHueco.js";
 import { minimosQueFaltan } from "./lib/minimosParaGenerar.js";
 import { resolvePlannerModel, resolvePlannerFormat } from "./lib/aiModels.js";
