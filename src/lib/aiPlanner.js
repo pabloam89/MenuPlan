@@ -1027,11 +1027,14 @@ function asignarConSolver({
       `${group.label}: no se encontró una combinación que cumpla todas las reglas a la vez; ${res.sinCombinacion.length} plato(s) se quedan ${HUECO_EN_AVISO.sin_asignar} (${res.sinCombinacion.join(", ")}).`,
     );
   }
-  // Aplicar y avisar en una línea (método de choques): qué se cedió, de lo que menos manda a lo que más.
-  for (const { clase } of ESCALONES_RELAJAR) {
-    const huecos = res.relajados.filter((id) => (res.relajadoPor?.[id] ?? CLASE_CHOQUE.DESEO) === clase);
-    if (huecos.length === 0) continue;
-    warnings.push(`${group.label}: en ${huecos.join(", ")} no cabía ningún plato sin ${CEDIDO[clase]}; se ha puesto el mejor disponible.`);
+  // Aplicar y avisar en una línea (método de choques): qué se cedió, de lo que menos manda a lo que más. Un hueco
+  // sin clase (no debería: el solver la pone a todos) va con el texto de siempre, no se calla.
+  if (res.relajados.length > 0) {
+    const partes = [...ESCALONES_RELAJAR.map(({ clase }) => clase), null].map((clase) => {
+      const huecos = res.relajados.filter((id) => (CEDIDO[res.relajadoPor?.[id]] ? res.relajadoPor[id] : null) === clase);
+      return huecos.length ? `en ${huecos.join(", ")} no cabía ningún plato sin ${clase ? CEDIDO[clase] : "pasarse del reparto semanal o del perfil de salud"}` : null;
+    }).filter(Boolean);
+    warnings.push(`${group.label}: ${partes.join("; ")}; se ha puesto el mejor disponible.`);
   }
   // La regla 11 culpa del exceso al ÚLTIMO plato de esa familia en orden de
   // comidas, no al que se relajó. Así que la revalidación no puede ignorar el

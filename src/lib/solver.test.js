@@ -443,3 +443,21 @@ describe("las alergias y los vetos nunca empeoran por una preferencia (trozo 31 
     expect(conQueso(recipes).map((r) => r.name)).toEqual([]);
   }, 120000);
 });
+
+describe("el aviso de lo relajado dice qué clase se cedió (método de choques, trozo 33 de #1037)", () => {
+  afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); vi.restoreAllMocks(); });
+
+  it("una línea por grupo, con lo cedido en palabras de su escalón y no el texto de antes", async () => {
+    vi.stubGlobal("localStorage", { getItem: (k) => (k === "mp_motor" ? "solver" : null) });
+    vi.useFakeTimers({ toFake: ["Date"] }); vi.setSystemTime(new Date("2026-11-02T12:00:00Z")); vi.spyOn(Math, "random").mockReturnValue(0.5);
+    const data = casa({
+      mealStructureCena: "primero_segundo",
+      members: [{ id: "m1", age: 38, intolerances: ["vegetariano"], allergies: ["huevos"] }, { id: "m2", age: 40, intolerances: ["vegetariano"] }],
+    });
+    const { plan } = await generateMenuWithAI(entradaDelMotor(data, { hoy: "2026-11-02" }));
+    const avisos = (plan._warnings ?? []).filter((w) => /no cabía ningún plato sin/.test(w));
+    expect(avisos).toHaveLength(1);
+    expect(avisos[0]).toMatch(/sin saltarse una regla de cocina/);
+    expect(avisos[0]).not.toMatch(/reparto semanal o del perfil de salud/);
+  }, 120000);
+});
