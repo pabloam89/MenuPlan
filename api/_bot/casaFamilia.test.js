@@ -2,7 +2,7 @@
 // por la tubería (escribir_persona); el documento de la casa ya no lleva members ni groups. Sin la 0108 (plan B),
 // la familia sigue en el documento, como antes; sin poder leerla por otra cosa, la casa no se lee.
 // Y el del trozo 12: los datos de la casa con sobre (CAMPOS_CASA_CON_SOBRE) se leen de ficha_casa v2 y se escriben
-// con escribirDato (aplicar_operacion); sin la 0112, en el documento.
+// con escribirDato (aplicar_operacion); sin poder leerlos (sin la RPC, con la v1, sin alguno), la casa no se lee.
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { conCasa, cargarCasa, olvidarCasa, separarFamilia } from "./casa.js";
 import { conOperacion, ponerAutor, tomarAvisos } from "./operacion.js";
