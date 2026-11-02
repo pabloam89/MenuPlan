@@ -55,6 +55,10 @@ describe("0109: preferencias, señales e historiales", () => {
     expect(cuerpo("escribir_preferencias")).toContain(`c_max constant integer := ${MAX_PREFERENCIAS_OPERACION};`);
   });
 
+  it("el tope de una operación es el de la tubería (MAX_PREFERENCIAS_OPERACION): lo que no cabe se dice antes de llegar", () => {
+    expect(cuerpo("escribir_preferencias")).toContain(`c_max constant integer := ${MAX_PREFERENCIAS_OPERACION};`);
+  });
+
   it("los motivos de sin_hacer son MOTIVOS_SIN_HACER_PREFERENCIA, y nada más", () => {
     const motivos = [...cuerpo("escribir_preferencias").matchAll(/v_motivo := '([a-z_]+)'/g)].map((m) => m[1]);
     expect([...new Set(motivos)].sort()).toEqual([...MOTIVOS_SIN_HACER_PREFERENCIA].sort());
