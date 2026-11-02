@@ -10,7 +10,7 @@ import { EJES } from "../../src/data/axisRegistry.js";
 import { HUECO_EN_AVISO } from "../../src/lib/huecosDelPlan.js";
 import { PIEZAS_FUERA } from "../../api/_bot/interprete.js";
 import { CAMPO_LLEGARON } from "../../api/_bot/medidaTurno.js";
-import { RASTRO, CAMPO_CUMPLIMIENTO } from "../../src/lib/rastro.js";
+import { RASTRO, CAMPO_CUMPLIMIENTO, CIFRA_CUMPLIMIENTO as C } from "../../src/lib/rastro.js";
 import { ESCRITORAS_HEREDADAS, LLAMADAS_HEREDADAS } from "../../src/lib/operaciones/escritoras.js";
 import { clavesGuardadas } from "./inventarioFicha.mjs";
 import CAPACIDADES_BASE from "../../src/lib/capacidades.base.json" with { type: "json" };
@@ -155,8 +155,8 @@ export const CIFRAS = [
   { id: "pct_preferencias_cumplidas", nombre: "% de preferencias dichas cumplidas por semana", trozo: 31, fuente: FUENTE.base, sentido: SENTIDO.sube, meta: 100, unidad: "%",
     base: null, nota: "la semana no decía qué cumplía; antes y después del solver, en el banco de casas del PR del trozo 31",
     medir: async (ctx) => {
-      const [f] = await ctx.consultar(`select coalesce(sum((metadata->'${CAMPO_CUMPLIMIENTO}'->>'cumplidas')::int), 0)::int c,
-        coalesce(sum((metadata->'${CAMPO_CUMPLIMIENTO}'->>'dichas')::int), 0)::int d from user_events where event = '${RASTRO.MENU_GENERADO}' and metadata ? '${CAMPO_CUMPLIMIENTO}'`);
+      const [f] = await ctx.consultar(`select coalesce(sum((metadata->'${CAMPO_CUMPLIMIENTO}'->>'${C.cumplidas}')::int), 0)::int c,
+        coalesce(sum((metadata->'${CAMPO_CUMPLIMIENTO}'->>'${C.dichas}')::int), 0)::int d from user_events where event = '${RASTRO.MENU_GENERADO}' and metadata ? '${CAMPO_CUMPLIMIENTO}'`);
       return f.d ? Math.round((100 * f.c) / f.d) : { sin_medir: `ningún menú con preferencias dichas medidas: ${RASTRO.MENU_GENERADO} lleva ${CAMPO_CUMPLIMIENTO} desde el trozo 31` };
     } },
   { id: "reglas_fuera_de_preferencias", nombre: "Reglas del validador escritas a mano (no caben como preferencia)", trozo: 32, fuente: FUENTE.codigo, sentido: SENTIDO.baja, meta: null,
