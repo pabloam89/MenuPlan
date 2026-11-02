@@ -388,6 +388,49 @@ describe("los datos de la casa con sobre (trozo 12)", () => {
   });
 });
 
+describe("los datos de la Rutina sin ámbito con sobre (trozo 13)", () => {
+  // La v2 agrupa por ficha: con la 0113, los de la Rutina llegan en `fichas.rutina`, no en `fichas.casa`.
+  const conRutina = (casa, rutina) => ({ status: 200, cuerpo: { ...fichaV1(), v: 2, fichas: { casa, rutina } } });
+  const docCon = (data) => responde(/household_state/, { status: 200, cuerpo: [{ state: { data: { ...DOCUMENTO.data, ...data } }, bot_rev: 7, updated_at: "2026-11-01T10:00:00Z" }] });
+  const cambiar = (cambios) => conCasa(CASA, async (casa) => ({ state: { ...casa.state, data: { ...casa.state.data, ...cambios } } }));
+
+  it("con la 0113, se leen de la ficha Rutina: lo dicho de su sobre y el defecto del registro, no lo del documento", async () => {
+    docCon({ meals: ["Cena"], diaTanda: "Mié" });
+    responde(RUTA_FICHA, conRutina([porDefecto(CAMPO, false)], [porDefecto("meals", ["Comida", "Cena"]), dicho("diaTanda", "Sáb")]));
+    const casa = await cargarCasa(CASA);
+    expect(casa.state.data).toMatchObject({ meals: ["Comida", "Cena"], diaTanda: "Sáb", [CAMPO]: false });
+    expect(casa.conSobre).toMatchObject({ meals: { conSobre: false }, diaTanda: { valor: "Sáb", conSobre: true } });
+  });
+
+  it("lo que Lola cambia de la Rutina va a escribirDato, uno por dato, y el documento ya no lo lleva", async () => {
+    responde(RUTA_FICHA, conRutina([], [porDefecto("meals", ["Comida", "Cena"]), porDefecto("tandaMinutos", null)]));
+    let rev = 8;
+    responde(RUTA_OPERACION, { status: 200, get cuerpo() { rev += 1; return { ...HECHA, rev }; } });
+    const { r } = await enTurno(() => cambiar({ meals: ["Cena"], tandaMinutos: 90 }));
+    const [doc, ...ops] = escrituras();
+    expect(ops.map((l) => l.cuerpo.p_operacion.datos)).toEqual([
+      [{ campo: "meals", persona_id: null, valor: ["Cena"], origen: "dicho" }],
+      [{ campo: "tandaMinutos", persona_id: null, valor: 90, origen: "dicho" }],
+    ]);
+    expect(doc.cuerpo.p_state.data).not.toHaveProperty("meals");
+    expect(doc.cuerpo.p_state.data).not.toHaveProperty("tandaMinutos");
+    expect(r).toMatchObject({ ok: true, botRev: 10 });
+  });
+
+  it("con la 0112 y sin la 0113 (la ficha trae la Casa y no la Rutina), la Rutina sigue en el documento", async () => {
+    docCon({ meals: ["Cena"] });
+    responde(RUTA_FICHA, conRutina([porDefecto(CAMPO, false)], undefined));
+    const casa = await cargarCasa(CASA);
+    expect(casa.state.data.meals).toEqual(["Cena"]);
+    expect(casa.conSobre).not.toHaveProperty("meals");
+    olvidarCasa(CASA);
+    await enTurno(() => cambiar({ meals: ["Comida"] }));
+    const [doc] = escrituras();
+    expect(doc.cuerpo.p_state.data.meals).toEqual(["Comida"]);
+    expect(escrituras().filter((l) => RUTA_OPERACION.test(l.ruta))).toEqual([]);
+  });
+});
+
 describe("separarFamilia", () => {
   it("un estado sin members ni groups no toca la familia (no es «borrar a todos»)", () => {
     expect(separarFamilia({ data: { reglas: [] } }, { members: [], groups: [] })).toEqual({ documento: { data: { reglas: [] } }, familia: null });
