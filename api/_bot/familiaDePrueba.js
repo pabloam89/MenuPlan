@@ -41,30 +41,6 @@ export const fichaDePrueba = (...elementos) => {
   return { ...FICHA_SIN_TAREAS, v: 2, fichas };
 };
 
-/** Un dato de «fichas» de la casa sin sobre: el defecto del registro, o vacío si no tiene. La base de un campo con ámbito, `ambito: null`. */
-const sinSobre = (campo) => {
-  const defecto = REGISTRO_CAMPOS[campo].defecto ?? null;
-  return {
-    campo, sujeto: { tipo: "casa", id: null }, estado: defecto == null ? "vacio" : "por_defecto", valor: defecto, origen: null,
-    bloqueado: false, peso: null, confirmado_el: null, caduca_at: null, cambiado_at: null, dicho_por: null, canal: null, operacion_id: null,
-    ...(CAMPOS_CON_AMBITO_CON_SOBRE.includes(campo) ? { ambito: null } : {}),
-  };
-};
-
-/**
- * Lo que contestaría ficha_casa v2 con la 0112 a la 0116 aplicadas: todos los datos con sobre de las fichas Casa y
- * Rutina, cada uno en su ficha. Los `elementos` que se pasan sustituyen al de su campo (los sin ámbito) o se suman
- * (los huecos, con `ambito`); el resto, sin sobre.
- */
-export const fichaDePrueba = (...elementos) => {
-  const sustituye = (e) => e.ambito == null;
-  const dados = new Set(elementos.filter(sustituye).map((e) => e.campo));
-  const todos = [...[...CAMPOS_CASA_CON_SOBRE, ...CAMPOS_CON_AMBITO_CON_SOBRE].filter((c) => !dados.has(c)).map(sinSobre), ...elementos];
-  const fichas = {};
-  for (const e of todos) (fichas[DATOS_CASA[e.campo].ficha] ??= []).push(e);
-  return { ...fichaV1(), v: 2, fichas };
-};
-
 /**
  * Lo que contestaría preferencias_de_casa (0109) para una casa sin preferencias: desde el trozo 14 (#1037) la casa
  * de Lola lee de ahí la libreta. `preferencias`, filas como las de la tabla.
