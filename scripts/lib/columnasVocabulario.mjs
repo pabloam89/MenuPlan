@@ -104,7 +104,7 @@ export const ESCRITORES_SQL = Object.freeze({
   "operacion.ref_tipo": "aplicar_operacion (0106) inserta el ref_tipo de p_operacion; su único llamador es escribirDato (api/_bot/datos.js, trozo 8), que lo pasa por paraEscribir (src/lib/escribirDato.js); escribir_persona (0108) inserta el de su operación, que le pasa la tubería (src/lib/operaciones/)",
   "grupo.tipo": "escribir_persona (0108) inserta el tipo de cada grupo de su operación; se lo pasa la tubería (src/lib/operaciones/), que lo saca de data.groups ya escrito por groups.js con TIPOS_GRUPO",
   "operacion.estado": "aplicar_operacion (0106) escribe pendiente, hecha o rechazada (de ESTADOS_OPERACION; datoConSobre.test.js lo comprueba), y escribir_persona (0108) y escribir_preferencias (0109) pendiente y hecha (personaFuente.test.js, preferencia.test.js); ningún JS escribe la tabla",
-  "registro_eje.tipo": "el INSERT de la 0109, generado de EJES (axisRegistry.js, que comprueba cada tipo; preferencia.test.js lo compara); ningún JS escribe la tabla",
+  "registro_eje.tipo": "el INSERT de la 0109, generado de EJES (axisRegistry.test.js comprueba que cada tipo está en TIPOS_EJE; preferencia.test.js, que el INSERT es EJES); ningún JS escribe la tabla",
   "precio_observado.fuente": "solo la autoprueba de la 0109, que se deshace siempre, con un valor de FUENTES_PRECIO; la escribirá el trozo 22",
   "precio_observado.tipo": "solo la autoprueba de la 0109, que se deshace siempre, con un valor de TIPOS_LINEA_TICKET; la escribirá el trozo 22",
   "cocinado.dia": "solo la autoprueba de la 0109, que se deshace siempre, con un día de DIAS; la escribirá el trozo 22",
