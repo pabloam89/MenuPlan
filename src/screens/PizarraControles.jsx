@@ -1573,7 +1573,7 @@ const PASOS_ARRANQUE = [
   { id: "cocina", titulo: "¿Qué tienes en la cocina?" },
 ];
 
-export function ArranqueDePizarra({ data, setData, onAplicar, onEmpezar }) {
+export function ArranqueDePizarra({ data, setData, onAplicar, onEmpezar, onSalir }) {
   // Dos pasos, deslizando: los días y luego los electrodomésticos, que
   // cambian las recetas y los minutos del Batch. Los dos pasos están siempre
   // montados y la hoja mide lo que el más alto —el calendario—: si cambiara
@@ -1656,12 +1656,27 @@ export function ArranqueDePizarra({ data, setData, onAplicar, onEmpezar }) {
         aria-label="¿Qué días pones?"
         className={saliendo ? "mp-arranque-out" : "mp-arranque-in"}
         style={{
+          position: "relative",
           width: "min(340px, 100%)", maxHeight: "calc(100dvh - 40px)", overflowY: "auto",
           background: "#f4f8f5", borderRadius: 24, padding: 18,
           boxShadow: "0 28px 70px -20px rgba(20,47,29,.5)",
           boxSizing: "border-box",
         }}
       >
+        <button
+          type="button"
+          onClick={() => !saliendo && onSalir()}
+          aria-label="Cerrar"
+          className="mp-press"
+          style={{
+            position: "absolute", top: "var(--esp-12)", right: "var(--esp-12)", zIndex: 1,
+            width: 32, height: 32, borderRadius: "var(--radio-pildora)", padding: 0,
+            background: "var(--color-superficie)", border: "1px solid var(--color-linea)", cursor: "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}
+        >
+          <X size={16} color={VERDE} />
+        </button>
         {/* Sola y centrada. Debajo iba un «Luego rellenas los huecos a mano»
             que explicaba la pantalla siguiente a quien todavía no ha salido de
             esta. El título viaja con su paso (key) y entra deslizando igual. */}

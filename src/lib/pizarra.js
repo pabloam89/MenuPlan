@@ -54,6 +54,16 @@ import { computeWeekRange, explicitDaysForOffset, horarioDeSemana } from "./menu
  * build no la sustituye — le pasó al motor y el solver nunca llegó a correr
  * en staging.
  */
+/** Lo que abrir una pizarra cambia en `data`; salir de su hoja lo devuelve. */
+const CAMPOS_DE_ABRIR_PIZARRA = [
+  "groups", "menus", "activeMenuId", "menuWeek", "menuWeekDays", "menuWeekOffsets", "extraMeals",
+  "pantryGenDeltas", "pantryDayDeltas", "cookedDeltas", "cookedDishes",
+];
+
+export function copiaAntesDePizarra(data) {
+  return Object.fromEntries(CAMPOS_DE_ABRIR_PIZARRA.map((campo) => [campo, data[campo]]));
+}
+
 export function pizarraActiva() {
   try {
     if (typeof localStorage !== "undefined") {

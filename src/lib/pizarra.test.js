@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
-import { planVacio, huecosDelPlan, conHuecosAlDia, conSemanasAlDia, conHuecoAnadido, sinHueco, franjasDelDia } from "./pizarra.js";
+import { planVacio, copiaAntesDePizarra, huecosDelPlan, conHuecosAlDia, conSemanasAlDia, conHuecoAnadido, sinHueco, franjasDelDia } from "./pizarra.js";
 import { DAYS, getDayMeals, slotKey } from "./planner.js";
 import { mondayISOForOffset } from "./weekCalendar.js";
 
@@ -267,5 +267,14 @@ describe("las semanas marcadas se abren en el menú", () => {
     const r = conSemanasAlDia(antes, data, [grupo]);
     expect(r.menu).toBe(antes);
     expect(r.nuevas).toEqual({});
+  });
+});
+
+describe("salir de la hoja de arranque", () => {
+  it("la copia guarda lo que abrir una pizarra cambia, y nada más", () => {
+    const data = { menus: { a: {} }, activeMenuId: "a", menuWeek: { offset: 1 }, kitchenTools: ["horno"] };
+    const copia = copiaAntesDePizarra(data);
+    expect(copia).toMatchObject({ menus: { a: {} }, activeMenuId: "a", menuWeek: { offset: 1 } });
+    expect(copia).not.toHaveProperty("kitchenTools");
   });
 });
