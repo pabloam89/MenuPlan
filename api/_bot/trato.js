@@ -19,7 +19,10 @@
  */
 import { DATOS_PERSONA } from "../../src/lib/registroFicha.js";
 import { resultado } from "./resultado.js";
-import { FICHA, CANAL_DATO, REF_OPERACION, RITMO_TRATO, PROFUNDIDAD_TRATO, LARGO_TRATO } from "../../src/lib/vocabularios.js";
+import { FICHA, CANAL_DATO, REF_OPERACION, RITMO_TRATO, PROFUNDIDAD_TRATO, LARGO_TRATO, ORIGEN, ESTADO_DATO } from "../../src/lib/vocabularios.js";
+import { esquemaDato } from "../../src/lib/esquemaHerramienta.js";
+import { miembroDeCuentaId } from "../../src/lib/stages.js";
+import { PAPEL } from "../../src/lib/papeles.js";
 
 /** Los campos de la ficha Trato, en el orden del registro. */
 export const CAMPOS_TRATO = Object.freeze(Object.entries(DATOS_PERSONA)
@@ -27,6 +30,16 @@ export const CAMPOS_TRATO = Object.freeze(Object.entries(DATOS_PERSONA)
 
 /** El nombre corto de cada campo en el trato leído (y en la herramienta). */
 export const CORTO = Object.freeze({ tratoRitmo: "ritmo", tratoProfundidad: "profundidad", tratoFotos: "fotos", tratoLargo: "largo" });
+
+/** Las claves del trato en la ficha de ajustar_trato (lo que escribe) y su esquema (un parámetro por nombre corto). */
+export const ESCRIBE_TRATO = Object.freeze(CAMPOS_TRATO.map((c) => `members.${c}`));
+export const ESQUEMA_TRATO = Object.freeze(Object.fromEntries(CAMPOS_TRATO.map((c) => [CORTO[c], esquemaDato(`members.${c}`)])));
+
+/**
+ * La persona de la cuenta que escribe, o null. El `accountMemberId` compartido solo vale de respaldo para el titular
+ * (owner): una cuenta cotitular sin su entrada no es el titular, y su trato no se guarda ni se lee en el de él.
+ */
+export const personaDeLaCuenta = (data, userId, papel) => miembroDeCuentaId(data, userId, { esTitular: papel === PAPEL.OWNER });
 
 /** El trato de quien no ha dicho nada: los defectos del registro. */
 export const TRATO_POR_DEFECTO = Object.freeze(Object.fromEntries(CAMPOS_TRATO.map((c) => [CORTO[c], DATOS_PERSONA[c].defecto])));
@@ -44,7 +57,7 @@ export function tratoDeFicha(ficha, personaId) {
   for (const d of lista) {
     if (!CAMPOS_TRATO.includes(d?.campo) || String(d?.sujeto?.id ?? "") !== String(personaId)) continue;
     const corto = CORTO[d.campo];
-    const vigente = d.estado !== "vacio" && d.estado !== "por_defecto" && d.valor != null;
+    const vigente = d.estado !== ESTADO_DATO.VACIO && d.estado !== ESTADO_DATO.POR_DEFECTO && d.valor != null;
     if (!vigente) continue;
     trato[corto] = d.valor;
     trato.dicho.push(corto);
@@ -83,9 +96,6 @@ export function lineaDelTrato(trato) {
   return `TRATO CON QUIEN ESCRIBE (se cambia con ajustar_trato si lo pide): ${partes.join("; ")}. La seguridad (alergias, salud) se pregunta siempre, sea cual sea el trato.`;
 }
 
-/** El origen de lo que se guarda: lo dijo quien escribe (ORIGEN_DATO). */
-const DICHO = "dicho";
-
 /**
  * Pura. Los datos de la operación de ajustar_trato: uno por campo pedido, de la persona de la cuenta, dichos.
  * `pedido` con los nombres cortos (ritmo, profundidad, fotos, largo); lo que no viene, no se toca.
@@ -93,7 +103,7 @@ const DICHO = "dicho";
 export function datosDelTrato(pedido, personaId) {
   return CAMPOS_TRATO
     .filter((c) => pedido?.[CORTO[c]] !== undefined && pedido[CORTO[c]] !== null)
-    .map((c) => ({ campo: c, persona_id: String(personaId), valor: pedido[CORTO[c]], origen: DICHO }));
+    .map((c) => ({ campo: c, persona_id: String(personaId), valor: pedido[CORTO[c]], origen: ORIGEN.DICHO }));
 }
 
 /** Cómo se nombra cada campo en el recibo («✅ Trato con Lola: ritmo directo»). */

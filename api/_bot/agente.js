@@ -76,9 +76,8 @@ import { apuntarSilencio, conRecordatorio, NOTA_RECORDATORIO } from "./silencio.
 import { usoParcialDe, sumarUsos } from "./medidaTurno.js";
 import { esResultado, paraElModelo, conRecibo, recibo, cuentaComoGuardado, exigeResultado, SIN_RESULTADO } from "./resultado.js";
 import { operacion, claveDeEscritura, tipoDeHerramienta, YA_ESCRITA, SIN_COMPROBAR, ponerAutor, tomarAvisos, autorDelTurno } from "./operacion.js";
-import { tratoDeFicha, lineaDelTrato, guardarTrato } from "./trato.js";
+import { tratoDeFicha, lineaDelTrato, guardarTrato, ESCRIBE_TRATO, ESQUEMA_TRATO, personaDeLaCuenta } from "./trato.js";
 import { escribirDato } from "./datos.js";
-import { miembroDeCuentaId } from "../../src/lib/stages.js";
 import { claveOperacion } from "../../src/lib/ids.js";
 import { primeraVez, yaVista } from "./entradas.js";
 
@@ -650,20 +649,15 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
       }),
       run: (args) => ajustarCompra(householdId, args),
     }),
-    herramienta({ capacidades: ["trato"], lee: ["accountMemberIdByUser"], escribe: ["members.tratoRitmo", "members.tratoProfundidad", "members.tratoFotos", "members.tratoLargo"], lector: false, soloLectura: false, pantalla: null }, {
+    herramienta({ capacidades: ["trato"], lee: ["accountMemberIdByUser"], escribe: [...ESCRIBE_TRATO], lector: false, soloLectura: false, pantalla: null }, {
       name: "ajustar_trato",
       description: "Cómo quiere quien escribe que le hables (solo a él o ella, no a toda la casa). ritmo: directo («no me preguntes tanto», «decide tú») o guiado («ve paso a paso», «pregúntame antes»). profundidad, cuánto afinar antes de hacer un menú: nada («hazlo ya»), poco, mucho («quiero afinarlo bien») o preguntar (preguntárselo cada vez). fotos: si quiere fotos de los platos. largo: corto («más corto», «al grano») o largo («explícame más»). Solo lo que diga; lo demás no se toca. Úsala cuando lo pida como algo para siempre, no por un mensaje suelto.",
-      inputSchema: obj({
-        ritmo: esquemaDato("members.tratoRitmo"),
-        profundidad: esquemaDato("members.tratoProfundidad"),
-        fotos: esquemaDato("members.tratoFotos"),
-        largo: esquemaDato("members.tratoLargo"),
-      }),
+      inputSchema: obj({ ...ESQUEMA_TRATO }),
       run: (args) => {
         const op = operacion();
         return guardarTrato(args, {
           householdId,
-          personaId: miembroDeCuentaId(chat.casaData, quien.userId),
+          personaId: personaDeLaCuenta(chat.casaData, quien.userId, chat.papel),
           autor: autorDelTurno(),
           op,
           escribir: escribirDato,
@@ -1296,7 +1290,7 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
   // El trato de quien escribe (trozo 16): de la ficha «trato» de ficha_casa, o sus defectos (trato.js, plan B). Va
   // delante de lo del día: lo pendiente y quién escribe siguen cerrándolo, como siempre.
   const fichaBase = casa ? conQuienEscribe(montarFicha(deLaFicha.casa, extras), chat.papel, chat.idioma) : null;
-  chat.trato = tratoDeFicha(tablas, miembroDeCuentaId(data, chat.userId));
+  chat.trato = tratoDeFicha(tablas, personaDeLaCuenta(data, chat.userId, chat.papel));
   const ficha = fichaBase && chat.papel && chat.papel !== "ajeno" ? { ...fichaBase, delDia: [lineaDelTrato(chat.trato), fichaBase.delDia].filter(Boolean).join("\n") } : fichaBase;
   let dicho, uso, corregido, medida, promesa, sigueSinGuardar = false;
   const tLola = Date.now();

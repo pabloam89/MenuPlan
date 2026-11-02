@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { CAMPOS_TRATO, TRATO_POR_DEFECTO, tratoDeFicha, lineaDelTrato, datosDelTrato, guardarTrato } from "./trato.js";
+import { CAMPOS_TRATO, TRATO_POR_DEFECTO, tratoDeFicha, lineaDelTrato, datosDelTrato, guardarTrato, personaDeLaCuenta } from "./trato.js";
 import { REGISTRO_CAMPOS } from "../../src/lib/registroCampos.js";
 import { RITMOS_TRATO, PROFUNDIDADES_TRATO, LARGOS_TRATO } from "../../src/lib/vocabularios.js";
 import { esResultado, ESTADO } from "./resultado.js";
@@ -117,5 +117,19 @@ describe("guardarTrato (ajustar_trato): un dato por campo pedido, de la persona 
 
   it("la ficha de ajustar_trato escribe justo los cuatro datos del trato", () => {
     expect(FICHAS.get("ajustar_trato").escribe).toEqual(CAMPOS_TRATO.map((c) => `members.${c}`));
+  });
+});
+
+describe("personaDeLaCuenta: de quién es el trato", () => {
+  const data = { accountMemberId: "titular", accountMemberIdByUser: { u1: "p1" } };
+
+  it("la cuenta con su entrada, su persona", () => {
+    expect(personaDeLaCuenta(data, "u1", "editor")).toBe("p1");
+  });
+
+  it("el titular sin entrada cae en el respaldo compartido; la pareja (editor) no: no sabe quién es", () => {
+    expect(personaDeLaCuenta(data, "u2", "owner")).toBe("titular");
+    expect(personaDeLaCuenta(data, "u2", "editor")).toBeNull();
+    expect(personaDeLaCuenta(data, "u2", "viewer")).toBeNull();
   });
 });
