@@ -11,6 +11,7 @@ const ESCRITORAS_TUBERIA = Object.freeze({
   escribir_dato: "tubería (0106; llama a aplicar_operacion)",
   deshacer_operacion: "tubería (0111): deshace una operación con su inversa",
   escribir_persona: "tubería (0108): la única escritura de persona, persona_* y grupo",
+  escribir_preferencias: "tubería (0109): la única escritura de preferencia y plan_preferencias",
 });
 
 /**
