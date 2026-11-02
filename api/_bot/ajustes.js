@@ -21,7 +21,7 @@ import { conCasa } from "./casa.js";
 import { motor, normal, DIAS, DIA_LARGO } from "./menu.js";
 import { buscarPersona, dudaDePersona, personasDe, diasDeLaSemana, diaDe, fechaDe, lunesDe, grupoDePersonas, miembrosDeGrupo, cantidadDe, vecesDe } from "./interprete.js";
 import { ETAPA_BEBE_INFO } from "../../src/lib/babyStage.js";
-import { sinUseHomeStock } from "../../src/lib/modoDespensa.js";
+import { sinUseHomeStock, MODOS_DESPENSA_TEXTO } from "../../src/lib/modoDespensa.js";
 import { registrar, EMBUDO, duenoDe, cimientosCompletos } from "./embudo.js";
 import { cerrarPorEstado, abrirPreguntaDeEstado } from "./tareas.js";
 import * as ids from "../../src/lib/ids.js";
@@ -438,19 +438,6 @@ export async function ajustarSemana(householdId, args) {
 }
 
 /**
- * Cómo usa el menú lo que hay en casa: los cuatro modos que entiende el motor
- * (aiPlanner.js, generar.js). El asistente de la app ofrece strict y only;
- * prefer y off siguen valiendo, y sin off «deja de usar lo de casa» no se
- * podía hacer (#958).
- */
-export const MODOS_DESPENSA = {
-  strict: "solo con lo de casa, sin comprar salvo que un hueco no salga de otra forma",
-  only: "sobre todo lo de casa, y se compra lo que falte",
-  prefer: "con lo de casa solo para desempatar entre platos",
-  off: "sin mirar lo de casa (la compra sigue descontando lo que tengas)",
-};
-
-/**
  * El paso «¿aprovechamos lo de casa?» del asistente (OnboardingPantryMode),
  * con la misma clave: el modo (que lo eligió alguien lo dice su sobre, trozo 12
  * de #1037; ya no hay marca pantryModeSet). El booleano
@@ -458,10 +445,10 @@ export const MODOS_DESPENSA = {
  * y se quita si una casa vieja lo trae. Pura, para el test.
  */
 export function aplicarModoDespensa(data, modo) {
-  if (!MODOS_DESPENSA[modo]) return { texto: `modo tiene que ser ${Object.keys(MODOS_DESPENSA).join(" o ")}.` };
+  if (!MODOS_DESPENSA_TEXTO[modo]) return { texto: `modo tiene que ser ${Object.keys(MODOS_DESPENSA_TEXTO).join(" o ")}.` };
   return {
     data: { ...sinUseHomeStock(data), pantryMode: modo },
-    texto: `Guardado: el menú se hará ${MODOS_DESPENSA[modo]}. Se aplicará al generar el próximo menú.`,
+    texto: `Guardado: el menú se hará ${MODOS_DESPENSA_TEXTO[modo]}. Se aplicará al generar el próximo menú.`,
   };
 }
 

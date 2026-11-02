@@ -114,6 +114,15 @@ describe("la ficha de la casa", () => {
     expect(f.estable.replace("; colegio (Lucas): El Pilar; sexo: mujer", "").replace(/\n- Supuesto: [^\n]*/, "")).toBe(sin.estable);
   });
 
+  it("la despensa: el modo con que se generará, si no es el de por defecto (sobre todo lo de casa)", () => {
+    const linea = (data) => montarFicha(casaDe({ members: MIEMBROS, ...data }), {}, "2026-10-01").estable.match(/- Despensa: (.*)/)?.[1] ?? null;
+    expect(linea({ pantryMode: "off" })).toBe("el menú se hace sin mirar lo de casa (la compra sigue descontando lo que tengas).");
+    expect(linea({ pantryMode: "strict" })).toMatch(/^el menú se hace solo con lo de casa/);
+    expect(linea({ pantryMode: "only" })).toBeNull();
+    // Sin modo (una casa vieja, sin la 0112), generar.js genera sin mirar lo de casa: la ficha dice eso mismo.
+    expect(linea({})).toMatch(/^el menú se hace sin mirar lo de casa/);
+  });
+
   it("lo rechazado no sale como apunte, y sí como «no volver a suponer»", () => {
     const campos = {
       "favoritos.lentejas": { valor: undefined, fuente: "supuesto", rechazos: [{ valor: true, fecha: "2026-09-28" }] },
