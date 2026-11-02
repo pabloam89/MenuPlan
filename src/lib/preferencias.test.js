@@ -102,6 +102,14 @@ describe("la libreta como preferencias (0109, trozo 14)", () => {
     expect(() => filaDeApunte("nada.carne", { valor: 1, origen: "texto" })).toThrow(PreferenciaInvalida);
   });
 
+  it("cada ámbito y cada servicio de la libreta cabe en una fila: un grupo de su tipo, una comida de su nombre", () => {
+    const grupos = [{ id: "g-a", tipo: "adultos" }, { id: "g-n", tipo: "ninos" }, { id: "g-b", tipo: "bebe" }];
+    for (const ruta of ["freqs.carne.@ninos", "freqs.carne.@adultos", "freqs.carne.@bebes", "tecnica.horno.#comida", "tecnica.horno.#cena"]) {
+      const fila = filaDeApunte(ruta, { valor: 1, origen: "texto" }, { grupos });
+      expect(apunteDeFila(comoLaBase(fila, "x"), { grupos })?.[0], ruta).toBe(ruta);
+    }
+  });
+
   it("una fila que no es de la libreta (de una persona, con días, de un conjunto) no entra en ella", () => {
     const base = comoLaBase(filaDeApunte("freqs.pescado", { valor: 2, origen: "texto" }), "x");
     expect(apunteDeFila(base)).not.toBeNull();
