@@ -87,7 +87,7 @@ import { NIVELES_CALORIAS } from "../lib/caloriasNivel.js";
 import { NUTRIENTES } from "./nutrientes.js";
 import { AGREGABLE, UNIDAD_EJE, UNIDADES_EJE } from "../lib/vocabularios.js";
 
-/** @typedef {"enum"|"jerarquico"|"tags"|"numerico"|"booleano"|"derivado"} TipoEje */
+/** @typedef {string} TipoEje  uno de TIPOS_EJE (vocabularios.js; axisRegistry.test.js lo comprueba eje a eje) */
 /** @typedef {"activo"|"silencioso"|"sin_lector"|"sin_datos"} EstadoEje */
 
 export const AMBITO = {
