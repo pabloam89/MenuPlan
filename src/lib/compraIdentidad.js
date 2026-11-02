@@ -25,6 +25,19 @@ export function sonElMismo(items) {
 }
 
 /**
+ * Un artículo apuntado a mano: lo que no sale del menú. La forma de un añadido
+ * vive solo aquí (al añadir, y al rehacerlo de sus marcas en compraMarcas.js).
+ * @param {{ id: string, name: string, unit?: string, have?: boolean, atHome?: boolean }} base
+ * @param {object} [extra] lo guardado del añadido (category, qty, displayQty)
+ */
+export function articuloAMano({ id, name, unit = "", have = false, atHome = false }, extra = {}) {
+  return {
+    category: "Otros", qty: null, displayQty: "", sources: [], adapted: false, ...extra,
+    id, name, unit, have, atHome, manual: true,
+  };
+}
+
+/**
  * Añade a mano `nombres` a `items` sin duplicar. Devuelve la lista nueva y qué
  * pasó con cada nombre: `anadidos` (nuevos), `yaEstaban` (pendientes ya) y
  * `devueltos` (estaban tachados o «en casa»: vuelven a pedirse). No muta.
@@ -49,11 +62,7 @@ export function anadirArticulos(items, nombres, sello = () => Date.now().toStrin
       }
       continue;
     }
-    lista.push({
-      id: `manual:${clave.replace(/\s+/g, "-")}:${sello()}`,
-      name, category: "Otros", unit: "", qty: null, displayQty: "",
-      sources: [], have: false, atHome: false, manual: true, adapted: false,
-    });
+    lista.push(articuloAMano({ id: `manual:${clave.replace(/\s+/g, "-")}:${sello()}`, name }));
     res.anadidos.push(name);
   }
   return res;
