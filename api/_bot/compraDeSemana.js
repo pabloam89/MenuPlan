@@ -15,10 +15,6 @@ const deMenu = () => import("./menu.js");
 
 /**
  * La lista que sale del menú de una semana (sin marcas), con la despensa.
- * @param {object} m el motor (menu.js, motor())
- * @param {object} casa
- * @param {object} semana
- * @param {object[]} despensa
  */
 export async function derivadaDe(m, casa, semana, despensa) {
   const { grupos } = await deMenu();

@@ -2,9 +2,6 @@ import { describe, it, expect, vi, beforeAll, beforeEach } from "vitest";
 import { familiaDeFilas, RPC_FAMILIA, RPC_FICHA, fichaDePrueba, RPC_PREFERENCIAS_DE_CASA, preferenciasDeFilas } from "./familiaDePrueba.js";
 import { MARCA_COMPRA } from "../../src/lib/vocabularios.js";
 
-// Trozo 18: la semana guarda solo las marcas de la compra; Lola ve la lista
-// derivada del menú con las marcas encima, y al guardar vuelven a ser marcas.
-
 const leche = { id: "leche|ml", name: "Leche", unit: "ml", have: false, atHome: false, manual: false, sources: [] };
 const pan = { id: "pan|ud", name: "Pan", unit: "ud", have: false, atHome: false, manual: false, sources: [] };
 const huevos = { id: "huevo|ud", name: "Huevos", unit: "ud", have: false, atHome: false, manual: false, sources: [] };
@@ -58,9 +55,7 @@ const conMarcas = () => ({ marcas: [
 ] });
 
 describe("la compra de la semana en Lola: derivada más marcas", () => {
-  beforeEach(() => {
-    despensaRota = false;
-  });
+  beforeEach(() => { despensaRota = false; });
 
   it("una semana con marcas se lee como la lista que se ve", async () => {
     semanaGuardada = conMarcas();

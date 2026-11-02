@@ -1,22 +1,13 @@
 /**
- * La compra es derivada más marcas (plan fichas con estado, trozo 18).
+ * La compra es derivada más marcas (trozo 18 de #1037): la lista sale del menú
+ * al leerla (buildShoppingList) y de una semana solo se guardan las marcas de la
+ * familia: comprado, en casa, añadido a mano y quitado. Antes se guardaba la
+ * lista entera, cambiar un plato tenía que volver a copiar las marcas (cinco
+ * copias en la app, una en Lola) y lo apuntado a mano acababa en dos listas (#958 E).
  *
- * La lista sale del menú cada vez que se lee (buildShoppingList, con la
- * despensa); lo único que se guarda de una semana son las marcas de la familia
- * sobre esa lista: lo comprado, lo que hay en casa, lo apuntado a mano y lo
- * quitado. Antes se guardaba la lista entera con las marcas dentro, y cambiar
- * un plato rehacía la lista y tenía que volver a copiar las marcas (cinco
- * copias de esa regla en la app, una en Lola), lo apuntado a mano acababa en
- * dos listas (#958 E) y quitar algo se deshacía al regenerar.
- *
- * Forma guardada (`user_menu_weeks.shopping` y la copia viva de la casa):
- *   { marcas: [{ id, nombre, unidad, marcas: MARCAS_COMPRA[], ...lo de un añadido }] }
- * `id` es el del artículo derivado (normalizeIngredientKey de nombre y unidad,
- * el mismo que le pone buildShoppingList), o el `manual:…` de un añadido.
- *
- * Fuera, a propósito: Mercadona y los precios (no cambian), y la lista con
- * forma vieja (`{ items }`): se lee tal cual hasta que se vuelva a guardar.
- * Puro: sin base ni red.
+ * Forma guardada: `{ marcas: [{ id, nombre, unidad, marcas: MARCAS_COMPRA[], ...lo de un añadido }] }`,
+ * con `id` el del artículo derivado (el de buildShoppingList) o el `manual:…` de un añadido.
+ * La forma de antes (`{ items }`) se lee tal cual hasta que se vuelve a guardar. Puro.
  */
 import { MARCA_COMPRA } from "./vocabularios.js";
 import { articuloAMano } from "./compraIdentidad.js";
@@ -33,9 +24,6 @@ const CAMPOS_ANADIDO = ["category", "qty", "displayQty"];
  * Las marcas de una lista que se ve (`items`, con have / atHome / manual)
  * frente a la que sale del menú (`derivados`): lo que está en la derivada y no
  * en la vista, se quitó. Lo que no lleva ninguna marca no se guarda.
- * @param {object[]} items la lista tal como la tiene la app o Lola
- * @param {object[]} derivados la lista que sale del menú y la despensa
- * @returns {{ marcas: object[] }}
  */
 export function marcasDe(items, derivados) {
   const vistos = new Set((items ?? []).map((it) => it?.id));
@@ -63,9 +51,6 @@ export function marcasDe(items, derivados) {
  * al final (si el menú ya pide lo mismo, el añadido no se repite: la marca va
  * al derivado). Una marca de algo que el menú ya no pide se olvida, salvo los
  * añadidos, que no dependen del menú.
- * @param {object[]} derivados
- * @param {{ marcas?: object[] } | null | undefined} guardada
- * @returns {object[]}
  */
 export function listaConMarcas(derivados, guardada) {
   const porId = new Map((guardada?.marcas ?? []).map((m) => [m.id, m]));
@@ -91,9 +76,6 @@ export function listaConMarcas(derivados, guardada) {
  * encima; con la forma de antes (`{ items }`), esa lista tal cual. `derivar`
  * solo se llama si hace falta (cuesta recorrer el menú). Con marcas, lo quitado
  * viaja aparte (`quitados`), para volver a guardarlo aunque no se vea.
- * @param {object | null | undefined} guardada
- * @param {() => object[]} derivar
- * @returns {{ items: object[], quitados?: object[] }}
  */
 export function compraQueSeVe(guardada, derivar) {
   if (!esCompraConMarcas(guardada)) return { items: guardada?.items ?? [] };
@@ -105,9 +87,6 @@ export function compraQueSeVe(guardada, derivar) {
  * Lo que se guarda de la compra que se ve: sus marcas (marcasDe frente a
  * `derivados`, si se tienen) más lo quitado que viajaba aparte y no ha vuelto
  * a la lista. Si ya son marcas, tal cual.
- * @param {{ items?: object[], quitados?: object[], marcas?: object[] } | null | undefined} vista
- * @param {object[]} [derivados]
- * @returns {{ marcas: object[] }}
  */
 export function compraParaGuardar(vista, derivados = []) {
   if (esCompraConMarcas(vista)) return vista;

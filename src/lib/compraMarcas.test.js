@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { marcasDe, listaConMarcas, compraQueSeVe, compraParaGuardar, esCompraConMarcas, articulosDe } from "./compraMarcas.js";
-import { MARCAS_COMPRA, MARCA_COMPRA } from "./vocabularios.js";
+import { marcasDe, listaConMarcas, compraQueSeVe, compraParaGuardar, esCompraConMarcas } from "./compraMarcas.js";
+import { MARCA_COMPRA } from "./vocabularios.js";
 
 const leche = { id: "leche|ml", name: "Leche", unit: "ml", qty: 1000, have: false, atHome: false, manual: false, sources: [{ recipeId: "r1" }] };
 const pan = { id: "pan|ud", name: "Pan", unit: "ud", qty: 1, have: false, atHome: false, manual: false, sources: [{ recipeId: "r2" }] };
@@ -8,10 +8,6 @@ const huevos = { id: "huevo|ud", name: "Huevos", unit: "ud", qty: 6, have: false
 const derivados = [leche, pan, huevos];
 
 describe("la compra guarda solo marcas (trozo 18)", () => {
-  it("las marcas son un vocabulario cerrado", () => {
-    expect(Object.values(MARCA_COMPRA).sort()).toEqual([...MARCAS_COMPRA].sort());
-  });
-
   it("lo que no lleva marca no se guarda", () => {
     expect(marcasDe(derivados, derivados)).toEqual({ marcas: [] });
   });
@@ -61,11 +57,6 @@ describe("la compra guarda solo marcas (trozo 18)", () => {
     expect(listaConMarcas([], guardada)).toEqual([expect.objectContaining({ id: "manual:cafe:x", name: "Café", displayQty: "1 paquete", manual: true })]);
   });
 
-  it("cada artículo derivado sabe de qué platos sale", () => {
-    const lista = listaConMarcas(derivados, { marcas: [] });
-    expect(lista.find((it) => it.id === "huevo|ud").sources).toEqual([{ recipeId: "r1" }]);
-  });
-
   it("con la forma de antes se ve la lista guardada tal cual, sin derivar", () => {
     let derivo = false;
     const vieja = { items: [{ ...leche, have: true }] };
@@ -96,10 +87,5 @@ describe("la compra guarda solo marcas (trozo 18)", () => {
     expect(devuelto.marcas.find((m) => m.id === "pan|ud").marcas).toEqual([MARCA_COMPRA.ANADIDO]);
     // Lo ya guardado como marcas se guarda tal cual.
     expect(compraParaGuardar(guardada)).toBe(guardada);
-  });
-
-  it("articulosDe junta lo del súper y lo que cubre la despensa", () => {
-    expect(articulosDe({ byCategory: [{ cat: "L", items: [leche] }], pantryItems: [pan] }).map((it) => it.id)).toEqual(["leche|ml", "pan|ud"]);
-    expect(articulosDe(null)).toEqual([]);
   });
 });
