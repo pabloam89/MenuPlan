@@ -126,7 +126,7 @@ import {
 } from "./lib/menuArchive.js";
 import { todayDayIdx, getWeekDatesByMenuWeek } from "./lib/weekCalendar.js";
 import { diaDeFecha, indiceDeFecha } from "./lib/dias.js";
-import { pizarraActiva, huecosDelPlan, conHuecosAlDia, conSemanasAlDia, semanaEnBlanco, conHuecoAnadido, sinHueco, franjasDelDia } from "./lib/pizarra.js";
+import { pizarraActiva, fotoAntesDePizarra, volverAntesDePizarra, huecosDelPlan, conHuecosAlDia, conSemanasAlDia, semanaEnBlanco, conHuecoAnadido, sinHueco, franjasDelDia } from "./lib/pizarra.js";
 import { aplicarDiasDeSemana, diasPorDefecto, buildCalendarWeeks } from "./lib/semanaDias.js";
 import { reglaDeInvitado, invitadosPorHueco, sinInvitadosDelHueco } from "./lib/reglas.js";
 import {
@@ -135,6 +135,7 @@ import {
   loadMenuWeekRanges as loadMenuWeekRangesRemote,
   loadMenuDetail as loadMenuDetailRemote,
   activateMenu as activateMenuRemote,
+  descartarMenuNuevo,
   deleteMenu as deleteMenuRemote,
   deactivateMenu as deactivateMenuRemote,
   toggleMenuFavorite as toggleMenuFavoriteRemote,
@@ -3073,6 +3074,7 @@ export default function App() {
   // siguientes, y desmarcar dejaba semanas sin días.
   const empezarPizarra = useCallback(() => {
     setPizarraArrancando(false);
+    antesDePizarraRef.current = null;
     const menuId = data.activeMenuId;
     const actual = data.menus?.[menuId];
     if (actual?.origin !== "pizarra") return;
@@ -3109,6 +3111,9 @@ export default function App() {
   // Mientras es `true`, la pizarra recién creada enseña el tablero vacío con
   // la hoja de «¿Qué días?» delante y sin franja de mandos.
   const [pizarraArrancando, setPizarraArrancando] = useState(false);
+  // Cómo estaba todo antes de abrirla: mientras la hoja sigue delante, cerrarla
+  // devuelve el menú de antes. El nuevo ya ha sustituido al activo.
+  const antesDePizarraRef = useRef(null);
 
   // Claro u oscuro, SOLO para el tablero de la pizarra. No es el tema de la
   // app: el resto de pantallas se quedan en claro a propósito, porque el
@@ -3203,6 +3208,8 @@ export default function App() {
     });
     const firstWeekPlan = primeraSemana.plan;
 
+    antesDePizarraRef.current = fotoAntesDePizarra({ data, menuPlan, shopping, aiRecipes, pantalla: screen });
+
     const newMenu = {
       id: createMenuId(),
       createdAt: Date.now(),
@@ -3216,6 +3223,7 @@ export default function App() {
       origin: "pizarra",
       weeks,
     };
+    antesDePizarraRef.current.menuNuevoId = newMenu.id;
 
     setMenuPlan(firstWeekPlan);
     setShopping({ items: [] });
@@ -3275,7 +3283,26 @@ export default function App() {
     // esperándote mañana.
     setPizarraArrancando(true);
     fwd(() => setScreen("menu"));
-  }, [data, user, householdReadOnly, showToast, syncHouseholdId, pararSiFaltanMinimos]);
+  }, [data, menuPlan, shopping, aiRecipes, screen, user, householdReadOnly, showToast, syncHouseholdId, pararSiFaltanMinimos]);
+
+  // La X de la hoja de arranque: el menú en blanco desaparece y vuelve el de antes.
+  const salirDePizarra = useCallback(() => {
+    const antes = antesDePizarraRef.current;
+    antesDePizarraRef.current = null;
+    setPizarraArrancando(false);
+    if (antes) {
+      setMenuPlan(antes.menuPlan);
+      setShopping(antes.shopping);
+      setAiRecipes(antes.aiRecipes);
+      setData((d) => volverAntesDePizarra(antes, d).data);
+      if (user) {
+        descartarMenuNuevo(user.id, antes.menuNuevoId, antes.data.activeMenuId, syncHouseholdId).then((res) => {
+          if (!res.ok) showToast("No se pudo deshacer en la nube. Puede reaparecer al recargar.");
+        });
+      }
+    }
+    back(() => setScreen(antes?.pantalla ?? "dashboard"));
+  }, [user, showToast, syncHouseholdId]);
 
   // Switches which week of the ACTIVE menú is displayed (menús spanning
   // several weeks) — materializes that week's plan/shopping into the live
@@ -6523,6 +6550,7 @@ export default function App() {
               setData={setData}
               onAplicar={aplicarCambioPizarra}
               onEmpezar={empezarPizarra}
+              onSalir={salirDePizarra}
             />
           </Suspense>
         )}
