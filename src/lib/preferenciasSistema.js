@@ -10,7 +10,8 @@
  * veredicto del evaluador y el de validateMenu, el mismo sobre casas y menús aleatorios.
  */
 import { estadoDePreferencia } from "./cumplimiento.js";
-import { OPERADOR_PREFERENCIA as OP } from "./vocabularios.js";
+import { OPERADOR_PREFERENCIA as OP, CLASE_CHOQUE } from "./vocabularios.js";
+import { claseDe, rangoDeClase } from "./choques.js";
 
 /** Cómo vive cada regla: evaluada como preferencia o escrita a mano en validateMenu.js. */
 export const FORMAS_REGLA = Object.freeze(["preferencia", "escrita"]);
@@ -22,7 +23,9 @@ export const AMBITOS_REGLA = Object.freeze(["hueco", "semana"]);
  */
 export const MOTIVOS_ESCRITA = Object.freeze(["entre_platos", "sin_plato", "veredicto_distinto"]);
 
-const regla = (id, forma, resto) => Object.freeze({ id, casa: "*", origen: "derivado", fuerza: "obligatoria", forma, ...resto });
+// Su clase en el método de choques (choques.js): una regla del producto es `sistema`, salvo las dos relajables que
+// guardan algo de la casa (abajo).
+const regla = (id, forma, resto) => Object.freeze({ id, casa: "*", origen: "derivado", fuerza: "obligatoria", forma, clase: claseDe({ origen: "derivado" }), ...resto });
 // En un hueco, ningún plato que la rompa: «como mucho 0» de los que no la cumplen.
 const veto = (id, resto = {}) => regla(id, "preferencia", { ambito: "hueco", operador: OP.COMO_MUCHO, cantidad: 0, ...resto });
 const escrita = (id, motivo, resto = {}) => regla(id, "escrita", { motivo, ...resto });
@@ -43,11 +46,14 @@ export const PREFERENCIAS_SISTEMA = Object.freeze([
   veto("school_protein_conflict"),
   veto("school_carb_conflict"),
   veto("excluido_en_hueco"),
-  veto("health_profile_conflict", RELAJABLE),
+  // El perfil de salud (glucemia, sodio…) es un plan de nutrición que dice la casa: un deseo, no seguridad (eso son
+  // las alergias, que quitan el plato antes). Se relaja el último.
+  veto("health_profile_conflict", { ...RELAJABLE, clase: CLASE_CHOQUE.DESEO }),
   veto("segundo_sin_proteina_principal", RELAJABLE),
   // Cada familia, «como mucho N» en la semana: la misma forma que un tope de la libreta (preferenciasDelMotor); la
-  // cantidad la pone la casa (freqs.<familia>).
-  regla("freq_max_exceeded", "preferencia", { ambito: "semana", operador: OP.COMO_MUCHO, cantidad: null, ...RELAJABLE }),
+  // cantidad la pone la casa (freqs.<familia>). Se relajan solo los topes que no dijo nadie (el reparto de siempre, o
+  // lo visto): supuesto. Un tope dicho es obligatorio y no se relaja (solver.js, `obligatorios`).
+  regla("freq_max_exceeded", "preferencia", { ambito: "semana", operador: OP.COMO_MUCHO, cantidad: null, ...RELAJABLE, clase: CLASE_CHOQUE.SUPUESTO }),
   // «Al menos N con esa base», pero solo culpa a un hueco donde la base cabe: sin ninguno, calla aunque falten.
   escrita("base_pedida_insuficiente", "veredicto_distinto"),
   // Una receta, una vez (la sopa de entrada de cena, hasta VECES_MISMA_SOPA): compara cada plato con los de antes.
@@ -73,6 +79,17 @@ export const PREFERENCIA_DEL_SISTEMA = Object.freeze(Object.fromEntries(PREFEREN
 
 /** Las que el solver puede saltarse para no dejar un hueco vacío (REGLAS_RELAJABLES, solver.js): las no obligatorias. */
 export const RELAJABLES = Object.freeze(PREFERENCIAS_SISTEMA.filter((p) => p.fuerza !== "obligatoria").map((p) => p.id));
+
+/**
+ * En qué orden se relajan (método de choques, «al generar»: de menor a mayor prioridad): un escalón por clase, de la
+ * que menos manda a la que más. El solver prueba cada escalón con los anteriores ya relajados, y no sube al siguiente
+ * mientras el hueco se pueda llenar rompiendo menos.
+ */
+export const ESCALONES_RELAJAR = Object.freeze(
+  [...new Set(RELAJABLES.map((id) => PREFERENCIA_DEL_SISTEMA[id].clase))]
+    .sort((a, b) => rangoDeClase({ clase: a }) - rangoDeClase({ clase: b }))
+    .map((clase) => Object.freeze({ clase, reglas: Object.freeze(RELAJABLES.filter((id) => PREFERENCIA_DEL_SISTEMA[id].clase === clase)) })),
+);
 
 /**
  * Pura. ¿Rompe el menú la regla `id`? `veces`: los platos de su ámbito que casan con ella (los que no cumplen el veto

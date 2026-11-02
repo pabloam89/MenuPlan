@@ -3,6 +3,7 @@ import { resolverMenu, resolverConReintentos, candidatosDeHueco, REGLAS_RELAJABL
 import { buildGroupContext, generateMenuWithAI, choquesDelPlan } from "./aiPlanner.js";
 import { entradaDelMotor } from "./entradaMotor.js";
 import { casaCon } from "./cumplimiento.js";
+import { ESCALONES_RELAJAR } from "./preferenciasSistema.js";
 import { dataConLibreta } from "./libretaEnData.js";
 import { filterRecipes } from "../utils/filterRecipes.js";
 import { validateMenu, splitAchievableFreqs, FREQ_KEY_MATCHERS, CENA_KCAL_SOFT_CAP, VECES_MISMA_SOPA } from "../utils/validateMenu.js";
@@ -360,6 +361,14 @@ describe("segundo_sin_proteina_principal es relajable (#894): sin proteína anim
       const { violations } = validateMenu(asignaciones, pool, ctx.slots, [], {}, {});
       const sinProteina = violations.filter((v) => v.rule === "segundo_sin_proteina_principal").map((v) => v.slotId);
       expect(sinProteina.filter((id) => !relajados.includes(id))).toEqual([]);
+    }, 60000);
+
+    it(`${nombre}: cada hueco relajado dice qué clase cedió, y alguno se llena cediendo solo una regla del sistema (método de choques)`, () => {
+      const { relajados, relajadoPor } = resolverPara(data, { conReintentos: true, semilla: 1 });
+      expect(Object.keys(relajadoPor).sort()).toEqual([...relajados].sort());
+      for (const id of relajados) expect(ESCALONES_RELAJAR.map((e) => e.clase)).toContain(relajadoPor[id]);
+      // Antes de los escalones todo se relajaba a la vez; ahora, lo que cabe cediendo la regla del sistema no pasa de ahí.
+      expect(Object.values(relajadoPor)).toContain("sistema");
     }, 60000);
   }
 });

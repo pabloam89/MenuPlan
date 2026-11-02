@@ -3,6 +3,8 @@ import { isBabyMenuGroup, membersOfGroup, resolveMemberAge, tipoDeGrupo } from "
 import { DAYS, modeForGroupSlot, slotKey } from "./planner.js";
 import { ordenarPorSesgo, preferirPorSesgo } from "./sesgos.js";
 import { resolverConReintentos, solverActivo, REGLAS_RELAJABLES, familiasDe } from "./solver.js";
+import { ESCALONES_RELAJAR } from "./preferenciasSistema.js";
+import { CLASE_CHOQUE } from "./vocabularios.js";
 import { DEFAULT_FREQS } from "./defaultFreqs.js";
 import { HOLGURA_TOPES } from "./reparto.js";
 import { esNino } from "./stages.js";
@@ -50,6 +52,15 @@ import { computeRecipeNutrition } from "./ingredients.js";
 import { isoLocalDate } from "./weekCalendar.js";
 import { DIA_SLUG as DAY_SLUG, DIA_LARGO_MINUSCULAS, diaDeSlug, tipoDeComida, comidaDeTipo, huecoMotor } from "./dias.js";
 import { HUECO_EN_AVISO } from "./huecosDelPlan.js";
+
+/** Lo que el solver cede en cada escalón (ESCALONES_RELAJAR), en palabras para el aviso. */
+const CEDIDO = Object.freeze({
+  [CLASE_CHOQUE.SISTEMA]: "saltarse una regla de cocina (proteína en el segundo, guarnición con legumbre)",
+  [CLASE_CHOQUE.SUPUESTO]: "pasarse del reparto semanal",
+  [CLASE_CHOQUE.DESEO]: "salirse del perfil de salud",
+});
+for (const { clase } of ESCALONES_RELAJAR) if (!CEDIDO[clase]) throw new Error(`aiPlanner: el escalón ${clase} no tiene aviso`);
+const cuentaPorClase = (por) => Object.values(por ?? {}).reduce((n, c) => ({ ...n, [c]: (n[c] ?? 0) + 1 }), {});
 
 /**
  * Los nombres por ración de los 24 micronutrientes. Los cuatro macros
@@ -325,6 +336,8 @@ export function createPlannerStats() {
     solverMs: 0,
     solverCompleto: null,
     solverRelajados: 0,
+    // Los relajados por la clase de lo que se cedió (CLASES_CHOQUE): sistema, supuesto, deseo.
+    solverRelajadosPorClase: {},
     solverSemilla: null,
   };
 }
@@ -1000,6 +1013,8 @@ function asignarConSolver({
     stats.solverMs = res.ms;
     stats.solverCompleto = res.completo;
     stats.solverRelajados = res.relajados.length;
+    // Choques al generar, por la clase de lo que se cedió (método de choques, trozo 33).
+    stats.solverRelajadosPorClase = cuentaPorClase(res.relajadoPor);
     // La que GANÓ, para poder reproducir el menú; y cuántos intentos costó.
     stats.solverSemilla = res.semilla;
     stats.solverIntentos = res.intentos;
@@ -1012,10 +1027,11 @@ function asignarConSolver({
       `${group.label}: no se encontró una combinación que cumpla todas las reglas a la vez; ${res.sinCombinacion.length} plato(s) se quedan ${HUECO_EN_AVISO.sin_asignar} (${res.sinCombinacion.join(", ")}).`,
     );
   }
-  if (res.relajados.length > 0) {
-    warnings.push(
-      `${group.label}: en ${res.relajados.join(", ")} no cabía ningún plato sin pasarse del reparto semanal o del perfil de salud; se ha puesto el mejor disponible.`,
-    );
+  // Aplicar y avisar en una línea (método de choques): qué se cedió, de lo que menos manda a lo que más.
+  for (const { clase } of ESCALONES_RELAJAR) {
+    const huecos = res.relajados.filter((id) => (res.relajadoPor?.[id] ?? CLASE_CHOQUE.DESEO) === clase);
+    if (huecos.length === 0) continue;
+    warnings.push(`${group.label}: en ${huecos.join(", ")} no cabía ningún plato sin ${CEDIDO[clase]}; se ha puesto el mejor disponible.`);
   }
   // La regla 11 culpa del exceso al ÚLTIMO plato de esa familia en orden de
   // comidas, no al que se relajó. Así que la revalidación no puede ignorar el

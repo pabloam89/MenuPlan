@@ -56,7 +56,7 @@ import { aporteDe } from "./aporte.js";
 import { precioDePlato, precioAlto } from "./presupuesto.js";
 import { casaCon, pesoDe } from "./cumplimiento.js";
 import { OPERADOR_PREFERENCIA as OP } from "./vocabularios.js";
-import { RELAJABLES } from "./preferenciasSistema.js";
+import { RELAJABLES, ESCALONES_RELAJAR, PREFERENCIA_DEL_SISTEMA } from "./preferenciasSistema.js";
 
 // Los pesos de dos objetivos de la casa en el orden del solver (los explica
 // resolverMenu, paso 5). Exportados para que la entrada del motor
@@ -232,7 +232,8 @@ export function familiasDe(r) {
  * @param {number}   [opciones.maxMs]          tope de tiempo antes de rendirse
  * @returns {{ asignaciones: {slotId,recipeId}[], completo: boolean,
  *            sinCandidatos: string[], sinCombinacion: string[],
- *            relajados: string[], nodos: number, ms: number }}
+ *            relajados: string[], relajadoPor: Record<string, string>,
+ *            nodos: number, ms: number }}
  *
  * ── Cómo elige, que es donde vive la calidad ──────────────────────────────
  * El solver coge el primer candidato que no rompe nada, así que el ORDEN de
@@ -736,8 +737,13 @@ export function resolverMenu(slots, pool, {
   //   1. estricta: un plato que cabe con TODAS las reglas. La poda de la fase
   //      2 puede haberse rendido antes de probarlo (medido: 42 candidatos que
   //      cabían en huecos que se quedaron vacíos);
-  //   2. relajada: se ignoran SOLO los perfiles de salud y los topes
-  //      semanales (REGLAS_RELAJABLES). Son las dos reglas que el prompt del
+  //   2. relajada, por escalones (ESCALONES_RELAJAR, método de choques: de
+  //      la clase que menos manda a la que más): primero las reglas del
+  //      sistema (segundo sin proteína, guarnición con legumbre), luego los
+  //      topes que no dijo nadie y al final el perfil de salud. Un hueco se
+  //      llena en el primer escalón que lo deja llenar, rompiendo lo menos
+  //      importante. Al último escalón se ignoran SOLO los perfiles de salud y
+  //      los topes semanales (REGLAS_RELAJABLES). Son las dos reglas que el prompt del
   //      modelo describe como preferencia —"ORIENTACIÓN, nunca exclusión",
   //      "nunca dejes un hueco sin cubrir por cumplir un perfil"— y que el
   //      validador trata como duras. Medido sobre 26 unidades aleatorias:
@@ -747,6 +753,8 @@ export function resolverMenu(slots, pool, {
   // Lo relajado se devuelve con nombre, para avisar al usuario y para que la
   // revalidación de después no lo "repare" con el fallback.
   const relajados = [];
+  // Hueco relajado → la clase del escalón en que se llenó (o de la regla que culpa).
+  const relajadoPor = {};
   if (!completo) {
     const porId = new Map(pool.map((r) => [r.id, r]));
     const slotPorId = new Map(slots.map((s) => [s.slotId, s]));
@@ -771,15 +779,26 @@ export function resolverMenu(slots, pool, {
     };
     rellenar(parcialValida);
     const estrictos = new Set(asignadas.map((a) => a.slotId));
-    const relajadaValida = () => {
-      const { violations } = validateMenu(asignadas, pool, contexto, [], obligatorios, basesPedidas);
-      // Perfiles y topes ya no entran (los [] de arriba y solo los topes
-      // obligatorios, que no se relajan); el resto de REGLAS_RELAJABLES (el
-      // segundo con proteína, #894) se ignora aquí.
+    // Válida ignorando las reglas de `sueltas` (los escalones ya relajados); un
+    // tope obligatorio no se relaja nunca. Con los perfiles o los topes sueltos
+    // ni se miran (los [] y solo los topes obligatorios, como siempre).
+    const relajadaValida = (sueltas) => () => {
+      const perfiles = sueltas.has("health_profile_conflict") ? [] : healthProfiles;
+      const topes = sueltas.has("freq_max_exceeded") ? obligatorios : freqs;
+      const { violations } = validateMenu(asignadas, pool, contexto, perfiles, topes, basesPedidas);
       return !violations.some((v) => !IGNORAR_EN_PARCIAL.has(v.rule)
-        && (!REGLAS_RELAJABLES.has(v.rule) || (v.rule === "freq_max_exceeded" && v.targetKey in obligatorios)));
+        && (!sueltas.has(v.rule) || (v.rule === "freq_max_exceeded" && v.targetKey in obligatorios)));
     };
-    if (relajar) rellenar(relajadaValida);
+    if (relajar) {
+      const sueltas = new Set();
+      for (const { clase, reglas } of ESCALONES_RELAJAR) {
+        if (vacios().length === 0) break;
+        for (const r of reglas) sueltas.add(r);
+        const antes = new Set(asignadas.map((a) => a.slotId));
+        rellenar(relajadaValida(new Set(sueltas)));
+        for (const a of asignadas) if (!antes.has(a.slotId)) relajadoPor[a.slotId] = clase;
+      }
+    }
     for (const a of asignadas) if (!estrictos.has(a.slotId)) relajados.push(a.slotId);
     // Una regla relajable entre DOS platos (`guarnicion_legumbre`, #896) culpa
     // al segundo del par, que puede ser un hueco puesto en la pasada estricta
@@ -788,7 +807,10 @@ export function resolverMenu(slots, pool, {
     if (relajados.length > 0) {
       const { violations } = validateMenu(asignadas, pool, contexto, [], {}, basesPedidas);
       for (const v of violations) {
-        if (REGLAS_RELAJABLES.has(v.rule) && !relajados.includes(v.slotId)) relajados.push(v.slotId);
+        if (REGLAS_RELAJABLES.has(v.rule) && !relajados.includes(v.slotId)) {
+          relajados.push(v.slotId);
+          relajadoPor[v.slotId] = PREFERENCIA_DEL_SISTEMA[v.rule].clase;
+        }
       }
     }
 
@@ -807,6 +829,8 @@ export function resolverMenu(slots, pool, {
     sinCombinacion,
     // Huecos colocados saltándose una de REGLAS_RELAJABLES (tope, perfil, segundo sin proteína).
     relajados,
+    // De cada uno, la clase (CLASES_CHOQUE) de lo que se cedió: sistema, supuesto o deseo.
+    relajadoPor,
     // Cocina → platos que la casa pidió y no han cabido.
     cocinasSinSitio: Object.fromEntries(
       Object.entries(cuotaCocinas)
