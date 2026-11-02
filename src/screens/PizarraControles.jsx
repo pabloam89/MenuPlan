@@ -1568,12 +1568,15 @@ export function SelectorDeDias({ data, onAplicar }) {
  * que todavía no puedes tocar». Entran después, con el mismo gesto que cierra
  * la hoja.
  */
+// Lo que dura `mpArranqueOut` (index.css), atado por test.
+export const SALIDA_ARRANQUE_MS = 240;
+
 const PASOS_ARRANQUE = [
   { id: "dias", titulo: "¿Qué días quieres?" },
   { id: "cocina", titulo: "¿Qué tienes en la cocina?" },
 ];
 
-export function ArranqueDePizarra({ data, setData, onAplicar, onEmpezar }) {
+export function ArranqueDePizarra({ data, setData, onAplicar, onEmpezar, onSalir }) {
   // Dos pasos, deslizando: los días y luego los electrodomésticos, que
   // cambian las recetas y los minutos del Batch. Los dos pasos están siempre
   // montados y la hoja mide lo que el más alto —el calendario—: si cambiara
@@ -1601,7 +1604,15 @@ export function ArranqueDePizarra({ data, setData, onAplicar, onEmpezar }) {
     setTimeout(() => {
       setFase("montando");
       setTimeout(onEmpezar, 1150);
-    }, 240);
+    }, SALIDA_ARRANQUE_MS);
+  };
+
+  // Sale igual que entra a «Empezar»: la hoja sigue puesta durante la salida, y
+  // el segundo toque de un doble toque no cae en lo que hay debajo.
+  const salir = () => {
+    if (saliendo) return;
+    setFase("saliendo");
+    setTimeout(onSalir, SALIDA_ARRANQUE_MS);
   };
 
   if (fase === "montando") {
@@ -1656,12 +1667,34 @@ export function ArranqueDePizarra({ data, setData, onAplicar, onEmpezar }) {
         aria-label="¿Qué días pones?"
         className={saliendo ? "mp-arranque-out" : "mp-arranque-in"}
         style={{
+          position: "relative",
           width: "min(340px, 100%)", maxHeight: "calc(100dvh - 40px)", overflowY: "auto",
           background: "#f4f8f5", borderRadius: 24, padding: 18,
           boxShadow: "0 28px 70px -20px rgba(20,47,29,.5)",
           boxSizing: "border-box",
         }}
       >
+        <button
+          type="button"
+          onClick={salir}
+          aria-label="Cerrar"
+          className="mp-press"
+          style={{
+            position: "absolute", top: "var(--esp-8)", right: "var(--esp-8)", zIndex: 1,
+            width: 40, height: 40, padding: 0, background: "none", border: "none", cursor: "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}
+        >
+          <span
+            style={{
+              width: 32, height: 32, boxSizing: "border-box", borderRadius: "var(--radio-pildora)",
+              background: "var(--color-superficie)", border: "1px solid var(--color-linea)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}
+          >
+            <X size={16} color={VERDE} />
+          </span>
+        </button>
         {/* Sola y centrada. Debajo iba un «Luego rellenas los huecos a mano»
             que explicaba la pantalla siguiente a quien todavía no ha salido de
             esta. El título viaja con su paso (key) y entra deslizando igual. */}
