@@ -1,7 +1,7 @@
 // La Rutina con ámbito (trozo 13): de los sobres por hueco de ficha_casa a los mapas de data, y de un cambio de
 // esos mapas a los datos de la operación, con una sola regla de clave para todos los campos con ámbito.
 import { describe, it, expect } from "vitest";
-import { rutinaDeFichas, datosDeCambio, claveEnData, huecoDeClave, CAMPOS_CON_AMBITO } from "./rutina.js";
+import { rutinaDeFichas, datosDeCambio, claveEnData, huecoDeClave, CAMPOS_CON_AMBITO, familiaDeData } from "./rutina.js";
 import { DatoInvalido } from "./escribirDato.js";
 import { slotKey } from "./planner.js";
 import { REGISTRO_CAMPOS } from "./registroCampos.js";
@@ -89,5 +89,21 @@ describe("una regla de clave para todos los campos con ámbito", () => {
       const clave = claveEnData(campo, h);
       expect(claveEnData(campo, huecoDeClave(campo, clave)), campo).toBe(clave);
     }
+  });
+});
+
+describe("datosDeCambio con la familia que queda", () => {
+  const familia = { personas: [P], grupos: [] };
+  it("quitar los huecos de una persona o un grupo que ya no están no se escribe (su sobre se fue con ellos)", () => {
+    expect(datosDeCambio("schedule", { [`${P}|Lun|Comida`]: "fuera", "ida|Lun|Comida": "cole" }, {}, { origen: "dicho", familia }))
+      .toEqual([{ campo: "schedule", persona_id: P, dia: "Lun", comida: "Comida", valor: null, origen: "dicho" }]);
+    expect(datosDeCambio("mealStructureByGroup", { [G]: "1_plato" }, {}, { origen: "dicho", familia })).toEqual([]);
+  });
+  it("un hueco con valor de quien no está sí sale: la base lo rechaza, no se tira en silencio", () => {
+    expect(datosDeCambio("schedule", {}, { "ida|Lun|Comida": "cole" }, { origen: "dicho", familia })).toHaveLength(1);
+  });
+  it("familiaDeData: los ids de members y groups", () => {
+    expect(familiaDeData({ members: [{ id: 1 }], groups: [{ id: G }] })).toEqual({ personas: ["1"], grupos: [G] });
+    expect(familiaDeData({})).toEqual({ personas: [], grupos: [] });
   });
 });
