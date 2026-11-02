@@ -30,6 +30,7 @@ import { isoDeCasa, diaDeISO } from "../../src/lib/dias.js";
 import { ETAPA_BEBE, OTRO } from "../../src/lib/vocabularios.js";
 import { aparatosParaEnsenar, conSuNota } from "../../src/lib/aparatosDeCasa.js";
 import { supermercadoDe, CON_PRECIOS } from "../../src/lib/supermercados.js";
+import { conPresupuesto } from "../../src/lib/presupuestoCasa.js";
 import { EXTRAS, conExtras } from "../../src/lib/extras.js";
 import { quitarPersona } from "../../src/lib/quitarPersona.js";
 import { aplicarDiasDeSemana, diasDeSemana } from "../../src/lib/semanaDias.js";
@@ -489,10 +490,10 @@ export function aplicarCompra(data, { supermercadosMas, supermercadosMenos, supe
     hechos.push(`súper: ${conSuNota(nuevos.lista, nuevos.nota).join(", ") || "ninguno apuntado"}${conPrecios.length ? ` (en la app verás los precios de ${conPrecios.join(", ")} en la lista de la compra)` : ""}`);
   }
   if (sinPresupuesto) {
-    d = { ...d, hasBudget: false };
+    d = conPresupuesto(d, null);
     hechos.push("sin presupuesto");
   } else if (Number.isFinite(presupuesto) && presupuesto >= PRESUPUESTO[0] && presupuesto <= PRESUPUESTO[1]) {
-    d = { ...d, hasBudget: true, budget: Math.round(presupuesto) };
+    d = conPresupuesto(d, Math.round(presupuesto));
     hechos.push(`presupuesto: ${Math.round(presupuesto)} €/semana`);
   }
   if (!hechos.length) return { texto: "No había nada que cambiar." };
