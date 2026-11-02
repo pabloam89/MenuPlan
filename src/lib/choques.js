@@ -6,13 +6,14 @@
  *   ordenar     ordenar: gana el primero de los siete criterios (CRITERIOS_CHOQUE) que distingue a los dos lados;
  *               rangoDeClase es el criterio «clase», con el que relaja el solver (preferenciasSistema.js).
  *   responder   responder: aplicar en silencio, aplicar y avisar, preguntar o tarea de decisión (RESPUESTAS_CHOQUE).
- *               Lo usa la puerta al guardar (operaciones/puerta.js).
+ *               Lo usa la puerta al guardar (operaciones/puerta.js); textoDeChoque la dice en el chat (Lola).
  *
  * Un lado de un choque: { clase, fuerza?, papel?, habla_de_si?, autor?, sujeto?, cuando?, vigente?, at?, peso? }.
  * Pura y sin dependencias del motor: la carga Lola.
  */
 import {
   CLASES_CHOQUE, CLASE_CHOQUE as CL, CRITERIOS_CHOQUE, CRITERIO_CHOQUE as CR, RESPUESTA_CHOQUE as R, ORIGEN_DATO, FUERZAS_PREFERENCIA,
+  OPERADOR_PREFERENCIA as OP,
 } from "./vocabularios.js";
 import { puede } from "./papeles.js";
 
@@ -108,6 +109,32 @@ export function responder({ a, b }, orden, { de_la_casa = false } = {}) {
 export function resolverChoque(a, b, como = {}, que = {}) {
   const orden = ordenar(a, b);
   return Object.freeze({ ...que, clases: [a.clase, b.clase], gana: orden.gana, criterio: orden.criterio, respuesta: responder({ a, b }, orden, como) });
+}
+
+/** Cómo se dice el operador de una preferencia en una línea. */
+const COMO_SE_DICE = Object.freeze({ [OP.MAS]: "más", [OP.MENOS]: "menos", [OP.ES]: "", [OP.NO_ES]: "nada de", [OP.AL_MENOS]: "al menos", [OP.COMO_MUCHO]: "como mucho" });
+const CON_CANTIDAD = Object.freeze([OP.AL_MENOS, OP.COMO_MUCHO]);
+
+/** Pura. Una preferencia (una fila) en palabras: «más horno», «como mucho 2 pescado». */
+export const textoDePreferencia = (p) =>
+  [COMO_SE_DICE[p.operador] ?? p.operador, CON_CANTIDAD.includes(p.operador) ? p.cantidad ?? "" : "", typeof p.valor === "string" ? p.valor : JSON.stringify(p.valor ?? "")].filter((x) => x !== "").join(" ");
+
+/**
+ * Pura. Lo que Lola dice en el chat de un choque al guardar (la respuesta, en una línea), o null si va en silencio.
+ * `fila` es la preferencia nueva que chocó.
+ */
+export function textoDeChoque(choque, fila) {
+  const que = `«${textoDePreferencia(fila)}»`;
+  switch (choque.respuesta) {
+    // En silencio solo va lo que se apunta: si lo nuevo pierde (por alcance o tiempo), no se escribe y se dice.
+    case R.APLICAR_EN_SILENCIO:
+    case R.APLICAR_Y_AVISAR:
+      if (choque.gana !== "a") return `No he apuntado ${que}: choca con algo que ya estaba dicho y que manda`;
+      return choque.respuesta === R.APLICAR_EN_SILENCIO ? null : `He apuntado ${que}, que cambia lo que había apuntado antes`;
+    case R.PREGUNTAR: return `No he apuntado ${que}: choca con algo importante que ya estaba apuntado; pregunta si lo cambio`;
+    case R.TAREA_DE_DECISION: return `No he apuntado ${que}: otra persona de la casa dijo lo contrario; pregunta quién decide y no lo cambies sin su respuesta`;
+    default: throw new Error(`choque: respuesta ${choque.respuesta} sin texto`);
+  }
 }
 
 // Las clases de origen cubren todo ORIGEN_DATO (principio 3: comprobado al cargar).
