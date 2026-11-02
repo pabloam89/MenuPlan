@@ -12,7 +12,7 @@
 --   · sobre_valor_valido: lo de la 0097 y cada dimensión presente si y solo si está en el ámbito del campo.
 --   · registro_campo se regenera desde REGISTRO_CAMPOS (src/lib/registroCampos.js; lo compara
 --     registroCampos.test.js): las 21 de antes con ámbito vacío y 6 de la Rutina con politica 'nunca': schedule
---     (persona; dia, comida; donde_come; defecto «casa»), slotType (dia, comida; tipo_hueco; defecto «normal»),
+--     (persona; dia, comida; donde_come; defecto «casa»), slotType (dia, comida; tipo_hueco; sin defecto: sin decir nada, «normal»),
 --     menuWeekDays (semana; lista de dias), mealStructureByGroup y mealStructureCenaByGroup (grupo;
 --     estructura_platos) y menuScheduleSameForAllWeeks (bool, defecto true). Con ámbito, tipo y defecto son los
 --     de un hueco.
@@ -64,7 +64,7 @@ insert into public.registro_campo
   ('etapaBebe',                   'enum',       'etapa_bebe',        null, null, 'antes_de_usarlo', true,  'casa',    'bebe',  null,                       21,   'persona', 'hecho', null,                       false, false, null, 'familia', 'ultimo_gana',     '{}'::text[]),
   ('meals',                       'lista_enum', 'comidas',           null, null, 'nunca',           false, 'casa',    'todos', null,                       null, 'rutina',  'hecho', '["Comida","Cena"]'::jsonb, true,  false, 85,   'familia', 'ultimo_gana',     '{}'::text[]),
   ('schedule',                    'enum',       'donde_come',        null, null, 'nunca',           false, 'persona', 'todos', null,                       null, 'rutina',  'hecho', '"casa"'::jsonb,            true,  false, null, 'familia', 'ultimo_gana',     '{dia,comida}'::text[]),
-  ('slotType',                    'enum',       'tipo_hueco',        null, null, 'nunca',           false, 'casa',    'todos', null,                       null, 'rutina',  'hecho', '"normal"'::jsonb,          true,  false, null, 'familia', 'ultimo_gana',     '{dia,comida}'::text[]),
+  ('slotType',                    'enum',       'tipo_hueco',        null, null, 'nunca',           false, 'casa',    'todos', null,                       null, 'rutina',  'hecho', null,                       true,  false, null, 'familia', 'ultimo_gana',     '{dia,comida}'::text[]),
   ('mealStructure',               'enum',       'estructura_platos', null, null, 'nunca',           false, 'casa',    'todos', null,                       null, 'rutina',  'hecho', '"primero_segundo"'::jsonb, true,  false, 55,   'familia', 'ultimo_gana',     '{}'::text[]),
   ('mealStructureCena',           'enum',       'estructura_platos', null, null, 'nunca',           false, 'casa',    'todos', null,                       null, 'rutina',  'hecho', '"1_plato"'::jsonb,         true,  false, null, 'familia', 'ultimo_gana',     '{}'::text[]),
   ('mealStructureByGroup',        'enum',       'estructura_platos', null, null, 'nunca',           false, 'casa',    'todos', null,                       null, 'rutina',  'hecho', null,                       true,  false, null, 'familia', 'ultimo_gana',     '{grupo}'::text[]),

@@ -264,7 +264,7 @@ export const DATOS_CASA = Object.freeze({
   meals: dato({ tema: "horario", tipo: "lista_enum", vocabulario: "comidas", defecto: ["Comida", "Cena"], peso_menu: 85, ...deLaRutina("meals") }),
   extraMeals: dato({ tema: "horario", tipo: "objeto", motivo: "desayuno, merienda y postre fuera del menú" }),
   schedule: dato({ entidad: "persona", tema: "horario", tipo: "enum", vocabulario: "donde_come", defecto: "casa", ...enElRegistro("schedule", ["dia", "comida"]), motivo: "quién come dónde cada día y comida: un sobre por persona, día y comida" }),
-  slotType: dato({ tema: "horario", tipo: "enum", vocabulario: "tipo_hueco", defecto: "normal", ...enElRegistro("slotType", ["dia", "comida"]), motivo: "cómo es cada hueco: un sobre por día y comida" }),
+  slotType: dato({ tema: "horario", tipo: "enum", vocabulario: "tipo_hueco", ...enElRegistro("slotType", ["dia", "comida"]), motivo: "cómo es cada hueco: un sobre por día y comida" }),
   manualSlotType: dato({ tema: "horario", tipo: "mapa", ...marca("slotType"), motivo: "los huecos que el usuario tocó a mano; el motor la lee (prepararGeneracion.js) para no simplificarlos" }),
   mealStructure: dato({ tema: "horario", tipo: "enum", vocabulario: "estructura_platos", defecto: "primero_segundo", peso_menu: 55, ...deLaRutina("mealStructure") }),
   mealStructureCena: dato({ tema: "horario", tipo: "enum", vocabulario: "estructura_platos", defecto: "1_plato", ...deLaRutina("mealStructureCena") }),

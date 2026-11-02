@@ -78,7 +78,7 @@ export const ESTRUCTURA_PLATOS = Object.values(ESTRUCTURA);
 /** Dónde come cada uno en un hueco (horario). */
 export const DONDE_COME = ["casa", "tupper", "fuera", "cole", "off"];
 
-/** Cómo es un hueco del horario (slotType, «Lun|Comida»); «normal», el defecto, en data.slotType es la clave que falta. */
+/** Cómo es un hueco del horario (slotType, «Lun|Comida»); «normal» es lo que vale sin decir nada (en data.slotType, la clave que falta). */
 export const TIPOS_HUECO = ["normal", "unico", "rapida"];
 
 /**
