@@ -9,7 +9,8 @@
  *   ámbito   dias, comidas, semanas; salvedad → salvo_*; vigencia → desde, hasta.
  */
 import { CAMPOS, CAMPOS_POR_ID } from "./notepadFields.js";
-import { apunteDeFila, PreferenciaInvalida } from "./preferencias.js";
+import { apunteDeFila, PreferenciaInvalida, FORMA_DE_PROYECCION } from "./preferencias.js";
+import { PREFIJO_TECNICA } from "./excluirHueco.js";
 import { normalizarRegla, EFECTOS } from "./reglas.js";
 import { EJE_POR_ID } from "../data/axisRegistry.js";
 import { COMIDAS, DIAS } from "./vocabularios.js";
@@ -18,12 +19,17 @@ import { COMIDAS, DIAS } from "./vocabularios.js";
 export const EFECTOS_DE_PREFERENCIA = Object.freeze(["excluir", "sesgo"]);
 export const esReglaDePreferencia = (regla) => EFECTOS_DE_PREFERENCIA.includes(regla?.efecto?.tipo);
 
-/** El eje de una cosa que se quita: «tecnica:» lo dice; lo demás es un ingrediente o un grupo de ellos. */
-const PREFIJO_TECNICA = "tecnica:";
-const EJE_EXCLUIR = "subtipoIngrediente";
-const EJE_TECNICA = "tecnica";
-const EXCLUIR = Object.freeze({ nivel: "plato", medida: "valor", operador: "no_es", fuerza: "obligatoria" });
-const SESGO = Object.freeze({ nivel: "plato", medida: "valor", fuerza: "medio" });
+/**
+ * La forma de un veto y de un sesgo: la de los excluidos y los sesgos de la libreta (el mismo deseo, dicho por una
+ * regla o por la libreta, es la misma fila). El eje de lo que se quita: «tecnica:» lo dice (excluirHueco.js); lo
+ * demás, el de los excluidos de la libreta.
+ */
+const { nivel: NIVEL, medida: MEDIDA, operador: NO_ES, fuerza: FUERZA_VETO } = FORMA_DE_PROYECCION.excluidos;
+const FUERZA_SESGO = FORMA_DE_PROYECCION.sesgos.fuerza;
+const EJE_EXCLUIR = CAMPOS_POR_ID.excluidos.eje;
+const EJE_TECNICA = CAMPOS_POR_ID.tecnica.eje;
+const EXCLUIR = Object.freeze({ nivel: NIVEL, medida: MEDIDA, operador: NO_ES, fuerza: FUERZA_VETO });
+const SESGO = Object.freeze({ nivel: FORMA_DE_PROYECCION.sesgos.nivel, medida: FORMA_DE_PROYECCION.sesgos.medida, fuerza: FUERZA_SESGO });
 /** Las reglas se dicen: nunca se suponen (ajustes.js, gustosPorDias, solo apunta lo dicho). */
 const ORIGEN_FILA = "dicho";
 const ORIGEN_REGLA = "texto";
@@ -84,8 +90,8 @@ export function filaDeRegla(regla, ctx = {}) {
 
 /** El efecto de una fila, o null si no es de una regla. */
 function efectoDeFila(fila) {
-  if (fila.nivel !== "plato" || fila.medida !== "valor" || fila.plan_id) return null;
-  if (fila.operador === "no_es") {
+  if (fila.nivel !== NIVEL || fila.medida !== MEDIDA || fila.plan_id) return null;
+  if (fila.operador === NO_ES) {
     if (fila.eje === EJE_TECNICA) return { tipo: "excluir", valor: `${PREFIJO_TECNICA}${fila.valor}` };
     if (fila.eje === EJE_EXCLUIR) return { tipo: "excluir", valor: String(fila.valor) };
     return null;
