@@ -4,7 +4,7 @@
  * deshace también la fila de una receta guardada y desactiva el primer menú.
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { familiaDeFilas, RPC_FAMILIA, RPC_FICHA, fichaV1, RPC_PREFERENCIAS_DE_CASA, preferenciasDeFilas } from "./familiaDePrueba.js";
+import { familiaDeFilas, RPC_FAMILIA, RPC_FICHA, fichaDePrueba, RPC_PREFERENCIAS_DE_CASA, preferenciasDeFilas } from "./familiaDePrueba.js";
 
 const llamadas = { select: [], insert: [], update: [], borrar: [], rpc: [] };
 let fotos = [];
@@ -22,7 +22,7 @@ vi.mock("./db.js", () => ({
   update: vi.fn(async (tabla, filtro, cambios) => { llamadas.update.push([tabla, filtro, cambios]); return [{}]; }),
   borrar: vi.fn(async (tabla, filtro) => { llamadas.borrar.push([tabla, filtro]); return []; }),
   // Leer la familia (personas_de_casa, una casa sin nadie) no es una escritura: no se apunta.
-  rpc: vi.fn(async (f) => { if (f === RPC_FAMILIA) return familiaDeFilas(); if (f === RPC_FICHA) return fichaV1(); if (f === RPC_PREFERENCIAS_DE_CASA) return preferenciasDeFilas(); llamadas.rpc.push(f); return { ok: true, bot_rev: 8 }; }),
+  rpc: vi.fn(async (f) => { if (f === RPC_FAMILIA) return familiaDeFilas(); if (f === RPC_FICHA) return fichaDePrueba(); if (f === RPC_PREFERENCIAS_DE_CASA) return preferenciasDeFilas(); llamadas.rpc.push(f); return { ok: true, bot_rev: 8 }; }),
   eq: (x) => `eq.${encodeURIComponent(x)}`,
   config: () => ({ url: "https://x.invalid", headers: {} }),
 }));
@@ -71,7 +71,7 @@ describe("el vocabulario de las operaciones", () => {
 
 describe("cada foto lleva su autor", () => {
   it("guardarCasa apunta quién escribe y con qué herramienta", async () => {
-    const casa = { householdId: "h", botRev: 7, state: { data: {} }, menu: null, semana: null };
+    const casa = { householdId: "h", botRev: 7, state: { data: {} }, conSobre: {}, menu: null, semana: null };
     await conOperacion(ANA, async () => {
       const { operacion } = await import("./operacion.js");
       operacion().herramienta = "ajustar_gustos";

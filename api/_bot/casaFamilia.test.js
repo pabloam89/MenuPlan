@@ -8,7 +8,7 @@ import { conCasa, cargarCasa, olvidarCasa, separarFamilia } from "./casa.js";
 import { conOperacion, ponerAutor, tomarAvisos } from "./operacion.js";
 import { FamiliaSinLeer, TEXTO_AVISO_PERSONA, AVISOS_PERSONA, RPC_FAMILIA } from "../../src/lib/personas.js";
 import { SUFIJO_CLAVE_PERSONA, RPC_OPERACION, RPC_PREFERENCIAS } from "../../src/lib/operaciones/tuberia.js";
-import { RPC_FICHA, fichaV1, fichaDePrueba, RPC_PREFERENCIAS_DE_CASA, preferenciasDeFilas } from "./familiaDePrueba.js";
+import { RPC_FICHA, FICHA_SIN_TAREAS, fichaDePrueba, RPC_PREFERENCIAS_DE_CASA, preferenciasDeFilas } from "./familiaDePrueba.js";
 import { PREGUNTAS_POR_ID } from "../../src/lib/wizardRegistry.js";
 import { aplicarCompra, aplicarModoDespensa } from "./ajustes.js";
 import { leerPresupuesto } from "../../src/lib/presupuestoCasa.js";
@@ -54,7 +54,7 @@ beforeEach(() => {
   respuestas = [
     [/household_state/, { status: 200, cuerpo: [{ state: DOCUMENTO, bot_rev: 7, updated_at: "2026-11-01T10:00:00Z" }] }],
     [RUTA_FAMILIA, { status: 200, cuerpo: FAMILIA }],
-    [RUTA_FICHA, { status: 200, cuerpo: fichaV1() }],
+    [RUTA_FICHA, { status: 200, cuerpo: fichaDePrueba() }],
     [new RegExp(`rpc/${RPC_PREFERENCIAS_DE_CASA}`), { status: 200, cuerpo: preferenciasDeFilas() }],
     [RUTA_OPERACION, { status: 200, cuerpo: HECHA }],
     [/rpc\/bot_save_casa/, { status: 200, cuerpo: { ok: true, bot_rev: 8 } }],
@@ -372,20 +372,20 @@ describe("los datos de la casa con sobre (trozo 12)", () => {
     log.mockRestore();
   });
 
-  it("con la v1 o sin la RPC, del documento y se guarda en él", async () => {
-    for (const ficha of [{ status: 200, cuerpo: fichaV1() }, SIN_RPC(RPC_FICHA)]) {
+  it("con la v1 o sin la RPC, la casa no se lee (ni del documento) y nada se escribe; se dice en el log", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    for (const [ficha, motivo] of [[{ status: 200, cuerpo: { ...FICHA_SIN_TAREAS, v: 1 } }, /la v1/], [SIN_RPC(RPC_FICHA), /./]]) {
       olvidarCasa(CASA);
       llamadas = [];
       conDato(true);
       responde(RUTA_FICHA, ficha);
-      const casa = await cargarCasa(CASA);
-      expect(casa.conSobre).toBeNull();
-      expect(casa.state.data[CAMPO]).toBe(true);
+      await expect(cargarCasa(CASA)).rejects.toThrow(motivo);
       olvidarCasa(CASA);
-      await enTurno(() => cambiarDato(false));
-      expect(escrituras().map((l) => l.ruta)).toEqual(["/rest/v1/rpc/bot_save_casa"]);
-      expect(escrituras()[0].cuerpo.p_state.data[CAMPO]).toBe(false);
+      await expect(enTurno(() => cambiarDato(false))).rejects.toThrow();
+      expect(escrituras()).toEqual([]);
     }
+    expect(log.mock.calls.flat().join(" ")).toMatch(/casa_sin_leer/);
+    log.mockRestore();
   });
 
   it("sin poder leer la ficha por otra cosa, la casa no se lee y nada se escribe", async () => {
