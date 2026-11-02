@@ -151,7 +151,18 @@ describe("la respuesta en palabras (lo que Lola dice al guardar)", () => {
     expect(textoDePreferencia({ operador: "como_mucho", valor: "pescado", cantidad: 2 })).toBe("como mucho 2 pescado");
   });
 
-  it("lo que no se apunta siempre se dice: toda respuesta y ganador que la puerta aparta tiene su línea", () => {
+  it("la regla 11 del prompt de Lola (conocimiento.md) cita los textos de textoDeChoque, y solo esos", () => {
+    const conocimiento = readFileSync(new URL("../../api/_bot/conocimiento.md", import.meta.url), "utf8");
+    const regla = conocimiento.split("\n").find((l) => l.startsWith("11. **Cuando lo nuevo choca"));
+    const citas = [...regla.slice(0, regla.indexOf(")")).matchAll(/«([^»]*…[^»]*)»/g)].map((m) => m[1]);
+    expect(citas.length).toBeGreaterThan(0);
+    const patron = (cita) => new RegExp("^" + cita.split("…").map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join(".*"));
+    const textos = RESPUESTAS_CHOQUE.flatMap((respuesta) => ["a", "b", null].map((gana) => textoDeChoque({ respuesta, gana }, fila))).filter(Boolean);
+    for (const t of textos) expect(citas.some((c) => patron(c).test(t)), t).toBe(true);
+    for (const c of citas) expect(textos.some((t) => patron(c).test(t)), c).toBe(true);
+  });
+
+  it("lo que no se apunta siempre se dice:toda respuesta y ganador que la puerta aparta tiene su línea", () => {
     for (const respuesta of RESPUESTAS_CHOQUE) {
       for (const gana of ["a", "b", null]) {
         const { apartadas } = trasLosChoques([fila], [{ nueva: 0, guardada: "g1", gana, criterio: CR.ALCANCE, respuesta }]);
