@@ -30,8 +30,9 @@
  *
  * ── Cada campo, un dato de la ficha Preferencia ───────────────────────────
  * `eje` es el eje de src/data/axisRegistry.js que el campo expresa (plan
- * fichas con estado, trozo 24); null, con `sinEje` diciendo por qué, si no
- * hay ninguno. registroFicha.js los registra como DATOS_PREFERENCIA, y el
+ * fichas con estado, trozo 24). Los dos que no tenían (`esfuerzo` y
+ * `tandaPlatos`) lo tienen desde el trozo 14, porque una preferencia lleva
+ * siempre el suyo: son ejes de la casa. registroFicha.js los registra como DATOS_PREFERENCIA, y el
  * trozo 14 los pasa a filas de `preferencia` sin traducir a mano.
  */
 
@@ -177,7 +178,8 @@ export const CAMPOS = [
   },
   {
     id: "tandaPlatos",
-    eje: null, sinEje: "sus familias salen del nombre del plato (tandaFamiliasDefs.js), no de un eje del registro",
+    // Sus familias salen del nombre del plato (tandaFamiliasDefs.js): el eje es de la casa (axisRegistry.js).
+    eje: "familiaTanda",
     grupo: "base",
     etiqueta: "Los platos que dejas hechos o a medias",
     // Hermano de `tanda`, y aparte por el VOCABULARIO: aquel cuenta BASES
@@ -237,7 +239,8 @@ export const CAMPOS = [
   },
   {
     id: "esfuerzo",
-    eje: null, sinEje: "ningún campo del plato lo representa sin ambigüedad (sesgos.js)",
+    // Ningún campo del plato lo representa sin ambigüedad (sesgos.js): el eje es de la casa y silencioso.
+    eje: "esfuerzo",
     grupo: "esfuerzo",
     etiqueta: "Lo que cuesta cocinarlo",
     dominio: ["facil", "rapido", "elaborado"],

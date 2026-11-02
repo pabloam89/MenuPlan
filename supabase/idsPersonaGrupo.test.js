@@ -47,6 +47,8 @@ export const NO_LLEVAN = new Map([
   ["operacion.inversa", "tabla de la 0105, posterior al paso a UUID de la 0091: lleva persona_id ya nuevos, no hay ninguno viejo que reescribir"],
   ["persona.resto", "lo que no tiene columna de una persona: lo recalcula del JSON de la casa cada guardado (0089)"],
   ["registro_campo.defecto", "el valor por defecto de un campo del catálogo, igual para todas las casas: sin ids de persona ni de grupo"],
+  ["preferencia.valor", "tabla de la 0109, posterior al paso a UUID de la 0091: el valor de un eje (texto, número o sí/no), nunca un id de persona ni de grupo"],
+  ["senal.valor", "tabla de la 0109, posterior al paso a UUID de la 0091: el valor de un eje, nunca un id de persona ni de grupo"],
   ["sobre.valor", "tabla de la 0097, posterior al paso a UUID de la 0091: solo se escribe con ids nuevos, no hay ninguno viejo que reescribir"],
   ["user_recipes.ingredients", "receta propia: sus ingredientes"],
   ["user_recipes.methods", "receta propia: sus métodos"],
