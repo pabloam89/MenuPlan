@@ -13,6 +13,7 @@ const { RPC_LEER_PREFERENCIAS } = await import("./operaciones/tuberia.js");
 const { poner, olvidar } = await import("./notepad.js");
 const { FALLO_DATO } = await import("./vocabularios.js");
 const { nuevaRegla, reglaDeInvitado } = await import("./reglas.js");
+const { conInterruptor, leerPresupuesto, FORMA_PRESUPUESTO, PRESUPUESTO_DE_PARTIDA } = await import("./presupuestoCasa.js");
 
 const CASA = "00000000-0000-4000-8000-0000000000ca";
 // Una fila de preferencias_de_casa (lo que no lleva, null en la tabla).
@@ -120,6 +121,24 @@ describe("guardar la libreta", () => {
     expect(llegan[0].preferencias).toEqual([expect.objectContaining({ eje: "subtipoIngrediente", valor: "grupo:carne", operador: "no_es", dias: ["Lun"] })]);
     expect(await l.guardar({ ...leida, reglas: [invitado, veto] })).toEqual({ ok: true, enviado: false });
     expect(sinLibretaLeida({ ...leida, reglas: [invitado, veto] }, FILAS).reglas).toEqual([invitado]);
+  });
+
+  it("el presupuesto, de su fila: sin ella no hay (el par viejo del documento no cuenta); encenderlo la crea, apagarlo la borra", async () => {
+    const { llegan, enviar } = enviada();
+    const leida = conLibretaLeida({ groups: [], hasBudget: true, budget: 90 }, FILAS);
+    expect(leerPresupuesto(leida)).toEqual({ estado: "sin", euros: null });
+    const l = libretaDeCasa({ casa: CASA, carga: FILAS, conocida: leida, enviar, releer: async () => FILAS });
+    expect(await l.guardar({ ...leida, presupuesto: "mucho" })).toMatchObject({ ok: false, enviado: false, error: expect.stringMatching(/cifra en euros/) });
+    expect(await l.guardar(conInterruptor(leida, true))).toMatchObject({ ok: true, enviado: true });
+    expect(llegan[0].preferencias).toEqual([{ ...FORMA_PRESUPUESTO, valor: null, cantidad: PRESUPUESTO_DE_PARTIDA, origen: "dicho" }]);
+    expect(sinLibretaLeida(conInterruptor(leida, true), FILAS)).toEqual({ groups: [], hasBudget: true, budget: 90, reglas: [] });
+    const FILA = { ...PESCADO, ...FORMA_PRESUPUESTO, id: "00000000-0000-4000-8000-0000000000f3", valor: null, cantidad: 60 };
+    const conFila = { modo: MODO_LIBRETA.FILAS, filas: [PESCADO, FILA] };
+    const conPresupuesto = conLibretaLeida({ groups: [] }, conFila);
+    expect(leerPresupuesto(conPresupuesto)).toEqual({ estado: "activo", euros: 60 });
+    const otra = libretaDeCasa({ casa: CASA, carga: conFila, conocida: conPresupuesto, enviar, releer: async () => FILAS });
+    await otra.guardar(conInterruptor(conPresupuesto, false));
+    expect(llegan[1].preferencias).toEqual([{ id: FILA.id, borrar: true }]);
   });
 
   it("un apunte que no cabe en una fila (un ámbito sin su grupo) no se manda y se dice", async () => {

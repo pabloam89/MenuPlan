@@ -13,7 +13,7 @@ const { crearColaDeDatos } = await import("./escribirDato.js");
 const { REGISTRO_CAMPOS } = await import("./registroCampos.js");
 const { fichaDePrueba } = await import("../../api/_bot/familiaDePrueba.js");
 const { PREGUNTAS_POR_ID } = await import("./wizardRegistry.js");
-const { conInterruptor, leerPresupuesto, PRESUPUESTO_DE_PARTIDA } = await import("./presupuestoCasa.js");
+const { conInterruptor } = await import("./presupuestoCasa.js");
 
 const CASA = "00000000-0000-4000-8000-0000000000ca";
 const sobre = (campo, valor, origen = "dicho") => ({
@@ -43,8 +43,8 @@ describe("leer los datos de la casa", () => {
   });
 
   it("con la 0112 aplicada, de su sobre, pidiéndolos a api/operacion.js con la sesión", async () => {
-    const fetcher = servidor({ v: 2, datos: [sobre("wantsPriceEstimates", true), sobre("presupuesto", 80)] });
-    expect((await leer(fetcher)).valores).toMatchObject({ wantsPriceEstimates: true, presupuesto: 80 });
+    const fetcher = servidor({ v: 2, datos: [sobre("wantsPriceEstimates", true)] });
+    expect((await leer(fetcher)).valores).toMatchObject({ wantsPriceEstimates: true });
     expect(fetcher.mock.calls[0][0]).toBe(`/api/operacion?casa=${CASA}`);
     expect(fetcher.mock.calls[0][1].headers.Authorization).toBe("Bearer tok");
   });
@@ -213,29 +213,14 @@ describe("guardar los datos con sobre", () => {
     expect(sinCasa({ supermarkets: ["Mercadona"], reglas: [] }, { valores })).toEqual({ reglas: [] });
   });
 
-  it("el presupuesto (PR 8): sin decir se lee null aunque el documento traiga el par viejo; encenderlo y apagarlo van con sobre, no al documento", async () => {
-    const m = new Map();
-    const enviados = [];
-    const cola = crearColaDeDatos({
-      almacen: { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, v) },
-      enviar: async (item) => { enviados.push(item.dato); return { status: 200, cuerpo: { guardado: true, estado: "hecha", rev: 3 + enviados.length } }; },
-      nuevaClave: () => `00000000-0000-4000-8000-00000000c1d${enviados.length}`, ahora: () => 0,
-    });
-    const carga = await leer(servidor({ v: 2, datos: [porDefecto("presupuesto", null)] }));
-    expect(carga.valores).toMatchObject({ presupuesto: null });
-    const data = conCasaLeida({ hasBudget: true, budget: 90, reglas: [] }, carga);
-    expect(leerPresupuesto(data)).toEqual({ estado: "sin", euros: null });
-    const casa = casaDeCasa({ casa: CASA, valores: carga.valores, cola });
-    expect(await casa.guardar(data, 3)).toEqual({ ok: true, enviado: false });
-    const encendido = conInterruptor(data, true);
-    expect(await casa.guardar(encendido, 3)).toEqual({ ok: true, enviado: true, botRev: 4 });
-    expect(await casa.guardar(conInterruptor(encendido, false), 4)).toEqual({ ok: true, enviado: true, botRev: 5 });
-    expect(enviados).toEqual([
-      { campo: "presupuesto", persona_id: null, valor: PRESUPUESTO_DE_PARTIDA, origen: "dicho" },
-      { campo: "presupuesto", persona_id: null, valor: null, origen: "dicho" },
-    ]);
-    // El par viejo se queda donde estaba, sin lector: no se reescribe el documento por él.
-    expect(sinCasa(encendido, carga)).toEqual({ hasBudget: true, budget: 90, reglas: [] });
+  it("el presupuesto no va con sobre (trozo 14: vive en su fila de preferencia, libretaCasa.test.js): ni se lee de la ficha ni va a la cola", async () => {
+    expect(CAMPOS_CASA_CON_SOBRE).not.toContain("presupuesto");
+    const carga = await leer(servidor({ v: 2, datos: [] }));
+    expect(carga.valores).not.toHaveProperty("presupuesto");
+    const escribir = vi.fn();
+    const encendido = conInterruptor(conCasaLeida({ reglas: [] }, carga), true);
+    expect(await casaDeCasa({ casa: CASA, valores: carga.valores, cola: { escribir } }).guardar(encendido, 3)).toEqual({ ok: true, enviado: false });
+    expect(escribir).not.toHaveBeenCalled();
   });
 
   /** Una cola que contesta guardado con cada versión de `revs`, en orden. */
