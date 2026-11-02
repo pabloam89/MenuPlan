@@ -14,6 +14,8 @@ import { freqsEfectivos, presupuestoDeTopes, repartoConFreq, repartoVisible, rut
 import { weeklySlotBudget } from "./planner.js";
 import { libretaDeFilas, cambiosDeLibreta, PreferenciaInvalida } from "./preferencias.js";
 import { presupuestoDeFilas, cambiosDePresupuesto } from "./presupuestoCasa.js";
+import { estilosDeFilas, cambiosDeEstilos } from "./estiloEnFilas.js";
+import { pequesDeFilas, cambiosDePeques } from "./pequesEnFilas.js";
 import { reglasDeFilas, cambiosDeReglas, esReglaDePreferencia } from "./reglasEnFilas.js";
 
 /** El reparto que se ve (y que ajusta el panel), a partir de la libreta. */
@@ -156,7 +158,10 @@ export const CLAVES_DE_LA_LIBRETA = Object.freeze(["notepad", "freqs", "reparto"
 const reglasDelDocumento = (reglas) => (Array.isArray(reglas) ? reglas.filter((r) => !esReglaDePreferencia(r)) : reglas);
 
 /** Lo que pone en `data` y lo que se guarda en filas de preferencia: un escritor que no trae ninguna, no las cambia. */
-export const CLAVES_EN_PREFERENCIAS = Object.freeze(["notepad", "reglas", "presupuesto"]);
+export const CLAVES_EN_PREFERENCIAS = Object.freeze(["notepad", "reglas", "presupuesto", "mealStyleByGroup", "kidDinnerConfig"]);
+
+/** Las de CLAVES_EN_PREFERENCIAS que se calculan enteras de sus filas: el documento no las guarda. */
+const DE_SUS_FILAS = Object.freeze(["presupuesto", "mealStyleByGroup", "kidDinnerConfig"]);
 
 /**
  * Pura. `data` con la libreta de sus filas de preferencia (preferencias_de_casa, 0109) y su proyección, en vez de lo
@@ -166,13 +171,14 @@ export const CLAVES_EN_PREFERENCIAS = Object.freeze(["notepad", "reglas", "presu
 export function conLibretaDeFilas(data, filas, { hoy } = {}) {
   const ctx = { grupos: data?.groups };
   const reglas = [...(reglasDelDocumento(data?.reglas) ?? []), ...reglasDeFilas(filas, ctx)];
-  return { ...dataConLibreta(data, libretaDeFilas(filas, ctx), { hoy }), reglas, presupuesto: presupuestoDeFilas(filas) };
+  return { ...dataConLibreta(data, libretaDeFilas(filas, ctx), { hoy }), reglas, presupuesto: presupuestoDeFilas(filas),
+    mealStyleByGroup: estilosDeFilas(filas), kidDinnerConfig: pequesDeFilas(filas) };
 }
 
 /** Pura. Lo que va al documento: sin la libreta ni su proyección, ni las reglas de veto y sesgo (viven en sus filas). */
 export function sinLibreta(data) {
   if (!data) return data;
-  const resto = Object.fromEntries(Object.entries(data).filter(([k]) => !CLAVES_DE_LA_LIBRETA.includes(k) && k !== "presupuesto"));
+  const resto = Object.fromEntries(Object.entries(data).filter(([k]) => !CLAVES_DE_LA_LIBRETA.includes(k) && !DE_SUS_FILAS.includes(k)));
   return "reglas" in resto ? { ...resto, reglas: reglasDelDocumento(resto.reglas) } : resto;
 }
 
@@ -186,5 +192,7 @@ export function cambiosDePreferencias(antes, despues, filas) {
     ...(despues?.notepad === undefined ? [] : cambiosDeLibreta(antes?.notepad, despues.notepad, filas, ctx)),
     ...(despues?.reglas === undefined ? [] : cambiosDeReglas(antes?.reglas, despues.reglas, filas, ctx)),
     ...cambiosDePresupuesto(antes?.presupuesto, despues?.presupuesto, filas, PreferenciaInvalida),
+    ...cambiosDeEstilos(antes?.mealStyleByGroup, despues?.mealStyleByGroup, filas, ctx.grupos),
+    ...cambiosDePeques(antes?.kidDinnerConfig, despues?.kidDinnerConfig, filas, ctx.miembros),
   ];
 }

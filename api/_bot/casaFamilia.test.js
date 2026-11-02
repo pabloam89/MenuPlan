@@ -13,6 +13,7 @@ import { PREGUNTAS_POR_ID } from "../../src/lib/wizardRegistry.js";
 import { aplicarCompra, aplicarModoDespensa } from "./ajustes.js";
 import { leerPresupuesto, FORMA_PRESUPUESTO } from "../../src/lib/presupuestoCasa.js";
 import { nuevaRegla, reglaDeInvitado } from "../../src/lib/reglas.js";
+import { KID_DINNER_DEFAULTS } from "../../src/lib/kidsMenu.js";
 
 const CASA = "3f2b8c1e-7a4d-4e0b-9c5a-1d2e3f4a5b6c";
 const A = "00000000-0000-4000-8000-00000000000a";
@@ -580,6 +581,17 @@ describe("la libreta en filas de preferencia (trozo 14)", () => {
     responde(RUTA_PREFS, { status: 200, cuerpo: { v: 1, rev: 9, preferencias: [FILA_P], planes: [] } });
     await enTurno(() => conCasa(CASA, async (c) => ({ state: { ...c.state, data: aplicarCompra(c.state.data, { sinPresupuesto: true }).data } })));
     expect(prefs()[0].cuerpo.p_operacion.preferencias).toEqual([{ id: FILA_P.id, borrar: true }]);
+  });
+
+  it("cómo comen los peques sale de sus filas (no del documento); lo que cambia va a escribir_preferencias y no al documento", async () => {
+    responde(/household_state/, { status: 200, cuerpo: [{ state: { data: { ...DOCUMENTO.data, kidDinnerConfig: { byMember: { [B]: { dinner: "different" } } } } }, bot_rev: 7, updated_at: "2026-11-01T10:00:00Z" }] });
+    responde(RUTA_PREFS, { status: 200, cuerpo: { v: 1, rev: 7, preferencias: [], planes: [] } });
+    responde(RUTA_ESCRIBIR, { status: 200, cuerpo: { ...HECHA, rev: 9 } });
+    expect((await cargarCasa(CASA)).state.data.kidDinnerConfig).toEqual({ byMember: {} });
+    const finde = { byMember: { [B]: { ...KID_DINNER_DEFAULTS, weekend: "own" } } };
+    await enTurno(() => conCasa(CASA, async (c) => ({ state: { ...c.state, data: { ...c.state.data, kidDinnerConfig: finde } } })));
+    expect(prefs()[0].cuerpo.p_operacion.preferencias).toContainEqual(expect.objectContaining({ persona_id: B, eje: "comeConLaFamilia", dias: ["Sáb", "Dom"], valor: false }));
+    for (const l of escrituras().filter((x) => /bot_save_casa/.test(x.ruta))) expect(l.cuerpo.p_state.data).not.toHaveProperty("kidDinnerConfig");
   });
 
   it("un apunte que no cabe en una fila (un ámbito sin su grupo en la casa) no guarda nada y se dice", async () => {
