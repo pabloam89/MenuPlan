@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { CAMPOS } from "./notepadFields.js";
 import { poner, rechazar, olvidar, proyectar, estadoDe, matizDe, libretaVacia } from "./notepad.js";
+import { dataConLibreta, conTandaPedida, sinLibreta, CLAVES_DE_LA_LIBRETA } from "./libretaEnData.js";
 import { filaDeApunte, apunteDeFila, libretaDeFilas, cambiosDeLibreta, PreferenciaInvalida, FORMA_DE_PROYECCION } from "./preferencias.js";
 
 const GRUPOS = [{ id: "g-adultos", label: "Adultos" }, { id: "g-ninos", label: "Niños" }];
@@ -107,5 +108,14 @@ describe("la libreta como preferencias (0109, trozo 14)", () => {
     for (const otra of [{ persona_id: "p1" }, { dias: ["Lun"] }, { plan_id: "c1" }, { eje: "kcal" }]) {
       expect(apunteDeFila({ ...base, ...otra }), JSON.stringify(otra)).toBeNull();
     }
+  });
+
+  it("lo que la libreta pone en data es CLAVES_DE_LA_LIBRETA, y eso es lo que no va al documento", () => {
+    const data = { members: [], reglas: [] };
+    const puestas = new Set([...Object.keys(dataConLibreta(data, libretaDePrueba())), ...Object.keys(conTandaPedida(data, "tanda.arroz", 2))]);
+    for (const k of Object.keys(data)) puestas.delete(k);
+    for (const k of ["cookTime"]) puestas.delete(k); // conTandaPedida abre el finde para la tanda: es de la Rutina, no de la libreta
+    expect([...puestas].sort()).toEqual([...CLAVES_DE_LA_LIBRETA].sort());
+    expect(sinLibreta(dataConLibreta(data, libretaDePrueba()))).toEqual(data);
   });
 });
