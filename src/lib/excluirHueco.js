@@ -24,12 +24,14 @@ import { GRUPOS } from "./rasgosBusqueda.js";
 import { platoVetado } from "./vetos.js";
 import { TECNICAS } from "../data/recipeSchema.js";
 
+export const PREFIJO_TECNICA = "tecnica:"; // «tecnica:sarten»; lo lee también reglasEnFilas.js
+
 /** ¿Es un valor que se sabe aplicar? Para validar antes de guardar una regla. */
 export function itemValido(item) {
   const s = String(item ?? "").trim();
   if (!s) return false;
   if (s.startsWith("grupo:")) return Boolean(GRUPOS[s.slice(6)]);
-  if (s.startsWith("tecnica:")) return TECNICAS.includes(s.slice(8));
+  if (s.startsWith(PREFIJO_TECNICA)) return TECNICAS.includes(s.slice(PREFIJO_TECNICA.length));
   return !s.includes(":");
 }
 
@@ -40,8 +42,8 @@ export function chocaConHueco(receta, items = []) {
     const s = String(item);
     if (s.startsWith("grupo:")) {
       if (GRUPOS[s.slice(6)]?.es(receta)) return s;
-    } else if (s.startsWith("tecnica:")) {
-      if (receta.tecnica === s.slice(8)) return s;
+    } else if (s.startsWith(PREFIJO_TECNICA)) {
+      if (receta.tecnica === s.slice(PREFIJO_TECNICA.length)) return s;
     } else if (platoVetado(receta, [s])) {
       return s;
     }
@@ -53,6 +55,7 @@ export function chocaConHueco(receta, items = []) {
 export function textoDeItem(item) {
   const s = String(item);
   if (s.startsWith("grupo:")) return s.slice(6).replace("_", " ");
-  if (s.startsWith("tecnica:")) return { sarten: "fritos", horno: "horno", plancha: "plancha", olla: "guisos", crudo: "crudo" }[s.slice(8)] ?? s.slice(8);
+  const t = s.startsWith(PREFIJO_TECNICA) && s.slice(PREFIJO_TECNICA.length);
+  if (t) return { sarten: "fritos", horno: "horno", plancha: "plancha", olla: "guisos", crudo: "crudo" }[t] ?? t;
   return s;
 }

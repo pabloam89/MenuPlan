@@ -51,15 +51,15 @@ const COMIDA_DE_SERVICIO = Object.freeze(Object.fromEntries(SERVICIOS.filter((s)
   .map((s) => [s, COMIDAS.find((c) => c.nombre === s)?.id])));
 const SERVICIO_DE_COMIDA = Object.freeze(Object.fromEntries(Object.entries(COMIDA_DE_SERVICIO).map(([s, c]) => [c, s])));
 
-const dia = (iso) => (typeof iso === "string" ? iso.slice(0, 10) : undefined);
+export const dia = (iso) => (typeof iso === "string" ? iso.slice(0, 10) : undefined);
 
 /** El valor del eje como lo guarda la tabla: sí/no en un eje booleano, texto en los demás. */
-function valorDelEje(eje, valorId) {
+export function valorDelEje(eje, valorId) {
   if (EJE_POR_ID.get(eje)?.tipo !== "booleano") return valorId;
   if (valorId !== "si" && valorId !== "no") throw new PreferenciaInvalida(`el eje ${eje} es sí/no, no «${valorId}»`);
   return valorId === "si";
 }
-const valorIdDelEje = (valor) => (typeof valor === "boolean" ? (valor ? "si" : "no") : String(valor));
+export const valorIdDelEje = (valor) => (typeof valor === "boolean" ? (valor ? "si" : "no") : String(valor));
 
 /**
  * El grupo de la casa que es un ámbito de la libreta (niños, adultos, bebés), por su tipo. Sin ninguno, o con
@@ -73,11 +73,17 @@ function grupoDeAmbito(ambito, grupos) {
   return deTipo[0].id;
 }
 
+/** Un sesgo con signo como fila (mas/menos y su tamaño), y al revés; los usan la libreta y las reglas (reglasEnFilas.js). */
+export const sesgoEnFila = (n) => ({ operador: n < 0 ? "menos" : "mas", cantidad: Math.abs(n) });
+const OPERADORES_SESGO = ["mas", "menos"];
+export const esSesgo = (fila) => OPERADORES_SESGO.includes(fila.operador) && fila.cantidad != null;
+export const sesgoDeFila = (fila) => (fila.operador === "menos" ? -1 : 1) * Number(fila.cantidad);
+
 /** El valor de la libreta → { operador, valor, cantidad } de la fila, o null si no se guarda (una marca falsa). */
 function medidaDe(forma, eje, valorId, valor) {
   if (forma.marca) return valor ? { operador: forma.operador, valor: valorDelEje(eje, valorId), cantidad: null } : null;
   if (typeof valor !== "number" || !Number.isFinite(valor)) throw new PreferenciaInvalida(`«${valorId}»: el valor es un número, no ${JSON.stringify(valor)}`);
-  if (forma.sesgo) return { operador: valor < 0 ? "menos" : "mas", valor: valorDelEje(eje, valorId), cantidad: Math.abs(valor) };
+  if (forma.sesgo) return { ...sesgoEnFila(valor), valor: valorDelEje(eje, valorId) };
   return { operador: forma.operador, valor: valorDelEje(eje, valorId), cantidad: valor };
 }
 
@@ -114,7 +120,7 @@ function campoDeFila(fila) {
   return CAMPOS.find((c) => {
     const f = FORMA_DE_PROYECCION[c.proyecta];
     return c.eje === fila.eje && f.nivel === fila.nivel && f.medida === fila.medida
-      && (f.sesgo ? ["mas", "menos"].includes(fila.operador) : f.operador === fila.operador);
+      && (f.sesgo ? OPERADORES_SESGO.includes(fila.operador) : f.operador === fila.operador);
   }) ?? null;
 }
 
@@ -133,10 +139,12 @@ export function apunteDeFila(fila, { grupos } = {}) {
     if (!ambito) return null;
   }
   const forma = FORMA_DE_PROYECCION[campo.proyecta];
+  // «grupo:carne» no es un ingrediente: es lo que quita una regla (excluirHueco.js) y se lee como regla (reglasEnFilas.js).
+  if (forma.marca && String(fila.valor).includes(":")) return null;
   // Sin cantidad (la 0109 la deja nula en una medida «valor» sin peso) no es un apunte de la libreta, que siempre
   // lleva un número: es de quien escribió la fila (una regla) y se queda en ella, no se lee como 0.
   if (!forma.marca && (fila.cantidad == null || !Number.isFinite(Number(fila.cantidad)))) return null;
-  const valor = forma.marca ? true : forma.sesgo && fila.operador === "menos" ? -Number(fila.cantidad) : Number(fila.cantidad);
+  const valor = forma.marca ? true : forma.sesgo ? sesgoDeFila(fila) : Number(fila.cantidad);
   const ruta = [campo.id, valorIdDelEje(fila.valor), ...(ambito ? [`@${ambito}`] : []),
     ...(fila.comidas ? [`#${SERVICIO_DE_COMIDA[fila.comidas[0]]}`] : [])].join(".");
   const blando = fila.origen === "visto" || fila.origen === "supuesto";
