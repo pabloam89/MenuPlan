@@ -111,9 +111,15 @@ describe("puerta: choques al guardar", () => {
   });
 
   it("la misma persona cambia de idea: gana lo nuevo por tiempo y se avisa", () => {
-    expect(choques([fila({ operador: "menos" })], [guardada()])).toEqual([
-      { momento: "al_guardar", nueva: 0, guardada: "g1", clases: ["deseo", "deseo"], gana: "a", criterio: "tiempo", respuesta: "aplicar_y_avisar" },
-    ]);
+    const yo = { momento: "al_guardar", nueva: 0, guardada: "g1", clases: ["deseo", "deseo"], gana: "a", criterio: "tiempo", respuesta: "aplicar_y_avisar" };
+    expect(choques([fila({ operador: "menos" })], [guardada()])).toEqual([yo]);
+  });
+
+  it("lo que hay que preguntar no se escribe aunque gane: una obligatoria contra lo de la misma persona", () => {
+    const nueva = fila({ operador: "menos", fuerza: "obligatoria" });
+    const c = choques([nueva], [guardada()]);
+    expect(c).toMatchObject([{ gana: "a", criterio: "fuerza", respuesta: "preguntar" }]);
+    expect(trasLosChoques([nueva], c)).toEqual({ preferencias: [], apartadas: [0] });
   });
 
   it("otra persona dijo lo contrario: el orden no decide y es de la casa, así que tarea de decisión", () => {
