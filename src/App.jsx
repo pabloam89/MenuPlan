@@ -175,7 +175,7 @@ import { leerBotRevVisto, guardarBotRevVisto } from "./lib/botRevVisto.js";
 import { guardandoCasa, guardadosDeCasa } from "./lib/versionCasa.js";
 import { leerFamiliaDeCasa, conFamiliaLeida, sinFamilia, familiaDeCasa, cargaSinSeguir, guardarFamiliaYDocumento, MODO_FAMILIA } from "./lib/familiaCasa.js";
 import { leerDatosDeCasa, conCasaLeida, sinCasa, casaDeCasa, guardarCasaEnCola, colaDeLaApp } from "./lib/casaDatos.js";
-import { leerLibretaDeCasa, conLibretaLeida, sinLibretaLeida, libretaDeCasa, guardarLibretaEnCola, MODO_LIBRETA } from "./lib/libretaCasa.js";
+import { leerLibretaDeCasa, conLibretaLeida, sinLibretaLeida, libretaDeCasa, guardarLibretaEnCola } from "./lib/libretaCasa.js";
 import { resolveModeData, prepararSemana } from "./lib/prepararGeneracion.js";
 import BotEnlace from "./components/BotEnlace.jsx";
 import { loadHouseholdDiscards, saveHouseholdDiscard, deleteHouseholdDiscard, subirDescartesUnaVez } from "./lib/householdDiscardsSync.js";
@@ -1549,7 +1549,7 @@ export default function App() {
         householdId ? leerFamiliaDeCasa(householdId) : Promise.resolve(null),
         // Los datos de la casa con sobre (trozos 12 y 13), todos de ficha_casa v2; si no, error de carga (lib/casaDatos.js).
         householdId ? leerDatosDeCasa(householdId) : Promise.resolve(null),
-        // La libreta, de sus filas de preferencia (trozo 14); sin la 0109, del documento (lib/libretaCasa.js).
+        // La libreta, de sus filas de preferencia (trozo 14; lib/libretaCasa.js); sin poder leerlas, la casa no se carga.
         householdId ? leerLibretaDeCasa(householdId) : Promise.resolve(null),
         loadUserRecipes(householdReadOnly ? menuUserId : user.id),
         loadRecipeVotes(user.id),
@@ -1611,7 +1611,7 @@ export default function App() {
         ? {
           casa: householdId,
           carga: cargaLibreta,
-          guardada: cargaLibreta.modo === MODO_LIBRETA.FILAS ? libretaDeCasa({ casa: householdId, carga: cargaLibreta, conocida: remoteData }) : null,
+          guardada: libretaDeCasa({ casa: householdId, carga: cargaLibreta, conocida: remoteData }),
         }
         : null;
       casaDatosRef.current = householdId && cargaCasa
