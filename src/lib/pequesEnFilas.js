@@ -8,7 +8,7 @@
 // Un niño sin filas no tiene la suya (resolveKidDinnerConfig le da la de por defecto). Lo leen la app y Lola al
 // cargar y lo que cambia va con la libreta a escribir_preferencias (libretaEnData.js).
 
-import { PreferenciaInvalida, valorDelEje, valorIdDelEje } from "./preferencias.js";
+import { PreferenciaInvalida, valorDelEje, valorIdDelEje, COLUMNAS_DE_AMBITO } from "./preferencias.js";
 import { CLAVES_DE_FIRMA } from "./reglasEnFilas.js";
 import { KID_DINNER_OPTIONS, KID_DINNER_DEFAULTS, KID_DINNER_AVOID_DEFAULTS, normalizeKidDinnerConfig } from "./kidsMenu.js";
 import { DIAS_LABORABLES, DIAS_FINDE } from "./dias.js";
@@ -22,11 +22,16 @@ export const AMBITOS = Object.freeze({
 const EJES = Object.freeze({ familia: "comeConLaFamilia", reaprovecha: "cenaDelMediodia", repite: "repiteDelComedor", pocas: "comePocasCosas", come: "subtipoIngrediente" });
 const AVOID = Object.freeze(Object.keys(KID_DINNER_AVOID_DEFAULTS));
 const CENA = ["Cena"];
+/** El ámbito de las filas de cada eje que no es comeConLaFamilia (que lleva el de AMBITOS): al escribir y al leer. */
+const AMBITO_DE = Object.freeze({ [EJES.reaprovecha]: { comidas: CENA }, [EJES.repite]: { comidas: CENA }, [EJES.pocas]: {}, [EJES.come]: {} });
+const SI_NO = Object.freeze([EJES.familia, EJES.reaprovecha, EJES.pocas]);
 const BASE = Object.freeze({ medida: "valor", fuerza: "obligatoria", cantidad: null, origen: "dicho" });
 
 const esDeNino = (f) => Boolean(f?.persona_id) && Object.values(EJES).includes(f.eje)
-  && (f.eje !== EJES.come || f.operador === "es") && !f.plan_id && !f.semanas && !f.desde && !f.hasta;
+  && (f.eje !== EJES.come || f.operador === "es") && !f.plan_id;
 const igual = (x, y) => JSON.stringify(x ?? null) === JSON.stringify(y ?? null);
+/** ¿Lleva la fila exactamente ese ámbito (y ninguna otra columna de ámbito)? */
+const conAmbito = (f, a) => COLUMNAS_DE_AMBITO.every((k) => igual(f[k], a[k]));
 
 /** Pura. Las filas de la config de un niño (sin id). */
 export function filasDeNino(persona, cfg) {
@@ -34,10 +39,10 @@ export function filasDeNino(persona, cfg) {
     dias: ambito.dias ?? null, comidas: ambito.comidas ?? null });
   return [
     ...Object.entries(AMBITOS).map(([k, a]) => fila("comida", EJES.familia, "es", cfg[k] === a.familia, a)),
-    fila("comida", EJES.reaprovecha, "es", cfg.reuseColeDinner === true, { comidas: CENA }),
-    ...AVOID.map((k) => fila("comida", EJES.repite, cfg.avoid?.[k] ? "no_es" : "es", k, { comidas: CENA })),
-    fila("semana", EJES.pocas, "es", cfg.limited === true),
-    ...(cfg.safeFoods ?? []).map((s) => fila("plato", EJES.come, "es", s)),
+    fila("comida", EJES.reaprovecha, "es", cfg.reuseColeDinner === true, AMBITO_DE[EJES.reaprovecha]),
+    ...AVOID.map((k) => fila("comida", EJES.repite, cfg.avoid?.[k] ? "no_es" : "es", k, AMBITO_DE[EJES.repite])),
+    fila("semana", EJES.pocas, "es", cfg.limited === true, AMBITO_DE[EJES.pocas]),
+    ...(cfg.safeFoods ?? []).map((s) => fila("plato", EJES.come, "es", s, AMBITO_DE[EJES.come])),
   ];
 }
 
@@ -46,9 +51,11 @@ export function pequesDeFilas(filas) {
   const byMember = {};
   for (const f of (filas ?? []).filter(esDeNino)) {
     const cfg = (byMember[f.persona_id] ??= structuredClone({ ...KID_DINNER_DEFAULTS, safeFoods: [] }));
+    if (SI_NO.includes(f.eje) && typeof f.valor !== "boolean") throw new PreferenciaInvalida(`${f.eje} es sí/no, no «${f.valor}» (${f.id})`);
+    if (f.eje !== EJES.familia && !conAmbito(f, AMBITO_DE[f.eje])) throw new PreferenciaInvalida(`${f.eje} con un ámbito que no es de kidDinnerConfig (${f.id})`);
     const si = f.valor === true;
     if (f.eje === EJES.familia) {
-      const [k, a] = Object.entries(AMBITOS).find(([, x]) => igual(x.dias, f.dias) && igual(x.comidas, f.comidas)) ?? [];
+      const [k, a] = Object.entries(AMBITOS).find(([, x]) => conAmbito(f, x)) ?? [];
       if (!k) throw new PreferenciaInvalida(`comeConLaFamilia con un ámbito que no es de kidDinnerConfig (${f.id})`);
       cfg[k] = si ? a.familia : KID_DINNER_OPTIONS[k].find((o) => o !== a.familia);
     } else if (f.eje === EJES.reaprovecha) cfg.reuseColeDinner = si;

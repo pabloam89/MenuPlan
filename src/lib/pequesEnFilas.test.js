@@ -41,7 +41,11 @@ describe("los peques en filas", () => {
   it("una fila que no se sabe leer falla en alto", () => {
     const [mediodia] = enTabla(filasDeNino(ANA, ANA_CFG));
     expect(() => pequesDeFilas([{ ...mediodia, dias: ["Lun"] }])).toThrow(PreferenciaInvalida);
-    expect(() => pequesDeFilas(enTabla([{ persona_id: ANA, eje: "repiteDelComedor", operador: "no_es", valor: "postre" }]))).toThrow(/no es protein/);
+    expect(() => pequesDeFilas([{ ...mediodia, salvo_dias: ["Lun"] }])).toThrow(PreferenciaInvalida);
+    const [pocas] = enTabla(filasDeNino(ANA, ANA_CFG).filter((f) => f.eje === "comePocasCosas"));
+    expect(() => pequesDeFilas([{ ...pocas, dias: ["Lun"] }])).toThrow(/comePocasCosas con un ámbito/);
+    expect(() => pequesDeFilas([{ ...pocas, valor: "si" }])).toThrow(/comePocasCosas es sí\/no/);
+    expect(() => pequesDeFilas(enTabla([{ persona_id: ANA, eje: "repiteDelComedor", operador: "no_es", valor: "postre", comidas: ["Cena"] }]))).toThrow(/no es protein/);
   });
 
   it("cambiar una cosa de un niño: borra la fila de antes y crea la nueva; los demás niños no se tocan", () => {
