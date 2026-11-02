@@ -13,9 +13,8 @@
  * Escribir: datosDeCambio da, de un mapa antes y después, los datos de la operación de cada hueco que cambia;
  * quitar un hueco es escribirlo vacío (valor null), que al leer tampoco sale.
  *
- * Plan B: si ficha_casa no trae el campo, o lo trae sin «ambito» (la 0116 sin aplicar), el campo no sale y sigue
- * en el documento. Lo que no cuadra (un ámbito que no es el del campo, una clave rota) lanza: un horario mal leído
- * no es un horario vacío. Pura: sin Supabase ni import.meta, la usan la app y el servidor.
+ * Con la 0116 aplicada (2 nov 2026), cada elemento dice su ámbito: uno sin «ambito» lanza, como lo que no cuadra (un
+ * ámbito que no es el del campo, una clave rota): un horario mal leído no es un horario vacío. Pura: sin Supabase ni import.meta, la usan la app y el servidor.
  */
 import { REGISTRO_CAMPOS } from "./registroCampos.js";
 import { CLAVE_DE_DIMENSION, DatoInvalido, datoValido } from "./escribirDato.js";
@@ -63,8 +62,7 @@ export function rutinaDeFichas(elementos) {
   for (const e of elementos) {
     const dims = CAMPOS_CON_AMBITO[e?.campo];
     if (!dims) continue;
-    // ficha_casa de antes de la 0116: sus elementos no dicen de qué hueco son; el campo sigue en el documento.
-    if (!Object.hasOwn(e, "ambito")) continue;
+    if (!Object.hasOwn(e, "ambito")) throw new Error(`rutina: «${e.campo}» llega sin ámbito (ficha_casa de antes de la 0116)`);
     mapas[e.campo] ??= {};
     if (e.ambito === null) continue;
     const claves = Object.keys(e.ambito).sort();

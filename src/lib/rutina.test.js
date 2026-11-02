@@ -34,10 +34,10 @@ describe("rutinaDeFichas: los sobres por hueco, en la forma de data", () => {
     expect(r).toEqual({ schedule: {} });
   });
 
-  it("plan B: sin el campo en la ficha, o con elementos sin «ambito» (la 0116 sin aplicar), no sale y sigue en el documento", () => {
+  it("un elemento sin «ambito» (una ficha de antes de la 0116, ya aplicada) lanza: no se sigue con el documento", () => {
     expect(rutinaDeFichas([])).toEqual({});
     const antesDeLa0116 = { campo: "schedule", sujeto: { tipo: "persona", id: P }, estado: "dicho", valor: "fuera", origen: "dicho" };
-    expect(rutinaDeFichas([antesDeLa0116, hueco("slotType", { dia: "Lun", comida: "Comida" }, "unico")])).toEqual({ slotType: { "Lun|Comida": "unico" } });
+    expect(() => rutinaDeFichas([antesDeLa0116, hueco("slotType", { dia: "Lun", comida: "Comida" }, "unico")])).toThrow(/«schedule» llega sin ámbito/);
   });
 
   it("un ámbito que no es el del campo lanza: un horario mal leído no es un horario vacío", () => {

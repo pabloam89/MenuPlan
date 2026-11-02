@@ -7,6 +7,7 @@ import { estadosDeFichas, leidoDe, estadoParaLibreta, marcasDeLola, leidosConSob
 import { CAMPOS_CON_AMBITO } from "./rutina.js";
 import { ESTADOS_DATO, ESTADO_DE_ORIGEN, ORIGEN_DATO } from "./vocabularios.js";
 import { ESTADOS as ESTADOS_LIBRETA } from "./notepad.js";
+import { fichaDePrueba } from "../../api/_bot/familiaDePrueba.js";
 
 const AHORA = new Date("2026-10-30T10:00:00Z");
 
@@ -175,19 +176,26 @@ describe("los datos con ámbito con sobre", () => {
     expect(CAMPOS_CASA_CON_SOBRE).toContain("menuScheduleSameForAllWeeks");
   });
 
-  it("leidosConSobre: el mapa de cada uno, con lo dicho en cada hueco; sin decir, vacío; sin la 0116, no sale", () => {
+  it("leidosConSobre: el mapa de cada uno, con lo dicho en cada hueco; sin decir, vacío", () => {
     const hueco = (campo, sujeto, ambito, valor) => conSobre(campo, sujeto, "dicho", valor, { ambito });
-    const leidos = leidosConSobre([
+    const leidos = leidosConSobre(Object.values(fichaDePrueba(
       vacio("schedule", persona("p1"), { ambito: null }), hueco("schedule", persona("p1"), { dia: "Lun", comida: "Comida" }, "fuera"),
       vacio("menuWeekDays", CASA, { ambito: null }),
       conSobre("menuScheduleSameForAllWeeks", CASA, "dicho", false),
-    ]);
-    expect(leidos).toEqual({
+    ).fichas).flat());
+    expect(leidos).toMatchObject({
       menuScheduleSameForAllWeeks: { valor: false, conSobre: true },
       schedule: { valor: { "p1|Lun|Comida": "fuera" }, conSobre: true },
       menuWeekDays: { valor: {}, conSobre: false },
     });
-    expect(leidosConSobre([vacio("schedule", persona("p1"))])).toEqual({});
+    expect(Object.keys(leidos).sort()).toEqual([...CAMPOS_CASA_CON_SOBRE, ...CAMPOS_CON_AMBITO_CON_SOBRE].sort());
+  });
+
+  it("leidosConSobre: si a la ficha le falta un dato con sobre, o un hueco llega sin ámbito, lanza (la 0112 a la 0116, aplicadas)", () => {
+    expect(() => leidosConSobre([])).toThrow(/ficha_casa no trae menuModel/);
+    const sinUno = Object.values(fichaDePrueba().fichas).flat().filter((d) => d.campo !== "menuWeekDays");
+    expect(() => leidosConSobre(sinUno)).toThrow(/ficha_casa no trae menuWeekDays:/);
+    expect(() => leidosConSobre([vacio("schedule", persona("p1"))])).toThrow(/llega sin ámbito/);
   });
 
   it("marcasDeLola no dice los huecos: Lola los lee en el mapa del documento", () => {
