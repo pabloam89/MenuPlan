@@ -39,6 +39,7 @@ afterEach(() => {
 
 describe("SignInOptions", () => {
   it("en la web solo ofrece Google", async () => {
+    vi.stubEnv("VITE_APPLE_WEB", "");
     const texto = await montar(false);
     expect(texto).toContain("Google");
     expect(texto).not.toContain("Apple");
