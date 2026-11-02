@@ -38,7 +38,7 @@ export const FORMA_DE_PROYECCION = Object.freeze({
   excluidos: { nivel: "plato", medida: "valor", operador: "no_es", marca: true, fuerza: "obligatoria" },
 });
 /** Lo visto y lo supuesto solo sesgan (notepad.js, matizDe): nunca mandan. */
-const FUERZA_BLANDA = "bajo";
+export const FUERZA_BLANDA = "bajo";
 
 /**
  * El ámbito de la libreta (AMBITOS) y el tipo de grupo de la casa (TIPOS_GRUPO) que lo es: el mismo nombre, salvo

@@ -27,6 +27,7 @@ import { recetasRecientes } from "./recientes.js";
 import { presupuestoDeTopes, repartoAFreqs, freqsAReparto } from "./reparto.js";
 import { getSchoolDish, hasAnySchoolDish } from "./schoolMenu.js";
 import { carbTypeFromText } from "../utils/validateMenu.js";
+import { preferenciasDelMotor } from "./cumplimiento.js";
 
 // School-menu avoidance categories for the kids' cena. Historically the kids'
 // dinner ALWAYS avoided the school's protein + carb base (that's the "cena
@@ -483,7 +484,7 @@ export function minutosDelHueco(tiempo, day, meal) {
 }
 
 /** La forma de la entrada: sube cuando cambia lo que el motor lee de ella. */
-export const VERSION_ENTRADA = 1;
+export const VERSION_ENTRADA = 2;
 
 const COMPILADAS = new WeakSet();
 
@@ -501,9 +502,10 @@ export const esEntrada = (x) => COMPILADAS.has(x);
  *   restricciones lo que no se discute: platos fijos, tipo de hueco, recetas
  *                 propias, bases de la tanda
  *   objetivos     lo que se prefiere, con el peso con que lo cuenta el motor y
- *                 el dato de la casa del que sale (`origen`); peso y origen
- *                 los leerá el solver del trozo 31 de #1037, que pesa cada
- *                 preferencia por separado
+ *                 el dato de la casa del que sale (`origen`)
+ *   preferencias  cada preferencia de la casa por separado, con su fuerza y su
+ *                 origen (dicho, visto, supuesto): las mide el informe de
+ *                 cumplimiento y las pesa el solver (cumplimiento.js)
  *   tiempo        minutos de cocina por día y comida: el tope de cada hueco
  *                 del contexto
  *
@@ -559,6 +561,7 @@ export function entradaDelMotor(data, { hoy = null } = {}) {
       },
       presupuesto: { valor: presupuestoSemanal(ficha), peso: PESO_PRESUPUESTO, origen: "presupuesto" },
     },
+    preferencias: preferenciasDelMotor(ficha, { hoy: ficha?.vigenteEn ?? null }),
   });
   COMPILADAS.add(entrada);
   return entrada;
