@@ -120,7 +120,6 @@ describe("puerta: choques al guardar", () => {
     const c = choques([nueva], [guardada()]);
     expect(c).toMatchObject([{ gana: "a", criterio: "fuerza", respuesta: "preguntar" }]);
     expect(trasLosChoques([nueva], c)).toEqual({ preferencias: [], apartadas: [0] });
-    // Contra lo de otra persona, la misma obligatoria también gana, pero es tarea de decisión: tampoco se escribe.
     const deOtra = choques([nueva], [guardada({ dicho_by: "u2" })]);
     expect(deOtra).toMatchObject([{ gana: "a", criterio: "fuerza", respuesta: "tarea_de_decision" }]);
     expect(trasLosChoques([nueva], deOtra)).toEqual({ preferencias: [], apartadas: [0] });
