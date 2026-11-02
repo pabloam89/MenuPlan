@@ -227,6 +227,11 @@ const deLaRutina = (campo) => ({ entidad: "casa", ficha: "rutina", campo, politi
  * entero, como los de la Casa (CAMPOS_CASA_CON_SOBRE).
  */
 const enElRegistro = (campo, ambito = []) => ({ ficha: "rutina", campo, politica: "nunca", ambito, vive: "tabla:sobre" });
+/**
+ * Un dato de la ficha Trato (trozo 16) con fila en registro_campo, por persona (la de cada cuenta), sin ámbito y sin
+ * tarea que lo pregunte: vive en su sobre y lo lee Lola (api/_bot/trato.js), con su defecto si nadie ha dicho nada.
+ */
+const delTrato = (campo) => ({ tema: "cuenta", ficha: FICHA.TRATO, campo, politica: "nunca", vive: "tabla:sobre" });
 /** Lo que solo apunta el sistema (contadores, avisos dados, alias aprendidos). */
 const delSistema = { escribe: ESCRITOR.SISTEMA };
 /** Lo que solo se añade (menús hechos, tickets, lo que descontó la despensa): tabla con fecha y poda (trozo 22). */
@@ -384,6 +389,13 @@ export const DATOS_PERSONA = Object.freeze(Object.fromEntries(Object.entries({
   sexo: dato({ tema: "quien", tipo: "enum", vocabulario: "sexo", campo: "sexo", politica: "nunca", vive: "tabla:sobre", motivo: "solo para calorías" }),
   colegio: dato({ tema: "quien", tipo: "texto", campo: "colegio", politica: "nunca", vive: "tabla:sobre" }),
   patronSemanas: dato({ tema: "quien", tipo: "enum", vocabulario: "patron_semanas", campo: "patronSemanas", politica: "nunca", vive: "tabla:sobre", motivo: "custodia: semanas alternas" }),
+  // La ficha Trato (trozo 16): cómo quiere la persona de cada cuenta que le hable Lola. Es de la cuenta (los niños
+  // no tienen; la pareja puede querer otro ritmo), y se guarda en el sobre de la persona de esa cuenta
+  // (accountMemberIdByUser). Nunca se pregunta; la lee Lola en cada turno (api/_bot/trato.js).
+  tratoRitmo: dato({ ...delTrato("tratoRitmo"), tipo: "enum", vocabulario: "ritmos_trato", defecto: "guiado", motivo: "directo: decide y avisa; guiado: paso a paso" }),
+  tratoProfundidad: dato({ ...delTrato("tratoProfundidad"), tipo: "enum", vocabulario: "profundidades_trato", defecto: "preguntar", motivo: "cuánto se afina antes de generar; preguntar: la pregunta del trozo 17" }),
+  tratoFotos: dato({ ...delTrato("tratoFotos"), tipo: "bool", defecto: true, motivo: "si quiere fotos de los platos (enviarlas es otro trozo, #1030)" }),
+  tratoLargo: dato({ ...delTrato("tratoLargo"), tipo: "enum", vocabulario: "largos_trato", defecto: "corto", motivo: "largo de los mensajes de Lola" }),
   // Lo de la persona que no es salud ni gusto (quién es, avatar, color) es de su ficha.
 }).map(([k, v]) => [k, { ...v, entidad: "persona", ficha: v.ficha ?? "persona" }])));
 
