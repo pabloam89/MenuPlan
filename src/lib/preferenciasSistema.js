@@ -51,8 +51,9 @@ export const PREFERENCIAS_SISTEMA = Object.freeze([
   veto("health_profile_conflict", { ...RELAJABLE, clase: CLASE_CHOQUE.DESEO }),
   veto("segundo_sin_proteina_principal", RELAJABLE),
   // Cada familia, «como mucho N» en la semana: la misma forma que un tope de la libreta (preferenciasDelMotor); la
-  // cantidad la pone la casa (freqs.<familia>). Se relajan solo los topes que no dijo nadie (el reparto de siempre, o
-  // lo visto): supuesto. Un tope dicho es obligatorio y no se relaja (solver.js, `obligatorios`).
+  // cantidad la pone la casa (freqs.<familia>). Se relajan solo los topes que no dijo nadie: el reparto de siempre es
+  // `supuesto`; uno visto sería `aprendido`, que cae en el mismo hueco del orden (entre el sistema y el deseo). Un tope
+  // dicho es obligatorio y no se relaja (solver.js, `obligatorios`).
   regla("freq_max_exceeded", "preferencia", { ambito: "semana", operador: OP.COMO_MUCHO, cantidad: null, ...RELAJABLE, clase: CLASE_CHOQUE.SUPUESTO }),
   // «Al menos N con esa base», pero solo culpa a un hueco donde la base cabe: sin ninguno, calla aunque falten.
   escrita("base_pedida_insuficiente", "veredicto_distinto"),
