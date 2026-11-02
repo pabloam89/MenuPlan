@@ -441,3 +441,50 @@ describe("separarFamilia", () => {
     expect(separarFamilia({ data: { members: [] } }, leida).familia).toEqual({ members: [], groups: leida.groups });
   });
 });
+
+describe("la Rutina con ámbito con sobre (trozo 13)", () => {
+  const conRutina = (rutina) => ({ status: 200, cuerpo: { ...fichaV1(), v: 2, fichas: { casa: [], rutina } } });
+  const deA = { tipo: "persona", id: A };
+  const base = (campo, sujeto = { tipo: "casa", id: null }) => ({ ...porDefecto(campo, null), sujeto, estado: "vacio", ambito: null });
+  const hueco = (campo, ambito, valor, sujeto = { tipo: "casa", id: null }) => ({ ...dicho(campo, valor), sujeto, ambito });
+  const docCon = (data) => responde(/household_state/, { status: 200, cuerpo: [{ state: { data: { ...DOCUMENTO.data, ...data } }, bot_rev: 7, updated_at: "2026-11-01T10:00:00Z" }] });
+  const cambiar = (cambios) => conCasa(CASA, async (casa) => ({ state: { ...casa.state, data: { ...casa.state.data, ...cambios(casa.state.data) } } }));
+  const ops = () => escrituras().filter((l) => RUTA_OPERACION.test(l.ruta)).map((l) => l.cuerpo.p_operacion.datos);
+
+  it("con la 0116, Lola lee el horario de sus sobres por hueco, no del documento", async () => {
+    docCon({ schedule: { [`${A}|Mar|Cena`]: "cole" } });
+    responde(RUTA_FICHA, conRutina([base("schedule", deA), hueco("schedule", { dia: "Lun", comida: "Comida" }, "fuera", deA)]));
+    const casa = await cargarCasa(CASA);
+    expect(casa.state.data.schedule).toEqual({ [`${A}|Lun|Comida`]: "fuera" });
+    expect(casa.conSobre.schedule).toEqual({ valor: { [`${A}|Lun|Comida`]: "fuera" }, conSobre: true });
+  });
+
+  it("lo que Lola cambia del horario va en una sola operación, un dato por hueco, y el documento no lo lleva", async () => {
+    responde(RUTA_FICHA, conRutina([base("schedule", deA), base("schedule", { tipo: "persona", id: B })]));
+    const { r } = await enTurno(() => cambiar(() => ({ schedule: { [`${A}|Lun|Comida`]: "fuera", [`${B}|Lun|Cena`]: "tupper" } })));
+    expect(ops()).toEqual([[
+      { campo: "schedule", persona_id: A, dia: "Lun", comida: "Comida", valor: "fuera", origen: "dicho" },
+      { campo: "schedule", persona_id: B, dia: "Lun", comida: "Cena", valor: "tupper", origen: "dicho" },
+    ]]);
+    expect(escrituras()[0].cuerpo.p_state.data).not.toHaveProperty("schedule");
+    expect(r).toMatchObject({ ok: true });
+  });
+
+  it("quitar a una persona: sus huecos no se escriben (se fueron con ella), los de las demás sí", async () => {
+    responde(RUTA_FICHA, conRutina([base("schedule", deA), hueco("schedule", { dia: "Lun", comida: "Comida" }, "fuera", deA), hueco("schedule", { dia: "Mar", comida: "Cena" }, "cole", { tipo: "persona", id: B })]));
+    await enTurno(() => cambiar((d) => ({ members: d.members.filter((m) => m.id !== A), groups: [], schedule: { [`${B}|Mar|Cena`]: "fuera" } })));
+    expect(ops()).toEqual([[{ campo: "schedule", persona_id: B, dia: "Mar", comida: "Cena", valor: "fuera", origen: "dicho" }]]);
+  });
+
+  it("sin la 0116 (elementos sin ámbito), el horario sigue en el documento", async () => {
+    docCon({ schedule: { [`${A}|Mar|Cena`]: "cole" } });
+    const { ambito: _fuera, ...antes } = base("schedule", deA);
+    responde(RUTA_FICHA, conRutina([antes]));
+    const casa = await cargarCasa(CASA);
+    expect(casa.state.data.schedule).toEqual({ [`${A}|Mar|Cena`]: "cole" });
+    olvidarCasa(CASA);
+    await enTurno(() => cambiar(() => ({ schedule: {} })));
+    expect(escrituras()[0].cuerpo.p_state.data.schedule).toEqual({});
+    expect(ops()).toEqual([]);
+  });
+});

@@ -17,6 +17,7 @@
 import { ESTADOS_DATO, ESTADO_DE_ORIGEN } from "./vocabularios.js";
 import { ESTADOS as ESTADOS_LIBRETA } from "./notepad.js";
 import { DATOS_CASA, DATOS_PERSONA } from "./registroFicha.js";
+import { rutinaDeFichas } from "./rutina.js";
 
 /** La versión de ficha_casa que trae «fichas», el estado de cada dato (0107); la 1 no lo trae. */
 export const FICHA_CON_ESTADO = 2;
@@ -97,17 +98,25 @@ export const leidoDe = (estados, campo, personaId = null) => estados?.get(clave(
  * Los datos de la casa (claves de `data` y campos de registro_campo, por = 'casa') que ya se guardan con sobre
  * (trozo 12 de #1037): la app (casaDatos.js) y Lola (api/_bot/casa.js) los leen de ficha_casa v2 y los escriben
  * con escribirDato, no en household_state. Aquí y no en casaDatos.js, que es del navegador, para que Lola lea la
- * misma lista. Sale del registro (los de la casa con `vive: "tabla:sobre"`, deLaCasa en registroFicha.js), en su
- * orden: un dato pasa al sobre marcándolo allí, en un solo sitio.
+ * misma lista. Sale del registro (los de la casa con `vive: "tabla:sobre"` y sin ámbito, deLaCasa en
+ * registroFicha.js), en su orden: un dato pasa al sobre marcándolo allí, en un solo sitio.
  */
 export const CAMPOS_CASA_CON_SOBRE = Object.freeze(Object.entries(DATOS_CASA)
-  .filter(([, d]) => d.entidad === "casa" && d.vive === "tabla:sobre").map(([k]) => k));
+  .filter(([, d]) => d.entidad === "casa" && d.vive === "tabla:sobre" && d.ambito.length === 0).map(([k]) => k));
 
 /**
- * Las fichas de ficha_casa v2 donde vienen los de CAMPOS_CASA_CON_SOBRE (la v2 agrupa por ficha): la Casa
- * (trozo 12) y la Rutina sin ámbito (trozo 13). Sale de la ficha de cada uno en el registro, en su orden.
+ * Los datos de `data` con ámbito que viven en sus sobres por hueco (trozo 13: quién come dónde, cómo es cada hueco,
+ * los días de cada semana, la estructura de cada grupo): un mapa en `data` (rutina.js), un sobre por hueco en la base.
  */
-export const FICHAS_CASA_CON_SOBRE = Object.freeze([...new Set(CAMPOS_CASA_CON_SOBRE.map((c) => DATOS_CASA[c].ficha))]);
+export const CAMPOS_CON_AMBITO_CON_SOBRE = Object.freeze(Object.entries(DATOS_CASA)
+  .filter(([, d]) => d.vive === "tabla:sobre" && d.ambito.length > 0).map(([k]) => k));
+
+/**
+ * Las fichas de ficha_casa v2 donde vienen los de CAMPOS_CASA_CON_SOBRE y CAMPOS_CON_AMBITO_CON_SOBRE (la v2
+ * agrupa por ficha): la Casa (trozo 12) y la Rutina (trozo 13). Sale de la ficha de cada uno en el registro.
+ */
+export const FICHAS_CASA_CON_SOBRE = Object.freeze([...new Set([...CAMPOS_CASA_CON_SOBRE, ...CAMPOS_CON_AMBITO_CON_SOBRE]
+  .map((c) => DATOS_CASA[c].ficha))]);
 
 /**
  * Pura. Los de CAMPOS_CASA_CON_SOBRE que la ficha trae, leídos (su sobre o el defecto del registro). Los que no
@@ -117,6 +126,20 @@ export const FICHAS_CASA_CON_SOBRE = Object.freeze([...new Set(CAMPOS_CASA_CON_S
  */
 export const datosConSobre = (estados) => CAMPOS_CASA_CON_SOBRE.map((campo) => leidoDe(estados, campo)).filter(Boolean)
   .map((l) => (l.valor == null && DATOS_CASA[l.campo]?.tipo === "lista_enum" ? { ...l, valor: [] } : l));
+
+/**
+ * Pura. Lo que la app y Lola leen de los sobres de la casa, de los elementos de ficha_casa v2 (los de
+ * FICHAS_CASA_CON_SOBRE): `{ [campo]: { valor, conSobre } }`. Los de CAMPOS_CASA_CON_SOBRE, por datosConSobre; los
+ * de CAMPOS_CON_AMBITO_CON_SOBRE, su mapa de `data` con lo dicho en cada hueco (rutinaDeFichas, rutina.js), y
+ * `conSobre` si algún hueco está dicho. Lo que la ficha no trae no sale: sigue en el documento (sin la 0112 o la
+ * 0113; los de ámbito, sin la 0116). Lanza si no cuadra (estadosDeFichas, rutinaDeFichas).
+ */
+export function leidosConSobre(elementos) {
+  const simples = datosConSobre(estadosDeFichas({ casa: elementos })).map((l) => [l.campo, { valor: l.valor, conSobre: l.conSobre }]);
+  const mapas = Object.entries(rutinaDeFichas(elementos)).filter(([campo]) => CAMPOS_CON_AMBITO_CON_SOBRE.includes(campo))
+    .map(([campo, mapa]) => [campo, { valor: mapa, conSobre: Object.keys(mapa).length > 0 }]);
+  return Object.fromEntries([...simples, ...mapas]);
+}
 
 // El estado de la ficha visto con los cuatro de la libreta (notepad.js), que son los que pinta el asistente.
 const DE_LA_LIBRETA = Object.freeze({ vacio: "vacio", por_defecto: "inferido", supuesto: "inferido", aprendido: "inferido", dicho: "fijado" });
@@ -149,9 +172,11 @@ export function estadoParaLibreta(leidos, base) {
 // Los campos que solo viven en el sobre (registroFicha.js, `vive: "tabla:sobre"`): no están en el
 // documento, así que la ficha de Lola solo los sabe por aquí. Los de CAMPOS_CASA_CON_SOBRE no: Lola los lee
 // en el documento de la casa, que casa.js rellena con su sobre, y la ficha los dice cada uno en su línea
-// (Nivel, Aparatos, Súper, Presupuesto…); aquí saldrían otra vez como «Dicho: cookLevel: …».
+// (Nivel, Aparatos, Súper, Presupuesto…); aquí saldrían otra vez como «Dicho: cookLevel: …». Los de
+// CAMPOS_CON_AMBITO_CON_SOBRE tampoco: casa.js pone su mapa en el documento y la ficha dice el horario de ahí.
 const SOLO_EN_SOBRE = new Set([...Object.values(DATOS_PERSONA), ...Object.values(DATOS_CASA)]
-  .filter((d) => d.campo && d.vive === "tabla:sobre" && !CAMPOS_CASA_CON_SOBRE.includes(d.campo)).map((d) => d.campo));
+  .filter((d) => d.campo && d.vive === "tabla:sobre" && !CAMPOS_CASA_CON_SOBRE.includes(d.campo) && !CAMPOS_CON_AMBITO_CON_SOBRE.includes(d.campo))
+  .map((d) => d.campo));
 
 // Cómo marca la ficha de Lola cada estado con sobre (la leyenda de conocimiento.md: «Dicho:» y «Supuesto:»).
 const MARCA_DE_LOLA = Object.freeze({ dicho: "dicho", aprendido: "supuesto", supuesto: "supuesto" });
