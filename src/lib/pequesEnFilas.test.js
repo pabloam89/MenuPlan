@@ -62,6 +62,8 @@ describe("los peques en filas", () => {
     expect(libretaDeFilas(filas, { grupos: [] }).campos).toEqual({});
     expect(reglasDeFilas(filas, { grupos: [], miembros: MIEMBROS })).toEqual([]);
     expect([pequesDeFilas(estilo), estilosDeFilas(filas)]).toEqual([{ byMember: {} }, { __global__: "ligero" }]);
+    // Y al revés: un veto de una persona (una regla) no es algo que el niño sí come.
+    expect(pequesDeFilas(enTabla([{ persona_id: ANA, nivel: "plato", eje: "subtipoIngrediente", operador: "no_es", valor: "coliflor" }]))).toEqual({ byMember: {} });
   });
 
   it("quitar un niño de la config borra todas sus filas; uno que no es de la casa no se guarda", () => {
