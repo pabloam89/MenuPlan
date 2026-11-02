@@ -25,6 +25,14 @@ describe("decidirPortada", () => {
     expect(decide({ hayFamilia: true })).toBe(PORTADA.INICIO);
   });
 
+  it("con familia en el dispositivo no espera a que cargue", () => {
+    expect(decide({ cargando: true, hayFamilia: true })).toBe(PORTADA.INICIO);
+  });
+
+  it("con llave de Lola espera aunque haya familia aquí", () => {
+    expect(decide({ cargando: true, hayFamilia: true, conLlave: true })).toBe(PORTADA.ESPERAR);
+  });
+
   it("mientras carga no enseña nada", () => {
     expect(decide({ cargando: true })).toBe(PORTADA.ESPERAR);
   });

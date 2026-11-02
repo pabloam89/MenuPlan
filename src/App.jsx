@@ -2275,7 +2275,16 @@ export default function App() {
     return true;
   }, []);
 
+  // Inicio sale antes de que llegue la nube: hasta entonces no se crea menú con
+  // una familia que puede estar vieja (una alergia nueva) o ser de otra cuenta.
+  const casaSinConfirmarRef = useRef(false);
+  const pararSiCasaSinConfirmar = useCallback(() => {
+    if (!casaSinConfirmarRef.current) return false;
+    showToast("Un momento, estamos poniendo al día tu casa");
+    return true;
+  }, [showToast]);
   const regenerateMenu = useCallback(async (nextData) => {
+    if (pararSiCasaSinConfirmar()) return;
     if (householdReadOnly) {
       showToast("Solo lectura: no puedes editar el menú");
       return;
@@ -3593,6 +3602,7 @@ export default function App() {
   // logistics (schedule) always, and either clones its dishes verbatim or
   // regenerates fresh ones for new dates, per the user's choice.
   const reuseMenu = useCallback(async (menuId, { weekCount, sameRecipes } = {}) => {
+    if (pararSiCasaSinConfirmar()) return;
     if (householdReadOnly) return;
     if (pararSiFaltanMinimos(data)) return;
     let old = data.menus?.[menuId];
@@ -4010,6 +4020,7 @@ export default function App() {
   }, []);
 
   const handleGenerateMenu = useCallback(() => {
+    if (pararSiCasaSinConfirmar()) return;
     if (householdReadOnly) {
       showToast("Solo lectura: no puedes generar menú aquí");
       return;
@@ -4390,7 +4401,29 @@ export default function App() {
 
   const [saliendoDeCuenta, setSaliendoDeCuenta] = useState(false);
   const inicioSinNubeRef = useRef(false);
-  const hayFamiliaGuardada = !FORCE_VALUE_PROPS && data.members.length > 0;
+  // De quién es la copia de este dispositivo: la de otra cuenta no se enseña.
+  const [cuentaDeLaCopia, setCuentaDeLaCopia] = useState(() => {
+    try {
+      return localStorage.getItem("mp_cuenta_copia");
+    } catch {
+      return null;
+    }
+  });
+  const copiaAjena = Boolean(user) && !nubeLista && cuentaDeLaCopia !== user.id;
+  useEffect(() => {
+    if (!user?.id || !nubeLista) return;
+    try {
+      localStorage.setItem("mp_cuenta_copia", user.id);
+    } catch {
+      // sin almacenamiento, la próxima vez se espera a la nube
+    }
+    setCuentaDeLaCopia(user.id);
+  }, [user?.id, nubeLista]);
+  casaSinConfirmarRef.current = (authLoading || (Boolean(user) && !nubeLista)) && !splashSinEspera;
+  useEffect(() => {
+    if (copiaAjena && abriendoCasa && screen === "dashboard") setScreen("splash");
+  }, [copiaAjena, abriendoCasa, screen]);
+  const hayFamiliaGuardada = !FORCE_VALUE_PROPS && !copiaAjena && data.members.length > 0;
   const portada = decidirPortada({
     cargando: (authLoading && !splashSinEspera) || abriendoCasa,
     conSesion: Boolean(user),
@@ -4399,6 +4432,7 @@ export default function App() {
     hayDestino: Boolean(destinoBot),
     pidioEntrar: avisoEntrarRef.current,
     saliendo: saliendoDeCuenta,
+    conLlave,
   });
   const empezarAlta = () =>
     fwd(() => {
@@ -4413,15 +4447,15 @@ export default function App() {
   useEffect(() => {
     if (screen !== "splash") return;
     if (portada === PORTADA.INICIO) {
-      inicioSinNubeRef.current = Boolean(user) && !nubeLista;
-      fwd(() => setScreen("dashboard"));
+      inicioSinNubeRef.current = !nubeLista;
+      setScreen("dashboard");
     } else if (portada === PORTADA.ALTA) empezarAlta();
   }, [screen, portada]); // eslint-disable-line react-hooks/exhaustive-deps
   // Se pasó a Inicio por el plazo y la nube dice luego que no hay familia.
   useEffect(() => {
     if (!nubeLista || !inicioSinNubeRef.current) return;
     inicioSinNubeRef.current = false;
-    if (screen === "dashboard" && data.members.length === 0) empezarAlta();
+    if (data.members.length === 0 && !["splash", "onboarding", "valueProps"].includes(screen)) empezarAlta();
   }, [nubeLista]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /**
@@ -4947,6 +4981,7 @@ export default function App() {
   // slot on a working clone so carb/protein dedup stays correct within the day.
   // Defined AFTER applyShoppingFor since it depends on it (const TDZ).
   const handleRegenerateDay = useCallback(async (day, { groupIds = null } = {}) => {
+    if (pararSiCasaSinConfirmar()) return;
     if (householdReadOnly) return;
     if (pararSiFaltanMinimos(data)) return;
     const groups = gruposVigentes(data);
@@ -5113,6 +5148,7 @@ export default function App() {
    * plato. Es lo mismo que hace `handleRegenerateDay`.
    */
   const handleFillSlots = useCallback(async (ambito) => {
+    if (pararSiCasaSinConfirmar()) return;
     if (householdReadOnly) return;
     // Las dos preferencias eran dos interruptores en la pizarra y ya no lo
     // son, porque ninguna de las dos era una pregunta de verdad: nadie apunta
@@ -6294,7 +6330,7 @@ export default function App() {
         ref={containerRef}
         style={{ minHeight: "100dvh", display: "flex", flexDirection: "column" }}
       >
-        {screen === "splash" && portada !== PORTADA.VER && (
+        {screen === "splash" && portada === PORTADA.ESPERAR && (
           <div role="status" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
             Abriendo tu casa…
           </div>
