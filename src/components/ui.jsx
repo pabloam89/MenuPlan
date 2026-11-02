@@ -841,7 +841,7 @@ function OAuthButton({
           lineHeight: 1.45,
           textAlign: "center",
           color: dark ? "#ffd9d2" : "#c0392b",
-          // The dark variant sits over the splash video, where plain text on a
+          // The dark variant sits over the splash photo, where plain text on a
           // bright frame is unreadable.
           ...(dark
             ? {
@@ -946,7 +946,7 @@ export function GhostPillButton({ onClick, children, tone = "light" }) {
   const [pressed, setPressed] = useState(false);
   const light = tone === "light";
   // "solid" es el CTA principal: relleno verde, alto contraste, se ve igual
-  // sobre el vídeo del splash que sobre un fondo claro (cuando el vídeo no
+  // sobre la foto del splash que sobre un fondo claro (cuando la foto no
   // carga). Los otros tonos son secundarios (ghost translúcido / borde claro).
   const solid = tone === "solid";
 
