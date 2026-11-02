@@ -30,6 +30,8 @@ export const CASCADA_PERMITIDA = new Map([
   ["persona_perfil_salud", "salud: se va con la persona (PRINCIPIOS §17)"],
   ["sobre", "salud: de dónde sale cada dato de la ficha de la persona; se va con ella (PRINCIPIOS §17, 0097)"],
   ["grupo_persona", "pertenencia a un grupo: sin la persona no significa nada"],
+  ["preferencia", "lo que quiere esa persona (gustos, vetos, topes; 0109): sin ella no condiciona ningún menú"],
+  ["plan_preferencias", "el conjunto de preferencias de esa persona (su dieta, su plan; 0109): sin ella no se aplica a nadie"],
 ]);
 
 /** Quita comentarios y cuerpos $x$…$x$, que no declaran FKs de tabla. */

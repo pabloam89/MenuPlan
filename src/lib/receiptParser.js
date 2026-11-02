@@ -1,6 +1,7 @@
 import { FAST_MODEL } from "./aiModels.js";
 import { apiUrl } from "./apiUrl.js";
 import { imageFileToVisionPayload } from "./visionImage.js";
+import { TIPOS_LINEA_TICKET } from "./vocabularios.js";
 
 function extractJson(text) {
   const trimmed = String(text ?? "").trim();
@@ -134,7 +135,7 @@ Responde SOLO JSON:
   const lines = rawLines
     .map((l) => {
       const name = String(l?.name ?? "").trim();
-      let kind = ["food", "prefab", "nonfood"].includes(l?.kind) ? l.kind : "food";
+      let kind = TIPOS_LINEA_TICKET.includes(l?.kind) ? l.kind : "food";
       // Safety net for obvious non-food the vision model sometimes tags as
       // "food" (clothing, toys, drugstore...) — e.g. "PIJAMA DE BEBE". These
       // must never reach the food clarify/pantry flow.

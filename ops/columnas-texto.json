@@ -544,6 +544,86 @@
     "receta_descartes.receta_id": {
       "class": "identifier",
       "reason": "Id de receta del catálogo del bundle (src/data), sin FK: el catálogo vive en git"
+    },
+    "cocinado.receta_id": {
+      "class": "identifier",
+      "reason": "Id de la receta del catálogo o propia, sin FK a propósito (0109)"
+    },
+    "plan_preferencias.nombre": {
+      "class": "free_text",
+      "reason": "Nombre del conjunto de preferencias que pone la familia («semana ligera»)"
+    },
+    "plan_preferencias.persona_id": {
+      "class": "identifier",
+      "reason": "Id de la persona dueña del conjunto, FK compuesta a persona (0109)"
+    },
+    "precio_observado.id": {
+      "class": "identifier",
+      "reason": "Id del gasto o de la línea de ticket, generado en el cliente (ids.js)"
+    },
+    "precio_observado.ingrediente_id": {
+      "class": "identifier",
+      "reason": "Id del alimento del catálogo del bundle, sin FK a propósito (0109)"
+    },
+    "precio_observado.marca": {
+      "class": "free_text",
+      "reason": "Marca que escribe la familia o que sale del ticket"
+    },
+    "precio_observado.nombre": {
+      "class": "free_text",
+      "reason": "Nombre del producto tal como sale del ticket o lo escribe la familia"
+    },
+    "precio_observado.super": {
+      "class": "free_text",
+      "reason": "Súper donde se compró, como sale del ticket o lo escribe la familia"
+    },
+    "precio_observado.tamano_unidad": {
+      "class": "free_text",
+      "reason": "A MEDIR (#585): unidad del envase (g, ml…) como la trae el ticket; sin filas todavía"
+    },
+    "precio_observado.ticket_id": {
+      "class": "identifier",
+      "reason": "Id del ticket del que sale la línea, FK compuesta a ticket (0109)"
+    },
+    "precio_observado.unidad": {
+      "class": "free_text",
+      "reason": "A MEDIR (#585): unidad de la cantidad comprada como la trae el ticket; sin filas todavía"
+    },
+    "preferencia.eje": {
+      "class": "identifier",
+      "reason": "Id del eje, FK a registro_eje (generado de axisRegistry.js): vocabulario por FK, no por CHECK"
+    },
+    "preferencia.frase": {
+      "class": "free_text",
+      "reason": "La frase literal de la familia que causó la preferencia"
+    },
+    "preferencia.grupo_id": {
+      "class": "identifier",
+      "reason": "Id del grupo al que aplica, FK compuesta a grupo (0109)"
+    },
+    "preferencia.nota": {
+      "class": "free_text",
+      "reason": "Lo que dijo la familia cuando el valor es «otro»"
+    },
+    "preferencia.persona_id": {
+      "class": "identifier",
+      "reason": "Id de la persona a la que aplica, FK compuesta a persona (0109)"
+    },
+    "registro_eje.id": {
+      "class": "identifier",
+      "reason": "Id de un eje de axisRegistry.js (EJES), generado de allí en la migración"
+    },
+    "senal.eje": {
+      "class": "identifier",
+      "reason": "Id del eje, FK a registro_eje (generado de axisRegistry.js)"
+    },
+    "ticket.id": {
+      "class": "identifier",
+      "reason": "Id del ticket, generado en el cliente (ids.js)"
+    },
+    "ticket.super": {
+      "class": "free_text",
+      "reason": "Súper del ticket, como sale de la foto o lo escribe la familia"
     }
   }
 }
