@@ -1,21 +1,15 @@
 /**
- * La compra de las semanas de Lola, en la frontera con la base (trozo 18):
- * la semana guarda solo las marcas de la familia (src/lib/compraMarcas.js) y
- * Lola trabaja con la lista que se ve. Al leer la casa, la lista sale del menú
- * y la despensa con las marcas encima; al guardar, de la lista que se ve vuelven
- * a salir las marcas. Las herramientas de la compra (menu.js) no cambian: ven
- * `semana.shopping.items` como siempre.
- *
- * Una semana con la forma de antes (`{ items }`) se lee y se guarda tal cual.
+ * La compra de las semanas de Lola, en la frontera con la base (trozo 18): la semana guarda solo las marcas
+ * (src/lib/compraMarcas.js); al leer la casa, la lista sale del menú y la despensa con ellas encima, y al guardar
+ * vuelven a ser marcas. Las herramientas de la compra (menu.js) ven `semana.shopping.items` como siempre. Una semana
+ * con la forma de antes (`{ items }`) se lee y se guarda tal cual.
  */
 import { esCompraConMarcas, compraQueSeVe, compraParaGuardar, articulosDe } from "../../src/lib/compraMarcas.js";
 
 // menu.js importa casa.js, que importa esto: el motor se pide al usarlo, no al cargar.
 const deMenu = () => import("./menu.js");
 
-/**
- * La lista que sale del menú de una semana (sin marcas), con la despensa.
- */
+/** La lista que sale del menú de una semana (sin marcas), con la despensa. */
 export async function derivadaDe(m, casa, semana, despensa) {
   const { grupos } = await deMenu();
   const gs = grupos({ ...casa, semana });

@@ -2482,7 +2482,7 @@ export default function App() {
             spreadPantry
           ).workingStock;
         }
-        const weekShopping = { items: [...sh.byCategory.flatMap((c) => c.items), ...sh.pantryItems] };
+        const weekShopping = { items: articulosDe(sh) };
         return {
           offset, startDayIdx, days, startISO, endISO, plan, weekShopping, weekSchedule, recipes,
           pantryItems: sh.pantryItems, vacios,
@@ -4863,7 +4863,7 @@ export default function App() {
         },
       };
       const sh = buildShoppingList(next, grupos, getDayMeals(data), pantryIngredients);
-      setCompra((prevSh) => ({ ...prevSh, items: conMarcas([...sh.byCategory.flatMap((c) => c.items), ...sh.pantryItems], prevSh.items) }));
+      setCompra((prevSh) => ({ ...prevSh, items: conMarcas(articulosDe(sh), prevSh.items) }));
       return next;
     });
 
@@ -4933,7 +4933,7 @@ export default function App() {
         },
       };
       const sh = buildShoppingList(next, groups, getDayMeals(data), pantryIngredients);
-      setCompra((prev) => ({ ...prev, items: conMarcas([...sh.byCategory.flatMap((c) => c.items), ...sh.pantryItems], prev.items) }));
+      setCompra((prev) => ({ ...prev, items: conMarcas(articulosDe(sh), prev.items) }));
       return next;
     });
     setSelectedSlot(null);
@@ -4985,7 +4985,7 @@ export default function App() {
       writeField(tGroup, tKey, tField, sRecipeId);
 
       const sh = buildShoppingList(next, groups, getDayMeals(data), pantryIngredients);
-      setCompra((prev) => ({ ...prev, items: conMarcas([...sh.byCategory.flatMap((c) => c.items), ...sh.pantryItems], prev.items) }));
+      setCompra((prev) => ({ ...prev, items: conMarcas(articulosDe(sh), prev.items) }));
       return next;
     });
     showToast("Platos intercambiados");
@@ -4999,7 +4999,7 @@ export default function App() {
   // manual pick). Preserves the user's have/atHome flags across the rebuild.
   const applyShoppingFor = useCallback((next, groups, pantryIngredients) => {
     const sh = buildShoppingList(next, groups, getDayMeals(data), pantryIngredients);
-    setCompra((prev) => ({ ...prev, items: conMarcas([...sh.byCategory.flatMap((c) => c.items), ...sh.pantryItems], prev.items) }));
+    setCompra((prev) => ({ ...prev, items: conMarcas(articulosDe(sh), prev.items) }));
   }, [data]);
 
   // Regenerate every dish of a single day (all active groups) in one tap — the

@@ -39,7 +39,7 @@ import { etapaDe } from "../../src/lib/stages.js";
 import { vetosDePersona } from "../../src/lib/vetos.js";
 import { alergiasPorSilencio } from "../../src/lib/alergiasBase.js";
 import { anadirArticulos, sonElMismo } from "../../src/lib/compraIdentidad.js";
-import { compraQueSeVe } from "../../src/lib/compraMarcas.js";
+import { compraQueSeVe, articulosDe, idsQuitados } from "../../src/lib/compraMarcas.js";
 import { estructuraDelGrupo } from "../../src/lib/estructuraPlatos.js";
 import { diasActivosDe } from "../../src/lib/planner.js";
 
@@ -1461,9 +1461,11 @@ export async function leerDespensa(m, householdId) {
  */
 export function rehacerCompra(m, plan, data, gs, anterior, despensa) {
   const lista = m.buildShoppingList(plan, gs, m.getDayMeals(data), despensa ?? []);
-  const nuevos = [...lista.byCategory.flatMap((c) => c.items), ...(lista.pantryItems ?? [])];
+  const nuevos = articulosDe(lista);
   const previos = new Map((anterior?.items ?? []).map((it) => [it.id, it]));
-  const items = nuevos.map((it) => {
+  // En una semana que guarda marcas (trozo 18), lo quitado viaja aparte y sigue quitado con el plan nuevo.
+  const quitados = idsQuitados(anterior);
+  const items = nuevos.filter((it) => !quitados.has(it.id)).map((it) => {
     const p = previos.get(it.id);
     const conMarcas = p ? { ...it, have: !!p.have, atHome: !!p.atHome } : it;
     return despensa == null && p?.fromPantry ? { ...conMarcas, fromPantry: true } : conMarcas;
