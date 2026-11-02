@@ -25,6 +25,7 @@ import {
 } from "./screens/Onboarding.jsx";
 import { OnboardingProgressContext } from "./screens/onboardingProgressContext.js";
 import { PORTADA, decidirPortada } from "./lib/portada.js";
+import { veloFoto } from "./design/tokens.js";
 import { EsqueletoInicio } from "./components/EsqueletoInicio.jsx";
 import { buildSharedMenuPayload } from "./lib/sharedMenu.js";
 import { publishMenu, unpublishMenu, loadMyPublishedMenus, createMenuShareToken, loadMenuFromLink } from "./lib/social.js";
@@ -7703,7 +7704,7 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle, onApple,
           inset: 0,
           zIndex: 1,
           pointerEvents: "none",
-          background: "linear-gradient(180deg, rgba(10,22,13,.62) 0%, rgba(10,22,13,.12) 42%, rgba(10,22,13,.12) 58%, rgba(10,22,13,.72) 100%)",
+          background: `linear-gradient(180deg, ${veloFoto(.62)} 0%, ${veloFoto(.12)} 42%, ${veloFoto(.12)} 58%, ${veloFoto(.72)} 100%)`,
         }}
       />
 

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { veloFoto } from "../design/tokens.js";
 import { ArrowLeftRight, CalendarOff, Check, Clock3, CopyPlus, Fish, History, RotateCw, Search, Shuffle, Sparkles, ThumbsDown, Trash2 } from "../components/icons.jsx";
 import { safeTop } from "../components/ui.jsx";
 import { OnboardingMembers, OnboardingRestrictions, OnboardingSchoolMenu, OnboardingSchedule, OnboardingMealStyle } from "./Onboarding.jsx";
@@ -1130,7 +1131,7 @@ export function ValuePropsCarousel({ onFinish }) {
               <div
                 style={{
                   position: "absolute", inset: 0,
-                  background: "linear-gradient(180deg, rgba(10,22,13,0) 45%, rgba(10,22,13,.7) 100%)",
+                  background: `linear-gradient(180deg, ${veloFoto(0)} 45%, ${veloFoto(.7)} 100%)`,
                 }}
               />
               <div style={{ position: "absolute", left: 0, right: 0, bottom: 26, textAlign: "center" }}>
