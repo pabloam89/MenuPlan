@@ -19,10 +19,9 @@
  * sería el mismo dato en dos sitios, y una receta cambiada sin recompilar la
  * dejaría vieja. Va por columnas (un eje, una línea).
  *
- *   node scripts/compilar-ejes.mjs              escribe la tabla
- *   node scripts/compilar-ejes.mjs --comprobar  falla si la escrita no es la de este catálogo
+ *   node scripts/compilar-ejes.mjs   escribe la tabla y dice lo que no ha podido pasar a número
  */
-import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { EJES, AMBITO } from "../src/data/axisRegistry.js";
@@ -40,13 +39,17 @@ const codigoDe = (eje) => (eje.tipo === "numerico" && Array.isArray(eje.vocabula
 /** Las etiquetas van en los bits de un entero de 32: un vocabulario más largo no cabe. */
 const MAX_BITS = 31;
 
-/** ¿Se compila este eje? Ámbito receta, campo simple y una forma de pasarlo a número. */
-function compilable(eje) {
-  if (eje.ambito !== AMBITO.RECETA || !/^[A-Za-z]+$/.test(eje.campo ?? "")) return false;
+/**
+ * Por qué no se compila un eje de receta, o null si se compila: el campo no es
+ * simple, el tipo no tiene número, le falta el vocabulario o no cabe en bits.
+ */
+function porQueNo(eje) {
+  if (!/^[A-Za-z]+$/.test(eje.campo ?? "")) return "sin campo simple en el JSON";
   const codigo = codigoDe(eje);
-  if (codigo === "indice") return Array.isArray(eje.vocabulario);
-  if (codigo === "bits") return Array.isArray(eje.vocabulario) && eje.vocabulario.length <= MAX_BITS;
-  return Boolean(codigo);
+  if (!codigo) return `el tipo ${eje.tipo} no tiene número`;
+  if ((codigo === "indice" || codigo === "bits") && !Array.isArray(eje.vocabulario)) return "sin vocabulario";
+  if (codigo === "bits" && eje.vocabulario.length > MAX_BITS) return `más de ${MAX_BITS} etiquetas`;
+  return null;
 }
 
 /** El número de un valor de una receta en un eje, o null si falta o no es del vocabulario. */
@@ -78,18 +81,31 @@ export function codificar(eje, valor) {
 
 /**
  * La tabla de unas recetas: los ejes que entran, los ids ordenados por id y
- * una columna por eje. Un eje sin ningún valor en los JSON no lleva columna
- * (un derivado con su propia tabla, o un eje aún sin datos): una columna
- * entera de null no dice nada.
+ * una columna por eje. Lo que no entra se apunta en la tabla, no se calla:
+ * `sinCompilar` (los ejes de receta que no se pasan a número, y por qué; un
+ * eje sin ningún valor en los JSON no lleva columna) y `fueraDelVocabulario`
+ * (por eje, cuántas recetas traen un valor que su vocabulario no tiene y
+ * quedan en null).
  */
 export function compilarEjes(recetas, ejes = EJES) {
   const ordenadas = [...recetas].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
-  const columnas = ejes.filter(compilable).sort((a, b) => a.n - b.n)
-    .map((e) => [e, ordenadas.map((r) => codificar(e, r[e.campo]))])
-    .filter(([, col]) => col.some((v) => v !== null));
+  const sinCompilar = [];
+  const fueraDelVocabulario = {};
+  const columnas = [];
+  for (const e of ejes.filter((x) => x.ambito === AMBITO.RECETA).sort((x, y) => x.n - y.n)) {
+    const porque = porQueNo(e);
+    if (porque) { sinCompilar.push({ id: e.id, porque }); continue; }
+    const col = ordenadas.map((r) => codificar(e, r[e.campo]));
+    if (col.every((v) => v === null)) { sinCompilar.push({ id: e.id, porque: "ningún valor en los JSON" }); continue; }
+    const fuera = ordenadas.filter((r, i) => r[e.campo] != null && col[i] === null).length;
+    if (fuera) fueraDelVocabulario[e.id] = fuera;
+    columnas.push([e, col]);
+  }
   return {
     generado_por: "scripts/compilar-ejes.mjs",
     ejes: columnas.map(([e]) => ({ n: e.n, id: e.id, campo: e.campo, codigo: codigoDe(e), valores: e.vocabulario ?? null })),
+    sinCompilar,
+    fueraDelVocabulario,
     ids: ordenadas.map((r) => r.id),
     tabla: Object.fromEntries(columnas.map(([e, col]) => [e.id, col])),
   };
@@ -102,6 +118,8 @@ export function serializarEjes(t) {
     "{",
     `  "generado_por": ${linea(t.generado_por)},`,
     `  "ejes": [\n${t.ejes.map((e) => `    ${linea(e)}`).join(",\n")}\n  ],`,
+    `  "sinCompilar": ${linea(t.sinCompilar)},`,
+    `  "fueraDelVocabulario": ${linea(t.fueraDelVocabulario)},`,
     `  "ids": ${linea(t.ids)},`,
     `  "tabla": {\n${Object.entries(t.tabla).map(([id, col]) => `    ${linea(id)}: ${linea(col)}`).join(",\n")}\n  }`,
     "}",
@@ -115,24 +133,9 @@ export function leerRecetas() {
     .flatMap((f) => JSON.parse(readFileSync(join(RECIPES_DIR, f), "utf8")));
 }
 
-/** ¿La tabla escrita es la que sale hoy de estas recetas? Sin escribir, no lo es. */
-export function ejesAlDia(recetas, ruta = RUTA_EJES) {
-  if (!existsSync(ruta)) return false;
-  const actual = readFileSync(ruta, "utf8").replace(/\r\n/g, "\n");
-  return actual === serializarEjes(compilarEjes(recetas));
-}
-
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
-  const recetas = leerRecetas();
-  if (process.argv.includes("--comprobar")) {
-    if (!ejesAlDia(recetas)) {
-      console.error("❌ src/data/derived/recipeEjes.json no está escrito o no es el de este catálogo: node scripts/compilar-ejes.mjs");
-      process.exit(1);
-    }
-    console.log("✅ recipeEjes.json al día");
-  } else {
-    const t = compilarEjes(recetas);
-    writeFileSync(RUTA_EJES, serializarEjes(t));
-    console.log(`recipeEjes.json: ${t.ids.length} recetas × ${t.ejes.length} ejes`);
-  }
+  const t = compilarEjes(leerRecetas());
+  writeFileSync(RUTA_EJES, serializarEjes(t));
+  const fuera = Object.entries(t.fueraDelVocabulario).map(([id, n]) => `${id} ${n}`).join(", ");
+  console.log(`recipeEjes.json: ${t.ids.length} recetas × ${t.ejes.length} ejes; sin compilar ${t.sinCompilar.length} ejes de receta; fuera del vocabulario: ${fuera || "ninguno"}`);
 }

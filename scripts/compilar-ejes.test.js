@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mkdtempSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { codificar, compilarEjes, ejesAlDia, serializarEjes } from "./compilar-ejes.mjs";
+import { codificar, compilarEjes } from "./compilar-ejes.mjs";
 
 // Los ejes de receta compilados a números (trozo 30 de #1037).
 
@@ -44,17 +41,15 @@ describe("compilarEjes: la tabla receta × eje", () => {
     expect(compilarEjes([...recetas].reverse(), [tecnica, tiempo, salsa])).toEqual(t);
   });
 
-  it("un eje sin ningún valor no lleva columna", () => {
-    const t = compilarEjes(recetas, [tecnica, coste]);
+  it("lo que no entra se apunta: el eje sin valores o sin vocabulario, y los valores fuera de él", () => {
+    const sinVocabulario = { n: 14, id: "cocina", ambito: "receta", tipo: "enum", campo: "cocina", vocabulario: null };
+    const conRaro = [...recetas, { id: "c", tecnica: "vapor" }];
+    const t = compilarEjes(conRaro, [tecnica, coste, sinVocabulario]);
     expect(t.ejes.map((e) => e.id)).toEqual(["tecnica"]);
-  });
-
-  it("una tabla escrita está al día solo si sale de estas recetas; sin escribir, no", () => {
-    const dir = mkdtempSync(join(tmpdir(), "ejes-"));
-    const ruta = join(dir, "recipeEjes.json");
-    expect(ejesAlDia(recetas, ruta)).toBe(false);
-    writeFileSync(ruta, serializarEjes(compilarEjes(recetas)));
-    expect(ejesAlDia(recetas, ruta)).toBe(true);
-    expect(ejesAlDia([...recetas, { id: "c", tecnica: "plancha" }], ruta)).toBe(false);
+    expect(t.sinCompilar).toEqual([
+      { id: "cocina", porque: "sin vocabulario" },
+      { id: "coste", porque: "ningún valor en los JSON" },
+    ]);
+    expect(t.fueraDelVocabulario).toEqual({ tecnica: 1 });
   });
 });
