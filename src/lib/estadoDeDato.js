@@ -81,9 +81,11 @@ export const leidoDe = (estados, campo, personaId = null) => estados?.get(clave(
  * Los datos de la casa (claves de `data` y campos de registro_campo, por = 'casa') que ya se guardan con sobre
  * (trozo 12 de #1037): la app (casaDatos.js) y Lola (api/_bot/casa.js) los leen de ficha_casa v2 y los escriben
  * con escribirDato, no en household_state. Aquí y no en casaDatos.js, que es del navegador, para que Lola lea la
- * misma lista. Los PR del trozo añaden los suyos.
+ * misma lista. Sale del registro (los de la casa con `vive: "tabla:sobre"`, deLaCasa en registroFicha.js), en su
+ * orden: un dato pasa al sobre marcándolo allí, en un solo sitio.
  */
-export const CAMPOS_CASA_CON_SOBRE = Object.freeze(["wantsPriceEstimates", "menuModel", "kitchenTools", "kitchenToolsNota", "cookLevel", "supermarkets", "supermarketsNota", "presupuesto", "pantryMode"]);
+export const CAMPOS_CASA_CON_SOBRE = Object.freeze(Object.entries(DATOS_CASA)
+  .filter(([, d]) => d.entidad === "casa" && d.vive === "tabla:sobre").map(([k]) => k));
 
 /**
  * Pura. Los de CAMPOS_CASA_CON_SOBRE que la ficha trae, leídos (su sobre o el defecto del registro). Los que no
@@ -123,9 +125,11 @@ export function estadoParaLibreta(leidos, base) {
 }
 
 // Los campos que solo viven en el sobre (registroFicha.js, `vive: "tabla:sobre"`): no están en el
-// documento, así que la ficha de Lola solo los sabe por aquí.
+// documento, así que la ficha de Lola solo los sabe por aquí. Los de CAMPOS_CASA_CON_SOBRE no: Lola los lee
+// en el documento de la casa, que casa.js rellena con su sobre, y la ficha los dice cada uno en su línea
+// (Nivel, Aparatos, Súper, Presupuesto…); aquí saldrían otra vez como «Dicho: cookLevel: …».
 const SOLO_EN_SOBRE = new Set([...Object.values(DATOS_PERSONA), ...Object.values(DATOS_CASA)]
-  .filter((d) => d.campo && d.vive === "tabla:sobre").map((d) => d.campo));
+  .filter((d) => d.campo && d.vive === "tabla:sobre" && !CAMPOS_CASA_CON_SOBRE.includes(d.campo)).map((d) => d.campo));
 
 // Cómo marca la ficha de Lola cada estado con sobre (la leyenda de conocimiento.md: «Dicho:» y «Supuesto:»).
 const MARCA_DE_LOLA = Object.freeze({ dicho: "dicho", aprendido: "supuesto", supuesto: "supuesto" });
