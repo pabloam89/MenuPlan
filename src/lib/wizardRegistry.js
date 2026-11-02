@@ -520,15 +520,10 @@ export const PREGUNTAS = [
     control: "cards-ab",
     fuente: "data",
     lee: (data) => data?.cookLevel ?? null,
-    // Se marca `cookLevelManual` al escribir, y no es cosmetico: en modo
-    // basico —el de por defecto— `resolveModeData` (App.jsx) fuerza
-    // `cookLevel: "normal"` antes de generar, asi que este mando se pintaba,
-    // se guardaba, se marcaba con su aro teal... y el menu salia igual.
-    //
-    // Es el mismo trato que ya tenia `manualSlotType` ahi mismo: lo que eliges
-    // A MANO desde el menu sobrevive al modo basico, porque el modo basico
-    // simplifica lo que NO has contestado, no lo que acabas de decidir.
-    escribe: (data, valor) => ({ ...data, cookLevel: valor, cookLevelManual: true }),
+    // Sin marca aparte (fuera `cookLevelManual`, trozo 12 de #1037): el modo
+    // basico (`resolveModeData`) ya no fuerza el nivel, porque el que llega es
+    // el dicho o el defecto del registro. Lo que eliges aqui cambia el menu.
+    escribe: (data, valor) => ({ ...data, cookLevel: valor }),
     // Mismos tres niveles, mismas tarjetas y mismos textos que el wizard
     // clásico (Onboarding.jsx): es la misma pregunta.
     opciones: [

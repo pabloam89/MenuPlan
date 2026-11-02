@@ -618,7 +618,7 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
       }, ["campo", "valor"]),
       run: (args) => descartarSupuesto(householdId, args),
     }),
-    herramienta({ capacidades: ["primero_segundo", "nivel_cocina", "aparatos", "aparato_otro"], lee: ["kitchenTools", "kitchenToolsNota", "cookTime"], escribe: ["meals", "mealStructure", "mealStructureByGroup", "cookLevel", "cookLevelManual", "cookTime", "kitchenTools", "kitchenToolsNota", "etapaBebe"], lector: false, soloLectura: false, pantalla: null }, {
+    herramienta({ capacidades: ["primero_segundo", "nivel_cocina", "aparatos", "aparato_otro"], lee: ["kitchenTools", "kitchenToolsNota", "cookTime"], escribe: ["meals", "mealStructure", "mealStructureByGroup", "cookLevel", "cookTime", "kitchenTools", "kitchenToolsNota", "etapaBebe"], lector: false, soloLectura: false, pantalla: null }, {
       name: "ajustar_cocina",
       description: `Cómo se cocina en casa: estructura de la comida (primero_segundo = primero y segundo; 1_plato = plato único), esfuerzo (basic/normal/pro), tiempo por día (con_prisa/normal/con_tiempo/depende) y aparatos (${TRASTOS.join(", ")}). «Tenemos airfryer» es trastosMas [Airfryer]; «ya no tenemos horno», trastosMenos [Horno]: los demás se quedan. Uno que no está en la lista («tenemos plancha»), trastoOtro. Cocinar en tanda va por pedir_tanda.`,
       inputSchema: obj({

@@ -283,7 +283,6 @@ export const DATOS_CASA = Object.freeze({
 
   // ── Cocina ──
   cookLevel: dato({ tema: "cocina", ficha: "casa", tipo: "enum", vocabulario: "nivel_cocina", defecto: "normal", peso_menu: 35, ...deLaCasa("cookLevel") }),
-  cookLevelManual: dato({ tema: "cocina", ficha: "casa", tipo: "bool", ...marca("cookLevel"), motivo: "si el nivel lo puso el usuario y no el asistente; el motor la lee (prepararGeneracion.js)" }),
   cookSkills: dato({ tema: "cocina", ficha: "casa", tipo: "lista", estado: "legado", motivo: "nadie lo escribe ni lo lee: App.jsx solo lo sanea" }),
   kitchenTools: dato({ tema: "cocina", ficha: "casa", tipo: "lista_enum", vocabulario: "aparatos_casa", otros: "kitchenToolsNota", peso_menu: 30, ...deLaCasa("kitchenTools") }),
   kitchenToolsNota: dato({ tema: "cocina", ficha: "casa", tipo: "texto", vive: "tabla:sobre", ...deLaCasa("kitchenToolsNota"), motivo: "el nombre de los aparatos que van como «Otro» en kitchenTools" }),
