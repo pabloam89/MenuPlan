@@ -7660,26 +7660,39 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle, onApple,
         }}
       />
 
-      {/* Vídeo a pantalla completa */}
-      <video
-        autoPlay
-        muted
-        loop
-        playsInline
+      {/* Foto fija de fondo. */}
+      <img
+        src="/portada.jpg"
+        alt=""
         aria-hidden="true"
         style={{
           position: "absolute",
-          inset: 0,
+          top: 0,
+          left: 0,
           width: "100%",
-          height: "100%",
+          // Más corta que la pantalla: las caras quedan por encima de los botones,
+          // y su borde inferior se funde con el fondo.
+          height: "78%",
           objectFit: "cover",
+          objectPosition: "center top",
+          WebkitMaskImage: "linear-gradient(180deg, #000 82%, transparent 100%)",
+          maskImage: "linear-gradient(180deg, #000 82%, transparent 100%)",
           zIndex: 1,
           pointerEvents: "none",
           animation: "fadeIn 1.2s ease-out",
         }}
-      >
-        <source src="/splash.mp4" type="video/mp4" />
-      </video>
+      />
+      {/* Oscurece arriba y abajo para que título y botones se lean sobre la foto. */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          inset: 0,
+          zIndex: 1,
+          pointerEvents: "none",
+          background: "linear-gradient(180deg, rgba(10,22,13,.62) 0%, rgba(10,22,13,.12) 42%, rgba(10,22,13,.12) 58%, rgba(10,22,13,.72) 100%)",
+        }}
+      />
 
       {/* Título arriba */}
       <div
