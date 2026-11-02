@@ -53,6 +53,8 @@ import { recipeMatchesPreferType } from "../utils/filterRecipes.js";
 import { esAnadido, topeDe } from "./cocinaTopes.js";
 import { aporteDe } from "./aporte.js";
 import { precioDePlato, precioAlto } from "./presupuesto.js";
+import { casaCon, pesoDe } from "./cumplimiento.js";
+import { OPERADOR_PREFERENCIA as OP } from "./vocabularios.js";
 
 // Los pesos de dos objetivos de la casa en el orden del solver (los explica
 // resolverMenu, paso 5). Exportados para que la entrada del motor
@@ -219,6 +221,10 @@ export function familiasDe(r) {
  * @param {Set<string>} [opciones.descartados] platos que la casa ha tirado lo bastante
  *                                             como para ir los últimos (ver
  *                                             lib/descartesPrioridad.js)
+ * @param {object[]} [opciones.preferencias]   las de la casa para este grupo
+ *                                             (cumplimiento.js): «más X» y
+ *                                             «menos X» ordenan con su peso; un
+ *                                             tope obligatorio no se pasa nunca
  * @param {number}   [opciones.semilla]        para reproducir un resultado
  * @param {number}   [opciones.maxNodos]       tope de nodos antes de rendirse
  * @param {number}   [opciones.maxMs]          tope de tiempo antes de rendirse
@@ -261,6 +267,7 @@ export function resolverMenu(slots, pool, {
   // € por ración que cabe en el presupuesto de la casa (lib/presupuesto.js,
   // topePorRacion), o null sin presupuesto. Ver PESO_PRESUPUESTO.
   topeRacion = null,
+  preferencias = [],
   // false: la fase 3 rellena SOLO sin relajar (el pase estricto, que es el que
   // cierra muchas semanas limpias) y se salta el relajado. Lo usan los intentos
   // de resolverConReintentos: relajar se deja para el último.
@@ -303,6 +310,22 @@ export function resolverMenu(slots, pool, {
       orden.push(pareja);
       puesto.add(pareja.slotId);
     }
+  }
+
+  // Un tope OBLIGATORIO de la casa («como mucho 2 de pescado», dicho) no se
+  // pasa nunca: ni con la holgura de los topes, ni relajando en la fase 3.
+  // Si no hay semana sin pasarse, el hueco se queda vacío y se dice (trozo 31
+  // de #1037). Los topes de siempre (el reparto con holgura) sí se relajan.
+  const obligatorios = {};
+  for (const p of preferencias) {
+    if (pesoDe(p) !== Infinity || p.operador !== OP.COMO_MUCHO || p.campo !== "freqs") continue; // obligatoria: no se pesa, es regla
+    obligatorios[p.valor] = Math.min(obligatorios[p.valor] ?? Infinity, p.cantidad);
+  }
+  freqs = { ...freqs };
+  for (const [f, n] of Object.entries(obligatorios)) freqs[f] = Math.min(freqs[f] ?? Infinity, n);
+  if (objetivo) {
+    objetivo = { ...objetivo };
+    for (const [f, n] of Object.entries(obligatorios)) if (objetivo[f] > n) objetivo[f] = n;
   }
 
   const familias = new Map(pool.map((r) => [r.id, familiasDe(r)]));
@@ -431,6 +454,20 @@ export function resolverMenu(slots, pool, {
     || slot.preferType === "plato_unico"
     || (slot.mealType === "cena" && !slot.position);
 
+  // 3c. Lo que la casa prefiere, cada cosa con su peso (cumplimiento.js,
+  //     pesoDe): «más horno» adelanta los platos al horno y «menos arroz»
+  //     atrasa los de arroz, tanto más cuanto más fuerte y cuanto más DICHO
+  //     (lo visto y lo supuesto pesan la mitad y un cuarto). Un escalón pesa
+  //     más que el orden del pool y el ruido juntos, así que un gusto dicho
+  //     se nota de verdad, y menos que lo reciente, el presupuesto y el
+  //     déficit del reparto: ordena dentro del reparto, no lo desequilibra.
+  //     Antes los sesgos solo ordenaban el pool (el término 5, ×0,5 por
+  //     puesto), y el ruido de la semilla se los comía.
+  const ordenan = preferencias.filter((p) => p.operador === OP.MAS || p.operador === OP.MENOS);
+  const gustoPorId = new Map(pool.map((r) => [r.id, ordenan.reduce(
+    (g, p) => (casaCon(p, r) ? g + (p.operador === OP.MAS ? -1 : 1) * pesoDe(p) : g), 0,
+  )]));
+
   // 4. El tiempo, solo donde significa algo: un PRIMERO es un plato de
   //    entrada, y entre dos que valen es mejor el corto — deja sitio al
   //    segundo dentro del presupuesto de la comida (regla 7c). Sin esto el
@@ -531,6 +568,7 @@ export function resolverMenu(slots, pool, {
           + (recientes?.get(r.id) ?? 0) * PESO_RECIENTE
           + (descartados?.has(r.id) ? PESO_DESCARTADO : 0)
           + costePresupuesto(r) * PESO_PRESUPUESTO
+          + gustoPorId.get(r.id)
           + costeTiempo(r, slot) * 1e3
           + indice.get(r.id) * PESO_ORDEN_POOL
           + (hash(r.id + slot.slotId, semilla) % RUIDO),
@@ -732,10 +770,12 @@ export function resolverMenu(slots, pool, {
     rellenar(parcialValida);
     const estrictos = new Set(asignadas.map((a) => a.slotId));
     const relajadaValida = () => {
-      const { violations } = validateMenu(asignadas, pool, contexto, [], {}, basesPedidas);
-      // Perfiles y topes ya no entran (los [] y {} de arriba); el resto de
-      // REGLAS_RELAJABLES (el segundo con proteína, #894) se ignora aquí.
-      return !violations.some((v) => !IGNORAR_EN_PARCIAL.has(v.rule) && !REGLAS_RELAJABLES.has(v.rule));
+      const { violations } = validateMenu(asignadas, pool, contexto, [], obligatorios, basesPedidas);
+      // Perfiles y topes ya no entran (los [] de arriba y solo los topes
+      // obligatorios, que no se relajan); el resto de REGLAS_RELAJABLES (el
+      // segundo con proteína, #894) se ignora aquí.
+      return !violations.some((v) => !IGNORAR_EN_PARCIAL.has(v.rule)
+        && (!REGLAS_RELAJABLES.has(v.rule) || (v.rule === "freq_max_exceeded" && v.targetKey in obligatorios)));
     };
     if (relajar) rellenar(relajadaValida);
     for (const a of asignadas) if (!estrictos.has(a.slotId)) relajados.push(a.slotId);

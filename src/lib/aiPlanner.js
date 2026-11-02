@@ -986,6 +986,8 @@ function asignarConSolver({
       semilla,
       // El presupuesto de la casa como preferencia (lib/presupuesto.js).
       topeRacion,
+      // Las preferencias de la casa que tocan a este grupo, con su peso (cumplimiento.js).
+      preferencias: delGrupo(entrada.preferencias, group),
     },
   );
   for (const [cocina, cuantos] of Object.entries(res.cocinasSinSitio)) {
