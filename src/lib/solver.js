@@ -318,7 +318,7 @@ export function resolverMenu(slots, pool, {
   // de #1037). Los topes de siempre (el reparto con holgura) sí se relajan.
   const obligatorios = {};
   for (const p of preferencias) {
-    if (p.fuerza !== "obligatoria" || p.operador !== OP.COMO_MUCHO || p.campo !== "freqs") continue;
+    if (pesoDe(p) !== Infinity || p.operador !== OP.COMO_MUCHO || p.campo !== "freqs") continue; // obligatoria: no se pesa, es regla
     obligatorios[p.valor] = Math.min(obligatorios[p.valor] ?? Infinity, p.cantidad);
   }
   freqs = { ...freqs };
