@@ -40,7 +40,8 @@ import { guessIngredientCategory } from "./ingredientCategories.js";
 import { isQualitativeUnit, mergeIngredientLines } from "./ingredientUnits.js";
 import { buildAdaptationMap } from "./substitutions.js";
 import { normalizeAllergenId } from "./allergens.js";
-import { alergiasParaMenu } from "./alergias.js";
+import { alergiasParaMenu, alergiasRevisadas } from "./alergias.js";
+import { DIET_RULES, INTOLERANCE_RULES } from "./intolerances.js";
 import { assignPreparedToPlan, indexFrozenDishes, indexFridgeDishes, itemPortions, slotUsesPrepared, catalogIdOfPlanRecipe } from "./freezer.js";
 import { dominantComponentOf } from "./dominantComponent.js";
 import { legumeSubtypeOf, mariscoSubtypeOf } from "./dishSubtype.js";
@@ -2912,6 +2913,36 @@ export function chocaConElGrupo(receta, data, group, meal = "Comida", ctx = null
     isBabyGroup: receta.category === "bebes",
     offMenu: Boolean(POOL_DE_FRANJA[String(meal)]),
   });
+}
+
+/**
+ * POR QUÉ choca una receta, en una frase para quien la ha elegido, o null si
+ * no choca. No repite las reglas: le pregunta a recipeViolatesHardSafety por
+ * cada persona y cada restricción suelta, así que siempre coincide con la
+ * puerta. Lo apuntado por alguien va antes que las alergias sin revisar, que
+ * bloquean casi todo y dirían menos.
+ */
+export function motivoDelChoque(receta, data, group, meal = "Comida") {
+  if (!receta || !group) return null;
+  const { filterOpts } = buildGroupContext(data, group);
+  const base = { isBabyGroup: receta.category === "bebes", offMenu: Boolean(POOL_DE_FRANJA[String(meal)]) };
+  const choca = (opts) => recipeViolatesHardSafety(receta, { ...opts, ...base });
+  if (!choca(filterOpts)) return null;
+
+  const miembros = membersOfGroup(group, data.members ?? []);
+  const nombre = (m) => m.name?.trim() || "alguien de la casa";
+  const no = (porque) => `«${receta.name}» no entra: ${porque}`;
+  for (const m of miembros) {
+    const alergia = (m.allergies ?? []).find((a) => choca({ allergies: [a] }));
+    if (alergia) return no(`${nombre(m)} tiene alergia a ${String(alergia).toLowerCase()}`);
+    const regla = [...(m.intolerances ?? []), ...(m.dietaryStates ?? [])].find((id) => choca({ intolerances: [id] }));
+    if (regla) return no(`${nombre(m)}: ${(INTOLERANCE_RULES[regla]?.label ?? DIET_RULES[regla]?.label ?? regla).toLowerCase()}`);
+  }
+  if (choca({ hasKids: filterOpts.hasKids })) return no("lleva alcohol y hay niños en este menú");
+  const sinRevisar = miembros.filter((m) => !alergiasRevisadas(data, m));
+  if (sinRevisar.length === 0) return null;
+  const quienes = sinRevisar.map((m) => m.name?.trim()).filter(Boolean);
+  return no(`faltan por revisar las alergias de ${quienes.join(", ") || "la casa"}`);
 }
 
 /**
