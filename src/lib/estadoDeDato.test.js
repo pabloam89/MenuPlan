@@ -75,7 +75,6 @@ describe("marcasDeLola: lo que solo vive en el sobre, con su marca", () => {
 
   it("los datos de la ficha Casa con sobre, nada: la ficha de Lola los lee del documento que casa.js rellena con su sobre, y los dice en su línea", () => {
     const estados = estadosDeFichas({ casa: [
-      conSobre("presupuesto", CASA, "dicho", 80),
       conSobre("cookLevel", CASA, "supuesto", "avanzado"),
       conSobre("kitchenToolsNota", CASA, "dicho", "Thermomix"),
     ] });

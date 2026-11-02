@@ -11,7 +11,7 @@ import { SUFIJO_CLAVE_PERSONA, RPC_OPERACION, RPC_PREFERENCIAS } from "../../src
 import { RPC_FICHA, FICHA_SIN_TAREAS, fichaDePrueba, RPC_PREFERENCIAS_DE_CASA, preferenciasDeFilas } from "./familiaDePrueba.js";
 import { PREGUNTAS_POR_ID } from "../../src/lib/wizardRegistry.js";
 import { aplicarCompra, aplicarModoDespensa } from "./ajustes.js";
-import { leerPresupuesto } from "../../src/lib/presupuestoCasa.js";
+import { leerPresupuesto, FORMA_PRESUPUESTO } from "../../src/lib/presupuestoCasa.js";
 import { nuevaRegla, reglaDeInvitado } from "../../src/lib/reglas.js";
 
 const CASA = "3f2b8c1e-7a4d-4e0b-9c5a-1d2e3f4a5b6c";
@@ -327,28 +327,6 @@ describe("los datos de la casa con sobre (trozo 12)", () => {
     expect(r).toMatchObject({ ok: true, botRev: 10 });
   });
 
-  it("el presupuesto (PR 8): con sobre, el par viejo del documento no cuenta; «nos ponemos 60 €» y «sin presupuesto» van con sobre y el par se queda sin lector", async () => {
-    respuestas.unshift([/household_state/, { status: 200, cuerpo: [{ state: { data: { ...DOCUMENTO.data, hasBudget: true, budget: 90 } }, bot_rev: 7, updated_at: "2026-11-01T10:00:00Z" }] }]);
-    responde(RUTA_FICHA, { status: 200, cuerpo: fichaV2(porDefecto("presupuesto", null)) });
-    const casa = await cargarCasa(CASA);
-    expect(leerPresupuesto(casa.state.data)).toEqual({ estado: "sin", euros: null });
-    olvidarCasa(CASA);
-    let rev = 8;
-    responde(RUTA_OPERACION, { status: 200, get cuerpo() { rev += 1; return { ...HECHA, rev }; } });
-    await enTurno(() => conCasa(CASA, async (c) => ({ state: { ...c.state, data: aplicarCompra(c.state.data, { presupuesto: 60 }).data } })));
-    const [doc, op] = escrituras();
-    expect(op.cuerpo.p_operacion.datos).toEqual([{ campo: "presupuesto", persona_id: null, valor: 60, origen: "dicho" }]);
-    expect(doc.cuerpo.p_state.data).not.toHaveProperty("presupuesto");
-    expect(doc.cuerpo.p_state.data).toMatchObject({ hasBudget: true, budget: 90 });
-    olvidarCasa(CASA);
-    llamadas = [];
-    responde(RUTA_FICHA, { status: 200, cuerpo: fichaV2(dicho("presupuesto", 60)) });
-    await enTurno(() => conCasa(CASA, async (c) => ({ state: { ...c.state, data: aplicarCompra(c.state.data, { sinPresupuesto: true }).data } })));
-    expect(escrituras().filter((l) => RUTA_OPERACION.test(l.ruta)).map((l) => l.cuerpo.p_operacion.datos[0])).toEqual([
-      { campo: "presupuesto", persona_id: null, valor: null, origen: "dicho" },
-    ]);
-  });
-
   it("el modo de la despensa (PR 9): con sobre, el «off» viejo del documento no cuenta; «deja de usar lo de casa» va como dicho y sin marca", async () => {
     respuestas.unshift([/household_state/, { status: 200, cuerpo: [{ state: { data: { ...DOCUMENTO.data, pantryMode: "off", pantryModeSet: false } }, bot_rev: 7, updated_at: "2026-11-01T10:00:00Z" }] }]);
     responde(RUTA_FICHA, { status: 200, cuerpo: fichaV2(porDefecto("pantryMode", "only")) });
@@ -564,6 +542,22 @@ describe("la libreta en filas de preferencia (trozo 14)", () => {
     expect((await enTurno(() => conCasa(CASA, async (casa) => ({ state: { ...casa.state, data: { ...casa.state.data, reglas: [...casa.state.data.reglas, nueva] } } })))).r).toMatchObject({ ok: true });
     expect(escrituras().find((l) => /bot_save_casa/.test(l.ruta)).cuerpo.p_state.data.reglas).toEqual([invitado]);
     expect(prefs()[0].cuerpo.p_operacion.preferencias).toEqual([expect.objectContaining({ persona_id: B, eje: "tecnica", valor: "sarten", operador: "no_es", dias: ["Vie"] })]);
+  });
+
+  it("el presupuesto, de su fila (sin ella no hay, aunque el documento traiga el par viejo); «nos ponemos 60 €» la crea y «sin presupuesto» la borra", async () => {
+    responde(/household_state/, { status: 200, cuerpo: [{ state: { data: { ...DOCUMENTO.data, hasBudget: true, budget: 90 } }, bot_rev: 7, updated_at: "2026-11-01T10:00:00Z" }] });
+    responde(RUTA_PREFS, { status: 200, cuerpo: { v: 1, rev: 7, preferencias: [], planes: [] } });
+    responde(RUTA_ESCRIBIR, { status: 200, cuerpo: { ...HECHA, rev: 9 } });
+    expect(leerPresupuesto((await cargarCasa(CASA)).state.data)).toEqual({ estado: "sin", euros: null });
+    await enTurno(() => conCasa(CASA, async (c) => ({ state: { ...c.state, data: aplicarCompra(c.state.data, { presupuesto: 60 }).data } })));
+    expect(prefs()[0].cuerpo.p_operacion.preferencias).toEqual([{ ...FORMA_PRESUPUESTO, valor: null, cantidad: 60, origen: "dicho" }]);
+    for (const l of escrituras().filter((x) => /bot_save_casa/.test(x.ruta))) expect(l.cuerpo.p_state.data).not.toHaveProperty("presupuesto");
+    olvidarCasa(CASA);
+    llamadas = [];
+    const FILA_P = { ...FILA, ...FORMA_PRESUPUESTO, id: "00000000-0000-4000-8000-0000000000f3", valor: null, cantidad: 60 };
+    responde(RUTA_PREFS, { status: 200, cuerpo: { v: 1, rev: 9, preferencias: [FILA_P], planes: [] } });
+    await enTurno(() => conCasa(CASA, async (c) => ({ state: { ...c.state, data: aplicarCompra(c.state.data, { sinPresupuesto: true }).data } })));
+    expect(prefs()[0].cuerpo.p_operacion.preferencias).toEqual([{ id: FILA_P.id, borrar: true }]);
   });
 
   it("un apunte que no cabe en una fila (un ámbito sin su grupo en la casa) no guarda nada y se dice", async () => {
