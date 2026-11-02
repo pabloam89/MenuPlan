@@ -23,10 +23,7 @@ export const MOTIVOS_INCUMPLIMIENTO = Object.freeze(["sin_candidatos", "pesaba_m
 export const PESO_FUERZA = Object.freeze({ alto: 3, medio: 2, bajo: 1 });
 /** Por origen (las FUENTES de la libreta): lo dicho pesa entero; lo visto, la mitad; lo supuesto, un cuarto (lo dicho manda: método de choques, trozo 33). */
 export const FACTOR_ORIGEN = Object.freeze({ dicho: 1, visto: 0.5, supuesto: 0.25 });
-/**
- * Un escalón en la escala del orden del solver (resolverMenu): un gusto dicho pesa más que el orden del pool y el ruido
- * de la semilla juntos (1,5 por plato del pool) y menos que PESO_RECIENTE y PESO_PRESUPUESTO (lo mide su test).
- */
+/** Un escalón del orden del solver: un gusto dicho pesa más que el orden del pool y el ruido juntos, y menos que PESO_RECIENTE y PESO_PRESUPUESTO (su test). */
 export const UNIDAD_PESO = 1e3;
 
 export const pesoDe = (p) => (p.fuerza === "obligatoria" ? Infinity : UNIDAD_PESO * PESO_FUERZA[p.fuerza] * FACTOR_ORIGEN[p.origen]);

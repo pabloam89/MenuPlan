@@ -1,9 +1,8 @@
 // @vitest-environment jsdom
 //
-// «Continuar con Apple» solo sale en la app nativa de iOS. La Guideline 4.8 de
-// App Store es de iOS, y en la web el proveedor Apple puede no estar habilitado
-// en Supabase: el botón llevaría a un error. Mientras Pablo no confirme que lo
-// está (issue #890), la web ofrece solo Google.
+// «Continuar con Apple» sale en la app nativa de iOS (Guideline 4.8) y en la web
+// solo con la bandera VITE_APPLE_WEB, encendida en `staging` para probarlo. La
+// web de producción sigue ofreciendo solo Google hasta cerrar el issue #890.
 import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
@@ -35,13 +34,27 @@ afterEach(() => {
   container?.remove();
   container = root = null;
   vi.doUnmock("@capacitor/core");
+  vi.unstubAllEnvs();
 });
 
 describe("SignInOptions", () => {
   it("en la web solo ofrece Google", async () => {
+    vi.stubEnv("VITE_APPLE_WEB", "");
     const texto = await montar(false);
     expect(texto).toContain("Google");
     expect(texto).not.toContain("Apple");
+  });
+
+  it("en la web ofrece Apple con la bandera de staging", async () => {
+    vi.stubEnv("VITE_APPLE_WEB", "on");
+    const texto = await montar(false);
+    expect(texto).toContain("Continuar con Apple");
+    expect(texto).toContain("Google");
+  });
+
+  it("con la bandera apagada, la web sigue solo con Google", async () => {
+    vi.stubEnv("VITE_APPLE_WEB", "off");
+    expect(await montar(false)).not.toContain("Apple");
   });
 
   it("en la app nativa ofrece Apple y Google (Guideline 4.8)", async () => {

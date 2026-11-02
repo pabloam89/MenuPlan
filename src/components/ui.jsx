@@ -901,13 +901,17 @@ export function AppleButton({ onClick, label = "Continuar con Apple", variant = 
  * App Store por la Guideline 4.8. Por eso existe este componente y no se pinta
  * `GoogleButton` suelto en ninguna pantalla.
  *
- * Apple solo se ofrece en la app nativa (`conApple`, por defecto `isNativeApp`):
- * la 4.8 es de iOS, y en la web el proveedor Apple puede no estar habilitado
- * en Supabase (ni el Services ID en el portal de Apple), con lo que el botón
- * llevaría a un error. Se abrirá en la web cuando Pablo confirme que Apple
- * está habilitado (issue #890).
+ * Apple se ofrece en la app nativa, porque la 4.8 es de iOS, y en la web solo
+ * con la bandera VITE_APPLE_WEB (encendida en `staging`, para probarlo de punta
+ * a punta antes de abrirlo en producción: issue #890). `conApple` manda sobre
+ * ambas.
  */
-export function SignInOptions({ onGoogle, onApple, variant = "light", conApple = isNativeApp }) {
+export function SignInOptions({
+  onGoogle,
+  onApple,
+  variant = "light",
+  conApple = isNativeApp || import.meta.env.VITE_APPLE_WEB === "on",
+}) {
   const dark = variant === "dark";
   return (
     <div style={{ display: "grid", gap: 10 }}>

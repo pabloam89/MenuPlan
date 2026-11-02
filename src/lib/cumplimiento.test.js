@@ -6,7 +6,7 @@ import {
 } from "./cumplimiento.js";
 import { FUENTES } from "./notepad.js";
 import { FUERZAS_PREFERENCIA } from "./vocabularios.js";
-import { PESO_RECIENTE, PESO_PRESUPUESTO } from "./solver.js";
+import { PESO_RECIENTE, PESO_PRESUPUESTO, PESO_ORDEN_POOL, ruidoDe } from "./solver.js";
 import { entradaDelMotor } from "./entradaMotor.js";
 import { generateMenuWithAI } from "./aiPlanner.js";
 import { recipeCatalog } from "../data/recipeCatalog.js";
@@ -80,8 +80,8 @@ describe("pesoDe: lo dicho pesa más que lo visto y que lo supuesto, y cada esca
     expect(p("medio", "dicho")).toBeGreaterThan(p("bajo", "dicho"));
     expect(p("obligatoria", "dicho")).toBe(Infinity);
   });
-  it("un gusto dicho pesa más que el orden del pool y el ruido juntos (1,5 por plato, con el catálogo entero de pool), y menos que lo reciente y el presupuesto", () => {
-    expect(p("medio", "dicho")).toBeGreaterThan(1.5 * RECETAS.length);
+  it("un gusto dicho pesa más que el orden del pool y el ruido juntos (con el catálogo entero de pool), y menos que lo reciente y el presupuesto", () => {
+    expect(p("medio", "dicho")).toBeGreaterThan(RECETAS.length * PESO_ORDEN_POOL + ruidoDe(RECETAS.length));
     expect(p("alto", "dicho")).toBeLessThan(Math.min(PESO_RECIENTE, PESO_PRESUPUESTO));
   });
   it("las listas cuadran: cada escalón es una fuerza de la 0109, cada origen una fuente de la libreta, cada clase se dice", () => {
