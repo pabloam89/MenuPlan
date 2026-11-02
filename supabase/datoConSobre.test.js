@@ -3,6 +3,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { REGISTRO_CAMPOS } from "../src/lib/registroCampos.js";
 import { CHOQUE, CHOQUES, CLASES_DATO, COMIDAS, DIAS, DIMENSIONES_AMBITO, ESCRITORES, ESTADO_DE_ORIGEN, ESTADOS_DATO, ESTADOS_OPERACION, MOTIVOS_SIN_DESHACER, MOTIVOS_SIN_HACER_DATO, ORIGEN_DATO, ORIGENES_DE_LA_FAMILIA } from "../src/lib/vocabularios.js";
 import { CAMPOS_DESHACER } from "../src/lib/operaciones/tuberia.js";
+import { FICHA_CON_ESTADO } from "../src/lib/estadoDeDato.js";
 
 /**
  * El dato con sobre (plan fichas con estado, trozo 7): lo que no vigilan principios.test.js ni
@@ -157,7 +158,8 @@ describe("0106: el registro manda, y sus literales salen de vocabularios.js", ()
 });
 
 describe("0107: ficha_casa v2 y fuera sobre.ref", () => {
-  const ficha = cuerpo("ficha_casa", codigo0107);
+  // La que vale en la base (0107, o la que la rehaga después): sus reglas siguen.
+  const ficha = cuerpo("ficha_casa");
   const vigente = /and \(s\.caduca_at is null or s\.caduca_at > now\(\)\)\)/g;
 
   it("quita sobre.ref_tipo y sobre.ref_id, con CONTRAE y la guardia de filas; ficha_casa sigue solo para service_role", () => {
@@ -292,5 +294,34 @@ describe("0115: escribir y deshacer por la clave entera del sobre (campo, person
     const PERSONAS_CASA_MAS_GRANDE = 8;
     const tope = Number(aplicar.match(/c_max_datos constant integer := (\d+);/)[1]);
     expect(tope).toBeGreaterThanOrEqual(PERSONAS_CASA_MAS_GRANDE * DIAS.length * COMIDAS.length);
+  });
+});
+
+describe("0116: ficha_casa con ámbito, sin subir de versión", () => {
+  const codigo0116 = sinComentarios(readFileSync(new URL("./migrations/0116_ficha_casa_ambito.sql", import.meta.url), "utf8"));
+  const ficha = cuerpo("ficha_casa", codigo0116);
+  const columna = (d) => (d === "grupo" ? "grupo_id" : d);
+
+  it("es la que vale en la base, sigue en la versión que leen Lola y la app y solo para service_role", () => {
+    expect(ultimaQueDefine("ficha_casa")).toBe(codigo0116);
+    expect(ficha).toContain(`'v', ${FICHA_CON_ESTADO},`);
+    expect([...codigo0116.matchAll(/grant\s+[^;]*?\bon\s+function\s+public\.ficha_casa\b[^;]*?\bto\s+([^;]*);/gi)].map((m) => m[1].trim())).toEqual(["service_role"]);
+  });
+
+  it("cada elemento dice su ámbito, hecho con cada dimensión de DIMENSIONES_AMBITO, y van en orden fijo", () => {
+    expect(ficha).toMatch(/'ambito', d\.ambito,/);
+    const objeto = ficha.match(/jsonb_strip_nulls\(jsonb_build_object\(([^)]*)\)\)/)[1];
+    expect([...objeto.matchAll(/'(\w+)', s\.(\w+)/g)].map((m) => [m[1], m[2]])).toEqual(DIMENSIONES_AMBITO.map((d) => [columna(d), columna(d)]));
+    expect(ficha).toMatch(/order by d\.campo, \(d\.persona_id is not null\), d\.persona_id, d\.ambito nulls first\) as datos/);
+  });
+
+  it("sin ámbito, como en la 0107; con ámbito, la base sin sobre y un elemento por sobre vigente", () => {
+    const datos = ficha.slice(ficha.indexOf("), datos as ("), ficha.indexOf("select coalesce(jsonb_object_agg"));
+    const ramas = datos.split(/\n\s+union all\n/);
+    expect(ramas).toHaveLength(3);
+    expect(ramas[0]).toMatch(/left join public\.sobre s[\s\S]*where cardinality\(x\.ambito\) = 0/);
+    expect(ramas[1]).toMatch(/null::jsonb,\s+null::jsonb,[\s\S]*false\s+from sujetos x\s+where cardinality\(x\.ambito\) > 0\s*$/);
+    expect(ramas[1]).not.toMatch(/public\.sobre/);
+    expect(ramas[2]).toMatch(/join public\.sobre s[\s\S]*where cardinality\(x\.ambito\) > 0 and \(s\.caduca_at is null or s\.caduca_at > now\(\)\)/);
   });
 });
