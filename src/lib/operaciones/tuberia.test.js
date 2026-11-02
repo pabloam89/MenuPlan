@@ -1,7 +1,7 @@
 // La tubería de operaciones (plan fichas con estado, trozos 26 y 41): entender, comprobar,
 // aplicar, apuntar, contar y deshacer, con una base falsa (rpc) que apunta lo que le llega.
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { operar, operarPersonas, operarPreferencias, deshacer, RPC_OPERACION, RPC_DESHACER, RPC_PERSONA, RPC_PREFERENCIAS, SUFIJO_CLAVE_PERSONA, SUFIJO_CLAVE_PREFERENCIAS } from "./tuberia.js";
+import { operar, operarPersonas, operarPreferencias, deshacer, RPC_OPERACION, RPC_DESHACER, RPC_PERSONA, RPC_PREFERENCIAS, RPC_LEER_PREFERENCIAS, SUFIJO_CLAVE_PERSONA, SUFIJO_CLAVE_PREFERENCIAS } from "./tuberia.js";
 import { CANAL_DATO, REF_OPERACION, ESTADO_OPERACION, FALLO_DATO, MOTIVO_PUERTA, SEXO } from "../vocabularios.js";
 
 const CASA = "3f2b8c1e-7a4d-4e0b-9c5a-1d2e3f4a5b6c";
@@ -12,11 +12,16 @@ const PEDIDO = {
 };
 const HECHA = { operacion_id: "op1", estado: ESTADO_OPERACION.HECHA, repetida: false, hecho: [{ campo: "sexo", persona_id: "p1", sobre_id: "s1" }], sin_hacer: [], choques: [], rev: 3 };
 
-function base(responder = () => HECHA) {
+// Lo que contesta preferencias_de_casa (0109) para una casa sin preferencias.
+const CASA_SIN_PREFERENCIAS = { v: 1, preferencias: [], planes: [] };
+
+function base(responder = () => HECHA, leer = () => CASA_SIN_PREFERENCIAS) {
   const llegan = [];
   const rpc = vi.fn(async (funcion, args) => {
+    // Leer las preferencias de la casa (choques al guardar, trozo 33) no escribe: no se apunta en `llegan`.
+    if (funcion === RPC_LEER_PREFERENCIAS) return leer();
     llegan.push({ funcion, op: args.p_operacion });
-    return responder(args.p_operacion);
+    return responder(args.p_operacion, funcion);
   });
   return { llegan, servidor: (papel) => ({ papel, rpc, falloDeError: () => ({ fallo: FALLO_DATO.RPC_AUSENTE, motivo: "no_existe" }) }) };
 }
@@ -279,5 +284,61 @@ describe("tubería: las preferencias (trozo 14, escribir_preferencias)", () => {
     const { servidor } = base(() => { throw new Error("PGRST202"); });
     expect(await operarPreferencias(LIBRETA, servidor("owner"))).toEqual({ guardado: false, fallo: FALLO_DATO.RPC_AUSENTE });
     expect(lineas(log)[0]).toMatchObject({ fallo: "rpc_ausente", campo: "preferencia" });
+  });
+});
+
+describe("tubería: choques al guardar una preferencia (trozo 33)", () => {
+  const MAS = { nivel: "plato", eje: "tecnica", medida: "valor", operador: "mas", valor: "horno", fuerza: "medio", origen: "dicho" };
+  const MENOS = { ...MAS, operador: "menos" };
+  const pedido = (preferencias, extra = {}) => ({
+    casa: CASA, clave: "tg:9", accion: "ajustar_menu", canal: CANAL_DATO.TELEGRAM,
+    ref: { tipo: REF_OPERACION.MENSAJE, id: "9" }, autor: { user_id: "u1" }, pedida_at: "2026-11-02T10:00:00Z", preferencias, ...extra,
+  });
+  const conGuardadas = (guardadas) => base(undefined, () => ({ ...CASA_SIN_PREFERENCIAS, preferencias: guardadas }));
+  const contar = () => vi.spyOn(console, "log").mockImplementation(() => {});
+
+  it("la misma persona cambia de idea: se escribe lo nuevo, se borra lo viejo en la misma operación, y el choque va con ella", async () => {
+    const log = contar();
+    const { llegan, servidor } = conGuardadas([{ ...MAS, id: "g1", dicho_by: "u1", updated_at: "2026-10-01T10:00:00Z" }]);
+    const r = await operarPreferencias(pedido([MENOS]), servidor("owner"));
+    expect(llegan).toHaveLength(1);
+    expect(llegan[0].op.preferencias).toEqual([MENOS, { id: "g1", borrar: true }]);
+    expect(llegan[0].op.choques).toMatchObject([{ momento: "al_guardar", criterio: "tiempo", respuesta: "aplicar_y_avisar" }]);
+    expect(r).toMatchObject({ guardado: true, apartadas: [], choques: [{ respuesta: "aplicar_y_avisar" }] });
+    expect(lineas(log)).toEqual([{ evento: "choque", momento: "al_guardar", clases: ["deseo", "deseo"], gana: "a", criterio: "tiempo", respuesta: "aplicar_y_avisar", canal: "telegram" }]);
+  });
+
+  it("otra persona dijo lo contrario: no se pisa; no llega a la base y vuelve para decidirlo", async () => {
+    contar();
+    const { llegan, servidor } = conGuardadas([{ ...MAS, id: "g1", dicho_by: "u2", updated_at: "2026-10-01T10:00:00Z" }]);
+    const r = await operarPreferencias(pedido([MENOS]), servidor("owner"));
+    expect(llegan).toEqual([]);
+    expect(r).toMatchObject({ guardado: false, apartadas: [0], choques: [{ gana: null, respuesta: "tarea_de_decision" }] });
+  });
+
+  it("lo que Lola vio no pisa lo dicho: se aparta y lo demás de la operación se escribe", async () => {
+    contar();
+    const sistema = { canal: CANAL_DATO.SISTEMA, ref: { tipo: REF_OPERACION.CRON, id: "senales" }, autor: {} };
+    const visto = { ...MENOS, origen: "visto", fuerza: "bajo" };
+    const otra = { ...MAS, valor: "plancha", origen: "visto", fuerza: "bajo" };
+    const { llegan, servidor } = conGuardadas([{ ...MAS, id: "g1", dicho_by: "u1" }]);
+    const r = await operarPreferencias(pedido([visto, otra], sistema), servidor(null));
+    expect(llegan[0].op.preferencias).toEqual([otra]);
+    expect(r).toMatchObject({ guardado: true, apartadas: [0], choques: [{ clases: ["aprendido", "deseo"], gana: "b" }] });
+  });
+
+  it("sin poder leer lo que tiene la casa no se escribe (no se sabe con qué choca)", async () => {
+    silenciar();
+    const { llegan, servidor } = base(undefined, () => { throw new Error("PGRST202"); });
+    expect(await operarPreferencias(pedido([MAS]), servidor("owner"))).toEqual({ guardado: false, fallo: FALLO_DATO.RPC_AUSENTE });
+    expect(llegan).toEqual([]);
+  });
+
+  it.each([[null], [{}], [{ v: 2, preferencias: [] }], [{ v: 1, preferencias: null }]])("una lectura sin la forma v1 (%j) no es una casa sin preferencias: no se escribe", async (leida) => {
+    const log = silenciar();
+    const { llegan, servidor } = base(undefined, () => leida);
+    expect(await operarPreferencias(pedido([MAS]), servidor("owner"))).toEqual({ guardado: false, fallo: FALLO_DATO.SERVIDOR });
+    expect(llegan).toEqual([]);
+    expect(lineas(log)).toEqual([{ evento: "dato_sin_guardar", fallo: FALLO_DATO.SERVIDOR, motivo: null, canal: "telegram", campo: "preferencia" }]);
   });
 });

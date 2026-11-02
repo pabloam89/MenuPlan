@@ -299,6 +299,8 @@ describe("api/operacion.js: un cambio de la libreta (trozo 14) va a escribir_pre
   const { dato: _sinDato, ...sinDato } = CUERPO;
   beforeEach(() => {
     responde(/^\/auth\/v1\/user/, { status: 200, cuerpo: { id: "u1" } });
+    // Antes de escribir se leen las preferencias de la casa (choques al guardar, trozo 33): una casa sin ninguna.
+    responde(/rpc\/preferencias_de_casa/, { status: 200, cuerpo: { v: 1, preferencias: [], planes: [] } });
   });
 
   it("por la misma puerta y con el autor de la sesión, a escribir_preferencias y nunca al documento", async () => {

@@ -25,8 +25,8 @@
  * Sin base propia: `rpc` y cómo leer sus errores los da api/_bot/datos.js.
  */
 import { operacionDeDato, cabeceraDeOperacion, hay, resultadoDeOperacion, apuntarSinGuardar, DatoInvalido, campoDelPedido } from "../escribirDato.js";
-import { comprobar, falloDePuerta } from "./puerta.js";
-import { ESTADO_OPERACION, FALLO_DATO, CANAL_DATO, ORIGENES_DE_LA_FAMILIA } from "../vocabularios.js";
+import { comprobar, falloDePuerta, choquesAlGuardar, trasLosChoques, ORIGEN_PREFERENCIA_POR_DEFECTO } from "./puerta.js";
+import { ESTADO_OPERACION, FALLO_DATO, CANAL_DATO } from "../vocabularios.js";
 
 /** La RPC que escribe toda operación (0106). */
 export const RPC_OPERACION = "aplicar_operacion";
@@ -152,8 +152,8 @@ export const RPC_LEER_PREFERENCIAS = "preferencias_de_casa";
 export const SUFIJO_CLAVE_PREFERENCIAS = ":preferencias";
 /** Cuántas preferencias y conjuntos admite una operación: el tope de escribir_preferencias (`c_max` en la 0109). */
 export const MAX_PREFERENCIAS_OPERACION = 400;
-/** El origen de una preferencia que no lo trae: lo dice la familia (el `coalesce` de escribir_preferencias, 0109; preferencia.test.js los compara). */
-export const ORIGEN_PREFERENCIA_POR_DEFECTO = ORIGENES_DE_LA_FAMILIA[0];
+/** El origen de una preferencia que no lo trae: vive en puerta.js, que también lo usa al ver los choques. */
+export { ORIGEN_PREFERENCIA_POR_DEFECTO };
 
 /**
  * Pura. Entender un cambio de preferencias (la libreta: cambiosDeLibreta, preferencias.js): la operación que espera
@@ -202,8 +202,33 @@ export async function operarPreferencias(pedido, { papel, rpc, falloDeError }) {
     apuntarSinGuardar({ fallo, motivo: contra.motivo, canal: op.canal, campo });
     return { guardado: false, fallo, error: contra.motivo };
   }
-  const { r, fallo } = await llamarRpc(RPC_PREFERENCIAS, { p_operacion: op }, { rpc, falloDeError, canal: op.canal, campo });
-  return fallo ? { guardado: false, fallo } : resultadoDeOperacion(r);
+  // Choques con lo que ya tiene la casa. Sin poder leerla no se escribe: se podría pisar lo de otra persona.
+  const leidas = await llamarRpc(RPC_LEER_PREFERENCIAS, { p_casa: op.casa }, { rpc, falloDeError, canal: op.canal, campo });
+  if (leidas.fallo) return { guardado: false, fallo: leidas.fallo };
+  // Sin la forma v1 tampoco: no es una casa sin preferencias (como leerLibretaDeCasa y api/_bot/datos.js).
+  if (leidas.r?.v !== 1 || !Array.isArray(leidas.r.preferencias)) {
+    apuntarSinGuardar({ fallo: FALLO_DATO.SERVIDOR, canal: op.canal, campo });
+    return { guardado: false, fallo: FALLO_DATO.SERVIDOR };
+  }
+  const at = op.pedida_at ?? new Date().toISOString();
+  const delante = op.canal === CANAL_DATO.APP;
+  const choques = choquesAlGuardar(op.preferencias, leidas.r.preferencias,{ autor: op.autor_user_id, papel, at, delante });
+  for (const c of choques) apuntarChoque(c, op.canal);
+  const { preferencias, apartadas } = trasLosChoques(op.preferencias, choques);
+  // Lo apartado se contesta (Lola lo dice o lo pregunta); si no queda nada que escribir, no hay operación.
+  const contestar = (res) => (choques.length ? { ...res, choques, apartadas } : res);
+  if (!preferencias.length && !(op.planes ?? []).length) return contestar({ guardado: false });
+  const { r, fallo } = await llamarRpc(RPC_PREFERENCIAS, { p_operacion: { ...op, preferencias, choques } }, { rpc, falloDeError, canal: op.canal, campo });
+  return contestar(fallo ? { guardado: false, fallo } : resultadoDeOperacion(r));
+}
+
+/**
+ * La línea de log de un choque resuelto, para contarlos por clase y respuesta (cifra del trozo 33):
+ * {"evento":"choque","momento":"al_guardar","clases":["deseo","deseo"],"criterio":"tiempo","respuesta":"aplicar_y_avisar","canal":"telegram"}.
+ * Sin valores ni ids: puede tocar la salud.
+ */
+export function apuntarChoque({ momento, clases, gana, criterio, respuesta }, canal = null) {
+  console.log(JSON.stringify({ evento: "choque", momento, clases, gana, criterio, respuesta, canal }));
 }
 
 /** Lo que se contesta de deshacer_operacion (0111): todo lo que devuelve, que no lleva `inversa` ni valores. */
