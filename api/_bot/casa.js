@@ -19,6 +19,7 @@ import { operacion, quienEscribe, TIPO_OPERACION, QUE_FUE, autorDelTurno, avisar
 import { leerFamilia, escribirPersonas, leerCasaConSobre, escribirDato, leerPreferencias, escribirPreferencias } from "./datos.js";
 import { conLibretaDeFilas, sinLibreta, cambiosDePreferencias } from "../../src/lib/libretaEnData.js";
 import { PreferenciaInvalida } from "../../src/lib/preferencias.js";
+import { textoDeChoque } from "../../src/lib/choques.js";
 import { cambiosDePersonas, conOrdenDeTodos, textosDeAvisos, revSiguiente } from "../../src/lib/personas.js";
 import { CANAL_DATO, REF_OPERACION } from "../../src/lib/vocabularios.js";
 import { CAMPOS_CON_AMBITO_CON_SOBRE } from "../../src/lib/estadoDeDato.js";
@@ -377,8 +378,15 @@ export async function guardarCasa(casa, { state = null, semana = null, activar =
     }
     if (preferencias.length) {
       const r = await escribirLibreta(casa, preferencias);
-      if (!r.guardado) sinGuardar.push(`las preferencias: ${r.fallo ?? r.error ?? r.estado ?? "sin motivo"}`);
-      else {
+      // Lo que chocó con lo que ya tenía la casa (método de choques): Lola lo dice o lo pregunta, no se calla.
+      for (const c of r.choques ?? []) {
+        const texto = textoDeChoque(c, preferencias[c.nueva]);
+        if (texto) avisarEnElChat(texto);
+      }
+      // Si no se escribió nada porque todo chocó, no es un fallo: el aviso de arriba dice qué pasó.
+      if (!r.guardado) {
+        if (r.fallo || !r.apartadas?.length) sinGuardar.push(`las preferencias: ${r.fallo ?? r.error ?? r.estado ?? "sin motivo"}`);
+      } else {
         const tras = seguida ? revSiguiente(botRev, r.rev) : null;
         if (tras != null) botRev = tras;
       }

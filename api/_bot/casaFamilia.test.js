@@ -530,6 +530,15 @@ describe("la libreta en filas de preferencia (trozo 14)", () => {
     expect(r.error).toMatch(/las preferencias: rpc_ausente/);
   });
 
+  it("cambiar a su contraria lo que dijo otra persona no se escribe: Lola lo dice y pregunta (método de choques, trozo 33)", async () => {
+    const HORNO = { ...FILA, id: "00000000-0000-4000-8000-0000000000f3", nivel: "plato", eje: "tecnica", medida: "valor", operador: "mas", valor: "horno", cantidad: 1, fuerza: "medio", dicho_by: "u2" };
+    responde(RUTA_PREFS, { status: 200, cuerpo: { v: 1, rev: 7, preferencias: [HORNO], planes: [] } });
+    const { r, avisos } = await enTurno(() => cambiarLibreta((c) => { c["tecnica.horno"] = { ...c["tecnica.horno"], valor: -1 }; }));
+    expect(r).toMatchObject({ ok: true });
+    expect(prefs()).toEqual([]);
+    expect(avisos).toEqual(["No he apuntado «menos horno»: otra persona de la casa dijo lo contrario; pregunta quién decide y no lo cambies sin su respuesta"]);
+  });
+
   it("las reglas de veto salen de sus filas; una nueva va a escribir_preferencias y al documento solo vuelven las presente", async () => {
     const [invitado, vieja] = [reglaDeInvitado({ dia: "Mié", comida: "Cena", hoy: "2026-11-02" }), nuevaRegla({ sujeto: { tipo: "casa" }, efecto: { tipo: "excluir", valor: "grupo:pollo" }, ambito: { dias: ["Mar"] }, hoy: "2026-11-02" })];
     responde(/household_state/, { status: 200, cuerpo: [{ state: { data: { ...DOCUMENTO.data, reglas: [invitado, vieja] } }, bot_rev: 7, updated_at: "2026-11-01T10:00:00Z" }] });
