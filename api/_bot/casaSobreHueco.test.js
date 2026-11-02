@@ -1,11 +1,14 @@
 import { describe, it, expect, vi } from "vitest";
 import { familiaDeFilas, RPC_FAMILIA, RPC_FICHA, fichaDePrueba, RPC_PREFERENCIAS_DE_CASA, preferenciasDeFilas } from "./familiaDePrueba.js";
 import { CANAL_DATO } from "../../src/lib/vocabularios.js";
+import { libretaVacia, poner } from "../../src/lib/notepad.js";
+import { filaDeApunte } from "../../src/lib/preferencias.js";
 
 // Trozo 18: un plato que cambia Lola lleva su sobre (sobreHueco.js); fuera de un turno, el del sistema.
 const delMotor = { canal: CANAL_DATO.SISTEMA, cuando: "2026-11-02", motivo: ["base.pescado"] };
 const plan = { g1: { "Lun-Comida": { recipeId: "merluza", sobre: delMotor }, "Lun-Cena": { recipeId: "tortilla", sobre: delMotor } } };
 const llamadas = [];
+let filasDePreferencias = [];
 vi.mock("./db.js", () => ({
   select: vi.fn(async (tabla) => {
     if (tabla === "household_state") return [{ state: { data: {} }, bot_rev: 1, updated_at: "2026-11-02T10:00:00Z" }];
@@ -22,7 +25,7 @@ vi.mock("./db.js", () => ({
     llamadas.push([fn, args]);
     if (fn === RPC_FAMILIA) return familiaDeFilas();
     if (fn === RPC_FICHA) return fichaDePrueba();
-    if (fn === RPC_PREFERENCIAS_DE_CASA) return preferenciasDeFilas();
+    if (fn === RPC_PREFERENCIAS_DE_CASA) return preferenciasDeFilas(filasDePreferencias);
     if (fn === "bot_save_casa") return { ok: true, bot_rev: 2 };
     return null;
   }),
@@ -60,8 +63,15 @@ describe("Lola sella el plato que cambia", () => {
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(new Date("2026-11-02T10:00:00Z"));
     try {
-      expect(await porQuePlato("h1", { dia: "2026-11-02", franja: "Comida" })).toMatch(/^Lo puso el menú automático \(2026-11-02\)\./);
+      // Sin la preferencia que pidió el plato, se dice que ya no está; con ella (una fila de verdad), qué pide.
+      filasDePreferencias = [];
+      expect(await porQuePlato("h1", { dia: "2026-11-02", franja: "Comida" })).toMatch(/^Lo puso el menú automático \(2026-11-02\)\..*una preferencia que ya no está/);
+      const apunte = poner(libretaVacia(), "base.pescado", 1, { origen: "texto", fecha: "2026-11-01" }).campos["base.pescado"];
+      filasDePreferencias = [{ ...filaDeApunte("base.pescado", apunte), id: "p1" }];
+      await cargarCasa("h1", { fresca: true }); // las herramientas que leen usan la casa leída hace poco
+      expect(await porQuePlato("h1", { dia: "2026-11-02", franja: "Comida" })).toBe("Lo puso el menú automático (2026-11-02). Lo pidió lo que hay apuntado en la casa: más pescado.");
     } finally {
+      filasDePreferencias = [];
       vi.useRealTimers();
     }
   });
