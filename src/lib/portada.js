@@ -7,9 +7,12 @@ export const PORTADA = Object.freeze({
   ALTA: "alta",
 });
 
-export function decidirPortada({ cargando, conSesion, nubeLista, hayFamilia, hayDestino, pidioEntrar, saliendo }) {
+export function decidirPortada({ cargando, conSesion, nubeLista, hayFamilia, hayDestino, pidioEntrar, saliendo, conLlave }) {
   // Borrando la cuenta la sesión sigue viva un momento: no se entra con ella.
   if (conSesion && saliendo) return PORTADA.ESPERAR;
+  // Con la familia en este dispositivo, Inicio al instante: la nube la pone al
+  // día por detrás. Un enlace o una llave de Lola pueden ser de otra cuenta.
+  if (hayFamilia && !hayDestino && !pidioEntrar && !conLlave) return PORTADA.INICIO;
   if (cargando) return PORTADA.ESPERAR;
   // Un enlace de Lola: con sesión lo resuelve su efecto; sin ella, hay que entrar.
   if (hayDestino) return conSesion ? PORTADA.ESPERAR : PORTADA.VER;
