@@ -257,6 +257,7 @@ export const NIVELES_PREFERENCIA = ["plato", "comida", "dia", "semana"];
 export const MEDIDAS_PREFERENCIA = ["valor", "suma", "media", "cuenta"];
 /** Cómo se compara: es, no es, al menos, como mucho, más o menos (los dos últimos ordenan, no cortan). */
 export const OPERADORES_PREFERENCIA = ["es", "no_es", "al_menos", "como_mucho", "mas", "menos"];
+export const OPERADOR_PREFERENCIA = porNombre(OPERADORES_PREFERENCIA);
 /** Cuánto manda: obligatoria (nunca se rompe) o una preferencia con peso alto, medio o bajo (el solver, trozo 31). */
 export const FUERZAS_PREFERENCIA = ["obligatoria", "alto", "medio", "bajo"];
 /**
