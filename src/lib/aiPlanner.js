@@ -8,6 +8,7 @@ import { HOLGURA_TOPES } from "./reparto.js";
 import { esNino } from "./stages.js";
 import { racionesDe } from "./raciones.js";
 import { topePorRacion } from "./presupuesto.js";
+import { cumplimientoDelGrupo, delGrupo } from "./cumplimiento.js";
 import { filterRecipes, filterGarnishes, decisionCatalog, filterOffMenuRecipes, recipeMatchesPreferType, recipeViolatesHardSafety } from "../utils/filterRecipes.js";
 import { esAnadido, topeDe } from "./cocinaTopes.js";
 import { ajustarCuota } from "./cuotaCocinas.js";
@@ -2234,7 +2235,24 @@ export async function generateMenuWithAI(dataOEntrada, { signal, pantryIngredien
     throw new AIPlannerError("La IA devolvió slots sin recetas asociadas.");
   }
 
-  return { plan, recipes: allRecipes };
+  return { plan, recipes: allRecipes, cumplimiento: cumplimientoDeLaSemana(entrada, results) };
+}
+
+/**
+ * El informe de cumplimiento de la semana (cumplimiento.js): por grupo, cada preferencia que le toca medida sobre lo
+ * que salió y lo que podía salir (su pool), y por hueco las que pidieron el plato. El menú del bebé no lo hace el
+ * solver ni lleva preferencias de la casa: no se mide.
+ */
+function cumplimientoDeLaSemana(entrada, results) {
+  const preferencias = [];
+  const porHueco = {};
+  for (const r of results) {
+    if (entrada.contexto[r.group.id]?.isBabyGroup) continue;
+    const c = cumplimientoDelGrupo(delGrupo(entrada.preferencias, r.group), r.slotAssignments, r.filteredPool);
+    preferencias.push(...c.preferencias.map((f) => ({ ...f, grupo: r.group.id })));
+    porHueco[r.group.id] = c.porHueco;
+  }
+  return { preferencias, porHueco };
 }
 
 /**
