@@ -59,6 +59,8 @@ import { precioDePlato, precioAlto } from "./presupuesto.js";
 // (entradaMotor.js) diga con qué peso cuenta cada uno.
 export const PESO_RECIENTE = 6e3;
 export const PESO_PRESUPUESTO = 8e3;
+// El orden del pool (por puesto) y el ruido de la semilla (< ruidoDe(pool)): un gusto pesa más que los dos (cumplimiento.test.js).
+export const PESO_ORDEN_POOL = 0.5, ruidoDe = (n) => Math.max(30, n);
 
 /**
  * ¿Está encendido? Apagado por defecto: el motor de siempre no cambia hasta
@@ -467,7 +469,7 @@ export function resolverMenu(slots, pool, {
   //    varias familias a la vez ganan siempre, semilla aparte. Para una casa
   //    que genera la misma semana una y otra vez, eso se ve como "siempre lo
   //    mismo". Entre semanas no pasa, porque poolForWeek parte el recetario.
-  const RUIDO = Math.max(30, pool.length);
+  const RUIDO = ruidoDe(pool.length);
 
   // Lo que saliste comiendo la semana pasada se va al final de su escalón.
   //
@@ -530,7 +532,7 @@ export function resolverMenu(slots, pool, {
           + (descartados?.has(r.id) ? PESO_DESCARTADO : 0)
           + costePresupuesto(r) * PESO_PRESUPUESTO
           + costeTiempo(r, slot) * 1e3
-          + indice.get(r.id) * 0.5
+          + indice.get(r.id) * PESO_ORDEN_POOL
           + (hash(r.id + slot.slotId, semilla) % RUIDO),
       }))
       .sort((a, b) => a.clave - b.clave)
