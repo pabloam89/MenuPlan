@@ -727,10 +727,12 @@ describe("con el estado de la ficha v2, el asistente sabe de dónde sale cada da
     expect(estadoDelCampo(PREGUNTAS_POR_ID.comidas, libretaVacia(), data, fichas(dato("a", "supuesto")))).toBe("fijado");
   });
 
-  it("el presupuesto (PR 8): «sin presupuesto» dicho es una respuesta; sin decir nada, no; el par viejo cuenta como dicho", () => {
+  it("el presupuesto (PR 8): «sin presupuesto» dicho es una respuesta; sin decir nada, no; el par viejo no cuenta (la 0112, aplicada)", () => {
     const p = PREGUNTAS_POR_ID.presupuesto;
-    expect(estadoDelCampo(p, libretaVacia(), {})).toBe("vacio");
-    for (const data of [{ presupuesto: null }, { presupuesto: 60 }, { hasBudget: false, budget: 80 }]) {
+    for (const data of [{}, { hasBudget: false, budget: 80 }, { hasBudget: true, budget: 60 }]) {
+      expect(estadoDelCampo(p, libretaVacia(), data), JSON.stringify(data)).toBe("vacio");
+    }
+    for (const data of [{ presupuesto: null }, { presupuesto: 60 }]) {
       expect(estadoDelCampo(p, libretaVacia(), data), JSON.stringify(data)).toBe("fijado");
     }
   });

@@ -357,7 +357,7 @@ describe("semanas por fecha y memoria entre menús (#958)", () => {
 
   it("con presupuesto, dice si la semana cabe; lo que no tiene precio no cuenta como 0 € (#958)", async () => {
     const conPres = structuredClone(casaVieja);
-    conPres.state.data = { ...conPres.state.data, hasBudget: true, budget: 60 };
+    conPres.state.data = { ...conPres.state.data, presupuesto: 60 };
     cargarCasa.mockResolvedValue(conPres);
     conCasa.mockResolvedValue({ ok: true });
     // Una receta de la familia: sin fila de precio. Suma 0 €, pero no deja decir «cabe».

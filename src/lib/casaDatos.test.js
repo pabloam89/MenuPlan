@@ -234,7 +234,8 @@ describe("guardar los datos con sobre", () => {
       { campo: "presupuesto", persona_id: null, valor: PRESUPUESTO_DE_PARTIDA, origen: "dicho" },
       { campo: "presupuesto", persona_id: null, valor: null, origen: "dicho" },
     ]);
-    expect(sinCasa(encendido, carga)).toEqual({ reglas: [] });
+    // El par viejo se queda donde estaba, sin lector: no se reescribe el documento por él.
+    expect(sinCasa(encendido, carga)).toEqual({ hasBudget: true, budget: 90, reglas: [] });
   });
 
   /** Una cola que contesta guardado con cada versión de `revs`, en orden. */
