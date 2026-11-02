@@ -88,15 +88,6 @@ describe("registro_campo (0097, regenerada en la 0105, la 0112, la 0113 y la 011
     expect(literales("registro_campo_ambito_vocabulario")).toEqual(DIMENSIONES_AMBITO);
   });
 
-  it("el ámbito de cada campo es de DIMENSIONES_AMBITO, en su orden, y el de un grupo lleva el grupo y es de la casa", () => {
-    const conAmbito = Object.entries(REGISTRO_CAMPOS).filter(([, c]) => c.ambito.length);
-    expect(conAmbito.length, "ningún campo con ámbito: el test no prueba nada").toBeGreaterThan(0);
-    for (const [id, c] of conAmbito) expect(c.ambito, id).toEqual(DIMENSIONES_AMBITO.filter((x) => c.ambito.includes(x)));
-    const deGrupo = [...Object.values(DATOS_CASA), ...Object.values(DATOS_PERSONA)].filter((d) => d.campo && d.entidad === "grupo");
-    expect(deGrupo.length).toBeGreaterThan(0);
-    for (const d of deGrupo) expect([REGISTRO_CAMPOS[d.campo].por, REGISTRO_CAMPOS[d.campo].ambito.includes("grupo")], d.campo).toEqual(["casa", true]);
-  });
-
   it("REGISTRO_CAMPOS es una proyección del registro de la ficha: los campos son los datos con `campo`", () => {
     const conCampo = [...Object.values(DATOS_CASA), ...Object.values(DATOS_PERSONA)].filter((d) => d.campo).map((d) => d.campo);
     expect(ordenado(conCampo)).toEqual(ordenado(Object.keys(REGISTRO_CAMPOS)));

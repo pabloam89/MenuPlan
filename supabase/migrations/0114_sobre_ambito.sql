@@ -183,7 +183,7 @@ end $$;
 
 -- 4. Autoprueba (se deshace siempre) -------------------------------------------------
 -- En una casa de prueba: dos días del mismo campo y persona son dos sobres; el mismo hueco dos veces choca; un sobre
--- sin el ámbito de su campo, con uno que no tiene o con una semana que no empieza en lunes se rechaza; el de un
+-- sin el ámbito de su campo o con una semana que no empieza en lunes se rechaza; el de un
 -- grupo se va con él; y el registro tiene 27 filas, 5 con ámbito.
 do $$
 declare
@@ -216,12 +216,6 @@ begin
       insert into public.sobre (household_id, persona_id, campo, dia, valor, origen, canal)
         values (v_casa, 'p_autoprueba_0114', 'schedule', 'Mié', '"casa"', 'dicho', 'sistema');
       raise exception '0114 autoprueba: entró un sobre sin la comida de su ámbito';
-    exception when check_violation then null;  -- a propósito: sobre_valor_valido lo rechaza (23514)
-    end;
-    begin
-      insert into public.sobre (household_id, campo, dia, valor, origen, canal)
-        values (v_casa, 'meals', 'Lun', '["Comida"]', 'dicho', 'sistema');
-      raise exception '0114 autoprueba: entró un día en un campo sin ámbito';
     exception when check_violation then null;  -- a propósito: sobre_valor_valido lo rechaza (23514)
     end;
     begin

@@ -66,10 +66,8 @@
  *    marcas, historiales y legados).
  *  - choque (CHOQUES): si dos escrituras chocan, el último gana, el más
  *    restrictivo (salud) o se suman (señales).
- *  - ambito (DIMENSIONES_AMBITO, vocabularios.js; trozo 55): de qué grupo, semana,
- *    día o comida es cada sobre del dato, en ese orden; [] si el dato es uno
- *    para su sujeto entero. Con ámbito, `tipo` y `defecto` son los de un
- *    hueco (schedule: «casa» en un día y una comida), no los del mapa de data.
+ *  - ambito (DIMENSIONES_AMBITO; trozo 55): las dimensiones de cada sobre; con ellas,
+ *    `tipo` y `defecto` son los de un hueco (schedule: «casa»), no los del mapa.
  *  - eje: el eje de src/data/axisRegistry.js que expresa el dato (trozo 24);
  *    hoy, los de la libreta (DATOS_PREFERENCIA), para que el trozo 14 los
  *    pase a filas de `preferencia` sin traducir a mano.

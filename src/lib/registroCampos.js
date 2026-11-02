@@ -18,9 +18,8 @@
  *  - por (POR): si el dato es de cada persona o de la casa entera; es la
  *    entidad del dato, que para un campo solo puede ser una de esas dos, o
  *    un grupo: el de un grupo es de la casa, con el grupo en su ámbito.
- *  - ambito (DIMENSIONES_AMBITO; 0114, trozo 55): las dimensiones de cada
- *    sobre del campo, tal cual del dato y en el orden de la lista; las lee
- *    sobre_valor_valido, que exige que el sobre las traiga todas y ninguna más.
+ *  - ambito (DIMENSIONES_AMBITO; 0114): las dimensiones de cada sobre, en su
+ *    orden; sobre_valor_valido exige que el sobre las traiga todas y ninguna más.
  *
  * Añadir un campo es poner `campo` (y su política) a un dato del registro y
  * escribir la migración que lo lleve a registro_campo: el test de paridad
