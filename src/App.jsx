@@ -228,7 +228,7 @@ import { RASTRO, MOTIVO_CAMBIO, ORIGEN_RECETA, idBase } from "./lib/rastro.js";
 /** La receta de un hueco, para las señales (trozo 15): la registrada o, sin ella, la del catálogo por su id. */
 const recetaDelPlato = (id) => (id ? RECIPES_BY_ID[id] ?? recipeCatalogById[idBase(id)] ?? null : null);
 import { registrarDescartes, recetasDelPlan, refrescarDescartadas } from "./lib/descartes.js";
-import { ALCANCE_DESCARTE } from "./lib/vocabularios.js";
+import { ALCANCE_DESCARTE, CANAL_DATO } from "./lib/vocabularios.js";
 import { barrerDias } from "./lib/barridoDia.js";
 import { loadPantry, loadLocalPantry, mergeLocalPantryIntoCloud, clearLocalPantry, clearHouseholdPantry, addPantryItems, addLocalPantryItems, removePantryItem, removeLocalPantryItem, setPantryItemQty, setLocalPantryItemQty } from "./lib/pantry.js";
 import { toCanonicalStockQty } from "./lib/kitchenUnits.js";
@@ -2024,8 +2024,12 @@ export default function App() {
   // menú, no el de quien edita (ver rowToMenuSummary).
   useEffect(() => {
     if (householdReadOnly || (user?.id && !cloudReadyRef.current)) return;
-    const r = semanaVivaPorGuardar(data.menus, data.activeMenuId, data.menuWeek?.offset, menuPlan, shopping);
+    // Un plato cambiado a mano lleva su sobre: la app, quién y cuándo (sobreHueco.js, trozo 18).
+    const sobre = { canal: CANAL_DATO.APP, cuando: new Date().toISOString(), quien: user?.id ?? null };
+    const r = semanaVivaPorGuardar(data.menus, data.activeMenuId, data.menuWeek?.offset, menuPlan, shopping, sobre);
     if (!r) return;
+    // Si se selló algún hueco, el plan vivo pasa a ser el sellado (la vuelta siguiente ya no ve diferencia).
+    if (r.week.plan !== menuPlan) setMenuPlan(r.week.plan);
     const menuId = data.activeMenuId;
     setData((d) => (d.activeMenuId === menuId && d.menus === data.menus ? { ...d, menus: r.menus } : d));
     // Sin sesión basta con el archivo local: al cambiar de semana el plan se
