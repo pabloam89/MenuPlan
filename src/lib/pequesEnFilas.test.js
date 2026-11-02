@@ -1,7 +1,9 @@
 /** Cómo comen los peques (`kidDinnerConfig.byMember`) en filas de preferencia (trozo 14 de #1037). */
 import { describe, it, expect } from "vitest";
 import { filasDeNino, pequesDeFilas, cambiosDePeques } from "./pequesEnFilas.js";
-import { PreferenciaInvalida } from "./preferencias.js";
+import { PreferenciaInvalida, libretaDeFilas } from "./preferencias.js";
+import { reglasDeFilas } from "./reglasEnFilas.js";
+import { estilosDeFilas, cambiosDeEstilos } from "./estiloEnFilas.js";
 import { normalizeKidDinnerConfig, KID_DINNER_DEFAULTS } from "./kidsMenu.js";
 import { EJES } from "../data/axisRegistry.js";
 
@@ -52,6 +54,14 @@ describe("los peques en filas", () => {
     expect(cambios).toEqual([expect.objectContaining({ persona_id: ANA, eje: "comeConLaFamilia", valor: false, dias: ["Sáb", "Dom"] }), { id: vieja.id, borrar: true }]);
     expect(cambiosDePeques(antes, structuredClone(antes), filas, MIEMBROS)).toEqual([]);
     expect(cambiosDePeques(antes, undefined, filas, MIEMBROS)).toEqual([]);
+  });
+
+  it("ni la libreta ni las reglas leen las filas de los peques ni las del estilo (cada fila, un solo lector)", () => {
+    const estilo = enTabla(cambiosDeEstilos({}, { __global__: "ligero" }, []));
+    const filas = [...enTabla(filasDeNino(ANA, ANA_CFG)), ...estilo];
+    expect(libretaDeFilas(filas, { grupos: [] }).campos).toEqual({});
+    expect(reglasDeFilas(filas, { grupos: [], miembros: MIEMBROS })).toEqual([]);
+    expect([pequesDeFilas(estilo), estilosDeFilas(filas)]).toEqual([{ byMember: {} }, { __global__: "ligero" }]);
   });
 
   it("quitar un niño de la config borra todas sus filas; uno que no es de la casa no se guarda", () => {
