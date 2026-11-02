@@ -28,6 +28,7 @@ import { recetasPropiasDeCasa, quitarRecetaGuardada } from "./propias.js";
 import { menuActivoDe } from "../../src/lib/menuActivo.js";
 import { isoDeCasa } from "../../src/lib/dias.js";
 import { favoritasDeFilas, votosDeFavoritas, descartesDeFilas } from "../../src/lib/recetasDeLaCasa.js";
+import { conCompraQueSeVe, semanaParaGuardar } from "./compraDeSemana.js";
 
 // En hora de España: a las 00:30 del jueves, «hoy» es jueves, no el miércoles de UTC.
 export const hoyISO = () => isoDeCasa();
@@ -147,7 +148,8 @@ async function leerCasa(householdId) {
     ?? semanas[0]
     ?? null;
 
-  return {
+  // La compra de cada semana que guarda marcas, como se ve: derivada del menú con las marcas encima (trozo 18).
+  return conCompraQueSeVe({
     householdId,
     botRev: Number(fila.bot_rev ?? 0),
     updatedAt: fila.updated_at,
@@ -169,7 +171,7 @@ async function leerCasa(householdId) {
     semana,
     semanas,
     semanaViva: semana?.weekStart ?? null,
-  };
+  });
 }
 
 /**
@@ -345,8 +347,10 @@ export async function guardarCasa(casa, { state = null, semana = null, activar =
   const falta = cambios || datos.length || preferencias.length ? faltaParaEscribir() : null;
   if (falta) return { ok: false, error: falta };
 
-  const week = semana && casa.semana
-    ? { menu_id: casa.semana.menuId, week_start: casa.semana.weekStart, ...semana }
+  // Una semana que guarda marcas vuelve a guardar marcas, no la lista que se ve (trozo 18).
+  const semanaGuardada = semana && casa.semana ? await semanaParaGuardar(casa, semana) : null;
+  const week = semanaGuardada
+    ? { menu_id: casa.semana.menuId, week_start: casa.semana.weekStart, ...semanaGuardada }
     : null;
   const r = await rpc(activar ? "bot_save_casa_activando" : "bot_save_casa", {
     p_household_id: casa.householdId,

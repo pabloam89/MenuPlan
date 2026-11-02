@@ -221,6 +221,14 @@ export const RESPUESTA_CHOQUE = porNombre(RESPUESTAS_CHOQUE);
 export const MOMENTOS_CHOQUE = ["al_guardar", "al_generar", "al_ejecutar", "al_pasar_el_tiempo"];
 export const MOMENTO_CHOQUE = porNombre(MOMENTOS_CHOQUE);
 
+/**
+ * Las marcas de la familia sobre un artículo de la compra (trozo 18, src/lib/compraMarcas.js): la lista sale del menú
+ * y solo se guarda esto. `anadido`: apuntado a mano; `comprado`: tachado; `en_casa`: no hace falta comprarlo;
+ * `quitado`: el menú lo pide, pero la familia lo quitó de la lista.
+ */
+export const MARCAS_COMPRA = ["anadido", "comprado", "en_casa", "quitado"];
+export const MARCA_COMPRA = porNombre(MARCAS_COMPRA);
+
 // ── Los del eje de la ficha (plan fichas con estado, trozo 5): columnas de registroFicha.js; la 0105 los lleva a registro_campo.
 
 /**
@@ -479,6 +487,7 @@ export const VOCABULARIOS = Object.freeze({
   criterios_choque: CRITERIOS_CHOQUE,
   respuestas_choque: RESPUESTAS_CHOQUE,
   momentos_choque: MOMENTOS_CHOQUE,
+  marcas_compra: MARCAS_COMPRA,
   origenes_de_la_familia: ORIGENES_DE_LA_FAMILIA,
   estados_dato: ESTADOS_DATO,
   fichas: FICHAS,
