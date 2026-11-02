@@ -9885,15 +9885,18 @@ const PANTRY_MODES = [
   },
 ];
 
-export function OnboardingPantryMode({ data, setData, onNext, onBack, onFinish, onReset, finishLabel }) {
+export function OnboardingPantryMode({ setData, onNext, onBack, onFinish, onReset, finishLabel }) {
   // Si el menú parte de la despensa no se guarda: es usaDespensa (src/lib/modoDespensa.js).
-  const elegir = (mode) =>
-    setData((d) => ({ ...d, pantryMode: mode, pantryModeSet: true }));
-
-  // Sin elegir todavía no se marca ninguna: `pantryMode` nace en "off"
-  // (INITIAL_DATA), y pintar "Que no cuente" como si la hubieras elegido tú
-  // sería ponerte una respuesta en la boca.
-  const elegido = data.pantryModeSet === true ? data.pantryMode : null;
+  // Sin elegir en este paso no se marca ninguna: `pantryMode` nace con el
+  // defecto (INITIAL_DATA), y pintarlo como si lo hubieras elegido tú sería
+  // ponerte una respuesta en la boca. Lo elegido se guarda en `data`; qué
+  // card se tocó aquí es de la pantalla, no de la casa (ya no hay marca
+  // pantryModeSet: el sobre dice si alguien lo dijo, trozo 12 de #1037).
+  const [elegido, setElegido] = useState(null);
+  const elegir = (mode) => {
+    setElegido(mode);
+    setData((d) => ({ ...d, pantryMode: mode }));
+  };
 
   return (
     <OnboardingShell

@@ -11,7 +11,7 @@ import { SUFIJO_CLAVE_PERSONA, RPC_OPERACION } from "../../src/lib/operaciones/t
 import { CAMPOS_CASA_CON_SOBRE } from "../../src/lib/estadoDeDato.js";
 import { RPC_FICHA, fichaV1 } from "./familiaDePrueba.js";
 import { PREGUNTAS_POR_ID } from "../../src/lib/wizardRegistry.js";
-import { aplicarCompra } from "./ajustes.js";
+import { aplicarCompra, aplicarModoDespensa } from "./ajustes.js";
 import { leerPresupuesto } from "../../src/lib/presupuestoCasa.js";
 
 const CASA = "3f2b8c1e-7a4d-4e0b-9c5a-1d2e3f4a5b6c";
@@ -343,6 +343,20 @@ describe("los datos de la casa con sobre (trozo 12)", () => {
     expect(escrituras().filter((l) => RUTA_OPERACION.test(l.ruta)).map((l) => l.cuerpo.p_operacion.datos[0])).toEqual([
       { campo: "presupuesto", persona_id: null, valor: null, origen: "dicho" },
     ]);
+  });
+
+  it("el modo de la despensa (PR 9): con sobre, el «off» viejo del documento no cuenta; «deja de usar lo de casa» va como dicho y sin marca", async () => {
+    respuestas.unshift([/household_state/, { status: 200, cuerpo: [{ state: { data: { ...DOCUMENTO.data, pantryMode: "off", pantryModeSet: false } }, bot_rev: 7, updated_at: "2026-11-01T10:00:00Z" }] }]);
+    responde(RUTA_FICHA, { status: 200, cuerpo: fichaV2(porDefecto("pantryMode", "only")) });
+    const casa = await cargarCasa(CASA);
+    expect(casa.state.data.pantryMode).toBe("only");
+    olvidarCasa(CASA);
+    const { r } = await enTurno(() => conCasa(CASA, async (c) => ({ state: { ...c.state, data: aplicarModoDespensa(c.state.data, "off").data } })));
+    const [doc, op] = escrituras();
+    expect(op.cuerpo.p_operacion.datos).toEqual([{ campo: "pantryMode", persona_id: null, valor: "off", origen: "dicho" }]);
+    expect(doc.cuerpo.p_state.data).not.toHaveProperty("pantryMode");
+    expect(doc.cuerpo.p_state.data).not.toHaveProperty("pantryModeSet", true);
+    expect(r).toMatchObject({ ok: true, botRev: 9 });
   });
 
   it("sin la 0112 (la ficha no trae la ficha Casa), con la v1 o sin la RPC, del documento y se guarda en él", async () => {

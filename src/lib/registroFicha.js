@@ -298,7 +298,6 @@ export const DATOS_CASA = Object.freeze({
   // ── Despensa ──
   pantryMode: dato({ tema: "despensa", ficha: "casa", tipo: "enum", vocabulario: "modo_despensa", defecto: "only", peso_menu: 10, ...deLaCasa("pantryMode"), motivo: "cómo usa la casa su despensa es de la casa (plan, ficha Casa)" }),
   useHomeStock: dato({ entidad: "despensa", tema: "despensa", tipo: "bool", ...derivado("pantryMode", "src/lib/modoDespensa.js:usaDespensa"), vive: "calculado", motivo: "booleano viejo de pantryMode: ya no se guarda (trozo 12); la app y Lola lo quitan de las casas viejas al guardar" }),
-  pantryModeSet: dato({ entidad: "despensa", tema: "despensa", tipo: "bool", ...marca("pantryMode"), motivo: "si el modo lo eligió la familia; App.jsx respeta un «off» elegido" }),
   pantryHasItems: dato({ entidad: "despensa", tema: "despensa", tipo: "bool", ...marca(), motivo: "respuesta del asistente («¿tienes algo en casa?») que decide si se salta el paso de la despensa" }),
   pantryPrefs: dato({ entidad: "despensa", tema: "despensa", tipo: "objeto" }),
   pantryPrefsSet: dato({ entidad: "despensa", tema: "despensa", tipo: "bool", ...marca("pantryPrefs") }),

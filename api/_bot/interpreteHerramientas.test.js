@@ -119,8 +119,8 @@ describe("trastos y súper: sumar y quitar, no sustituir (#958)", () => {
 
 describe("ajustar_uso_despensa: los cuatro modos (#958)", () => {
   it("«deja de usar lo de casa» es off, y useHomeStock ya no se guarda (es usaDespensa, modoDespensa.js)", () => {
-    expect(aplicarModoDespensa({}, "off").data).toEqual({ pantryMode: "off", pantryModeSet: true });
-    expect(aplicarModoDespensa({ useHomeStock: true }, "prefer").data).toEqual({ pantryMode: "prefer", pantryModeSet: true });
+    expect(aplicarModoDespensa({}, "off").data).toEqual({ pantryMode: "off" });
+    expect(aplicarModoDespensa({ useHomeStock: true }, "prefer").data).toEqual({ pantryMode: "prefer" });
     expect(aplicarModoDespensa({}, "nada").data).toBeUndefined();
   });
 
