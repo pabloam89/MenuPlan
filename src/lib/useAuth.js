@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "./supabase.js";
 import { upsertUserProfile } from "./analytics.js";
-import { clearState } from "./storage.js";
+import { clearState, congelarCopia } from "./storage.js";
 import { traeLlaveDeLola } from "./llaveLola.js";
 import { rememberAppleRefreshToken } from "./appleTokens.js";
 import { isNativeApp } from "./apiUrl.js";
@@ -35,6 +35,7 @@ const esCuentaBorrada = (error) =>
   error?.code === "user_not_found" || (error?.status === 403 && /sub claim|does not exist/i.test(error?.message ?? ""));
 
 function recargarLimpio() {
+  congelarCopia();
   olvidarCopia();
   window.location.replace(window.location.pathname + window.location.search + window.location.hash);
 }
@@ -65,7 +66,7 @@ export function useAuth() {
 
     supabase.auth
       .getSession()
-      .then(async ({ data, error: fallo }) => {
+      .then(({ data, error: fallo }) => {
         if (!mounted) return;
         const s = data?.session ?? null;
         if (!CON_LLAVE) {
@@ -76,15 +77,15 @@ export function useAuth() {
           if (!s && fallo?.name !== "AuthRetryableFetchError" && leerMarca()) return recargarLimpio();
           // Con sesión, se pregunta al servidor: un token aún vigente de una
           // cuenta borrada sigue pareciendo bueno aquí. Sin red, no se toca nada.
+          // Por detrás: la app no espera a esta vuelta al servidor para abrir.
           if (s) {
-            const { error } = await supabase.auth.getUser().catch((e) => ({ error: e }));
-            if (esCuentaBorrada(error)) {
+            supabase.auth.getUser().catch((e) => ({ error: e })).then(async ({ error }) => {
+              if (!esCuentaBorrada(error)) return;
               await supabase.auth.signOut({ scope: "local" }).catch(() => {});
-              return recargarLimpio();
-            }
+              recargarLimpio();
+            });
           }
         }
-        if (!mounted) return;
         setSession(s);
         setLoading(false);
       })
