@@ -25,7 +25,8 @@
 import { z } from "zod";
 import { VERBOS, AMBITOS, SERVICIOS, CAMPOS_POR_ID, valorValido, rutaDe } from "./notepadFields.js";
 import { poner, valorDe } from "./notepad.js";
-import { pareceAlergia } from "./alergias.js";
+// De alergiasBase.js y no de alergias.js: este módulo lo carga Lola (vía libretaEnData.js), y alergias.js arrastra .jsx.
+import { pareceAlergia } from "./alergiasBase.js";
 
 /** Los tres desenlaces posibles de una frase. */
 export const TIPOS = ["propuestas", "limites", "no_entendido"];
