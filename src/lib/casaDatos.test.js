@@ -112,7 +112,7 @@ describe("el documento y los datos con sobre", () => {
     expect(conCasaLeida(doc, carga)).toEqual({ wantsPriceEstimates: false, hasBudget: true });
     expect(sinCasa(doc, carga)).toEqual({ hasBudget: true });
   });
-  it("sin él (0112 sin aplicar), el documento como hasta ahora", () => {
+  it("sin valores leídos (en desarrollo sin api/), el documento tal cual", () => {
     const carga = { valores: {} };
     expect(conCasaLeida(doc, carga)).toEqual(doc);
     expect(sinCasa(doc, carga)).toEqual(doc);
@@ -130,7 +130,7 @@ describe("guardar los datos con sobre", () => {
     expect(cola.escribir.mock.calls).toEqual([[{ casa: CASA, accion: "guardar_casa", ref_id: REF_CASA, dato: { campo: "wantsPriceEstimates", valor: true, origen: "dicho" } }]]);
   });
 
-  it("sin el dato en su sobre (0112 sin aplicar), nada va a la cola", async () => {
+  it("sin valores leídos (en desarrollo sin api/), nada va a la cola", async () => {
     const cola = colaFalsa();
     expect(await casaDeCasa({ casa: CASA, valores: {}, cola }).guardar({ wantsPriceEstimates: true }, 4)).toEqual({ ok: true, enviado: false });
     expect(cola.escribir).not.toHaveBeenCalled();
