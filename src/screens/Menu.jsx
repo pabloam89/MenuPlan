@@ -1,6 +1,10 @@
+import { porQueElPlato } from "../lib/sobreHueco.js";
+import { preferenciasDelMotor, textoDe } from "../lib/cumplimiento.js";
+import { color as colores, espaciado, tipografia } from "../design/tokens.js";
 import { cloneElement, createContext, Fragment, memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useZoomPellizco } from "../lib/useZoomPellizco.js";
 import { HuecosVivosContext } from "../lib/huecosVivos.js";
+import { CLAVE_CASA } from "../lib/estiloEnFilas.js";
 import { createPortal } from "react-dom";
 import {
   AlertTriangle,
@@ -935,7 +939,7 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
   const [activeStyleGroupId, setActiveStyleGroupId] = useState(
     () => styleableGroups[0]?.id ?? null,
   );
-  const styleKey = activeStyleGroupId ?? "__global__";
+  const styleKey = activeStyleGroupId ?? CLAVE_CASA;
   const activeStyleGroup = styleableGroups.find((g) => g.id === activeStyleGroupId) ?? null;
   const slotBudget = useGroupSlotBudget(data, activeStyleGroup);
   const activeStyle = data.mealStyleByGroup?.[styleKey] ?? DEFAULT_MEAL_STYLE;
@@ -7889,6 +7893,14 @@ export function DishDetail({
               }}
               onClose={() => setScopeOpen(false)}
             />
+          )}
+
+          {/* Por qué está este plato (trozo 18): quién lo puso, cuándo y, si fue el menú automático, qué lo pidió. Solo
+              desde un hueco del menú: en el recetario no hay hueco. */}
+          {!browse && slot?.sobre && (
+            <p style={{ margin: 0, marginBottom: espaciado["esp-12"], fontSize: tipografia["paso-12"], color: colores["tinta-tenue"] }}>
+              {porQueElPlato(slot, preferenciasDelMotor(data ?? {}), textoDe)}
+            </p>
           )}
 
           {/* Ficha rápida: comensales · minutos · dificultad · alérgenos. Sin
