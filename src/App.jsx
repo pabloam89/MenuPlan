@@ -57,7 +57,7 @@ const HouseholdsScreen = lazy(() => import("./screens/HouseholdsScreen.jsx").the
 const BibliotecaScreen = lazy(() => import("./screens/BibliotecaScreen.jsx").then(m => ({ default: m.BibliotecaScreen })));
 const UserStatsScreen = lazy(() => import("./screens/UserStatsScreen.jsx").then(m => ({ default: m.UserStatsScreen })));
 const MenuPeek = lazy(() => import("./screens/FeedScreen.jsx").then(m => ({ default: m.MenuPeek })));
-import { generateMenuWithAI, pickCatalogReplacement, catalogToFrontendRecipe, activeDiscardIds, createPlannerStats } from "./lib/aiPlanner.js";
+import { generateMenuWithAI, pickCatalogReplacement, motivoDelChoque, catalogToFrontendRecipe, activeDiscardIds, createPlannerStats } from "./lib/aiPlanner.js";
 import { sugerenciasDeHueco } from "./lib/sugerenciasDeHueco.js";
 import { minimosQueFaltan } from "./lib/minimosParaGenerar.js";
 import { resolvePlannerModel, resolvePlannerFormat } from "./lib/aiModels.js";
@@ -5626,7 +5626,12 @@ export default function App() {
       const r = pickCatalogReplacement(data, menuPlan, { groupId: d.gid, day: d.day, meal: d.meal, course: d.course, forcedRecipe: catalogRecipe });
       if (r) colocados.push({ ...d, ...r });
     }
-    if (colocados.length === 0) { showToast("No se pudo colocar esa receta aquí"); setSlotPicker(null); return; }
+    if (colocados.length === 0) {
+      const grupo = (data.groups ?? []).find((g) => g.id === destinos[0].gid);
+      showToast(motivoDelChoque(catalogRecipe, data, grupo, meal) ?? "No se pudo colocar esa receta aquí");
+      setSlotPicker(null);
+      return;
+    }
     const frontendRecipe = colocados[0].frontendRecipe;
     registerRecipes(colocados.map((c) => c.frontendRecipe));
     setAiRecipes((cur) => {
