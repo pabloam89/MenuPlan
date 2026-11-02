@@ -7336,8 +7336,9 @@ const GOAL_ICON_MAP = {
   variado: Shuffle,
 };
 
+// La casa entera va con la misma clave que el estilo de comida (CLAVE_CASA, estiloEnFilas.js).
 function goalsManualKey(subjectId) {
-  return subjectId ?? "__global__";
+  return subjectId ?? CLAVE_CASA;
 }
 
 const BASE_KCAL = 2000;
