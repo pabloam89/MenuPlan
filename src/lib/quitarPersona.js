@@ -24,7 +24,7 @@ export const QUE_LIMPIA = Object.freeze(["schedule", "kid_dinner", "cole", "cuen
 
 /** Los mapas por id de grupo, sacados del registro: un dato nuevo así entra solo. */
 export const MAPAS_POR_GRUPO = Object.freeze(
-  Object.entries(DATOS_CASA).filter(([, d]) => d.entidad === "grupo" && d.tipo === "mapa" && d.vive === "data").map(([k]) => k),
+  Object.entries(DATOS_CASA).filter(([, d]) => d.entidad === "grupo" && (d.tipo === "mapa" || d.ambito.includes("grupo")) && d.vive === "data").map(([k]) => k),
 );
 
 const esObjeto = (o) => Boolean(o) && typeof o === "object" && !Array.isArray(o);
