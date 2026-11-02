@@ -12,6 +12,7 @@ import { poner, proyectar, valorDe, dependeDelDia, normalizar } from "./notepad.
 import { hayTandasPedidas, abrirFindeParaTanda } from "./cookTime.js";
 import { freqsEfectivos, presupuestoDeTopes, repartoConFreq, repartoVisible, rutaDeReparto } from "./reparto.js";
 import { weeklySlotBudget } from "./planner.js";
+import { libretaDeFilas } from "./preferencias.js";
 
 /** El reparto que se ve (y que ajusta el panel), a partir de la libreta. */
 export function repartoDeLaCasa(data, libreta) {
@@ -63,6 +64,7 @@ export function dataConLibreta(data, libreta, { hoy } = {}) {
     // Las tandas pedidas, aparte de los sesgos: es una CUENTA que el validador
     // exige como minimo (regla 11b), no una preferencia que ordena candidatos.
     tanda: vista.tanda ?? {},
+    tandaPlatos: vista.tandaPlatos ?? {},
     favoritos: vista.favoritos ?? [],
     // Los vetos NO se leen de aquí: lib/vetos.js los calcula de la libreta al
     // leer, con fecha. Se sigue escribiendo SOLO para los clientes con el
@@ -139,4 +141,26 @@ export function conTandaPedida(data, ruta, n) {
 export function dataVigente(data, hoy) {
   if (!hoy || !data?.notepad || !dependeDelDia(data.notepad)) return data;
   return dataConLibreta(data, data.notepad, { hoy });
+}
+
+/**
+ * Lo que la libreta pone en `data`: ella y su proyección (dataConLibreta, conTandaPedida). Con la libreta en filas de
+ * preferencia (0109, trozo 14) nada de esto va al documento: se calcula al leer (conLibretaDeFilas) y se quita al
+ * guardar (sinLibreta). El test comprueba que dataConLibreta no pone ninguna otra.
+ */
+export const CLAVES_DE_LA_LIBRETA = Object.freeze(["notepad", "freqs", "reparto", "freqsPedidos", "cocinas", "sesgos", "tanda", "tandaPlatos", "favoritos", "excluidos"]);
+
+/**
+ * Pura. `data` con la libreta de sus filas de preferencia (preferencias_de_casa, 0109) y su proyección, en vez de lo
+ * que el documento aún guarde de ella (sin convivencia: una casa sin filas estrena la libreta vacía). Los ámbitos de
+ * la libreta (niños, adultos) salen de los grupos de `data`.
+ */
+export function conLibretaDeFilas(data, filas, { hoy } = {}) {
+  return dataConLibreta(data, libretaDeFilas(filas, { grupos: data?.groups }), { hoy });
+}
+
+/** Pura. Lo que va al documento: sin la libreta ni su proyección (viven en sus filas). */
+export function sinLibreta(data) {
+  if (!data) return data;
+  return Object.fromEntries(Object.entries(data).filter(([k]) => !CLAVES_DE_LA_LIBRETA.includes(k)));
 }
