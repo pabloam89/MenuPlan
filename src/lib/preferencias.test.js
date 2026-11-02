@@ -98,6 +98,8 @@ describe("la libreta como preferencias (0109, trozo 14)", () => {
 
   it("lo que la libreta no puede decir falla en alto: un ámbito sin su grupo en la casa, un valor que no es número", () => {
     expect(() => filaDeApunte("freqs.carne.@bebes", { valor: 1, origen: "texto" }, { grupos: GRUPOS })).toThrow(PreferenciaInvalida);
+    const dosDeNinos = [...GRUPOS, { id: "g-ninos-2", label: "Niños" }];
+    expect(() => filaDeApunte("freqs.carne.@ninos", { valor: 1, origen: "texto" }, { grupos: dosDeNinos })).toThrow(/2 grupos de ninos/);
     expect(() => filaDeApunte("freqs.carne", { valor: "mucho", origen: "texto" }, { grupos: GRUPOS })).toThrow(PreferenciaInvalida);
     expect(() => filaDeApunte("nada.carne", { valor: 1, origen: "texto" })).toThrow(PreferenciaInvalida);
   });

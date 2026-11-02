@@ -61,12 +61,16 @@ function valorDelEje(eje, valorId) {
 }
 const valorIdDelEje = (valor) => (typeof valor === "boolean" ? (valor ? "si" : "no") : String(valor));
 
-/** El grupo de la casa que es un ámbito de la libreta (niños, adultos, bebés), por su tipo; el primero si hay varios. */
+/**
+ * El grupo de la casa que es un ámbito de la libreta (niños, adultos, bebés), por su tipo. Sin ninguno, o con
+ * varios (una fila lleva un solo grupo y no se sabe a cuál va), lanza PreferenciaInvalida.
+ */
 function grupoDeAmbito(ambito, grupos) {
   const tipo = TIPO_DE_AMBITO[ambito];
-  const g = (grupos ?? []).find((x) => tipoDeGrupo(x) === tipo);
-  if (!g) throw new PreferenciaInvalida(`la casa no tiene un grupo de ${ambito}`);
-  return g.id;
+  const deTipo = (grupos ?? []).filter((x) => tipoDeGrupo(x) === tipo);
+  if (!deTipo.length) throw new PreferenciaInvalida(`la casa no tiene un grupo de ${ambito}`);
+  if (deTipo.length > 1) throw new PreferenciaInvalida(`la casa tiene ${deTipo.length} grupos de ${ambito} y no sé a cuál va`);
+  return deTipo[0].id;
 }
 
 /** El valor de la libreta → { operador, valor, cantidad } de la fila, o null si no se guarda (una marca falsa). */
