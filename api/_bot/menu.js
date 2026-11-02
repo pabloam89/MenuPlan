@@ -40,7 +40,7 @@ import { etapaDe } from "../../src/lib/stages.js";
 import { vetosDePersona } from "../../src/lib/vetos.js";
 import { alergiasPorSilencio } from "../../src/lib/alergiasBase.js";
 import { anadirArticulos, sonElMismo } from "../../src/lib/compraIdentidad.js";
-import { articulosDe } from "../../src/lib/compraMarcas.js";
+import { compraQueSeVe, articulosDe, idsQuitados } from "../../src/lib/compraMarcas.js";
 import { estructuraDelGrupo } from "../../src/lib/estructuraPlatos.js";
 import { diasActivosDe } from "../../src/lib/planner.js";
 
@@ -359,7 +359,9 @@ const activo = (it) => !it.have && !it.atHome && !it.fromPantry;
  * Sin esto, «apunta leche y pan» sin menú pedía generar una semana entera.
  */
 function listaDe(casa) {
-  return casa.semana?.shopping ?? casa.state?.shopping ?? { items: [] };
+  if (casa.semana?.shopping) return casa.semana.shopping;
+  // La copia viva la guarda la app como marcas (trozo 18); sin menú no hay de dónde derivar: se ve lo apuntado a mano.
+  return compraQueSeVe(casa.state?.shopping, () => []);
 }
 
 /** Lo que devuelve un cambio de `conCasa` para guardar la lista donde vive. */
@@ -505,7 +507,7 @@ export async function quitarCompra(householdId, { productos = [], manuales = fal
     ...hecho.dudosos.map((d) => ({ que: d.que, motivo: `hay varios parecidos (${d.parecidos.join(", ")}): ¿cuál?` })),
   ];
   if (manuales && !habiaManuales) sinHacer.push({ que: "lo añadido a mano", motivo: "no había nada añadido a mano" });
-  return resultadoDeEscritura({ accion: "compra_quitar", hecho: hecho.quitados, sinHacer, nota: "Lo que sale del menú vuelve si se rehace la compra (al cambiar el menú)." });
+  return resultadoDeEscritura({ accion: "compra_quitar", hecho: hecho.quitados, sinHacer, nota: "Lo quitado no vuelve aunque cambie el menú." });
 }
 
 /** Por qué hay ese plato en un día y franja del menú (la herramienta por_que_plato). */
@@ -1474,8 +1476,8 @@ export function rehacerCompra(m, plan, data, gs, anterior, despensa) {
   const lista = m.buildShoppingList(plan, gs, m.getDayMeals(data), despensa ?? []);
   const nuevos = articulosDe(lista);
   const previos = new Map((anterior?.items ?? []).map((it) => [it.id, it]));
-  // En una semana que guarda marcas (trozo 18), lo quitado viaja aparte (`quitados`) y sigue quitado con el plan nuevo.
-  const quitados = new Set((anterior?.quitados ?? []).map((q) => q.id));
+  // En una semana que guarda marcas (trozo 18), lo quitado viaja aparte y sigue quitado con el plan nuevo.
+  const quitados = idsQuitados(anterior);
   const items = nuevos.filter((it) => !quitados.has(it.id)).map((it) => {
     const p = previos.get(it.id);
     const conMarcas = p ? { ...it, have: !!p.have, atHome: !!p.atHome } : it;

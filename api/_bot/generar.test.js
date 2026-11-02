@@ -3,6 +3,7 @@
  * Antes se activaba con dos PATCH sueltos y, si la foto de la casa no entraba,
  * se respondía igual «generado y activado».
  */
+import { MARCA_COMPRA } from "../../src/lib/vocabularios.js";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("./db.js", () => ({ select: vi.fn(), insert: vi.fn(), borrar: vi.fn(), eq: (v) => `eq.${v}` }));
@@ -107,7 +108,8 @@ describe("generar menú: todo o nada", () => {
     expect(cambios.activar).toBe("menu-nuevo");
     expect(cambios.state.data.activeMenuId).toBe("menu-nuevo");
     expect(cambios.state.shopping.items.map((i) => i.name)).toEqual(["huevos", "pan"]);
-    expect(cambios.semana.shopping.items.map((i) => i.name)).toEqual(["huevos", "pan"]);
+    // La semana guarda solo marcas (trozo 18): lo apuntado a mano; los huevos salen del plan al leerla.
+    expect(cambios.semana.shopping.marcas.map((m) => [m.nombre, m.marcas])).toEqual([["pan", [MARCA_COMPRA.ANADIDO]]]);
     expect(out.ok).toBe(true);
     expect(texto).toMatch(/generado y activado/);
     expect(borrar).not.toHaveBeenCalled();
