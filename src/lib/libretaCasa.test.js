@@ -118,7 +118,6 @@ describe("guardar la libreta", () => {
     const veto = nuevaRegla({ sujeto: { tipo: "casa" }, efecto: { tipo: "excluir", valor: "grupo:carne" }, ambito: { dias: ["Lun"] }, hoy: "2026-11-02" });
     expect(await l.guardar({ ...leida, reglas: [invitado, veto] })).toMatchObject({ ok: true, enviado: true });
     expect(llegan[0].preferencias).toEqual([expect.objectContaining({ eje: "subtipoIngrediente", valor: "grupo:carne", operador: "no_es", dias: ["Lun"] })]);
-    // Lo guardado pasa a conocido: volver a guardar lo mismo no lo manda otra vez.
     expect(await l.guardar({ ...leida, reglas: [invitado, veto] })).toEqual({ ok: true, enviado: false });
     expect(sinLibretaLeida({ ...leida, reglas: [invitado, veto] }, FILAS).reglas).toEqual([invitado]);
   });

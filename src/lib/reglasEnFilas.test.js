@@ -1,6 +1,7 @@
 // Los vetos y sesgos de las reglas como filas de preferencia (trozo 14 de #1037).
 import { describe, it, expect } from "vitest";
-import { filaDeRegla, reglaDeFila, reglasDeFilas, cambiosDeReglas } from "./reglasEnFilas.js";
+import { readFileSync } from "node:fs";
+import { filaDeRegla, reglaDeFila, reglasDeFilas, cambiosDeReglas, CLAVES_DE_FIRMA } from "./reglasEnFilas.js";
 import { PreferenciaInvalida, filaDeApunte } from "./preferencias.js";
 import { nuevaRegla, proyectarReglas, reglaDeInvitado } from "./reglas.js";
 import { conLibretaDeFilas, sinLibreta, cambiosDePreferencias } from "./libretaEnData.js";
@@ -11,7 +12,6 @@ const GRUPOS = [{ id: "g-adultos", label: "Adultos" }, { id: "g-ninos", label: "
 const MIEMBROS = [{ id: "p-ana", name: "Ana" }, { id: "p-leo", name: "Leo" }];
 const CTX = { grupos: GRUPOS, miembros: MIEMBROS };
 const SEMANA = { inicioISO: "2026-11-02", finISO: "2026-11-08", dias: ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"] };
-
 /** Lo que haría escribir_preferencias con una fila pedida: id, el resto de columnas a null y su sobre. */
 const comoLaBase = (fila, id) => ({ persona_id: null, grupo_id: null, plan_id: null, dias: null, comidas: null, semanas: null, salvo_dias: null,
   salvo_comidas: null, salvo_semanas: null, desde: null, hasta: null, frase: null, ...fila, id, confirmado_at: null, rechazada_at: null, created_at: `${HOY}T10:00:00Z` });
@@ -65,6 +65,11 @@ describe("las reglas de veto y sesgo como preferencias (0109, trozo 14)", () => 
     expect(data.reglas.map((r) => r.efecto.valor)).toEqual(["grupo:carne"]);
     const libreta = comoLaBase(filaDeApunte("cocina.india", { valor: 1, origen: "texto" }, { grupos: GRUPOS }), "00000000-0000-4000-8000-0000000000ab");
     expect(reglaDeFila(libreta, CTX)).toBeNull();
+  });
+
+  it("la firma con la que se encuentra una regla recién creada son las columnas de preferencia_unica (0109), sin la casa", () => {
+    const cols = readFileSync(new URL("../../supabase/migrations/0109_preferencia_senal_historial.sql", import.meta.url), "utf8").match(/create unique index preferencia_unica on public\.preferencia \(([^)]*)\)/)[1].split(",").map((c) => c.trim());
+    expect(CLAVES_DE_FIRMA).toEqual(cols.filter((c) => c !== "household_id"));
   });
 
   it("los cambios son la operación: crear sin id, cambiar y borrar con el de su fila, también lo recién creado; los presente no van", () => {

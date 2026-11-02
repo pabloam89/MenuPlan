@@ -554,17 +554,14 @@ describe("la libreta en filas de preferencia (trozo 14)", () => {
   });
 
   it("las reglas de veto salen de sus filas; una nueva va a escribir_preferencias y al documento solo vuelven las presente", async () => {
-    const invitado = reglaDeInvitado({ dia: "Mié", comida: "Cena", hoy: "2026-11-02" });
-    const vieja = nuevaRegla({ sujeto: { tipo: "casa" }, efecto: { tipo: "excluir", valor: "grupo:pollo" }, ambito: { dias: ["Mar"] }, hoy: "2026-11-02" });
+    const [invitado, vieja] = [reglaDeInvitado({ dia: "Mié", comida: "Cena", hoy: "2026-11-02" }), nuevaRegla({ sujeto: { tipo: "casa" }, efecto: { tipo: "excluir", valor: "grupo:pollo" }, ambito: { dias: ["Mar"] }, hoy: "2026-11-02" })];
     responde(/household_state/, { status: 200, cuerpo: [{ state: { data: { ...DOCUMENTO.data, reglas: [invitado, vieja] } }, bot_rev: 7, updated_at: "2026-11-01T10:00:00Z" }] });
-    const VETO = { ...FILA, id: "00000000-0000-4000-8000-0000000000f2", nivel: "plato", eje: "subtipoIngrediente", medida: "valor", operador: "no_es",
-      valor: "grupo:carne", cantidad: null, dias: ["Lun"], created_at: "2026-11-02T10:00:00Z" };
+    const VETO = { ...FILA, id: "00000000-0000-4000-8000-0000000000f2", nivel: "plato", eje: "subtipoIngrediente", medida: "valor", operador: "no_es", valor: "grupo:carne", cantidad: null, dias: ["Lun"] };
     responde(RUTA_PREFS, { status: 200, cuerpo: { v: 1, rev: 7, preferencias: [VETO], planes: [] } });
     responde(RUTA_ESCRIBIR, { status: 200, cuerpo: { ...HECHA, rev: 9 } });
     expect((await cargarCasa(CASA)).state.data.reglas.map((r) => [r.efecto.tipo, r.efecto.valor])).toEqual([["presente", "casa"], ["excluir", "grupo:carne"]]);
     const nueva = nuevaRegla({ sujeto: { tipo: "miembro", ref: B }, efecto: { tipo: "excluir", valor: "tecnica:sarten" }, ambito: { dias: ["Vie"] }, hoy: "2026-11-02" });
-    const { r } = await enTurno(() => conCasa(CASA, async (casa) => ({ state: { ...casa.state, data: { ...casa.state.data, reglas: [...casa.state.data.reglas, nueva] } } })));
-    expect(r).toMatchObject({ ok: true });
+    expect((await enTurno(() => conCasa(CASA, async (casa) => ({ state: { ...casa.state, data: { ...casa.state.data, reglas: [...casa.state.data.reglas, nueva] } } })))).r).toMatchObject({ ok: true });
     expect(escrituras().find((l) => /bot_save_casa/.test(l.ruta)).cuerpo.p_state.data.reglas).toEqual([invitado]);
     expect(prefs()[0].cuerpo.p_operacion.preferencias).toEqual([expect.objectContaining({ persona_id: B, eje: "tecnica", valor: "sarten", operador: "no_es", dias: ["Vie"] })]);
   });

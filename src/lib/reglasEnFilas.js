@@ -5,10 +5,9 @@
  * (un invitado no es de la casa); ámbito: dias, comidas, semanas, su salvedad (salvo_*) y la vigencia (desde, hasta).
  */
 import { CAMPOS, CAMPOS_POR_ID } from "./notepadFields.js";
-import { apunteDeFila, PreferenciaInvalida, FORMA_DE_PROYECCION } from "./preferencias.js";
+import { apunteDeFila, PreferenciaInvalida, FORMA_DE_PROYECCION, valorDelEje, valorIdDelEje, dia } from "./preferencias.js";
 import { PREFIJO_TECNICA } from "./excluirHueco.js";
 import { normalizarRegla, EFECTOS } from "./reglas.js";
-import { EJE_POR_ID } from "../data/axisRegistry.js";
 import { COMIDAS, DIAS } from "./vocabularios.js";
 
 /** Los efectos de una regla que son preferencias. El resto (`presente`) se queda en el documento. */
@@ -24,8 +23,6 @@ const EJE_TECNICA = CAMPOS_POR_ID.tecnica.eje;
 /** Las reglas se dicen: nunca se suponen (ajustes.js, gustosPorDias, solo apunta lo dicho). */
 const ORIGEN_FILA = "dicho";
 const ORIGEN_REGLA = "texto";
-
-const dia = (iso) => (typeof iso === "string" ? iso.slice(0, 10) : undefined);
 
 /** Una lista del ámbito, comprobada contra su vocabulario (el CHECK de la 0109), o null. */
 function lista(valores, vocabulario, que) {
@@ -46,14 +43,12 @@ function sujetoEnFila({ tipo, ref }, { grupos, miembros }) {
 function efectoEnFila(efecto) {
   if (efecto.tipo === "excluir") {
     const item = String(efecto.valor).trim();
-    return item.startsWith(PREFIJO_TECNICA)
-      ? { ...EXCLUIR, eje: EJE_TECNICA, valor: item.slice(PREFIJO_TECNICA.length), cantidad: null }
-      : { ...EXCLUIR, eje: EJE_EXCLUIR, valor: item, cantidad: null };
+    const tecnica = item.startsWith(PREFIJO_TECNICA);
+    return { ...EXCLUIR, eje: tecnica ? EJE_TECNICA : EJE_EXCLUIR, valor: tecnica ? item.slice(PREFIJO_TECNICA.length) : item, cantidad: null };
   }
   const { campo, valor, peso } = efecto.valor;
   const eje = CAMPOS_POR_ID[campo].eje;
-  const enEje = EJE_POR_ID.get(eje)?.tipo === "booleano" ? valor === "si" : valor;
-  return { ...SESGO, eje, valor: enEje, operador: peso < 0 ? "menos" : "mas", cantidad: Math.abs(peso) };
+  return { ...SESGO, eje, valor: valorDelEje(eje, valor), operador: peso < 0 ? "menos" : "mas", cantidad: Math.abs(peso) };
 }
 
 /** Pura. Una regla de excluir o sesgo como fila (sin id). PreferenciaInvalida si no lo es o no cabe en la tabla. */
@@ -90,9 +85,8 @@ function efectoDeFila(fila) {
   if (!["mas", "menos"].includes(fila.operador) || fila.cantidad == null) return null;
   const campo = CAMPOS.find((c) => c.proyecta === "sesgos" && c.eje === fila.eje);
   if (!campo) return null;
-  const valor = typeof fila.valor === "boolean" ? (fila.valor ? "si" : "no") : String(fila.valor);
   const peso = Number(fila.cantidad) * (fila.operador === "menos" ? -1 : 1);
-  return { tipo: "sesgo", valor: { campo: campo.id, valor, peso } };
+  return { tipo: "sesgo", valor: { campo: campo.id, valor: valorIdDelEje(fila.valor), peso } };
 }
 
 const ambitoDe = (dias, comidas, semanas) => ({
@@ -125,8 +119,8 @@ export function reglasDeFilas(filas, ctx = {}) {
   return (filas ?? []).map((f) => reglaDeFila(f, ctx)).filter(Boolean);
 }
 
-/** Lo que hace a dos filas la misma preferencia (preferencia_unica, 0109): todo menos cuánto, cuánto manda y su sobre. */
-const CLAVES_DE_FIRMA = ["persona_id", "grupo_id", "nivel", "eje", "medida", "operador", "valor", "dias", "comidas", "semanas",
+/** Lo que hace a dos filas la misma preferencia: las columnas de preferencia_unica (0109) sin la casa; el test las compara. */
+export const CLAVES_DE_FIRMA = ["persona_id", "grupo_id", "plan_id", "nivel", "eje", "medida", "operador", "valor", "dias", "comidas", "semanas",
   "salvo_dias", "salvo_comidas", "salvo_semanas", "desde", "hasta"];
 const firma = (fila) => JSON.stringify(CLAVES_DE_FIRMA.map((k) => fila[k] ?? null));
 

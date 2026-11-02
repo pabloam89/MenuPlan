@@ -51,15 +51,15 @@ const COMIDA_DE_SERVICIO = Object.freeze(Object.fromEntries(SERVICIOS.filter((s)
   .map((s) => [s, COMIDAS.find((c) => c.nombre === s)?.id])));
 const SERVICIO_DE_COMIDA = Object.freeze(Object.fromEntries(Object.entries(COMIDA_DE_SERVICIO).map(([s, c]) => [c, s])));
 
-const dia = (iso) => (typeof iso === "string" ? iso.slice(0, 10) : undefined);
+export const dia = (iso) => (typeof iso === "string" ? iso.slice(0, 10) : undefined);
 
 /** El valor del eje como lo guarda la tabla: sí/no en un eje booleano, texto en los demás. */
-function valorDelEje(eje, valorId) {
+export function valorDelEje(eje, valorId) {
   if (EJE_POR_ID.get(eje)?.tipo !== "booleano") return valorId;
   if (valorId !== "si" && valorId !== "no") throw new PreferenciaInvalida(`el eje ${eje} es sí/no, no «${valorId}»`);
   return valorId === "si";
 }
-const valorIdDelEje = (valor) => (typeof valor === "boolean" ? (valor ? "si" : "no") : String(valor));
+export const valorIdDelEje = (valor) => (typeof valor === "boolean" ? (valor ? "si" : "no") : String(valor));
 
 /**
  * El grupo de la casa que es un ámbito de la libreta (niños, adultos, bebés), por su tipo. Sin ninguno, o con
