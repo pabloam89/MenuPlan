@@ -18,7 +18,7 @@ vi.mock("../_bot/telegram.js", () => ({
 }));
 vi.mock("../_bot/rapido.js", () => ({ recordar: vi.fn(async () => {}) }));
 
-const { default: handler, AVISO_ALTA, BOTON_ALTA } = await import("./link.js");
+const { default: handler, AVISO_ALTA, BOTON_ALTA, BOTON_AFINAR } = await import("./link.js");
 const { recordar } = await import("../_bot/rapido.js");
 
 function llama(body, token = "bueno") {
@@ -37,9 +37,11 @@ describe("aviso de alta hecha en la app", () => {
     t.tablas.bot_chats = [{ chat_id: "7" }];
     const res = await llama({ aviso: "alta" });
     expect(res.cuerpo).toEqual({ avisados: 1 });
-    expect(t.enviados).toEqual([{ chat: "7", texto: AVISO_ALTA, opciones: { botones: [[BOTON_ALTA]] } }]);
+    expect(t.enviados).toEqual([{ chat: "7", texto: AVISO_ALTA, opciones: { botones: [[BOTON_ALTA, BOTON_AFINAR]] } }]);
     // El menú se ofrece, no se promete: el botón se lo pide a Lola como si lo escribiera.
-    expect(AVISO_ALTA).toContain("¿Os preparo el menú");
+    // Trozo 17: prepararlo ya o afinarlo juntos, la pregunta de la profundidad por defecto del trato.
+    expect(AVISO_ALTA).toContain("¿Te lo preparo ya o lo afinamos juntos?");
+    expect(BOTON_AFINAR.dato.startsWith("t:")).toBe(true);
     expect(BOTON_ALTA.dato.startsWith("t:")).toBe(true);
     expect(recordar).toHaveBeenCalledWith(expect.objectContaining({ chatId: "7", householdId: "h1", respuesta: AVISO_ALTA }));
   });
