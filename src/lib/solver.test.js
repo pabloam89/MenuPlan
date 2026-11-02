@@ -402,12 +402,14 @@ describe("las preferencias de la casa en el solver (trozo 31 de #1037)", () => {
 });
 
 describe("las alergias y los vetos nunca empeoran por una preferencia (trozo 31 de #1037)", () => {
-  afterEach(() => { vi.unstubAllGlobals(); });
+  afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); vi.restoreAllMocks(); });
   // La casa pide más huevo y más queso; una persona es alérgica al huevo y el queso está vetado.
   const libreta = (campos) => ({ v: 1, campos: Object.fromEntries(Object.entries(campos).map(([k, valor]) => [k, { valor, origen: "texto" }])) });
   const pide = { "favoritos.huevo": true, "favoritos.queso": true, "tecnica.horno": 1 };
   const generar = async (data) => {
     vi.stubGlobal("localStorage", { getItem: (k) => (k === "mp_motor" ? "solver" : null) });
+    // Reloj quieto y azar fijo: la semilla del solver sale del reloj, y quieto no corta por milisegundos (solo por nodos, que es determinista).
+    vi.useFakeTimers({ toFake: ["Date"] }); vi.setSystemTime(new Date("2026-11-02T12:00:00Z")); vi.spyOn(Math, "random").mockReturnValue(0.5);
     const entrada = entradaDelMotor(data, { hoy: "2026-11-02" });
     const { plan, recipes } = await generateMenuWithAI(entrada);
     return { entrada, plan, recipes };
