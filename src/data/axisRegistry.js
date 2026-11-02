@@ -678,6 +678,39 @@ const DECLARADOS = [
     campo: null, vocabulario: null, consumidores: [], cobertura: 0,
     nota: "El campo `tandaPlatos` de la libreta: cuenta familias de plato, que salen del nombre del plato (tandaFamiliasDefs.js, CLAVES_PLATO) y no de un campo de la receta. Lo lee la tanda (tandaFamilias.js) desde la libreta, no del catálogo.",
   },
+  // Los cinco que siguen son de la casa, no del plato: los usan las preferencias que vienen del documento en el
+  // trozo 14 (#1037), `mealStyleByGroup` y `kidDinnerConfig`, que no tienen eje del catálogo. Silenciosos: el motor
+  // no los lee de una receta; la app y Lola los leen de las filas de preferencia, como `esfuerzo`.
+  {
+    n: 81, id: "estiloComida", nombre: "Estilo de comida de un menú (de todo, equilibrado, ligero o a mano)",
+    ambito: AMBITO.HOGAR, tipo: "enum", estado: "silencioso",
+    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
+    nota: "`mealStyleByGroup`: un estilo por grupo, que reescala las veces de cada familia a los huecos de la semana. Sus valores, los ids de MEAL_STYLES (Onboarding.jsx).",
+  },
+  {
+    n: 82, id: "comeConLaFamilia", nombre: "Si un niño come lo de la familia o lo suyo, por comida",
+    ambito: AMBITO.HOGAR, tipo: "booleano", estado: "silencioso",
+    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
+    nota: "`kidDinnerConfig` (kidsMenu.js): el mediodía entre semana, la cena entre semana y el finde de cada niño, cada uno con su ámbito.",
+  },
+  {
+    n: 83, id: "cenaDelMediodia", nombre: "Si la cena de un niño aprovecha lo que la familia comió al mediodía (días de comedor)",
+    ambito: AMBITO.HOGAR, tipo: "booleano", estado: "silencioso",
+    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
+    nota: "`kidDinnerConfig.reuseColeDinner` (kidsMenu.js).",
+  },
+  {
+    n: 84, id: "repiteDelComedor", nombre: "Qué puede repetir la cena de un niño de lo que comió en el comedor",
+    ambito: AMBITO.HOGAR, tipo: "enum", estado: "silencioso",
+    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
+    nota: "`kidDinnerConfig.avoid` (kidsMenu.js): protein, carbs o veg; «no_es» es que la cena lo evita.",
+  },
+  {
+    n: 85, id: "comePocasCosas", nombre: "Si un niño come pocas cosas (y hay que asegurarle algo que coma)",
+    ambito: AMBITO.HOGAR, tipo: "booleano", estado: "silencioso",
+    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
+    nota: "`kidDinnerConfig.limited` (kidsMenu.js); lo que sí come (`safeFoods`) va en subtipoIngrediente.",
+  },
 ];
 
 /**
