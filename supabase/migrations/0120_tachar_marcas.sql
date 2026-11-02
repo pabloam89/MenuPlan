@@ -34,8 +34,10 @@ declare
   v_have boolean;
 begin
   -- La lista entera (antes del trozo 18): lo de siempre, por nombre y unidad.
+  -- Un null de JSON o algo que no es un objeto se trata como una compra vacía: jsonb_set fallaría sobre él.
   if jsonb_typeof(p_compra->'marcas') is distinct from 'array' then
-    return jsonb_set(coalesce(p_compra, '{}'::jsonb), '{items}', public._marcar_items(p_compra->'items', p_marcas), true);
+    return jsonb_set(case when jsonb_typeof(p_compra) = 'object' then p_compra else '{}'::jsonb end,
+                     '{items}', public._marcar_items(p_compra->'items', p_marcas), true);
   end if;
 
   v_lista := p_compra->'marcas';
@@ -110,7 +112,9 @@ begin
   if v_state is not null
      and exists (select 1 from public.user_menus m
                   where m.household_id = p_household_id and m.id = p_menu_id and m.is_active)
-     and (v_state->'data'->'menuWeek'->>'offset')::int is not distinct from v_offset::int then
+     and (v_state->'data'->'menuWeek'->>'offset')::int is not distinct from v_offset::int
+     -- Como la 0087: si la casa no guarda copia viva de la compra, no se le crea.
+     and jsonb_typeof(v_state->'shopping') = 'object' then
     v_state := jsonb_set(v_state, '{shopping}', public._marcar_compra(v_state->'shopping', p_marcas), true);
   end if;
 

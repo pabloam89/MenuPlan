@@ -32,7 +32,7 @@ describe("0120: tachar en una compra con marcas", () => {
   });
 
   it("con la lista entera, lo de siempre (_marcar_items por nombre y unidad)", () => {
-    expect(marcar).toMatch(/if jsonb_typeof\(p_compra->'marcas'\) is distinct from 'array' then\s+return jsonb_set\(coalesce\(p_compra, '\{\}'::jsonb\), '\{items\}', public\._marcar_items\(p_compra->'items', p_marcas\), true\);/);
+    expect(marcar).toMatch(/if jsonb_typeof\(p_compra->'marcas'\) is distinct from 'array' then\s+return jsonb_set\(case when jsonb_typeof\(p_compra\) = 'object' then p_compra else '\{\}'::jsonb end,\s+'\{items\}', public\._marcar_items\(p_compra->'items', p_marcas\), true\);/);
   });
 
   it("un artículo que se queda sin marcas sale de la lista; uno sin marcas solo se apunta si se tacha", () => {
@@ -53,6 +53,10 @@ describe("0120: household_shopping_mark pasa la semana y la copia viva por _marc
     expect(f).toMatch(/set shopping = public\._marcar_compra\(w\.shopping, p_marcas\)/);
     expect(f).toMatch(/jsonb_set\(v_state, '\{shopping\}', public\._marcar_compra\(v_state->'shopping', p_marcas\), true\)/);
     expect(f).not.toMatch(/_marcar_items/);
+  });
+
+  it("como la 0087, a una casa sin copia viva de la compra no se le crea", () => {
+    expect(f).toMatch(/and jsonb_typeof\(v_state->'shopping'\) = 'object' then\s+v_state := jsonb_set/);
   });
 
   it("sigue mirando user_menus.is_active (0087) y los mismos permisos", () => {
