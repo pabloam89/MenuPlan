@@ -2,7 +2,8 @@
 // (specs/arquitectura-objetivo.md, «Choques»), caso a caso, y el motor relajando con ese orden.
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
-import { claseDe, rangoDeClase, ordenar, responder, CLASE_DE_ORIGEN } from "./choques.js";
+import { claseDe, rangoDeClase, ordenar, responder, textoDeChoque, textoDePreferencia, CLASE_DE_ORIGEN } from "./choques.js";
+import { trasLosChoques } from "./operaciones/puerta.js";
 import { ESCALONES_RELAJAR, RELAJABLES, PREFERENCIA_DEL_SISTEMA } from "./preferenciasSistema.js";
 import { pesoDe, FACTOR_ORIGEN } from "./cumplimiento.js";
 import { FORMA_DE_PROYECCION, FUERZA_BLANDA } from "./preferencias.js";
@@ -133,5 +134,40 @@ describe("el motor usa el mismo orden (al generar)", () => {
       pares += 1;
     }
     expect(pares).toBeGreaterThan(6);
+  });
+});
+
+describe("la respuesta en palabras (lo que Lola dice al guardar)", () => {
+  const fila = { operador: "menos", valor: "horno", cantidad: 1 };
+  it("cada respuesta tiene su línea salvo la silenciosa; un sesgo se dice sin su cantidad y un tope con ella", () => {
+    const texto = (respuesta, gana = "a") => textoDeChoque({ respuesta, gana }, fila);
+    expect(texto(R.APLICAR_EN_SILENCIO)).toBeNull();
+    expect(texto(R.APLICAR_EN_SILENCIO, "b")).toMatch(/^No he apuntado «menos horno»: choca con algo que ya estaba dicho/);
+    expect(texto(R.APLICAR_Y_AVISAR)).toBe("He apuntado «menos horno», que cambia lo que había apuntado antes");
+    expect(texto(R.APLICAR_Y_AVISAR, "b")).toMatch(/^No he apuntado «menos horno»: choca con algo que ya estaba dicho/);
+    expect(texto(R.PREGUNTAR)).toMatch(/pregunta si lo cambio$/);
+    expect(texto(R.TAREA_DE_DECISION)).toMatch(/otra persona de la casa dijo lo contrario/);
+    expect(() => texto("otra")).toThrow(/sin texto/);
+    expect(textoDePreferencia({ operador: "como_mucho", valor: "pescado", cantidad: 2 })).toBe("como mucho 2 pescado");
+  });
+
+  it("la regla 11 del prompt de Lola (conocimiento.md) cita los textos de textoDeChoque, y solo esos", () => {
+    const conocimiento = readFileSync(new URL("../../api/_bot/conocimiento.md", import.meta.url), "utf8");
+    const regla = conocimiento.split("\n").find((l) => l.startsWith("11. **Cuando lo nuevo choca"));
+    const citas = [...regla.slice(0, regla.indexOf(")")).matchAll(/«([^»]*…[^»]*)»/g)].map((m) => m[1]);
+    expect(citas.length).toBeGreaterThan(0);
+    const patron = (cita) => new RegExp("^" + cita.split("…").map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join(".*"));
+    const textos = RESPUESTAS_CHOQUE.flatMap((respuesta) => ["a", "b", null].map((gana) => textoDeChoque({ respuesta, gana }, fila))).filter(Boolean);
+    for (const t of textos) expect(citas.some((c) => patron(c).test(t)), t).toBe(true);
+    for (const c of citas) expect(textos.some((t) => patron(c).test(t)), c).toBe(true);
+  });
+
+  it("lo que no se apunta siempre se dice:toda respuesta y ganador que la puerta aparta tiene su línea", () => {
+    for (const respuesta of RESPUESTAS_CHOQUE) {
+      for (const gana of ["a", "b", null]) {
+        const { apartadas } = trasLosChoques([fila], [{ nueva: 0, guardada: "g1", gana, criterio: CR.ALCANCE, respuesta }]);
+        if (apartadas.length) expect(textoDeChoque({ respuesta, gana }, fila), `${respuesta} gana ${gana}`).toEqual(expect.any(String));
+      }
+    }
   });
 });
