@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { resolverMenu, resolverConReintentos, candidatosDeHueco, REGLAS_RELAJABLES } from "./solver.js";
-import { buildGroupContext, generateMenuWithAI, choquesDelPlan } from "./aiPlanner.js";
+import { buildGroupContext, generateMenuWithAI, choquesDelPlan, REGLA_EN_PALABRAS } from "./aiPlanner.js";
 import { entradaDelMotor } from "./entradaMotor.js";
 import { casaCon } from "./cumplimiento.js";
 import { ESCALONES_RELAJAR } from "./preferenciasSistema.js";
@@ -457,7 +457,9 @@ describe("el aviso de lo relajado dice qué clase se cedió (método de choques,
     const { plan } = await generateMenuWithAI(entradaDelMotor(data, { hoy: "2026-11-02" }));
     const avisos = (plan._warnings ?? []).filter((w) => /no cabía ningún plato sin/.test(w));
     expect(avisos).toHaveLength(1);
-    expect(avisos[0]).toMatch(/sin saltarse una regla de cocina/);
-    expect(avisos[0]).not.toMatch(/reparto semanal o del perfil de salud/);
+    // El escalón del sistema dice sus reglas, las de su declaración (ESCALONES_RELAJAR), y no las cuatro de golpe.
+    const sistema = ESCALONES_RELAJAR.find((e) => e.clase === "sistema").reglas.map((r) => REGLA_EN_PALABRAS[r]);
+    expect(avisos[0]).toContain(`sin saltarse ${sistema.join(" ni ")}`);
+    expect(avisos[0]).not.toContain(`sin saltarse ${[...REGLAS_RELAJABLES].map((r) => REGLA_EN_PALABRAS[r]).join(" ni ")}`);
   }, 120000);
 });

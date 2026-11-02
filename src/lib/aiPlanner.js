@@ -4,7 +4,6 @@ import { DAYS, modeForGroupSlot, slotKey } from "./planner.js";
 import { ordenarPorSesgo, preferirPorSesgo } from "./sesgos.js";
 import { resolverConReintentos, solverActivo, REGLAS_RELAJABLES, familiasDe } from "./solver.js";
 import { ESCALONES_RELAJAR } from "./preferenciasSistema.js";
-import { CLASE_CHOQUE } from "./vocabularios.js";
 import { DEFAULT_FREQS } from "./defaultFreqs.js";
 import { HOLGURA_TOPES } from "./reparto.js";
 import { esNino } from "./stages.js";
@@ -53,13 +52,17 @@ import { isoLocalDate } from "./weekCalendar.js";
 import { DIA_SLUG as DAY_SLUG, DIA_LARGO_MINUSCULAS, diaDeSlug, tipoDeComida, comidaDeTipo, huecoMotor } from "./dias.js";
 import { HUECO_EN_AVISO } from "./huecosDelPlan.js";
 
-/** Lo que el solver cede en cada escalón (ESCALONES_RELAJAR), en palabras para el aviso. */
-const CEDIDO = Object.freeze({
-  [CLASE_CHOQUE.SISTEMA]: "saltarse una regla de cocina (proteína en el segundo, guarnición con legumbre)",
-  [CLASE_CHOQUE.SUPUESTO]: "pasarse del reparto semanal",
-  [CLASE_CHOQUE.DESEO]: "salirse del perfil de salud",
+/** Cada regla relajable (REGLAS_RELAJABLES) en palabras, para el aviso: qué se salta el plato que se puso. */
+export const REGLA_EN_PALABRAS = Object.freeze({
+  segundo_sin_proteina_principal: "la proteína en el segundo",
+  guarnicion_legumbre: "la guarnición sin legumbre",
+  freq_max_exceeded: "el reparto semanal",
+  health_profile_conflict: "el perfil de salud",
 });
-for (const { clase } of ESCALONES_RELAJAR) if (!CEDIDO[clase]) throw new Error(`aiPlanner: el escalón ${clase} no tiene aviso`);
+for (const r of REGLAS_RELAJABLES) if (!REGLA_EN_PALABRAS[r]) throw new Error(`aiPlanner: la regla relajable ${r} no tiene palabras para el aviso`);
+/** Lo que se cede en cada escalón (ESCALONES_RELAJAR): sus reglas en palabras, sacadas de la declaración. */
+const saltarse = (reglas) => `saltarse ${reglas.map((r) => REGLA_EN_PALABRAS[r]).join(" ni ")}`;
+const CEDIDO = Object.freeze(Object.fromEntries(ESCALONES_RELAJAR.map(({ clase, reglas }) => [clase, saltarse(reglas)])));
 const cuentaPorClase = (por) => Object.values(por ?? {}).reduce((n, c) => ({ ...n, [c]: (n[c] ?? 0) + 1 }), {});
 
 /**
@@ -1032,7 +1035,7 @@ function asignarConSolver({
   if (res.relajados.length > 0) {
     const partes = [...ESCALONES_RELAJAR.map(({ clase }) => clase), null].map((clase) => {
       const huecos = res.relajados.filter((id) => (CEDIDO[res.relajadoPor?.[id]] ? res.relajadoPor[id] : null) === clase);
-      return huecos.length ? `en ${huecos.join(", ")} no cabía ningún plato sin ${clase ? CEDIDO[clase] : "pasarse del reparto semanal o del perfil de salud"}` : null;
+      return huecos.length ? `en ${huecos.join(", ")} no cabía ningún plato sin ${clase ? CEDIDO[clase] : saltarse([...REGLAS_RELAJABLES])}` : null;
     }).filter(Boolean);
     warnings.push(`${group.label}: ${partes.join("; ")}; se ha puesto el mejor disponible.`);
   }
