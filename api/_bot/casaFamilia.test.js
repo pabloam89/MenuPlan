@@ -8,7 +8,7 @@ import { conCasa, cargarCasa, olvidarCasa, separarFamilia } from "./casa.js";
 import { conOperacion, ponerAutor, tomarAvisos } from "./operacion.js";
 import { FamiliaSinLeer, TEXTO_AVISO_PERSONA, AVISOS_PERSONA, RPC_FAMILIA } from "../../src/lib/personas.js";
 import { SUFIJO_CLAVE_PERSONA, RPC_OPERACION, RPC_PREFERENCIAS } from "../../src/lib/operaciones/tuberia.js";
-import { RPC_FICHA, fichaV1, RPC_PREFERENCIAS_DE_CASA, preferenciasDeFilas } from "./familiaDePrueba.js";
+import { RPC_FICHA, fichaV1, fichaDePrueba, RPC_PREFERENCIAS_DE_CASA, preferenciasDeFilas } from "./familiaDePrueba.js";
 import { PREGUNTAS_POR_ID } from "../../src/lib/wizardRegistry.js";
 import { aplicarCompra, aplicarModoDespensa } from "./ajustes.js";
 import { leerPresupuesto } from "../../src/lib/presupuestoCasa.js";
@@ -31,8 +31,8 @@ const SIN_RPC = (fn) => ({ status: 404, cuerpo: { code: "PGRST202", message: `Co
 const HECHA = { operacion_id: "op1", estado: "hecha", repetida: false, hecho: [], sin_hacer: [], choques: [], rev: 9 };
 const RUTA_FICHA = new RegExp(`rpc/${RPC_FICHA}`);
 const RUTA_OPERACION = new RegExp(`rpc/${RPC_OPERACION}`);
-/** ficha_casa v2 con estos datos en la ficha Casa (la 0112 aplicada), como los da la base. */
-const fichaV2 = (...casa) => ({ ...fichaV1(), v: 2, fichas: { casa } });
+/** ficha_casa v2 con estos datos y los demás con sobre sin decir (fichaDePrueba), como los da la base con la 0112 a la 0116. */
+const fichaV2 = fichaDePrueba;
 const dicho = (campo, valor) => ({
   campo, sujeto: { tipo: "casa", id: null }, estado: "dicho", valor, origen: "dicho", bloqueado: false, peso: null,
   confirmado_el: null, caduca_at: null, cambiado_at: null, dicho_por: null, canal: "app", operacion_id: null,
@@ -196,10 +196,10 @@ describe("los datos de la casa con sobre (trozo 12)", () => {
     responde(RUTA_FICHA, { status: 200, cuerpo: fichaV2(porDefecto(CAMPO, false)) });
     const casa = await cargarCasa(CASA);
     expect(casa.state.data[CAMPO]).toBe(false);
-    expect(casa.conSobre).toEqual({ [CAMPO]: { valor: false, conSobre: false } });
+    expect(casa.conSobre[CAMPO]).toEqual({ valor: false, conSobre: false });
     olvidarCasa(CASA);
     responde(RUTA_FICHA, { status: 200, cuerpo: fichaV2(dicho(CAMPO, true)) });
-    expect((await cargarCasa(CASA)).conSobre).toEqual({ [CAMPO]: { valor: true, conSobre: true } });
+    expect((await cargarCasa(CASA)).conSobre[CAMPO]).toEqual({ valor: true, conSobre: true });
   });
 
   it("lo que cambió va a escribirDato como dicho, desde el mensaje y por quien habla; el documento ya no lo lleva", async () => {
@@ -361,8 +361,18 @@ describe("los datos de la casa con sobre (trozo 12)", () => {
     expect(r).toMatchObject({ ok: true, botRev: 9 });
   });
 
-  it("sin la 0112 (la ficha no trae la ficha Casa), con la v1 o sin la RPC, del documento y se guarda en él", async () => {
-    for (const ficha of [{ status: 200, cuerpo: fichaV2() }, { status: 200, cuerpo: fichaV1() }, SIN_RPC(RPC_FICHA)]) {
+  it("una v2 sin la ficha Casa (registro_campo sin sus datos) no se lee del documento: la casa no se lee y nada se escribe", async () => {
+    responde(RUTA_FICHA, { status: 200, cuerpo: { ...fichaV2(), fichas: { rutina: fichaV2().fichas.rutina } } });
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    await expect(cargarCasa(CASA)).rejects.toThrow(/ficha_casa no trae menuModel/);
+    olvidarCasa(CASA);
+    await expect(enTurno(() => cambiarDato(true))).rejects.toThrow(/ficha_casa no trae/);
+    expect(escrituras()).toEqual([]);
+    log.mockRestore();
+  });
+
+  it("con la v1 o sin la RPC, del documento y se guarda en él", async () => {
+    for (const ficha of [{ status: 200, cuerpo: fichaV1() }, SIN_RPC(RPC_FICHA)]) {
       olvidarCasa(CASA);
       llamadas = [];
       conDato(true);
@@ -391,7 +401,7 @@ describe("los datos de la casa con sobre (trozo 12)", () => {
 
 describe("los datos de la Rutina sin ámbito con sobre (trozo 13)", () => {
   // La v2 agrupa por ficha: con la 0113, los de la Rutina llegan en `fichas.rutina`, no en `fichas.casa`.
-  const conRutina = (casa, rutina) => ({ status: 200, cuerpo: { ...fichaV1(), v: 2, fichas: { casa, rutina } } });
+  const conRutina = (casa, rutina) => ({ status: 200, cuerpo: fichaV2(...casa, ...rutina) });
   const docCon = (data) => responde(/household_state/, { status: 200, cuerpo: [{ state: { data: { ...DOCUMENTO.data, ...data } }, bot_rev: 7, updated_at: "2026-11-01T10:00:00Z" }] });
   const cambiar = (cambios) => conCasa(CASA, async (casa) => ({ state: { ...casa.state, data: { ...casa.state.data, ...cambios } } }));
 
@@ -418,17 +428,13 @@ describe("los datos de la Rutina sin ámbito con sobre (trozo 13)", () => {
     expect(r).toMatchObject({ ok: true, botRev: 10 });
   });
 
-  it("con la 0112 y sin la 0113 (la ficha trae la Casa y no la Rutina), la Rutina sigue en el documento", async () => {
+  it("una v2 con la Casa y sin la Rutina no se lee del documento: la casa no se lee", async () => {
     docCon({ meals: ["Cena"] });
-    responde(RUTA_FICHA, conRutina([porDefecto(CAMPO, false)], undefined));
-    const casa = await cargarCasa(CASA);
-    expect(casa.state.data.meals).toEqual(["Cena"]);
-    expect(casa.conSobre).not.toHaveProperty("meals");
-    olvidarCasa(CASA);
-    await enTurno(() => cambiar({ meals: ["Comida"] }));
-    const [doc] = escrituras();
-    expect(doc.cuerpo.p_state.data.meals).toEqual(["Comida"]);
-    expect(escrituras().filter((l) => RUTA_OPERACION.test(l.ruta))).toEqual([]);
+    responde(RUTA_FICHA, { status: 200, cuerpo: { ...fichaV2(), fichas: { casa: fichaV2().fichas.casa } } });
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    await expect(cargarCasa(CASA)).rejects.toThrow(/ficha_casa no trae meals/);
+    expect(escrituras()).toEqual([]);
+    log.mockRestore();
   });
 });
 
@@ -444,7 +450,7 @@ describe("separarFamilia", () => {
 });
 
 describe("la Rutina con ámbito con sobre (trozo 13)", () => {
-  const conRutina = (rutina) => ({ status: 200, cuerpo: { ...fichaV1(), v: 2, fichas: { casa: [], rutina } } });
+  const conRutina = (rutina) => ({ status: 200, cuerpo: fichaV2(...rutina) });
   const deA = { tipo: "persona", id: A };
   const base = (campo, sujeto = { tipo: "casa", id: null }) => ({ ...porDefecto(campo, null), sujeto, estado: "vacio", ambito: null });
   const hueco = (campo, ambito, valor, sujeto = { tipo: "casa", id: null }) => ({ ...dicho(campo, valor), sujeto, ambito });
@@ -477,16 +483,14 @@ describe("la Rutina con ámbito con sobre (trozo 13)", () => {
     expect(ops()).toEqual([[{ campo: "schedule", persona_id: B, dia: "Mar", comida: "Cena", valor: "fuera", origen: "dicho" }]]);
   });
 
-  it("sin la 0116 (elementos sin ámbito), el horario sigue en el documento", async () => {
+  it("un elemento sin ámbito (una ficha de antes de la 0116) no deja el horario en el documento: la casa no se lee", async () => {
     docCon({ schedule: { [`${A}|Mar|Cena`]: "cole" } });
     const { ambito: _fuera, ...antes } = base("schedule", deA);
     responde(RUTA_FICHA, conRutina([antes]));
-    const casa = await cargarCasa(CASA);
-    expect(casa.state.data.schedule).toEqual({ [`${A}|Mar|Cena`]: "cole" });
-    olvidarCasa(CASA);
-    await enTurno(() => cambiar(() => ({ schedule: {} })));
-    expect(escrituras()[0].cuerpo.p_state.data.schedule).toEqual({});
-    expect(ops()).toEqual([]);
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    await expect(cargarCasa(CASA)).rejects.toThrow(/llega sin ámbito/);
+    expect(escrituras()).toEqual([]);
+    log.mockRestore();
   });
 });
 

@@ -1,7 +1,7 @@
 /**
  * Los datos de la ficha Casa en la app (trozo 12 de #1037): de su sobre al cargar (ficha_casa v2 por
- * api/operacion.js), a la cola de la app al guardar, y del documento como antes mientras la base no tenga el
- * campo (0112) o ficha_casa sea la v1. Nunca en los dos sitios.
+ * api/operacion.js) y a la cola de la app al guardar. Con la 0112 a la 0116 aplicadas, la ficha los trae todos: si
+ * falta alguno o es la v1, error de carga, no el documento. Nunca en los dos sitios.
  */
 import { describe, it, expect, vi, afterEach } from "vitest";
 
@@ -11,6 +11,7 @@ const { leerDatosDeCasa, conCasaLeida, sinCasa, casaDeCasa, guardarCasaEnCola, R
 const { CAMPOS_CASA_CON_SOBRE } = await import("./estadoDeDato.js");
 const { crearColaDeDatos } = await import("./escribirDato.js");
 const { REGISTRO_CAMPOS } = await import("./registroCampos.js");
+const { fichaDePrueba } = await import("../../api/_bot/familiaDePrueba.js");
 const { PREGUNTAS_POR_ID } = await import("./wizardRegistry.js");
 const { conInterruptor, leerPresupuesto, PRESUPUESTO_DE_PARTIDA } = await import("./presupuestoCasa.js");
 
@@ -20,8 +21,11 @@ const sobre = (campo, valor, origen = "dicho") => ({
   bloqueado: false, peso: null, confirmado_el: null, caduca_at: null, cambiado_at: null, dicho_por: null, canal: "app", operacion_id: null,
 });
 const porDefecto = (campo, valor) => ({ ...sobre(campo, valor), estado: "por_defecto", origen: null });
-/** api/operacion.js de mentira: contesta `cuerpo` (un objeto, o un texto tal cual) con `status`. */
-const servidor = (cuerpo, status = 200) => vi.fn(async () => new Response(typeof cuerpo === "string" ? cuerpo : JSON.stringify(cuerpo), { status }));
+/** api/operacion.js de mentira: contesta `cuerpo` (un objeto, o un texto tal cual) con `status`, tal cual. */
+const servidorTalCual = (cuerpo, status = 200) => vi.fn(async () => new Response(typeof cuerpo === "string" ? cuerpo : JSON.stringify(cuerpo), { status }));
+/** Lo mismo, y una v2 con sus `datos` y los demás datos con sobre sin decir, como la da la base con la 0112 a la 0116. */
+const servidor = (cuerpo, status = 200) => servidorTalCual(
+  cuerpo?.v === 2 && Array.isArray(cuerpo.datos) ? { ...cuerpo, datos: Object.values(fichaDePrueba(...cuerpo.datos).fichas).flat() } : cuerpo, status);
 const leer = (fetcher, mas = {}) => leerDatosDeCasa(CASA, { token: async () => "tok", fetcher, enDesarrollo: false, ...mas });
 
 afterEach(() => vi.restoreAllMocks());
@@ -34,41 +38,45 @@ describe("los campos con sobre", () => {
 
 describe("leer los datos de la casa", () => {
   it("el modo de la despensa también: el dicho de su sobre («off» incluido), o el defecto del registro («only»)", async () => {
-    expect(await leer(servidor({ v: 2, datos: [sobre("pantryMode", "off")] }))).toEqual({ valores: { pantryMode: "off" } });
-    expect(await leer(servidor({ v: 2, datos: [porDefecto("pantryMode", "only")] }))).toEqual({ valores: { pantryMode: "only" } });
+    expect((await leer(servidor({ v: 2, datos: [sobre("pantryMode", "off")] }))).valores).toMatchObject({ pantryMode: "off" });
+    expect((await leer(servidor({ v: 2, datos: [porDefecto("pantryMode", "only")] }))).valores).toMatchObject({ pantryMode: "only" });
   });
 
   it("con la 0112 aplicada, de su sobre, pidiéndolos a api/operacion.js con la sesión", async () => {
     const fetcher = servidor({ v: 2, datos: [sobre("wantsPriceEstimates", true), sobre("presupuesto", 80)] });
-    expect(await leer(fetcher)).toEqual({ valores: { wantsPriceEstimates: true, presupuesto: 80 } });
+    expect((await leer(fetcher)).valores).toMatchObject({ wantsPriceEstimates: true, presupuesto: 80 });
     expect(fetcher.mock.calls[0][0]).toBe(`/api/operacion?casa=${CASA}`);
     expect(fetcher.mock.calls[0][1].headers.Authorization).toBe("Bearer tok");
   });
 
   it("sin sobre, el defecto del registro que trae la ficha (sin repoblar desde el documento)", async () => {
-    expect(await leer(servidor({ v: 2, datos: [porDefecto("wantsPriceEstimates", false)] }))).toEqual({ valores: { wantsPriceEstimates: false } });
+    expect((await leer(servidor({ v: 2, datos: [porDefecto("wantsPriceEstimates", false)] }))).valores).toMatchObject({ wantsPriceEstimates: false });
   });
 
   it("menuModel también: el dicho de su sobre, o el defecto del registro («same»)", async () => {
-    expect(await leer(servidor({ v: 2, datos: [sobre("menuModel", "separate")] }))).toEqual({ valores: { menuModel: "separate" } });
-    expect(await leer(servidor({ v: 2, datos: [porDefecto("menuModel", "same")] }))).toEqual({ valores: { menuModel: "same" } });
+    expect((await leer(servidor({ v: 2, datos: [sobre("menuModel", "separate")] }))).valores).toMatchObject({ menuModel: "separate" });
+    expect((await leer(servidor({ v: 2, datos: [porDefecto("menuModel", "same")] }))).valores).toMatchObject({ menuModel: "same" });
   });
 
   it("los aparatos también: la lista dicha y su nota; sin decir, vacía (no null) y la nota null", async () => {
-    expect(await leer(servidor({ v: 2, datos: [sobre("kitchenTools", ["Horno", "Otro"]), sobre("kitchenToolsNota", "plancha")] })))
-      .toEqual({ valores: { kitchenTools: ["Horno", "Otro"], kitchenToolsNota: "plancha" } });
-    expect(await leer(servidor({ v: 2, datos: [porDefecto("kitchenTools", null), porDefecto("kitchenToolsNota", null)] })))
-      .toEqual({ valores: { kitchenTools: [], kitchenToolsNota: null } });
+    expect((await leer(servidor({ v: 2, datos: [sobre("kitchenTools", ["Horno", "Otro"]), sobre("kitchenToolsNota", "plancha")] }))).valores)
+      .toMatchObject({ kitchenTools: ["Horno", "Otro"], kitchenToolsNota: "plancha" });
+    expect((await leer(servidor({ v: 2, datos: [porDefecto("kitchenTools", null), porDefecto("kitchenToolsNota", null)] }))).valores)
+      .toMatchObject({ kitchenTools: [], kitchenToolsNota: null });
   });
 
   it("el nivel de cocina también: el dicho de su sobre, o el defecto del registro («normal»)", async () => {
-    expect(await leer(servidor({ v: 2, datos: [sobre("cookLevel", "basic")] }))).toEqual({ valores: { cookLevel: "basic" } });
-    expect(await leer(servidor({ v: 2, datos: [porDefecto("cookLevel", "normal")] }))).toEqual({ valores: { cookLevel: "normal" } });
+    expect((await leer(servidor({ v: 2, datos: [sobre("cookLevel", "basic")] }))).valores).toMatchObject({ cookLevel: "basic" });
+    expect((await leer(servidor({ v: 2, datos: [porDefecto("cookLevel", "normal")] }))).valores).toMatchObject({ cookLevel: "normal" });
   });
 
-  it("sin la 0112 (la ficha no trae el campo) o con ficha_casa v1, nada: siguen en el documento", async () => {
-    expect(await leer(servidor({ v: 2, datos: [] }))).toEqual({ valores: {} });
-    expect(await leer(servidor({ v: 1, datos: null }))).toEqual({ valores: {} });
+  it("a la ficha le falta un dato con sobre, o es la v1: error de carga, no el documento (la 0112 a la 0116, aplicadas)", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    expect(await leer(servidorTalCual({ v: 2, datos: [] }))).toEqual({ error: true });
+    const sinUno = Object.values(fichaDePrueba().fichas).flat().filter((d) => d.campo !== "menuModel");
+    expect(await leer(servidorTalCual({ v: 2, datos: sinUno }))).toEqual({ error: true });
+    expect(log.mock.calls.flat().join(" ")).toMatch(/ficha_casa no trae menuModel/);
+    expect(await leer(servidorTalCual({ v: 1, datos: null }))).toEqual({ error: true });
   });
 
   it("sin poder leerla no es una casa sin datos: error (la carga no sigue)", async () => {
@@ -90,7 +98,7 @@ describe("leer los datos de la casa", () => {
   it("en desarrollo, sin las funciones de api/ (contesta la página de vite), del documento y dicho en consola", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     const aviso = vi.spyOn(console, "warn").mockImplementation(() => {});
-    expect(await leer(servidor("<!doctype html>"), { enDesarrollo: true })).toEqual({ valores: {} });
+    expect((await leer(servidor("<!doctype html>"), { enDesarrollo: true })).valores).toMatchObject({});
     expect(aviso).toHaveBeenCalledTimes(1);
     // Un fallo del servidor de verdad sigue siendo error también en desarrollo.
     expect(await leer(servidor({ fallo: "servidor" }, 503), { enDesarrollo: true })).toEqual({ error: true });
@@ -194,7 +202,7 @@ describe("guardar los datos con sobre", () => {
       nuevaClave: () => `00000000-0000-4000-8000-00000000c1c${enviados.length}`, ahora: () => 0,
     });
     const { valores } = await leer(servidor({ v: 2, datos: [porDefecto("supermarkets", null), porDefecto("supermarketsNota", null)] }));
-    expect(valores).toEqual({ supermarkets: [], supermarketsNota: null });
+    expect(valores).toMatchObject({ supermarkets: [], supermarketsNota: null });
     const casa = casaDeCasa({ casa: CASA, valores, cola });
     expect(await casa.guardar({ supermarkets: [], supermarketsNota: null }, 3)).toEqual({ ok: true, enviado: false });
     expect(await casa.guardar({ supermarkets: ["Mercadona", "Otro"], supermarketsNota: "Frutería Paco" }, 3)).toEqual({ ok: true, enviado: true, botRev: 5 });
@@ -214,7 +222,7 @@ describe("guardar los datos con sobre", () => {
       nuevaClave: () => `00000000-0000-4000-8000-00000000c1d${enviados.length}`, ahora: () => 0,
     });
     const carga = await leer(servidor({ v: 2, datos: [porDefecto("presupuesto", null)] }));
-    expect(carga).toEqual({ valores: { presupuesto: null } });
+    expect(carga.valores).toMatchObject({ presupuesto: null });
     const data = conCasaLeida({ hasBudget: true, budget: 90, reglas: [] }, carga);
     expect(leerPresupuesto(data)).toEqual({ estado: "sin", euros: null });
     const casa = casaDeCasa({ casa: CASA, valores: carga.valores, cola });
@@ -263,12 +271,13 @@ describe("la Rutina con ámbito en la app", () => {
 
   it("con la 0116, el horario sale de sus sobres por hueco, en la forma de data", async () => {
     const r = await leer(servidor({ v: 2, datos: [base("schedule", P), hueco("schedule", { dia: "Lun", comida: "Cena" }, "fuera", P), base("slotType")] }));
-    expect(r).toEqual({ valores: { schedule: { "p1|Lun|Cena": "fuera" }, slotType: {} } });
+    expect(r.valores).toMatchObject({ schedule: { "p1|Lun|Cena": "fuera" }, slotType: {} });
   });
 
-  it("sin la 0116 (elementos sin ámbito), el horario sigue en el documento", async () => {
+  it("un elemento sin ámbito (una ficha de antes de la 0116): error de carga, no el documento", async () => {
     const { ambito: _fuera, ...antes } = base("schedule", P);
-    expect(await leer(servidor({ v: 2, datos: [antes] }))).toEqual({ valores: {} });
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    expect(await leer(servidor({ v: 2, datos: [antes] }))).toEqual({ error: true });
   });
 
   it("un ámbito que no es el del campo no es un horario vacío: la carga no sigue", async () => {

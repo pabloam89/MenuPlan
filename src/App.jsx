@@ -1545,7 +1545,7 @@ export default function App() {
         loadState(),
         // La familia, de sus filas (0108); sin la RPC en la base, del documento como antes (lib/familiaCasa.js).
         householdId ? leerFamiliaDeCasa(householdId) : Promise.resolve(null),
-        // Los datos de la casa con sobre (trozo 12); sin la 0112 o con ficha_casa v1, del documento (lib/casaDatos.js).
+        // Los datos de la casa con sobre (trozos 12 y 13), todos de ficha_casa v2; si no, error de carga (lib/casaDatos.js).
         householdId ? leerDatosDeCasa(householdId) : Promise.resolve(null),
         loadUserRecipes(householdReadOnly ? menuUserId : user.id),
         loadRecipeVotes(user.id),

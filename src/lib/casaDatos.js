@@ -5,10 +5,10 @@
  * Y los de la Rutina con ámbito (trozo 13, CAMPOS_CON_AMBITO_CON_SOBRE): un mapa en data, un sobre por hueco;
  * lo que cambia de un mapa va en una sola operación con un dato por hueco (datosDeCambio, rutina.js).
  *
- * Plan B, decidido en cada carga, como familiaCasa.js: si la base aún no tiene el campo en registro_campo (la
- * 0112 sin aplicar) o ficha_casa es la v1, ficha_casa no lo trae y el dato sigue en el documento como hasta
- * ahora. Si lo trae, vale lo de su sobre (o el defecto del registro), se escribe con la cola y el documento deja
- * de llevarlo. Nunca en los dos sitios.
+ * Con la 0112 a la 0116 aplicadas (2 nov 2026), ficha_casa v2 los trae todos: vale lo de su sobre (o el defecto
+ * del registro), se escribe con la cola y el documento no lo lleva. Nunca en los dos sitios. Otra versión, o una v2
+ * a la que le falte alguno, es un error de carga (no una casa sin datos). Solo en desarrollo sin api/ se sigue con
+ * el documento.
  */
 import { crearColaDeDatos, enviarAlServidor, jsonDeTexto } from "./escribirDato.js";
 import { leidosConSobre, FICHA_CON_ESTADO, CAMPOS_CON_AMBITO_CON_SOBRE } from "./estadoDeDato.js";
@@ -21,13 +21,15 @@ import { guardarConVersion } from "./versionCasa.js";
 export const REF_CASA = "casa";
 
 /**
- * Pura. Lo que contestó api/operacion.js (GET) en la carga de la casa: `{ valores }` con los de
- * CAMPOS_CASA_CON_SOBRE que la ficha trae (vacío con la v1 o sin la 0112: siguen en el documento), o
- * `{ error: true }` si la respuesta no es la esperada: no es una casa sin datos.
+ * Pura. Lo que contestó api/operacion.js (GET) en la carga de la casa: `{ valores }` con todos los datos con sobre,
+ * o `{ error: true }` si la respuesta no es la esperada (otra versión, una v2 sin alguno): no es una casa sin datos.
  */
 function cargaDeRespuesta(status, cuerpo) {
   if (status !== 200 || !cuerpo || !Number.isInteger(cuerpo.v)) return { error: true };
-  if (cuerpo.v !== FICHA_CON_ESTADO) return { valores: {} };
+  if (cuerpo.v !== FICHA_CON_ESTADO) {
+    console.error("[casaDatos] ficha_casa v", cuerpo.v, ": se esperaba la v", FICHA_CON_ESTADO);
+    return { error: true };
+  }
   if (!Array.isArray(cuerpo.datos)) return { error: true };
   let leidos;
   try {
