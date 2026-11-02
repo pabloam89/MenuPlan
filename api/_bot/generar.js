@@ -378,7 +378,8 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   const pantryMode = modoDespensaAlGenerar(working);
   const pantryIngredients = usaDespensa(working) ? despensa : [];
 
-  const { plan, recipes } = await m.generateMenuWithAI(weekData, { pantryIngredients, pantryMode, crossWeek });
+  // El motor lee la semana compilada una vez (src/lib/entradaMotor.js), no la casa.
+  const { plan, recipes } = await m.generateMenuWithAI(m.entradaDelMotor(weekData), { pantryIngredients, pantryMode, crossWeek });
   m.registerRecipes(recipes);
   // Lo pedido que el motor no haya dejado, antes de la compra (que sale del plan).
   if (pedidos.length) colocarPedidos(m, { schedule: {}, ...working, groups }, plan, recipes, pedidos, activeDays);
