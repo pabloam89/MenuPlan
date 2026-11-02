@@ -11,6 +11,7 @@ import { SUFIJO_CLAVE_PERSONA, RPC_OPERACION } from "../../src/lib/operaciones/t
 import { CAMPOS_CASA_CON_SOBRE } from "../../src/lib/estadoDeDato.js";
 import { RPC_FICHA, fichaV1 } from "./familiaDePrueba.js";
 import { PREGUNTAS_POR_ID } from "../../src/lib/wizardRegistry.js";
+import { aplicarCompra } from "./ajustes.js";
 
 const CASA = "3f2b8c1e-7a4d-4e0b-9c5a-1d2e3f4a5b6c";
 const A = "00000000-0000-4000-8000-00000000000a";
@@ -303,6 +304,23 @@ describe("los datos de la casa con sobre (trozo 12)", () => {
     expect(doc.cuerpo.p_state.data).not.toHaveProperty("cookLevel");
     expect(op.cuerpo.p_operacion.datos).toEqual([{ campo: "cookLevel", persona_id: null, valor: "basic", origen: "dicho" }]);
     expect(r).toMatchObject({ ok: true, botRev: 9 });
+  });
+
+  it("los súper (PR 7): se leen del sobre y no del documento; «compramos en la frutería» suma «Otro» y su nota, cada uno con sobre", async () => {
+    respuestas.unshift([/household_state/, { status: 200, cuerpo: [{ state: { data: { ...DOCUMENTO.data, supermarkets: ["Dia"] } }, bot_rev: 7, updated_at: "2026-11-01T10:00:00Z" }] }]);
+    responde(RUTA_FICHA, { status: 200, cuerpo: fichaV2(dicho("supermarkets", ["Mercadona"]), porDefecto("supermarketsNota", null)) });
+    const casa = await cargarCasa(CASA);
+    expect(casa.state.data).toMatchObject({ supermarkets: ["Mercadona"], supermarketsNota: null });
+    olvidarCasa(CASA);
+    let rev = 8;
+    responde(RUTA_OPERACION, { status: 200, get cuerpo() { rev += 1; return { ...HECHA, rev }; } });
+    const { r } = await enTurno(() => conCasa(CASA, async (c) => ({ state: { ...c.state, data: aplicarCompra(c.state.data, { supermercadoOtro: "Frutería Paco" }).data } })));
+    expect(escrituras().filter((l) => RUTA_OPERACION.test(l.ruta)).map((l) => l.cuerpo.p_operacion.datos[0])).toEqual([
+      { campo: "supermarkets", persona_id: null, valor: ["Mercadona", "Otro"], origen: "dicho" },
+      { campo: "supermarketsNota", persona_id: null, valor: "Frutería Paco", origen: "dicho" },
+    ]);
+    expect(escrituras()[0].cuerpo.p_state.data).not.toHaveProperty("supermarkets");
+    expect(r).toMatchObject({ ok: true, botRev: 10 });
   });
 
   it("sin la 0112 (la ficha no trae la ficha Casa), con la v1 o sin la RPC, del documento y se guarda en él", async () => {

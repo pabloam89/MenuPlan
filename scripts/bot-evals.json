@@ -3051,6 +3051,22 @@
       }
     },
     {
+      "id": "fruteria-fuera-de-lista-va-como-otro-super",
+      "tipo": "herramienta",
+      "dominio": "ficha",
+      "origen": "escrito",
+      "nombre": "«también compramos en la frutería del barrio» (no está en la lista) se apunta como otro súper, sin tocar los demás (#958 C, trozo 12)",
+      "entrada": "la fruta la compramos en la frutería del barrio",
+      "llama": [
+        "ajustar_compra"
+      ],
+      "args": {
+        "ajustar_compra": {
+          "supermercadoOtro": "frutería"
+        }
+      }
+    },
+    {
       "id": "nevera-tengo-esto-apunta-en-despensa",
       "tipo": "herramienta",
       "dominio": "compra",

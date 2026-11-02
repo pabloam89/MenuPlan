@@ -83,7 +83,7 @@ export const leidoDe = (estados, campo, personaId = null) => estados?.get(clave(
  * con escribirDato, no en household_state. Aquí y no en casaDatos.js, que es del navegador, para que Lola lea la
  * misma lista. Los PR del trozo añaden los suyos.
  */
-export const CAMPOS_CASA_CON_SOBRE = Object.freeze(["wantsPriceEstimates", "menuModel", "kitchenTools", "kitchenToolsNota", "cookLevel"]);
+export const CAMPOS_CASA_CON_SOBRE = Object.freeze(["wantsPriceEstimates", "menuModel", "kitchenTools", "kitchenToolsNota", "cookLevel", "supermarkets", "supermarketsNota"]);
 
 /**
  * Pura. Los de CAMPOS_CASA_CON_SOBRE que la ficha trae, leídos (su sobre o el defecto del registro). Los que no
