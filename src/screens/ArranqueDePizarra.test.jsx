@@ -9,7 +9,7 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
 describe("la hoja de arranque de la pizarra", () => {
   it("espera lo que dura su animación de salida", () => {
-    const css = readFileSync(new URL("../index.css", import.meta.url), "utf8");
+    const css = readFileSync("src/index.css", "utf8");
     const segundos = css.match(/\.mp-arranque-out\s*\{[^}]*?\bmpArranqueOut\s+([\d.]+)s/)[1];
     expect(SALIDA_ARRANQUE_MS).toBe(Number(segundos) * 1000);
   });
