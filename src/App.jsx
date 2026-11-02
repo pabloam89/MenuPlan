@@ -24,6 +24,7 @@ import {
   IndividualMenuSheet,
 } from "./screens/Onboarding.jsx";
 import { OnboardingProgressContext } from "./screens/onboardingProgressContext.js";
+import { PORTADA, decidirPortada } from "./lib/portada.js";
 import { buildSharedMenuPayload } from "./lib/sharedMenu.js";
 import { publishMenu, unpublishMenu, loadMyPublishedMenus, createMenuShareToken, loadMenuFromLink } from "./lib/social.js";
 import { loadNotifications, countUnread } from "./lib/socialNotifications.js";
@@ -57,7 +58,7 @@ const HouseholdsScreen = lazy(() => import("./screens/HouseholdsScreen.jsx").the
 const BibliotecaScreen = lazy(() => import("./screens/BibliotecaScreen.jsx").then(m => ({ default: m.BibliotecaScreen })));
 const UserStatsScreen = lazy(() => import("./screens/UserStatsScreen.jsx").then(m => ({ default: m.UserStatsScreen })));
 const MenuPeek = lazy(() => import("./screens/FeedScreen.jsx").then(m => ({ default: m.MenuPeek })));
-import { generateMenuWithAI, pickCatalogReplacement, catalogToFrontendRecipe, createPlannerStats } from "./lib/aiPlanner.js";
+import { generateMenuWithAI, pickCatalogReplacement, motivoDelChoque, catalogToFrontendRecipe, createPlannerStats } from "./lib/aiPlanner.js";
 import { activeDiscardIds } from "./lib/entradaMotor.js";
 import { sugerenciasDeHueco } from "./lib/sugerenciasDeHueco.js";
 import { minimosQueFaltan } from "./lib/minimosParaGenerar.js";
@@ -1492,6 +1493,7 @@ export default function App() {
   useEffect(() => {
     if (!user?.id) {
       cloudReadyRef.current = false;
+      setNubeLista(false);
       hydratedUserRef.current = null;
       setPersonalRecipeVotes({});
       return;
@@ -4317,12 +4319,15 @@ export default function App() {
   // quien entra desde Lola pulsa «Empezar ya» antes de que se vea su familia
   // y cae en el alta de la app (Avatares → Alergias) con lo que ya contó.
   // Con plazo: sin red o sin casa, se deja pasar igual.
-  const [splashSinEspera, setSplashSinEspera] = useState(false);
+  // El plazo es de una cuenta: el vencido sin sesión (un login lento en el
+  // móvil) no vale para la que acaba de entrar.
+  const [plazoVencidoDe, setPlazoVencidoDe] = useState(undefined);
+  const cuentaEnEspera = user?.id ?? null;
+  const splashSinEspera = plazoVencidoDe === cuentaEnEspera;
   useEffect(() => {
-    setSplashSinEspera(false);
-    const t = window.setTimeout(() => setSplashSinEspera(true), ESPERA_DESTINO_MS);
+    const t = window.setTimeout(() => setPlazoVencidoDe(cuentaEnEspera), ESPERA_DESTINO_MS);
     return () => window.clearTimeout(t);
-  }, [user?.id]);
+  }, [cuentaEnEspera]);
   const abriendoCasa = !splashSinEspera && ((conLlave && !user && !falloLlave) || (Boolean(user) && !nubeLista));
   useEffect(() => {
     if (!falloLlave) return;
@@ -4382,6 +4387,42 @@ export default function App() {
     if (d.pantalla === "recipes") setRecetasInicio({ categoria: d.categoria ?? null, mias: Boolean(d.mias), clave: Date.now() });
     fwd(() => setScreen(d.pantalla));
   }, [destinoBot, authLoading, user, nubeLista, esperaVencida, data.members, screen, handleOpenCatalogRecipe, showToast]);
+
+  const [saliendoDeCuenta, setSaliendoDeCuenta] = useState(false);
+  const inicioSinNubeRef = useRef(false);
+  const hayFamiliaGuardada = !FORCE_VALUE_PROPS && data.members.length > 0;
+  const portada = decidirPortada({
+    cargando: (authLoading && !splashSinEspera) || abriendoCasa,
+    conSesion: Boolean(user),
+    nubeLista,
+    hayFamilia: hayFamiliaGuardada,
+    hayDestino: Boolean(destinoBot),
+    pidioEntrar: avisoEntrarRef.current,
+    saliendo: saliendoDeCuenta,
+  });
+  const empezarAlta = () =>
+    fwd(() => {
+      // Sin familia guardada: alguien nuevo, con o sin sesión. Se fuerza el
+      // paso 1 porque onbStep puede venir de un intento abandonado.
+      trackEvent(user, EMBUDO.ARRANQUE, PANTALLA_EMBUDO, { canal: "app" });
+      setFirstRunOnboarding(true);
+      setHomeCoachSeen(false); // spotlight siempre al llegar al dashboard tras el tutorial
+      setOnbStep(1);
+      setScreen(FORCE_VALUE_PROPS || (GUIAS_ACTIVAS && !valuePropsSeen) ? "valueProps" : "onboarding");
+    });
+  useEffect(() => {
+    if (screen !== "splash") return;
+    if (portada === PORTADA.INICIO) {
+      inicioSinNubeRef.current = Boolean(user) && !nubeLista;
+      fwd(() => setScreen("dashboard"));
+    } else if (portada === PORTADA.ALTA) empezarAlta();
+  }, [screen, portada]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Se pasó a Inicio por el plazo y la nube dice luego que no hay familia.
+  useEffect(() => {
+    if (!nubeLista || !inicioSinNubeRef.current) return;
+    inicioSinNubeRef.current = false;
+    if (screen === "dashboard" && data.members.length === 0) empezarAlta();
+  }, [nubeLista]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /**
    * Copiar una receta de Gente a mi biblioteca. Es una INSTANTÁNEA: nace con
@@ -5627,7 +5668,14 @@ export default function App() {
       const r = pickCatalogReplacement(data, menuPlan, { groupId: d.gid, day: d.day, meal: d.meal, course: d.course, forcedRecipe: catalogRecipe });
       if (r) colocados.push({ ...d, ...r });
     }
-    if (colocados.length === 0) { showToast("No se pudo colocar esa receta aquí"); setSlotPicker(null); return; }
+    if (colocados.length === 0) {
+      const motivo = destinos
+        .map((d) => motivoDelChoque(catalogRecipe, data, (data.groups ?? []).find((g) => g.id === d.gid), meal))
+        .find(Boolean);
+      showToast(motivo ?? "No se pudo colocar esa receta aquí");
+      setSlotPicker(null);
+      return;
+    }
     const frontendRecipe = colocados[0].frontendRecipe;
     registerRecipes(colocados.map((c) => c.frontendRecipe));
     setAiRecipes((cur) => {
@@ -5811,8 +5859,13 @@ export default function App() {
     setOnbStep(0);
     setAiRecipes([]);
     setMenuError(null);
+    setSaliendoDeCuenta(true);
     setScreen("splash");
-    await signOut();
+    try {
+      await signOut();
+    } finally {
+      setSaliendoDeCuenta(false);
+    }
   }, [signOut, user, session, showToast]);
 
   // Order: Members → Menu Model → School Menu → Restrictions → Week → Schedule →
@@ -6241,23 +6294,15 @@ export default function App() {
         ref={containerRef}
         style={{ minHeight: "100dvh", display: "flex", flexDirection: "column" }}
       >
-        {screen === "splash" && (
+        {screen === "splash" && portada !== PORTADA.VER && (
+          <div role="status" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            Abriendo tu casa…
+          </div>
+        )}
+        {screen === "splash" && portada === PORTADA.VER && (
           <SplashScreen
-            onNext={() =>
-              fwd(() => {
-                // hasSaved is false here (see below), so this is always a
-                // brand-new visitor: after this they only fill in "¿quién
-                // come en casa?" and land straight on Home. Force onbStep
-                // back to 0 too — it may still be pointing at a later step
-                // left over from a previous (abandoned) attempt.
-                trackEvent(user, EMBUDO.ARRANQUE, PANTALLA_EMBUDO, { canal: "app" });
-                setFirstRunOnboarding(true);
-                setHomeCoachSeen(false); // spotlight siempre al llegar al dashboard tras el tutorial
-                setOnbStep(1);
-                setScreen(FORCE_VALUE_PROPS || (GUIAS_ACTIVAS && !valuePropsSeen) ? "valueProps" : "onboarding");
-              })
-            }
-            hasSaved={FORCE_VALUE_PROPS ? false : data.members.length > 0}
+            onNext={empezarAlta}
+            hasSaved={hayFamiliaGuardada}
             onResume={() => fwd(() => setScreen("dashboard"))}
             isAuthed={Boolean(user)}
             onGoogle={signInWithGoogle}

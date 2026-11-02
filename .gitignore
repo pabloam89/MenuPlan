@@ -85,3 +85,5 @@ ops/test-del-juez/ultima-pasada.json
 # Pruebas de punta a punta (Playwright)
 test-results/
 playwright-report/
+# La tabla receta × eje se escribe en el build (scripts/compilar-ejes.mjs).
+src/data/derived/recipeEjes.json

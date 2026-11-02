@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { pickCatalogReplacement, chocaConElGrupo, choquesDelPlan } from "./aiPlanner.js";
+import { pickCatalogReplacement, chocaConElGrupo, choquesDelPlan, motivoDelChoque } from "./aiPlanner.js";
 import { recipeCatalog } from "../data/recipeCatalog.js";
 
 // La puerta de seguridad (#958, raíz 2): ningún atajo coloca un plato que
@@ -45,5 +45,38 @@ describe("puerta de seguridad del plan", () => {
   it("un grupo sin nadie no cuenta", () => {
     const vacio = { ...datos(), groups: [{ ...group, memberIds: [] }] };
     expect(choquesDelPlan(vacio, plan(pescado.id))).toEqual([]);
+  });
+});
+
+describe("motivoDelChoque: la puerta dice por qué", () => {
+  it("sin choque no hay motivo", () => {
+    expect(motivoDelChoque(pescado, datos([]), group)).toBeNull();
+  });
+
+  it("nombra a la persona y su alergia", () => {
+    const d = datos();
+    d.members[1].name = "Ana";
+    expect(motivoDelChoque(pescado, d, group)).toBe(`«${pescado.name}» no entra: Ana tiene alergia a pescado`);
+  });
+
+  it("nombra la intolerancia", () => {
+    const d = datos([]);
+    d.members[1] = { ...d.members[1], name: "Ana", intolerances: ["vegetariano"] };
+    expect(motivoDelChoque(pescado, d, group)).toContain("Ana: vegetariano");
+  });
+
+  it("la regla de bebé no es un choque: coincide con la puerta", () => {
+    const bebe = recipeCatalog.find((r) => r.category === "bebes" && !(r.allergens ?? []).length && !r.puedeContener?.length);
+    const d = { ...datos([]), allergiesReviewed: false };
+    expect(chocaConElGrupo(bebe, d, group)).toBe(false);
+    expect(motivoDelChoque(bebe, d, group)).toBeNull();
+  });
+
+  it("sin revisar lo dice, sin inventarse una alergia", () => {
+    const d = { ...datos([]), allergiesReviewed: false };
+    d.members = d.members.map((m) => ({ ...m, name: "Ana" }));
+    expect(motivoDelChoque(pescado, d, group)).toContain("faltan por revisar las alergias de Ana, Ana");
+    d.members = d.members.map((m) => ({ ...m, name: "" }));
+    expect(motivoDelChoque(pescado, d, group)).toContain("de la casa");
   });
 });
