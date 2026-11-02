@@ -107,4 +107,12 @@ describe("la compra guarda solo marcas (trozo 18)", () => {
     const idYMarcas = (g) => g.marcas.map((m) => [m.id, m.marcas]);
     expect(idYMarcas(cambiarCompra(primera, verla(primera), verla))).toEqual(idYMarcas(primera));
   });
+
+  it("una lista vieja sin ids no pierde nada al pasar a marcas", () => {
+    const vieja = [{ name: "pan", manual: true }, { name: "Leche", unit: "ml", have: true }];
+    const { marcas } = compraParaGuardar({ items: vieja });
+    expect(marcas.map((m) => m.marcas)).toEqual([[MARCA_COMPRA.ANADIDO], [MARCA_COMPRA.COMPRADO]]);
+    expect(marcas.every((m) => m.id)).toBe(true);
+    expect(listaConMarcas([], { marcas }).map((it) => it.name)).toEqual(["pan"]);
+  });
 });

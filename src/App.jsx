@@ -2546,7 +2546,8 @@ export default function App() {
           startISO: res.startISO,
           endISO: res.endISO,
           plan: res.plan,
-          shopping: res.weekShopping,
+          // Solo las marcas (trozo 18): la lista sale del plan al verla.
+          shopping: compraParaGuardar(res.weekShopping),
           schedule: res.weekSchedule,
         };
         allRecipes.push(...res.recipes);

@@ -73,6 +73,12 @@ export function anadirArticulos(items, nombres, sello = () => Date.now().toStrin
 const claveConUnidad = (it) => normalizeIngredientKey(it?.name ?? "", it?.unit ?? "ud");
 
 /**
+ * El id de un artículo: el suyo, o, en una lista vieja sin ids, el que tendría
+ * (el de buildShoppingList si sale del menú; uno de añadido si se apuntó a mano).
+ */
+export const idDeArticulo = (it) => it?.id ?? (it?.manual ? `manual:${claveArticulo(it.name).replace(/\s+/g, "-")}` : claveConUnidad(it));
+
+/**
  * La lista `nuevos` con las marcas de `viejos` del mismo ingrediente y unidad:
  * rehacer la semana, cambiar un plato o los comensales no puede desmarcar lo
  * que ya se compró. Solo pasa lo marcado (true); lo demás se queda como venga

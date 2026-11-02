@@ -10,7 +10,7 @@
  * La forma de antes (`{ items }`) se lee tal cual hasta que se vuelve a guardar. Puro.
  */
 import { MARCA_COMPRA } from "./vocabularios.js";
-import { articuloAMano } from "./compraIdentidad.js";
+import { articuloAMano, idDeArticulo } from "./compraIdentidad.js";
 
 const { ANADIDO, COMPRADO, EN_CASA, QUITADO } = MARCA_COMPRA;
 
@@ -26,16 +26,16 @@ const CAMPOS_ANADIDO = ["category", "qty", "displayQty"];
  * en la vista, se quitó. Lo que no lleva ninguna marca no se guarda.
  */
 export function marcasDe(items, derivados) {
-  const vistos = new Set((items ?? []).map((it) => it?.id));
+  const vistos = new Set((items ?? []).map(idDeArticulo));
   const marcas = [];
   for (const it of items ?? []) {
-    if (!it?.id) continue;
+    if (!it?.name && !it?.id) continue;
     const suyas = [];
     if (it.manual) suyas.push(ANADIDO);
     if (it.have) suyas.push(COMPRADO);
     if (it.atHome) suyas.push(EN_CASA);
     if (!suyas.length) continue;
-    const m = { id: it.id, nombre: it.name, unidad: it.unit ?? "", marcas: suyas };
+    const m = { id: idDeArticulo(it), nombre: it.name, unidad: it.unit ?? "", marcas: suyas };
     if (it.manual) for (const c of CAMPOS_ANADIDO) if (it[c] != null) m[c] = it[c];
     marcas.push(m);
   }
@@ -94,7 +94,7 @@ export function compraQueSeVe(guardada, derivar) {
 export function compraParaGuardar(vista, derivados = []) {
   if (esCompraConMarcas(vista)) return vista;
   const { marcas } = marcasDe(vista?.items, derivados);
-  const ya = new Set([...marcas.map((m) => m.id), ...(vista?.items ?? []).map((it) => it?.id)]);
+  const ya = new Set([...marcas.map((m) => m.id), ...(vista?.items ?? []).map(idDeArticulo)]);
   for (const m of vista?.aparte ?? []) if (!ya.has(m.id)) marcas.push(m);
   return { marcas };
 }

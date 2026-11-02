@@ -42,6 +42,7 @@ import { conRecordatorioDeSilencio } from "../../src/lib/alergiasBase.js";
 import { apuntarRecordatorio } from "./silencio.js";
 import { listaParaEscribir } from "../../src/lib/vocabularios.js";
 import { conMarcas, claveArticulo } from "../../src/lib/compraIdentidad.js";
+import { compraParaGuardar } from "../../src/lib/compraMarcas.js";
 import { modoDespensaAlGenerar, usaDespensa } from "../../src/lib/modoDespensa.js";
 import { resultado, NO_GUARDADO } from "./resultado.js";
 
@@ -438,7 +439,9 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   // de hoy (se ha pedido la siguiente): entonces lo apuntado a mano sigue
   // siendo de la de hoy, y solo de ella (compraDeLaSemanaNueva).
   const ponerSemanaNueva = !semanasQueSeQuedan.some((w) => w.week_start <= hoy && hoy <= w.week_end) || (startISO <= hoy && hoy <= endISO);
-  week.shopping = shopping = { items: compraDeLaSemanaNueva(generados, casa, { startISO, endISO, ponerSemanaNueva }) };
+  shopping = { items: compraDeLaSemanaNueva(generados, casa, { startISO, endISO, ponerSemanaNueva }) };
+  // La semana guarda solo las marcas (trozo 18): la lista sale del plan al leerla (compraDeSemana.js).
+  week.shopping = compraParaGuardar(shopping);
 
   try {
     await insert("user_menus", [m.menuToRow(menu, dueno, householdId)]);
@@ -490,7 +493,7 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
       // para «deshaz» lleva esa misma semana: deshacer reactiva el menú de
       // antes y deja la nueva como estaba.
       casa: { ...fresca, semana: { menuId: menu.id, weekStart: startISO, plan, shopping: compraFinal } },
-      semana: { shopping: compraFinal },
+      semana: { shopping: compraParaGuardar(compraFinal) },
       activar: menu.id,
       state: {
         ...fresca.state,
