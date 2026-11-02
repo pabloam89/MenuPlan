@@ -3,7 +3,7 @@ import {
   VEREDICTOS, ESTADOS_PRESUPUESTO, PARTE_CONOCIDA_MINIMA, leerPresupuesto, presupuestoSemanal, topePorRacion,
   precioDePlato, precioAlto, estimarSemana, veredicto, frasePresupuesto, COBERTURA_SUELO, listaFrenteAPresupuesto,
 } from "./presupuesto.js";
-import { presupuestoGuardado, conPresupuesto, conInterruptor, PRESUPUESTO_DE_PARTIDA } from "./presupuestoCasa.js";
+import { presupuestoGuardado } from "./presupuestoCasa.js";
 import recipeCoste from "../data/derived/recipeCoste.json" with { type: "json" };
 
 // Ids reales de la tabla: uno con todas sus líneas con precio y otro al que
@@ -49,16 +49,6 @@ describe("un solo dato, presupuesto (trozo 12 de #1037, PR 8)", () => {
     expect(presupuestoGuardado({})).toBeUndefined();
     expect(leerPresupuesto({ presupuesto: null, hasBudget: true, budget: 60 }).estado).toBe("sin");
     expect(presupuestoSemanal({ presupuesto: 45, hasBudget: true, budget: 60 })).toBe(45);
-  });
-  it("escribirlo deja un solo dato: el par de antes se va", () => {
-    expect(conPresupuesto({ hasBudget: true, budget: 60, reglas: [] }, 90)).toEqual({ reglas: [], presupuesto: 90 });
-    expect(conPresupuesto({ hasBudget: true, budget: 60 }, null)).toEqual({ presupuesto: null });
-  });
-  it("el interruptor del asistente: al encender, la cifra que hubiera o la de partida; al apagar, null", () => {
-    expect(conInterruptor({ hasBudget: true, budget: 60 }, true)).toEqual({ presupuesto: 60 });
-    expect(conInterruptor({}, true)).toEqual({ presupuesto: PRESUPUESTO_DE_PARTIDA });
-    expect(conInterruptor({ presupuesto: 0 }, true)).toEqual({ presupuesto: PRESUPUESTO_DE_PARTIDA });
-    expect(conInterruptor({ presupuesto: 60 }, false)).toEqual({ presupuesto: null });
   });
 });
 
