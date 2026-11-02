@@ -54,6 +54,7 @@ import { esAnadido, topeDe } from "./cocinaTopes.js";
 import { aporteDe } from "./aporte.js";
 import { precioDePlato, precioAlto } from "./presupuesto.js";
 import { casaCon, pesoDe } from "./cumplimiento.js";
+import { OPERADOR_PREFERENCIA as OP } from "./vocabularios.js";
 
 // Los pesos de dos objetivos de la casa en el orden del solver (los explica
 // resolverMenu, paso 5). Exportados para que la entrada del motor
@@ -315,7 +316,7 @@ export function resolverMenu(slots, pool, {
   // de #1037). Los topes de siempre (el reparto con holgura) sí se relajan.
   const obligatorios = {};
   for (const p of preferencias) {
-    if (p.fuerza !== "obligatoria" || p.operador !== "como_mucho" || p.campo !== "freqs") continue;
+    if (p.fuerza !== "obligatoria" || p.operador !== OP.COMO_MUCHO || p.campo !== "freqs") continue;
     obligatorios[p.valor] = Math.min(obligatorios[p.valor] ?? Infinity, p.cantidad);
   }
   freqs = { ...freqs };
@@ -447,9 +448,9 @@ export function resolverMenu(slots, pool, {
   //     déficit del reparto: ordena dentro del reparto, no lo desequilibra.
   //     Antes los sesgos solo ordenaban el pool (el término 5, ×0,5 por
   //     puesto), y el ruido de la semilla se los comía.
-  const ordenan = preferencias.filter((p) => p.operador === "mas" || p.operador === "menos");
+  const ordenan = preferencias.filter((p) => p.operador === OP.MAS || p.operador === OP.MENOS);
   const gustoPorId = new Map(pool.map((r) => [r.id, ordenan.reduce(
-    (g, p) => (casaCon(p, r) ? g + (p.operador === "mas" ? -1 : 1) * pesoDe(p) : g), 0,
+    (g, p) => (casaCon(p, r) ? g + (p.operador === OP.MAS ? -1 : 1) * pesoDe(p) : g), 0,
   )]));
   //     Una CENA también va sola: es el plato único de la noche. Sin esto, una
   //     "Crema de verduras" de 148 kcal podía ser la cena entera, y 57 de las

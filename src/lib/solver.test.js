@@ -379,11 +379,11 @@ describe("las preferencias de la casa en el solver (trozo 31 de #1037)", () => {
     expect(dicho).toBeGreaterThanOrEqual(visto);
   }, 60000);
 
-  it("«menos arroz» dicho saca menos arroz que sin decirlo", () => {
-    const arroz = pref({ campo: "base", valor: "arroz", operador: "menos" });
-    const sin = cuantos(resolverPara(casa(), { semilla: 5 }), arroz);
+  it("«menos sartén» dicho saca menos platos de sartén que sin decirlo", () => {
+    const menos = pref({ valor: "sarten", operador: "menos" });
+    const sin = cuantos(resolverPara(casa(), { semilla: 5 }), menos);
     expect(sin).toBeGreaterThan(0);
-    expect(cuantos(resolverPara(casa(), { semilla: 5, preferencias: [arroz] }), arroz)).toBeLessThan(sin);
+    expect(cuantos(resolverPara(casa(), { semilla: 5, preferencias: [menos] }), menos)).toBeLessThan(sin);
   }, 60000);
 
   it("un tope obligatorio no se pasa ni relajando: con solo pescado posible, el hueco se queda vacío", () => {
@@ -403,9 +403,9 @@ describe("las preferencias de la casa en el solver (trozo 31 de #1037)", () => {
 
 describe("las alergias y los vetos nunca empeoran por una preferencia (trozo 31 de #1037)", () => {
   afterEach(() => { vi.unstubAllGlobals(); });
-  // La casa pide más huevo y más coliflor; una persona es alérgica al huevo y la coliflor está vetada.
+  // La casa pide más huevo y más queso; una persona es alérgica al huevo y el queso está vetado.
   const libreta = (campos) => ({ v: 1, campos: Object.fromEntries(Object.entries(campos).map(([k, valor]) => [k, { valor, origen: "texto" }])) });
-  const pide = { "favoritos.huevo": true, "favoritos.coliflor": true, "tecnica.horno": 1 };
+  const pide = { "favoritos.huevo": true, "favoritos.queso": true, "tecnica.horno": 1 };
   const generar = async (data) => {
     vi.stubGlobal("localStorage", { getItem: (k) => (k === "mp_motor" ? "solver" : null) });
     const entrada = entradaDelMotor(data, { hoy: "2026-11-02" });
@@ -413,21 +413,22 @@ describe("las alergias y los vetos nunca empeoran por una preferencia (trozo 31 
     return { entrada, plan, recipes };
   };
   const conHuevo = (recipes) => recipes.filter((r) => (r.allergens ?? []).includes("huevos") || (r.ingredients ?? []).some((i) => /huevo/i.test(i?.name ?? "")));
-  const conColiflor = (recipes) => recipes.filter((r) => (r.ingredients ?? []).some((i) => /coliflor/i.test(i?.name ?? "")));
+  const conQueso = (recipes) => recipes.filter((r) => (r.ingredients ?? []).some((i) => /queso/i.test(i?.name ?? "")));
 
-  it("la preferencia tira de verdad (sin alergia ni veto salen platos con huevo), y con ellas no sale ninguno", async () => {
+  it("la preferencia tira de verdad (sin alergia ni veto salen platos con huevo y con queso), y con ellas no sale ninguno", async () => {
     const libre = await generar(dataConLibreta(casa(), libreta(pide)));
     expect(conHuevo(libre.recipes).length).toBeGreaterThan(0);
+    expect(conQueso(libre.recipes).length).toBeGreaterThan(0);
 
     const data = dataConLibreta(
       casa({ members: [{ id: "m1", age: 38, allergies: ["huevos"] }, { id: "m2", age: 40 }] }),
-      libreta({ ...pide, "excluidos.coliflor": true }),
+      libreta({ ...pide, "excluidos.queso": true }),
     );
     const { entrada, plan, recipes } = await generar(data);
-    expect(entrada.preferencias.map((p) => p.id)).toEqual(expect.arrayContaining(["favoritos.huevo", "favoritos.coliflor"]));
+    expect(entrada.preferencias.map((p) => p.id)).toEqual(expect.arrayContaining(["favoritos.huevo", "favoritos.queso"]));
     expect(recipes.length).toBeGreaterThan(10);
     expect(choquesDelPlan(entrada, plan)).toEqual([]);
     expect(conHuevo(recipes).map((r) => r.name)).toEqual([]);
-    expect(conColiflor(recipes).map((r) => r.name)).toEqual([]);
+    expect(conQueso(recipes).map((r) => r.name)).toEqual([]);
   }, 120000);
 });
