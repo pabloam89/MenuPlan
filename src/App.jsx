@@ -25,6 +25,7 @@ import {
 } from "./screens/Onboarding.jsx";
 import { OnboardingProgressContext } from "./screens/onboardingProgressContext.js";
 import { PORTADA, decidirPortada } from "./lib/portada.js";
+import { EsqueletoInicio } from "./components/EsqueletoInicio.jsx";
 import { buildSharedMenuPayload } from "./lib/sharedMenu.js";
 import { publishMenu, unpublishMenu, loadMyPublishedMenus, createMenuShareToken, loadMenuFromLink } from "./lib/social.js";
 import { loadNotifications, countUnread } from "./lib/socialNotifications.js";
@@ -6330,10 +6331,8 @@ export default function App() {
         ref={containerRef}
         style={{ minHeight: "100dvh", display: "flex", flexDirection: "column" }}
       >
-        {screen === "splash" && portada === PORTADA.ESPERAR && (
-          <div role="status" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            Abriendo tu casa…
-          </div>
+        {screen === "splash" && portada !== PORTADA.VER && (
+          <EsqueletoInicio />
         )}
         {screen === "splash" && portada === PORTADA.VER && (
           <SplashScreen
@@ -6686,7 +6685,7 @@ export default function App() {
             key="dashboard"
             className={animDir === "forward" ? "mp-nav-fwd" : "mp-nav-back"}
           >
-            <Suspense fallback={null}>
+            <Suspense fallback={<EsqueletoInicio />}>
               <DashboardScreen
                 user={user}
                 data={data}
