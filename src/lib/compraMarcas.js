@@ -20,11 +20,7 @@ export const esCompraConMarcas = (guardada) => Array.isArray(guardada?.marcas);
 // Lo que un añadido a mano necesita para pintarse sin derivarse de nada.
 const CAMPOS_ANADIDO = ["category", "qty", "displayQty"];
 
-/**
- * Las marcas de una lista que se ve (`items`, con have / atHome / manual)
- * frente a la que sale del menú (`derivados`): lo que está en la derivada y no
- * en la vista, se quitó. Lo que no lleva ninguna marca no se guarda.
- */
+/** Las marcas de la lista que se ve frente a la que sale del menú: lo que está en esta y no en la vista, se quitó. */
 export function marcasDe(items, derivados) {
   const vistos = new Set((items ?? []).map((it) => it?.id));
   const marcas = [];
@@ -46,11 +42,8 @@ export function marcasDe(items, derivados) {
 }
 
 /**
- * La lista que se ve: la derivada del menú con las marcas guardadas encima.
- * Lo quitado no sale; lo comprado o en casa sale marcado; lo añadido a mano va
- * al final (si el menú ya pide lo mismo, el añadido no se repite: la marca va
- * al derivado). Una marca de algo que el menú ya no pide se olvida, salvo los
- * añadidos, que no dependen del menú.
+ * La lista que se ve: la derivada con las marcas encima. Lo quitado no sale; lo añadido a mano va al final (si el
+ * menú ya lo pide, la marca va al derivado). La marca de algo que el menú ya no pide se olvida, salvo los añadidos.
  */
 export function listaConMarcas(derivados, guardada) {
   const porId = new Map((guardada?.marcas ?? []).map((m) => [m.id, m]));

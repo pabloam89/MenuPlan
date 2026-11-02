@@ -42,6 +42,7 @@ import { conRecordatorioDeSilencio } from "../../src/lib/alergiasBase.js";
 import { apuntarRecordatorio } from "./silencio.js";
 import { listaParaEscribir } from "../../src/lib/vocabularios.js";
 import { conMarcas, claveArticulo } from "../../src/lib/compraIdentidad.js";
+import { articulosDe } from "../../src/lib/compraMarcas.js";
 import { modoDespensaAlGenerar, usaDespensa } from "../../src/lib/modoDespensa.js";
 import { resultado, NO_GUARDADO } from "./resultado.js";
 
@@ -401,7 +402,7 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
     return "NO GUARDADO: el motor no ha podido poner ningún plato en esa semana (revisa los días elegidos y quién come). Sigue el menú de antes.";
   }
   const sh = m.buildShoppingList(plan, groups, m.getDayMeals(weekData), despensa);
-  const generados = [...sh.byCategory.flatMap((c) => c.items), ...(sh.pantryItems ?? [])];
+  const generados = articulosDe(sh);
   let shopping = { items: generados };
   // Rehaciendo la semana en curso, hoy y lo pasado vuelven del plan viejo
   // DESPUÉS de la compra: lo de días que ya pasaron no se vuelve a comprar.
