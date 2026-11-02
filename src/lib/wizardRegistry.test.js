@@ -516,7 +516,7 @@ describe("el wizard se acorta mientras hablas", () => {
       // `appliances` — el mismo campo huérfano al que apuntaba Trastos, así que
       // el test daba por contestada una pregunta que en realidad no movía nada.
       kitchenTools: ["Horno"],
-      budget: 100,
+      presupuesto: 100,
       pantryMode: "prefer",
     };
     expect(cuantasQuedan(n, todo)).toBe(0);
@@ -722,8 +722,16 @@ describe("con el estado de la ficha v2, el asistente sabe de dónde sale cada da
     expect(estadoDePregunta(alergias, libretaVacia(), DOS, [], estados)).toBe("aclaracion");
   });
 
-  it("una pregunta cuyo dato no tiene campo en la ficha (el presupuesto) no cambia con los estados", () => {
-    const data = { budget: 80 };
-    expect(estadoDelCampo(PREGUNTAS_POR_ID.presupuesto, libretaVacia(), data, fichas(dato("a", "supuesto")))).toBe("fijado");
+  it("una pregunta cuyo dato no tiene campo en la ficha (la despensa) no cambia con los estados", () => {
+    const data = { pantryMode: "only" };
+    expect(estadoDelCampo(PREGUNTAS_POR_ID.despensa, libretaVacia(), data, fichas(dato("a", "supuesto")))).toBe("fijado");
+  });
+
+  it("el presupuesto (PR 8): «sin presupuesto» dicho es una respuesta; sin decir nada, no; el par viejo cuenta como dicho", () => {
+    const p = PREGUNTAS_POR_ID.presupuesto;
+    expect(estadoDelCampo(p, libretaVacia(), {})).toBe("vacio");
+    for (const data of [{ presupuesto: null }, { presupuesto: 60 }, { hasBudget: false, budget: 80 }]) {
+      expect(estadoDelCampo(p, libretaVacia(), data), JSON.stringify(data)).toBe("fijado");
+    }
   });
 });

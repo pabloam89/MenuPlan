@@ -3,6 +3,7 @@ import {
   VEREDICTOS, ESTADOS_PRESUPUESTO, PARTE_CONOCIDA_MINIMA, leerPresupuesto, presupuestoSemanal, topePorRacion,
   precioDePlato, precioAlto, estimarSemana, veredicto, frasePresupuesto, COBERTURA_SUELO, listaFrenteAPresupuesto,
 } from "./presupuesto.js";
+import { presupuestoGuardado, conPresupuesto, conInterruptor, PRESUPUESTO_DE_PARTIDA } from "./presupuestoCasa.js";
 import recipeCoste from "../data/derived/recipeCoste.json" with { type: "json" };
 
 // Ids reales de la tabla: uno con todas sus líneas con precio y otro al que
@@ -33,6 +34,31 @@ describe("leerPresupuesto: la lectura de hasBudget y budget para enseñarlo o ha
     for (const b of [0, -5, "mucho", null, undefined]) expect(leerPresupuesto(casa(b)).estado, String(b)).toBe("sin_cifra");
     expect(presupuestoSemanal(casa("mucho"))).toBeNull();
     expect(ESTADOS_PRESUPUESTO).toEqual(["sin", "activo", "sin_cifra"]);
+  });
+});
+
+describe("un solo dato, presupuesto (trozo 12 de #1037, PR 8)", () => {
+  it("null es «sin presupuesto»; una cifra que no vale, «sin_cifra»", () => {
+    expect(leerPresupuesto({ presupuesto: 60 })).toEqual({ estado: "activo", euros: 60 });
+    expect(leerPresupuesto({ presupuesto: null })).toEqual({ estado: "sin", euros: null });
+    expect(leerPresupuesto({ presupuesto: 0 }).estado).toBe("sin_cifra");
+  });
+  it("sin la 0112, el par de antes se lee como su presupuesto, sin reescribirlo; con presupuesto en los datos, el par no cuenta", () => {
+    expect(presupuestoGuardado({ hasBudget: true, budget: 60 })).toBe(60);
+    expect(presupuestoGuardado({ hasBudget: false, budget: 80 })).toBeNull();
+    expect(presupuestoGuardado({})).toBeUndefined();
+    expect(leerPresupuesto({ presupuesto: null, hasBudget: true, budget: 60 }).estado).toBe("sin");
+    expect(presupuestoSemanal({ presupuesto: 45, hasBudget: true, budget: 60 })).toBe(45);
+  });
+  it("escribirlo deja un solo dato: el par de antes se va", () => {
+    expect(conPresupuesto({ hasBudget: true, budget: 60, reglas: [] }, 90)).toEqual({ reglas: [], presupuesto: 90 });
+    expect(conPresupuesto({ hasBudget: true, budget: 60 }, null)).toEqual({ presupuesto: null });
+  });
+  it("el interruptor del asistente: al encender, la cifra que hubiera o la de partida; al apagar, null", () => {
+    expect(conInterruptor({ hasBudget: true, budget: 60 }, true)).toEqual({ presupuesto: 60 });
+    expect(conInterruptor({}, true)).toEqual({ presupuesto: PRESUPUESTO_DE_PARTIDA });
+    expect(conInterruptor({ presupuesto: 0 }, true)).toEqual({ presupuesto: PRESUPUESTO_DE_PARTIDA });
+    expect(conInterruptor({ presupuesto: 60 }, false)).toEqual({ presupuesto: null });
   });
 });
 

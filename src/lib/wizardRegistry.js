@@ -46,6 +46,7 @@ import { rutaDeReparto } from "./reparto.js";
 import { KID_DINNER_DEFAULTS, kidMembers, normalizeKidDinnerConfig } from "./kidsMenu.js";
 import { datoDe } from "./registroFicha.js";
 import { leidoDe, estadoParaLibreta } from "./estadoDeDato.js";
+import { leerPresupuesto, presupuestoGuardado } from "./presupuestoCasa.js";
 
 /** Los ocho controles. Un control nuevo es trabajo; una fila nueva no. */
 export const CONTROLES = [
@@ -606,12 +607,13 @@ export const PREGUNTAS = [
   },
   {
     id: "presupuesto",
-    dato: "budget",
+    dato: "presupuesto",
     tema: "compra",
     label: "¿Cuánto quieres gastar?",
     control: "slider",
     fuente: "data",
-    lee: (data) => data?.budget ?? null,
+    // «Sin presupuesto» (null) también es una respuesta: se lee su estado; sin decir nada, null.
+    lee: (data) => (presupuestoGuardado(data) === undefined ? null : leerPresupuesto(data)),
     requiere: [],
     activa: null,
     refina: null,
