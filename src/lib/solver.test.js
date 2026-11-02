@@ -1,8 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { resolverMenu, resolverConReintentos, candidatosDeHueco, REGLAS_RELAJABLES } from "./solver.js";
-import { buildGroupContext, generateMenuWithAI, choquesDelPlan } from "./aiPlanner.js";
+import { buildGroupContext, generateMenuWithAI, choquesDelPlan, REGLA_EN_PALABRAS } from "./aiPlanner.js";
 import { entradaDelMotor } from "./entradaMotor.js";
 import { casaCon } from "./cumplimiento.js";
+import { ESCALONES_RELAJAR } from "./preferenciasSistema.js";
 import { dataConLibreta } from "./libretaEnData.js";
 import { filterRecipes } from "../utils/filterRecipes.js";
 import { validateMenu, splitAchievableFreqs, FREQ_KEY_MATCHERS, CENA_KCAL_SOFT_CAP, VECES_MISMA_SOPA } from "../utils/validateMenu.js";
@@ -361,6 +362,14 @@ describe("segundo_sin_proteina_principal es relajable (#894): sin proteína anim
       const sinProteina = violations.filter((v) => v.rule === "segundo_sin_proteina_principal").map((v) => v.slotId);
       expect(sinProteina.filter((id) => !relajados.includes(id))).toEqual([]);
     }, 60000);
+
+    it(`${nombre}: cada hueco relajado dice qué clase cedió, y alguno se llena cediendo solo una regla del sistema (método de choques)`, () => {
+      const { relajados, relajadoPor } = resolverPara(data, { conReintentos: true, semilla: 1 });
+      expect(Object.keys(relajadoPor).sort()).toEqual([...relajados].sort());
+      for (const id of relajados) expect(ESCALONES_RELAJAR.map((e) => e.clase)).toContain(relajadoPor[id]);
+      // Antes de los escalones todo se relajaba a la vez; ahora, lo que cabe cediendo la regla del sistema no pasa de ahí.
+      expect(Object.values(relajadoPor)).toContain("sistema");
+    }, 60000);
   }
 });
 
@@ -432,5 +441,25 @@ describe("las alergias y los vetos nunca empeoran por una preferencia (trozo 31 
     expect(choquesDelPlan(entrada, plan)).toEqual([]);
     expect(conHuevo(recipes).map((r) => r.name)).toEqual([]);
     expect(conQueso(recipes).map((r) => r.name)).toEqual([]);
+  }, 120000);
+});
+
+describe("el aviso de lo relajado dice qué clase se cedió (método de choques, trozo 33 de #1037)", () => {
+  afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); vi.restoreAllMocks(); });
+
+  it("una línea por grupo, con lo cedido en palabras de su escalón y no el texto de antes", async () => {
+    vi.stubGlobal("localStorage", { getItem: (k) => (k === "mp_motor" ? "solver" : null) });
+    vi.useFakeTimers({ toFake: ["Date"] }); vi.setSystemTime(new Date("2026-11-02T12:00:00Z")); vi.spyOn(Math, "random").mockReturnValue(0.5);
+    const data = casa({
+      mealStructureCena: "primero_segundo",
+      members: [{ id: "m1", age: 38, intolerances: ["vegetariano"], allergies: ["huevos"] }, { id: "m2", age: 40, intolerances: ["vegetariano"] }],
+    });
+    const { plan } = await generateMenuWithAI(entradaDelMotor(data, { hoy: "2026-11-02" }));
+    const avisos = (plan._warnings ?? []).filter((w) => /no cabía ningún plato sin/.test(w));
+    expect(avisos).toHaveLength(1);
+    // El escalón del sistema dice sus reglas, las de su declaración (ESCALONES_RELAJAR), y no las cuatro de golpe.
+    const sistema = ESCALONES_RELAJAR.find((e) => e.clase === "sistema").reglas.map((r) => REGLA_EN_PALABRAS[r]);
+    expect(avisos[0]).toContain(`sin saltarse ${sistema.join(" ni ")}`);
+    expect(avisos[0]).not.toContain(`sin saltarse ${[...REGLAS_RELAJABLES].map((r) => REGLA_EN_PALABRAS[r]).join(" ni ")}`);
   }, 120000);
 });

@@ -164,7 +164,10 @@ export const CIFRAS = [
     base: base(18, "2026-11-02", "trozo 32 (#1037)", 31),
     medir: () => ({ valor: PREFERENCIAS_SISTEMA.filter((p) => p.forma === "escrita").length, de: PREFERENCIAS_SISTEMA.length }) },
   { id: "choques_repetidos", nombre: "Choques repetidos tras una tarea de decisión", trozo: 33, fuente: FUENTE.base, sentido: SENTIDO.baja, meta: 0,
-    base: null, falta: "src/lib/choques.js" },
+    // Para repetirse tras una tarea de decisión hace falta la tarea: el choque que la pide la creará con las tareas a
+    // fondo (la migración de MIGRACION_TAREAS, trozo 34). Hasta entonces no hay nada que contar, y se dice.
+    base: null, nota: "sin tareas de decisión no hay repetición que contar: la base sale con el trozo 34",
+    medir: () => ({ sin_medir: "sin tareas de decisión todavía: llegan con las tareas a fondo (trozo 34)" }) },
   { id: "preguntas_hasta_primer_menu", nombre: "Preguntas hasta el primer menú", trozo: 34, fuente: FUENTE.base, sentido: SENTIDO.baja, meta: null,
     base: null, falta: MIGRACION_TAREAS },
   { id: "tareas_caducadas_sin_respuesta", nombre: "Tareas caducadas sin respuesta", trozo: 34, fuente: FUENTE.base, sentido: SENTIDO.baja, meta: null,
