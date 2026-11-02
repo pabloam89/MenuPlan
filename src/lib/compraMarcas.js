@@ -74,25 +74,28 @@ export function listaConMarcas(derivados, guardada) {
 /**
  * Lo que se ve de una compra guardada: con marcas, la derivada con ellas
  * encima; con la forma de antes (`{ items }`), esa lista tal cual. `derivar`
- * solo se llama si hace falta (cuesta recorrer el menú). Con marcas, lo quitado
- * viaja aparte (`quitados`), para volver a guardarlo aunque no se vea.
+ * solo se llama si hace falta (cuesta recorrer el menú). Con marcas, las que no
+ * se ven (lo quitado, y lo comprado o en casa de algo que el menú de ahora no
+ * pide, o que aún no se puede derivar) viajan aparte (`aparte`), para volver a
+ * guardarlas: tocar la lista no borra una marca que no se ve.
  */
 export function compraQueSeVe(guardada, derivar) {
   if (!esCompraConMarcas(guardada)) return { items: guardada?.items ?? [] };
-  const quitados = guardada.marcas.filter((m) => m.marcas?.includes(QUITADO));
-  return { items: listaConMarcas(derivar(), guardada), quitados };
+  const items = listaConMarcas(derivar(), guardada);
+  const vistos = new Set(items.map((it) => it.id));
+  return { items, aparte: guardada.marcas.filter((m) => !vistos.has(m.id)) };
 }
 
 /**
  * Lo que se guarda de la compra que se ve: sus marcas (marcasDe frente a
- * `derivados`, si se tienen) más lo quitado que viajaba aparte y no ha vuelto
- * a la lista. Si ya son marcas, tal cual.
+ * `derivados`, si se tienen) más las que viajaban aparte y no han vuelto a la
+ * lista. Si ya son marcas, tal cual.
  */
 export function compraParaGuardar(vista, derivados = []) {
   if (esCompraConMarcas(vista)) return vista;
   const { marcas } = marcasDe(vista?.items, derivados);
   const ya = new Set([...marcas.map((m) => m.id), ...(vista?.items ?? []).map((it) => it?.id)]);
-  for (const q of vista?.quitados ?? []) if (!ya.has(q.id)) marcas.push(q);
+  for (const m of vista?.aparte ?? []) if (!ya.has(m.id)) marcas.push(m);
   return { marcas };
 }
 

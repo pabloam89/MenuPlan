@@ -72,19 +72,23 @@ describe("la compra guarda solo marcas (trozo 18)", () => {
     expect(vista.items.find((it) => it.id === "pan|ud").have).toBe(true);
   });
 
-  it("lo quitado viaja aparte en la vista y se vuelve a guardar aunque no se vea", () => {
+  it("lo que no se ve (quitado, o de un plato que ya no está) viaja aparte y se vuelve a guardar", () => {
     const guardada = { marcas: [
       { id: "pan|ud", nombre: "Pan", unidad: "ud", marcas: [MARCA_COMPRA.QUITADO] },
       { id: "leche|ml", nombre: "Leche", unidad: "ml", marcas: [MARCA_COMPRA.COMPRADO] },
     ] };
     const vista = compraQueSeVe(guardada, () => derivados);
-    expect(vista.quitados.map((q) => q.id)).toEqual(["pan|ud"]);
-    // Sin la lista derivada a mano (la app), lo quitado sale de `quitados`.
+    expect(vista.aparte.map((q) => q.id)).toEqual(["pan|ud"]);
+    // Sin la lista derivada a mano (la app), lo que no se ve sale de `aparte`.
     const otraVez = compraParaGuardar(vista);
     expect(otraVez.marcas.map((m) => [m.id, m.marcas])).toEqual([["leche|ml", [MARCA_COMPRA.COMPRADO]], ["pan|ud", [MARCA_COMPRA.QUITADO]]]);
     // Si vuelve a la lista (se apunta otra vez), deja de estar quitado.
     const devuelto = compraParaGuardar({ ...vista, items: [...vista.items, { ...pan, manual: true }] });
     expect(devuelto.marcas.find((m) => m.id === "pan|ud").marcas).toEqual([MARCA_COMPRA.ANADIDO]);
+    // Lo comprado de algo que el menú ya no pide tampoco se pierde al tocar la lista.
+    const sinLeche = compraQueSeVe(guardada, () => [pan, huevos]);
+    expect(sinLeche.aparte.map((q) => q.id)).toEqual(["pan|ud", "leche|ml"]);
+    expect(compraParaGuardar({ ...sinLeche, items: sinLeche.items.map((it) => ({ ...it, have: true })) }).marcas.map((m) => m.id)).toEqual(["huevo|ud", "pan|ud", "leche|ml"]);
     // Lo ya guardado como marcas se guarda tal cual.
     expect(compraParaGuardar(guardada)).toBe(guardada);
   });
