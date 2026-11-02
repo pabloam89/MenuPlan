@@ -35,9 +35,10 @@ import {
   describirAjustes, ajustarGustos, ajustarCocina, ajustarHorario, anadirInvitado,
   anadirComensal, quitarComensal, ajustarAlergias, ajustarSalud, INTOLERANCIAS, ESTADOS, dominiosDeGustos, ajustarPersona, ajustarMenuPeques,
   descartarSupuesto, pedirTanda, ajustarCompra, PRESUPUESTO, ajustarExtras, ajustarSemana, VARIEDADES,
-  NO_REPETIR, ajustarModoDespensa, MODOS_DESPENSA,
+  NO_REPETIR, ajustarModoDespensa,
 } from "./ajustes.js";
 import { EXTRAS } from "../../src/lib/extras.js";
+import { MODOS_DESPENSA_TEXTO } from "../../src/lib/modoDespensa.js";
 import {
   crearRecordatorio, verRecordatorios, cancelarRecordatorio, ahoraEnMadrid,
 } from "./recordatorios.js";
@@ -668,7 +669,7 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
     }),
     herramienta({ capacidades: ["aprovechar_casa"], lee: [], escribe: ["pantryMode"], lector: false, soloLectura: false, pantalla: null }, {
       name: "ajustar_uso_despensa",
-      description: `Cuánto aprovecha el menú lo que hay en casa (la despensa). modo: ${Object.entries(MODOS_DESPENSA).map(([k, v]) => `${k} (${v})`).join("; ")}. «Deja de usar lo de casa» es off. Lo que hay se apunta con anadir_despensa.`,
+      description: `Cuánto aprovecha el menú lo que hay en casa (la despensa). modo: ${Object.entries(MODOS_DESPENSA_TEXTO).map(([k, v]) => `${k} (${v})`).join("; ")}. «Deja de usar lo de casa» es off. Lo que hay se apunta con anadir_despensa.`,
       inputSchema: obj({ modo: esquemaDato("pantryMode") }, ["modo"]),
       run: (args) => ajustarModoDespensa(householdId, args),
     }),

@@ -46,8 +46,8 @@ vi.mock("./menu.js", async (original) => ({
   }),
 }));
 
-const { ajustarHorario, ajustarCocina, aplicarCompra, aplicarModoDespensa, MODOS_DESPENSA, ajustarPersona, anadirInvitado, listaAjustada } = await import("./ajustes.js");
-const { MODOS_DESPENSA_MOTOR } = await import("../../src/lib/modoDespensa.js");
+const { ajustarHorario, ajustarCocina, aplicarCompra, aplicarModoDespensa, ajustarPersona, anadirInvitado, listaAjustada } = await import("./ajustes.js");
+const { MODOS_DESPENSA_MOTOR, MODOS_DESPENSA_TEXTO } = await import("../../src/lib/modoDespensa.js");
 const { guardarMenuCole, diasSinClase } = await import("./cole.js");
 const { apuntarAusencia } = await import("./menu.js");
 const datos = () => guardada?.state?.data ?? {};
@@ -124,8 +124,8 @@ describe("ajustar_uso_despensa: los cuatro modos (#958)", () => {
     expect(aplicarModoDespensa({}, "nada").data).toBeUndefined();
   });
 
-  it("los modos que Lola ofrece son los que entiende el motor (dos copias, comparadas)", () => {
-    expect(Object.keys(MODOS_DESPENSA).sort()).toEqual([...MODOS_DESPENSA_MOTOR].sort());
+  it("los modos que Lola ofrece y dice son los que entiende el motor (dos copias, comparadas)", () => {
+    expect(Object.keys(MODOS_DESPENSA_TEXTO).sort()).toEqual([...MODOS_DESPENSA_MOTOR].sort());
   });
 });
 

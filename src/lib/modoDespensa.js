@@ -13,6 +13,18 @@ import { DATOS_CASA } from "./registroFicha.js";
 /** Los modos que entiende el motor (aiPlanner.js, buildUserMessage): el vocabulario modo_despensa de pantryMode. */
 export const MODOS_DESPENSA_MOTOR = MODOS_DESPENSA;
 
+/**
+ * Cómo usa el menú lo que hay en casa, en palabras, por modo del motor: lo dicen la herramienta de Lola
+ * (agente.js), lo que contesta al guardarlo (ajustes.js) y su ficha (ficha.js). El asistente de la app ofrece
+ * strict y only; prefer y off siguen valiendo, y sin off «deja de usar lo de casa» no se podía hacer (#958).
+ */
+export const MODOS_DESPENSA_TEXTO = Object.freeze({
+  strict: "solo con lo de casa, sin comprar salvo que un hueco no salga de otra forma",
+  only: "sobre todo lo de casa, y se compra lo que falte",
+  prefer: "con lo de casa solo para desempatar entre platos",
+  off: "sin mirar lo de casa (la compra sigue descontando lo que tengas)",
+});
+
 /** Pura. El modo con que se genera: el guardado si es uno del motor; si no, "off" (no se asume nada). */
 export function modoDespensaAlGenerar(data) {
   const modo = data?.pantryMode;
