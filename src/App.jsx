@@ -1611,7 +1611,7 @@ export default function App() {
         ? {
           casa: householdId,
           carga: cargaLibreta,
-          guardada: cargaLibreta.modo === MODO_LIBRETA.FILAS ? libretaDeCasa({ casa: householdId, carga: cargaLibreta, libreta: remoteData?.notepad }) : null,
+          guardada: cargaLibreta.modo === MODO_LIBRETA.FILAS ? libretaDeCasa({ casa: householdId, carga: cargaLibreta, conocida: remoteData }) : null,
         }
         : null;
       casaDatosRef.current = householdId && cargaCasa

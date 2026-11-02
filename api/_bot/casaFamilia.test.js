@@ -12,6 +12,7 @@ import { RPC_FICHA, fichaV1, RPC_PREFERENCIAS_DE_CASA, preferenciasDeFilas } fro
 import { PREGUNTAS_POR_ID } from "../../src/lib/wizardRegistry.js";
 import { aplicarCompra, aplicarModoDespensa } from "./ajustes.js";
 import { leerPresupuesto } from "../../src/lib/presupuestoCasa.js";
+import { nuevaRegla, reglaDeInvitado } from "../../src/lib/reglas.js";
 
 const CASA = "3f2b8c1e-7a4d-4e0b-9c5a-1d2e3f4a5b6c";
 const A = "00000000-0000-4000-8000-00000000000a";
@@ -546,6 +547,22 @@ describe("la libreta en filas de preferencia (trozo 14)", () => {
     const { r } = await enTurno(() => cambiarLibreta((c) => { c["freqs.pescado"] = { valor: 1, origen: "texto" }; }));
     expect(r).toMatchObject({ ok: false });
     expect(r.error).toMatch(/las preferencias: rpc_ausente/);
+  });
+
+  it("las reglas de veto salen de sus filas; una nueva va a escribir_preferencias y al documento solo vuelven las presente", async () => {
+    const invitado = reglaDeInvitado({ dia: "Mié", comida: "Cena", hoy: "2026-11-02" });
+    const vieja = nuevaRegla({ sujeto: { tipo: "casa" }, efecto: { tipo: "excluir", valor: "grupo:pollo" }, ambito: { dias: ["Mar"] }, hoy: "2026-11-02" });
+    responde(/household_state/, { status: 200, cuerpo: [{ state: { data: { ...DOCUMENTO.data, reglas: [invitado, vieja] } }, bot_rev: 7, updated_at: "2026-11-01T10:00:00Z" }] });
+    const VETO = { ...FILA, id: "00000000-0000-4000-8000-0000000000f2", nivel: "plato", eje: "subtipoIngrediente", medida: "valor", operador: "no_es",
+      valor: "grupo:carne", cantidad: null, dias: ["Lun"], created_at: "2026-11-02T10:00:00Z" };
+    responde(RUTA_PREFS, { status: 200, cuerpo: { v: 1, rev: 7, preferencias: [VETO], planes: [] } });
+    responde(RUTA_ESCRIBIR, { status: 200, cuerpo: { ...HECHA, rev: 9 } });
+    expect((await cargarCasa(CASA)).state.data.reglas.map((r) => [r.efecto.tipo, r.efecto.valor])).toEqual([["presente", "casa"], ["excluir", "grupo:carne"]]);
+    const nueva = nuevaRegla({ sujeto: { tipo: "miembro", ref: B }, efecto: { tipo: "excluir", valor: "tecnica:sarten" }, ambito: { dias: ["Vie"] }, hoy: "2026-11-02" });
+    const { r } = await enTurno(() => conCasa(CASA, async (casa) => ({ state: { ...casa.state, data: { ...casa.state.data, reglas: [...casa.state.data.reglas, nueva] } } })));
+    expect(r).toMatchObject({ ok: true });
+    expect(escrituras().find((l) => /bot_save_casa/.test(l.ruta)).cuerpo.p_state.data.reglas).toEqual([invitado]);
+    expect(prefs()[0].cuerpo.p_operacion.preferencias).toEqual([expect.objectContaining({ persona_id: B, eje: "tecnica", valor: "sarten", operador: "no_es", dias: ["Vie"] })]);
   });
 
   it("un apunte que no cabe en una fila (un ámbito sin su grupo en la casa) no guarda nada y se dice", async () => {

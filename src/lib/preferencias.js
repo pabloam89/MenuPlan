@@ -133,6 +133,8 @@ export function apunteDeFila(fila, { grupos } = {}) {
     if (!ambito) return null;
   }
   const forma = FORMA_DE_PROYECCION[campo.proyecta];
+  // «grupo:carne» no es un ingrediente: es lo que quita una regla (excluirHueco.js) y se lee como regla (reglasEnFilas.js).
+  if (forma.marca && String(fila.valor).includes(":")) return null;
   // Sin cantidad (la 0109 la deja nula en una medida «valor» sin peso) no es un apunte de la libreta, que siempre
   // lleva un número: es de quien escribió la fila (una regla) y se queda en ella, no se lee como 0.
   if (!forma.marca && (fila.cantidad == null || !Number.isFinite(Number(fila.cantidad)))) return null;

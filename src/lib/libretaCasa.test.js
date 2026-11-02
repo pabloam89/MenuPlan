@@ -12,6 +12,7 @@ const { PGRST_SIN_FUNCION } = await import("./postgrest.js");
 const { RPC_LEER_PREFERENCIAS } = await import("./operaciones/tuberia.js");
 const { poner, olvidar } = await import("./notepad.js");
 const { FALLO_DATO } = await import("./vocabularios.js");
+const { nuevaRegla, reglaDeInvitado } = await import("./reglas.js");
 
 const CASA = "00000000-0000-4000-8000-0000000000ca";
 // Una fila de preferencias_de_casa (lo que no lleva, null en la tabla).
@@ -43,7 +44,7 @@ describe("leer la libreta", () => {
     const data = conLibretaLeida(doc, FILAS);
     expect(Object.keys(data.notepad.campos)).toEqual(["freqs.pescado"]);
     expect(data.freqs).toEqual({ pescado: 2 });
-    expect(sinLibretaLeida(data, FILAS)).toEqual({ members: [], groups: [] });
+    expect(sinLibretaLeida(data, FILAS)).toEqual({ members: [], groups: [], reglas: [] });
     const enDocumento = { modo: MODO_LIBRETA.DOCUMENTO };
     expect(conLibretaLeida(doc, enDocumento)).toBe(doc);
     expect(sinLibretaLeida(doc, enDocumento)).toBe(doc);
@@ -69,7 +70,7 @@ describe("guardar la libreta", () => {
     const { llegan, enviar } = enviada();
     const releer = vi.fn(async () => FILAS);
     const libreta = conLibretaLeida({ groups: [] }, FILAS).notepad;
-    const l = libretaDeCasa({ casa: CASA, carga: FILAS, libreta, enviar, releer });
+    const l = libretaDeCasa({ casa: CASA, carga: FILAS, conocida: { notepad: libreta }, enviar, releer });
     expect(await l.guardar({ groups: [], notepad: libreta })).toEqual({ ok: true, enviado: false });
     const otra = poner(libreta, "freqs.pescado", 3, { origen: "texto" });
     expect(await l.guardar({ groups: [], notepad: otra })).toMatchObject({ ok: true, enviado: true, rev: 4 });
@@ -81,7 +82,7 @@ describe("guardar la libreta", () => {
   it("guardada pero sin poder releer las filas: conflicto, para recargar la casa y no seguir con filas sin el id nuevo", async () => {
     const libreta = conLibretaLeida({ groups: [] }, FILAS).notepad;
     for (const leida of [{ error: true }, { modo: MODO_LIBRETA.DOCUMENTO }]) {
-      const l = libretaDeCasa({ casa: CASA, carga: FILAS, libreta, enviar: async () => ({ ok: true, rev: 4 }), releer: async () => leida });
+      const l = libretaDeCasa({ casa: CASA, carga: FILAS, conocida: { notepad: libreta }, enviar: async () => ({ ok: true, rev: 4 }), releer: async () => leida });
       const r = await l.guardar({ groups: [], notepad: poner(libreta, "favoritos.queso", true, { origen: "texto" }) });
       expect(r, JSON.stringify(leida)).toMatchObject({ ok: true, enviado: true, conflict: true });
     }
@@ -92,7 +93,7 @@ describe("guardar la libreta", () => {
     const libreta = conLibretaLeida({ groups: [] }, FILAS).notepad;
     const conQueso = poner(libreta, "favoritos.queso", true, { origen: "texto" });
     const QUESO = { ...PESCADO, id: "00000000-0000-4000-8000-0000000000f2", nivel: "plato", eje: "subtipoIngrediente", medida: "valor", operador: "mas", valor: "queso", cantidad: null, fuerza: "medio", confirmado_at: null };
-    const l = libretaDeCasa({ casa: CASA, carga: FILAS, libreta, enviar, releer: async () => ({ modo: MODO_LIBRETA.FILAS, filas: [PESCADO, QUESO] }) });
+    const l = libretaDeCasa({ casa: CASA, carga: FILAS, conocida: { notepad: libreta }, enviar, releer: async () => ({ modo: MODO_LIBRETA.FILAS, filas: [PESCADO, QUESO] }) });
     await l.guardar({ groups: [], notepad: conQueso });
     await l.guardar({ groups: [], notepad: olvidar(conQueso, "favoritos.queso") });
     expect(llegan[1].preferencias).toEqual([{ id: QUESO.id, borrar: true }]);
@@ -101,17 +102,29 @@ describe("guardar la libreta", () => {
   it("lo que no entra se vuelve a mandar con el siguiente guardado", async () => {
     const enviar = vi.fn().mockResolvedValueOnce({ ok: false, fallo: FALLO_DATO.SIN_RED }).mockResolvedValue({ ok: true, rev: 5 });
     const libreta = conLibretaLeida({ groups: [] }, FILAS).notepad;
-    const l = libretaDeCasa({ casa: CASA, carga: FILAS, libreta, enviar, releer: async () => FILAS });
+    const l = libretaDeCasa({ casa: CASA, carga: FILAS, conocida: { notepad: libreta }, enviar, releer: async () => FILAS });
     const otra = poner(libreta, "freqs.pescado", 3, { origen: "texto" });
     expect(await l.guardar({ groups: [], notepad: otra })).toMatchObject({ ok: false, enviado: true, fallo: FALLO_DATO.SIN_RED });
     expect(await l.guardar({ groups: [], notepad: otra })).toMatchObject({ ok: true, enviado: true });
     expect(enviar).toHaveBeenCalledTimes(2);
   });
 
+  it("las reglas de veto también: una nueva se manda como fila; un invitado (presente) no, que va al documento", async () => {
+    const { llegan, enviar } = enviada();
+    const leida = conLibretaLeida({ groups: [] }, FILAS);
+    const l = libretaDeCasa({ casa: CASA, carga: FILAS, conocida: leida, enviar, releer: async () => FILAS });
+    const invitado = reglaDeInvitado({ dia: "Mié", comida: "Cena", hoy: "2026-11-02" });
+    expect(await l.guardar({ ...leida, reglas: [invitado] })).toEqual({ ok: true, enviado: false });
+    const veto = nuevaRegla({ sujeto: { tipo: "casa" }, efecto: { tipo: "excluir", valor: "grupo:carne" }, ambito: { dias: ["Lun"] }, hoy: "2026-11-02" });
+    expect(await l.guardar({ ...leida, reglas: [invitado, veto] })).toMatchObject({ ok: true, enviado: true });
+    expect(llegan[0].preferencias).toEqual([expect.objectContaining({ eje: "subtipoIngrediente", valor: "grupo:carne", operador: "no_es", dias: ["Lun"] })]);
+    expect(sinLibretaLeida({ ...leida, reglas: [invitado, veto] }, FILAS).reglas).toEqual([invitado]);
+  });
+
   it("un apunte que no cabe en una fila (un ámbito sin su grupo) no se manda y se dice", async () => {
     const { enviar } = enviada();
     const libreta = conLibretaLeida({ groups: [] }, FILAS).notepad;
-    const l = libretaDeCasa({ casa: CASA, carga: FILAS, libreta, enviar, releer: async () => FILAS });
+    const l = libretaDeCasa({ casa: CASA, carga: FILAS, conocida: { notepad: libreta }, enviar, releer: async () => FILAS });
     const r = await l.guardar({ groups: [], notepad: poner(libreta, "freqs.carne.@ninos", 1, { origen: "texto" }) });
     expect(r).toMatchObject({ ok: false, enviado: false, error: expect.stringMatching(/grupo de ninos/) });
     expect(enviar).not.toHaveBeenCalled();
@@ -121,7 +134,7 @@ describe("guardar la libreta", () => {
     const libreta = conLibretaLeida({ groups: [] }, FILAS).notepad;
     const datos = { groups: [], notepad: poner(libreta, "freqs.pescado", 3, { origen: "texto" }) };
     const enCola = (version, tarea) => tarea(3);
-    const con = (rev) => ({ guardada: libretaDeCasa({ casa: CASA, carga: FILAS, libreta, enviar: async () => ({ ok: true, rev }), releer: async () => FILAS }) });
+    const con = (rev) => ({ guardada: libretaDeCasa({ casa: CASA, carga: FILAS, conocida: { notepad: libreta }, enviar: async () => ({ ok: true, rev }), releer: async () => FILAS }) });
     expect(await guardarLibretaEnCola({ version: {}, libreta: con(4), datos, enCola })).toMatchObject({ ok: true, botRev: 4 });
     expect(await guardarLibretaEnCola({ version: {}, libreta: con(6), datos, enCola })).toMatchObject({ conflict: true });
     expect(await guardarLibretaEnCola({ version: {}, libreta: null, datos, enCola })).toEqual({ ok: true, enviado: false });

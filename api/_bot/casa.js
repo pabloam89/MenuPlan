@@ -17,8 +17,8 @@ import { fallaCon } from "./avisar.js";
 import { select, insert, update, rpc, eq } from "./db.js";
 import { operacion, quienEscribe, TIPO_OPERACION, QUE_FUE, autorDelTurno, avisarEnElChat, claveDeEscritura } from "./operacion.js";
 import { leerFamilia, escribirPersonas, leerCasaConSobre, escribirDato, leerPreferencias, escribirPreferencias } from "./datos.js";
-import { conLibretaDeFilas, sinLibreta } from "../../src/lib/libretaEnData.js";
-import { cambiosDeLibreta, PreferenciaInvalida } from "../../src/lib/preferencias.js";
+import { conLibretaDeFilas, sinLibreta, cambiosDePreferencias } from "../../src/lib/libretaEnData.js";
+import { PreferenciaInvalida } from "../../src/lib/preferencias.js";
 import { cambiosDePersonas, conOrdenDeTodos, textosDeAvisos, revSiguiente } from "../../src/lib/personas.js";
 import { CANAL_DATO, REF_OPERACION } from "../../src/lib/vocabularios.js";
 import { CAMPOS_CON_AMBITO_CON_SOBRE } from "../../src/lib/estadoDeDato.js";
@@ -197,12 +197,12 @@ function conPreferencias(state, preferencias, hoy) {
 /**
  * Pura. Un estado para guardar sin la libreta ni su proyección (viven en filas de preferencia), y lo que cambió de
  * la libreta respecto a la leída, como la lista de escribir_preferencias. Un escritor que no trae la libreta no la
- * cambia. Lanza PreferenciaInvalida si un apunte no cabe en una fila (un ámbito sin su grupo), antes de guardar nada.
+ * cambia. Las reglas de veto y sesgo, igual (cambiosDePreferencias). Lanza PreferenciaInvalida si un apunte o una
+ * regla no cabe en una fila (un ámbito sin su grupo), antes de guardar nada.
  */
-function separarPreferencias(state, casa, grupos) {
+function separarPreferencias(state, casa) {
   if (!state?.data || !casa.preferencias) return { documento: state, preferencias: [] };
-  const nueva = state.data.notepad;
-  const preferencias = nueva === undefined ? [] : cambiosDeLibreta(casa.state?.data?.notepad, nueva, casa.preferencias, { grupos });
+  const preferencias = cambiosDePreferencias(casa.state?.data, state.data, casa.preferencias);
   return { documento: { ...state, data: sinLibreta(state.data) }, preferencias };
 }
 
@@ -329,7 +329,7 @@ export async function guardarCasa(casa, { state = null, semana = null, activar =
   let sinPreferencias;
   let preferencias;
   try {
-    ({ documento: sinPreferencias, preferencias } = separarPreferencias(state, casa, state?.data?.groups ?? casa.state?.data?.groups));
+    ({ documento: sinPreferencias, preferencias } = separarPreferencias(state, casa));
   } catch (e) {
     if (!(e instanceof PreferenciaInvalida)) throw e;
     return { ok: false, error: `no he podido apuntarlo: ${e.message}; no he cambiado nada` };

@@ -12,7 +12,8 @@ import { poner, proyectar, valorDe, dependeDelDia, normalizar } from "./notepad.
 import { hayTandasPedidas, abrirFindeParaTanda } from "./cookTime.js";
 import { freqsEfectivos, presupuestoDeTopes, repartoConFreq, repartoVisible, rutaDeReparto } from "./reparto.js";
 import { weeklySlotBudget } from "./planner.js";
-import { libretaDeFilas } from "./preferencias.js";
+import { libretaDeFilas, cambiosDeLibreta } from "./preferencias.js";
+import { reglasDeFilas, cambiosDeReglas, esReglaDePreferencia } from "./reglasEnFilas.js";
 
 /** El reparto que se ve (y que ajusta el panel), a partir de la libreta. */
 export function repartoDeLaCasa(data, libreta) {
@@ -150,17 +151,41 @@ export function dataVigente(data, hoy) {
  */
 export const CLAVES_DE_LA_LIBRETA = Object.freeze(["notepad", "freqs", "reparto", "freqsPedidos", "cocinas", "sesgos", "tanda", "tandaPlatos", "favoritos", "excluidos"]);
 
+/** Las reglas que se quedan en el documento: las que no son preferencias (`presente`, quién come dónde). */
+const reglasDelDocumento = (reglas) => (Array.isArray(reglas) ? reglas.filter((r) => !esReglaDePreferencia(r)) : reglas);
+
+/** Lo que pone en `data` y lo que se guarda en filas de preferencia: un escritor que no trae ninguna, no las cambia. */
+export const CLAVES_EN_PREFERENCIAS = Object.freeze(["notepad", "reglas"]);
+
 /**
  * Pura. `data` con la libreta de sus filas de preferencia (preferencias_de_casa, 0109) y su proyección, en vez de lo
- * que el documento aún guarde de ella (sin convivencia: una casa sin filas estrena la libreta vacía). Los ámbitos de
- * la libreta (niños, adultos) salen de los grupos de `data`.
+ * que el documento aún guarde de ella (sin convivencia: una casa sin filas estrena la libreta vacía), y con las reglas
+ * de veto y sesgo de sus filas junto a las del documento que no son preferencias. Los ámbitos de la libreta (niños,
+ * adultos) salen de los grupos de `data`.
  */
 export function conLibretaDeFilas(data, filas, { hoy } = {}) {
-  return dataConLibreta(data, libretaDeFilas(filas, { grupos: data?.groups }), { hoy });
+  const ctx = { grupos: data?.groups };
+  const reglas = [...(reglasDelDocumento(data?.reglas) ?? []), ...reglasDeFilas(filas, ctx)];
+  return { ...dataConLibreta(data, libretaDeFilas(filas, ctx), { hoy }), reglas };
 }
 
-/** Pura. Lo que va al documento: sin la libreta ni su proyección (viven en sus filas). */
+/** Pura. Lo que va al documento: sin la libreta ni su proyección, ni las reglas de veto y sesgo (viven en sus filas). */
 export function sinLibreta(data) {
   if (!data) return data;
-  return Object.fromEntries(Object.entries(data).filter(([k]) => !CLAVES_DE_LA_LIBRETA.includes(k)));
+  const resto = Object.fromEntries(Object.entries(data).filter(([k]) => !CLAVES_DE_LA_LIBRETA.includes(k)));
+  return "reglas" in resto ? { ...resto, reglas: reglasDelDocumento(resto.reglas) } : resto;
+}
+
+/**
+ * Pura. Lo que cambió en las preferencias entre los datos leídos (`antes`, los de conLibretaDeFilas) y los que se
+ * guardan, como la lista `preferencias` de escribir_preferencias: la libreta (cambiosDeLibreta) y las reglas de veto
+ * y sesgo (cambiosDeReglas). Lo que `despues` no trae no cambia. `filas`: las de preferencias_de_casa. Lanza
+ * PreferenciaInvalida si algo no cabe en una fila (un ámbito sin su grupo, una regla de una persona que no está).
+ */
+export function cambiosDePreferencias(antes, despues, filas) {
+  const ctx = { grupos: despues?.groups ?? antes?.groups ?? [], miembros: despues?.members ?? antes?.members ?? [] };
+  return [
+    ...(despues?.notepad === undefined ? [] : cambiosDeLibreta(antes?.notepad, despues.notepad, filas, ctx)),
+    ...(despues?.reglas === undefined ? [] : cambiosDeReglas(antes?.reglas, despues.reglas, filas, ctx)),
+  ];
 }
