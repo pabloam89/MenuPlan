@@ -302,7 +302,6 @@ export const DATOS_CASA = Object.freeze({
   pantryHasItems: dato({ entidad: "despensa", tema: "despensa", tipo: "bool", ...marca(), motivo: "respuesta del asistente («¿tienes algo en casa?») que decide si se salta el paso de la despensa" }),
   pantryPrefs: dato({ entidad: "despensa", tema: "despensa", tipo: "objeto" }),
   pantryPrefsSet: dato({ entidad: "despensa", tema: "despensa", tipo: "bool", ...marca("pantryPrefs") }),
-  pantryPrefsSeen: dato({ entidad: "despensa", tema: "despensa", tipo: "bool", ...marca() }),
   pantryGenDeltas: dato({ entidad: "despensa", tema: "despensa", tipo: "mapa", ...historial }),
   pantryDayDeltas: dato({ entidad: "despensa", tema: "despensa", tipo: "mapa", ...historial }),
   pantryEndOfDaySince: dato({ entidad: "despensa", tema: "despensa", tipo: "fecha", ...delSistema }),
