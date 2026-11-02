@@ -78,16 +78,12 @@ export const ESTRUCTURA_PLATOS = Object.values(ESTRUCTURA);
 /** Dónde come cada uno en un hueco (horario). */
 export const DONDE_COME = ["casa", "tupper", "fuera", "cole", "off"];
 
-/**
- * Cómo es un hueco del horario (slotType, «Lun|Comida»): normal, de un solo plato o cena rápida. «normal» es lo
- * que vale si nadie ha dicho nada (el defecto del registro); en data.slotType no se guarda y es la clave que falta.
- */
+/** Cómo es un hueco del horario (slotType, «Lun|Comida»); «normal», el defecto, en data.slotType es la clave que falta. */
 export const TIPOS_HUECO = ["normal", "unico", "rapida"];
 
 /**
- * Las dimensiones del ámbito de un dato (plan fichas con estado, trozo 55): de qué grupo, de qué semana (su lunes),
- * de qué día (DIAS) y de qué comida (COMIDAS) es su sobre. registro_campo.ambito dice las de cada campo (CHECK de
- * esta lista, 0114) y el sobre tiene una columna por cada una: un hueco, una fila. En este orden.
+ * Las dimensiones del ámbito de un sobre (trozo 55), en este orden: grupo, semana (su lunes), día (DIAS) y comida
+ * (COMIDAS). registro_campo.ambito dice las de cada campo (CHECK, 0114) y el sobre tiene una columna por cada una.
  */
 export const DIMENSIONES_AMBITO = ["grupo", "semana", "dia", "comida"];
 

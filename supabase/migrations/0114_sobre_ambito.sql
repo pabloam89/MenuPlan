@@ -1,47 +1,30 @@
--- El sobre gana ámbito (plan fichas con estado, trozo 55; #1037): un sobre por hueco. sobre gana grupo_id, semana,
--- dia y comida, y su clave única pasa a casa, campo, persona y esas cuatro; registro_campo gana ambito, las
--- dimensiones de cada campo, y sobre_valor_valido exige que el sobre traiga exactamente esas. Entran en el registro
--- los campos de la Rutina con ámbito que tienen forma de valor plano. Escribir y deshacer con ámbito
--- (aplicar_operacion, deshacer_operacion) van en la migración del trozo 56, y leerlo (ficha_casa) en la del 57.
+-- El sobre gana ámbito (plan fichas con estado, trozo 55; #1037): un sobre por hueco. Escribir y deshacer con
+-- ámbito van en la migración del trozo 56, y leerlo en ficha_casa en la del 57.
 -- AUDITADA: auditor-datos 2026-11-02 OK
 --
---   · registro_campo.ambito (text[], not null): lista de DIMENSIONES_AMBITO (vocabularios.js), CHECK
---     registro_campo_ambito_vocabulario. Sin default: el INSERT de abajo es su único escritor (como en la 0105).
---   · sobre gana grupo_id (FK compuesta a grupo, on delete cascade: el dato de un grupo se va con él, como el de
---     una persona; escribir_persona, 0108, actualiza los grupos en sitio y solo borra los que se quitan), semana
---     (date, el lunes: sobre_semana_lunes), dia (CHECK de DIAS) y comida (CHECK de COMIDAS). Nulas: un campo
---     sin esa dimensión no la lleva. Índice de la FK (PRINCIPIOS §2): sobre_grupo.
---   · Clave única: sobre_unico (casa, campo, coalesce(persona_id, '')) pasa a sobre_unico_ambito (casa, campo,
---     persona, grupo, semana, dia, comida) nulls not distinct (Postgres 15+; la base es 17.6). Más fina que la de
---     antes: toda fila de hoy la cumple. aplicar_operacion (0106) crea el sobre con «on conflict do nothing» sin
---     columnas, así que vale con el índice nuevo; escribir_persona (0108) actualiza y borra por campo y persona
---     solo alergias, edad y nacimiento, que no tienen ámbito.
---   · sobre_valor_valido: lo de la 0097 y, además, cada dimensión del sobre presente si y solo si está en el
---     ámbito de su campo (23514 si no).
---   · registro_campo se regenera entero desde REGISTRO_CAMPOS (src/lib/registroCampos.js), como en la 0105, la
---     0112 y la 0113: las 21 filas de antes con ambito '{}' y 6 nuevas de la ficha Rutina, con politica 'nunca':
---     schedule (persona; dia y comida; donde_come; defecto «casa»), slotType (casa; dia y comida; tipo_hueco,
---     lista nueva; defecto «normal»), menuWeekDays (casa; semana; lista de dias), mealStructureByGroup y
---     mealStructureCenaByGroup (casa; grupo; estructura_platos) y menuScheduleSameForAllWeeks (bool, defecto
---     true, sin ámbito). Con ámbito, tipo y defecto son los de un hueco. El INSERT lo compara registroCampos.test.js.
---
--- NO hace: no cambia aplicar_operacion, escribir_dato, deshacer_operacion ni ficha_casa (trozos 56 y 57); no toca
--- RLS ni permisos; no toca datos de familias (sin repoblar: estos campos siguen en el documento hasta los PR del
--- trozo 13).
---
--- Plan B (regla migraciones): ningún código escribe ni lee estos campos con sobre (registroFicha.js no los marca
--- «tabla:sobre»), y el código de staging escribe sobres sin ámbito, que el disparador sigue admitiendo en los
--- campos sin ámbito. Hasta la migración del trozo 56, aplicar_operacion no sabe de ámbito: un sobre de un campo
--- con ámbito escrito por él falla en alto (23514, la operación entera), y nadie lo pide aún. main (producción) no
--- usa ni sobre ni registro_campo.
---
--- Lectores (principio «ningún campo sin lector»): registro_campo.ambito y las columnas de ámbito las lee
--- sobre_valor_valido aquí; la migración del trozo 56 (escribir y deshacer) y la del 57 (ficha_casa) las leen
--- después; en el código, rutina.js (trozo 13).
---
--- Consulta previa (debe dar 21 y 0):
---   select (select count(*) from public.registro_campo),
---          (select count(*) from information_schema.columns where table_name = 'sobre' and column_name = 'dia');
+--   · registro_campo.ambito (text[], not null, sin default: lo escribe solo el INSERT de abajo): las dimensiones
+--     de cada campo, de DIMENSIONES_AMBITO (vocabularios.js), con CHECK.
+--   · sobre gana grupo_id (FK compuesta a grupo, en cascada, con índice; escribir_persona, 0108, actualiza los
+--     grupos en sitio y solo borra los quitados), semana (el lunes), dia (CHECK de DIAS) y comida (CHECK de
+--     COMIDAS), nulas. La clave única pasa de sobre_unico (casa, campo, persona) a sobre_unico_ambito (casa,
+--     campo, persona, grupo, semana, dia, comida, nulls not distinct; la base es 17.6): más fina, toda fila de
+--     hoy la cumple, y aplicar_operacion (0106) crea el sobre con «on conflict do nothing» sin columnas.
+--   · sobre_valor_valido: lo de la 0097 y cada dimensión presente si y solo si está en el ámbito del campo.
+--   · registro_campo se regenera desde REGISTRO_CAMPOS (src/lib/registroCampos.js; lo compara
+--     registroCampos.test.js): las 21 de antes con ámbito vacío y 6 de la Rutina con politica 'nunca': schedule
+--     (persona; dia, comida; donde_come; defecto «casa»), slotType (dia, comida; tipo_hueco; defecto «normal»),
+--     menuWeekDays (semana; lista de dias), mealStructureByGroup y mealStructureCenaByGroup (grupo;
+--     estructura_platos) y menuScheduleSameForAllWeeks (bool, defecto true). Con ámbito, tipo y defecto son los
+--     de un hueco.
+-- NO hace: no cambia aplicar_operacion, escribir_dato, deshacer_operacion ni ficha_casa; ni RLS ni permisos; ni
+-- datos de familias (sin repoblar).
+-- Plan B: ningún código escribe ni lee estos campos con sobre (registroFicha.js no los marca «tabla:sobre») y el
+-- de staging escribe sobres sin ámbito, que el disparador sigue admitiendo. Un sobre con ámbito escrito por la
+-- aplicar_operacion de hoy falla en alto (23514); nadie lo pide hasta el trozo 13. main no usa sobre.
+-- Lectores: sobre_valor_valido aquí; aplicar_operacion, deshacer_operacion y ficha_casa (trozos 56 y 57) y
+-- rutina.js (trozo 13) después.
+-- Consulta previa (debe dar 21 y 0): select (select count(*) from public.registro_campo),
+--   (select count(*) from information_schema.columns where table_name = 'sobre' and column_name = 'dia');
 -- Consulta después (debe dar 27 y 5): select count(*), count(*) filter (where cardinality(ambito) > 0) from public.registro_campo;
 -- Objeto testigo: la columna public.sobre.dia y el índice public.sobre_unico_ambito.
 set lock_timeout = '5s';
@@ -199,10 +182,9 @@ begin
 end $$;
 
 -- 4. Autoprueba (se deshace siempre) -------------------------------------------------
--- En una casa de prueba que crea aquí: dos días del mismo campo y persona son dos sobres; el mismo hueco dos veces
--- choca con la clave; un sobre sin el ámbito de su campo, con uno que su campo no tiene, con una semana que no
--- empieza en lunes o con un día de fuera de la lista se rechaza; el de un grupo se va con el grupo; y el registro
--- tiene sus 27 filas, 5 con ámbito.
+-- En una casa de prueba: dos días del mismo campo y persona son dos sobres; el mismo hueco dos veces choca; un sobre
+-- sin el ámbito de su campo, con uno que no tiene o con una semana que no empieza en lunes se rechaza; el de un
+-- grupo se va con él; y el registro tiene 27 filas, 5 con ámbito.
 do $$
 declare
   v_dueno uuid; v_casa uuid; v_n int; v_total int; v_con int;
@@ -224,8 +206,6 @@ begin
       values (v_casa, 'mealStructureByGroup', 'g_autoprueba_0114', '"1_plato"', 'dicho', 'sistema');
     insert into public.sobre (household_id, campo, semana, valor, origen, canal)
       values (v_casa, 'menuWeekDays', date '2026-11-02', '["Lun", "Mar"]', 'dicho', 'sistema');
-    insert into public.sobre (household_id, campo, valor, origen, canal)
-      values (v_casa, 'menuScheduleSameForAllWeeks', 'false', 'dicho', 'sistema');
     begin
       insert into public.sobre (household_id, persona_id, campo, dia, comida, valor, origen, canal)
         values (v_casa, 'p_autoprueba_0114', 'schedule', 'Lun', 'Comida', '"casa"', 'dicho', 'sistema');
@@ -250,20 +230,14 @@ begin
       raise exception '0114 autoprueba: entró una semana que no empieza en lunes';
     exception when check_violation then null;  -- a propósito: sobre_semana_lunes lo rechaza
     end;
-    begin
-      insert into public.sobre (household_id, persona_id, campo, dia, comida, valor, origen, canal)
-        values (v_casa, 'p_autoprueba_0114', 'schedule', 'Lunes', 'Comida', '"casa"', 'dicho', 'sistema');
-      raise exception '0114 autoprueba: entró un día de fuera de DIAS';
-    exception when check_violation then null;  -- a propósito: sobre_dia_vocabulario lo rechaza
-    end;
     delete from public.grupo where household_id = v_casa and id = 'g_autoprueba_0114';
     select count(*) into v_n from public.sobre where household_id = v_casa;
-    if v_n <> 4 or exists (select 1 from public.sobre where household_id = v_casa and campo = 'mealStructureByGroup') then
-      raise exception '0114 autoprueba: quedan % sobres (se esperaban 4) o el del grupo borrado sigue', v_n;
+    if v_n <> 3 or exists (select 1 from public.sobre where household_id = v_casa and campo = 'mealStructureByGroup') then
+      raise exception '0114 autoprueba: quedan % sobres (se esperaban 3) o el del grupo borrado sigue', v_n;
     end if;
 
     raise exception 'autoprueba 0114 bien' using errcode = 'MP114';
   exception when sqlstate 'MP114' then
-    raise notice '0114 autoprueba: un sobre por hueco, el mismo hueco choca, el ámbito del campo se exige, la semana empieza en lunes, el día es de la lista y el del grupo se va con él (deshecho)';
+    raise notice '0114 autoprueba: un sobre por hueco, el mismo hueco choca, el ámbito del campo se exige, la semana empieza en lunes y el del grupo se va con él (deshecho)';
   end;
 end $$;

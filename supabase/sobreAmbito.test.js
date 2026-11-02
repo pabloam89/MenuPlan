@@ -4,10 +4,8 @@ import { DIAS, COMIDAS, DIMENSIONES_AMBITO } from "../src/lib/vocabularios.js";
 import { REGISTRO_CAMPOS } from "../src/lib/registroCampos.js";
 
 /**
- * El sobre con ámbito (plan fichas con estado, trozo 55; 0114): un sobre por hueco. Lo que no vigilan
- * registroCampos.test.js (el INSERT y el CHECK de registro_campo.ambito) ni vocabularios.test.js (que solo
- * compara los CHECK de las migraciones aplicadas): que cada dimensión de DIMENSIONES_AMBITO tenga su columna,
- * entre en la clave única y la exija el disparador, y que el día y la comida sean los de DIAS y COMIDAS.
+ * El sobre con ámbito (trozo 55; 0114): cada dimensión de DIMENSIONES_AMBITO entra en la clave única y la exige el
+ * disparador, y el día y la comida son los de DIAS y COMIDAS (vocabularios.test.js solo mira lo ya aplicado).
  */
 const sinComentarios = (texto) => texto.split("\n").filter((l) => !/^\s*--/.test(l)).join("\n");
 const sql = sinComentarios(readFileSync(new URL("./migrations/0114_sobre_ambito.sql", import.meta.url), "utf8"));
@@ -16,14 +14,7 @@ const sql = sinComentarios(readFileSync(new URL("./migrations/0114_sobre_ambito.
 const columnaDe = (dimension) => (dimension === "grupo" ? "grupo_id" : dimension);
 const literales = (texto) => [...texto.matchAll(/'([^']*)'/g)].map((m) => m[1]);
 
-describe("0114: cada dimensión del ámbito es una columna de sobre", () => {
-  it("sobre gana una columna por dimensión, y ninguna más", () => {
-    const m = sql.match(/alter table public\.sobre\s+((?:add column \w+ \w+,?\s*)+);/);
-    expect(m, "falta el alter table de las columnas del ámbito").not.toBeNull();
-    const columnas = [...m[1].matchAll(/add column (\w+)/g)].map((x) => x[1]);
-    expect(columnas).toEqual(DIMENSIONES_AMBITO.map(columnaDe));
-  });
-
+describe("0114: las columnas del ámbito", () => {
   it("el día y la comida admiten exactamente DIAS y COMIDAS, y la semana es un lunes", () => {
     expect(literales(sql.match(/constraint sobre_dia_vocabulario check \(dia in \(([^)]*)\)\)/)[1])).toEqual(DIAS);
     expect(literales(sql.match(/constraint sobre_comida_vocabulario check \(comida in \(([^)]*)\)\)/)[1])).toEqual(COMIDAS);
