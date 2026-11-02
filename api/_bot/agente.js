@@ -1293,10 +1293,11 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
   // Para las alergias por silencio (silencio.js): quién había ANTES del turno.
   chat.nombresAntes = (data.members ?? []).map((m) => m.name).filter(Boolean);
   // La ficha de la casa (api/_bot/ficha.js): lo que Lola ya sabe sin preguntar.
-  // El trato de quien escribe (trozo 16): de la ficha «trato» de ficha_casa, o sus defectos (trato.js, plan B).
+  // El trato de quien escribe (trozo 16): de la ficha «trato» de ficha_casa, o sus defectos (trato.js, plan B). Va
+  // delante de lo del día: lo pendiente y quién escribe siguen cerrándolo, como siempre.
   const fichaBase = casa ? conQuienEscribe(montarFicha(deLaFicha.casa, extras), chat.papel, chat.idioma) : null;
   chat.trato = tratoDeFicha(tablas, miembroDeCuentaId(data, chat.userId));
-  const ficha = fichaBase && chat.papel && chat.papel !== "ajeno" ? { ...fichaBase, delDia: [fichaBase.delDia, lineaDelTrato(chat.trato)].filter(Boolean).join("\n") } : fichaBase;
+  const ficha = fichaBase && chat.papel && chat.papel !== "ajeno" ? { ...fichaBase, delDia: [lineaDelTrato(chat.trato), fichaBase.delDia].filter(Boolean).join("\n") } : fichaBase;
   let dicho, uso, corregido, medida, promesa, sigueSinGuardar = false;
   const tLola = Date.now();
   // La pista del enrutador (api/_bot/pista.js). `progreso` lo rellena Lola
