@@ -174,8 +174,8 @@ export const ESTADO_DE_ORIGEN = Object.freeze({
   por_defecto: "por_defecto", no_quiere_decirlo: "vacio",
 });
 
-/** Por qué aplicar_operacion no escribió un dato (operacion.sin_hacer[].motivo, 0106). */
-export const MOTIVOS_SIN_HACER_DATO = ["no_es_hecho", "persona_no_cuadra", "no_se_supone", "no_lo_escribe", "tiene_columna", "ya_lo_dijo_la_familia"];
+/** Por qué aplicar_operacion no escribió un dato (operacion.sin_hacer[].motivo, 0106; ambito_no_cuadra, 0115). */
+export const MOTIVOS_SIN_HACER_DATO = ["no_es_hecho", "persona_no_cuadra", "ambito_no_cuadra", "no_se_supone", "no_lo_escribe", "tiene_columna", "ya_lo_dijo_la_familia"];
 
 /**
  * Por qué deshacer_operacion (0111) no deshizo una operación: `no_existe` (no es de esa casa), `no_es_suya`
