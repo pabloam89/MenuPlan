@@ -664,6 +664,20 @@ const DECLARADOS = [
     consumidores: ["menu.js"], cobertura: 1,
     nota: "DERIVADO al cargar (CAMPOS_AL_CARGAR en recipeSchema.js) por `nivelCalorias`, de las kcal y del papel del plato: una cena de 500 kcal no es lo que un plato único de 500. Se podía pedir a Lola («algo contundente») y no tenía eje.",
   },
+  // Los dos campos de la libreta que no tenían eje (notepadFields.js, `sinEje`): una preferencia lleva siempre
+  // el suyo (tabla preferencia, 0109; plan fichas con estado, trozo 14). Son de la casa, no del plato.
+  {
+    n: 79, id: "esfuerzo", nombre: "Lo que cuesta cocinarlo, como lo pide la casa (fácil, rápido, elaborado)",
+    ambito: AMBITO.HOGAR, tipo: "enum", estado: "silencioso",
+    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
+    nota: "El campo `esfuerzo` de la libreta. Ningún campo del plato lo representa sin ambigüedad (sesgos.js), así que el motor no lo lee: silencioso. Sus valores, el dominio del campo en notepadFields.js.",
+  },
+  {
+    n: 80, id: "familiaTanda", nombre: "Familia de plato que se deja hecha o a medias (croquetas, cremas…)",
+    ambito: AMBITO.HOGAR, tipo: "enum", estado: "silencioso",
+    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
+    nota: "El campo `tandaPlatos` de la libreta: cuenta familias de plato, que salen del nombre del plato (tandaFamiliasDefs.js, CLAVES_PLATO) y no de un campo de la receta. Lo lee la tanda (tandaFamilias.js) desde la libreta, no del catálogo.",
+  },
 ];
 
 /**

@@ -246,6 +246,33 @@ export const AGREGABLE = porNombre(AGREGABLES);
 export const UNIDADES_EJE = ["kcal", "g", "mg", "ug", "min", "eur", "racion"];
 export const UNIDAD_EJE = porNombre(UNIDADES_EJE);
 
+/** El tipo de un eje (axisRegistry.js; registro_eje.tipo, 0109): con él la base comprueba el valor de una preferencia. */
+export const TIPOS_EJE = ["enum", "jerarquico", "tags", "numerico", "booleano", "derivado"];
+
+// ── Los de la preferencia (tabla preferencia, 0109; plan fichas con estado, «Las fichas», fila Preferencia).
+
+/** Sobre qué se mide una preferencia: un plato, una comida, un día o la semana. */
+export const NIVELES_PREFERENCIA = ["plato", "comida", "dia", "semana"];
+/** Qué se mide: el valor del eje en cada plato, o su suma, su media o cuántos platos lo cumplen en el nivel. */
+export const MEDIDAS_PREFERENCIA = ["valor", "suma", "media", "cuenta"];
+/** Cómo se compara: es, no es, al menos, como mucho, más o menos (los dos últimos ordenan, no cortan). */
+export const OPERADORES_PREFERENCIA = ["es", "no_es", "al_menos", "como_mucho", "mas", "menos"];
+/** Cuánto manda: obligatoria (nunca se rompe) o una preferencia con peso alto, medio o bajo (el solver, trozo 31). */
+export const FUERZAS_PREFERENCIA = ["obligatoria", "alto", "medio", "bajo"];
+/**
+ * Por qué escribir_preferencias (0109) no escribió una preferencia (operacion.sin_hacer[].motivo):
+ * `ya_lo_dijo_la_familia` (lo supuesto o visto no pisa lo dicho, como en el sobre), `ya_lo_rechazo` (lo
+ * supuesto que la familia rechazó no se vuelve a suponer) y `no_existe` (rechazar algo que no está).
+ */
+export const MOTIVOS_SIN_HACER_PREFERENCIA = ["ya_lo_dijo_la_familia", "ya_lo_rechazo", "no_existe"];
+
+// ── Los de los historiales (0109; los escribe el trozo 22).
+
+/** De dónde sale un precio observado (precio_observado.fuente; priceObs[].source de hoy: manual o receipt). */
+export const FUENTES_PRECIO = ["manual", "ticket"];
+/** Qué es una línea de ticket o un gasto (precio_observado.tipo; priceObs[].kind). */
+export const TIPOS_LINEA_TICKET = ["food", "prefab", "nonfood"];
+
 // ── Los de las tareas de Lola (bot_tareas, 0076-0080): registroTareas.js los proyecta en ENUMS, y
 // de ahí salen los enum de sus herramientas (api/_bot/agente.js) y la paridad con los CHECK.
 // Fuera de VOCABULARIOS a propósito: aún no tienen ciclo de vida (retirados con su sucesor) ni
@@ -441,6 +468,14 @@ export const VOCABULARIOS = Object.freeze({
   agregables: AGREGABLES,
   unidades_eje: UNIDADES_EJE,
   alcances_descarte: ALCANCES_DESCARTE,
+  tipos_eje: TIPOS_EJE,
+  niveles_preferencia: NIVELES_PREFERENCIA,
+  medidas_preferencia: MEDIDAS_PREFERENCIA,
+  operadores_preferencia: OPERADORES_PREFERENCIA,
+  fuerzas_preferencia: FUERZAS_PREFERENCIA,
+  motivos_sin_hacer_preferencia: MOTIVOS_SIN_HACER_PREFERENCIA,
+  fuentes_precio: FUENTES_PRECIO,
+  tipos_linea_ticket: TIPOS_LINEA_TICKET,
   canales_dato: CANALES_DATO,
   sexo: SEXO,
   patron_semanas: PATRON_SEMANAS,

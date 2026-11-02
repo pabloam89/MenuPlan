@@ -392,7 +392,7 @@ export const DATOS_PERSONA = Object.freeze(Object.fromEntries(Object.entries({
 /**
  * Los campos de la libreta (notepadFields.js) como datos de la ficha Preferencia: viven en
  * data.notepad (dato `notepad`), los escriben la familia y el sistema, y cada uno apunta al eje
- * que expresa (`eje`, o null con su `sinEje` en la libreta). Son la lista que el trozo 14
+ * que expresa (`eje`; desde el trozo 14, todos lo tienen). Son la lista que el trozo 14
  * convierte en filas de `preferencia`.
  */
 export const DATOS_PREFERENCIA = Object.freeze(Object.fromEntries(CAMPOS_LIBRETA.map((c) => [c.id, dato({
