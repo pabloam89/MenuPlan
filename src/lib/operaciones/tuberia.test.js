@@ -251,6 +251,20 @@ describe("tubería: las preferencias (trozo 14, escribir_preferencias)", () => {
     expect(llegan).toEqual([]);
   });
 
+  it("el sistema retira lo que vio (borrar visto, sin autor; trozo 15), pero no borra lo dicho ni rechaza; una pantalla tampoco borra como visto", async () => {
+    silenciar();
+    const { llegan, servidor } = base();
+    const sistema = { ...LIBRETA, canal: CANAL_DATO.SISTEMA, ref: { tipo: REF_OPERACION.CRON, id: "senales" }, autor: {} };
+    expect(await operarPreferencias({ ...sistema, preferencias: [{ id: "p1", borrar: true, origen: "visto" }] }, servidor(null))).toMatchObject({ guardado: true });
+    expect(llegan).toHaveLength(1);
+    for (const p of [{ id: "p1", borrar: true }, { id: "p1", rechazar: true, origen: "visto" }]) {
+      expect(await operarPreferencias({ ...sistema, preferencias: [p] }, servidor(null)), JSON.stringify(p)).toMatchObject({ guardado: false, error: MOTIVO_PUERTA.ORIGEN_NO_VALE });
+    }
+    const pantalla = { ...LIBRETA, canal: CANAL_DATO.APP, ref: { tipo: REF_OPERACION.PANTALLA, id: "libreta" }, preferencias: [{ id: "p1", borrar: true, origen: "visto" }] };
+    expect(await operarPreferencias(pantalla, servidor("owner"))).toMatchObject({ guardado: false, error: MOTIVO_PUERTA.ORIGEN_NO_VALE });
+    expect(llegan).toHaveLength(1);
+  });
+
   it("borrar o rechazar sin id, o sin nada que escribir, no se entiende y no llega a la base", async () => {
     silenciar();
     const { llegan, servidor } = base();
