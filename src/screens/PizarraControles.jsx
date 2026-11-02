@@ -1946,7 +1946,7 @@ export function PizarraControles({
                   Icon={Eraser}
                   label="Vaciar"
                   orden={2}
-                  color="#b45309"
+                  color="var(--color-aviso)"
                   tinte="#fff"
                   onClick={() => setConfirmarVaciar(true)}
                 />
@@ -2039,7 +2039,7 @@ export function PizarraControles({
           onClick={() => setConfirmarVaciar(false)}
           className="mp-overlay-in"
           style={{
-            position: "fixed", inset: 0, zIndex: 300,
+            position: "fixed", inset: 0, zIndex: "var(--capa-hoja)",
             background: "rgba(20,47,29,.45)",
             display: "flex", alignItems: "center", justifyContent: "center", padding: 24,
           }}
@@ -2079,7 +2079,7 @@ export function PizarraControles({
                 onClick={() => { setConfirmarVaciar(false); onVaciar?.(); }}
                 style={{
                   flex: 1, height: 40, borderRadius: 13, cursor: "pointer",
-                  border: "none", background: "#b45309", color: "#fff",
+                  border: "none", background: "var(--color-aviso)", color: "#fff",
                   fontSize: 13.5, fontWeight: 800, fontFamily: "inherit",
                 }}
               >
