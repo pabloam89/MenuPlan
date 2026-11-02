@@ -2,13 +2,21 @@
  * La entrada del motor (trozo 30 de #1037): lo que se compila de la casa
  * antes de generar, para que aiPlanner.js deje de leer `data.*`.
  *
- * Por ahora, las piezas que leen la casa para montar el contexto de un
- * grupo, movidas de aiPlanner.js sin cambiar lo que hacen.
+ * Por ahora, el contexto de un grupo (buildGroupContext: sus huecos, el
+ * filtro de sus recetas y sus topes), movido de aiPlanner.js sin cambiar lo
+ * que hace.
  */
 import { normalizeKidDinnerConfig, schoolAvoidCategories, kidsSlotAction } from "./kidsMenu.js";
-import { modeForGroupSlot, slotKey } from "./planner.js";
-import { tipoDeComida } from "./dias.js";
-import { maxCookTime } from "./cookTime.js";
+import { diasActivosDe, getMeals, modeForGroupSlot, slotKey } from "./planner.js";
+import { isBabyMenuGroup, membersOfGroup, tipoDeGrupo } from "./groups.js";
+import { esMenor, esNino } from "./stages.js";
+import { alergiasParaMenu } from "./alergias.js";
+import { normalizeAllergenId } from "./allergens.js";
+import { vetosDe } from "./vetos.js";
+import { etapasServibles } from "./babyStage.js";
+import { favoriteIdsForGroup } from "./recipeVotes.js";
+import { DIA_SLUG as DAY_SLUG, tipoDeComida, comidaDeTipo } from "./dias.js";
+import { maxCookTime, maxCookTimeFilter, migrateCookTime } from "./cookTime.js";
 import { estructuraDelGrupo, estructuraCenaDelGrupo, platosDelHueco } from "./estructuraPlatos.js";
 import { DEFAULT_FREQS } from "./defaultFreqs.js";
 import { solverActivo } from "./solver.js";
@@ -22,7 +30,7 @@ import { carbTypeFromText } from "../utils/validateMenu.js";
 // relax that or add vegetables via the "cena diferente" pop-up, but only when
 // the household actually configured it — otherwise we keep the legacy default so
 // existing setups (and the test suite) behave exactly as before.
-export function effectiveSchoolAvoid(data) {
+function effectiveSchoolAvoid(data) {
   const cfg = normalizeKidDinnerConfig(data?.kidDinnerConfig);
   if (Object.keys(cfg.byMember).length === 0) {
     return { protein: true, carbs: true, veg: false };
@@ -35,7 +43,7 @@ export function effectiveSchoolAvoid(data) {
 // when a kid opted into avoiding veg repetition.
 // Runs on accent-stripped, lowercased text (see below), so keep it ascii-only.
 const SCHOOL_VEG_RE = /ensalad|verdur|acelg|espinac|calabac|crema de |pure de |menestra|judia verde|brocoli|coliflor|guisante|zanahoria|pisto/;
-export function schoolServedVeg(text) {
+function schoolServedVeg(text) {
   const t = String(text ?? "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   return SCHOOL_VEG_RE.test(t) ? "verdura" : null;
 }
@@ -67,7 +75,7 @@ const PROTEIN_KEYWORDS = {
   huevos: /huevo|tortilla|revuelto/,
 };
 
-export function proteinFromText(text) {
+function proteinFromText(text) {
   const t = String(text ?? "")
     .toLowerCase()
     .normalize("NFD")
@@ -95,7 +103,7 @@ export function proteinFromText(text) {
  * Solo con solver. El camino del modelo conserva sus topes exactos: sus
  * tests los fijan y cambiarlos ahí es otra decisión.
  */
-export function topesDelGrupo(data, group, huecos) {
+function topesDelGrupo(data, group, huecos) {
   const freqs = data.freqsByGroup?.[group.id] ?? data.freqs ?? DEFAULT_FREQS;
   const objetivo = data.objetivoByGroup?.[group.id] ?? null;
   if (objetivo || !solverActivo()) return { freqs, objetivo };
@@ -133,7 +141,7 @@ export function topesDelGrupo(data, group, huecos) {
  * Lo que el comedor sirvió un día a `miembros`: la proteína, los hidratos y
  * la verdura que la cena no debe repetir, y el texto del menú del cole.
  */
-export function coleDelDia(schoolMenus, miembros, day) {
+function coleDelDia(schoolMenus, miembros, day) {
   const schoolProteins = new Set(
     miembros
       .map((m) => {
@@ -192,7 +200,7 @@ export function coleDelDia(schoolMenus, miembros, day) {
  * buildGroupContext sabe de ese día y de ese grupo): ninguno si no se cocina
  * o lo copia el menú de los adultos, uno o dos según la estructura.
  */
-export function huecosDeLaComida(data, group, meal, dia) {
+function huecosDeLaComida(data, group, meal, dia) {
   const { day, daySlug, isWeekend, groupMembers, isBabyGroup, isKidsGroup, isAdultsGroup, linkKidDinner, schoolProteins, schoolCarbs, schoolVeg } = dia;
   const mode = modeForGroupSlot(group, data.members, data.schedule, day, meal);
   if (!mode.cook) return [];
@@ -311,4 +319,145 @@ export function huecosDeLaComida(data, group, meal, dia) {
     }
     return [slot];
   }
+}
+
+export function buildGroupContext(data, group) {
+  const meals = getMeals(data);
+  const groupMembers = membersOfGroup(group, data.members);
+  const isBabyGroup = isBabyMenuGroup(group, data.members);
+  // Niños de 3 a 11 (etapaDe): el filtro kidFriendly y el de alcohol.
+  const hasKids = !isBabyGroup && groupMembers.some((m) => esNino(m));
+  const allergies = Array.from(new Set(groupMembers.flatMap((m) => alergiasParaMenu(data, m))));
+  // Predefined intolerances + temporary dietary states (embarazo/lactancia)
+  // are aggregated together and handled by filterRecipes via lib/intolerances.js
+  // — most are hard exclusions, lactosa_fina is adapted (see substitutions.js).
+  const memberDietaryStates = groupMembers.flatMap((m) => m.dietaryStates ?? []);
+  // embarazo/lactancia imply "alcohol_cocina" (adaptable — real alcohol-free
+  // wine/beer swap) in addition to their own remaining hard exclusions (raw,
+  // cured, high-mercury fish, unpasteurized cheese). Not user-selectable on
+  // its own; see lib/intolerances.js#alcohol_cocina.
+  const impliesAlcoholCocina = memberDietaryStates.some(
+    (s) => s === "embarazo" || s === "lactancia",
+  );
+  // Gluten como alergia: en vez de quitar toda la pasta y el pan del menú, se
+  // cambian por su versión sin gluten donde la hay (substitutions.js sin_gluten).
+  const impliesSinGluten = allergies.some((a) => normalizeAllergenId(a) === "gluten");
+  const intolerances = Array.from(
+    new Set([
+      ...groupMembers.flatMap((m) => m.intolerances ?? []),
+      ...memberDietaryStates,
+      ...(impliesAlcoholCocina ? ["alcohol_cocina"] : []),
+      ...(impliesSinGluten ? ["sin_gluten"] : []),
+    ]),
+  );
+  // Los vetos («nada de coliflor»): la libreta, las reglas y los de cada
+  // persona del grupo, calculados al leer (lib/vetos.js). Duros en comida y
+  // cena (filterRecipes paso 2), blandos fuera de menú.
+  const dislikes = vetosDe(data, { grupo: group });
+
+  const kitchenTools = data.kitchenTools ?? [];
+  const cookTime = migrateCookTime(data);
+
+  const slots = [];
+  const schoolMenuByDay = {};
+
+  // Solo los días de la semana pedida (data.menuWeek; sin él, los siete): una
+  // semana de viernes a domingo no crea huecos de lunes a jueves (#1029). Un
+  // menú individual ad hoc («dieta blanda», group.days numérico) dura sus
+  // primeros N días DE LOS PLANIFICADOS: tres días de dieta que empiezan en
+  // viernes son Vie, Sáb y Dom, no un lunes que ya pasó.
+  const diasSemana = diasActivosDe(data);
+  const planDays =
+    Number.isInteger(group.days) && group.days > 0 ? diasSemana.slice(0, group.days) : diasSemana;
+
+  // Kid dinner = adults' lunch: adults' comida must avoid school proteins/carbs
+  // from household kids; kids' cena slots are skipped and filled after Adultos.
+  const linkKidDinner = Boolean(data.kidDinnerMatchesAdultLunch);
+  const isAdultsGroup = tipoDeGrupo(group) === "adultos";
+  const isKidsGroup = tipoDeGrupo(group) === "ninos";
+  const schoolSourceMembers =
+    linkKidDinner && isAdultsGroup
+      ? (data.members ?? []).filter((m) => esMenor(m))
+      : groupMembers;
+
+  for (const day of planDays) {
+    const daySlug = DAY_SLUG[day];
+    const isWeekend = day === "Sáb" || day === "Dom";
+
+    // Lo que el comedor sirvió ese día: lo que la cena no repite y su texto.
+    const { schoolProteins, schoolCarbs, schoolVeg, texto } = coleDelDia(data.schoolMenus, schoolSourceMembers, day);
+    if (texto) schoolMenuByDay[daySlug] = texto;
+
+    for (const meal of meals) {
+      slots.push(...huecosDeLaComida(data, group, meal, {
+        day, daySlug, isWeekend, groupMembers, isBabyGroup, isKidsGroup, isAdultsGroup, linkKidDinner, schoolProteins, schoolCarbs, schoolVeg,
+      }));
+    }
+  }
+
+  // Lo que una regla quita SOLO ciertos días («los lunes, sin carne»):
+  // reglas.js lo proyecta por hueco y aquí se cuelga de cada uno, para que lo
+  // vean el validador (excluido_en_hueco), la reparación y el solver. Misma
+  // clave que `data.slotType`: «Lun|Comida».
+  if (data.excluirPorHueco) {
+    for (const s of slots) {
+      const lista = data.excluirPorHueco[`${s.day}|${comidaDeTipo(s.mealType)}`];
+      if (lista?.length) s.excluirHueco = lista;
+    }
+  }
+
+  return {
+    group: { label: group.label, hasKids, allergies, dislikes },
+    slots,
+    schoolMenuByDay,
+    isBabyGroup,
+    filterOpts: {
+      allergies,
+      intolerances,
+      dislikes,
+      // Permanent + still-live weekly/cooldown discards, excluded by id.
+      excludeIds: activeDiscardIds(data),
+      hasKids,
+      // Cremas, sólidos o las dos. Solo lo mira el grupo de bebés; para el
+      // resto filterRecipes lo ignora.
+      etapasBebe: etapasServibles(data),
+      maxTime: maxCookTimeFilter(data),
+      kitchenTools,
+      cookLevel: data.cookLevel ?? "normal",
+      isBabyGroup,
+      // User-created recipes (from the recipe planner) join the same pool as
+      // the bundled catalog, so they go through the exact same filters and
+      // can be scheduled/scaled/hydrated like any other recipe.
+      extraRecipes: data.userRecipes ?? [],
+      // "preferred" (default) | "only" (solo mías) | "catalog" (solo catálogo).
+      recipeMode: data.recipeMode ?? "preferred",
+      // Favorites that apply to THIS group (scope "all" or this group's label).
+      favoriteIds: favoriteIdsForGroup(data.recipeVotes, group),
+      // Cocinas extranjeras pedidas desde la fila de mandos del menú. Vista
+      // proyectada de la libreta (ver useWizardMenu), no la libreta: aquí es un
+      // mapa cocina → platos por semana. `undefined` para quien nunca lo ha
+      // tocado, y entonces filterRecipes no filtra nada.
+      cocinas: data.cocinas ?? null,
+    },
+    config: {
+      targetKcal: data.kcalByGroup?.[group.id] ?? data.kcal ?? 2000,
+      // `freqs` son los topes y `objetivo` a dónde apuntar dentro de ellos
+      // (solo lo lee el solver). Ver topesDelGrupo.
+      ...topesDelGrupo(data, group, slots.length),
+      cookLevel: data.cookLevel ?? "normal",
+      cookTime,
+      // El día en que la casa cocina las tandas (Lun…Dom), si lo ha dicho. Sin él,
+      // el domingo de siempre.
+      diaTanda: data.diaTanda,
+      // "Menú más cuidado" profiles present in the group (soft bias for the LLM).
+      // An ad-hoc "dieta blanda" menu reuses the reflux profile as a bland-diet
+      // proxy (no fritos/picante/ácido), so the individual menu comes out gentle.
+      healthProfiles: Array.from(
+        new Set([
+          ...groupMembers.flatMap((m) => m.healthProfiles ?? []),
+          ...(group.adHoc && group.reason === "dieta_blanda" ? ["reflux"] : []),
+        ]),
+      ),
+    },
+  };
 }
