@@ -78,6 +78,7 @@ import { buildShoppingList } from "./lib/shoppingBuilder.js";
 import { clearPreparedFromSlot } from "./lib/freezer.js";
 import { normalizeIngredientKey } from "./lib/ingredientCategories.js";
 import { conMarcas } from "./lib/compraIdentidad.js";
+import { compraQueSeVe, compraParaGuardar, cambiarCompra, articulosDe } from "./lib/compraMarcas.js";
 import { getDayMeals, getMeals, ALL_DAY_MEALS, DAYS } from "./lib/planner.js";
 import { estructuraDelGrupo } from "./lib/estructuraPlatos.js";
 import { estimarSemana, frasePresupuesto } from "./lib/presupuesto.js";
@@ -1289,6 +1290,29 @@ export default function App() {
     if (Array.isArray(dyn) && dyn.length > 0) registerRecipes(dyn);
   }, [persisted]);
   const [aiRecipes, setAiRecipes] = useState(persisted?.aiRecipes ?? []);
+
+  // La compra que se ve (trozo 18 de #1037): lo guardado (`shopping`, cada semana de `data.menus` y la nube) son las
+  // marcas de la familia sobre la lista que sale del menú (src/lib/compraMarcas.js); la vista la saca del menú con
+  // ellas encima. Quien cambia la lista lo hace sobre la vista (`setCompra`), y se guarda como marcas. Sin despensa: la
+  // pantalla de la compra la cruza con la de ahora (applyPantryCoverage), no con la de cuando se generó.
+  const gruposCompra = useMemo(() => gruposVigentes(data), [data.groups, data.members, data.menuModel]);
+  const comidasCompra = getDayMeals(data).join("|");
+  const vistaDeCompra = useCallback(
+    (guardada, plan) => compraQueSeVe(guardada, () => articulosDe(buildShoppingList(plan ?? {}, gruposCompra, comidasCompra.split("|").filter(Boolean), []))),
+    [gruposCompra, comidasCompra],
+  );
+  // aiRecipes: una receta recién registrada cambia lo que sale del menú.
+  const compra = useMemo(() => vistaDeCompra(shopping, menuPlan), [vistaDeCompra, shopping, menuPlan, aiRecipes]);
+  // Las semanas del menú activo para la pantalla de la compra, cada una con su lista que se ve.
+  const semanasDeCompra = useMemo(
+    () => (data.activeMenuId ? orderedWeeks(data.menus?.[data.activeMenuId]).map((w) => ({ ...w, shopping: vistaDeCompra(w.shopping, w.plan) })) : null),
+    [data.activeMenuId, data.menus, vistaDeCompra, aiRecipes],
+  );
+  const vistaActualRef = useRef(null);
+  vistaActualRef.current = (guardada) => vistaDeCompra(guardada, menuPlan);
+  const setCompra = useCallback((cambio) => {
+    setShopping((guardada) => cambiarCompra(guardada, cambio, vistaActualRef.current));
+  }, []);
 
   const { user, session, loading: authLoading, signInWithGoogle, signInWithApple, signOut } = useAuth();
   const {
@@ -2630,9 +2654,7 @@ export default function App() {
           }
         });
       }
-      setShopping((prev) => {
-        return { items: conMarcas(firstWeekShopping.items, prev.items) };
-      });
+      setCompra((prev) => ({ ...prev, items: conMarcas(firstWeekShopping.items, prev.items) }));
       // plan._warnings still collects non-blocking issues from generation, but
       // we no longer surface their raw internal text as a toast — it read as a
       // confusing "toast rarísimo" on success. Always show the plain success
@@ -3303,7 +3325,9 @@ export default function App() {
   // authoritative (Compra can view/edit several weeks). Mirrors into the live
   // `shopping` state when the edited week is the one currently active, so the
   // Menú/Compra views and the archive never drift apart.
-  const updateWeekShopping = useCallback((weekStart, nextShopping) => {
+  const updateWeekShopping = useCallback((weekStart, vistaNueva) => {
+    // Llega la lista que se ve; se guardan sus marcas (trozo 18).
+    const nextShopping = compraParaGuardar(vistaNueva);
     const menuId = data.activeMenuId;
     setData((d) => {
       const m = d.menus?.[menuId];
@@ -3331,7 +3355,7 @@ export default function App() {
     // + fire-and-forget inside queueSaveMenuWeek; local blob is still the belt.
     // El lector no guarda la semana: solo viajan sus tachados (0072).
     if (user && menuId && wk && householdReadOnly && syncHouseholdId) {
-      const marcas = marcasEntre(wk.shopping?.items ?? [], nextShopping?.items ?? []);
+      const marcas = marcasEntre(vistaDeCompra(wk.shopping, wk.plan).items, vistaNueva?.items ?? []);
       queueMarcarCompra(syncHouseholdId, menuId, weekStart, marcas, {
         version: versionDeCasa(syncHouseholdId),
         onError: () => recargarDesdeNubeRef.current({ choque: true }),
@@ -3339,7 +3363,7 @@ export default function App() {
     } else if (user && menuId && wk) {
       subirSemana(data.menus?.[menuId]?.userId ?? user.id, menuId, weekStart, { ...wk, shopping: nextShopping });
     }
-  }, [data.menus, data.activeMenuId, data.menuWeek?.offset, user, syncHouseholdId, versionDeCasa, householdReadOnly]);
+  }, [data.menus, data.activeMenuId, data.menuWeek?.offset, user, syncHouseholdId, versionDeCasa, householdReadOnly, vistaDeCompra]);
 
   // Undo a confirmed ticket's tachado. Deleting a ticket in Análisis → Gasto
   // must reverse the exact "have: true" the receipt wizard set — and through
@@ -3362,25 +3386,26 @@ export default function App() {
     const menuId = data.activeMenuId;
     const weeks = data.menus?.[menuId]?.weeks ?? null;
     const weekEntries = weeks ? Object.entries(weeks) : [];
-    const hasArchive = weekEntries.some(([, wk]) => wk?.shopping?.items?.length);
+    const hasArchive = weekEntries.some(([, wk]) => vistaDeCompra(wk?.shopping, wk?.plan).items.length);
     if (hasArchive) {
       const scoped = weekStart && weekEntries.some(([ws]) => ws === weekStart)
         ? weekEntries.filter(([ws]) => ws === weekStart)
         : weekEntries;
       for (const [ws, wk] of scoped) {
-        const items = wk?.shopping?.items;
-        if (!items?.length) continue;
+        const vista = vistaDeCompra(wk?.shopping, wk?.plan);
+        const items = vista.items;
+        if (!items.length) continue;
         const next = untacha(items);
         // Only write weeks that actually held one of the tached keys, so we
         // don't churn cloud rows for untouched weeks.
         if (next.some((it, i) => it !== items[i])) {
-          updateWeekShopping(ws, { ...wk.shopping, items: next });
+          updateWeekShopping(ws, { ...vista, items: next });
         }
       }
     } else {
-      setShopping((s) => ({ ...s, items: untacha(s?.items) }));
+      setCompra((s) => ({ ...s, items: untacha(s?.items) }));
     }
-  }, [data.activeMenuId, data.menus, updateWeekShopping]);
+  }, [data.activeMenuId, data.menus, updateWeekShopping, vistaDeCompra, setCompra]);
 
   // Keep the active week's archived shopping in sync with the live list, so
   // switching weeks (or reloading) never loses the check-offs/edits made in
@@ -3912,10 +3937,10 @@ export default function App() {
     if (householdReadOnly) return;
     const activeMenu = data.activeMenuId ? data.menus?.[data.activeMenuId] : null;
     if (activeMenu) return;
-    if ((shopping.items?.length ?? 0) === 0 && Object.keys(menuPlan).length === 0) return;
+    if (compra.items.length === 0 && Object.keys(menuPlan).length === 0) return;
     setShopping({ items: [] });
     setMenuPlan({});
-  }, [data.activeMenuId, data.menus, shopping.items, menuPlan, householdReadOnly]);
+  }, [data.activeMenuId, data.menus, compra.items, menuPlan, householdReadOnly]);
 
   // Al entrar se pregunta que menus tienes ya en el feed: sin esto, el boton
   // de compartir decia "Compartir" aunque hubieras publicado ayer, y solo se
@@ -4837,11 +4862,7 @@ export default function App() {
         },
       };
       const sh = buildShoppingList(next, grupos, getDayMeals(data), pantryIngredients);
-      setShopping((prevSh) => {
-        // Se conservan las marcas de "ya lo tengo": tocar los comensales no
-        // puede desmarcar media compra.
-        return { items: conMarcas([...sh.byCategory.flatMap((c) => c.items), ...sh.pantryItems], prevSh.items) };
-      });
+      setCompra((prevSh) => ({ ...prevSh, items: conMarcas([...sh.byCategory.flatMap((c) => c.items), ...sh.pantryItems], prevSh.items) }));
       return next;
     });
 
@@ -4911,9 +4932,7 @@ export default function App() {
         },
       };
       const sh = buildShoppingList(next, groups, getDayMeals(data), pantryIngredients);
-      setShopping((prev) => {
-        return { items: conMarcas([...sh.byCategory.flatMap((c) => c.items), ...sh.pantryItems], prev.items) };
-      });
+      setCompra((prev) => ({ ...prev, items: conMarcas([...sh.byCategory.flatMap((c) => c.items), ...sh.pantryItems], prev.items) }));
       return next;
     });
     setSelectedSlot(null);
@@ -4965,9 +4984,7 @@ export default function App() {
       writeField(tGroup, tKey, tField, sRecipeId);
 
       const sh = buildShoppingList(next, groups, getDayMeals(data), pantryIngredients);
-      setShopping((prev) => {
-        return { items: conMarcas([...sh.byCategory.flatMap((c) => c.items), ...sh.pantryItems], prev.items) };
-      });
+      setCompra((prev) => ({ ...prev, items: conMarcas([...sh.byCategory.flatMap((c) => c.items), ...sh.pantryItems], prev.items) }));
       return next;
     });
     showToast("Platos intercambiados");
@@ -4981,9 +4998,7 @@ export default function App() {
   // manual pick). Preserves the user's have/atHome flags across the rebuild.
   const applyShoppingFor = useCallback((next, groups, pantryIngredients) => {
     const sh = buildShoppingList(next, groups, getDayMeals(data), pantryIngredients);
-    setShopping((prev) => {
-      return { items: conMarcas([...sh.byCategory.flatMap((c) => c.items), ...sh.pantryItems], prev.items) };
-    });
+    setCompra((prev) => ({ ...prev, items: conMarcas([...sh.byCategory.flatMap((c) => c.items), ...sh.pantryItems], prev.items) }));
   }, [data]);
 
   // Regenerate every dish of a single day (all active groups) in one tap — the
@@ -6250,8 +6265,8 @@ export default function App() {
       onToast={showToast}
       data={data}
       setData={setData}
-      shopping={shopping}
-      setShopping={setShopping}
+      shopping={compra}
+      setShopping={setCompra}
       onNext={nextOf(12)}
       onBack={backOf(12)}
       onFinish={() => fwd(goToMenu)}
@@ -6438,7 +6453,7 @@ export default function App() {
                 fwd(() => setScreen("analytics"));
               }}
               onDeleteActive={householdReadOnly ? undefined : deleteActiveMenu}
-              shoppingItems={shopping.items}
+              shoppingItems={compra.items}
               // En la pizarra no se pinta la fila de mandos: los mandos
               // ajustan lo que el motor decidirá en la próxima generación, y
               // en un menú que montas a mano no hay próxima generación que
@@ -6594,8 +6609,8 @@ export default function App() {
             <Suspense fallback={null}>
               <ShoppingScreen
                 canTick={puede(activeHousehold?.role, "tachar")}
-                shopping={shopping}
-                setShopping={householdReadOnly ? null : setShopping}
+                shopping={compra}
+                setShopping={householdReadOnly ? null : setCompra}
                 data={data}
                 setData={householdReadOnly ? null : setData}
                 readOnly={householdReadOnly}
@@ -6604,7 +6619,7 @@ export default function App() {
                 onNav={handleNav}
                 onToast={showToast}
                 menuWeek={data.menuWeek}
-                menuWeeks={data.activeMenuId ? orderedWeeks(data.menus?.[data.activeMenuId]) : null}
+                menuWeeks={semanasDeCompra}
                 activeOffset={data.menuWeek?.offset ?? null}
                 onUpdateWeek={updateWeekShopping}
                 openCaptureOnMount={shoppingCaptureIntent}
@@ -6627,8 +6642,8 @@ export default function App() {
                 data={data}
                 setData={householdReadOnly ? null : setData}
                 menuPlan={menuPlan}
-                shopping={shopping}
-                setShopping={householdReadOnly ? null : setShopping}
+                shopping={compra}
+                setShopping={householdReadOnly ? null : setCompra}
                 readOnly={householdReadOnly}
                 readOnlyLabel={householdReadOnlyLabel}
                 onUndoReceiptTachado={householdReadOnly ? undefined : undoReceiptTachado}

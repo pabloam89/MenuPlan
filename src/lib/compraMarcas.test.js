@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { marcasDe, listaConMarcas, compraQueSeVe, compraParaGuardar, esCompraConMarcas } from "./compraMarcas.js";
+import { marcasDe, listaConMarcas, compraQueSeVe, compraParaGuardar, cambiarCompra, esCompraConMarcas } from "./compraMarcas.js";
 import { MARCA_COMPRA } from "./vocabularios.js";
 
 const leche = { id: "leche|ml", name: "Leche", unit: "ml", qty: 1000, have: false, atHome: false, manual: false, sources: [{ recipeId: "r1" }] };
@@ -91,5 +91,20 @@ describe("la compra guarda solo marcas (trozo 18)", () => {
     expect(compraParaGuardar({ ...sinLeche, items: sinLeche.items.map((it) => ({ ...it, have: true })) }).marcas.map((m) => m.id)).toEqual(["huevo|ud", "pan|ud", "leche|ml"]);
     // Lo ya guardado como marcas se guarda tal cual.
     expect(compraParaGuardar(guardada)).toBe(guardada);
+  });
+
+  it("la app cambia la lista que se ve y guarda marcas, venga de la lista de antes o de marcas", () => {
+    const verla = (g) => compraQueSeVe(g, () => derivados);
+    const tachar = (id) => (v) => ({ ...v, items: v.items.map((it) => (it.id === id ? { ...it, have: true } : it)) });
+    // De la lista entera de antes: el primer cambio la deja en marcas, sin perder lo apuntado a mano.
+    const antes = { items: [...derivados, { id: "manual:cafe:x", name: "Café", unit: "", manual: true, have: false, atHome: false }] };
+    const primera = cambiarCompra(antes, tachar("pan|ud"), verla);
+    expect(primera.marcas.map((m) => [m.id, m.marcas])).toEqual([["pan|ud", [MARCA_COMPRA.COMPRADO]], ["manual:cafe:x", [MARCA_COMPRA.ANADIDO]]]);
+    // Sobre marcas: lo de antes sigue y se suma lo nuevo.
+    const segunda = cambiarCompra(primera, tachar("leche|ml"), verla);
+    expect(verla(segunda).items.filter((it) => it.have).map((it) => it.id)).toEqual(["leche|ml", "pan|ud"]);
+    // Una vista entera en vez de una función, también.
+    const idYMarcas = (g) => g.marcas.map((m) => [m.id, m.marcas]);
+    expect(idYMarcas(cambiarCompra(primera, verla(primera), verla))).toEqual(idYMarcas(primera));
   });
 });

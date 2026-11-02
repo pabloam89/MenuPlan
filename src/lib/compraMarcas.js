@@ -99,5 +99,14 @@ export function compraParaGuardar(vista, derivados = []) {
   return { marcas };
 }
 
+/**
+ * Un cambio sobre la lista que se ve, hecho sobre lo guardado: `cambio` es la
+ * vista nueva o una función de la vista de ahora a la nueva (como un setState),
+ * `verla` saca la vista de lo guardado. Devuelve lo que se guarda: marcas.
+ */
+export function cambiarCompra(guardada, cambio, verla) {
+  return compraParaGuardar(typeof cambio === "function" ? cambio(verla(guardada)) : cambio);
+}
+
 /** Los artículos derivados de una lista de buildShoppingList: los del súper y los que cubre la despensa. */
 export const articulosDe = (lista) => [...(lista?.byCategory ?? []).flatMap((c) => c.items), ...(lista?.pantryItems ?? [])];
