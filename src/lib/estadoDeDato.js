@@ -23,13 +23,20 @@ export const FICHA_CON_ESTADO = 2;
 /** Las versiones de ficha_casa que se saben leer: la 1 (0097) y la de FICHA_CON_ESTADO. */
 export const VERSIONES_FICHA = Object.freeze([1, FICHA_CON_ESTADO]);
 
-const clave = (campo, personaId) => `${campo}|${personaId ?? ""}`;
+/**
+ * La clave de un dato leído: campo, persona y, si es el sobre de un hueco (un campo con ámbito, 0116), su ámbito.
+ * La base de un campo con ámbito (ambito null) y los campos sin ámbito van por campo y persona, que es lo que
+ * busca leidoDe; cada hueco, aparte, sin pisar a la base ni a otro hueco.
+ */
+const ambitoEnClave = (ambito) => (ambito ? JSON.stringify(Object.keys(ambito).sort().map((k) => [k, ambito[k]])) : "");
+const clave = (campo, personaId, ambito = null) => `${campo}|${personaId ?? ""}|${ambitoEnClave(ambito)}`;
 
 /**
  * Pura. Un dato de «fichas» leído y comprobado contra el vocabulario: lanza si
  * el estado no es de ESTADOS_DATO o no es el que su origen pide
  * (ESTADO_DE_ORIGEN), porque entonces la base y el código no dicen lo mismo.
- * @returns {{ ficha: string, campo: string, personaId: string|null, estado: string, conSobre: boolean, caducado: boolean, valor: unknown, origen: string|null, bloqueado: boolean }}
+ * `ambito`: el del hueco (0116), o null en la base y en los campos sin ámbito; uno que no es un objeto lanza.
+ * @returns {{ ficha: string, campo: string, personaId: string|null, ambito: object|null, estado: string, conSobre: boolean, caducado: boolean, valor: unknown, origen: string|null, bloqueado: boolean }}
  */
 function leerDato(d, ficha, ahora = new Date()) {
   if (!d?.campo) throw new Error(`ficha «${ficha}»: un dato sin campo`);
@@ -42,10 +49,13 @@ function leerDato(d, ficha, ahora = new Date()) {
   // Sin caduca_at, no caduca; con uno que no es una fecha, la base y el código no cuadran: se dice.
   const caduca = d.caduca_at == null ? null : Date.parse(d.caduca_at);
   if (Number.isNaN(caduca)) throw new Error(`${donde}: caduca_at «${d.caduca_at}» no es una fecha`);
+  const ambito = d.ambito ?? null;
+  if (ambito !== null && (typeof ambito !== "object" || Array.isArray(ambito))) throw new Error(`${donde}: un ámbito que no es un objeto`);
   return {
     ficha,
     campo: d.campo,
     personaId: d.sujeto?.tipo === "persona" ? String(d.sujeto.id) : null,
+    ambito,
     estado: d.estado,
     conSobre: origen !== null,
     caducado: origen === null && caduca !== null && caduca <= ahora.getTime(),
@@ -56,7 +66,7 @@ function leerDato(d, ficha, ahora = new Date()) {
 }
 
 /**
- * Pura. Las «fichas» de ficha_casa v2 leídas, por (campo, persona). Lanza si
+ * Pura. Las «fichas» de ficha_casa v2 leídas, por (campo, persona, ámbito). Lanza si
  * el contrato no cuadra (quien llama decide: fichaRpc.js lo apunta y lee como
  * con la v1).
  * @returns {Map<string, ReturnType<typeof leerDato>>}
@@ -68,13 +78,19 @@ export function estadosDeFichas(fichas, ahora = new Date()) {
     if (!Array.isArray(datos)) throw new Error(`ficha «${ficha}»: no es una lista de datos`);
     for (const d of datos) {
       const l = leerDato(d, ficha, ahora);
-      estados.set(clave(l.campo, l.personaId), l);
+      const k = clave(l.campo, l.personaId, l.ambito);
+      // Dos elementos con la misma clave: la base y el código no dicen lo mismo (uno taparía al otro).
+      if (estados.has(k)) throw new Error(`ficha «${ficha}»: «${l.campo}» sale dos veces para el mismo sujeto y hueco`);
+      estados.set(k, l);
     }
   }
   return estados;
 }
 
-/** Pura. El dato leído de un campo y una persona (null para los de la casa), o null si la ficha no lo trae. */
+/**
+ * Pura. El dato leído de un campo y una persona (null para los de la casa), o null si la ficha no lo trae. En un
+ * campo con ámbito, su base (lo que vale donde nadie ha dicho nada); sus huecos los lee rutina.js.
+ */
 export const leidoDe = (estados, campo, personaId = null) => estados?.get(clave(campo, personaId == null ? null : String(personaId))) ?? null;
 
 /**

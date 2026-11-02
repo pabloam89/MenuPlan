@@ -6,10 +6,11 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import {
   datoValido, operacionDeDato, resultadoDeOperacion, DatoInvalido, CAMPOS_RESULTADO,
-  crearColaDeDatos, enviarAlServidor, FALLOS_QUE_ESPERAN, CLAVE_COLA, AVISO_PENDIENTE_MS, HTTP_DE_FALLO,
+  crearColaDeDatos, enviarAlServidor, FALLOS_QUE_ESPERAN, CLAVE_COLA, AVISO_PENDIENTE_MS, HTTP_DE_FALLO, MAX_DATOS_OPERACION,
 } from "./escribirDato.js";
 import { ESTADO_OPERACION, SEXO, CANAL_DATO, REF_OPERACION, FALLO_DATO, FALLOS_DATO } from "./vocabularios.js";
 import { REGISTRO_CAMPOS } from "./registroCampos.js";
+import { readFileSync } from "node:fs";
 
 const CASA = "3f2b8c1e-7a4d-4e0b-9c5a-1d2e3f4a5b6c";
 const DATO = { campo: "sexo", persona_id: "p1", valor: SEXO[0], origen: "dicho" };
@@ -228,5 +229,50 @@ describe("enviarAlServidor", () => {
     const fetchFn = vi.fn();
     expect(await enviarAlServidor({ token: async () => null, url: URL, fetchFn })({})).toEqual({ status: HTTP_DE_FALLO[FALLO_DATO.SIN_SESION], cuerpo: { fallo: FALLO_DATO.SIN_SESION } });
     expect(fetchFn).not.toHaveBeenCalled();
+  });
+});
+
+// Un horario son varios datos que van juntos (trozo 13): los huecos que cambian, en una sola operación, que se
+// aplica y se deshace entera.
+describe("una operación con varios datos (los huecos de un horario)", () => {
+  const hueco = (dia, comida, valor) => ({ campo: "schedule", persona_id: "p1", dia, comida, valor, origen: "dicho" });
+  const base = { casa: CASA, accion: "horario", clave: "k1", canal: CANAL_DATO.APP, ref: { tipo: REF_OPERACION.PANTALLA, id: "horario" }, autor: { user_id: "u1" } };
+
+  it("todos los huecos en `datos`, cada uno con su ámbito y su valor por el vocabulario", () => {
+    const op = operacionDeDato({ ...base, datos: [hueco("Lun", "Comida", "fuera"), hueco("Mar", "Cena", null)] });
+    expect(op.datos).toEqual([
+      { campo: "schedule", persona_id: "p1", dia: "Lun", comida: "Comida", valor: "fuera", origen: "dicho" },
+      { campo: "schedule", persona_id: "p1", dia: "Mar", comida: "Cena", valor: null, origen: "dicho" },
+    ]);
+  });
+
+  it("un dato o una lista, nunca los dos ni ninguno; ni lista vacía, ni el mismo hueco dos veces, ni más del tope", () => {
+    expect(() => operacionDeDato({ ...base, dato: DATO, datos: [DATO] })).toThrow(DatoInvalido);
+    expect(() => operacionDeDato(base)).toThrow(DatoInvalido);
+    expect(() => operacionDeDato({ ...base, datos: [] })).toThrow(/algún dato/);
+    expect(() => operacionDeDato({ ...base, datos: [hueco("Lun", "Comida", "fuera"), hueco("Lun", "Comida", "cole")] })).toThrow(/dos veces/);
+    const muchos = Array.from({ length: MAX_DATOS_OPERACION + 1 }, (_, i) => ({ ...hueco("Lun", "Comida", "fuera"), persona_id: `p${i}` }));
+    expect(() => operacionDeDato({ ...base, datos: muchos })).toThrow(/más de 400/);
+  });
+
+  it("el tope es el de aplicar_operacion (c_max_datos de la 0115)", () => {
+    const sql = readFileSync(new globalThis.URL("../../supabase/migrations/0115_escribir_con_ambito.sql", import.meta.url), "utf8");
+    expect(Number(sql.match(/c_max_datos constant integer := (\d+);/)[1])).toBe(MAX_DATOS_OPERACION);
+  });
+
+  it("la cola de la app los guarda y los envía juntos, en un solo envío", async () => {
+    const almacen = almacenFalso();
+    const enviados = [];
+    const c = crearColaDeDatos({ almacen, nuevaClave: claves(), ahora: () => 0, enviar: async (item) => { enviados.push(item); return { status: 200, cuerpo: CONTESTA_HECHA }; } });
+    const datos = [hueco("Lun", "Comida", "fuera"), hueco("Mar", "Cena", "cole")];
+    expect(await c.escribir({ casa: CASA, accion: "horario", ref_id: "horario", datos })).toMatchObject({ guardado: true });
+    expect(enviados).toEqual([{ clave: "k1", casa: CASA, accion: "horario", ref_id: "horario", pedida_at: "1970-01-01T00:00:00.000Z", datos }]);
+  });
+
+  it("si espera (sin la RPC), el log dice su campo", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    const c = crearColaDeDatos({ almacen: almacenFalso(), nuevaClave: claves(), enviar: async () => ({ status: 503, cuerpo: { fallo: FALLO_DATO.RPC_AUSENTE } }) });
+    await c.escribir({ casa: CASA, accion: "horario", ref_id: "horario", datos: [hueco("Lun", "Comida", "fuera")] });
+    expect(lineasDeLog(log)[0]).toMatchObject({ fallo: "rpc_ausente", campo: "schedule" });
   });
 });
