@@ -42,7 +42,7 @@ import { leerPresupuesto } from "../../src/lib/presupuestoCasa.js";
 import { botonRehacer } from "./semanaPedida.js";
 import { estadoDelMenu, lineaEstadoMenu } from "./estadoMenu.js";
 import { estructuraEfectiva } from "../../src/lib/estructuraPlatos.js";
-import { aparatosParaEnsenar } from "../../src/lib/aparatosDeCasa.js";
+import { aparatosParaEnsenar, conSuNota } from "../../src/lib/aparatosDeCasa.js";
 
 const DIA_CORTO = Object.fromEntries(DIAS.map((d) => [d, d.toLowerCase()]));
 const DIA_LARGO = DIA_LARGO_MINUSCULAS;
@@ -351,7 +351,8 @@ function cocinaBloque(data, hoy, marcas = []) {
   if (nunca.length) lineas.push(`- Nunca: ${nunca.slice(0, 6).join(", ")}${nunca.length > 6 ? `, +${nunca.length - 6}` : ""}.`);
   const fijos = (data.fixedDishes ?? []).map((f) => f?.name ?? f?.nombre ?? f?.recipeName).filter(Boolean);
   if (fijos.length) lineas.push(`- Fijos: ${fijos.slice(0, 4).join(", ")}.`);
-  if (data.supermarkets?.length) lineas.push(`- Súper: ${data.supermarkets.join(", ")}.`);
+  const superes = conSuNota(data.supermarkets, data.supermarketsNota);
+  if (superes.length) lineas.push(`- Súper: ${superes.join(", ")}.`);
   // Leído como lo lee el motor (src/lib/presupuestoCasa.js, #958): «mucho» no
   // es una cifra, y el interruptor puesto sin cifra se dice.
   const presupuesto = leerPresupuesto(data);

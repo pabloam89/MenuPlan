@@ -28,7 +28,7 @@ import * as ids from "../../src/lib/ids.js";
 import { etapaDe, esMenor } from "../../src/lib/stages.js";
 import { isoDeCasa, diaDeISO } from "../../src/lib/dias.js";
 import { ETAPA_BEBE, OTRO } from "../../src/lib/vocabularios.js";
-import { aparatosParaEnsenar } from "../../src/lib/aparatosDeCasa.js";
+import { aparatosParaEnsenar, conSuNota } from "../../src/lib/aparatosDeCasa.js";
 import { supermercadoDe, CON_PRECIOS } from "../../src/lib/supermercados.js";
 import { EXTRAS, conExtras } from "../../src/lib/extras.js";
 import { quitarPersona } from "../../src/lib/quitarPersona.js";
@@ -307,27 +307,32 @@ export function listaAjustada(actual, { entera, mas, menos } = {}, igual = (a, b
 }
 
 /**
- * Pura. Los aparatos tras «tenemos…» (mas), «ya no tenemos…» (menos) y uno de fuera de la lista (otro): este va
- * como OTRO en la lista y su nombre a la nota (kitchenToolsNota), sumado a los que ya hubiera; otro = "" quita
- * OTRO y su nota. Sin lista entera: sustituir borraba los demás (#958 C). null si no se pidió nada; `leer` (la
- * lista guardada) solo se llama si se pidió algo, como antes: quien no toca los aparatos no la necesita.
- * @returns {{ kitchenTools: string[], kitchenToolsNota: string|null } | null}
+ * Pura. Una lista cerrada de la casa con OTRO y su nota (kitchenTools y kitchenToolsNota, supermarkets y
+ * supermarketsNota) tras «tenemos / también…» (mas), «ya no…» (menos) y uno de fuera de la lista (otro): este va
+ * como OTRO en la lista y su nombre a la nota, sumado a los que ya hubiera; otro = "" quita OTRO y su nota. Sin
+ * lista entera: sustituir borraba los demás (#958 C). `deLista(x)` da el nombre de la lista o null: lo que no
+ * casa (en mas, o guardado antes de que la lista fuera cerrada) va a la nota, y en menos la quita de ella; sin
+ * `deLista`, todo casa. null si no se pidió nada; `leer` (la lista guardada) solo se llama si se pidió algo, como
+ * antes: quien no toca la lista no la necesita.
+ * @returns {{ lista: string[], nota: string|null } | null}
  */
-function aparatosAjustados(leer, notaGuardada, { mas, menos, otro } = {}) {
+function listaConOtroAjustada(leer, notaGuardada, { mas, menos, otro } = {}, deLista = (x) => x) {
   const conOtro = typeof otro === "string";
   const nombre = conOtro ? otro.trim() : "";
   if (!mas?.length && !menos?.length && !conOtro) return null;
+  const de = (x) => (x === OTRO ? OTRO : deLista(x));
+  const dentro = (xs) => (xs ?? []).map(de).filter(Boolean);
+  const fuera = (xs) => (xs ?? []).filter((x) => !de(x)).map((x) => String(x ?? "").trim()).filter(Boolean);
+  const igual = (a, b) => normal(a) === normal(b);
   const actual = leer() ?? [];
-  let lista = listaAjustada(actual, { mas: [...(mas ?? []), ...(nombre ? [OTRO] : [])], menos }) ?? [...actual];
   const antes = typeof notaGuardada === "string" ? notaGuardada.trim() : "";
-  let nota = antes || null;
-  if (conOtro && !nombre) {
-    lista = lista.filter((a) => a !== OTRO);
-    nota = null;
-  } else if (nombre) {
-    nota = antes.split(", ").some((x) => normal(x) === normal(nombre)) ? antes : [antes, nombre].filter(Boolean).join(", ");
-  }
-  return { kitchenTools: lista, kitchenToolsNota: lista.includes(OTRO) ? nota : null };
+  let nota = antes ? antes.split(", ") : [];
+  for (const x of [...fuera(actual), ...fuera(mas), ...(nombre ? [nombre] : [])]) if (!nota.some((y) => igual(x, y))) nota.push(x);
+  const quitados = fuera(menos);
+  nota = conOtro && !nombre ? [] : nota.filter((y) => !quitados.some((x) => igual(x, y)));
+  let lista = listaAjustada(dentro(actual), { mas: [...dentro(mas), ...(nota.length ? [OTRO] : [])], menos: dentro(menos) }) ?? dentro(actual);
+  if (!nota.length && ((conOtro && !nombre) || quitados.length)) lista = lista.filter((a) => a !== OTRO);
+  return { lista, nota: lista.includes(OTRO) && nota.length ? nota.join(", ") : null };
 }
 
 export async function ajustarCocina(householdId, { estructura, esfuerzo, tiempo, tanda, trastosMas, trastosMenos, trastoOtro, comidas, etapaBebe }) {
@@ -344,11 +349,11 @@ export async function ajustarCocina(householdId, { estructura, esfuerzo, tiempo,
     if (estructura) { d = R.estructura.escribe(d, estructura); hechos.push(`estructura: ${estructura}`); }
     if (esfuerzo) { d = R.esfuerzo.escribe(d, esfuerzo); hechos.push(`nivel: ${esfuerzo}`); }
     if (tiempo || tanda) { d = R.tiempo.escribe(d, { ...(tiempo ? { nivel: tiempo } : {}), ...(tanda ? { tanda } : {}) }); hechos.push(`tiempo: ${[tiempo, tanda].filter(Boolean).join(", ")}`); }
-    const nuevos = aparatosAjustados(() => R.trastos.lee(d), d.kitchenToolsNota, { mas: trastosMas, menos: trastosMenos, otro: trastoOtro });
+    const nuevos = listaConOtroAjustada(() => R.trastos.lee(d), d.kitchenToolsNota, { mas: trastosMas, menos: trastosMenos, otro: trastoOtro });
     if (nuevos) {
-      d = R.trastos.escribe(d, nuevos.kitchenTools);
+      d = R.trastos.escribe(d, nuevos.lista);
       // La nota solo si cambia: sin «Otro», el documento no gana un kitchenToolsNota a null.
-      if (nuevos.kitchenToolsNota !== (d.kitchenToolsNota ?? null)) d = { ...d, kitchenToolsNota: nuevos.kitchenToolsNota };
+      if (nuevos.nota !== (d.kitchenToolsNota ?? null)) d = { ...d, kitchenToolsNota: nuevos.nota };
       hechos.push(`trastos: ${aparatosParaEnsenar(d).join(", ") || "ninguno"}`);
     }
     // La etiqueta de la etapa, la de la app (babyStage.js): una sola definición.
@@ -467,24 +472,21 @@ export async function ajustarModoDespensa(householdId, { modo }) {
 /**
  * Dónde compra la casa y cuánto quiere gastar. Se pregunta en Lola (Pablo,
  * 28 oct 2026); la app lo enseña: con Mercadona, la lista de la compra lleva
- * su chapa y el precio de cada cosa (Shopping.jsx). Un súper que no está en la
- * lista se guarda como lo dicen (la vía «otro»). Pura, para el test.
+ * su chapa y el precio de cada cosa (Shopping.jsx). Los súper se suman y se
+ * quitan (#958 C); uno que no está en la lista (SUPERMERCADOS) va como «Otro»
+ * y su nombre a supermarketsNota, también si venía guardado de antes de que la
+ * lista fuera cerrada. Pura, para el test.
  */
-export function aplicarCompra(data, { supermercados, supermercadosMas, supermercadosMenos, presupuesto, sinPresupuesto = false } = {}) {
+export function aplicarCompra(data, { supermercadosMas, supermercadosMenos, supermercadoOtro, presupuesto, sinPresupuesto = false } = {}) {
   let d = data ?? {};
   const hechos = [];
-  const canon = (lista) => (Array.isArray(lista) ? lista.map((s) => supermercadoDe(s) ?? String(s ?? "").trim()).filter(Boolean) : lista);
-  const ajustada = listaAjustada(d.supermarkets ?? [], { entera: canon(supermercados), mas: canon(supermercadosMas), menos: canon(supermercadosMenos) });
-  if (ajustada) {
-    const lista = [...new Set(ajustada)];
-    if (!lista.length && (supermercadosMenos ?? []).length) {
-      d = { ...d, supermarkets: [] };
-      hechos.push("súper: ninguno apuntado");
-    } else if (lista.length) {
-      d = { ...d, supermarkets: lista };
-      const conPrecios = lista.filter((s) => CON_PRECIOS.includes(s));
-      hechos.push(`súper: ${lista.join(", ")}${conPrecios.length ? ` (en la app verás los precios de ${conPrecios.join(", ")} en la lista de la compra)` : ""}`);
-    }
+  const nuevos = listaConOtroAjustada(() => d.supermarkets, d.supermarketsNota, { mas: supermercadosMas, menos: supermercadosMenos, otro: supermercadoOtro }, supermercadoDe);
+  if (nuevos) {
+    d = { ...d, supermarkets: nuevos.lista };
+    // La nota solo si cambia: sin «Otro», el documento no gana un supermarketsNota a null.
+    if (nuevos.nota !== (d.supermarketsNota ?? null)) d = { ...d, supermarketsNota: nuevos.nota };
+    const conPrecios = nuevos.lista.filter((s) => CON_PRECIOS.includes(s));
+    hechos.push(`súper: ${conSuNota(nuevos.lista, nuevos.nota).join(", ") || "ninguno apuntado"}${conPrecios.length ? ` (en la app verás los precios de ${conPrecios.join(", ")} en la lista de la compra)` : ""}`);
   }
   if (sinPresupuesto) {
     d = { ...d, hasBudget: false };

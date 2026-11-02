@@ -37,7 +37,6 @@ import {
   descartarSupuesto, pedirTanda, ajustarCompra, PRESUPUESTO, ajustarExtras, ajustarSemana, VARIEDADES,
   NO_REPETIR, ajustarModoDespensa, MODOS_DESPENSA,
 } from "./ajustes.js";
-import { SUPERMERCADOS } from "../../src/lib/supermercados.js";
 import { EXTRAS } from "../../src/lib/extras.js";
 import {
   crearRecordatorio, verRecordatorios, cancelarRecordatorio, ahoraEnMadrid,
@@ -633,13 +632,13 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
       }),
       run: (args) => ajustarCocina(householdId, args),
     }),
-    herramienta({ capacidades: ["elegir_super", "presupuesto"], lee: ["supermarkets"], escribe: ["supermarkets", "hasBudget", "budget"], lector: false, soloLectura: false, pantalla: "compra" }, {
+    herramienta({ capacidades: ["elegir_super", "presupuesto"], lee: ["supermarkets", "supermarketsNota"], escribe: ["supermarkets", "supermarketsNota", "hasBudget", "budget"], lector: false, soloLectura: false, pantalla: "compra" }, {
       name: "ajustar_compra",
-      description: "Dónde hace la compra la casa y cuánto quiere gastar. «También compramos en Lidl» es supermercadosMas [Lidl]; «ya no vamos al Dia», supermercadosMenos [Dia]: los demás se quedan. supermercados (la lista entera) SOLO cuando dicen todos los sitios donde compran, porque sustituye. Si es otro súper, como lo digan. Con Mercadona, en la app la lista de la compra enseña el precio de cada cosa. presupuesto: euros por semana; sinPresupuesto=true si dicen que no tienen.",
+      description: "Dónde hace la compra la casa y cuánto quiere gastar. «También compramos en Lidl» es supermercadosMas [Lidl]; «ya no vamos al Dia», supermercadosMenos [Dia]: los demás se quedan. Uno que no está en la lista («compramos en la frutería de abajo»), supermercadoOtro. Con Mercadona, en la app la lista de la compra enseña el precio de cada cosa. presupuesto: euros por semana; sinPresupuesto=true si dicen que no tienen.",
       inputSchema: obj({
-        supermercados: { type: "array", items: { type: "string" }, description: `La lista ENTERA (sustituye). Los habituales: ${SUPERMERCADOS.join(", ")}.` },
-        supermercadosMas: { type: "array", items: { type: "string" }, description: "Súper que se añaden." },
-        supermercadosMenos: { type: "array", items: { type: "string" }, description: "Súper que dejan." },
+        supermercadosMas: esquemaDato("supermarkets", { descripcion: "Súper que se añaden." }),
+        supermercadosMenos: esquemaDato("supermarkets", { descripcion: "Súper que dejan." }),
+        supermercadoOtro: esquemaDato("supermarketsNota", { descripcion: "Un súper o tienda que no está en la lista, como lo digan: se suma a los de fuera ya apuntados. Vacío (\"\") si ya no compran en los de fuera." }),
         presupuesto: { type: "number", minimum: PRESUPUESTO[0], maximum: PRESUPUESTO[1], description: "Euros por semana." },
         sinPresupuesto: { type: "boolean" },
       }),

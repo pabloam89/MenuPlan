@@ -179,6 +179,26 @@ describe("guardar los datos con sobre", () => {
     ]);
   });
 
+  it("los súper (PR 7): sin decir se leen vacíos y no se guardan; los elegidos y «Otro» con su nota van con sobre, no al documento", async () => {
+    const m = new Map();
+    const enviados = [];
+    const cola = crearColaDeDatos({
+      almacen: { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, v) },
+      enviar: async (item) => { enviados.push(item.dato); return { status: 200, cuerpo: { guardado: true, estado: "hecha", rev: 3 + enviados.length } }; },
+      nuevaClave: () => `00000000-0000-4000-8000-00000000c1c${enviados.length}`, ahora: () => 0,
+    });
+    const { valores } = await leer(servidor({ v: 2, datos: [porDefecto("supermarkets", null), porDefecto("supermarketsNota", null)] }));
+    expect(valores).toEqual({ supermarkets: [], supermarketsNota: null });
+    const casa = casaDeCasa({ casa: CASA, valores, cola });
+    expect(await casa.guardar({ supermarkets: [], supermarketsNota: null }, 3)).toEqual({ ok: true, enviado: false });
+    expect(await casa.guardar({ supermarkets: ["Mercadona", "Otro"], supermarketsNota: "Frutería Paco" }, 3)).toEqual({ ok: true, enviado: true, botRev: 5 });
+    expect(enviados).toEqual([
+      { campo: "supermarkets", persona_id: null, valor: ["Mercadona", "Otro"], origen: "dicho" },
+      { campo: "supermarketsNota", persona_id: null, valor: "Frutería Paco", origen: "dicho" },
+    ]);
+    expect(sinCasa({ supermarkets: ["Mercadona"], reglas: [] }, { valores })).toEqual({ reglas: [] });
+  });
+
   /** Una cola que contesta guardado con cada versión de `revs`, en orden. */
   const colaConRevs = (...revs) => ({ escribir: vi.fn(async () => ({ guardado: true, pendiente: false, rev: revs.shift() })) });
   const enCola = (version, enviar) => enviar(version.leer());
