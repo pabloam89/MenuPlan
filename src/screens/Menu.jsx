@@ -4576,51 +4576,81 @@ function ScopeCircle({ opt, active, size = 42, members }) {
  * centered "liquid glass" modal to filter by menú (dieta/bebés/niños…) and by
  * persona. Only rendered when there are several menús.
  */
-function DeckFilter({ groups, scope, onScopeChange, members, interactivo = true, ciclar = false }) {
+export function DeckFilter({ groups, scope, onScopeChange, members, chips = false }) {
   const [open, setOpen] = useState(false);
 
   const scopeOptions = [{ id: "all", label: "Todos", group: null }, ...groups.map((g) => ({ id: g.id, label: g.label, group: g }))];
   const activeOpt = scopeOptions.find((o) => o.id === scope) ?? scopeOptions[0];
 
+  // En la pizarra las opciones se ven todas y con su nombre. Tocar las caras
+  // pasaba a la siguiente sin decir a cuál, y una pila de caras no explica que
+  // lo que se filtra es un menú y no una persona.
+  if (chips) {
+    return (
+      <div
+        role="group"
+        aria-label="Filtrar menú"
+        data-coach="menu-filters"
+        style={{
+          display: "flex", gap: "var(--esp-8)", padding: "0 var(--esp-16)",
+          overflowX: "auto", scrollbarWidth: "none",
+        }}
+      >
+        {scopeOptions.map((opt) => {
+          const activo = opt.id === activeOpt.id;
+          return (
+            <button
+              key={opt.id}
+              type="button"
+              className="deck-press"
+              aria-pressed={activo}
+              onClick={() => onScopeChange(opt.id)}
+              style={{
+                flexShrink: 0, display: "inline-flex", alignItems: "center",
+                height: "var(--tam-tactil)", border: "none", background: "transparent",
+                padding: 0, cursor: "pointer", fontFamily: "inherit",
+              }}
+            >
+              <span
+                style={{
+                  padding: "var(--esp-6) var(--esp-12)", borderRadius: "var(--radio-pildora)",
+                  fontSize: "var(--tipo-paso-13)", fontWeight: "var(--tipo-peso-800)", whiteSpace: "nowrap",
+                  background: activo ? "var(--color-marca)" : "var(--color-marca-fondo)",
+                  color: activo ? "var(--color-superficie)" : "var(--color-marca)",
+                  transition: "background var(--mov-rapida) var(--mov-curva), color var(--mov-rapida) var(--mov-curva)",
+                }}
+              >
+                {opt.group?.adHoc ? adhocReasonLabel(opt.group.reason) : opt.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
+
   return (
     <>
-      {/* Con un solo menú las caras se ven igual, pero no abren nada: es un
-          recordatorio de para quién cocinas, y un filtro de una sola opción
-          sería un botón que no hace nada. */}
-      {interactivo ? (
-        <button
-          type="button"
-          className="deck-press"
-          data-coach="menu-filters"
-          // En la pizarra el toque pasa al siguiente menú (Todos → Adultos →
-          // Niños → …) en vez de abrir la hoja: con dos o tres opciones, un
-          // modal para elegir entre ellas cuesta más que recorrerlas. La hoja
-          // sigue estando en el menú generado, donde además filtra.
-          onClick={() => {
-            if (!ciclar) { setOpen(true); return; }
-            const i = scopeOptions.findIndex((o) => o.id === (scope ?? "all"));
-            onScopeChange(scopeOptions[(i + 1) % scopeOptions.length].id);
-          }}
-          aria-haspopup="dialog"
-          aria-label={`Filtrar menú (${activeOpt.label})`}
-          title={`Filtrar · ${activeOpt.label}`}
-          style={{
-            border: "none",
-            background: "transparent",
-            padding: 0,
-            cursor: "pointer",
-            fontFamily: "inherit",
-            flexShrink: 0,
-            display: "inline-flex",
-          }}
-        >
-          <ScopeCircle opt={activeOpt} active size={42} members={members} />
-        </button>
-      ) : (
-        <span style={{ flexShrink: 0, display: "inline-flex" }} title={activeOpt.label}>
-          <ScopeCircle opt={activeOpt} active size={42} members={members} />
-        </span>
-      )}
+      <button
+        type="button"
+        className="deck-press"
+        data-coach="menu-filters"
+        onClick={() => setOpen(true)}
+        aria-haspopup="dialog"
+        aria-label={`Filtrar menú (${activeOpt.label})`}
+        title={`Filtrar · ${activeOpt.label}`}
+        style={{
+          border: "none",
+          background: "transparent",
+          padding: 0,
+          cursor: "pointer",
+          fontFamily: "inherit",
+          flexShrink: 0,
+          display: "inline-flex",
+        }}
+      >
+        <ScopeCircle opt={activeOpt} active size={42} members={members} />
+      </button>
 
       {open && (
         <div
@@ -6133,8 +6163,8 @@ export const MenuScreen = memo(function MenuScreen({
       {/* ── Zona de navegación: cabecera clásica (fecha/perfil/chevron) o nav del deck ── */}
       {/* En la pizarra esta franja se queda pegada arriba al bajar.
           Los mandos de aquí no son decoración de cabecera: son con lo que
-          rellenas: el avatar dice para quién estás poniendo platos y las
-          baldosas abren días, balance, despensa, batch y rellenar. Con siete
+          rellenas: los chips dicen para qué menú estás poniendo platos y las
+          baldosas abren balance, despensa, batch y rellenar. Con siete
           días en pantalla, tocar un hueco del domingo y querer cambiar de
           comensal obligaba a subir hasta arriba, cambiar y volver a bajar.
           El que scrollea es el documento (la raíz solo pone minHeight), así
@@ -6159,38 +6189,32 @@ export const MenuScreen = memo(function MenuScreen({
 
         {/* View controls — deck: vistas (izq) · semana (centro) · filtro círculo (der) */}
         {/* ── La fila de la pizarra ─────────────────────────────────────
-            Dos secciones en una sola banda: quién come (avatares, en blanco,
-            porque son personas y van con el tablero) y con qué se maneja el
-            tablero (las baldosas, en el slate que esta app ya reserva para lo
-            logístico — ver la escala de Compra en DESIGN_SYSTEM §7). El tinte
-            llega hasta el borde derecho porque la franja es una zona, no una
-            tarjeta: cortarla antes del margen la convertiría en un recuadro
-            más de los que hay debajo. */}
+            Arriba, para qué menú (solo si hay más de uno: un filtro de una
+            opción no filtra nada). Debajo, con qué se maneja el tablero, en el
+            slate que esta app ya reserva para lo logístico — ver la escala de
+            Compra en DESIGN_SYSTEM §7. El tinte llega de borde a borde porque
+            la franja es una zona, no una tarjeta. */}
         {/* `pizarraControles` manda: mientras la pizarra arranca llega vacío,
-            y entonces la franja ENTERA se va —avatares incluidos—. Una fila de
-            avatares sola, sin nada que hacer con ella, solo diría «hay cosas
-            que todavía no puedes tocar». */}
+            y entonces la franja ENTERA se va, chips incluidos: sin baldosas
+            solo dirían «hay cosas que todavía no puedes tocar». */}
         {hasMenu && modoPizarra && pizarraControles && (
           <div
             // Baja al montarse. La franja no existía hace un instante —llega
             // al cerrar la hoja de arranque— y entrar de golpe la haría
             // parecer algo que ya estaba y no habías visto.
             className="mp-franja-entra"
-            style={{ display: "flex", alignItems: "stretch", marginRight: -16, marginBottom: 14, minHeight: 78 }}
+            style={{ margin: "0 calc(-1 * var(--esp-16)) var(--esp-12)" }}
           >
-            <div style={{ background: "var(--pz-fondo, #fff)", display: "flex", alignItems: "center", paddingRight: 12, flexShrink: 0 }}>
-              {(data.groups?.length > 0) && (
-                <DeckFilter
-                  groups={data.groups}
-                  scope={scope}
-                  onScopeChange={setScope}
-                  members={data.members ?? []}
-                  interactivo={multiGroup}
-                  ciclar={multiGroup}
-                />
-              )}
-            </div>
-            <div style={{ flex: 1, minWidth: 0, background: "var(--pz-fondo-suave, #f1f5f9)", display: "flex", alignItems: "center" }}>
+            {multiGroup && (
+              <DeckFilter
+                groups={data.groups}
+                scope={scope}
+                onScopeChange={setScope}
+                members={data.members ?? []}
+                chips
+              />
+            )}
+            <div style={{ minHeight: 78, background: "var(--pz-fondo-suave, #f1f5f9)", display: "flex", alignItems: "center" }}>
               <HuecosVivosContext.Provider value={huecosVivos}>
                 {pizarraControles}
               </HuecosVivosContext.Provider>
