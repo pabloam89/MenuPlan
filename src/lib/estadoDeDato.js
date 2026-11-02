@@ -88,6 +88,12 @@ export const CAMPOS_CASA_CON_SOBRE = Object.freeze(Object.entries(DATOS_CASA)
   .filter(([, d]) => d.entidad === "casa" && d.vive === "tabla:sobre").map(([k]) => k));
 
 /**
+ * Las fichas de ficha_casa v2 donde vienen los de CAMPOS_CASA_CON_SOBRE (la v2 agrupa por ficha): la Casa
+ * (trozo 12) y la Rutina sin ámbito (trozo 13). Sale de la ficha de cada uno en el registro, en su orden.
+ */
+export const FICHAS_CASA_CON_SOBRE = Object.freeze([...new Set(CAMPOS_CASA_CON_SOBRE.map((c) => DATOS_CASA[c].ficha))]);
+
+/**
  * Pura. Los de CAMPOS_CASA_CON_SOBRE que la ficha trae, leídos (su sobre o el defecto del registro). Los que no
  * trae (registro_campo aún sin ellos: la 0112 sin aplicar) no salen: siguen en el documento. Una lista sin valor
  * (kitchenTools: nadie dijo nada y el registro no tiene defecto) se lee vacía, como la deja la app al normalizar:

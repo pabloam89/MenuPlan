@@ -16,7 +16,7 @@ import { motivoDe } from "./avisar.js";
 import { operar, operarPersonas, deshacer } from "../../src/lib/operaciones/tuberia.js";
 import { membersDeFilas, FamiliaSinLeer, RPC_FAMILIA } from "../../src/lib/personas.js";
 import { FALLO_DATO, MOTIVO_FALLO, CANAL_DATO } from "../../src/lib/vocabularios.js";
-import { FICHA_CON_ESTADO, fichaSinContrato, estadosDeFichas, datosConSobre } from "../../src/lib/estadoDeDato.js";
+import { FICHA_CON_ESTADO, fichaSinContrato, estadosDeFichas, datosConSobre, FICHAS_CASA_CON_SOBRE } from "../../src/lib/estadoDeDato.js";
 
 /**
  * El fallo de dato (FALLOS_DATO) de cada motivo de avisar.js (MOTIVOS_FALLO).
@@ -83,11 +83,12 @@ export async function leerFamilia(householdId) {
 export const deshacerOperacion = (pedido, { papel }) => deshacer(pedido, { papel, rpc, falloDeError });
 
 /**
- * Los datos de la ficha Casa para la app (trozo 12): los de `fichas.casa` de ficha_casa v2 (0107), cada uno con
- * su sobre o con el defecto del registro. Con la v1 (0107 sin aplicar), `datos` null: la app los lee del
+ * Los datos de la casa con sobre para la app: los de las fichas Casa (trozo 12) y Rutina (trozo 13) de
+ * ficha_casa v2 (0107), FICHAS_CASA_CON_SOBRE, juntos y cada uno con su sobre o con el defecto del registro. Con la v1 (0107 sin aplicar), `datos` null: la app los lee del
  * documento como antes. Lanza si la base falla o contesta otra forma (una versión que no conoce, sin `fichas`):
- * no es una casa sin datos, y quien llama lo dice. Sin la clave `casa` en `fichas` es que registro_campo no tiene
- * ningún campo de esa ficha (la 0112 sin aplicar: ficha_casa agrupa por ficha): `[]`, que es verdad. Solo para quien
+ * no es una casa sin datos, y quien llama lo dice. Sin una de esas claves en `fichas` es que registro_campo no
+ * tiene ningún campo de esa ficha (la 0112 o la 0113 sin aplicar: ficha_casa agrupa por ficha): sus datos no
+ * vienen y siguen en el documento, que es verdad. Solo para quien
  * ya se sabe de la casa: con la service role, ficha_casa no lo comprueba (api/operacion.js mira el papel antes).
  * Lola la usa también (leerCasaConSobre), con su canal.
  * @returns {Promise<{ v: number|null, datos: object[]|null }>}
@@ -96,7 +97,7 @@ export async function leerDatosDeCasa(householdId, userId, { canal = CANAL_DATO.
   const ficha = await rpc("ficha_casa", { p_casa: householdId, p_usuario: userId, p_canal: canal, p_max_tareas: 0 });
   const mal = fichaSinContrato(ficha);
   if (mal) throw new Error(`ficha_casa: forma que no se conoce (${mal})`);
-  return { v: ficha.v, datos: ficha.v === FICHA_CON_ESTADO ? (ficha.fichas.casa ?? []) : null };
+  return { v: ficha.v, datos: ficha.v === FICHA_CON_ESTADO ? FICHAS_CASA_CON_SOBRE.flatMap((f) => ficha.fichas[f] ?? []) : null };
 }
 
 /**

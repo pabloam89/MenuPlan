@@ -322,6 +322,13 @@ describe("api/operacion.js: la app lee los datos de la ficha Casa (trozo 12)", (
     expect((await leerGet()).body).toEqual({ v: 1, datos: null });
   });
 
+  it("con la 0113, los de la ficha Rutina (trozo 13) van con los de la Casa; las demás fichas, no", async () => {
+    const DATO_RUTINA = { campo: "meals", sujeto: { tipo: "casa", id: null }, estado: "por_defecto", valor: ["Comida", "Cena"], origen: null };
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "owner" }] });
+    responde(/rpc\/ficha_casa/, { status: 200, cuerpo: { ...FICHA_V2, fichas: { ...FICHA_V2.fichas, rutina: [DATO_RUTINA] } } });
+    expect((await leerGet()).body).toEqual({ v: 2, datos: [DATO_CASA, DATO_RUTINA] });
+  });
+
   it("sin la 0112, la v2 no trae la ficha Casa (agrupa por ficha): datos vacíos, que es verdad", async () => {
     responde(/household_members/, { status: 200, cuerpo: [{ role: "owner" }] });
     responde(/rpc\/ficha_casa/, { status: 200, cuerpo: { ...FICHA_V2, fichas: { persona: [] } } });
