@@ -17,16 +17,13 @@ import { RPC_LEER_PREFERENCIAS } from "./operaciones/tuberia.js";
 /** De dónde sale la libreta en esta carga: de sus filas, o del documento (base sin la 0109). Los mismos modos que la familia. */
 export const MODO_LIBRETA = MODO_FAMILIA;
 
-/** La pantalla de la que sale un cambio de la libreta (la `ref` de la operación). */
+/** La pantalla (la `ref` de la operación) y la acción de un cambio de la libreta desde la app. */
 export const REF_LIBRETA = "libreta";
-
-/** La acción de la operación de un cambio de la libreta desde la app. */
 export const ACCION_LIBRETA = "guardar_libreta";
 
 /**
  * Las preferencias de una casa. `{ modo: FILAS, filas }`; `{ modo: DOCUMENTO }` si la base aún no tiene la RPC; o
  * `{ error: true }` si no se pudieron leer (sin red, o sin la forma v1): no es una casa sin preferencias.
- * @param {string} casa
  */
 export async function leerLibretaDeCasa(casa, cliente = supabase) {
   if (!cliente) return { error: true };

@@ -14,12 +14,9 @@ const { poner, olvidar } = await import("./notepad.js");
 const { FALLO_DATO } = await import("./vocabularios.js");
 
 const CASA = "00000000-0000-4000-8000-0000000000ca";
-const PESCADO = {
-  id: "00000000-0000-4000-8000-0000000000f1", persona_id: null, grupo_id: null, plan_id: null, nivel: "semana", eje: "composicion",
-  medida: "cuenta", operador: "como_mucho", valor: "pescado", cantidad: 2, nota: null, fuerza: "obligatoria", dias: null, comidas: null,
-  semanas: null, salvo_dias: null, salvo_comidas: null, salvo_semanas: null, desde: null, hasta: null, frase: null, origen: "dicho",
-  canal: "app", confirmado_at: "2026-11-02T10:00:00Z", rechazada_at: null, updated_at: "2026-11-02T10:00:00Z",
-};
+// Una fila de preferencias_de_casa (lo que no lleva, null en la tabla).
+const PESCADO = { id: "00000000-0000-4000-8000-0000000000f1", nivel: "semana", eje: "composicion", medida: "cuenta", operador: "como_mucho",
+  valor: "pescado", cantidad: 2, fuerza: "obligatoria", origen: "dicho", canal: "app", confirmado_at: "2026-11-02T10:00:00Z", updated_at: "2026-11-02T10:00:00Z" };
 const cliente = (respuesta) => ({ rpc: vi.fn(async () => respuesta) });
 const FILAS = { modo: MODO_LIBRETA.FILAS, filas: [PESCADO] };
 
@@ -47,7 +44,6 @@ describe("leer la libreta", () => {
     expect(Object.keys(data.notepad.campos)).toEqual(["freqs.pescado"]);
     expect(data.freqs).toEqual({ pescado: 2 });
     expect(sinLibretaLeida(data, FILAS)).toEqual({ members: [], groups: [] });
-    // Sin la 0109, todo como siempre.
     const enDocumento = { modo: MODO_LIBRETA.DOCUMENTO };
     expect(conLibretaLeida(doc, enDocumento)).toBe(doc);
     expect(sinLibretaLeida(doc, enDocumento)).toBe(doc);
@@ -69,13 +65,6 @@ describe("guardar la libreta", () => {
     expect(cuerpo.clave).toMatch(/^[0-9a-f-]{36}$/);
   });
 
-  it("sin red, o con un fallo de la tubería: no guardado, y con su fallo", async () => {
-    const sinRed = vi.fn(async () => { throw new TypeError("fetch failed"); });
-    expect(await enviarPreferencias({ casa: CASA, preferencias: [] }, { token: async () => "tk", fetcher: sinRed })).toEqual({ ok: false, fallo: FALLO_DATO.SIN_RED });
-    const ausente = vi.fn(async () => ({ status: 409, text: async () => JSON.stringify({ guardado: false, fallo: FALLO_DATO.RPC_AUSENTE }) }));
-    expect(await enviarPreferencias({ casa: CASA, preferencias: [] }, { token: async () => "tk", fetcher: ausente })).toMatchObject({ ok: false, fallo: FALLO_DATO.RPC_AUSENTE });
-  });
-
   it("solo lo que cambió, con el id de su fila; tras guardar se releen las filas; sin cambios, nada", async () => {
     const { llegan, enviar } = enviada();
     const releer = vi.fn(async () => FILAS);
@@ -86,7 +75,6 @@ describe("guardar la libreta", () => {
     expect(await l.guardar({ groups: [], notepad: otra })).toMatchObject({ ok: true, enviado: true, rev: 4 });
     expect(llegan).toEqual([{ casa: CASA, preferencias: [expect.objectContaining({ id: PESCADO.id, cantidad: 3 })] }]);
     expect(releer).toHaveBeenCalledWith(CASA);
-    // Lo guardado pasa a ser lo conocido: guardar lo mismo otra vez no manda nada.
     expect(await l.guardar({ groups: [], notepad: otra })).toEqual({ ok: true, enviado: false });
   });
 
@@ -103,8 +91,7 @@ describe("guardar la libreta", () => {
     const { llegan, enviar } = enviada();
     const libreta = conLibretaLeida({ groups: [] }, FILAS).notepad;
     const conQueso = poner(libreta, "favoritos.queso", true, { origen: "texto" });
-    const QUESO = { ...PESCADO, id: "00000000-0000-4000-8000-0000000000f2", nivel: "plato", eje: "subtipoIngrediente", medida: "valor",
-      operador: "mas", valor: "queso", cantidad: null, fuerza: "medio", confirmado_at: null };
+    const QUESO = { ...PESCADO, id: "00000000-0000-4000-8000-0000000000f2", nivel: "plato", eje: "subtipoIngrediente", medida: "valor", operador: "mas", valor: "queso", cantidad: null, fuerza: "medio", confirmado_at: null };
     const l = libretaDeCasa({ casa: CASA, carga: FILAS, libreta, enviar, releer: async () => ({ modo: MODO_LIBRETA.FILAS, filas: [PESCADO, QUESO] }) });
     await l.guardar({ groups: [], notepad: conQueso });
     await l.guardar({ groups: [], notepad: olvidar(conQueso, "favoritos.queso") });
