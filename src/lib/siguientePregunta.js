@@ -10,26 +10,27 @@
  *  - profundidad `nada` o ritmo `directo` («hazlo ya»): ninguna; se genera con lo que haya.
  *  - profundidad `preguntar` (el defecto): ninguna todavía; antes se le pregunta si lo preparamos ya o lo afinamos
  *    (PREGUNTA_DE_PROFUNDIDAD), y su respuesta se guarda en su trato.
- *  - `poco`: las LIMITE.poco de más peso; `mucho`: las LIMITE.mucho.
+ *  - `poco`: las LIMITE.poco de más peso; `mucho`: las LIMITE.mucho (el plan: «si afina, 3-5 preguntas por peso»).
  *
  * Lo de seguridad (alergias, etapa del bebé) no sale de aquí: lo preguntan las tareas «falta saber» de Lola con su
  * política (registroTareas.js, CAMPOS_PREGUNTABLES), sea cual sea el trato; el trozo 34 junta las dos en tareas.
  */
 import { REGISTRO_CAMPOS } from "./registroCampos.js";
 import { leidoDe } from "./estadoDeDato.js";
-import { PROFUNDIDAD_TRATO, RITMO_TRATO } from "./vocabularios.js";
+import { PROFUNDIDAD_TRATO, RITMO_TRATO, ESTADO_DATO } from "./vocabularios.js";
 
 /** Cuántas preguntas de afinar, como mucho, según la profundidad del trato. */
 export const LIMITE = Object.freeze({
   [PROFUNDIDAD_TRATO.NADA]: 0,
   [PROFUNDIDAD_TRATO.PREGUNTAR]: 0,
-  [PROFUNDIDAD_TRATO.POCO]: 2,
+  [PROFUNDIDAD_TRATO.POCO]: 3,
   [PROFUNDIDAD_TRATO.MUCHO]: 5,
 });
 
 /**
  * La pregunta de cada campo de afinar, en llano. Un campo de afinar sin texto aquí lo dice el test (no se pregunta
- * lo que no se sabe decir). Las respuestas las guarda Lola con su herramienta de siempre (`guarda`).
+ * lo que no se sabe decir). Las respuestas las guarda Lola con su herramienta de siempre (`guarda`): api/_bot/trato.test.js
+ * comprueba que cada una existe y escribe ese dato.
  */
 export const PREGUNTA_DE_CAMPO = Object.freeze({
   meals: { texto: "¿Qué comidas os preparo: solo la cena, comida y cena…?", guarda: "ajustar_cocina" },
@@ -48,11 +49,14 @@ export const CAMPOS_DE_AFINAR = Object.freeze(Object.entries(REGISTRO_CAMPOS)
   .sort(([, a], [, b]) => b.peso_menu - a.peso_menu)
   .map(([campo]) => campo));
 
-/** ¿Falta este dato? Sin leer, vacío, por defecto o caducado; lo dicho, supuesto o aprendido ya no se pregunta. */
+/**
+ * ¿Falta este dato? Sin leer, vacío, por defecto o caducado; lo dicho, supuesto o aprendido ya no se pregunta. «Por
+ * defecto» cuenta como vacío: el valor lo puso el registro, nadie de la casa (ESTADO_DE_ORIGEN, vocabularios.js).
+ */
 function falta(leido) {
   if (!leido) return true;
   if (leido.bloqueado) return false;
-  return leido.caducado || leido.estado === "vacio" || leido.estado === "por_defecto";
+  return leido.caducado || leido.estado === ESTADO_DATO.VACIO || leido.estado === ESTADO_DATO.POR_DEFECTO;
 }
 
 /**

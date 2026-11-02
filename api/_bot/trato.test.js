@@ -4,6 +4,7 @@ import { REGISTRO_CAMPOS } from "../../src/lib/registroCampos.js";
 import { RITMOS_TRATO, PROFUNDIDADES_TRATO, LARGOS_TRATO } from "../../src/lib/vocabularios.js";
 import { esResultado, ESTADO } from "./resultado.js";
 import { FICHAS } from "./agente.js";
+import { PREGUNTA_DE_CAMPO } from "../../src/lib/siguientePregunta.js";
 
 // Un elemento de la ficha «trato» de ficha_casa v2 (0116): el de una persona y un campo.
 const el = (campo, persona, valor, estado = "dicho") => ({ campo, sujeto: { tipo: "persona", id: persona }, ambito: null, estado, valor });
@@ -131,5 +132,14 @@ describe("personaDeLaCuenta: de quién es el trato", () => {
     expect(personaDeLaCuenta(data, "u2", "owner")).toBe("titular");
     expect(personaDeLaCuenta(data, "u2", "editor")).toBeNull();
     expect(personaDeLaCuenta(data, "u2", "viewer")).toBeNull();
+  });
+});
+
+describe("siguientePregunta.js: cada respuesta se guarda con una herramienta de Lola que escribe ese dato", () => {
+  it("guarda es el nombre de una herramienta, y su ficha escribe el campo", () => {
+    for (const [campo, { guarda }] of Object.entries(PREGUNTA_DE_CAMPO)) {
+      expect(FICHAS.has(guarda), `${campo} → ${guarda}`).toBe(true);
+      expect(FICHAS.get(guarda).escribe, `${campo} → ${guarda}`).toContain(campo);
+    }
   });
 });

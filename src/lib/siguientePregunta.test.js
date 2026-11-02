@@ -38,8 +38,8 @@ describe("siguientePregunta: como mucho una, según el trato de quien escribe", 
     expect(preguntasDeAfinar(vacia, { ritmo: "directo", profundidad: "mucho" })).toEqual([]);
   });
 
-  it("afinar poco: las dos de más peso; mucho: las cinco", () => {
-    expect(preguntasDeAfinar(vacia, { profundidad: "poco" }).map((p) => p.campo)).toEqual(["meals", "mealStructure"]);
+  it("afinar poco: las tres de más peso; mucho: las cinco", () => {
+    expect(preguntasDeAfinar(vacia, { profundidad: "poco" }).map((p) => p.campo)).toEqual(["meals", "mealStructure", "cookLevel"]);
     expect(preguntasDeAfinar(vacia, { profundidad: "mucho" }).map((p) => p.campo)).toEqual(CAMPOS_DE_AFINAR);
     expect(siguientePregunta(vacia, { profundidad: "mucho" })).toEqual({ campo: "meals", ...PREGUNTA_DE_CAMPO.meals });
   });
@@ -53,8 +53,8 @@ describe("siguientePregunta: como mucho una, según el trato de quien escribe", 
       dato("kitchenTools", "vacio"),
       dato("pantryMode", "por_defecto"),
     );
-    expect(preguntasDeAfinar(dichas, { profundidad: "poco" })).toEqual([]);
-    expect(siguientePregunta(dichas, { profundidad: "poco" })).toBeNull();
+    // Las tres de «poco»: meals dicho, mealStructure supuesto y cookLevel caducado: solo vuelve cookLevel.
+    expect(preguntasDeAfinar(dichas, { profundidad: "poco" }).map((p) => p.campo)).toEqual(["cookLevel"]);
     expect(preguntasDeAfinar(dichas, { profundidad: "mucho" }).map((p) => p.campo)).toEqual(["cookLevel", "kitchenTools", "pantryMode"]);
   });
 
@@ -64,7 +64,7 @@ describe("siguientePregunta: como mucho una, según el trato de quien escribe", 
   });
 
   it("un dato bloqueado (no quiere decirlo) no se vuelve a preguntar", () => {
-    const bloqueado = ficha(dato("meals", "vacio", { bloqueado: true }), dato("mealStructure", "dicho", { origen: "dicho", valor: "1_plato" }));
+    const bloqueado = ficha(dato("meals", "vacio", { bloqueado: true }), dato("mealStructure", "dicho", { origen: "dicho", valor: "1_plato" }), dato("cookLevel", "dicho", { origen: "dicho", valor: "basic" }));
     expect(preguntasDeAfinar(bloqueado, { profundidad: "poco" })).toEqual([]);
   });
 
