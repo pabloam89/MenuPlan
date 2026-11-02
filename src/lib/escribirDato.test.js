@@ -31,6 +31,16 @@ describe("datoValido", () => {
     expect(SEXO).not.toContain("otro_valor");
     expect(() => datoValido({ ...DATO, valor: "otro_valor" })).toThrow(DatoInvalido);
   });
+  it("con ámbito (0114): el dato lleva exactamente las dimensiones de su campo, cada una de su lista", () => {
+    const HUECO = { campo: "schedule", persona_id: "p1", dia: "Lun", comida: "Comida", valor: "fuera", origen: "dicho" };
+    expect(REGISTRO_CAMPOS.schedule.ambito).toEqual(["dia", "comida"]);
+    expect(datoValido(HUECO)).toEqual(HUECO);
+    expect(() => datoValido({ ...HUECO, comida: undefined })).toThrow(/falta comida/);
+    expect(() => datoValido({ ...HUECO, semana: "2026-11-02" })).toThrow(/no va por semana/);
+    expect(() => datoValido({ ...HUECO, dia: "Lunes" })).toThrow(DatoInvalido);
+    expect(() => datoValido({ ...DATO, dia: "Lun" })).toThrow(/no va por dia/);
+    expect(() => datoValido({ campo: "menuWeekDays", semana: "2026-11-03", valor: ["Mar"], origen: "dicho" })).toThrow(/lunes/);
+  });
   it("sin dato, o con un campo heredado de Object (__proto__), no entra", () => {
     expect(() => datoValido(null)).toThrow(DatoInvalido);
     expect(() => datoValido({ ...DATO, campo: "__proto__" })).toThrow(DatoInvalido);
