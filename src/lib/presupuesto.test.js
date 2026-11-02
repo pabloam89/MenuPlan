@@ -13,12 +13,12 @@ const [COMPLETA, fCompleta] = filas.find(([, f]) => f.cobertura >= 1);
 const [INCOMPLETA, fIncompleta] = filas.find(([, f]) => f.cobertura < 1);
 
 const plan = (huecos, gid = "g1") => ({ _warnings: ["x"], [gid]: huecos });
-const casa = (budget, hasBudget = true) => ({ hasBudget, budget });
+const casa = (euros) => ({ presupuesto: euros });
 
-describe("leerPresupuesto: la lectura de hasBudget y budget para enseñarlo o hacer cuentas", () => {
-  it("sin el interruptor no hay presupuesto, aunque quede el número", () => {
-    expect(leerPresupuesto({ hasBudget: false, budget: 80 })).toEqual({ estado: "sin", euros: null });
-    expect(leerPresupuesto({ budget: 80 }).estado).toBe("sin");
+describe("leerPresupuesto: la lectura del presupuesto para enseñarlo o hacer cuentas", () => {
+  it("sin presupuesto (null, o nadie lo dijo), no hay", () => {
+    expect(leerPresupuesto(casa(null))).toEqual({ estado: "sin", euros: null });
+    expect(leerPresupuesto({}).estado).toBe("sin");
     expect(leerPresupuesto(null).estado).toBe("sin");
   });
   it("con él, el número", () => {
@@ -31,7 +31,7 @@ describe("leerPresupuesto: la lectura de hasBudget y budget para enseñarlo o ha
     expect(topePorRacion(84, 0)).toBeNull();
   });
   it("con el interruptor y sin cifra válida es «sin_cifra», no «sin»: no se calla", () => {
-    for (const b of [0, -5, "mucho", null, undefined]) expect(leerPresupuesto(casa(b)).estado, String(b)).toBe("sin_cifra");
+    for (const b of [0, -5, "mucho", ""]) expect(leerPresupuesto(casa(b)).estado, String(b)).toBe("sin_cifra");
     expect(presupuestoSemanal(casa("mucho"))).toBeNull();
     expect(ESTADOS_PRESUPUESTO).toEqual(["sin", "activo", "sin_cifra"]);
   });
@@ -43,19 +43,19 @@ describe("un solo dato, presupuesto (trozo 12 de #1037, PR 8)", () => {
     expect(leerPresupuesto({ presupuesto: null })).toEqual({ estado: "sin", euros: null });
     expect(leerPresupuesto({ presupuesto: 0 }).estado).toBe("sin_cifra");
   });
-  it("sin la 0112, el par de antes se lee como su presupuesto, sin reescribirlo; con presupuesto en los datos, el par no cuenta", () => {
-    expect(presupuestoGuardado({ hasBudget: true, budget: 60 })).toBe(60);
-    expect(presupuestoGuardado({ hasBudget: false, budget: 80 })).toBeNull();
-    expect(presupuestoGuardado({})).toBeUndefined();
-    expect(leerPresupuesto({ presupuesto: null, hasBudget: true, budget: 60 }).estado).toBe("sin");
+  it("con la 0112 aplicada, el par de antes (hasBudget/budget) no se lee: sin presupuesto, nadie lo ha dicho", () => {
+    expect(presupuestoGuardado({ hasBudget: true, budget: 60 })).toBeUndefined();
+    expect(presupuestoGuardado({ hasBudget: false, budget: 80 })).toBeUndefined();
+    expect(leerPresupuesto({ hasBudget: true, budget: 60 })).toEqual({ estado: "sin", euros: null });
     expect(presupuestoSemanal({ presupuesto: 45, hasBudget: true, budget: 60 })).toBe(45);
   });
-  it("escribirlo deja un solo dato: el par de antes se va", () => {
-    expect(conPresupuesto({ hasBudget: true, budget: 60, reglas: [] }, 90)).toEqual({ reglas: [], presupuesto: 90 });
-    expect(conPresupuesto({ hasBudget: true, budget: 60 }, null)).toEqual({ presupuesto: null });
+  it("escribirlo pone el dato y no reescribe lo demás del documento (el par viejo se queda sin lector)", () => {
+    expect(conPresupuesto({ hasBudget: true, budget: 60, reglas: [] }, 90)).toEqual({ hasBudget: true, budget: 60, reglas: [], presupuesto: 90 });
+    expect(conPresupuesto(null, null)).toEqual({ presupuesto: null });
   });
   it("el interruptor del asistente: al encender, la cifra que hubiera o la de partida; al apagar, null", () => {
-    expect(conInterruptor({ hasBudget: true, budget: 60 }, true)).toEqual({ presupuesto: 60 });
+    expect(conInterruptor({ presupuesto: 60 }, true)).toEqual({ presupuesto: 60 });
+    expect(conInterruptor({ hasBudget: true, budget: 60 }, true)).toEqual({ hasBudget: true, budget: 60, presupuesto: PRESUPUESTO_DE_PARTIDA });
     expect(conInterruptor({}, true)).toEqual({ presupuesto: PRESUPUESTO_DE_PARTIDA });
     expect(conInterruptor({ presupuesto: 0 }, true)).toEqual({ presupuesto: PRESUPUESTO_DE_PARTIDA });
     expect(conInterruptor({ presupuesto: 60 }, false)).toEqual({ presupuesto: null });
@@ -127,7 +127,7 @@ describe("veredicto y frase: vocabulario cerrado y honesto", () => {
     expect(frasePresupuesto(casa(40), est({ conPrecio: 7, sinPrecio: 3 }))).toMatch(/al menos 50 €.*30 %.*no cabe en el presupuesto de 40 €/);
   });
   it("sin presupuesto, nada; con el interruptor y sin cifra, o sin platos, se dice", () => {
-    expect(frasePresupuesto(casa(80, false), est())).toBeNull();
+    expect(frasePresupuesto(casa(null), est())).toBeNull();
     expect(frasePresupuesto(casa("mucho"), est())).toMatch(/sin una cifra válida/);
     expect(frasePresupuesto(casa(80), est({ raciones: 0, conPrecio: 0 }))).toMatch(/no hay platos que pueda contar/);
   });
@@ -146,7 +146,7 @@ describe("listaFrenteAPresupuesto: la lista de la compra frente al presupuesto (
     expect(listaFrenteAPresupuesto(casa(50), est(90, 20, 20), 2)).toMatchObject({ presupuesto: 100, veredicto: "cabe" });
   });
   it("sin presupuesto, solo lo que no tiene precio; sin estimación, nada", () => {
-    expect(listaFrenteAPresupuesto(casa(80, false), est(60, 18, 20))).toEqual({ presupuesto: null, total: 60, sinPrecio: 2, veredicto: null });
+    expect(listaFrenteAPresupuesto(casa(null), est(60, 18, 20))).toEqual({ presupuesto: null, total: 60, sinPrecio: 2, veredicto: null });
     expect(listaFrenteAPresupuesto(casa(80), null)).toBeNull();
   });
   it("su veredicto es del mismo vocabulario que el de la semana", () => {
