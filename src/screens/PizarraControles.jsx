@@ -521,7 +521,9 @@ function BaldosaMando({ Icon, label, color, tinte, onClick, badge = null, orden 
         "--d": `${orden * 55}ms`,
         // Caben CUATRO, siempre cuatro. Antes se repartían el ancho que
         // hubiera, así que cada baldosa que se añadía encogía a todas las
-        // demás y con cinco ya se leían apretadas.
+        // demás y con cinco ya se leían apretadas. Ahora la quinta no encoge
+        // a nadie: se sale por el borde y la fila hace scroll, que además
+        // asoma media baldosa y dice que hay más.
         //
         // El gap de 2px entre cuatro son 6px que hay que descontar.
         flex: "0 0 auto", width: "calc((100% - 6px) / 4)", minWidth: 0,
@@ -1787,6 +1789,9 @@ export function PizarraControles({
   despensa, onAddDespensa, onQuitarDespensa, onQtyDespensa,
 }) {
   const [abierto, setAbierto] = useState(null);
+  // Qué cara de la fila se ve. Arranca en las ACCIONES porque «Rellenar»
+  // vive ahí y es lo que más se toca en un tablero recién montado.
+  const [cara, setCara] = useState("acciones");
   const todayIdx = useMemo(() => todayDayIdx(), []);
 
   const diasDe = (offset) => diasDeSemana(data, offset, todayIdx);
@@ -1846,57 +1851,133 @@ export function PizarraControles({
         .mp-despensa-input::placeholder { font-size: 13px; font-weight: 600; color: #9aa8a0; opacity: 1; }
       `}</style>
 
-      {/* Una sola fila y siempre a la vista: rellenar y lo que ajusta el
-          tablero. Lo que se hace CON el tablero (nueva, vaciar, compartir) vive
-          en el burger de la cabecera, y el favorito en su corazón. Hubo aquí
-          dos caras con una flecha en medio y no se entendía que había otra. */}
-      <div style={{ display: "flex", gap: "var(--esp-2)", width: "100%", minWidth: 0, padding: "8px 8px 6px" }}>
-        {onRellenar && huecosVacios > 0 && (
-          <BaldosaMando
-            Icon={Sparkles}
-            label="Rellenar"
-            orden={0}
-            color="#c98a1e"
-            tinte="#fff"
-            badge={huecosVacios}
-            onClick={() => onRellenar({ huecos: huecosVivos })}
-          />
-        )}
-        {/* Lo que tienes en casa. Estuvo un rato saliendo solo al ir a
-            rellenar: era el único momento en que importaba, pero también
-            el peor, porque te paraba un gesto que ya habías empezado.
-            Aquí es un sitio al que vas cuando quieres, no un peaje. */}
-        {onAddDespensa && (
-          <BaldosaMando
-            Icon={Package}
-            label="En casa"
-            orden={1}
-            color="#3f9656"
-            tinte="#fff"
-            badge={enDespensa > 0 ? enDespensa : null}
-            onClick={() => setAbierto("despensa")}
-          />
-        )}
-        <BaldosaMando
-          Icon={BarChart3}
-          label="Balance"
-          orden={2}
-          color="#7a5aa8"
-          tinte="#fff"
-          onClick={() => setAbierto("balance")}
-        />
-        {/* "Batch" y no "Batch Cooking": la etiqueta son 55px, y el
-            título entero está en el panel que abre. */}
-        <BaldosaMando
-          Icon={CookingPot}
-          label="Batch"
-          orden={3}
-          color={NARANJA}
-          tinte="#fff"
-          apagada={!hayTanda}
-          badge={hayTanda ? piezasTanda : null}
-          onClick={() => hayTanda && setAbierto("tanda")}
-        />
+      {/* ── Dos caras de la misma fila ───────────────────────────────────
+          Lo que HACES con el tablero (rellenar, empezar otro, vaciarlo,
+          guardarlo) y lo que lo AJUSTA (balance, despensa, batch) nunca se
+          necesitan a la vez: o estás montando la semana o estás haciendo algo
+          con ella. Mismo gesto que la fila del menú generado (ControlRow): una
+          pestaña fija a la izquierda, y al tocarla una cara se pliega mientras
+          la otra crece. Se anima el reparto (`flex-grow`) y NO se desmonta
+          ninguna: montarlas al vuelo daría el salto a mitad de animación. */}
+      <div style={{ display: "flex", alignItems: "stretch", width: "100%", minWidth: 0 }}>
+        <button
+          type="button"
+          onClick={() => setCara((c) => (c === "acciones" ? "controles" : "acciones"))}
+          aria-label={cara === "acciones" ? "Ver los ajustes" : "Ver las acciones"}
+          style={{
+            flexShrink: 0, width: 38, border: "none", padding: "0 6px", cursor: "pointer",
+            background: "transparent", display: "flex", alignItems: "center",
+            justifyContent: "center", fontFamily: "inherit",
+          }}
+        >
+          <span
+            style={{
+              width: 24, height: 24, borderRadius: 999,
+              background: "var(--pz-linea, rgba(45,90,61,.1))", color: "var(--pz-verde, #2d5a3d)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              // Gira al cambiar de cara: es la única pieza que se queda
+              // quieta, así que es la que tiene que decir que hay otra.
+              transform: cara === "acciones" ? "none" : "rotate(180deg)",
+              transition: "transform .28s cubic-bezier(.2,.9,.3,1)",
+            }}
+          >
+            <ChevronRight size={15} strokeWidth={2.8} />
+          </span>
+        </button>
+
+        {/* Una ventana, y dentro un carril con las DOS caras puestas.
+            Antes se cambiaba desmontando una y montando la otra: la que se iba
+            desaparecía de golpe y la que llegaba entraba a saltos con su
+            cascada de baldosas. Aquí ninguna se desmonta y lo único que se
+            mueve es el carril, así que el cambio es un desplazamiento
+            continuo — que además es lo que el chevron estaba prometiendo.
+
+            `overflow: clip` y no `hidden`: hidden fuerza a que `overflow-y`
+            compute como auto y eso convierte esto en contenedor de scroll (el
+            mismo problema que el shell, documentado en index.css). */}
+        <div style={{ flex: 1, minWidth: 0, overflow: "clip" }}>
+          <div
+            style={{
+              display: "flex", width: "200%",
+              transform: cara === "acciones" ? "translateX(0)" : "translateX(-50%)",
+              transition: "transform .38s cubic-bezier(.22,1,.36,1)",
+            }}
+          >
+            <div
+              // La cara que no se ve no se puede tabular con el tabulador: si
+              // no, el foco se va a baldosas que están fuera de la ventana.
+              inert={cara === "acciones" ? undefined : ""}
+              style={{
+                width: "50%", flexShrink: 0, display: "flex", gap: 2,
+                overflowX: "auto", padding: "8px 8px 6px",
+                scrollbarWidth: "none", WebkitOverflowScrolling: "touch",
+              }}
+            >
+            <>
+              {onRellenar && huecosVacios > 0 && (
+                <BaldosaMando
+                  Icon={Sparkles}
+                  label="Rellenar"
+                  orden={0}
+                  color="#c98a1e"
+                  tinte="#fff"
+                  badge={huecosVacios}
+                  onClick={() => onRellenar({ huecos: huecosVivos })}
+                />
+              )}
+              {/* Aquí vivía una baldosa «Elegir» que ponía el tablero en modo
+                  marcar. Sobraba: marcar es tocar un hueco, y un modo que hay
+                  que encender antes convertía dos toques en tres. */}
+            </>
+            </div>
+            <div
+              inert={cara === "controles" ? undefined : ""}
+              style={{
+                width: "50%", flexShrink: 0, display: "flex", gap: 2,
+                overflowX: "auto", padding: "8px 8px 6px",
+                scrollbarWidth: "none", WebkitOverflowScrolling: "touch",
+              }}
+            >
+            <>
+              <BaldosaMando
+                Icon={BarChart3}
+                label="Balance"
+                orden={0}
+                color="#7a5aa8"
+                tinte="#fff"
+                onClick={() => setAbierto("balance")}
+              />
+              {/* Lo que tienes en casa. Estuvo un rato saliendo solo al ir a
+                  rellenar: era el único momento en que importaba, pero también
+                  el peor, porque te paraba un gesto que ya habías empezado.
+                  Aquí es un sitio al que vas cuando quieres, no un peaje. */}
+              {onAddDespensa && (
+                <BaldosaMando
+                  Icon={Package}
+                  label="En casa"
+                  orden={1}
+                  color="#3f9656"
+                  tinte="#fff"
+                  badge={enDespensa > 0 ? enDespensa : null}
+                  onClick={() => setAbierto("despensa")}
+                />
+              )}
+              {/* "Batch" y no "Batch Cooking": la etiqueta son 55px, y el
+                  título entero está en el panel que abre. */}
+              <BaldosaMando
+                Icon={CookingPot}
+                label="Batch"
+                orden={2}
+                color={NARANJA}
+                tinte="#fff"
+                apagada={!hayTanda}
+                badge={hayTanda ? piezasTanda : null}
+                onClick={() => hayTanda && setAbierto("tanda")}
+              />
+            </>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* ── Por PORTAL, y no aquí dentro ──────────────────────────────────
