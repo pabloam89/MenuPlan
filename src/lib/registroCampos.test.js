@@ -8,10 +8,10 @@ import { DIMENSIONES_AMBITO } from "./vocabularios.js";
 /**
  * La 0097 copió REGISTRO_CAMPOS en registro_campo, la 0105 la regeneró entera
  * con las columnas del eje, la 0112 con los campos de la ficha Casa, la 0113 con los de la Rutina y la 0114
- * con el ámbito de cada campo (y los de la Rutina con ámbito). Este test es lo que impide que el SQL y el JS se
+ * con el ámbito de cada campo (y los de la Rutina con ámbito), y la 0119 con los de la ficha Trato. Este test es lo que impide que el SQL y el JS se
  * separen: un campo nuevo en JS sin migración no existiría en la base, y un
  * sobre suyo violaría la FK. Compara con el último INSERT de registro_campo de
- * las migraciones (hoy, el de la 0114): una migración que la regenere pasa a ser
+ * las migraciones (hoy, el de la 0119): una migración que la regenere pasa a ser
  * la que se mira.
  */
 const DIR = new URL("../../supabase/migrations/", import.meta.url);
@@ -21,7 +21,7 @@ const MIGRACIONES = readdirSync(DIR).filter((f) => f.endsWith(".sql")).sort()
 const RE_INSERT = /insert into public\.registro_campo\s*\(([^)]*)\)\s*values([\s\S]*?)on conflict/i;
 const ULTIMA = MIGRACIONES.filter((m) => RE_INSERT.test(m.codigo)).at(-1);
 const codigo = ULTIMA.codigo;
-/** Los campos que borran de registro_campo las migraciones que siguen a ULTIMA (la 0118, presupuesto). */
+/** Los campos que borran de registro_campo las migraciones que siguen a ULTIMA (la 0118 borró presupuesto antes de la 0119: hoy, ninguno). */
 const BORRADOS = new Set(MIGRACIONES.filter((m) => m.fichero > ULTIMA.fichero)
   .flatMap((m) => [...m.codigo.matchAll(/delete from public\.registro_campo where id = '([^']+)'/gi)].map((x) => x[1])));
 
@@ -61,15 +61,15 @@ function filasDelInsert() {
   });
 }
 
-describe("registro_campo (0097, regenerada en la 0105, la 0112, la 0113 y la 0114) dice lo mismo que registroCampos.js", () => {
-  it("el último INSERT es el de la 0114, con las columnas del eje y el ámbito", () => {
-    expect(ULTIMA.fichero).toBe("0114_sobre_ambito.sql");
+describe("registro_campo (0097, regenerada en la 0105, la 0112, la 0113, la 0114 y la 0119) dice lo mismo que registroCampos.js", () => {
+  it("el último INSERT es el de la 0119, con las columnas del eje y el ámbito", () => {
+    expect(ULTIMA.fichero).toBe("0119_trato_campos.sql");
     const cols = codigo.match(RE_INSERT)[1].split(",").map((c) => c.trim());
     for (const c of ["ficha", "clase", "defecto", "suposicion", "minimo_para_generar", "peso_menu", "escribe", "choque", "ambito"]) expect(cols, c).toContain(c);
   });
 
   it("mismos campos (menos los que borran las que siguen) y, en cada uno, mismas columnas", () => {
-    expect([...BORRADOS], "lo que borra la 0118").toEqual(["presupuesto"]);
+    expect([...BORRADOS], "ninguna borra tras la 0119").toEqual([]);
     const filas = filasDelInsert().filter((f) => !BORRADOS.has(f.id));
     expect(ordenado(filas.map((f) => f.id))).toEqual(ordenado(Object.keys(REGISTRO_CAMPOS)));
     for (const { id, ...fila } of filas) {
