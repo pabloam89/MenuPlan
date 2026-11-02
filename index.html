@@ -24,9 +24,55 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet" />
     <title>HoMenu</title>
+    <!-- Inicio se pinta aquí, antes de que llegue el código de la app. Solo a
+         quien tiene sesión o familia en este dispositivo: a quien llega nuevo le
+         toca la portada. Fuera de los tokens porque estos cargan con la app;
+         marca.test.js ata la clave y el degradado a su sitio. -->
+    <script>
+      try {
+        var conFamilia = /"members":\[\{/.test(localStorage.getItem("menuplan.state.v1") || "");
+        // Vuelta del login o llave de Lola: la sesión llega en la dirección.
+        var entrando = /[#?&](access_token|code|entrar)=/.test(location.search + location.hash);
+        if (conFamilia || entrando || Object.keys(localStorage).some(function (k) { return /^sb-.*-auth-token$/.test(k); })) {
+          document.documentElement.classList.add("con-casa");
+        }
+      } catch (e) {}
+    </script>
+    <style>
+      html:not(.con-casa) #root > .esq { display: none; }
+      .esq {
+        display: flex; flex-direction: column; gap: 16px; box-sizing: border-box;
+        width: 100%; max-width: 420px; min-height: 100dvh; margin: 0 auto;
+        padding: calc(32px + env(safe-area-inset-top)) 24px 0;
+        background: linear-gradient(165deg, #e3f5e9 0%, #fbf3d9 45%, #fce6d1 65%, #fde3d3 100%);
+      }
+      .esq-b { background: rgba(45, 90, 61, .1); border-radius: 12px; animation: esq-pulso 1.4s ease-in-out infinite; }
+      .esq-saludo { width: 62%; height: 28px; }
+      .esq-avatares { display: flex; justify-content: center; padding: 8px 0 24px; }
+      .esq-avatar { width: 56px; height: 56px; border-radius: 50%; margin: 0 -5px; }
+      .esq-tarjeta { height: 72px; border-radius: 20px; }
+      .esq-banner { height: 104px; border-radius: 20px; }
+      .esq-linea { width: 45%; height: 18px; }
+      .esq-nav { margin: auto -24px 0; height: 80px; border-radius: 24px 24px 0 0; background: #fff; }
+      @keyframes esq-pulso { 50% { opacity: .5; } }
+      @media (prefers-reduced-motion: reduce) { .esq-b { animation: none; } }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="esq">
+        <div class="esq-b esq-saludo"></div>
+        <div class="esq-avatares">
+          <div class="esq-b esq-avatar"></div>
+          <div class="esq-b esq-avatar"></div>
+          <div class="esq-b esq-avatar"></div>
+        </div>
+        <div class="esq-b esq-tarjeta"></div>
+        <div class="esq-b esq-banner"></div>
+        <div class="esq-b esq-linea"></div>
+        <div class="esq-nav"></div>
+      </div>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

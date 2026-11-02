@@ -11,6 +11,40 @@ import { APP_SHELL_MAX_WIDTH, BOTTOM_NAV_HEIGHT } from '../components/ui.jsx'
  */
 const leer = (ruta) => readFileSync(new URL(`../../${ruta}`, import.meta.url), 'utf8')
 
+describe('el esqueleto de index.html', () => {
+  it('lee la clave de la copia y pinta el degradado de Inicio', () => {
+    const html = leer('index.html')
+    expect(leer('src/lib/storage.js')).toContain('const KEY = "menuplan.state.v1"')
+    expect(html).toContain('"menuplan.state.v1"')
+    const degradado = leer('src/screens/Dashboard.jsx').match(/PAGE_GRADIENT = "([^"]+)"/)[1]
+    expect(html).toContain(degradado)
+  })
+
+  it('su script solo marca a quien tiene familia o sesión', () => {
+    const script = leer('index.html').match(/<script>([\s\S]*?)<\/script>/)[1]
+    const conCasa = (guardado, url = { search: '', hash: '' }) => {
+      const clases = []
+      const almacen = { ...guardado, getItem: (k) => guardado[k] ?? null }
+      new Function('localStorage', 'document', 'location', script)(
+        almacen,
+        { documentElement: { classList: { add: (c) => clases.push(c) } } },
+        url,
+      )
+      return clases.includes('con-casa')
+    }
+    const copia = (members) => JSON.stringify({ data: { members } })
+    expect(conCasa({ 'menuplan.state.v1': copia([{ id: 'a' }]) })).toBe(true)
+    expect(conCasa({ 'menuplan.state.v1': copia([]) })).toBe(false)
+    expect(conCasa({ 'sb-abc-auth-token': '{}' })).toBe(true)
+    expect(conCasa({ 'sb-abc-auth-token-code-verifier': 'x' })).toBe(false)
+    expect(conCasa({})).toBe(false)
+    expect(conCasa({}, { search: '', hash: '#access_token=x' })).toBe(true)
+    expect(conCasa({}, { search: '?code=x', hash: '' })).toBe(true)
+    expect(conCasa({}, { search: '?entrar=x', hash: '' })).toBe(true)
+    expect(conCasa({}, { search: '?tutorial=1', hash: '' })).toBe(false)
+  })
+})
+
 describe('el color de marca', () => {
   it('es el de los tokens en el favicon', () => {
     const svg = leer('public/favicon.svg')
