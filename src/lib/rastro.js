@@ -32,8 +32,9 @@ export const RASTRO = {
   COMPRA_MARCADA: "shopping_marked",
 };
 
-/** La clave de MENU_GENERADO con lo dicho que cumple la semana: { dichas, cumplidas, pct } (resumenCumplimiento). */
+/** La clave de MENU_GENERADO con lo dicho que cumple la semana, y las suyas (las de resumenCumplimiento). */
 export const CAMPO_CUMPLIMIENTO = "preferencias";
+export const CIFRA_CUMPLIMIENTO = Object.freeze({ dichas: "dichas", cumplidas: "cumplidas", pct: "pct" });
 
 /** Por qué cambió un plato: lo que el analista separa (un gusto no es un «lo que sea»). */
 export const MOTIVO_CAMBIO = {

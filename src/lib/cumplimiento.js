@@ -1,12 +1,8 @@
 /**
- * Las preferencias de la casa que pesa el motor, y cuánto las cumple el menú (trozo 31 de #1037):
- * preferenciasDelMotor (la casa de una semana → cada preferencia con operador, fuerza y origen), casaCon (¿la cumple
- * este plato?), pesoDe (su peso en el orden del solver), cumplimientoDelGrupo (cumplida, parcial o no y por qué; por
- * hueco, las que pidieron el plato) y resumenCumplimiento (la cifra: % de lo dicho que se cumple).
- *
- * Los valores salen de la vista que ya lee el motor (`sesgos`, `favoritos`, `cocinas`) y de la libreta su origen y
- * vigencia; los topes, de la libreta (`freqs.*`). Una regla de sesgo no tiene apunte: es dicha. Lo delegado y lo que
- * no vale hoy no cuentan. Los vetos y la salud no están: quitan el plato antes (filterRecipes).
+ * Las preferencias de la casa que pesa el motor (con operador, fuerza y origen) y cuánto las cumple el menú (trozo 31
+ * de #1037). Los valores salen de la vista que ya lee el motor (`sesgos`, `favoritos`, `cocinas`) y de la libreta su
+ * origen y vigencia; los topes, de la libreta (`freqs.*`). Una regla de sesgo no tiene apunte: es dicha. Lo delegado y
+ * lo que no vale hoy no cuentan. Los vetos y la salud no están: quitan el plato antes (filterRecipes).
  */
 import { FREQ_KEY_MATCHERS } from "../utils/validateMenu.js";
 import { matizDe, vigente } from "./notepad.js";
@@ -15,6 +11,7 @@ import { FORMA_DE_PROYECCION, FUERZA_BLANDA, TIPO_DE_AMBITO } from "./preferenci
 import { esAnadido } from "./cocinaTopes.js";
 import { tipoDeGrupo } from "./groups.js";
 import { OPERADOR_PREFERENCIA as OP } from "./vocabularios.js";
+import { CIFRA_CUMPLIMIENTO as C } from "./rastro.js";
 import { CASA_SESGO, SIGNO_SALSA } from "./sesgos.js";
 
 /** Cómo sale una preferencia en el menú de la semana. */
@@ -27,9 +24,8 @@ export const PESO_FUERZA = Object.freeze({ alto: 3, medio: 2, bajo: 1 });
 /** Por origen (las FUENTES de la libreta): lo dicho pesa entero; lo visto, la mitad; lo supuesto, un cuarto (lo dicho manda: método de choques, trozo 33). */
 export const FACTOR_ORIGEN = Object.freeze({ dicho: 1, visto: 0.5, supuesto: 0.25 });
 /**
- * Un escalón en la escala del orden del solver (solver.js, resolverMenu): por encima del orden del pool y del ruido de
- * la semilla (juntos no llegan a 500), y por debajo de lo reciente (6.000), el presupuesto (8.000) y el déficit del
- * reparto (10.000 por familia que falta). Un gusto dicho ordena de verdad, pero no desequilibra la semana.
+ * Un escalón en la escala del orden del solver (resolverMenu): un gusto dicho pesa más que el orden del pool y el ruido
+ * de la semilla juntos (1,5 por plato del pool) y menos que PESO_RECIENTE y PESO_PRESUPUESTO (lo mide su test).
  */
 export const UNIDAD_PESO = 1e3;
 
@@ -152,5 +148,5 @@ export function resumenCumplimiento(filas) {
   const dichas = (filas ?? []).filter((f) => f.origen === "dicho");
   const cumplidas = dichas.filter((f) => f.estado === "cumplida").length;
   const pct = dichas.length ? Math.round((100 * cumplidas) / dichas.length) : null;
-  return { dichas: dichas.length, cumplidas, pct, incumplidas: [...new Set(dichas.filter((f) => f.estado === "no").map(textoDe))] };
+  return { [C.dichas]: dichas.length, [C.cumplidas]: cumplidas, [C.pct]: pct, incumplidas: [...new Set(dichas.filter((f) => f.estado === "no").map(textoDe))] };
 }

@@ -2,10 +2,11 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   preferenciasDelMotor, casaCon, pesoDe, delGrupo, cumplimientoDelGrupo, resumenCumplimiento, textoDe,
-  ESTADOS_CUMPLIMIENTO, MOTIVOS_INCUMPLIMIENTO, UNIDAD_PESO, PESO_FUERZA, FACTOR_ORIGEN, CAMPOS_DEL_MOTOR,
+  ESTADOS_CUMPLIMIENTO, MOTIVOS_INCUMPLIMIENTO, PESO_FUERZA, FACTOR_ORIGEN, CAMPOS_DEL_MOTOR,
 } from "./cumplimiento.js";
 import { FUENTES } from "./notepad.js";
 import { FUERZAS_PREFERENCIA } from "./vocabularios.js";
+import { PESO_RECIENTE, PESO_PRESUPUESTO } from "./solver.js";
 import { entradaDelMotor } from "./entradaMotor.js";
 import { generateMenuWithAI } from "./aiPlanner.js";
 import { recipeCatalog } from "../data/recipeCatalog.js";
@@ -79,9 +80,9 @@ describe("pesoDe: lo dicho pesa más que lo visto y que lo supuesto, y cada esca
     expect(p("medio", "dicho")).toBeGreaterThan(p("bajo", "dicho"));
     expect(p("obligatoria", "dicho")).toBe(Infinity);
   });
-  it("un gusto dicho pesa más que el orden del pool y el ruido juntos (menos de 500), y un escalón, más que el ruido", () => {
-    expect(p("medio", "dicho")).toBeGreaterThan(500);
-    expect(UNIDAD_PESO).toBeGreaterThan(500);
+  it("un gusto dicho pesa más que el orden del pool y el ruido juntos (1,5 por plato, con el catálogo entero de pool), y menos que lo reciente y el presupuesto", () => {
+    expect(p("medio", "dicho")).toBeGreaterThan(1.5 * RECETAS.length);
+    expect(p("alto", "dicho")).toBeLessThan(Math.min(PESO_RECIENTE, PESO_PRESUPUESTO));
   });
   it("las listas cuadran: cada escalón es una fuerza de la 0109, cada origen una fuente de la libreta, cada clase se dice", () => {
     expect(Object.keys(PESO_FUERZA).filter((f) => !FUERZAS_PREFERENCIA.includes(f))).toEqual([]);
