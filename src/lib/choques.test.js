@@ -1,21 +1,21 @@
-// El método de choques (trozo 33 de #1037): las clases y su orden, contra su única fuente
-// (specs/arquitectura-objetivo.md, «Choques»), y el motor relajando con ese orden.
+// El método de choques (trozo 33 de #1037): clases, orden y respuestas, contra su única fuente
+// (specs/arquitectura-objetivo.md, «Choques»), caso a caso, y el motor relajando con ese orden.
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
-import { claseDe, rangoDeClase, CLASE_DE_ORIGEN } from "./choques.js";
+import { claseDe, rangoDeClase, ordenar, responder, CLASE_DE_ORIGEN } from "./choques.js";
 import { ESCALONES_RELAJAR, RELAJABLES, PREFERENCIA_DEL_SISTEMA } from "./preferenciasSistema.js";
 import { pesoDe, FACTOR_ORIGEN } from "./cumplimiento.js";
 import { FORMA_DE_PROYECCION, FUERZA_BLANDA } from "./preferencias.js";
-import { CLASES_CHOQUE, ORIGEN_DATO, FUERZAS_PREFERENCIA } from "./vocabularios.js";
+import { CLASES_CHOQUE, CRITERIOS_CHOQUE, RESPUESTAS_CHOQUE, RESPUESTA_CHOQUE as R, CRITERIO_CHOQUE as CR, ORIGEN_DATO, FUERZAS_PREFERENCIA } from "./vocabularios.js";
 
 const spec = readFileSync(new URL("../../specs/arquitectura-objetivo.md", import.meta.url), "utf8");
-const seccion = spec.slice(spec.indexOf("## Choques"), spec.indexOf("### 2. Ordenar"));
+const seccion = spec.slice(spec.indexOf("## Choques"), spec.indexOf("### 4. Cuándo se detecta"));
+const tabla = (desde, hasta) => [...seccion.slice(seccion.indexOf(desde), seccion.indexOf(hasta)).matchAll(/^\| \*\*([^*]+)\*\* \|/gm)].map((m) => sinTildes(m[1]));
 const sinTildes = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
 describe("clasificar", () => {
   it("las seis clases son las de la arquitectura, de la que más manda a la que menos", () => {
-    const tabla = [...seccion.matchAll(/^\| \*\*([^*]+)\*\* \|/gm)].map((m) => sinTildes(m[1]));
-    expect(tabla).toEqual(CLASES_CHOQUE);
+    expect(tabla("### 1.", "### 2.")).toEqual(CLASES_CHOQUE);
   });
 
   it("cada origen tiene su clase; la salud es seguridad venga de donde venga", () => {
@@ -33,6 +33,62 @@ describe("clasificar", () => {
   it("un origen o una clase que no existen lanzan: sin clase no hay orden", () => {
     expect(() => claseDe({ origen: "inventado" })).toThrow(/sin clase/);
     expect(() => rangoDeClase({ clase: "otra" })).toThrow(/fuera de CLASES_CHOQUE/);
+  });
+});
+
+describe("ordenar: gana el primer criterio que distingue", () => {
+  const deseo = { clase: "deseo", fuerza: "medio", papel: "owner", sujeto: "casa", cuando: "siempre", vigente: true, at: "2026-11-01T10:00:00Z" };
+  const casos = [
+    [CR.RIESGO, { ...deseo, clase: "seguridad" }, { ...deseo, clase: "hecho", fuerza: "obligatoria" }],
+    [CR.CLASE, { ...deseo, clase: "hecho" }, { ...deseo, fuerza: "obligatoria" }],
+    [CR.FUERZA, { ...deseo, fuerza: "alto" }, { ...deseo, fuerza: "bajo", habla_de_si: true }],
+    [CR.AUTORIDAD, { ...deseo, papel: "editor", habla_de_si: true }, { ...deseo, sujeto: "persona" }],
+    [CR.ALCANCE, { ...deseo, sujeto: "persona" }, { ...deseo, cuando: "dia", at: "2026-11-02T10:00:00Z" }],
+    [CR.TIEMPO, { ...deseo, at: "2026-11-02T10:00:00Z" }, deseo],
+    [CR.PESO_APRENDIDO, { ...deseo, clase: "aprendido", peso: 5 }, { ...deseo, clase: "aprendido", peso: 2 }],
+  ];
+
+  it("los siete criterios, en el orden de la arquitectura; cada uno decide si los anteriores empatan, aunque los siguientes digan lo contrario", () => {
+    expect([...seccion.matchAll(/^\d\. \*\*([^:*]+):\*\*/gm)].map((m) => sinTildes(m[1]).replace(/ /g, "_"))).toEqual(CRITERIOS_CHOQUE);
+    expect(casos.map(([c]) => c)).toEqual(CRITERIOS_CHOQUE);
+    for (const [criterio, gana, pierde] of casos) {
+      expect(ordenar(gana, pierde), criterio).toEqual({ gana: "a", criterio });
+      expect(ordenar(pierde, gana), criterio).toEqual({ gana: "b", criterio });
+    }
+  });
+
+  it("dos adultos con lo mismo empatan; lo más reciente gana entre lo de una misma persona, no entre dos; lo vigente, a lo caducado", () => {
+    expect(ordenar({ ...deseo, papel: "owner" }, { ...deseo, papel: "editor" })).toEqual({ gana: null, criterio: null });
+    const nuevo = { ...deseo, at: "2026-11-02T10:00:00Z" };
+    expect(ordenar({ ...nuevo, autor: "u1" }, { ...deseo, autor: "u1" })).toEqual({ gana: "a", criterio: CR.TIEMPO });
+    expect(ordenar({ ...nuevo, autor: "u1" }, { ...deseo, autor: "u2" })).toEqual({ gana: null, criterio: null });
+    expect(ordenar({ ...deseo, at: "2026-01-01T00:00:00Z" }, { ...deseo, vigente: false })).toMatchObject({ gana: "a", criterio: CR.TIEMPO });
+  });
+});
+
+describe("responder", () => {
+  const deseo = { clase: "deseo", fuerza: "medio" };
+  const r = (a, b, como) => responder({ a, b }, ordenar(a, b), como);
+
+  it("las cuatro respuestas son las de la arquitectura", () => {
+    expect(tabla("### 3.", "### 4.").map((x) => x.replace(/ /g, "_").replace("_en_una_linea", ""))).toEqual(RESPUESTAS_CHOQUE);
+  });
+
+  it("«He puesto 3 pescados, no 4, por el presupuesto»: gana uno claro y se pierde una preferencia, aplicar y avisar", () => {
+    expect(r({ clase: "hecho" }, deseo)).toBe(R.APLICAR_Y_AVISAR);
+    expect(r({ ...deseo, at: "2026-11-02T10:00:00Z" }, { ...deseo, at: "2026-10-02T10:00:00Z" })).toBe(R.APLICAR_Y_AVISAR);
+  });
+
+  it("lo concreto sobre lo general, o lo vigente sobre lo caducado: en silencio", () => {
+    expect(r({ ...deseo, sujeto: "persona" }, { ...deseo, sujeto: "casa" })).toBe(R.APLICAR_EN_SILENCIO);
+    expect(r({ ...deseo, vigente: true }, { ...deseo, vigente: false })).toBe(R.APLICAR_EN_SILENCIO);
+  });
+
+  it("toca la salud o una obligatoria, o el orden no decide: preguntar; si es de la casa, tarea de decisión", () => {
+    expect(r({ clase: "seguridad" }, deseo)).toBe(R.PREGUNTAR);
+    expect(r({ ...deseo, fuerza: "obligatoria" }, deseo)).toBe(R.PREGUNTAR);
+    expect(r({ ...deseo, papel: "owner" }, { ...deseo, papel: "editor" })).toBe(R.PREGUNTAR);
+    expect(r({ ...deseo, papel: "owner" }, { ...deseo, papel: "editor" }, { de_la_casa: true })).toBe(R.TAREA_DE_DECISION);
   });
 });
 
