@@ -20,6 +20,7 @@ import { fileURLToPath } from "url";
 import { validateRecipes } from "../src/data/recipeSchema.js";
 import { validateIngredients } from "../src/data/ingredientSchema.js";
 import { normalizeName } from "../src/lib/ingredientCategories.js";
+import { ejesAlDia } from "./compilar-ejes.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
@@ -212,6 +213,14 @@ for (const [clave, ids] of porNombre) {
   if (ids.length > 1) {
     errors.push(`Dos recetas se llaman "${clave}": ${ids.join(", ")}. Un nombre es lo que ve el usuario.`);
   }
+}
+
+// ── La tabla receta × eje es la de este catálogo ──────────────────────
+// src/data/derived/recipeEjes.json (compilar-ejes.mjs), los ejes de receta en
+// números para el motor: una receta cambiada sin recompilar dejaría al motor
+// pesando sus ejes de antes.
+if (!ejesAlDia(recipes)) {
+  errors.push("src/data/derived/recipeEjes.json no es el de este catálogo: node scripts/compilar-ejes.mjs");
 }
 
 if (errors.length > 0) {
