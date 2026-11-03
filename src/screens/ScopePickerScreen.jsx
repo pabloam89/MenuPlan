@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { CAMINO, CAMINOS, TEMA, TEMAS } from "../lib/caminos.js";
+import { CAMINO, CAMINOS, TEMA, TEMAS, temasDelCamino } from "../lib/caminos.js";
 import { Check } from "../components/icons.jsx";
 import { OnboardingShell } from "./Onboarding.jsx";
 import { hasChildMember } from "../lib/groups.js";
@@ -9,14 +9,10 @@ import { hasChildMember } from "../lib/groups.js";
 const SELECTED = "#0f766e";
 
 /**
- * Los temas del asistente. `steps` son los índices de `onbScreens` (App.jsx)
- * que se abren si el modo elegido incluye el tema; el mapa vive aquí, junto a
- * la pregunta que representa, para que no se desincronice.
- *
- * `onlyKids` marca los que solo aplican con niños en casa.
+ * Qué pasos de `onbScreens` (App.jsx) abre cada tema si el camino elegido lo
+ * incluye. Los temas salen de la lista común (src/lib/caminos.js), que lee
+ * también Lola; aquí solo vive lo propio de la pantalla.
  */
-// Los temas salen de la lista común (src/lib/caminos.js), que lee también
-// Lola. Aquí solo se añade lo propio de la pantalla: qué pasos abre cada uno.
 const PASOS_DE_TEMA = {
   [TEMA.SEMANA]: [5],
   [TEMA.COMPRA]: [6],
@@ -41,18 +37,13 @@ const PASOS_DE_TEMA = {
   [TEMA.BATCH]: [17],
 };
 
-const TOPICS = TEMAS.map((t) => ({
-  id: t.id,
-  title: t.titulo,
-  steps: PASOS_DE_TEMA[t.id],
-  onlyKids: Boolean(t.soloNinos),
-}));
+
 
 /**
  * Pasos de `onbScreens` que abre cada tema. Lo consume App.jsx para decidir
  * qué se ve después del picker; sin nada elegido, no se ve ninguno.
  */
-export const SCOPE_TOPIC_STEPS = Object.fromEntries(TOPICS.map((t) => [t.id, t.steps]));
+export const SCOPE_TOPIC_STEPS = Object.fromEntries(TEMAS.map((t) => [t.id, PASOS_DE_TEMA[t.id]]));
 
 const IMG = (slug) => `/avatares/cards/wizard_picker/${slug}.webp`;
 
@@ -110,21 +101,19 @@ const MODES = CAMINOS.map((c) => ({
  */
 export function ScopePickerScreen({ data, onBack, onReset, onContinue, initialPicked = [] }) {
   const kids = hasChildMember(data.members ?? []);
-  const allowed = useMemo(
-    () => new Set(TOPICS.filter((t) => !t.onlyKids || kids).map((t) => t.id)),
-    [kids],
-  );
+  // Sin niños, fuera los temas que solo aplican con niños: la misma regla que
+  // usa Lola (`temasDelCamino`).
   const modes = useMemo(
     () =>
       MODES.map((m) => {
-        const topics = m.topics.filter((id) => allowed.has(id));
+        const topics = temasDelCamino(m.id, { hayNinos: kids });
         return {
           ...m,
           topics,
           count: topics.length,
         };
       }),
-    [allowed],
+    [kids],
   );
 
   // Se siembra con lo elegido la vez anterior: volver atrás desde un paso del
