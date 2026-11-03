@@ -6441,7 +6441,8 @@ export default function App() {
                       onAddDespensa={handleAddDespensa}
                       onQuitarDespensa={handleQuitarDespensa}
                       onQtyDespensa={handleQtyDespensa}
-                      onNuevaPizarra={() => handleStartPizarra()}
+                      onNuevaPizarra={householdReadOnly ? undefined : () => handleStartPizarra()}
+                      conCuenta={Boolean(user)}
                       onVaciar={handleVaciarPizarra}
                       onFavorito={householdReadOnly ? undefined : toggleActiveFavorite}
                       esFavorito={Boolean(data.menus?.[data.activeMenuId]?.isFavorite)}
