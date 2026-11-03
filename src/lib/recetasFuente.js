@@ -14,14 +14,10 @@ export const CLAVES_EN_TABLAS_DE_RECETAS = Object.freeze(
 );
 
 /**
- * `data` sin las claves de recetas que viven en tablas, para guardar el documento de la casa. `salvo`: las que aún hay
- * que dejar pasar (ver quién lo pide).
+ * `data` sin las claves de recetas que viven en tablas, para guardar el documento de la casa.
  * @param {object | null | undefined} data
- * @param {{ salvo?: string[] }} [opciones]
  */
-export function sinRecetasDeTabla(data, { salvo = [] } = {}) {
-  if (!data) return data;
-  const fuera = CLAVES_EN_TABLAS_DE_RECETAS.filter((k) => !salvo.includes(k));
-  if (!fuera.some((k) => k in data)) return data;
-  return Object.fromEntries(Object.entries(data).filter(([k]) => !fuera.includes(k)));
+export function sinRecetasDeTabla(data) {
+  if (!data || !CLAVES_EN_TABLAS_DE_RECETAS.some((k) => k in data)) return data;
+  return Object.fromEntries(Object.entries(data).filter(([k]) => !CLAVES_EN_TABLAS_DE_RECETAS.includes(k)));
 }
