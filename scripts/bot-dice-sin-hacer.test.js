@@ -27,7 +27,16 @@ describe("bot-dice-sin-hacer: lo dicho contra lo hecho en el turno (#958)", () =
       [r("1", 500, { herramientas: [["ver_menu", 10]] }), r("2", 500, { guardados: 1 }), r("3", 500), r("4", 500, { rapida: true, modo: "compra_anadir" })],
       SOLO,
     );
-    expect(c).toEqual({ respuestas: 4, conTurno: 4, dicen: 3, diceSinHecho: 1, diceConAlgoSinHacer: 0, sinTurno: 0 });
+    expect(c).toEqual({ respuestas: 4, conTurno: 4, dicen: 3, diceSinHecho: 1, diceConAlgoSinHacer: 0, sinTurno: 0, cuadre: {} });
+  });
+
+  it("cuenta el cuadre de lo que confirma con lo guardado (L1): cada estado y cada clase de fallo", () => {
+    const c = contar(
+      [m("1", 0, "✅ Apuntada la cena del viernes."), m("2", 0, "✅ Apuntado: comida y cena del viernes."), m("3", 0, "Hola.")],
+      [r("1", 100, { guardados: 1, cuadre: ["cuadra"] }), r("2", 100, { guardados: 1, cuadre: ["no_cuadra", "otro_valor"] }), r("3", 100)],
+      SOLO,
+    );
+    expect(c.cuadre).toEqual({ cuadra: 1, no_cuadra: 1, otro_valor: 1 });
   });
 
   it("lola.guardados manda sobre las herramientas: una que escribe pero no guardó nada cuenta como sin hecho", () => {
