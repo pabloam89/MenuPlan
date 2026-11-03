@@ -6225,9 +6225,10 @@ export const MenuScreen = memo(function MenuScreen({
             <div style={{ minHeight: 78, background: "var(--pz-fondo-suave, #f1f5f9)", display: "flex", alignItems: "center" }}>
               <HuecosVivosContext.Provider value={huecosVivos}>
                 {/* Llega como función para que esta pantalla le pase lo que
-                    solo ella sabe abrir: la hoja del PDF. */}
+                    solo ella sabe hacer: la hoja del PDF y, sin cuenta,
+                    compartir el menú como texto (el enlace pide sesión). */}
                 {typeof pizarraControles === "function"
-                  ? pizarraControles({ onDescargar: handleDownload })
+                  ? pizarraControles({ onDescargar: handleDownload, ...(user ? null : { onCompartir: handleShare }) })
                   : pizarraControles}
               </HuecosVivosContext.Provider>
             </div>
