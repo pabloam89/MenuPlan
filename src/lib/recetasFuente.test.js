@@ -12,7 +12,6 @@ describe("las recetas de la casa viven en sus tablas (trozo 21)", () => {
   it("el documento que se guarda no las lleva; lo demás, igual", () => {
     const data = { members: [{ id: "a" }], userRecipes: [{ id: "r" }], recipeFolders: [{ id: "f" }], recipeCollections: { favoritas: ["r"] }, recipeVotes: {}, discards: {} };
     expect(sinRecetasDeTabla(data)).toEqual({ members: [{ id: "a" }] });
-    expect(sinRecetasDeTabla(data, { salvo: ["userRecipes"] })).toEqual({ members: [{ id: "a" }], userRecipes: [{ id: "r" }] });
     const sinNada = { members: [] };
     expect(sinRecetasDeTabla(sinNada)).toBe(sinNada);
   });

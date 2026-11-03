@@ -125,7 +125,7 @@ async function leerCasa(householdId) {
       `household_id=${eq(householdId)}&is_active=eq.true&order=updated_at.desc&limit=5`,
       "id,user_id,is_active,updated_at",
     ),
-    recetasPropiasDeCasa(householdId, hogar?.owner_user_id ?? null, fila.state?.data?.userRecipes),
+    recetasPropiasDeCasa(householdId, hogar?.owner_user_id ?? null),
     recetasDeLaCasa(householdId),
   ]);
   // El mismo lector que la app (menuActivo.js): si hubiera dos activos, los
@@ -340,9 +340,8 @@ export async function guardarCasa(casa, { state = null, semana = null, activar =
   }
   const { documento: sinSobre, cambios: datos } = separarConSobre(sinPreferencias, casa.conSobre, familiaTras);
   const { documento: conRecetas, familia } = casa.familia ? separarFamilia(sinSobre, casa.familia) : { documento: sinSobre, familia: null };
-  // Las recetas de tabla no van al documento (recetasFuente.js, trozo 21); las propias, aún sí: hay casas cuyas recetas
-  // viejas solo están en el documento y Lola las lee de ahí (propias.js) hasta medirlas y llevarlas a su tabla.
-  const documento = conRecetas?.data ? { ...conRecetas, data: sinRecetasDeTabla(conRecetas.data, { salvo: ["userRecipes"] }) } : conRecetas;
+  // Las recetas de la casa viven en sus tablas y no van al documento (recetasFuente.js, trozo 21).
+  const documento = conRecetas?.data ? { ...conRecetas, data: sinRecetasDeTabla(conRecetas.data) } : conRecetas;
   let cambios = null;
   if (familia) {
     const c = cambiosDePersonas(casa.familia, familia);
