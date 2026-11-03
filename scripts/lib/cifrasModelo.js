@@ -174,9 +174,9 @@ export const CIFRAS = [
   { id: "tareas_caducadas_sin_respuesta", nombre: "Tareas caducadas sin respuesta", trozo: 34, fuente: FUENTE.base, sentido: SENTIDO.baja, meta: null,
     base: null, falta: MIGRACION_TAREAS },
   { id: "referencias_rotas", nombre: "Referencias rotas (receta, valor o persona que ya no está)", trozo: 35, fuente: FUENTE.base, sentido: SENTIDO.baja, meta: 0,
-    // 3 nov 2026: 0 de 15 preferencias y 0 tareas vivas en 32 casas (node scripts/referencias-rotas.mjs). De: lo mirado.
+    // 3 nov 2026: 0 de 15 preferencias y 0 tareas vivas en 32 casas (node scripts/referencias-rotas.mjs). De: lo mirado del todo (sin las tareas de casas sin personas conocidas).
     base: base(0, "2026-11-03", "node scripts/referencias-rotas.mjs", 15),
-    medir: async (ctx) => { const { rotas, miradas } = await rotasDeLaBase(ctx.consultar); return { valor: rotas.length, de: miradas.preferencias + miradas.tareas }; } },
+    medir: async (ctx) => { const { rotas, miradas } = await rotasDeLaBase(ctx.consultar); return { valor: rotas.length, de: miradas.enteras }; } },
   { id: "tablas_sin_cascada", nombre: "Tablas de casa o persona sin cascada declarada", trozo: 36, fuente: FUENTE.codigo, sentido: SENTIDO.baja, meta: 0,
     base: null, falta: "supabase/cascadas.test.js" },
 ];

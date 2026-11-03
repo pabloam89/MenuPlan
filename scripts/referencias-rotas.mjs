@@ -29,7 +29,7 @@ try {
   await c.query("set local statement_timeout = '30s'");
   r = await rotasDeLaBase(async (sql) => (await c.query(sql)).rows);
 } finally {
-  await c.query("rollback").catch(() => {});
+  await c.query("rollback").catch((e) => console.warn(`rollback: ${e.message}`));
   await c.end();
 }
 
@@ -37,5 +37,5 @@ const { rotas, miradas, sinPersonas } = r;
 const cuenta = Object.fromEntries(TIPOS_ROTA.map((t) => [t, rotas.filter((x) => x.tipo === t).length]));
 console.log(`Miradas: ${miradas.preferencias} preferencias y ${miradas.tareas} tareas vivas de ${miradas.casas} casas.`);
 console.log(`Referencias rotas: ${rotas.length}, en ${new Set(rotas.map((x) => x.casa)).size} casas. Por clase: ${JSON.stringify(cuenta)}.`);
-if (sinPersonas) console.log(`Casas con tareas y sin ninguna persona conocida (no se miran sus tareas): ${sinPersonas}.`);
+console.log(`Tareas de casas sin ninguna persona conocida (se mira su campo, no su persona): ${sinPersonas}.`);
 if (FILAS) for (const x of rotas) console.log(`  ${x.donde} ${x.id} ${x.tipo} ${x.ref} → ${x.accion}`);

@@ -64,6 +64,11 @@ describe("rotasDeTareas: una persona que ya no es de la casa o un campo que ya n
     expect(rotasDeTareas([{ id: "t1" }, { id: "t2", para_member: "ana", asignado_member: "luis" }, { id: "t3", clave: "alergias:ana" }], personas)).toEqual([]);
   });
 
+  it("sin personas conocidas (null) no se mira la persona, pero el campo sí", () => {
+    expect(rotasDeTareas([{ id: "t1", para_member: "marta", campo: "campoQueYaNoEsta" }, { id: "t2", para_member: "marta" }], null)
+      .map((x) => [x.id, x.tipo])).toEqual([["t1", "campo_desconocido"]]);
+  });
+
   it("un campo que ya no está en el registro sale; uno que está, no", () => {
     expect(rotasDeTareas([{ id: "t1", campo: "campoQueYaNoEsta" }, { id: "t2", campo: "alergias" }], personas))
       .toEqual([{ donde: "tarea", id: "t1", tipo: TIPO_ROTA.CAMPO_DESCONOCIDO, ref: "campoQueYaNoEsta", accion: "corregir" }]);

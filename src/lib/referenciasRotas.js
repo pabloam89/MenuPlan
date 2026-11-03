@@ -60,13 +60,16 @@ export function rotasDePreferencias(filas = []) {
 
 /**
  * Pura. Las tareas abiertas que apuntan a una persona que ya no es de la casa (por `persona_id`, la clave, «para» o
- * encargado) o a un campo que ya no está en el registro. `personas`: los ids de las personas de la casa.
+ * encargado) o a un campo que ya no está en el registro. `personas`: los ids de las personas de la casa; `null`
+ * si no se conocen (no se ha podido leer a nadie): entonces no se mira la persona, porque todas saldrían rotas sin
+ * estarlo, pero el campo sí, que no depende de ellas.
  */
 export function rotasDeTareas(tareas = [], personas = []) {
-  const deLaCasa = new Set((personas ?? []).map(String));
+  const deLaCasa = personas == null ? null : new Set(personas.map(String));
   const out = [];
   for (const t of tareas ?? []) {
-    const quienes = [t.persona_id, personaDeClave(t.clave), t.para_member, t.asignado_member].filter((x) => x != null && x !== "");
+    const quienes = deLaCasa == null ? []
+      : [t.persona_id, personaDeClave(t.clave), t.para_member, t.asignado_member].filter((x) => x != null && x !== "");
     const fuera = quienes.find((p) => !deLaCasa.has(String(p)));
     if (fuera != null) out.push(rota("tarea", t, TIPO_ROTA.PERSONA_AUSENTE, String(fuera)));
     const campo = t.campo ?? campoDeClave(t.clave);
@@ -75,7 +78,7 @@ export function rotasDeTareas(tareas = [], personas = []) {
   return out;
 }
 
-/** Pura. Todas las de una casa: `{ preferencias, tareas, personas }` (filas tal cual de la base). */
+/** Pura. Todas las de una casa: `{ preferencias, tareas, personas }` (filas tal cual de la base; `personas: null`, sin leer). */
 export function referenciasRotas({ preferencias = [], tareas = [], personas = [] } = {}) {
   return [...rotasDePreferencias(preferencias), ...rotasDeTareas(tareas, personas)];
 }
