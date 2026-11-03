@@ -1538,7 +1538,6 @@ export function ShoppingScreen({
             setData((d) => ({
               ...d,
               pantryPrefs: { ...(d.pantryPrefs ?? {}), consume },
-              pantryPrefsSet: true,
             }));
             setShowPantryPrefs(false);
             apuntarMarcaLocal("pantryPrefsSeen", pantryHouseholdId);

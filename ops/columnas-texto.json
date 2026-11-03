@@ -89,18 +89,6 @@
       "class": "identifier",
       "reason": "Id de chat del canal de mensajería, lo da Telegram o WhatsApp"
     },
-    "bot_reminders.chat_id": {
-      "class": "identifier",
-      "reason": "Id de chat del canal de mensajería, lo da Telegram o WhatsApp"
-    },
-    "bot_reminders.created_by": {
-      "class": "identifier",
-      "reason": "Id de una persona o cuenta en el canal de mensajería"
-    },
-    "bot_reminders.text": {
-      "class": "free_text",
-      "reason": "Mensaje, nota o descripción que escribe la persona"
-    },
     "bot_tareas.asignado_member": {
       "class": "identifier",
       "reason": "Id de miembro de la casa, referencia a otra entidad"

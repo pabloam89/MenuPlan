@@ -830,6 +830,8 @@ export function medida(medir, d, t0, primer = null) {
       // #958: lo guardado de verdad y el recibo, para medir lo dicho contra lo hecho (scripts/bot-dice-sin-hacer.mjs).
       guardados: l.guardados ?? null,
       recibo: l.recibo ?? null,
+      // L1: si lo que confirma Lola cuadra con lo guardado (cuadre.js), mismo lector.
+      cuadre: l.cuadre ?? null,
     } : null,
   };
 }

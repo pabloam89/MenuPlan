@@ -29,7 +29,7 @@ import { EJE, EJES_GUARDADO } from "./resultado.js";
 
 export { menciones };
 
-/** Cómo acaba la comparación del turno, vocabulario cerrado: lo devuelve cuadre() y lo comprueban sus tests. */
+/** Cómo acaba la comparación del turno, vocabulario cerrado: va a bot_route (medidaDelCuadre) y lo cuenta scripts/bot-dice-sin-hacer.mjs. */
 export const CUADRE = Object.freeze({
   SIN_VALORES: "sin_valores",
   NO_LO_DICE: "no_lo_dice",
@@ -52,6 +52,12 @@ export const FALLO = Object.freeze({
 
 /** Los ejes que Lola tiene que nombrar siempre al confirmar: los marca su registro (EJES_GUARDADO). */
 const OBLIGATORIOS = Object.keys(EJES_GUARDADO).filter((eje) => EJES_GUARDADO[eje].obligatorio);
+
+/**
+ * Pura. Lo que se guarda del cuadre en la medida del turno (bot_route, lola.cuadre): el estado y, si no cuadra,
+ * cada clase de fallo una vez. Lo cuenta scripts/bot-dice-sin-hacer.mjs.
+ */
+export const medidaDelCuadre = (c) => (c.estado === CUADRE.NO_CUADRA ? [c.estado, ...new Set(c.fallos.map((f) => f.clase))] : [c.estado]);
 
 /**
  * Las frases del texto, tal cual (para poder quitarlas): por punto, «!», «?»,

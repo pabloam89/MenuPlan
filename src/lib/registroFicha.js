@@ -320,9 +320,7 @@ export const DATOS_CASA = Object.freeze({
   // ── Despensa ──
   pantryMode: dato({ tema: "despensa", ficha: "casa", tipo: "enum", vocabulario: "modo_despensa", defecto: "only", peso_menu: 10, ...deLaCasa("pantryMode"), motivo: "cómo usa la casa su despensa es de la casa (plan, ficha Casa)" }),
   useHomeStock: dato({ entidad: "despensa", tema: "despensa", tipo: "bool", ...derivado("pantryMode", "src/lib/modoDespensa.js:usaDespensa"), vive: "calculado", motivo: "booleano viejo de pantryMode: ya no se guarda (trozo 12); la app y Lola lo quitan de las casas viejas al guardar" }),
-  pantryHasItems: dato({ entidad: "despensa", tema: "despensa", tipo: "bool", ...marca(), motivo: "respuesta del asistente («¿tienes algo en casa?») que decide si se salta el paso de la despensa" }),
   pantryPrefs: dato({ entidad: "despensa", tema: "despensa", tipo: "objeto" }),
-  pantryPrefsSet: dato({ entidad: "despensa", tema: "despensa", tipo: "bool", ...marca("pantryPrefs") }),
   pantryGenDeltas: dato({ entidad: "despensa", tema: "despensa", tipo: "mapa", ...historial }),
   pantryDayDeltas: dato({ entidad: "despensa", tema: "despensa", tipo: "mapa", ...historial }),
   pantryEndOfDaySince: dato({ entidad: "despensa", tema: "despensa", tipo: "fecha", ...delSistema }),
@@ -356,7 +354,6 @@ export const DATOS_CASA = Object.freeze({
   accountMemberId: dato({ entidad: "persona", tema: "cuenta", ficha: "casa", tipo: "ref", estado: "legado", de: "accountMemberIdByUser", motivo: "compartido por titular y cotitular, que se pisaban; queda de respaldo (stages.js)" }),
   profilePhoto: dato({ tema: "cuenta", ficha: "casa", tipo: "texto", motivo: "vive en el documento de la casa y la comparten sus cuentas: es la foto de la casa (HomeProfileScreen.jsx)" }),
   expertMode: dato({ tema: "cuenta", ficha: "casa", tipo: "bool", ...marca() }),
-  modePrompted: dato({ tema: "cuenta", ficha: "casa", tipo: "bool", ...marca() }),
 });
 
 /** Los datos de una persona: las claves de cada elemento de data.members. */
