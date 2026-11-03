@@ -44,8 +44,9 @@ const DUPLICADOS_HEREDADOS = new Set(["0003", "0006", "0051"]);
  * su fichero exista.
  *   0093: datos/303-borrar-copias-catalogo (0093_borrar_copias_catalogo), PR del #303.
  *   0110: el plan de fichas con estado (specs/plan-fichas-con-estado.md, «Qué hace cada
- *     migración») la da al trozo 34, que aún no se ha construido; la 0108 (trozo 10), la 0109
- *     (trozo 14) y la 0111 (trozo 41) llegaron antes.
+ *     migración») la daba al trozo 34; la numeración siguió (la 0108, la 0109 y la 0111 a la 0121
+ *     llegaron antes) y el trozo 34 fue a la 0122 (0122_recordatorios_en_tareas). No se usará:
+ *     queda aquí para que el hueco esté explicado.
  */
 const RESERVADOS = new Set(["0093", "0110"]);
 
