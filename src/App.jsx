@@ -181,6 +181,7 @@ import { loadHouseholdState, saveHouseholdState, loadHouseholdBotRev, empezarCas
 import { leerBotRevVisto, guardarBotRevVisto } from "./lib/botRevVisto.js";
 import { guardandoCasa, guardadosDeCasa } from "./lib/versionCasa.js";
 import { sinRecetasDeTabla } from "./lib/recetasFuente.js";
+import { marcaLocal, ponerMarcaLocal, sinMarcasDePantalla } from "./lib/marcasLocales.js";
 import { vigilarCasa, EVENTO_SENAL } from "./lib/realtimeCasa.js";
 import { leerFamiliaDeCasa, conFamiliaLeida, sinFamilia, familiaDeCasa, cargaSinSeguir, guardarFamiliaYDocumento, MODO_FAMILIA, contarSenales } from "./lib/familiaCasa.js";
 import { senalesDeCambio, senalesDePlato } from "./lib/senales.js";
@@ -401,8 +402,6 @@ const INITIAL_DATA = {
   // ocultamos los controles avanzados. true = modo avanzado: el usuario ve y
   // controla todo. La elección se pide una vez, tras el spotlight de Inicio.
   expertMode: false,
-  // Si ya se ha mostrado el selector básico/avanzado (para no repetirlo).
-  modePrompted: false,
   // Preferencia de despensa: la ÚNICA que el usuario elige (cuándo se da por
   // gastado lo de casa que usa el menú). Ver el mini-cuestionario en «En casa».
   //   consume: "onGenerate" (descuenta el menú de golpe al generar)
@@ -414,8 +413,6 @@ const INITIAL_DATA = {
   // Default "onCook" (2026-08-26, era "onGenerate"): no descuenta comida que
   // aún no has cocinado de verdad — el más honesto de los tres sin preguntar.
   pantryPrefs: { consume: "onCook" },
-  // Si el usuario ya respondió el cuestionario de despensa (modo avanzado).
-  pantryPrefsSet: false,
   // Si el cuestionario ya salió solo una vez no es de la casa sino de este
   // móvil: lo recuerda marcasLocales.js (trozo 12 de #1037).
   // Deltas reversibles de la bajada "al generar el menú" (decisión D), por
@@ -772,28 +769,17 @@ function migrate(state) {
   // Lola, #958) del viejo, y el que nadie eligió lo arregla el sobre: con la
   // 0112 se lee de ahí, y sin decir es "only" (modoDespensaAlCargar).
   d.pantryMode = modoDespensaAlCargar(d.pantryMode);
-  if (typeof d.pantryHasItems !== "boolean") d.pantryHasItems = false;
   // ── Modo básico / avanzado ──
-  const looksEstablished =
-    (Array.isArray(d.members) && d.members.length > 0) ||
-    (d.menus && Object.keys(d.menus).length > 0) ||
-    planHasDishes(state.menuPlan);
   if (typeof d.expertMode !== "boolean") d.expertMode = false;
   if (typeof d.kidDinnerMatchesAdultLunch !== "boolean") d.kidDinnerMatchesAdultLunch = false;
   d.kidDinnerConfig = normalizeKidDinnerConfig(d.kidDinnerConfig);
   if (!["off", "week", "weekdays", "weekend"].includes(d.garnishRepeat)) d.garnishRepeat = "off";
-  if (typeof d.modePrompted !== "boolean") {
-    // Cuentas ya en marcha no deben ver de repente el selector de modo: se da
-    // por respondido (quedan en básico). Los usuarios nuevos lo verán una vez.
-    d.modePrompted = Boolean(looksEstablished);
-  }
   if (!d.pantryPrefs || typeof d.pantryPrefs !== "object") d.pantryPrefs = {};
   // Una sola preferencia real. Los valores antiguos "none" (y cualquier campo
   // apply/multiWeek/lifecycle heredado) se colapsan al default seguro.
   d.pantryPrefs = {
     consume: ["endOfDay", "onGenerate", "onCook"].includes(d.pantryPrefs.consume) ? d.pantryPrefs.consume : "onCook",
   };
-  if (typeof d.pantryPrefsSet !== "boolean") d.pantryPrefsSet = false;
   // Deltas reversibles de la última bajada "al generar el menú", por semana
   // (clave = startISO). Permiten deshacer al regenerar la misma semana sin
   // descontar dos veces. Nunca se muestran en UI, es solo contabilidad interna.
@@ -929,8 +915,9 @@ const PANTRY_DAY_WINDOW_DAYS = 45;
 function snapshotDeCasa({ data, menuPlan, shopping, aiRecipes, onbStep }, modoFamilia, cargaCasa, cargaLibreta) {
   // La familia, si vive en sus filas (trozo 10), los datos de la casa con sobre (trozo 12) y la libreta, si vive en
   // sus filas de preferencia (trozo 14), van por api/operacion.js y no aquí (lib/familiaCasa.js, casaDatos.js, libretaCasa.js).
-  // Las recetas, votos, descartes, colecciones y carpetas viven en sus tablas (recetasFuente.js, trozo 21).
-  const profile = { ...sinRecetasDeTabla(sinLibretaLeida(sinCasa(sinFamilia(data, modoFamilia), cargaCasa), cargaLibreta)) };
+  // Las recetas, votos, descartes, colecciones y carpetas viven en sus tablas (recetasFuente.js, trozo 21); las marcas
+  // de pantalla, en el móvil o en ningún sitio (marcasLocales.js, trozo 22).
+  const profile = { ...sinMarcasDePantalla(sinRecetasDeTabla(sinLibretaLeida(sinCasa(sinFamilia(data, modoFamilia), cargaCasa), cargaLibreta))) };
   delete profile.menus;
   return { data: profile, menuPlan, shopping, aiRecipes, onbStep };
 }
@@ -1067,6 +1054,8 @@ export default function App() {
   // Bumps after mergeLocalPantryIntoCloud so Pantry/Shopping/onboarding reload
   // stock once the local→cloud fold finishes (avoids a stale empty list).
   const [pantryEpoch, setPantryEpoch] = useState(0);
+  // Sube al cambiar una marca de este móvil (marcasLocales.js), que no está en el estado: repinta para leerla.
+  const [, setMarcasVistas] = useState(0);
   // Cross-screen intents fired from "En casa": open the receipt capture flow in
   // Tu compra, and land on Análisis → Gasto. Cleared by the target once consumed.
   const [shoppingCaptureIntent, setShoppingCaptureIntent] = useState(false);
@@ -5927,9 +5916,9 @@ export default function App() {
   // "¿Cuánto tiramos de lo de casa?" (13) solo si hay algo en casa. Con la
   // nevera vacía es la pregunta más tonta del asistente, y encima bloquearía
   // el Continuar por una respuesta que no significa nada. Lo apunta la pantalla
-  // anterior (ver `apuntarCuantos` en OnboardingPantryInventory): la despensa
-  // no vive en `data`, así que sin ese rastro aquí no hay forma de saberlo.
-  const skipPantryMode = data.pantryHasItems !== true;
+  // anterior (ver `apuntarCuantos` en OnboardingPantryInventory) en este
+  // móvil (marcasLocales.js, trozo 22 de #1037): es de la pantalla, no de la casa.
+  const skipPantryMode = !marcaLocal("pantryHasItems", activeHouseholdId);
   // El perfil (quién come + qué evitáis) ya está hecho: se rellenó en el alta.
   const profileAlreadySetUp = (data.members?.length ?? 0) > 0;
   // Pasos que ha pedido ajustar el picker (paso 0). Vacío = no ha pedido
@@ -6047,7 +6036,7 @@ export default function App() {
     // simplificados (sin desayunos en "¿Dónde coméis?", tiempos compartidos,
     // sin cenas rápidas del asistente — ver resolveModeData). Sin modo (vía
     // rápida, sin ajustar nada), básico.
-    setData((d) => ({ ...d, expertMode: expert ?? topicIds.length > 0, modePrompted: true }));
+    setData((d) => ({ ...d, expertMode: expert ?? topicIds.length > 0 }));
     setMenuScope(topicIds);
     const steps = [...new Set(topicIds.flatMap((id) => SCOPE_TOPIC_STEPS[id] ?? []))]
       .sort((a, b) => a - b)
@@ -6224,6 +6213,12 @@ export default function App() {
       onToast={showToast}
       data={data}
       setData={setData}
+      onHayEnCasa={(hay) => {
+        // Marca de este móvil (marcasLocales.js), no de la casa: se repinta para que el paso siguiente la vea.
+        if (marcaLocal("pantryHasItems", activeHouseholdId) === hay) return;
+        ponerMarcaLocal("pantryHasItems", activeHouseholdId, hay);
+        setMarcasVistas((n) => n + 1);
+      }}
       shopping={compra}
       setShopping={setCompra}
       onNext={nextOf(12)}
@@ -7335,7 +7330,6 @@ export default function App() {
                       // Rosters de antes (ya no se usan): no se borran.
                       ...(d.rosters ? { rosters: d.rosters, activeRosterId: d.activeRosterId } : {}),
                       expertMode: d.expertMode,
-                      modePrompted: false,
                     }));
                     startQuickMenu();
                   },

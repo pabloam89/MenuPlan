@@ -8994,7 +8994,6 @@ export function OnboardingMode({ data, setData, onNext, onBack, onFinish, onRese
                 // si no, la de cada grupo del modo experto seguía mandando.
                 ...(t.id === "basic" ? conEstructura(d, "1_plato") : d),
                 expertMode: t.id === "expert",
-                modePrompted: true,
               }))
             }
           />
@@ -9026,20 +9025,19 @@ export function OnboardingMode({ data, setData, onNext, onBack, onFinish, onRese
 // components/ModeSheets.jsx), no un paso de este flujo.
 export function OnboardingPantryInventory({
   onNext, onBack, onFinish, onReset, nextLabel,
-  user, pantryHouseholdId, priceObs, pantryEpoch, onToast, data, setData, shopping, setShopping,
+  user, pantryHouseholdId, priceObs, pantryEpoch, onToast, data, setData, onHayEnCasa, shopping, setShopping,
 }) {
-  // Cuántas cosas hay en casa, apuntado en `data` para que lo pueda leer el
-  // paso siguiente. La despensa vive en Supabase/localStorage, no en `data`, y
+  // Si hay algo en casa, apuntado en este móvil (onHayEnCasa → marcasLocales.js)
+  // para que lo pueda leer el paso siguiente. La despensa vive en Supabase/localStorage, no en `data`, y
   // quien sabe cuánto hay es esta pantalla — que lo cuenta y avisa por
   // `onItemsCount`. Sin este dato, "¿cuánto tiramos de lo de casa?" se
   // preguntaría con la nevera vacía, que es la pregunta más tonta del
   // asistente.
   const apuntarCuantos = useCallback(
     (count) => {
-      const hay = count > 0;
-      setData((d) => (d.pantryHasItems === hay ? d : { ...d, pantryHasItems: hay }));
+      onHayEnCasa?.(count > 0);
     },
-    [setData],
+    [onHayEnCasa],
   );
 
   return (
