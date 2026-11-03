@@ -3300,6 +3300,91 @@
       "noLlama": [
         "ajustar_horario"
       ]
+    },
+    {
+      "id": "confirma-lo-guardado-solo-cena",
+      "tipo": "herramienta",
+      "dominio": "menu",
+      "origen": "escrito",
+      "dependeDeFecha": true,
+      "nombre": "L1: «el viernes no cenamos en casa» → confirma la cena del viernes con su voz, sin nombrar la comida (lo guardado: viernes, cena)",
+      "entrada": "el viernes no cenamos en casa",
+      "llama": [
+        "fuera_de_casa"
+      ],
+      "args": {
+        "fuera_de_casa": {
+          "dias": "viernes",
+          "comidas": "cena"
+        }
+      },
+      "noLlama": [
+        "ajustar_horario",
+        "cambiar_plato"
+      ],
+      "respuestas": {
+        "fuera_de_casa": {
+          "resultado": {
+            "accion": "fuera",
+            "hecho": [
+              "toda la casa fuera el viernes (cena)"
+            ],
+            "valores": {
+              "dia": [
+                "Vie"
+              ],
+              "comida": [
+                "Cena"
+              ]
+            },
+            "nota": "Apuntado: toda la casa fuera el viernes (cena). Cuenta al generar el menú de ese día."
+          }
+        }
+      },
+      "texto": "viernes",
+      "sinTexto": "comida|almuerzo|mediod[ií]a"
+    },
+    {
+      "id": "confirma-lo-guardado-parcial",
+      "tipo": "herramienta",
+      "dominio": "menu",
+      "origen": "escrito",
+      "dependeDeFecha": true,
+      "nombre": "L1: pide comida y cena del viernes y solo se guarda la cena → no confirma la comida como apuntada",
+      "entrada": "el viernes ni comemos ni cenamos en casa",
+      "llama": [
+        "fuera_de_casa"
+      ],
+      "noLlama": [
+        "ajustar_horario"
+      ],
+      "respuestas": {
+        "fuera_de_casa": {
+          "resultado": {
+            "accion": "fuera",
+            "hecho": [
+              "toda la casa fuera el viernes (cena)"
+            ],
+            "sinHacer": [
+              {
+                "que": "la comida del viernes",
+                "motivo": "no se ha podido guardar"
+              }
+            ],
+            "valores": {
+              "dia": [
+                "Vie"
+              ],
+              "comida": [
+                "Cena"
+              ]
+            },
+            "nota": "Apuntada solo la cena del viernes; la comida no se ha podido guardar."
+          }
+        }
+      },
+      "texto": "cena",
+      "sinTexto": "(apuntad|guardad|hecho|listo)[^.!?\n]*comida y (la )?cena|comida y (la )?cena[^.!?\n]*(apuntad|guardad)|ni (la )?comida ni (la )?cena[^.!?\n]*apuntad"
     }
   ]
 }

@@ -29,7 +29,7 @@ import { generarMenu, resultadoDeGenerar } from "./generar.js";
 import { esBotonRehacer, desdeDelBoton } from "./semanaPedida.js";
 import { diaDe } from "./interprete.js";
 import { isoDeCasa, diaDeISO } from "../../src/lib/dias.js";
-import { cuadre as cuadreDelTurno } from "./cuadre.js";
+import { cuadre as cuadreDelTurno, CUADRE } from "./cuadre.js";
 import { avisoVispera } from "./vispera.js";
 import { registrar, EMBUDO, duenoDe } from "./embudo.js";
 import {
@@ -1432,6 +1432,8 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
   // guardados. Si cuadra, su frase basta y el ✅ de ese resultado no se repite;
   // si no, sus frases de confirmar se quitan y entra el recibo en su lugar.
   const cuadre = cuadreDelTurno(visible, chat.resultados, { confirma: diceQueGuardo, hoy: diaDeISO(hoyISO()), nombres: chat.nombresAntes ?? [] });
+  // Para medirlo (bot_route, scripts/bot-dice-sin-hacer.mjs): el estado y, si no cuadra, sus clases de fallo.
+  if (medida) medida.cuadre = cuadre.estado === CUADRE.NO_CUADRA ? [cuadre.estado, ...new Set(cuadre.fallos.map((f) => f.clase))] : [cuadre.estado];
   const respuesta = conRecibo(conRecordatorio(visible, chat.recordarSilencio, chat.idioma ?? "es"), chat.resultados, { sinGuardar: sigueSinGuardar, cuadre }) + avisoDeLimite(householdId, llevados);
 
   // Guardar la charla no tiene por qué retrasar la respuesta: va en
