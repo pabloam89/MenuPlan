@@ -25,10 +25,11 @@
  * diceQueGuardo) entra de fuera para no importar agente.js.
  */
 import { valoresNombrados as menciones } from "./interprete.js";
+import { EJE, EJES_GUARDADO } from "./resultado.js";
 
 export { menciones };
 
-/** Cómo acaba la comparación del turno (bot_route.cuadre): vocabulario cerrado. */
+/** Cómo acaba la comparación del turno, vocabulario cerrado: lo devuelve cuadre() y lo comprueban sus tests. */
 export const CUADRE = Object.freeze({
   SIN_VALORES: "sin_valores",
   NO_LO_DICE: "no_lo_dice",
@@ -49,8 +50,8 @@ export const FALLO = Object.freeze({
   FALTA_EJE: "falta_eje",
 });
 
-/** Lo que Lola tiene que nombrar siempre al confirmar; la persona puede ir implícita («cenáis fuera»). */
-const OBLIGATORIOS = ["dia", "comida"];
+/** Los ejes que Lola tiene que nombrar siempre al confirmar: los marca su registro (EJES_GUARDADO). */
+const OBLIGATORIOS = Object.keys(EJES_GUARDADO).filter((eje) => EJES_GUARDADO[eje].obligatorio);
 
 /**
  * Las frases del texto, tal cual (para poder quitarlas): por punto, «!», «?»,
@@ -77,7 +78,7 @@ export function cuadre(texto, resultados = [], { confirma, hoy = null, nombres =
   for (const r of conValores) for (const [eje, l] of Object.entries(r.valores)) for (const v of l) (guardado[eje] ??= new Set()).add(v);
   // Sabemos todo lo guardado en el turno solo si todo resultado con algo hecho trae valores.
   const completo = conValores.length === hechos.length;
-  const opciones = { hoy, nombres: [...nombres, ...(guardado.persona ?? [])] };
+  const opciones = { hoy, nombres: [...nombres, ...(guardado[EJE.PERSONA] ?? [])] };
 
   // La unidad es la frase que confirma; si no nombra nada («¡Hecho!»), se lleva la siguiente.
   const frases = frasesDe(texto).filter((f) => !/\?$/.test(f));

@@ -57,10 +57,16 @@ export const ACCIONES = Object.freeze({
  * valor, sacada de allí y no escrita a mano. `persona` no tiene lista fija: es
  * la de la casa, y la trae quien compara (los nombres de la ficha).
  */
+export const EJE = Object.freeze({ DIA: "dia", COMIDA: "comida", PERSONA: "persona" });
+
+/**
+ * `obligatorio`: Lola tiene que nombrarlo al confirmar (cuadre.js); la persona
+ * puede ir implícita («cenáis fuera»).
+ */
 export const EJES_GUARDADO = Object.freeze({
-  dia: Object.freeze({ valores: DIAS, etiqueta: (d) => DIA_LARGO_MINUSCULAS[d] }),
-  comida: Object.freeze({ valores: IDS_COMIDAS, etiqueta: (c) => comida(c).nombre }),
-  persona: Object.freeze({ valores: null, etiqueta: (n) => n }),
+  [EJE.DIA]: Object.freeze({ valores: DIAS, etiqueta: (d) => DIA_LARGO_MINUSCULAS[d], obligatorio: true }),
+  [EJE.COMIDA]: Object.freeze({ valores: IDS_COMIDAS, etiqueta: (c) => comida(c).nombre, obligatorio: true }),
+  [EJE.PERSONA]: Object.freeze({ valores: null, etiqueta: (n) => n, obligatorio: false }),
 });
 
 /**

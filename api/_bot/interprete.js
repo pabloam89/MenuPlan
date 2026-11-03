@@ -28,6 +28,7 @@
 
 import { DIAS, NOMBRES_DIA, DIAS_LABORABLES, DIAS_FINDE, indiceDeISO, diaDeISO, isoDeCasa, DIA_LARGO_MINUSCULAS } from "../../src/lib/dias.js";
 import { IDS_COMIDAS, comida } from "../../src/lib/comidas.js";
+import { EJE } from "./resultado.js";
 import { etapaDe, esMenor, esEtapaBebe, miembroDeCuentaId, findAccountMember } from "../../src/lib/stages.js";
 
 /** Sin tildes ni mayúsculas, con los espacios juntos. La única copia en api/_bot (#967, C8). */
@@ -522,17 +523,17 @@ function formasDe({ hoy = null, nombres = [] } = {}) {
   const f = [];
   for (const d of DIAS) {
     const n = normal(DIA_LARGO_MINUSCULAS[d]);
-    f.push(["dia", n, [d]]);
-    if (!n.endsWith("s")) f.push(["dia", `${n}s`, [d]]);
+    f.push([EJE.DIA, n, [d]]);
+    if (!n.endsWith("s")) f.push([EJE.DIA, `${n}s`, [d]]);
   }
-  f.push(["dia", "finde", [...DIAS_FINDE]], ["dia", "fin de semana", [...DIAS_FINDE]], ["dia", "entre semana", [...DIAS_LABORABLES]]);
+  f.push([EJE.DIA, "finde", [...DIAS_FINDE]], [EJE.DIA, "fin de semana", [...DIAS_FINDE]], [EJE.DIA, "entre semana", [...DIAS_LABORABLES]]);
   const i = DIAS.indexOf(hoy);
-  if (i >= 0) f.push(["dia", "hoy", [hoy]], ["dia", "manana", [DIAS[(i + 1) % 7]]]);
+  if (i >= 0) f.push([EJE.DIA, "hoy", [hoy]], [EJE.DIA, "manana", [DIAS[(i + 1) % 7]]]);
   for (const c of IDS_COMIDAS) {
     const x = comida(c);
-    for (const s of new Set([x.nombre, x.plural, ...x.sinonimos].map(normal))) f.push(["comida", s, [c]]);
+    for (const s of new Set([x.nombre, x.plural, ...x.sinonimos].map(normal))) f.push([EJE.COMIDA, s, [c]]);
   }
-  for (const n of new Set(nombres.map(String).filter(Boolean))) f.push(["persona", normal(n), [n]]);
+  for (const n of new Set(nombres.map(String).filter(Boolean))) f.push([EJE.PERSONA, normal(n), [n]]);
   // Las largas primero: «fin de semana» antes que «semana», «a mediodia» antes que «mediodia».
   return f.sort((a, b) => b[1].length - a[1].length);
 }
