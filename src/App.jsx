@@ -5885,6 +5885,8 @@ export default function App() {
       setCocinados({ semana: lunesAbierto, claves: cocinadosLocales(lunesAbierto) });
       return undefined;
     }
+    // Otra casa u otra semana: hasta leer la suya no hay claves (la ficha no deja marcar), ni las de la anterior.
+    setCocinados({ semana: null, claves: new Set() });
     leerCocinados(activeHouseholdId, lunesAbierto).then((r) => {
       if (!vivo) return;
       // Sin leer no es «nada cocinado»: se queda sin claves de esa semana (la ficha no deja marcar) y se avisa.
