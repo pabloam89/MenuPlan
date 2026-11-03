@@ -107,7 +107,8 @@ tenga la URL puede usar `net.http_*`, objetos grandes o bloqueos consultivos
 
 - **Borrar tablas o vistas** (lo que enseñó la 0093, #303):
   1. Copia previa de solo esos objetos, fuera del repo y de OneDrive
-     (`C:\dev\copias-previas\<fecha>-<tema>\`): un JSON por pieza, un esquema
+     (`C:\dev\MenuPlan-copias-previas\<fecha>-<tema>\`, porque la guardia solo deja escribir en
+     `C:\dev\MenuPlan-*`; las de antes del 3 nov 2026 están en `C:\dev\copias-previas\`): un JSON por pieza, un esquema
      (columnas, restricciones, políticas y `relacl` de `pg_class`), un manifiesto
      con filas y sha256, y un LEEME de cómo restaurar. No es una copia de la base.
   2. La migración empieza con un bloque que cuenta las filas y aborta si no coinciden
