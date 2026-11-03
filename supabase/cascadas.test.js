@@ -1,55 +1,15 @@
 /**
- * Barrera (trozo 36 de #1037): toda tabla que guarda algo de una casa, de un usuario o de una persona se va, o se
- * suelta, cuando se borra esa casa, ese usuario o esa persona.
- *
- * El borrado de cuenta depende de las cascadas de las FK y ya falló una vez en producción (specs/auth.md, 15 ago
- * 2026): una tabla con `household_id`, `user_id` o `persona_id` sin FK, o con una FK que no dice qué hacer, deja
- * restos o hace fallar el borrado. Aquí se recorren las migraciones en orden y, en el estado final, cada una de esas
- * columnas tiene que tener una FK con `on delete cascade` o `on delete set null`, o estar en ANONIMIZADAS con su
- * porqué (lo que se guarda a propósito, sin dueño, tras el borrado).
- *
- * Qué se va con la PERSONA y qué no lo vigila supabase/cascadaPersona.test.js; esto mira que nada quede sin regla.
- *
- * La lectura de columnas y FK es la de scripts/lib/migraciones.mjs (aplicarEsquema), la misma que usa
- * cascadaPersona.test.js. Límites, a propósito: lo que va dentro de un cuerpo `$$ … $$` no se ve (una FK creada desde un `do $$` contaría
- * como que no está, y el test lo diría: se apunta en ANONIMIZADAS o se saca del `do`), ni `alter table … rename`.
+ * Barrera (trozo 36 de #1037): ninguna columna de dueño (household_id, user_id, persona_id) sin regla de borrado.
+ * La regla, las listas y su porqué viven en scripts/lib/cascadas.mjs; la lectura de las migraciones, en
+ * scripts/lib/migraciones.mjs (la misma que usa cascadaPersona.test.js, que mira qué se va con la PERSONA).
+ * Límites, a propósito: lo que va dentro de un cuerpo de función o de `do` no se ve (una FK creada desde ahí
+ * contaría como que no está, y el test lo diría), ni `alter table … rename`.
  */
 import { describe, it, expect } from "vitest";
-import { join, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
-import { ACCION_BORRADO, aplicarEsquema, esquemaFinal, sentencias } from "../scripts/lib/migraciones.mjs";
+import { aplicarEsquema, esquemaFinal, sentencias } from "../scripts/lib/migraciones.mjs";
+import { ANONIMIZADAS, DIR_MIGRACIONES, columnasDeDueno, medirCascadas, sinRegla } from "../scripts/lib/cascadas.mjs";
 
-const DIR = join(dirname(fileURLToPath(import.meta.url)), "migrations");
-
-/** Las columnas que dicen de quién es una fila. */
-export const COLUMNAS_DUENO = ["household_id", "user_id", "persona_id"];
-
-/** Lo que basta: la fila se va con su dueño o se queda sin él. */
-export const BORRADOS_VALIDOS = [ACCION_BORRADO.CASCADE, ACCION_BORRADO.SET_NULL];
-
-/**
- * Columnas de dueño que se quedan sin regla de borrado a propósito, con su porqué. `tabla.columna`.
- * Vacía el 3 nov 2026: en la base, las 61 columnas de dueño tienen FK con cascade o set null.
- */
-export const ANONIMIZADAS = new Map([]);
-
-/** El estado tras todas las migraciones (la lectura vive en scripts/lib/migraciones.mjs). */
-export const estadoFinal = (dir = DIR) => esquemaFinal(dir);
-
-/** Las columnas de dueño sin una FK que diga qué hacer al borrar: ["tabla.columna (lo que tiene)"]. */
-export function sinRegla(estado, anonimizadas = ANONIMIZADAS) {
-  const malas = [];
-  for (const [tabla, t] of [...estado].sort(([a], [b]) => a.localeCompare(b))) {
-    for (const col of COLUMNAS_DUENO) {
-      if (!t.columnas.has(col) || anonimizadas.has(`${tabla}.${col}`)) continue;
-      const fks = [...t.fks.values()].filter((fk) => fk.columnas.includes(col));
-      if (fks.some((fk) => BORRADOS_VALIDOS.includes(fk.onDelete))) continue;
-      malas.push(`${tabla}.${col} (${fks.length ? fks.map((fk) => `${fk.destino} on delete ${fk.onDelete}`).join(", ") : "sin FK"})`);
-    }
-  }
-  return malas;
-}
-
+const estadoFinal = () => esquemaFinal(DIR_MIGRACIONES);
 const estadoDe = (...sql) => sql.reduce((e, x) => { for (const s of sentencias(x)) aplicarEsquema(e, s); return e; }, new Map());
 
 describe("cascadas: ninguna fila de una casa, un usuario o una persona se queda sin regla de borrado", () => {
@@ -88,9 +48,13 @@ describe("cascadas: ninguna fila de una casa, un usuario o una persona se queda 
   it("las migraciones de verdad: cada columna de dueño tiene su regla", () => {
     const estado = estadoFinal();
     // Suelo: si la lectura se rompe y no ve nada, el test pasaría vacío. El 3 nov 2026 la base tenía 61.
-    const columnas = [...estado.values()].reduce((n, t) => n + COLUMNAS_DUENO.filter((c) => t.columnas.has(c)).length, 0);
-    expect(columnas).toBeGreaterThanOrEqual(55);
+    expect(columnasDeDueno(estado)).toBeGreaterThanOrEqual(55);
     expect(sinRegla(estado), "Estas columnas no dicen qué pasa con la fila al borrar su casa, su usuario o su persona: ponles `on delete cascade` o `set null`, o apúntalas en ANONIMIZADAS con su porqué").toEqual([]);
+  });
+
+  it("la cifra tablas_sin_cascada cuenta lo mismo que la barrera", () => {
+    const estado = estadoFinal();
+    expect(medirCascadas()).toEqual({ valor: sinRegla(estado).length, de: columnasDeDueno(estado) });
   });
 
   it("ninguna anonimizada sobra: cada una es una columna de dueño que existe", () => {
