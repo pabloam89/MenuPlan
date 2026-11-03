@@ -319,7 +319,6 @@ export const REPITES_RECORDATORIO = ["diario", "semanal"];
 export const REPITE_RECORDATORIO = porNombre(REPITES_RECORDATORIO);
 /** Qué aviso es un recordatorio (0122; antes bot_reminders.tipo, 0085): el que pidió la familia o el de la víspera (vispera.js). */
 export const AVISOS_RECORDATORIO = ["libre", "vispera"];
-export const AVISO_RECORDATORIO = porNombre(AVISOS_RECORDATORIO);
 
 /** De quién es una tarea (bot_tareas.scope): de la casa, o personal si es algo suyo y en privado. */
 export const AMBITOS_TAREA = ["casa", "personal"];
