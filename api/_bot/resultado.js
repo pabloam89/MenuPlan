@@ -25,6 +25,9 @@
  * Pura: sin base ni modelo, para los tests.
  */
 
+import { DIAS, DIA_LARGO_MINUSCULAS } from "../../src/lib/dias.js";
+import { IDS_COMIDAS, comida } from "../../src/lib/comidas.js";
+
 const MARCA = Symbol("resultado");
 
 /**
@@ -44,7 +47,45 @@ export const ACCIONES = Object.freeze({
   compra_anadir: "Añadido a la compra",
   menu: "Menú nuevo",
   trato: "Trato con Lola",
+  fuera: "Fuera de casa",
 });
+
+/**
+ * Los ejes de lo guardado (L1, «Lola solo confirma lo guardado»): los valores
+ * con los que el código compara lo que dice Lola (cuadre.js, que llega encima). Cada eje, con su
+ * lista del registro (dias.js, comidas.js) y la etiqueta en castellano de cada
+ * valor, sacada de allí y no escrita a mano. `persona` no tiene lista fija: es
+ * la de la casa, y la trae quien compara (los nombres de la ficha).
+ */
+export const EJES_GUARDADO = Object.freeze({
+  dia: Object.freeze({ valores: DIAS, etiqueta: (d) => DIA_LARGO_MINUSCULAS[d] }),
+  comida: Object.freeze({ valores: IDS_COMIDAS, etiqueta: (c) => comida(c).nombre }),
+  persona: Object.freeze({ valores: null, etiqueta: (n) => n }),
+});
+
+/**
+ * Los valores guardados, validados contra su eje: un eje o un valor fuera de
+ * la lista no se acepta (como una acción sin etiqueta). Null si no se dan.
+ * Quien los da afirma que cubren TODO lo hecho: con ellos, el recibo ✅ puede
+ * dejar paso a la frase de Lola (cuadre.js), así que no van si lo hecho lleva
+ * algo que no se compara (un plato, una cantidad).
+ */
+function valoresDe(valores) {
+  if (valores == null) return null;
+  const v = {};
+  for (const [eje, lista] of Object.entries(valores)) {
+    const def = EJES_GUARDADO[eje];
+    if (!def) throw new Error(`Eje sin vocabulario: ${eje}`);
+    const limpios = [...new Set((lista ?? []).map(texto).filter(Boolean))];
+    const malos = def.valores ? limpios.filter((x) => !def.valores.includes(x)) : [];
+    if (malos.length) throw new Error(`Valor fuera del eje ${eje}: ${malos.join(", ")}`);
+    if (limpios.length) v[eje] = Object.freeze(limpios);
+  }
+  return Object.freeze(v);
+}
+
+/** Los valores guardados con su etiqueta en castellano, para el modelo: { dia: ["viernes"], comida: ["cena"] }. */
+export const etiquetas = (valores) => Object.fromEntries(Object.entries(valores ?? {}).map(([eje, l]) => [eje, l.map(EJES_GUARDADO[eje].etiqueta)]));
 
 /** El estado de un resultado: sale de lo hecho y lo que no, nunca se escribe a mano. */
 export const ESTADO = Object.freeze({ HECHO: "hecho", PARCIAL: "parcial", NADA: "nada" });
@@ -62,12 +103,12 @@ const texto = (x) => String(x ?? "").trim();
  * cosa como texto corto. `sinHacer`: lo pedido que NO se hizo, con su motivo.
  * `nota`: lo demás que el modelo tiene que saber (no sale en el recibo).
  */
-export function resultado({ accion, hecho = [], sinHacer = [], nota = "" }) {
+export function resultado({ accion, hecho = [], sinHacer = [], nota = "", valores = null }) {
   if (!ACCIONES[accion]) throw new Error(`Acción sin etiqueta: ${accion}`);
   const h = hecho.map(texto).filter(Boolean);
   const s = sinHacer.map((x) => (typeof x === "string" ? { que: texto(x), motivo: "" } : { que: texto(x?.que), motivo: texto(x?.motivo) })).filter((x) => x.que);
   const estado = !h.length ? ESTADO.NADA : s.length ? ESTADO.PARCIAL : ESTADO.HECHO;
-  return Object.freeze({ [MARCA]: true, accion, pedido: h.length + s.length, hecho: h, sinHacer: s, estado, nota: texto(nota) });
+  return Object.freeze({ [MARCA]: true, accion, pedido: h.length + s.length, hecho: h, sinHacer: s, estado, nota: texto(nota), valores: valoresDe(valores) });
 }
 
 export const esResultado = (x) => Boolean(x && typeof x === "object" && x[MARCA]);
@@ -79,10 +120,22 @@ const ORDEN = {
   [ESTADO.NADA]: () => "No se ha guardado NADA: no digas que está hecho. El recibo con el porqué sale pintado encima de tu mensaje; ofrece cómo arreglarlo.",
 };
 
+/**
+ * Con valores (L1): lo hecho lo confirma Lola con su voz, y el código comprueba
+ * que nombra lo guardado (cuadre.js); si no cuadra, sale el recibo en su lugar.
+ */
+export const ORDEN_CON_VALORES = "Lo hecho lo confirmas tú, en una frase, nombrando lo guardado tal cual (guardado: días, comidas y personas, ni más ni menos). Si nombras algo que no está ahí, la familia verá el recibo en vez de tu frase.";
+
 /** Lo que lee el modelo: JSON, para que no haya dos formas de leerlo, y la orden de su estado. */
 export function paraElModelo(r) {
   const datos = { accion: r.accion, estado: r.estado, pedido: r.pedido, hecho: r.hecho, sin_hacer: r.sinHacer.map(({ que, motivo }) => ({ que, motivo })) };
-  return `RESULTADO ${JSON.stringify(datos)}\n${ORDEN[r.estado](r)}${r.nota ? `\n${r.nota}` : ""}`;
+  const conValores = Boolean(r.valores) && r.estado !== ESTADO.NADA;
+  if (conValores) datos.guardado = etiquetas(r.valores);
+  // Con valores, lo hecho no sale en el recibo si Lola lo dice bien; lo que falta (⚠️), sí, como siempre.
+  const orden = !conValores ? ORDEN[r.estado](r)
+    : r.estado === ESTADO.HECHO ? ORDEN_CON_VALORES
+      : `NO está todo: ${r.sinHacer.length} sin hacer. Lo que falta y por qué (⚠️) sale pintado encima de tu mensaje: no lo repitas, no digas «todo» y ofrece lo que se puede hacer con lo que falta. ${ORDEN_CON_VALORES}`;
+  return `RESULTADO ${JSON.stringify(datos)}\n${orden}${r.nota ? `\n${r.nota}` : ""}`;
 }
 
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");

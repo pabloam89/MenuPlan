@@ -3,7 +3,7 @@
  * recibo que ve la familia, pintado por el código y no por Lola.
  */
 import { describe, it, expect } from "vitest";
-import { resultado, esResultado, paraElModelo, recibo, conRecibo, RECIBO_SIN_GUARDAR, cuentaComoGuardado, ESTADO, EN_EL_RECIBO } from "./resultado.js";
+import { resultado, esResultado, paraElModelo, recibo, conRecibo, RECIBO_SIN_GUARDAR, cuentaComoGuardado, ESTADO, EN_EL_RECIBO, ORDEN_CON_VALORES } from "./resultado.js";
 
 const datosDe = (t) => JSON.parse(t.split("\n")[0].replace(/^RESULTADO /, ""));
 
@@ -73,5 +73,47 @@ describe("lo que cuenta como guardado para el vigilante", () => {
     expect(cuentaComoGuardado(true, resultado({ accion: "despensa", hecho: ["pan"] }))).toBe(true);
     expect(cuentaComoGuardado(true, "Guardado.")).toBe(true);
     expect(cuentaComoGuardado(false, "Guardado.")).toBe(false);
+  });
+});
+
+describe("los valores de lo guardado (L1)", () => {
+  const fuera = (valores, mas = {}) => resultado({ accion: "fuera", hecho: ["Leo fuera el viernes 6 (cena)"], valores, ...mas });
+
+  it("un eje o un valor fuera de su lista no se acepta; los repetidos y vacíos se quitan", () => {
+    expect(() => fuera({ hora: ["10"] })).toThrow(/Eje sin vocabulario/);
+    expect(() => fuera({ dia: ["Viernes"] })).toThrow(/fuera del eje dia/);
+    expect(() => fuera({ comida: ["Merendola"] })).toThrow(/fuera del eje comida/);
+    expect(fuera({ dia: ["Vie", "Vie", " "], comida: [] }).valores).toEqual({ dia: ["Vie"] });
+    expect(resultado({ accion: "despensa", hecho: ["pan"] }).valores).toBeNull();
+  });
+
+  it("el modelo lee lo guardado con la etiqueta del registro y la orden de nombrarlo", () => {
+    const t = paraElModelo(fuera({ dia: ["Vie"], comida: ["Cena"], persona: ["Leo"] }));
+    expect(datosDe(t).guardado).toEqual({ dia: ["viernes"], comida: ["cena"], persona: ["Leo"] });
+    expect(t).toContain(ORDEN_CON_VALORES);
+    // A medias: la orden de lo que falta y la de nombrar lo guardado.
+    const parcial = paraElModelo(fuera({ dia: ["Vie"] }, { sinHacer: [{ que: "la comida", motivo: "x" }] }));
+    expect(parcial).toMatch(/NO está todo: 1 sin hacer/);
+    expect(parcial).toContain(ORDEN_CON_VALORES);
+    // Sin valores, o sin nada hecho: lo de siempre, sin «guardado».
+    const sin = paraElModelo(resultado({ accion: "despensa", hecho: ["pan"] }));
+    expect(sin).not.toContain(ORDEN_CON_VALORES);
+    expect(datosDe(sin).guardado).toBeUndefined();
+    expect(datosDe(paraElModelo(resultado({ accion: "fuera", sinHacer: ["x"], valores: { dia: ["Vie"] } }))).guardado).toBeUndefined();
+  });
+});
+
+describe("fuera_de_casa devuelve lo guardado con sus valores", () => {
+  it("lo apuntado: hecho y valores; una duda: sin línea en el recibo; un fallo al guardar: ⚠️", async () => {
+    process.env.VITE_SUPABASE_URL ||= "https://sin-base.invalid";
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||= "sin-clave";
+    const { resultadoDeAusencia } = await import("./menu.js");
+    const ok = resultadoDeAusencia({ texto: "Apuntado: Leo fuera el viernes 6 (cena).", hecho: "Leo fuera el viernes 6 (cena)", valores: { dia: ["Vie"], comida: ["Cena"], persona: ["Leo"] } });
+    expect(ok.estado).toBe(ESTADO.HECHO);
+    expect(ok.hecho).toEqual(["Leo fuera el viernes 6 (cena)"]);
+    expect(ok.valores).toEqual({ dia: ["Vie"], comida: ["Cena"], persona: ["Leo"] });
+    expect(resultadoDeAusencia({ ...ok, texto: "x", hecho: "y", valores: ok.valores, aMedias: true }).estado).toBe(ESTADO.PARCIAL);
+    expect(recibo([resultadoDeAusencia({ texto: "¿Qué día?", error: "dia" })])).toBe("");
+    expect(resultadoDeAusencia({ texto: "No he podido guardarlo: x.", error: "guardar" }).sinHacer).toHaveLength(1);
   });
 });
