@@ -102,6 +102,7 @@ import {
 import { normalizeKidDinnerConfig } from "./lib/kidsMenu.js";
 import { loadState, saveState, clearState } from "./lib/storage.js";
 import { semanaDeHoy } from "./lib/menuArchive.js";
+import { puedeRegenerarDia } from "./lib/regenerarDia.js";
 import {
   clampWeekCount,
   computeWeekRange,
@@ -6389,7 +6390,7 @@ export default function App() {
               onDishPlace={householdReadOnly ? undefined : handlePlaceRecipeInSlot}
               onIncomingCancel={() => setPendingDish(null)}
               onDishManualPick={householdReadOnly ? undefined : handleManualPickSlot}
-              onRegenerateDay={householdReadOnly ? undefined : handleRegenerateDay}
+              onRegenerateDay={puedeRegenerarDia({ soloLectura: householdReadOnly, esPizarra }) ? handleRegenerateDay : undefined}
               onNav={handleNav}
               onRegenerate={householdReadOnly ? undefined : handleRegenerate}
               onRetry={retryGenerateMenu}
