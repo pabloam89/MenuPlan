@@ -13,7 +13,7 @@
  * Un `.env.local` con valores en claro sigue funcionando igual.
  */
 import { execFileSync } from "node:child_process";
-import { appendFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -158,6 +158,39 @@ function apuntarLectura(claves, reintento) {
   }
 }
 
+/**
+ * Las direcciones que esta máquina no puede leer (no existen en ninguna de las dos bóvedas, o la cuenta de servicio no
+ * tiene permiso), con cuándo se vio. Sin valores: solo direcciones. Durante SIN_ACCESO_HORAS no se vuelven a pedir: antes,
+ * cada arranque de Vite con una clave de administración en `.env.local` gastaba ~35 lecturas del cupo diario de la
+ * cuenta (1000) pidiéndolas una a una. Si ya tienes acceso, borra el fichero. En los tests, solo con MENUPLAN_OP_SIN_ACCESO.
+ */
+export const SIN_ACCESO_HORAS = 24;
+export const FICHERO_SIN_ACCESO = () =>
+  process.env.MENUPLAN_OP_SIN_ACCESO || (process.env.VITEST ? null : join(homedir(), ".menuplan", "op-sin-acceso.json"));
+function sinAcceso() {
+  const ruta = FICHERO_SIN_ACCESO();
+  if (!ruta || !existsSync(ruta)) return {};
+  try {
+    const todo = JSON.parse(readFileSync(ruta, "utf8"));
+    const desde = Date.now() - SIN_ACCESO_HORAS * 3600e3;
+    return Object.fromEntries(Object.entries(todo).filter(([, cuando]) => Date.parse(cuando) > desde));
+  } catch (e) {
+    console.error(`env-boveda: no pude leer ${ruta} (${e.message}); pido todas las claves`);
+    return {};
+  }
+}
+function apuntarSinAcceso(refs) {
+  const ruta = FICHERO_SIN_ACCESO();
+  if (!ruta || !refs.length) return;
+  try {
+    mkdirSync(dirname(ruta), { recursive: true });
+    const ahora = new Date().toISOString();
+    writeFileSync(ruta, JSON.stringify({ ...sinAcceso(), ...Object.fromEntries(refs.map((ref) => [ref, ahora])) }, null, 1));
+  } catch (e) {
+    console.error(`env-boveda: no pude apuntar en ${ruta} las claves sin acceso (${e.message})`);
+  }
+}
+
 /** Los valores de varias direcciones, en una sola llamada a `op inject`. Lanza si falla alguna. */
 function inyectar(pares, reintento = false) {
   apuntarLectura(pares.length, reintento);
@@ -175,23 +208,43 @@ function inyectar(pares, reintento = false) {
  * ninguna, lanza con sus nombres; con `tolerante`, lo avisa y lo devuelve.
  */
 function resolverVarias(pares, { tolerante = false } = {}) {
-  const nuevas = pares.filter(([, ref]) => !resueltas.has(ref));
-  if (!nuevas.length) return [];
+  const pendientes = pares.filter(([, ref]) => !resueltas.has(ref));
+  if (!pendientes.length) return [];
+  // Las que ya se vio que no se pueden leer no se piden (FICHERO_SIN_ACCESO).
+  const vistas = sinAcceso();
+  const sabidas = pendientes.filter(([, ref]) => vistas[ref]);
+  const nuevas = pendientes.filter(([, ref]) => !vistas[ref]);
+  const fallan = sabidas.map(([k]) => k);
+  let motivo = sabidas.length ? `sin acceso desde ${vistas[sabidas[0][1]]} (si ya lo tienes, borra ${FICHERO_SIN_ACCESO()})` : "";
+  const acabar = () => {
+    if (fallan.length && !tolerante) throw new Error(`No pude leer de 1Password ${fallan.join(", ")}: ${motivo}`);
+    for (const k of fallan) console.error(`env-boveda clave: ${k} motivo: sin-acceso`);
+    return fallan;
+  };
+  if (!nuevas.length) return acabar();
   try {
     inyectar(nuevas).forEach((v, i) => resueltas.set(nuevas[i][1], v));
-    return [];
+    return acabar();
   } catch (e) {
     if (e.code === "SIN_TOKEN") throw new Error(`No pude leer de 1Password ${nuevas.map(([k]) => k).join(", ")}: ${e.message}`);
     if (e.code === "ENOENT") throw new Error(`No pude leer de 1Password ${nuevas.map(([k]) => k).join(", ")}: ${motivoDe(e)}`);
+    // Sin cupo, pedirlas una a una solo gasta más intentos que también fallan: todas fallan con ese motivo.
+    if (/too many requests/i.test(String(e.stderr || e.message))) {
+      motivo = motivoDe(e);
+      fallan.push(...nuevas.map(([k]) => k));
+      return acabar();
+    }
   }
-  const fallan = [];
-  let motivo = "";
+  const sinLeer = [];
+  const esCupo = (e) => /too many requests/i.test(String(e.stderr || e.message));
   for (const [k, ref] of nuevas) {
+    let cupo = false;
     try {
       resueltas.set(ref, inyectar([[k, ref]], true)[0]);
       continue;
     } catch (e) {
       motivo ||= motivoDe(e);
+      cupo = esCupo(e);
     }
     const otra = enOtraBoveda(ref);
     if (otra) {
@@ -201,15 +254,17 @@ function resolverVarias(pares, { tolerante = false } = {}) {
         const a = otra.split("/")[2];
         console.error(`env-boveda clave: ${k} de: ${de} a: ${a} motivo: respaldo`);
         continue;
-      } catch {
+      } catch (e) {
         // a propósito: tampoco está en la otra bóveda; cuenta como fallo y se avisa abajo
+        cupo ||= esCupo(e);
       }
     }
     fallan.push(k);
+    // Solo lo que no existe o no se deja leer; un límite de cupo no cuenta (se vuelve a pedir la próxima vez).
+    if (!cupo) sinLeer.push(ref);
   }
-  if (fallan.length && !tolerante) throw new Error(`No pude leer de 1Password ${fallan.join(", ")}: ${motivo}`);
-  for (const k of fallan) console.error(`env-boveda clave: ${k} motivo: sin-acceso`);
-  return fallan;
+  apuntarSinAcceso(sinLeer);
+  return acabar();
 }
 
 /** El valor de `clave`, o undefined. Con `obligatoria`, lanza si falta. */

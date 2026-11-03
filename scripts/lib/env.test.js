@@ -315,3 +315,84 @@ describe("registro de lecturas (#556)", () => {
     }
   });
 });
+
+describe("lo que no se puede leer no se vuelve a pedir (cupo diario de la cuenta)", () => {
+  const conFichero = (fn) => {
+    const ruta = join(mkdtempSync(join(tmpdir(), "opsin-")), "sin-acceso.json");
+    process.env.MENUPLAN_OP_SIN_ACCESO = ruta;
+    const aviso = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      return fn(ruta, aviso);
+    } finally {
+      delete process.env.MENUPLAN_OP_SIN_ACCESO;
+      aviso.mockRestore();
+      for (const k of ["PRUEBA_N", "PRUEBA_O", "PRUEBA_P"]) delete process.env[k];
+    }
+  };
+  const administracion = "op://HoMenu/Admin3/PRUEBA_N";
+
+  it("como Vite al arrancar dos veces: la segunda, la clave de administración no se pide y las demás van en una sola lectura", () => {
+    conFichero((ruta, aviso) => {
+      globalThis.__noExisten.add(administracion);
+      globalThis.__noExisten.add("op://HoMenu-sesiones/Admin3/PRUEBA_N");
+      process.env.PRUEBA_N = administracion;
+      process.env.PRUEBA_O = "op://HoMenu-sesiones/Vite/PRUEBA_O";
+      cargarEnv(["PRUEBA_N", "PRUEBA_O"], { tolerante: true });
+      // Las dos juntas, y luego una a una (la de administración, también en la otra bóveda).
+      expect(llamadas).toHaveLength(4);
+      expect(Object.keys(JSON.parse(readFileSync(ruta, "utf8")))).toEqual([administracion]);
+      expect(readFileSync(ruta, "utf8")).not.toMatch(/VALOR/);
+
+      llamadas.length = 0;
+      process.env.PRUEBA_P = "op://HoMenu-sesiones/Vite/PRUEBA_P";
+      cargarEnv(["PRUEBA_N", "PRUEBA_P"], { tolerante: true });
+      expect(llamadas).toHaveLength(1);
+      expect(llamadas[0].input).not.toContain(administracion);
+      expect(process.env.PRUEBA_N).toBe("");
+      expect(process.env.PRUEBA_P).toBe("VALOR-de-op://HoMenu-sesiones/Vite/PRUEBA_P");
+      expect(aviso.mock.calls.at(-1)[0]).toBe("env-boveda clave: PRUEBA_N motivo: sin-acceso");
+    });
+  });
+
+  it("un script que la necesita falla con su nombre y dice qué borrar si ya hay acceso, sin llamar a op", () => {
+    conFichero((ruta) => {
+      writeFileSync(ruta, JSON.stringify({ [administracion]: new Date().toISOString() }));
+      process.env.PRUEBA_N = administracion;
+      let error = null;
+      try {
+        cargarEnv(["PRUEBA_N"]);
+      } catch (e) {
+        error = e.message;
+      }
+      expect(error).toMatch(/No pude leer de 1Password PRUEBA_N: sin acceso desde /);
+      expect(error).toContain(`borra ${ruta}`);
+      expect(llamadas).toHaveLength(0);
+    });
+  });
+
+  it("pasado un día se vuelve a probar (el acceso puede haber cambiado)", () => {
+    conFichero((ruta) => {
+      const vieja = administracion.replace("Admin3", "Admin4"); // otra dirección: ninguna lectura de otro test la tiene en memoria
+      writeFileSync(ruta, JSON.stringify({ [vieja]: new Date(Date.now() - 25 * 3600e3).toISOString() }));
+      process.env.PRUEBA_N = vieja;
+      expect(leerEnv("PRUEBA_N")).toBe(`VALOR-de-${vieja}`);
+      expect(llamadas).toHaveLength(1);
+    });
+  });
+
+  it("sin cupo no se reintenta una a una ni se apunta como sin acceso", () => {
+    conFichero((ruta) => {
+      globalThis.__limite = true;
+      try {
+        process.env.PRUEBA_O = "op://HoMenu-sesiones/Cupo/PRUEBA_O";
+        process.env.PRUEBA_P = "op://HoMenu-sesiones/Cupo/PRUEBA_P";
+        cargarEnv(["PRUEBA_O", "PRUEBA_P"], { tolerante: true });
+        expect(llamadas).toHaveLength(1);
+        expect(process.env.PRUEBA_O).toBe("");
+        expect(() => readFileSync(ruta, "utf8")).toThrow();
+      } finally {
+        globalThis.__limite = false;
+      }
+    });
+  });
+});
