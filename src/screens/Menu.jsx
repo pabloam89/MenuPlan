@@ -1,4 +1,5 @@
 import { porQueElPlato } from "../lib/sobreHueco.js";
+import { claveCocinado } from "../lib/cocinados.js";
 import { preferenciasDelMotor, textoDe } from "../lib/cumplimiento.js";
 import { color as colores, espaciado, tipografia } from "../design/tokens.js";
 import { cloneElement, createContext, Fragment, memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
@@ -6903,6 +6904,11 @@ export function DishDetail({
   day = null,
   meal = null,
   cookWeekKey = null,
+  // Lo cocinado (trozo 22): el lunes de la semana abierta, sus claves (null mientras no se han leído) y cómo marcar
+  // (`onCocinado(fila, hecho)` → { ok, fallo }), en la tabla `cocinado` o, sin casa, en el móvil (App.jsx).
+  cookWeekMonday = null,
+  cocinados = null,
+  onCocinado = null,
   user = null,
   data = null,
   setData = null,
@@ -7208,14 +7214,16 @@ export function DishDetail({
   // Only when opened from the weekly menu with a real slot. Pantry is the single
   // source of truth: a tick means "you already have it in En casa"; "Marcar
   // cocinado" discounts the dish's ingredients from that stock (undo restores).
-  const cookable = !browse && day != null && meal != null && cookWeekKey != null && setData != null;
+  const cookable = !browse && day != null && meal != null && cookWeekKey != null && setData != null
+    && cookWeekMonday != null && cocinados != null && onCocinado != null;
   // Solo se calcula al navegar el catálogo, que es donde se pinta.
   const potentialSwaps = useMemo(
     () => (browse ? adaptationsNeededFor(recipe, "lactosa_fina") : []),
     [browse, recipe],
   );
   const cookedKey = cookable ? `${cookWeekKey}::${day}::${meal}::${recipe.id}` : null;
-  const isCooked = cookedKey ? (data?.cookedDishes ?? []).includes(cookedKey) : false;
+  const filaCocinada = cookable ? { semana: cookWeekMonday, dia: day, comida: meal, receta_id: String(recipe.id) } : null;
+  const isCooked = filaCocinada ? cocinados.has(claveCocinado(filaCocinada)) : false;
   const [pantryStock, setPantryStock] = useState([]);
   const [cookBusy, setCookBusy] = useState(false);
   useEffect(() => {
@@ -7439,6 +7447,12 @@ export function DishDetail({
     if (!cookable || isCooked || cookBusy) return;
     setCookBusy(true);
     try {
+      // Primero se apunta lo cocinado; si no se guarda, no se toca la despensa.
+      const apuntado = await onCocinado(filaCocinada, true);
+      if (!apuntado.ok) {
+        onToast?.("No se ha podido marcar como cocinado. Prueba otra vez.");
+        return;
+      }
       // Slot del congelador: lo que se "gasta" son raciones del tupper, no
       // ingredientes. En un slot mixto se hacen las dos cosas — salen las
       // raciones congeladas Y se descuentan los ingredientes de las frescas
@@ -7452,7 +7466,6 @@ export function DishDetail({
         : { deltas: [], decremented: 0 };
       setData((d) => ({
         ...d,
-        cookedDishes: [...(d?.cookedDishes ?? []), cookedKey],
         cookedDeltas: { ...(d?.cookedDeltas ?? {}), [cookedKey]: deltas },
         ...(preparedDelta
           ? { cookedFreezerDeltas: { ...(d?.cookedFreezerDeltas ?? {}), [cookedKey]: preparedDelta } }
@@ -7474,6 +7487,11 @@ export function DishDetail({
     if (!cookable || !isCooked || cookBusy) return;
     setCookBusy(true);
     try {
+      const quitado = await onCocinado(filaCocinada, false);
+      if (!quitado.ok) {
+        onToast?.("No se ha podido deshacer. Prueba otra vez.");
+        return;
+      }
       const deltas = data?.cookedDeltas?.[cookedKey] ?? [];
       const restored = await restoreToPantry(deltas, { user });
       const preparedDelta = data?.cookedFreezerDeltas?.[cookedKey] ?? null;
@@ -7485,7 +7503,6 @@ export function DishDetail({
         delete nextFreezer[cookedKey];
         return {
           ...d,
-          cookedDishes: (d?.cookedDishes ?? []).filter((k) => k !== cookedKey),
           cookedDeltas: nextDeltas,
           cookedFreezerDeltas: nextFreezer,
         };
