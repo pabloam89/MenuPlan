@@ -136,6 +136,19 @@ export function enOtraBoveda(ref) {
 const esCupo = (e) => /too many requests/i.test(String(e.stderr || e.message));
 
 /**
+ * Por qué no se leyó una clave, en el aviso `env-boveda clave: … motivo: …` (vocabulario cerrado): no existe o la
+ * cuenta no la ve; ya estaba apuntada como tal y no se pidió; sin cupo; otro fallo (red, token…); o se leyó de la
+ * otra bóveda.
+ */
+export const MOTIVOS_AVISO = Object.freeze({
+  SIN_ACCESO: "sin-acceso",
+  APUNTADA: "apuntada",
+  SIN_CUPO: "sin-cupo",
+  FALLO: "fallo",
+  RESPALDO: "respaldo",
+});
+
+/**
  * ¿Falló porque la dirección no existe o la cuenta no la ve (item, bóveda o campo)? Solo eso se apunta en
  * FICHERO_SIN_ACCESO: un fallo de red, de token o de cupo pasa, y se vuelve a pedir la próxima vez.
  */
@@ -227,13 +240,19 @@ function resolverVarias(pares, { tolerante = false } = {}) {
   const apartadas = sabidas.map(([k]) => k);
   const motivoApartadas = sabidas.length ? `sin acceso desde ${vistas[sabidas[0][1]]} (si ya lo tienes, borra ${FICHERO_SIN_ACCESO()})` : "";
   const fallan = [];
+  const porQue = new Map(); // clave → MOTIVOS_AVISO
   let motivo = "";
   const acabar = () => {
     const partes = [];
     if (fallan.length) partes.push(`${fallan.join(", ")}: ${motivo}`);
     if (apartadas.length) partes.push(`${apartadas.join(", ")}: ${motivoApartadas}`);
     if (partes.length && !tolerante) throw new Error(`No pude leer de 1Password ${partes.join("; ")}`);
-    for (const k of [...fallan, ...apartadas]) console.error(`env-boveda clave: ${k} motivo: sin-acceso`);
+    // Con tolerante, el mismo motivo por la salida de errores: una línea por clave y el detalle de cada grupo.
+    for (const k of fallan) console.error(`env-boveda clave: ${k} motivo: ${porQue.get(k)}`);
+    for (const k of apartadas) console.error(`env-boveda clave: ${k} motivo: ${MOTIVOS_AVISO.APUNTADA}`);
+    // Sin la dirección (el aviso no la da): lo que dijo 1Password.
+    if (fallan.length) console.error(`env-boveda: ${motivo.replace(/op:\/\/\S+/g, "<dirección>")}`);
+    if (apartadas.length) console.error(`env-boveda: ${motivoApartadas}`);
     return [...fallan, ...apartadas];
   };
   if (!nuevas.length) return acabar();
@@ -246,7 +265,10 @@ function resolverVarias(pares, { tolerante = false } = {}) {
     // Sin cupo, pedirlas una a una solo gasta más intentos que también fallan: todas fallan con ese motivo.
     if (esCupo(e)) {
       motivo = motivoDe(e);
-      fallan.push(...nuevas.map(([k]) => k));
+      for (const [k] of nuevas) {
+        fallan.push(k);
+        porQue.set(k, MOTIVOS_AVISO.SIN_CUPO);
+      }
       return acabar();
     }
   }
@@ -254,12 +276,14 @@ function resolverVarias(pares, { tolerante = false } = {}) {
   for (const [k, ref] of nuevas) {
     // Se apunta solo si todos los intentos dicen «no existe o no la ves».
     let noSeVe = true;
+    let cupo = false;
     try {
       resueltas.set(ref, inyectar([[k, ref]], true)[0]);
       continue;
     } catch (e) {
       motivo ||= motivoDe(e);
       noSeVe = esSinAcceso(e);
+      cupo = esCupo(e);
     }
     const otra = enOtraBoveda(ref);
     if (otra) {
@@ -267,14 +291,16 @@ function resolverVarias(pares, { tolerante = false } = {}) {
         resueltas.set(ref, inyectar([[k, otra]], true)[0]);
         const de = ref.split("/")[2];
         const a = otra.split("/")[2];
-        console.error(`env-boveda clave: ${k} de: ${de} a: ${a} motivo: respaldo`);
+        console.error(`env-boveda clave: ${k} de: ${de} a: ${a} motivo: ${MOTIVOS_AVISO.RESPALDO}`);
         continue;
       } catch (e) {
         // a propósito: tampoco está en la otra bóveda; cuenta como fallo y se avisa abajo
         noSeVe &&= esSinAcceso(e);
+        cupo ||= esCupo(e);
       }
     }
     fallan.push(k);
+    porQue.set(k, cupo ? MOTIVOS_AVISO.SIN_CUPO : noSeVe ? MOTIVOS_AVISO.SIN_ACCESO : MOTIVOS_AVISO.FALLO);
     if (noSeVe) sinLeer.push(ref);
   }
   apuntarSinAcceso(sinLeer);

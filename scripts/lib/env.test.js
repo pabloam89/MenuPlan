@@ -145,7 +145,10 @@ describe("plan B entre bóvedas (#299): HoMenu-sesiones y HoMenu", () => {
     cargarEnv(["PRUEBA_B", "PRUEBA_C"], { tolerante: true });
     expect(process.env.PRUEBA_B).toBe("");
     expect(process.env.PRUEBA_C).toBe("VALOR-de-op://HoMenu-sesiones/Tolerante/PRUEBA_C");
-    expect(aviso.mock.calls.map((c) => c[0])).toEqual(["env-boveda clave: PRUEBA_B motivo: sin-acceso"]);
+    const avisos = aviso.mock.calls.map((c) => c[0]);
+    expect(avisos[0]).toBe("env-boveda clave: PRUEBA_B motivo: sin-acceso");
+    // El detalle dice lo que dijo 1Password, sin la dirección.
+    expect(avisos.join("\n")).not.toContain("op://");
     aviso.mockRestore();
   });
 
@@ -347,13 +350,17 @@ describe("lo que no se puede leer no se vuelve a pedir (cupo diario de la cuenta
       expect(readFileSync(ruta, "utf8")).not.toMatch(/VALOR/);
 
       llamadas.length = 0;
+      aviso.mockClear();
+      process.env.PRUEBA_N = administracion; // otro arranque: la dirección vuelve a venir de .env.local
       process.env.PRUEBA_P = "op://HoMenu-sesiones/Vite/PRUEBA_P";
       cargarEnv(["PRUEBA_N", "PRUEBA_P"], { tolerante: true });
       expect(llamadas).toHaveLength(1);
       expect(llamadas[0].input).not.toContain(administracion);
       expect(process.env.PRUEBA_N).toBe("");
       expect(process.env.PRUEBA_P).toBe("VALOR-de-op://HoMenu-sesiones/Vite/PRUEBA_P");
-      expect(aviso.mock.calls.at(-1)[0]).toBe("env-boveda clave: PRUEBA_N motivo: sin-acceso");
+      const avisos = aviso.mock.calls.map((c) => c[0]);
+      expect(avisos).toContain("env-boveda clave: PRUEBA_N motivo: apuntada");
+      expect(avisos.at(-1)).toMatch(/^env-boveda: sin acceso desde .*borra /);
     });
   });
 
@@ -378,7 +385,12 @@ describe("lo que no se puede leer no se vuelve a pedir (cupo diario de la cuenta
       globalThis.__redCaida = new Set(["op://HoMenu-sesiones/Red/PRUEBA_O", enOtraBoveda("op://HoMenu-sesiones/Red/PRUEBA_O")]);
       try {
         process.env.PRUEBA_O = "op://HoMenu-sesiones/Red/PRUEBA_O";
+        const aviso = vi.spyOn(console, "error").mockImplementation(() => {});
         cargarEnv(["PRUEBA_O"], { tolerante: true });
+        const avisos = aviso.mock.calls.map((c) => c[0]);
+        aviso.mockRestore();
+        expect(avisos).toContain("env-boveda clave: PRUEBA_O motivo: fallo");
+        expect(avisos.at(-1)).toMatch(/connection refused/);
         expect(process.env.PRUEBA_O).toBe("");
         expect(() => readFileSync(ruta, "utf8")).toThrow();
       } finally {
@@ -421,7 +433,13 @@ describe("lo que no se puede leer no se vuelve a pedir (cupo diario de la cuenta
       try {
         process.env.PRUEBA_O = "op://HoMenu-sesiones/Cupo/PRUEBA_O";
         process.env.PRUEBA_P = "op://HoMenu-sesiones/Cupo/PRUEBA_P";
+        const aviso = vi.spyOn(console, "error").mockImplementation(() => {});
         cargarEnv(["PRUEBA_O", "PRUEBA_P"], { tolerante: true });
+        const avisos = aviso.mock.calls.map((c) => c[0]);
+        aviso.mockRestore();
+        expect(avisos).toContain("env-boveda clave: PRUEBA_O motivo: sin-cupo");
+        expect(avisos).not.toContain("env-boveda clave: PRUEBA_O motivo: sin-acceso");
+        expect(avisos.at(-1)).toMatch(/^env-boveda: .*Too many requests/);
         expect(llamadas).toHaveLength(1);
         expect(process.env.PRUEBA_O).toBe("");
         expect(() => readFileSync(ruta, "utf8")).toThrow();
