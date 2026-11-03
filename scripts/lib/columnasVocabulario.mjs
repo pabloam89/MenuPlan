@@ -36,7 +36,6 @@ export const COLUMNAS_VOCABULARIO = Object.freeze({
   "bot_chats.channel": { lista: "canales", comun: true },
   "bot_codigos.channel": { lista: "canales", comun: true },
   "bot_messages.channel": { lista: "canales", comun: true },
-  "bot_reminders.channel": { lista: "canales", comun: true },
   "bot_tareas.channel": { lista: "canales", comun: true },
   // Los recordatorios en tareas (0122, trozo 34). Comunes: «repite» y «aviso» son también claves de otros objetos.
   "bot_tareas.repite": { lista: "repites_recordatorio", comun: true },
