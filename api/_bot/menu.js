@@ -1452,7 +1452,27 @@ export async function apuntarAusencia(householdId, { dia, dias, semana = null, c
     ? " He quitado esos platos del menú y de la compra."
     : hayMenu ? ` El plato de ${porFecha.length > 1 ? "esos días" : "ese día"} se queda para los demás.` : ` Cuenta al generar el menú de ${porFecha.length > 1 ? "esos días" : "ese día"}.`;
   const texto = `Apuntado: ${quien} fuera ${cuando}.${menu}${aMedias ? " En alguna semana del menú no he podido quitar el plato: míralo en la app." : ""}`;
-  return { texto, pintar: vaciadas.size ? { dias: [...vaciadas].sort() } : null };
+  // Lo guardado, con sus valores por eje (resultado.js): Lola lo confirma y cuadre.js lo compara.
+  const valores = { dia: [...new Set(huecos.map((h) => h.d))], comida: lasComidas, persona: fuera.map((p) => p.name) };
+  return { texto, pintar: vaciadas.size ? { dias: [...vaciadas].sort() } : null, hecho: `${quien} fuera ${cuando}`, valores, aMedias };
+}
+
+/** Por qué no se ha apuntado una ausencia, para el recibo: una frase corta por clase (`error` de apuntarAusencia). */
+export const SIN_AUSENCIA = Object.freeze({ guardar: NO_GUARDADO });
+
+/**
+ * El RESULTADO de fuera_de_casa (trozo 27 de #1037 y L1): lo apuntado con sus
+ * valores (días, comidas, personas). Una duda (qué día, qué comida, quién) o
+ * una orden repetida no se guarda y no lleva línea en el recibo: Lola pregunta
+ * con lo que lee en la nota. Un fallo al guardar sí sale (⚠️).
+ */
+export function resultadoDeAusencia(r) {
+  if (r.error) {
+    const motivo = SIN_AUSENCIA[r.error];
+    return resultadoDeEscritura({ accion: "fuera", sinHacer: motivo ? [{ que: "fuera de casa", motivo }] : [], nota: r.texto });
+  }
+  const sinHacer = r.aMedias ? [{ que: "quitar el plato en alguna semana del menú", motivo: NO_GUARDADO }] : [];
+  return resultadoDeEscritura({ accion: "fuera", hecho: [r.hecho], sinHacer, valores: r.valores, nota: r.texto });
 }
 
 /** La despensa de la casa como la lee generar; null si no se ha podido leer. */
