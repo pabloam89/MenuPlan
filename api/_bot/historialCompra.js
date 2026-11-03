@@ -4,13 +4,11 @@
  */
 import { select, insert, borrar, eq } from "./db.js";
 import { esDuplicado } from "./entradas.js";
-import { ticketDeFila, precioDeFila } from "../../src/lib/historialCompra.js";
+import { ticketDeFila, precioDeFila, COLUMNAS_TICKET, COLUMNAS_PRECIO, DE_LA_0124 } from "../../src/lib/historialCompra.js";
 
-const COLUMNAS_TICKET = "id,super,comprado_at,total,lineas,tachados,tachados_semana,despensa_ids";
-const COLUMNAS_TICKET_0109 = "id,super,comprado_at,total,lineas";
-const COLUMNAS_PRECIO = "id,ticket_id,ingrediente_id,nombre,marca,super,precio,cantidad,unidad,tamano_cantidad,tamano_unidad,fuente,tipo,comprado_at";
-/** Lo que la 0124 añade a `ticket`. */
-const DE_LA_0124 = ["tachados", "tachados_semana", "despensa_ids"];
+const SELECT_TICKET = COLUMNAS_TICKET.join(",");
+const SELECT_TICKET_0109 = COLUMNAS_TICKET.filter((c) => !DE_LA_0124.includes(c)).join(",");
+const SELECT_PRECIO = COLUMNAS_PRECIO.join(",");
 /** Falta una columna de la 0124 (aún sin aplicar): PostgREST (PGRST204) o Postgres (42703) la nombran. Otra, no. */
 const sinColumna = (e) => ["PGRST204", "42703"].includes(e?.codigo) && DE_LA_0124.some((c) => String(e?.message ?? "").includes(c));
 
@@ -64,11 +62,12 @@ export async function borrarTicket(casa, id) {
 export async function leerCompra(casa) {
   let tickets;
   try {
-    tickets = await select("ticket", `household_id=${eq(casa)}&order=comprado_at.desc`, COLUMNAS_TICKET);
+    tickets = await select("ticket", `household_id=${eq(casa)}&order=comprado_at.desc`, SELECT_TICKET);
   } catch (e) {
     if (!sinColumna(e)) throw e;
-    tickets = await select("ticket", `household_id=${eq(casa)}&order=comprado_at.desc`, COLUMNAS_TICKET_0109);
+    console.warn(JSON.stringify({ evento: "ticket_sin_deshacer", motivo: "sin la 0124", lectura: true }));
+    tickets = await select("ticket", `household_id=${eq(casa)}&order=comprado_at.desc`, SELECT_TICKET_0109);
   }
-  const precios = await select("precio_observado", `household_id=${eq(casa)}&order=comprado_at.asc`, COLUMNAS_PRECIO);
+  const precios = await select("precio_observado", `household_id=${eq(casa)}&order=comprado_at.asc`, SELECT_PRECIO);
   return { tickets: tickets.map(ticketDeFila), precios: precios.map(precioDeFila) };
 }

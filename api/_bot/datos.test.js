@@ -8,6 +8,7 @@ import { escribirDato, falloDeMotivo } from "./datos.js";
 import { RPC_OPERACION, RPC_DESHACER, SUFIJO_CLAVE_PERSONA, RPC_PREFERENCIAS } from "../../src/lib/operaciones/tuberia.js";
 import { ACCION_LIBRETA } from "../../src/lib/libretaCasa.js";
 import handler from "../operacion.js";
+import { filaDeTicket, filaDePrecio, COLUMNAS_TICKET, COLUMNAS_PRECIO, DE_LA_0124 } from "../../src/lib/historialCompra.js";
 import { HTTP_DE_FALLO } from "../../src/lib/escribirDato.js";
 import { FALLO_DATO, MOTIVOS_FALLO, FALLOS_DATO, ESTADO_OPERACION, SEXO, CANAL_DATO, REF_OPERACION } from "../../src/lib/vocabularios.js";
 
@@ -636,6 +637,30 @@ describe("api/operacion.js: lo gastado (trozo 22) va a ticket y precio_observado
     responde(/^\/rest\/v1\/precio_observado/, { status: 500, cuerpo: { code: "XX000", message: "roto" } });
     expect((await pedir({ body: { casa: CASA, compra: { precios: [GASTO] } } })).codigo).toBe(HTTP_DE_FALLO[FALLO_DATO.SERVIDOR]);
     expect(log.mock.calls.map((c) => JSON.parse(c[0])).find((l) => l.evento === "compra_sin_apuntar")).toMatchObject({ fallo: FALLO_DATO.SERVIDOR });
+  });
+
+  it("un precio de un ticket que ya no está (409 por clave ajena, 23503) no es «ya estaba»: no se da por guardado", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "owner" }] });
+    responde(/^\/rest\/v1\/precio_observado/, { status: 409, cuerpo: { code: "23503", message: "insert or update on table precio_observado violates foreign key constraint" } });
+    const res = await pedir({ body: { casa: CASA, compra: { precios: [{ ...GASTO, receiptId: "tk_borrado" }] } } });
+    expect(res.codigo).toBe(HTTP_DE_FALLO[FALLO_DATO.SERVIDOR]);
+    expect(res.body?.guardado).not.toBe(true);
+  });
+
+  it("las columnas que se leen son las de la fila que se escribe; sin la 0124, la lectura lo dice en el log", async () => {
+    expect(Object.keys(filaDeTicket(TICKET))).toEqual(COLUMNAS_TICKET);
+    expect(Object.keys(filaDePrecio(GASTO))).toEqual(COLUMNAS_PRECIO);
+    const aviso = vi.spyOn(console, "warn").mockImplementation(() => {});
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "viewer" }] });
+    responde(/^\/rest\/v1\/ticket\?.*tachados/, { status: 400, cuerpo: { code: "42703", message: "column ticket.tachados does not exist" } });
+    const res = await leer({ casa: CASA, compra: "1" });
+    expect(res.codigo).toBe(200);
+    const lecturas = llamadas.filter((l) => l.ruta.startsWith("/rest/v1/ticket?"));
+    expect(lecturas.map((l) => decodeURIComponent(l.ruta).split("select=")[1].split("&")[0])).toEqual([
+      COLUMNAS_TICKET.join(","), COLUMNAS_TICKET.filter((c) => !DE_LA_0124.includes(c)).join(","),
+    ]);
+    expect(aviso.mock.calls.map((c) => JSON.parse(c[0]))).toContainEqual({ evento: "ticket_sin_deshacer", motivo: "sin la 0124", lectura: true });
   });
 
   it("GET ?compra=1: los tickets y precios en la forma de la app, a quien es de la casa", async () => {

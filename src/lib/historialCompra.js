@@ -20,6 +20,15 @@ const textos = (v, que) => {
   return v.map(String);
 };
 
+/** Las columnas de cada tabla, en el orden de filaDeTicket y filaDePrecio (un test lo comprueba). */
+export const COLUMNAS_TICKET = ["id", "super", "comprado_at", "total", "lineas", "tachados", "tachados_semana", "despensa_ids"];
+/** Lo que la 0124 añade a `ticket`. */
+export const DE_LA_0124 = ["tachados", "tachados_semana", "despensa_ids"];
+export const COLUMNAS_PRECIO = [
+  "id", "ticket_id", "ingrediente_id", "nombre", "marca", "super", "precio", "cantidad", "unidad",
+  "tamano_cantidad", "tamano_unidad", "fuente", "tipo", "comprado_at",
+];
+
 /** La fila de `ticket` de un ticket de la app (`data.receipts`); lo que no case con la tabla lanza. */
 export function filaDeTicket(r) {
   if (!r?.id) throw new Error("ticket: falta el id");
