@@ -41,7 +41,7 @@ describe("siguienteVez", () => {
     expect(madrid(s)).toBe("2026-10-27 19:00");
   });
 
-  // La hora de pared no se guarda (solo due_at): la que no existió se queda en
+  // La hora de pared no se guarda (solo ejecutar_at): la que no existió se queda en
   // la siguiente que existe. Raro (un recordatorio a las 2 y pico) y nunca repetido.
   it("una hora que no existe (02:30 del cambio de marzo) sigue hacia delante", () => {
     const due = madridAUtc("2027-03-27T02:30").toISOString();
@@ -63,17 +63,21 @@ describe("siguienteVez", () => {
 describe("enviarPendientes cuando falla el envío", () => {
   beforeEach(() => { db.select.mockReset(); db.update.mockReset(); });
   const ahoraMs = Date.parse("2026-11-05T09:01:00Z");
-  const r = { id: 5, due_at: "2026-11-05T09:00:00.000Z", repite: null, sent_at: null };
+  // Un recordatorio en bot_tareas (0122): su hora y su caducidad, un día después.
+  const r = { id: "u-5", ejecutar_at: "2026-11-05T09:00:00.000Z", caduca_at: "2026-11-06T09:00:00.000Z", repite: null, aviso: "libre", texto: "x" };
 
-  it("un fallo pasajero lo devuelve a pendiente, condicionado al reclamo", async () => {
+  it("un fallo pasajero lo devuelve a abierto, condicionado al reclamo", async () => {
     db.select.mockResolvedValue([r]);
     db.update.mockResolvedValue([{ id: 5 }]);
     const n = await enviarPendientes(async () => { throw Object.assign(new Error("red"), { status: 502 }); }, ahoraMs);
     expect(n).toBe(0);
     expect(db.update).toHaveBeenCalledTimes(2);
-    const [, filtro, cambios] = db.update.mock.calls[1];
-    expect(filtro).toMatch(/status=eq\.sent&sent_at=eq\./);
-    expect(cambios).toEqual({ status: "pending", due_at: r.due_at, sent_at: null });
+    // El reclamo: hecha, con su closed_at.
+    expect(db.update.mock.calls[0][2]).toMatchObject({ status: "hecha" });
+    const [tabla, filtro, cambios] = db.update.mock.calls[1];
+    expect(tabla).toBe("bot_tareas");
+    expect(filtro).toMatch(/tipo=eq\.recordatorio&status=eq\.hecha&closed_at=eq\./);
+    expect(cambios).toMatchObject({ status: "abierta", closed_at: null, ejecutar_at: r.ejecutar_at, caduca_at: r.caduca_at });
   });
 
   it("si Telegram dice que no tiene arreglo (bot bloqueado), no se reintenta", async () => {
@@ -83,13 +87,17 @@ describe("enviarPendientes cuando falla el envío", () => {
     expect(db.update).toHaveBeenCalledTimes(1);
   });
 
-  it("uno que se repite vuelve a su due_at si falla", async () => {
+  it("uno que se repite mueve su hora y su caducidad al reclamarlo, y vuelve a las de antes si falla", async () => {
     db.select.mockResolvedValue([{ ...r, repite: "diario" }]);
     db.update.mockResolvedValue([{ id: 5 }]);
     await enviarPendientes(async () => { throw new Error("red"); }, ahoraMs);
+    const reclamo = db.update.mock.calls[0][2];
+    expect(reclamo.ejecutar_at).toMatch(/^2026-11-06/);
+    // El CHECK de la 0122: la caducidad, siempre después de la hora.
+    expect(Date.parse(reclamo.caduca_at)).toBeGreaterThan(Date.parse(reclamo.ejecutar_at));
     const [, filtro, cambios] = db.update.mock.calls[1];
-    expect(filtro).toMatch(/status=eq\.pending&due_at=eq\.2026-11-06/);
-    expect(cambios.due_at).toBe(r.due_at);
+    expect(filtro).toMatch(/status=eq\.abierta&ejecutar_at=eq\.2026-11-06/);
+    expect(cambios).toMatchObject({ ejecutar_at: r.ejecutar_at, caduca_at: r.caduca_at });
   });
 
   it("si sale bien, una sola escritura", async () => {
