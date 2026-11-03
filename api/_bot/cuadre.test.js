@@ -8,7 +8,7 @@ import { describe, it, expect } from "vitest";
 process.env.VITE_SUPABASE_URL ||= "https://sin-base.invalid";
 process.env.SUPABASE_SERVICE_ROLE_KEY ||= "sin-clave";
 
-const { cuadre, menciones, CUADRE, FALLO } = await import("./cuadre.js");
+const { cuadre, menciones, medidaDelCuadre, CUADRE, FALLO } = await import("./cuadre.js");
 const { resultado, conRecibo, ACCIONES } = await import("./resultado.js");
 // El vigilante de verdad: el mismo que decide si una frase dice que guardó.
 const { diceQueGuardo } = await import("./agente.js");
@@ -117,5 +117,17 @@ describe("¿cuadra lo que confirma Lola con lo guardado?", () => {
     const c = cuadre(texto, [r], opciones);
     expect(c.estado).toBe(CUADRE.CUADRA);
     expect(conRecibo(texto, [r], { cuadre: c })).toBe(`⚠️ <b>Sin hacer</b>: quitar el plato <i>(no se ha podido guardar)</i>.\n\n${texto}`);
+  });
+});
+
+describe("lo que se mide del cuadre (bot_route, lola.cuadre)", () => {
+  it("el estado; si no cuadra, además cada clase de fallo una vez", () => {
+    expect(medidaDelCuadre(cuadre("Apuntado: el viernes Leo cena fuera.", [cenaViernes()], opciones))).toEqual([CUADRE.CUADRA]);
+    const mal = cuadre("Apuntado: el viernes Leo no come ni cena en casa, ni el sábado.", [cenaViernes()], opciones);
+    expect(mal.estado).toBe(CUADRE.NO_CUADRA);
+    const m = medidaDelCuadre(mal);
+    expect(m[0]).toBe(CUADRE.NO_CUADRA);
+    expect(m.slice(1)).toEqual([...new Set(mal.fallos.map((f) => f.clase))]);
+    expect(m.slice(1)).toContain(FALLO.OTRO_VALOR);
   });
 });

@@ -54,13 +54,14 @@ export function leerDias(argv) {
 
 /**
  * Pura, para el test. `mensajes`: [{ chat, en (ms), texto }]; `rutas`: [{ chat,
- * en (ms), rapida, modo, herramientas: [[nombre, ms]], guardados, recibo: [[acción, hechas, sin hacer]] }].
+ * en (ms), rapida, modo, herramientas: [[nombre, ms]], guardados, recibo: [[acción, hechas, sin hacer]],
+ * cuadre: [estado, ...clases de fallo] (cuadre.js, L1) }]. `cuadre` cuenta cada estado y cada clase de fallo.
  * `soloLectura`: las herramientas que no escriben; `dice`: el vigilante.
  */
 export function contar(mensajes, rutas, { soloLectura, dice }) {
   const porChat = new Map();
   for (const r of rutas) porChat.set(r.chat, [...(porChat.get(r.chat) ?? []), r]);
-  const out = { respuestas: 0, conTurno: 0, dicen: 0, diceSinHecho: 0, diceConAlgoSinHacer: 0, sinTurno: 0 };
+  const out = { respuestas: 0, conTurno: 0, dicen: 0, diceSinHecho: 0, diceConAlgoSinHacer: 0, sinTurno: 0, cuadre: {} };
   for (const m of mensajes) {
     if (!String(m.texto ?? "").trim()) continue;
     out.respuestas++;
@@ -69,6 +70,7 @@ export function contar(mensajes, rutas, { soloLectura, dice }) {
       .sort((a, b) => Math.abs(a.en - m.en) - Math.abs(b.en - m.en))[0];
     if (!ruta) { out.sinTurno++; continue; }
     out.conTurno++;
+    for (const x of ruta.cuadre ?? []) out.cuadre[x] = (out.cuadre[x] ?? 0) + 1;
     if (!dice(m.texto)) continue;
     out.dicen++;
     const guardo = ruta.guardados != null
@@ -112,11 +114,14 @@ async function main() {
     const rutas = rs.map(({ metadata: x, created_at }) => ({
       chat: String(x?.chat ?? ""), en: Date.parse(created_at), rapida: x?.rapida === true, modo: x?.modo ?? null,
       herramientas: x?.lola?.herramientas ?? [], guardados: x?.lola?.guardados ?? null, recibo: x?.lola?.recibo ?? null,
+      cuadre: x?.lola?.cuadre ?? null,
     }));
     const c = contar(mensajes, rutas, { soloLectura: SOLO_LECTURA, dice: diceQueGuardo });
     console.log(`Últimos ${dias} días: ${c.respuestas} respuestas de Lola; ${c.conTurno} cruzadas con su turno (${c.sinTurno} sin medida).`);
     console.log(`Dicen que han hecho algo: ${c.dicen}. De esas, sin nada guardado en el turno: ${c.diceSinHecho} (${pct(c.diceSinHecho, c.conTurno)} de las respuestas cruzadas; ${pct(c.diceSinHecho, c.dicen)} de las que lo dicen).`);
     console.log(`Lo dicen y el recibo tiene algo sin hacer (solo turnos con recibo): ${c.diceConAlgoSinHacer}.`);
+    // L1: lo que confirma Lola contra los valores guardados (cuadre.js): estados y clases de fallo.
+    console.log(`Cuadre de lo que confirma con lo guardado: ${Object.entries(c.cuadre).map(([k, n]) => `${k} ${n}`).join(", ") || "sin turnos con cuadre"}.`);
   } finally {
     // Un rollback que falla se dice: la conexión se cierra igual.
     await client.query("rollback").catch((e) => console.warn(`rollback: ${e.message}`));
