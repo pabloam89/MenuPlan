@@ -114,13 +114,18 @@ export function resultado({ accion, hecho = [], sinHacer = [], nota = "", valore
 export const esResultado = (x) => Boolean(x && typeof x === "object" && x[MARCA]);
 
 /** Lo que se le ordena al modelo según el estado: el recibo ya cuenta lo hecho y lo que falta. */
+// Las piezas de las órdenes, una vez cada una: las combinan ORDEN y paraElModelo.
+const NO_ESTA_TODO = (r) => `NO está todo: ${r.sinHacer.length} sin hacer.`;
+const NO_LO_REPITAS = "no lo repitas, no digas «todo» y ofrece lo que se puede hacer con lo que falta.";
+const NADA_GUARDADO = "No se ha guardado NADA: no digas que está hecho.";
+
 const ORDEN = {
   [ESTADO.HECHO]: () => "El recibo con lo hecho sale pintado encima de tu mensaje: no repitas la lista; di en una frase lo que sigue.",
-  [ESTADO.PARCIAL]: (r) => `NO está todo: ${r.sinHacer.length} sin hacer. El recibo (✅ lo hecho, ⚠️ lo que falta y por qué) sale pintado encima de tu mensaje: no lo repitas, no digas «todo» y ofrece lo que se puede hacer con lo que falta.`,
+  [ESTADO.PARCIAL]: (r) => `${NO_ESTA_TODO(r)} El recibo (✅ lo hecho, ⚠️ lo que falta y por qué) sale pintado encima de tu mensaje: ${NO_LO_REPITAS}`,
   // Sin nada hecho ni motivo (una duda: qué día, quién): no hay recibo que pintar; lo que falta saber va en la nota.
   [ESTADO.NADA]: (r) => (r.sinHacer.length
-    ? "No se ha guardado NADA: no digas que está hecho. El recibo con el porqué sale pintado encima de tu mensaje; ofrece cómo arreglarlo."
-    : "No se ha guardado NADA: no digas que está hecho. Falta un dato para hacerlo (en la nota): pregúntalo."),
+    ? `${NADA_GUARDADO} El recibo con el porqué sale pintado encima de tu mensaje; ofrece cómo arreglarlo.`
+    : `${NADA_GUARDADO} Falta un dato para hacerlo (en la nota): pregúntalo.`),
 };
 
 /**
@@ -137,7 +142,7 @@ export function paraElModelo(r) {
   // Con valores, lo hecho no sale en el recibo si Lola lo dice bien; lo que falta (⚠️), sí, como siempre.
   const orden = !conValores ? ORDEN[r.estado](r)
     : r.estado === ESTADO.HECHO ? ORDEN_CON_VALORES
-      : `NO está todo: ${r.sinHacer.length} sin hacer. Lo que falta y por qué (⚠️) sale pintado encima de tu mensaje: no lo repitas, no digas «todo» y ofrece lo que se puede hacer con lo que falta. ${ORDEN_CON_VALORES}`;
+      : `${NO_ESTA_TODO(r)} Lo que falta y por qué (⚠️) sale pintado encima de tu mensaje: ${NO_LO_REPITAS} ${ORDEN_CON_VALORES}`;
   return `RESULTADO ${JSON.stringify(datos)}\n${orden}${r.nota ? `\n${r.nota}` : ""}`;
 }
 
