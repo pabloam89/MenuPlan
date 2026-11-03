@@ -6,9 +6,10 @@ paths:
 
 # Lola
 
-- **Evals antes de fusionar** si cambia lo que Lola lee: `api/_bot/conocimiento.md`,
-  el SISTEMA de `api/_bot/agente.js` o los textos de las herramientas. Se
-  corre `node scripts/bot-evals.mjs --nivel=pr` (25 casos, ~0,6–0,8 $) y, antes
+- **Las evals pagadas no las lanza ninguna sesión, nunca.** Las corre Pablo a
+  mano cuando hace pruebas con Lola; si cambia lo que Lola lee (`api/_bot/conocimiento.md`,
+  el SISTEMA de `api/_bot/agente.js` o los textos de las herramientas), la sesión
+  lo dice en el PR y no lo mide. Para cuando Pablo las corra: `node scripts/bot-evals.mjs --nivel=pr` (25 casos, ~0,6–0,8 $) y, antes
   de cerrar, la pasada completa (~3,5 $; `--nivel=seguridad`, ~3,2–3,4 $, si toca
   alergias, salud o papeles). Un caso nuevo se ve fallar antes del arreglo y
   lleva `id`, `tipo`, `dominio`, `origen` y, si habla de días, `dependeDeFecha`
