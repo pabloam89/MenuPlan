@@ -34,7 +34,7 @@ select count(*) from public.bot_tareas
 `bot_tareas_tipo_check`
 ```sql
 select count(*) from public.bot_tareas
- where tipo is not null and tipo not in ('espera','falta_saber','decision','seguimiento');
+ where tipo is not null and tipo not in ('espera','falta_saber','decision','seguimiento','recordatorio');
 ```
 
 `bot_tareas_campo_check`
