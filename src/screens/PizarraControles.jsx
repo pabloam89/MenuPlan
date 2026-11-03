@@ -14,6 +14,7 @@ import { GroupAvatarStack, groupAvatarFaces } from "../components/ui.jsx";
 import { membersOfGroup } from "../lib/groups.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { recuentoDelMenu } from "../lib/menuRecuento.js";
+import { avisoAlEmpezar } from "../lib/avisoNuevaPizarra.js";
 import { DAYS, getDayMeals } from "../lib/planner.js";
 import { LETRAS_DIA, DIA_LETRA } from "../lib/dias.js";
 import { MAX_MENU_WEEKS } from "../lib/menuArchive.js";
@@ -1784,17 +1785,83 @@ const TITULOS = {
   tanda: "Batch Cooking",
 };
 
+/**
+ * Una pregunta antes de algo que cambia el tablero entero (vaciar, empezar en
+ * blanco): una tarjeta con «Déjalo» y la acción. Una sola para las dos, para
+ * que se vean y se comporten igual.
+ */
+function Confirmacion({ titulo, texto, si, colorSi, onSi, onNo }) {
+  return createPortal(
+    <div
+      onClick={onNo}
+      className="mp-overlay-in"
+      style={{
+        position: "fixed", inset: 0, zIndex: "var(--capa-hoja)",
+        background: "rgba(20,47,29,.45)",
+        display: "flex", alignItems: "center", justifyContent: "center", padding: 24,
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        style={{
+          width: "min(300px, 100%)", background: "#fff", borderRadius: 20,
+          padding: 18, boxSizing: "border-box",
+          boxShadow: "0 24px 60px -18px rgba(20,47,29,.45)",
+        }}
+      >
+        <p style={{ margin: "0 0 4px", fontSize: 16, fontWeight: 900, color: INK }}>
+          {titulo}
+        </p>
+        <p style={{ margin: "0 0 16px", fontSize: 12.5, fontWeight: 600, color: "#7a9485", lineHeight: 1.45 }}>
+          {texto}
+        </p>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button
+            type="button"
+            className="mp-press"
+            onClick={onNo}
+            style={{
+              flex: 1, height: 40, borderRadius: 13, cursor: "pointer",
+              border: "1.5px solid #dbe7df", background: "#fff",
+              color: "#5a7066", fontSize: 13.5, fontWeight: 800, fontFamily: "inherit",
+            }}
+          >
+            Déjalo
+          </button>
+          <button
+            type="button"
+            className="mp-press"
+            onClick={onSi}
+            style={{
+              flex: 1, height: 40, borderRadius: 13, cursor: "pointer",
+              border: "none", background: colorSi, color: "#fff",
+              fontSize: 13.5, fontWeight: 800, fontFamily: "inherit",
+            }}
+          >
+            {si}
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
 export function PizarraControles({
   data, setData, menuPlan, groups, onRellenar,
   despensa, onAddDespensa, onQuitarDespensa, onQtyDespensa,
   onNuevaPizarra, onVaciar, onFavorito, esFavorito = false,
-  onCompartir, onMenus, onDescargar,
+  onCompartir, onMenus, onDescargar, conCuenta = false,
 }) {
   const [abierto, setAbierto] = useState(null);
   // Qué cara de la fila se ve. Arranca en las ACCIONES porque «Rellenar»
   // vive ahí y es lo que más se toca en un tablero recién montado.
   const [cara, setCara] = useState("acciones");
   const [confirmarVaciar, setConfirmarVaciar] = useState(false);
+  // Ya hay platos y se pulsa «Nueva»: antes de pisar el menú, se dice qué le pasa (lib/avisoNuevaPizarra.js).
+  const [avisoNueva, setAvisoNueva] = useState(null);
   const todayIdx = useMemo(() => todayDayIdx(), []);
 
   const diasDe = (offset) => diasDeSemana(data, offset, todayIdx);
@@ -1938,7 +2005,11 @@ export function PizarraControles({
                   orden={1}
                   color={TEAL}
                   tinte="#fff"
-                  onClick={onNuevaPizarra}
+                  onClick={() => {
+                    const aviso = avisoAlEmpezar({ plan: menuPlan, conCuenta });
+                    if (aviso) setAvisoNueva(aviso);
+                    else onNuevaPizarra();
+                  }}
                 />
               )}
               {/* Los menús de otras semanas, y los favoritos. Antes vivían en
@@ -2058,61 +2129,25 @@ export function PizarraControles({
           Rellenar tira siempre de lo que tienes, así que antes de hacerlo se
           enseña: apuntas lo que falte y le das. Por portal, como los paneles
           (un ancestro animado atraparía el `fixed`). */}
-      {confirmarVaciar && createPortal(
-        <div
-          onClick={() => setConfirmarVaciar(false)}
-          className="mp-overlay-in"
-          style={{
-            position: "fixed", inset: 0, zIndex: "var(--capa-hoja)",
-            background: "rgba(20,47,29,.45)",
-            display: "flex", alignItems: "center", justifyContent: "center", padding: 24,
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            role="dialog"
-            aria-modal="true"
-            style={{
-              width: "min(300px, 100%)", background: "#fff", borderRadius: 20,
-              padding: 18, boxSizing: "border-box",
-              boxShadow: "0 24px 60px -18px rgba(20,47,29,.45)",
-            }}
-          >
-            <p style={{ margin: "0 0 4px", fontSize: 16, fontWeight: 900, color: INK }}>
-              ¿Vaciar la pizarra?
-            </p>
-            <p style={{ margin: "0 0 16px", fontSize: 12.5, fontWeight: 600, color: "#7a9485", lineHeight: 1.45 }}>
-              Se quitan los platos. Los huecos se quedan como están.
-            </p>
-            <div style={{ display: "flex", gap: 8 }}>
-              <button
-                type="button"
-                className="mp-press"
-                onClick={() => setConfirmarVaciar(false)}
-                style={{
-                  flex: 1, height: 40, borderRadius: 13, cursor: "pointer",
-                  border: "1.5px solid #dbe7df", background: "#fff",
-                  color: "#5a7066", fontSize: 13.5, fontWeight: 800, fontFamily: "inherit",
-                }}
-              >
-                Déjalo
-              </button>
-              <button
-                type="button"
-                className="mp-press"
-                onClick={() => { setConfirmarVaciar(false); onVaciar?.(); }}
-                style={{
-                  flex: 1, height: 40, borderRadius: 13, cursor: "pointer",
-                  border: "none", background: "var(--color-aviso)", color: "#fff",
-                  fontSize: 13.5, fontWeight: 800, fontFamily: "inherit",
-                }}
-              >
-                Vaciar
-              </button>
-            </div>
-          </div>
-        </div>,
-        document.body,
+      {confirmarVaciar && (
+        <Confirmacion
+          titulo="¿Vaciar la pizarra?"
+          texto="Se quitan los platos. Los huecos se quedan como están."
+          si="Vaciar"
+          colorSi="var(--color-aviso)"
+          onNo={() => setConfirmarVaciar(false)}
+          onSi={() => { setConfirmarVaciar(false); onVaciar?.(); }}
+        />
+      )}
+      {avisoNueva && (
+        <Confirmacion
+          titulo={avisoNueva.titulo}
+          texto={avisoNueva.texto}
+          si="Empezar"
+          colorSi={TEAL}
+          onNo={() => setAvisoNueva(null)}
+          onSi={() => { setAvisoNueva(null); onNuevaPizarra?.(); }}
+        />
       )}
 
       {/* ── Por PORTAL, y no aquí dentro ──────────────────────────────────

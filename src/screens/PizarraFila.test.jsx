@@ -57,3 +57,31 @@ describe("la fila de acciones de la pizarra", () => {
     }
   });
 });
+
+describe("«Nueva» con un menú que ya tiene platos", () => {
+  it("avisa antes y no empieza hasta que se confirma", () => {
+    const onNueva = vi.fn();
+    const caja = document.createElement("div");
+    document.body.appendChild(caja);
+    act(() => {
+      createRoot(caja).render(
+        <PizarraControles
+          data={{ members: [], groups: [], menuWeek: { offset: 0 } }}
+          setData={() => {}}
+          menuPlan={{ Lun: { comida: { recipeId: "r1" } } }}
+          groups={[]}
+          onNuevaPizarra={onNueva}
+          conCuenta
+        />,
+      );
+    });
+    const boton = (donde, txt) => [...donde.querySelectorAll("button")].find((b) => b.textContent.trim() === txt);
+    act(() => boton(caja, "Nueva").click());
+    // El aviso va por portal, colgado del body.
+    const dialogo = document.querySelector('[role="dialog"]');
+    expect(onNueva).not.toHaveBeenCalled();
+    expect(dialogo?.textContent).toMatch(/queda en «Menús»/);
+    act(() => boton(dialogo, "Empezar").click());
+    expect(onNueva).toHaveBeenCalledTimes(1);
+  });
+});
