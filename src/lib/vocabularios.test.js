@@ -55,7 +55,7 @@ const SIN_LISTA = {
   "bot_messages.role": "user/assistant, a mano en el bot",
   "bot_reminders.repite": "REPITES_RECORDATORIO (la de bot_tareas.repite, 0122); la tabla se retira en el PR 3 del trozo 34",
   "bot_reminders.status": "pending/sent/cancelled, a mano en api/_bot/recordatorios.js",
-  "bot_reminders.tipo": "AVISOS_RECORDATORIO (TIPOS_RECORDATORIO de api/_bot/recordatorios.js es la misma); su paridad, en api/_bot/vocabulario.test.js",
+  "bot_reminders.tipo": "AVISOS_RECORDATORIO (la de bot_tareas.aviso, 0122); la tabla se retira en el PR 3 del trozo 34; su paridad, en api/_bot/vocabulario.test.js",
   "content_reports.status": "lo social, apagado en staging",
   "content_translations.lang": "solo 'en' (el idioma al que se traduce), a mano en api/_bot/traducir.js",
   "household_invites.role": "editor/viewer, de src/lib/papeles.js sin test",

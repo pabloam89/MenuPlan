@@ -60,15 +60,10 @@
     "api/_bot/recetas.js",
     "api/bot/telegram.js"
   ],
-  "bot_reminders": [
-    "api/_bot/chats.js",
-    "api/_bot/ficha.js",
-    "api/_bot/recordatorios.js",
-    "api/_bot/vispera.js"
-  ],
   "bot_tareas": [
     "api/_bot/caducidades.js",
     "api/_bot/chats.js",
+    "api/_bot/recordatorios.js",
     "api/_bot/tareas.js"
   ],
   "bot_usage": [

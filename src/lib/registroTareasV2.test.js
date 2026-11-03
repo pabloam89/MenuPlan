@@ -11,8 +11,10 @@ const sql = readFileSync(new URL("../../supabase/migrations/0080_bot_tareas_v2.s
 // Sin comentarios: los SELECT de comprobación previa no cuentan como esquema.
 const codigo = sql.split("\n").filter((l) => !/^\s*--/.test(l)).join("\n");
 
-const valoresDe = (columna) => {
-  const m = codigo.match(new RegExp(`${columna}\\s+is\\s+null\\s+or\\s+${columna}\\s+in\\s*\\(([^)]*)\\)`, "i"));
+const sin0122 = readFileSync(new URL("../../supabase/migrations/0122_recordatorios_en_tareas.sql", import.meta.url), "utf8")
+  .split("\n").filter((l) => !/^\s*--/.test(l)).join("\n");
+const valoresDe = (columna, texto = codigo) => {
+  const m = texto.match(new RegExp(`${columna}\\s+is\\s+null\\s+or\\s+${columna}\\s+in\\s*\\(([^)]*)\\)`, "i"));
   return m ? [...m[1].matchAll(/'([^']+)'/g)].map((x) => x[1]) : null;
 };
 
@@ -25,7 +27,8 @@ describe("0080 = registroTareas", () => {
 
   for (const col of ["tipo", "resultado", "objetivo", "campo"]) {
     it(`bot_tareas.${col}`, () => {
-      const enBase = valoresDe(col);
+      // El tipo lo rehízo la 0122 (con «recordatorio», trozo 34): vale su CHECK, no el de la 0080.
+      const enBase = col === "tipo" ? valoresDe(col, sin0122) : valoresDe(col);
       expect(enBase, `no encuentro el CHECK de ${col} en 0080`).toBeTruthy();
       expect([...enBase].sort()).toEqual([...ENUMS[`bot_tareas.${col}`]].sort());
     });
