@@ -6,6 +6,8 @@ import { familiaDeFilas, RPC_FAMILIA, RPC_FICHA, fichaDePrueba, RPC_PREFERENCIAS
 const viejo = {
   members: [], userRecipes: [{ id: "de-antes" }], recipeFolders: [{ id: "f1", name: "Cenas" }],
   recipeCollections: { favoritas: ["de-antes"] }, recipeVotes: { x: 1 }, discards: { forever: [] },
+  // Marcas de pantalla de una casa vieja (trozo 22): tampoco vuelven al documento.
+  modePrompted: true, pantryPrefsSet: true, pantryHasItems: true, expertMode: true,
 };
 const llamadas = [];
 vi.mock("./db.js", () => ({
@@ -31,7 +33,7 @@ vi.mock("./propias.js", () => ({ recetasPropiasDeCasa: vi.fn(async () => []) }))
 const { cargarCasa, guardarCasa } = await import("./casa.js");
 
 describe("Lola no vuelve a escribir en el documento las recetas que viven en tablas", () => {
-  it("al guardar, el documento va sin recetas propias, carpetas, colecciones, votos ni descartes, y con lo demás", async () => {
+  it("al guardar, el documento va sin recetas propias, carpetas, colecciones, votos, descartes ni marcas de pantalla, y con lo demás", async () => {
     const casa = await cargarCasa("h1", { fresca: true });
     llamadas.length = 0;
     expect((await guardarCasa(casa, { state: { ...casa.state, data: { ...casa.state.data, cookedDishes: { a: 1 } } } })).ok).toBe(true);
@@ -39,5 +41,7 @@ describe("Lola no vuelve a escribir en el documento las recetas que viven en tab
     const data = args.p_state.data;
     for (const k of ["userRecipes", "recipeFolders", "recipeCollections", "recipeVotes", "discards"]) expect(data).not.toHaveProperty(k);
     expect(data.cookedDishes).toEqual({ a: 1 });
+    for (const k of ["modePrompted", "pantryPrefsSet", "pantryHasItems"]) expect(data, k).not.toHaveProperty(k);
+    expect(data.expertMode).toBe(true);
   });
 });
