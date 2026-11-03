@@ -530,6 +530,18 @@ describe("api/operacion.js: lo cocinado (trozo 22) va a su tabla, cocinado", () 
     expect(log.mock.calls.map((c) => JSON.parse(c[0])).find((l) => l.evento === "cocinado_sin_apuntar")).toMatchObject({ fallo: FALLO_DATO.SERVIDOR });
   });
 
+  it("sin red al apuntar no es una fila mala: sin_red, y queda en el log", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "owner" }] });
+    const conRed = globalThis.fetch;
+    vi.stubGlobal("fetch", vi.fn(async (url, init) => {
+      if (String(url).includes("/rest/v1/cocinado")) throw new TypeError("fetch failed");
+      return conRed(url, init);
+    }));
+    expect((await pedir({ body: { casa: CASA, cocinado: { ...FILA, hecho: true } } })).codigo).toBe(HTTP_DE_FALLO[FALLO_DATO.SIN_RED]);
+    expect(log.mock.calls.map((c) => JSON.parse(c[0])).find((l) => l.evento === "cocinado_sin_apuntar")).toMatchObject({ fallo: FALLO_DATO.SIN_RED });
+  });
+
   it("GET ?cocinados=<lunes>: las filas de esa semana, a quien es de la casa (también a un lector)", async () => {
     responde(/household_members/, { status: 200, cuerpo: [{ role: "viewer" }] });
     responde(/^\/rest\/v1\/cocinado/, { status: 200, cuerpo: [FILA] });
