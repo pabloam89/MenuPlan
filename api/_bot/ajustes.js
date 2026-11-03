@@ -517,6 +517,9 @@ export function personasDeEdad(miembros, cuales) {
 /** Por qué no se ha cambiado el horario de alguien, para el recibo (⚠️). */
 export const SIN_HORARIO = Object.freeze({ NO_ESTA: "no está en la casa" });
 
+/** La acción del resultado de ajustar_horario: su etiqueta del recibo está en ACCIONES (resultado.js). */
+const ACCION_HORARIO = "horario";
+
 /**
  * El RESULTADO de ajustar_horario (trozo 27 de #1037): lo cambiado, en una
  * línea; quien no está en la casa, sin hacer y por qué; y lo que falta saber
@@ -525,7 +528,7 @@ export const SIN_HORARIO = Object.freeze({ NO_ESTA: "no está en la casa" });
  * DÓNDE se come (casa, tupper, fuera, cole, off), y ese eje aún no se compara.
  */
 export async function ajustarHorario(householdId, { personas, dias, comidas, donde }, quien = {}) {
-  const enNota = (texto) => ({ texto, resultado: resultado({ accion: "horario", nota: texto }) });
+  const enNota = (texto) => ({ texto, resultado: resultado({ accion: ACCION_HORARIO, nota: texto }) });
   return conData(householdId, (data, m) => {
     if (!m.SLOT_VALUES.includes(donde)) return enNota(`«${donde}» no vale: casa, tupper, fuera, cole u off.`);
     const miembros = data.members ?? [];
@@ -535,7 +538,7 @@ export async function ajustarHorario(householdId, { personas, dias, comidas, don
     if (rp.dudas.length) {
       const texto = `${rp.dudas.join(" ")} No he cambiado el horario.`;
       // Todas las dudas son nombres que no están en la casa: no hay nada que preguntar, se dice qué no se hizo.
-      if (rp.noEstan.length === rp.dudas.length) return { texto, resultado: resultado({ accion: "horario", sinHacer: rp.noEstan.map((que) => ({ que, motivo: SIN_HORARIO.NO_ESTA })), nota: texto }) };
+      if (rp.noEstan.length === rp.dudas.length) return { texto, resultado: resultado({ accion: ACCION_HORARIO, sinHacer: rp.noEstan.map((que) => ({ que, motivo: SIN_HORARIO.NO_ESTA })), nota: texto }) };
       return enNota(texto);
     }
     const sel = new Set(rp.personas.map((x) => x.id));
@@ -567,7 +570,7 @@ export async function ajustarHorario(householdId, { personas, dias, comidas, don
     const nombres = miembros.filter((x) => sel.has(x.id)).map((x) => x.name).join(", ");
     const hecho = `${nombres} → ${donde} (${ds.map((d) => DIA_LARGO[d]).join(", ")}; ${cs.join(", ")})`;
     const texto = `Horario guardado: ${hecho}.${avisoCole}`;
-    return { data: { ...data, schedule }, texto, resultado: resultado({ accion: "horario", hecho: [hecho], nota: avisoCole.trim() }) };
+    return { data: { ...data, schedule }, texto, resultado: resultado({ accion: ACCION_HORARIO, hecho: [hecho], nota: avisoCole.trim() }) };
   });
 }
 
