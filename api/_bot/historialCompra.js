@@ -11,8 +11,8 @@ const COLUMNAS_TICKET_0109 = "id,super,comprado_at,total,lineas";
 const COLUMNAS_PRECIO = "id,ticket_id,ingrediente_id,nombre,marca,super,precio,cantidad,unidad,tamano_cantidad,tamano_unidad,fuente,tipo,comprado_at";
 /** Lo que la 0124 añade a `ticket`. */
 const DE_LA_0124 = ["tachados", "tachados_semana", "despensa_ids"];
-/** PostgREST no conoce una columna: la 0124 aún no está aplicada. */
-const sinColumna = (e) => e?.codigo === "PGRST204" || /column .* does not exist|42703/i.test(String(e?.message ?? ""));
+/** Falta una columna de la 0124 (aún sin aplicar): PostgREST (PGRST204) o Postgres (42703) la nombran. Otra, no. */
+const sinColumna = (e) => ["PGRST204", "42703"].includes(e?.codigo) && DE_LA_0124.some((c) => String(e?.message ?? "").includes(c));
 
 /**
  * Guarda un ticket (fila ya comprobada con filaDeTicket) y sus precios (filas de filaDePrecio). Uno que ya estaba no

@@ -27,7 +27,7 @@ export function filaDeTicket(r) {
   const lineas = Number(r.lineCount);
   if (!(total >= 0) || !Number.isInteger(lineas) || lineas < 0) throw new Error("ticket: total o líneas no valen");
   const semana = r.tachedWeekStart ?? null;
-  if (semana != null && !FECHA.test(String(semana))) throw new Error(`ticket: «${semana}» no es una fecha`);
+  if (semana != null && (!FECHA.test(String(semana)) || new Date(`${semana}T12:00:00Z`).getUTCDay() !== 1)) throw new Error(`ticket: «${semana}» no es un lunes`);
   return {
     id: String(r.id), super: texto(r.store), comprado_at: instante(r.purchasedAt, "ticket"), total, lineas,
     tachados: textos(r.tachedKeys, "ticket.tachados"), tachados_semana: semana, despensa_ids: textos(r.pantryIds, "ticket.despensa_ids"),

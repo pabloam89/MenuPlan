@@ -1,3 +1,4 @@
+-- AUDITADA: auditor-datos 2026-11-03 OK
 -- El ticket guarda lo que deshace al borrarlo (plan fichas con estado, trozo 22; #1229, #1037). Hoy un ticket de
 -- data.receipts lleva, además de súper, fecha, total y líneas, lo que hizo en la lista y en la despensa, para que
 -- borrarlo lo deshaga (src/screens/SpendPanel.jsx, deleteReceipt): los artículos que tachó (`tachedKeys`), la semana
@@ -32,19 +33,19 @@ alter table public.ticket
 comment on column public.ticket.tachados is
   'Las claves de la lista que este ticket tachó (tachedKeys de la app): borrarlo las destacha. Vacío si no tachó nada.';
 comment on column public.ticket.tachados_semana is
-  'El lunes de la única semana en que tachó (tachedWeekStart): el deshacer se queda en ella. Null si no se sabe.';
+  'El lunes de la única semana en que tachó (tachedWeekStart; que sea lunes lo comprueba filaDeTicket, src/lib/historialCompra.js): el deshacer se queda en ella. Null si no se sabe.';
 comment on column public.ticket.despensa_ids is
   'Los ids de lo que creó en la despensa (pantryIds): borrarlo los quita, y nada más de «En casa».';
 
--- Autoprueba (se deshace siempre): las tres columnas existen, con su tipo y su defecto.
+-- Autoprueba (no escribe nada): las tres columnas existen, con su tipo y su defecto.
 do $$
 declare
   v_n integer;
 begin
   select count(*) into v_n from information_schema.columns
    where table_schema = 'public' and table_name = 'ticket'
-     and ((column_name = 'tachados' and data_type = 'ARRAY' and is_nullable = 'NO')
-       or (column_name = 'tachados_semana' and data_type = 'date')
-       or (column_name = 'despensa_ids' and data_type = 'ARRAY' and is_nullable = 'NO'));
-  if v_n <> 3 then raise exception '0124 autoprueba: ticket tiene % de las 3 columnas nuevas', v_n; end if;
+     and ((column_name = 'tachados' and udt_name = '_text' and is_nullable = 'NO' and position('{}' in column_default) > 0)
+       or (column_name = 'tachados_semana' and data_type = 'date' and is_nullable = 'YES')
+       or (column_name = 'despensa_ids' and udt_name = '_text' and is_nullable = 'NO' and position('{}' in column_default) > 0));
+  if v_n <> 3 then raise exception '0124 autoprueba: ticket tiene % de las 3 columnas nuevas como deben', v_n; end if;
 end $$;
