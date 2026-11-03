@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   revisor:
-    uses: factory-am89/fabrica/.github/workflows/revisor.yml@51d3b8e66b3af7286fc66c1e519fa840f29bb79e
+    uses: factory-am89/fabrica/.github/workflows/revisor.yml@255ae8baf44283ed4d87d064ac985651eda1cb5b
     with:
       # Bots de HoMenu que pueden despertar al juez, además de los que ya trae la Fábrica.
       bots: homenu-sesiones,homenu-dependabot-merge

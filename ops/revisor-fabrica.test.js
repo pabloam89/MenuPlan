@@ -29,7 +29,7 @@ describe("revisor.yml llama al juez de la Fábrica", () => {
   it("tiene un solo trabajo, que llama al workflow reutilizable de la Fábrica fijado a un sha", () => {
     expect(Object.keys(wf().jobs ?? {})).toHaveLength(1);
     expect(trabajo().uses).toMatch(/^factory-am89\/fabrica\/\.github\/workflows\/revisor\.yml@[0-9a-f]{40}$/);
-    expect(trabajo().uses).toMatch(/@51d3b8e66b3af7286fc66c1e519fa840f29bb79e$/);
+    expect(trabajo().uses).toMatch(/@255ae8baf44283ed4d87d064ac985651eda1cb5b$/);
     expect(trabajo().steps, "un trabajo que llama no tiene pasos").toBeUndefined();
   });
 
