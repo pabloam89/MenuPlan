@@ -35,6 +35,7 @@ import { etapaDe } from "../../src/lib/stages.js";
 import { claveDeTarea, KIND_DE_TIPO } from "../../src/lib/registroTareas.js";
 import { estadosDeFichas, marcasDeLola, fichaSinContrato, FICHA_CON_ESTADO } from "../../src/lib/estadoDeDato.js";
 import { PGRST_SIN_FUNCION, PG_SIN_FUNCION } from "../../src/lib/postgrest.js";
+import { TIPO_TAREA } from "../../src/lib/vocabularios.js";
 
 export const fichaRpc = () => /^(1|true|si|sí|on)$/i.test(String(process.env.BOT_FICHA_RPC ?? "").trim());
 
@@ -105,7 +106,8 @@ export async function leerFichaCasa({ householdId, userId = null, canal = null }
  * y la clave de una tarea libre (solo se rehace la de un campo de la ficha).
  */
 export function tareasDeFicha(ficha, { userId = null, privado = false, ahora = new Date() } = {}) {
-  const tareas = (ficha?.tareas ?? []).map((t) => ({
+  // ficha_casa (0116) devuelve también los recordatorios abiertos (tipo recordatorio, 0122): no son algo que preguntar.
+  const tareas = (ficha?.tareas ?? []).filter((t) => t.tipo !== TIPO_TAREA.RECORDATORIO).map((t) => ({
     id: t.id,
     kind: KIND_DE_TIPO[t.tipo] ?? null,
     tipo: t.tipo ?? null,

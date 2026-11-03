@@ -45,9 +45,12 @@ describe("borrarLoDelBot", () => {
     expect(r.casas).toBe(1);
     const tabla = (t) => borrados.filter((b) => b.startsWith(`${t}?`));
     // Los chats: el privado (mismo id que su Telegram) y el grupo enlazado a su casa.
-    for (const t of ["bot_messages", "bot_cola", "bot_candados", "bot_reminders", "bot_chats"]) {
+    for (const t of ["bot_messages", "bot_cola", "bot_candados", "bot_chats"]) {
       expect(tabla(t).some((b) => b.includes('"555"') && b.includes('"-100777"'))).toBe(true);
     }
+    // Los recordatorios (bot_tareas de tipo recordatorio, 0122) de esos chats; las demás tareas van con la casa.
+    expect(tabla("bot_tareas").some((b) => b.includes('"555"') && b.includes('"-100777"') && b.includes("tipo=eq.recordatorio"))).toBe(true);
+    expect(tabla("bot_reminders")).toEqual([]);
     expect(tabla("bot_identities").some((b) => b.includes("user_id=eq.u1"))).toBe(true);
     expect(tabla("bot_deshacer")[0]).toContain('"casa1"');
     expect(tabla("bot_usage")[0]).toContain('"casa1"');
