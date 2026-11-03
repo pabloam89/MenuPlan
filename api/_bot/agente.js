@@ -22,7 +22,7 @@ import {
   describirCasa, describirReceta, describirCompra,
   marcarCompra, anadirCompra, quitarCompra, cambiarPlato, proponerPlatos, franjaDe, porQuePlato,
   rangosDelMenu, resultadoDeCambio, resultadoDeAnadir, SIN_CAMBIAR,
-  apuntarAusencia,
+  apuntarAusencia, resultadoDeAusencia,
 } from "./menu.js";
 import { ESQUEMA_RASGOS, ESQUEMA_EJES, ESQUEMA_PERFIL } from "./esquemas.js";
 import { generarMenu, resultadoDeGenerar } from "./generar.js";
@@ -1015,7 +1015,7 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
       run: async ({ de_nuevo, ...args }) => {
         const r = await apuntarAusencia(householdId, { ...args, deNuevo: de_nuevo === true, autor: chat.autor ?? null, userId: quien.userId });
         if (r.pintar) pintarTambien(chat, r.pintar);
-        return r.texto;
+        return resultadoDeAusencia(r);
       },
     }),
     herramienta({ capacidades: ["cambiar_plato", "elegir_plato"], lee: ["menus", "members", "members.allergies"], escribe: ["menus"], lector: false, soloLectura: false, pantalla: (a) => (a.dia && diaDe(a.dia) ? `dia:${diaDe(a.dia)}` : null) }, {
@@ -1816,7 +1816,6 @@ export const SIN_RESULTADO_TODAVIA = new Set([
   "guardar_receta", "guardar_menu_cole", "ajustar_gustos", "descartar_supuesto", "ajustar_cocina", "ajustar_compra",
   "ajustar_extras", "ajustar_semana", "ajustar_uso_despensa", "pedir_tanda", "ajustar_horario", "anadir_invitado",
   "anadir_comensal", "ajustar_persona", "ajustar_menu_peques", "quitar_comensal", "ajustar_alergias", "ajustar_salud",
-  "fuera_de_casa",
 ]);
 
 /** ¿La puerta rechaza lo que ha devuelto esta herramienta? Escribe datos de la ficha y no trae un RESULTADO. */
