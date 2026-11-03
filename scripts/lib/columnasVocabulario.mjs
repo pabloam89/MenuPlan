@@ -38,6 +38,9 @@ export const COLUMNAS_VOCABULARIO = Object.freeze({
   "bot_messages.channel": { lista: "canales", comun: true },
   "bot_reminders.channel": { lista: "canales", comun: true },
   "bot_tareas.channel": { lista: "canales", comun: true },
+  // Los recordatorios en tareas (0122, trozo 34). Comunes: «repite» y «aviso» son también claves de otros objetos.
+  "bot_tareas.repite": { lista: "repites_recordatorio", comun: true },
+  "bot_tareas.aviso": { lista: "avisos_recordatorio", comun: true },
   "bot_cola.channel": { lista: "canales", comun: true },
   "user_profiles.ui_lang": { lista: "idiomas" },
   "household_invites.lang": { lista: "idiomas", comun: true, rpc: { create_household_invite: "p_lang" } },
@@ -87,6 +90,9 @@ export const COLUMNAS_VOCABULARIO = Object.freeze({
  * un `default '<valor>'` de las migraciones sobre una columna de arriba no está aquí.
  */
 export const ESCRITORES_SQL = Object.freeze({
+  "bot_tareas.aviso": "solo la autoprueba de la 0122 ('libre', en un bloque que se deshace); el código lo escribe con el PR 2 del trozo 34",
+  "bot_tareas.repite": "solo la autoprueba de la 0122 ('semanal', en un bloque que se deshace); el código lo escribe con el PR 2 del trozo 34",
+  "bot_tareas.channel": "la autoprueba de la 0122 (0122_recordatorios_en_tareas) inserta 'telegram' a mano, en un bloque que se deshace: no queda ninguna fila",
   "bot_cola.channel": "el default 'telegram' de la 0063 lo pondría la base si una fila llegara sin channel; encolar (api/_bot/turnos.js) lo pasa explícito por paraEscribir, así que hoy no actúa",
   "user_menu_weeks.active_days": "la RPC de guardar semana (0057, 0068) inserta el active_days de la fila que monta weekToRow (src/lib/menusSync.js), que ya pasa por listaParaEscribir",
   "household_invites.lang": "create_household_invite (0071) inserta su p_lang, que householdsSync.js pasa por paraEscribir",
