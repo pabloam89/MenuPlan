@@ -3565,8 +3565,14 @@ export default function App() {
   useEffect(() => {
     if (!porActivar || activadoSoloRef.current === porActivar) return;
     activadoSoloRef.current = porActivar;
-    activateActiveMenu({ silencioso: true }).catch((e) => console.error("[activar solo]", e?.message));
-  }, [porActivar, activateActiveMenu]);
+    // Si falla, se dice, y el ref se suelta para que se vuelva a intentar en
+    // cuanto cambie algo (la nube, el menú): no se queda sin activar callado.
+    activateActiveMenu({ silencioso: true }).catch((e) => {
+      console.error("[activar solo]", e?.message);
+      activadoSoloRef.current = null;
+      showToast("No he podido activar el menú de esta semana; lo vuelvo a intentar");
+    });
+  }, [porActivar, activateActiveMenu, showToast]);
 
   /**
    * Desactivar: lo contrario de activar, y ya existía a medias.
