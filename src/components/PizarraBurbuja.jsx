@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Loader2, Mic, Send, Undo2, X } from "./icons.jsx";
-import lolaFoto from "../assets/lola/lola-perfil.jpg";
+import { Loader2, Mic, Send, Sparkles, Undo2, X } from "./icons.jsx";
 
 /**
  * La burbuja de la pizarra: pides un cambio con una frase y se hace ya.
@@ -234,7 +233,7 @@ export function PizarraBurbuja({ onOrden, onDeshacer }) {
           >
             {pensando
               ? <Loader2 size={18} color="#c98a1e" className="mp-burbuja-gira" />
-              : <img src={lolaFoto} alt="" width={28} height={28} style={{ borderRadius: "var(--radio-pildora)", objectFit: "cover", flexShrink: 0 }} />}
+              : <Sparkles size={18} color="#c98a1e" strokeWidth={2.4} />}
             <input
               ref={inputRef}
               className="mp-burbuja-input"
@@ -299,21 +298,18 @@ export function PizarraBurbuja({ onOrden, onDeshacer }) {
         <button
           type="button"
           onClick={() => setAbierta(true)}
-          aria-label="Pedirle un cambio a Lola"
+          aria-label="Pedir un cambio"
           className="mp-press mp-burbuja-latido mp-burbuja-in"
           style={{
             position: "fixed", zIndex: 151, right: borde, bottom: abajo,
             width: 56, height: 56, borderRadius: 999, border: "none", cursor: "pointer",
-            // La cara de Lola y no unas chispas: quien pide cambios con
-            // palabras es ella, la misma que en el chat.
-            background: "#fff", color: VERDE, padding: 0, overflow: "hidden",
-            boxShadow: `0 0 0 3px ${VERDE}, 0 14px 32px -12px rgba(20,47,29,.6)`,
+            background: "linear-gradient(135deg, #2d5a3d, #3f9656)", color: "#fff",
             display: "flex", alignItems: "center", justifyContent: "center",
           }}
         >
           {pensando
             ? <Loader2 size={22} className="mp-burbuja-gira" />
-            : <img src={lolaFoto} alt="" width={56} height={56} style={{ width: "100%", height: "100%", objectFit: "cover" }} />}
+            : <Sparkles size={22} strokeWidth={2.3} />}
         </button>
       )}
     </>

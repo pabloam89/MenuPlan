@@ -6393,9 +6393,7 @@ export default function App() {
               onDishPlace={householdReadOnly ? undefined : handlePlaceRecipeInSlot}
               onIncomingCancel={() => setPendingDish(null)}
               onDishManualPick={householdReadOnly ? undefined : handleManualPickSlot}
-              // En la pizarra no hay «regenerar el día»: un plato se cambia
-              // con sus «…» y lo demás se le pide a Lola.
-              onRegenerateDay={householdReadOnly || esPizarra ? undefined : handleRegenerateDay}
+              onRegenerateDay={householdReadOnly ? undefined : handleRegenerateDay}
               onNav={handleNav}
               onRegenerate={householdReadOnly ? undefined : handleRegenerate}
               onRetry={retryGenerateMenu}
