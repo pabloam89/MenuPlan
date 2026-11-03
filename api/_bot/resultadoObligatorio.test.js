@@ -33,7 +33,7 @@ const { resultado, exigeResultado, ESTADO } = await import("./resultado.js");
 // Las que escribían datos de la ficha sin devolver resultado al empezar el
 // trozo 27 (31 oct 2026). La lista solo baja: una herramienta nueva que
 // escribe nace con su resultado.
-const LINEA_BASE = 19;
+const LINEA_BASE = 18;
 
 const charla = (mas = {}) => ({ householdId: "casa", chatId: "1", channel: "telegram", fotos: [], papel: "owner", esGrupo: false, texto: "venga", resultados: [], ...mas });
 const correr = async (chat, nombre, args) => {

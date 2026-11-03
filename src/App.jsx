@@ -72,7 +72,6 @@ import { GeneratingScreen } from "./screens/GeneratingScreen.jsx";
 // vive detrás de este hook: la fila de mandos sobre el menú, la burbuja del
 // bot y el modal que sale al dar a "Generar menú". Quitarlo es borrar sus
 // cuatro usos de aquí.
-import { useWizardMenu } from "./components/wizard/useWizardMenu.jsx";
 import { FeedScreen } from "./screens/FeedScreen.jsx";
 import { buildShoppingList } from "./lib/shoppingBuilder.js";
 import { clearPreparedFromSlot } from "./lib/freezer.js";
@@ -102,6 +101,8 @@ import {
 import { normalizeKidDinnerConfig } from "./lib/kidsMenu.js";
 import { loadState, saveState, clearState } from "./lib/storage.js";
 import { semanaDeHoy } from "./lib/menuArchive.js";
+import { menuPorActivar, devolucionAlActivar } from "./lib/activarSolo.js";
+import { usaTablero } from "./lib/modoMenu.js";
 import { puedeRegenerarDia } from "./lib/regenerarDia.js";
 import {
   clampWeekCount,
@@ -1205,10 +1206,9 @@ export default function App() {
   // "Elegir manualmente" (rosco): the slot we're filling from the catalog.
   const [slotPicker, setSlotPicker] = useState(null);
 
-  // El menú activo nació en blanco. Se pregunta al menú y no a un estado
-  // suelto para que sobreviva a recargar la app: la pizarra que dejaste a
-  // medias ayer sigue siendo una pizarra hoy.
-  const esPizarra = data.menus?.[data.activeMenuId]?.origin === "pizarra";
+  // Un solo modo de menú: el tablero, venga el menú de donde venga (ver
+  // lib/modoMenu.js).
+  const esPizarra = usaTablero(data);
   // El día cuyo "+" está abierto, o null.
   const [addSlotDay, setAddSlotDay] = useState(null);
   const [toast, setToast] = useState(null);
@@ -2721,22 +2721,6 @@ export default function App() {
     registrarDescartes({ user, householdId: casaActivaRef.current, recetaIds: recetasDelPlan(antes), ambito: ALCANCE_DESCARTE.MENU });
   }, [regenerateMenu, user, menuPlan]);
 
-  // Wizard generativo: el modal de entrada, la fila de mandos y la burbuja del
-  // bot. `onRegenerar` recibe el `data` ya actualizado porque `setData` no ha
-  // llegado todavía al render cuando esto se dispara — regenerar con el `data`
-  // viejo pintaría el menú de antes del ajuste.
-  const wizard = useWizardMenu({
-    data,
-    setData,
-    menuPlan,
-    onRegenerar: (nextData) => {
-      setScreen("menu");
-      regenerateMenu(nextData);
-    },
-    // Con el frontal del bot siguen aquí: se puede cambiar desde la app Y
-    // hablando con Lola (Pablo, 30 sep 2026), y los dos escriben en la casa.
-    habilitado: !householdReadOnly,
-  });
 
   // ── Ad-hoc individual menus ──────────────────────────────────────────────
   // Auto-offer a separate 3-day menu when a member gets a heavy, hard-to-share
@@ -3517,7 +3501,7 @@ export default function App() {
     endOfDay: "Menú activo · En casa se ajusta al fin del día",
   };
 
-  const activateActiveMenu = useCallback(async () => {
+  const activateActiveMenu = useCallback(async ({ silencioso = false } = {}) => {
     if (householdReadOnly) return;
     const menuId = data.activeMenuId;
     const menu = data.menus?.[menuId];
@@ -3526,7 +3510,8 @@ export default function App() {
     const otherActivatedIds = Object.values(data.menus ?? {})
       .filter((m) => m.id !== menuId && m.activatedAt)
       .map((m) => m.id);
-    const recon = reconcileMenusRemoval(data, otherActivatedIds);
+    // Solo (sin el rayo), no se devuelve lo de los otros menús: ver lib/activarSolo.js.
+    const recon = devolucionAlActivar(data, otherActivatedIds, { automatica: silencioso, reconcile: reconcileMenusRemoval });
     if (recon.deltas.length) {
       await restoreToPantry(recon.deltas, { user });
     }
@@ -3569,8 +3554,25 @@ export default function App() {
         : null),
     }));
     setPantryEpoch((n) => n + 1);
-    showToast(ACTIVATE_MENU_TOAST[consumeMode] ?? "Menú activado");
+    if (!silencioso) showToast(ACTIVATE_MENU_TOAST[consumeMode] ?? "Menú activado");
   }, [data, householdReadOnly, user, showToast]);
+
+  // El menú de la semana se activa solo, sin el rayo (ver lib/activarSolo.js).
+  // Una vez por menú: el ref evita repetirlo mientras `activatedAt` llega al
+  // estado. En silencio: nadie pidió nada, así que no hay aviso que dar.
+  const activadoSoloRef = useRef(null);
+  const porActivar = menuPorActivar({ data, conCuenta: Boolean(user), soloLectura: householdReadOnly, nubeLista });
+  useEffect(() => {
+    if (!porActivar || activadoSoloRef.current === porActivar) return;
+    activadoSoloRef.current = porActivar;
+    // Si falla, se dice, y el ref se suelta para que se vuelva a intentar en
+    // cuanto cambie algo (la nube, el menú): no se queda sin activar callado.
+    activateActiveMenu({ silencioso: true }).catch((e) => {
+      console.error("[activar solo]", e?.message);
+      activadoSoloRef.current = null;
+      showToast("No he podido activar el menú de esta semana; lo vuelvo a intentar");
+    });
+  }, [porActivar, activateActiveMenu, showToast]);
 
   /**
    * Desactivar: lo contrario de activar, y ya existía a medias.
@@ -3600,7 +3602,8 @@ export default function App() {
       ...d,
       menus: {
         ...d.menus,
-        [menuId]: { ...d.menus[menuId], activatedAt: null },
+        // `desactivadoAt`: que la activación automática no lo vuelva a activar (lib/activarSolo.js).
+        [menuId]: { ...d.menus[menuId], activatedAt: null, desactivadoAt: Date.now() },
       },
       pantryGenDeltas: recon.genOut,
       pantryDayDeltas: recon.dayOut,
@@ -6410,19 +6413,15 @@ export default function App() {
               }}
               onDeleteActive={householdReadOnly ? undefined : deleteActiveMenu}
               shoppingItems={compra.items}
-              // En la pizarra no se pinta la fila de mandos: los mandos
-              // ajustan lo que el motor decidirá en la próxima generación, y
-              // en un menú que montas a mano no hay próxima generación que
-              // ajustar. Y la burbuja tampoco: el asistente entero sobra en un
-              // menú que no genera nadie.
-              wizardControls={esPizarra ? null : wizard.controls}
-              wizardBubble={esPizarra
-                ? (!householdReadOnly && (
-                  <Suspense fallback={null}>
-                    <PizarraBurbuja onOrden={handleOrdenPizarra} onDeshacer={handleDeshacerPizarra} />
-                  </Suspense>
-                ))
-                : wizard.bubble}
+              // La fila de mandos del asistente antiguo (proporciones y
+              // estilos) ya no se pinta: lo mismo se le pide a Lola
+              // (ajustar_gustos, ajustar_cocina), y la pizarra trae su fila.
+              wizardControls={null}
+              wizardBubble={esPizarra && !householdReadOnly && (
+                <Suspense fallback={null}>
+                  <PizarraBurbuja onOrden={handleOrdenPizarra} onDeshacer={handleDeshacerPizarra} />
+                </Suspense>
+              )}
               modoPizarra={esPizarra}
               repartoKey={esPizarra ? repartoKey : 0}
               onAddSlot={esPizarra ? setAddSlotDay : null}
