@@ -68,12 +68,12 @@ describe("¿cuadra lo que confirma Lola con lo guardado?", () => {
     expect(clases(cuadre("Apuntado: el viernes Nat cena fuera.", [cenaViernes()], opciones))).toEqual([FALLO.FALTA_VALOR, FALLO.OTRO_VALOR]);
   });
 
-  it("confirma un eje que no se tocó: no cuadra, si todo lo hecho trae valores", () => {
+  it("confirma un eje que no se tocó: no cuadra, aunque otro resultado del turno no traiga valores", () => {
     const r = fuera({ persona: ["Leo"], comida: ["Cena"] });
     expect(clases(cuadre("Apuntado: Leo cena fuera el viernes.", [r], opciones))).toEqual([FALLO.EJE_NO_TOCADO]);
-    // Con otro resultado sin valores en el turno (la despensa), no se sabe todo lo guardado: no se juzga ese eje.
+    // Con otro resultado sin valores en el turno (la despensa), no se sabe si el viernes se guardó: se erra hacia el recibo.
     const otro = resultado({ accion: "despensa", hecho: ["leche"] });
-    expect(cuadre("Apuntado: Leo cena fuera el viernes.", [r, otro], opciones).fallos).toEqual([]);
+    expect(clases(cuadre("Apuntado: Leo cena fuera el viernes.", [r, otro], opciones))).toEqual([FALLO.EJE_NO_TOCADO]);
   });
 
   it("no nombra el día o la comida: su frase se queda y el recibo dice lo que calló", () => {

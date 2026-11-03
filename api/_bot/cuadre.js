@@ -76,8 +76,6 @@ export function cuadre(texto, resultados = [], { confirma, hoy = null, nombres =
 
   const guardado = {};
   for (const r of conValores) for (const [eje, l] of Object.entries(r.valores)) for (const v of l) (guardado[eje] ??= new Set()).add(v);
-  // Sabemos todo lo guardado en el turno solo si todo resultado con algo hecho trae valores.
-  const completo = conValores.length === hechos.length;
   const opciones = { hoy, nombres: [...nombres, ...(guardado[EJE.PERSONA] ?? [])] };
 
   // La unidad es la frase que confirma; si no nombra nada («¡Hecho!»), se lleva la siguiente.
@@ -100,7 +98,9 @@ export function cuadre(texto, resultados = [], { confirma, hoy = null, nombres =
     for (const [eje, vs] of Object.entries(u.m)) {
       for (const v of vs) {
         (dicho[eje] ??= new Set()).add(v);
-        if (guardado[eje] ? guardado[eje].has(v) : !completo) continue;
+        // Un valor que no está entre lo guardado no cuadra, aunque algún resultado del turno no traiga valores:
+        // si no se sabe, se erra hacia el recibo, que es cierto.
+        if (guardado[eje]?.has(v)) continue;
         fallos.push({ eje, valor: v, clase: guardado[eje] ? FALLO.OTRO_VALOR : FALLO.EJE_NO_TOCADO });
         malas.add(u);
       }

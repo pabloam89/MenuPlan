@@ -542,7 +542,7 @@ function formasDe({ hoy = null, nombres = [] } = {}) {
 // fuera. «Ni» y «sin» no: en una ausencia son el contenido («ni comida ni cena»).
 // Tras «no», con artículo: «Leo no cena en casa» niega el comer, no la cena.
 const ART = "(?:el|la|los|las|de|del|en|para|a)\\s+";
-const NEGADO = new RegExp(`(?:^|[^a-z0-9ñ])(?:no\\s+${ART}(?:${ART})?|(?:salvo|menos|excepto)\\s+(?:${ART}){0,2})$`);
+const NEGADO = new RegExp(`(?:^|[^${LETRA}])(?:no\\s+${ART}(?:${ART})?|(?:salvo|menos|excepto)\\s+(?:${ART}){0,2})$`);
 // «Mañana» que no es el día de mañana.
 const NO_ES_MANANA = /(?:pasado|la|esta|por la)\s+$/;
 
