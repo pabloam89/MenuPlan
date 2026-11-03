@@ -101,6 +101,7 @@ import {
 import { normalizeKidDinnerConfig } from "./lib/kidsMenu.js";
 import { loadState, saveState, clearState } from "./lib/storage.js";
 import { semanaDeHoy } from "./lib/menuArchive.js";
+import { menuPorActivar, devolucionAlActivar } from "./lib/activarSolo.js";
 import { usaTablero } from "./lib/modoMenu.js";
 import { puedeRegenerarDia } from "./lib/regenerarDia.js";
 import {
@@ -3500,7 +3501,7 @@ export default function App() {
     endOfDay: "Menú activo · En casa se ajusta al fin del día",
   };
 
-  const activateActiveMenu = useCallback(async () => {
+  const activateActiveMenu = useCallback(async ({ silencioso = false } = {}) => {
     if (householdReadOnly) return;
     const menuId = data.activeMenuId;
     const menu = data.menus?.[menuId];
@@ -3509,7 +3510,8 @@ export default function App() {
     const otherActivatedIds = Object.values(data.menus ?? {})
       .filter((m) => m.id !== menuId && m.activatedAt)
       .map((m) => m.id);
-    const recon = reconcileMenusRemoval(data, otherActivatedIds);
+    // Solo (sin el rayo), no se devuelve lo de los otros menús: ver lib/activarSolo.js.
+    const recon = devolucionAlActivar(data, otherActivatedIds, { automatica: silencioso, reconcile: reconcileMenusRemoval });
     if (recon.deltas.length) {
       await restoreToPantry(recon.deltas, { user });
     }
@@ -3552,8 +3554,25 @@ export default function App() {
         : null),
     }));
     setPantryEpoch((n) => n + 1);
-    showToast(ACTIVATE_MENU_TOAST[consumeMode] ?? "Menú activado");
+    if (!silencioso) showToast(ACTIVATE_MENU_TOAST[consumeMode] ?? "Menú activado");
   }, [data, householdReadOnly, user, showToast]);
+
+  // El menú de la semana se activa solo, sin el rayo (ver lib/activarSolo.js).
+  // Una vez por menú: el ref evita repetirlo mientras `activatedAt` llega al
+  // estado. En silencio: nadie pidió nada, así que no hay aviso que dar.
+  const activadoSoloRef = useRef(null);
+  const porActivar = menuPorActivar({ data, conCuenta: Boolean(user), soloLectura: householdReadOnly, nubeLista });
+  useEffect(() => {
+    if (!porActivar || activadoSoloRef.current === porActivar) return;
+    activadoSoloRef.current = porActivar;
+    // Si falla, se dice, y el ref se suelta para que se vuelva a intentar en
+    // cuanto cambie algo (la nube, el menú): no se queda sin activar callado.
+    activateActiveMenu({ silencioso: true }).catch((e) => {
+      console.error("[activar solo]", e?.message);
+      activadoSoloRef.current = null;
+      showToast("No he podido activar el menú de esta semana; lo vuelvo a intentar");
+    });
+  }, [porActivar, activateActiveMenu, showToast]);
 
   /**
    * Desactivar: lo contrario de activar, y ya existía a medias.
@@ -3583,7 +3602,8 @@ export default function App() {
       ...d,
       menus: {
         ...d.menus,
-        [menuId]: { ...d.menus[menuId], activatedAt: null },
+        // `desactivadoAt`: que la activación automática no lo vuelva a activar (lib/activarSolo.js).
+        [menuId]: { ...d.menus[menuId], activatedAt: null, desactivadoAt: Date.now() },
       },
       pantryGenDeltas: recon.genOut,
       pantryDayDeltas: recon.dayOut,
