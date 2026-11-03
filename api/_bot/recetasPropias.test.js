@@ -48,9 +48,16 @@ describe("las recetas propias de la casa", () => {
   it("una receta creada en la app (solo en user_recipes) sale en la ficha de Lola", async () => {
     const ficha = montarFicha(await cargarCasa("casa-a"), {}, "2026-10-07");
     expect(ficha.estable).toMatch(/Tortilla de la abuela/);
-    // Lo que aún queda en el JSON de antes no se pierde.
-    expect(ficha.estable).toMatch(/Lentejas de antes/);
-    expect(ficha.estable).toMatch(/2 recetas propias/);
+  });
+
+  // Trozo 21: la copia del documento ya no se lee (el 3 nov 2026, 0 de 37 casas la tenían): era la que traía de
+  // vuelta recetas borradas. Solo cuentan las filas de user_recipes.
+  it("lo que quede en la copia del documento no sale: solo las de la tabla", async () => {
+    const casa = await cargarCasa("casa-k");
+    expect(casa.recetasPropias.map((r) => r.id)).toEqual(["user_app1"]);
+    const ficha = montarFicha(casa, {}, "2026-10-07");
+    expect(ficha.estable).not.toMatch(/Lentejas de antes/);
+    expect(ficha.estable).toMatch(/1 recetas propias/);
   });
 
   it("son las del dueño de la casa, en una sola consulta con tope", async () => {
@@ -106,19 +113,15 @@ describe("las recetas propias de la casa", () => {
     return filas.filter((f) => duenos.includes(f.owner_id) && ids.includes(f.recipe_id));
   };
 
-  it("no ve las borradas: ni lo que queda en el JSON ni una fila con lápida", async () => {
-    tablas.user_recipe_deletions = lapidasComo([
-      { recipe_id: "user_viejo", owner_id: "u1" },
-      { recipe_id: "user_app1", owner_id: "u1" },
-    ]);
+  it("no ve una fila con lápida", async () => {
+    tablas.user_recipe_deletions = lapidasComo([{ recipe_id: "user_app1", owner_id: "u1" }]);
     const ficha = montarFicha(await cargarCasa("casa-h"), {}, "2026-10-07");
-    expect(ficha.estable).not.toMatch(/Lentejas de antes/);
     expect(ficha.estable).not.toMatch(/Tortilla de la abuela/);
     const lapidas = pedidas.filter((p) => p.tabla === "user_recipe_deletions");
     expect(lapidas).toHaveLength(1);
     expect(lapidas[0].filtro).toMatch(/owner_id=in\.\(u1\)/);
     // Solo los ids que tiene delante, no «las N más recientes».
-    expect(lapidas[0].filtro).toMatch(/recipe_id=in\.\(user_app1,user_viejo\)/);
+    expect(lapidas[0].filtro).toMatch(/recipe_id=in\.\(user_app1\)/);
     expect(lapidas[0].filtro).not.toMatch(/order=/);
   });
 
@@ -136,14 +139,12 @@ describe("las recetas propias de la casa", () => {
     const log = vi.spyOn(console, "error").mockImplementation(() => {});
     const ficha = montarFicha(await cargarCasa("casa-i"), {}, "2026-10-07");
     expect(ficha.estable).toMatch(/Tortilla de la abuela/);
-    expect(ficha.estable).toMatch(/Lentejas de antes/);
     log.mockRestore();
   });
 
-  it("si user_recipes falla, queda lo del JSON", async () => {
+  // Sin poder leer la tabla, la casa no se lee (como sin preferencias): Lola diría «no tenéis recetas propias».
+  it("si user_recipes falla, la casa no se lee, con el motivo", async () => {
     tablas.user_recipes = new Error("500");
-    const ficha = montarFicha(await cargarCasa("casa-c"), {}, "2026-10-07");
-    expect(ficha.estable).toMatch(/1 recetas propias/);
-    expect(ficha.estable).toMatch(/Lentejas de antes/);
+    await expect(cargarCasa("casa-c", { fresca: true })).rejects.toThrow(/recetas propias de la casa \(user_recipes\)/);
   });
 });
