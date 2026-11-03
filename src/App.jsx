@@ -129,6 +129,7 @@ import {
 import { todayDayIdx, getWeekDatesByMenuWeek, mondayISOForOffset } from "./lib/weekCalendar.js";
 import { diaDeFecha, indiceDeFecha } from "./lib/dias.js";
 import { claveCocinado, cocinadosLocales, ponerCocinadoLocal, sinCocinados } from "./lib/cocinados.js";
+import { CompraContext, cambiarCompraLocal, compraLocal, conCambio, leerCompra, mandarCompra, sinCompra } from "./lib/compraApp.js";
 import { leerCocinados, mandarCocinado } from "./lib/cocinadosApp.js";
 import { pizarraActiva, fotoAntesDePizarra, volverAntesDePizarra, huecosDelPlan, conHuecosAlDia, conSemanasAlDia, semanaEnBlanco, conHuecoAnadido, sinHueco, franjasDelDia } from "./lib/pizarra.js";
 import { aplicarDiasDeSemana, diasPorDefecto, buildCalendarWeeks } from "./lib/semanaDias.js";
@@ -531,16 +532,10 @@ const INITIAL_DATA = {
   menus: {},
   activeMenuId: null,
   // ── Precios / Gasto (lib/priceHistory.js) ──
-  // Individual price observations, one per receipt/manual line that mapped to a
-  // canonical ingredient: { id, ingredientId, name, brand, store, price, qty,
-  // unit, purchasedAt, source: "receipt"|"manual", receiptId }.
-  priceObs: [],
+  // Los tickets y los precios viven en sus tablas (compraApp.js, trozo 22 de #1037), no aquí.
   // Learned mappings so a cryptic receipt line only needs confirming once:
   // { [normalizedReceiptLine]: ingredientId }.
   priceAliases: {},
-  // Uploaded receipts (the "facturas" inbox): { id, createdAt, store,
-  // purchasedAt, total, lineCount }.
-  receipts: [],
   // Ya no hay varios rosters (8 oct 2026): la familia es una, la de arriba.
   // Las casas viejas pueden traer data.rosters / data.activeRosterId; se
   // conservan tal cual y nadie los lee.
@@ -824,9 +819,7 @@ function migrate(state) {
   d.menus = d.menus && typeof d.menus === "object" && !Array.isArray(d.menus) ? d.menus : {};
   d.activeMenuId = typeof d.activeMenuId === "string" ? d.activeMenuId : null;
   // Precios / Gasto
-  d.priceObs = Array.isArray(d.priceObs) ? d.priceObs : [];
   d.priceAliases = d.priceAliases && typeof d.priceAliases === "object" && !Array.isArray(d.priceAliases) ? d.priceAliases : {};
-  d.receipts = Array.isArray(d.receipts) ? d.receipts : [];
   // Legacy shape: a single consecutive count from week 1 → [0, 1, ..., n-1].
   if (!Array.isArray(d.menuWeekOffsets) || d.menuWeekOffsets.length === 0) {
     const legacyCount = clampWeekCount(d.menuWeekCount ?? 1);
@@ -917,7 +910,7 @@ function snapshotDeCasa({ data, menuPlan, shopping, aiRecipes, onbStep }, modoFa
   // sus filas de preferencia (trozo 14), van por api/operacion.js y no aquí (lib/familiaCasa.js, casaDatos.js, libretaCasa.js).
   // Las recetas, votos, descartes, colecciones y carpetas viven en sus tablas (recetasFuente.js, trozo 21); las marcas
   // de pantalla, en el móvil o en ningún sitio (marcasLocales.js, trozo 22); lo cocinado, en su tabla (cocinados.js).
-  const profile = { ...sinCocinados(sinMarcasDePantalla(sinRecetasDeTabla(sinLibretaLeida(sinCasa(sinFamilia(data, modoFamilia), cargaCasa), cargaLibreta)))) };
+  const profile = { ...sinCompra(sinCocinados(sinMarcasDePantalla(sinRecetasDeTabla(sinLibretaLeida(sinCasa(sinFamilia(data, modoFamilia), cargaCasa), cargaLibreta))))) };
   delete profile.menus;
   return { data: profile, menuPlan, shopping, aiRecipes, onbStep };
 }
@@ -1405,15 +1398,8 @@ export default function App() {
         setData((d) => {
           const menusShrunk =
             Object.keys(prunedData?.menus ?? {}).length < Object.keys(d.menus ?? {}).length;
-          const obsShrunk = (prunedData?.priceObs?.length ?? 0) < (d.priceObs?.length ?? 0);
-          const receiptsShrunk = (prunedData?.receipts?.length ?? 0) < (d.receipts?.length ?? 0);
-          if (!menusShrunk && !obsShrunk && !receiptsShrunk) return d;
-          return {
-            ...d,
-            menus: prunedData.menus ?? d.menus,
-            priceObs: prunedData.priceObs ?? d.priceObs,
-            receipts: prunedData.receipts ?? d.receipts,
-          };
+          if (!menusShrunk) return d;
+          return { ...d, menus: prunedData.menus ?? d.menus };
         });
         const prunedAi = result.saved.aiRecipes ?? [];
         setAiRecipes((cur) => (prunedAi.length < cur.length ? prunedAi : cur));
@@ -1541,11 +1527,8 @@ export default function App() {
     const localFolders = data.recipeFolders ?? [];
     const localDiscards = data.discards ?? { forever: [], cooldownUntil: {} };
     const localMenus = data.menus ?? {};
-    // Spend history is NOT part of the winner-takes-all profile adoption below:
-    // it's merged as a union both ways so a guest's tickets survive login and a
-    // returning user keeps the spend recorded on other devices.
-    const localPriceObs = data.priceObs ?? [];
-    const localReceipts = data.receipts ?? [];
+    // Los alias de los tickets NO entran en la adopción de abajo (gana uno): se suman. Los tickets y precios ya no
+    // van en el documento (compraApp.js).
     const localAliases = data.priceAliases ?? {};
     let cancelled = false;
 
@@ -1690,20 +1673,6 @@ export default function App() {
             remoteData?.discards ?? { forever: [], cooldownUntil: {} },
           );
 
-      // Union spend by id so neither side's tickets/observations are dropped by
-      // the profile adoption (which otherwise picks one whole `data` blob).
-      const unionById = (a = [], b = []) => {
-        const m = new Map();
-        for (const x of a) if (x && x.id != null) m.set(x.id, x);
-        for (const x of b) if (x && x.id != null) m.set(x.id, x);
-        return Array.from(m.values());
-      };
-      const mergedPriceObs = justEmptied || soloNube
-        ? (remoteData?.priceObs ?? [])
-        : unionById(localPriceObs, remoteData?.priceObs);
-      const mergedReceipts = justEmptied || soloNube
-        ? (remoteData?.receipts ?? [])
-        : unionById(localReceipts, remoteData?.receipts);
       const mergedAliases = justEmptied || soloNube
         ? (remoteData?.priceAliases ?? {})
         : { ...(remoteData?.priceAliases ?? {}), ...localAliases };
@@ -1725,8 +1694,6 @@ export default function App() {
           recipeCollections: mergedCollections,
           recipeFolders: mergedFolders,
           discards: mergedDiscards,
-          priceObs: mergedPriceObs,
-          receipts: mergedReceipts,
           priceAliases: mergedAliases,
         };
       });
@@ -5944,6 +5911,36 @@ export default function App() {
     });
     return { ok: true };
   }, [activeHouseholdId]);
+  // Lo gastado de la casa abierta, de sus tablas (compraApp.js); sin casa, del móvil. Sin leer no es «nada gastado»:
+  // `leida: false`, la pantalla de gasto lo dice y no deja borrar.
+  const [gasto, setGasto] = useState(() => ({ casa: null, leida: false, tickets: [], precios: [] }));
+  useEffect(() => {
+    let vivo = true;
+    if (!activeHouseholdId) {
+      setGasto({ casa: null, leida: true, ...compraLocal() });
+      return undefined;
+    }
+    setGasto({ casa: activeHouseholdId, leida: false, tickets: [], precios: [] });
+    leerCompra(activeHouseholdId).then((r) => {
+      if (!vivo) return;
+      if (r.ok) setGasto({ casa: activeHouseholdId, leida: true, tickets: r.tickets, precios: r.precios });
+      else showToast("No he podido cargar lo gastado");
+    });
+    return () => { vivo = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeHouseholdId]);
+  // Un ticket, un gasto o borrar un ticket: primero en su sitio (tabla o móvil) y, si se guardó, en pantalla.
+  const apuntarCompra = useCallback(async (cambio) => {
+    if (!activeHouseholdId) {
+      const nueva = cambiarCompraLocal(cambio);
+      setGasto({ casa: null, leida: true, ...nueva });
+      return { ok: true };
+    }
+    const r = await mandarCompra(activeHouseholdId, cambio);
+    if (r.ok) setGasto((c) => (c.casa === activeHouseholdId && c.leida ? { ...c, ...conCambio(c, cambio) } : c));
+    return r;
+  }, [activeHouseholdId]);
+  const valorCompra = useMemo(() => ({ ...gasto, apuntar: apuntarCompra }), [gasto, apuntarCompra]);
   // Presupuesto semanal / Tu compra (paso 6): ya cableado (toggle, cards y precios Mercadona).
   const skipBudgetStep = false;
   // "¿Cuánto tiramos de lo de casa?" (13) solo si hay algo en casa. Con la
@@ -6241,7 +6238,7 @@ export default function App() {
     <OnboardingPantryInventory
       user={user}
       pantryHouseholdId={activeHouseholdId}
-      priceObs={data.priceObs ?? []}
+      priceObs={gasto.precios}
       pantryEpoch={pantryEpoch}
       onToast={showToast}
       data={data}
@@ -6310,6 +6307,7 @@ export default function App() {
   const animDir = dirRef.current;
 
   return (
+    <CompraContext.Provider value={valorCompra}>
     <div
       style={{
         maxWidth: APP_SHELL_MAX_WIDTH,
@@ -6627,10 +6625,8 @@ export default function App() {
             <Suspense fallback={null}>
               <AnalyticsScreen
                 data={data}
-                setData={householdReadOnly ? null : setData}
                 menuPlan={menuPlan}
                 shopping={compra}
-                setShopping={householdReadOnly ? null : setCompra}
                 readOnly={householdReadOnly}
                 readOnlyLabel={householdReadOnlyLabel}
                 onUndoReceiptTachado={householdReadOnly ? undefined : undoReceiptTachado}
@@ -7523,6 +7519,7 @@ export default function App() {
         </div>
       )}
     </div>
+    </CompraContext.Provider>
   );
 }
 

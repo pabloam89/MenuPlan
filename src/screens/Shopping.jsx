@@ -61,6 +61,7 @@ import {
 } from "../components/ui.jsx";
 import { ShoppingCoachTour } from "../components/HomeCoachTour.jsx";
 import { ManualEntryModal, StorePicker, StoreBadge, SUPERMARKETS, appendManualSpend, appendReceiptSpend } from "./SpendPanel.jsx";
+import { useCompra } from "../lib/compraApp.js";
 import {
   ingredientDictionary,
   matchReceiptLine,
@@ -308,6 +309,7 @@ export function ShoppingScreen({
   initialTab = null,
   onInitialTabHandled = null,
 }) {
+  const compra = useCompra();
   // Stock powers three things here: discounting the buy list against what you
   // already have (applyPantryCoverage), filing ticket/manual purchases into En
   // casa, and the undo of a "Comprado". Guests use the localStorage mirror.
@@ -788,8 +790,7 @@ export function ShoppingScreen({
       return undefined;
     }
     let cancelled = false;
-    const obs = data?.priceObs ?? [];
-    priceShoppingList("Mercadona", visibleItems, obs)
+    priceShoppingList("Mercadona", visibleItems, compra.precios)
       .then(({ estimate, map }) => {
         if (cancelled) return;
         setStoreEstimate(estimate);
@@ -804,7 +805,7 @@ export function ShoppingScreen({
     return () => {
       cancelled = true;
     };
-  }, [mercadonaSelected, estimateKey, data?.priceObs]);
+  }, [mercadonaSelected, estimateKey, compra.precios]);
 
   // Date label for the current selection: real span of the selected weeks in
   // menú mode; the single-week label otherwise.
@@ -1077,7 +1078,8 @@ export function ShoppingScreen({
 
     let saved = 0;
     if (setData) {
-      saved = appendReceiptSpend(
+      saved = await appendReceiptSpend(
+        compra,
         setData,
         { store, date, lines: included, tachedKeys: [...ikeys], tachedWeekStart: targetWeekStart, pantryIds },
         data?.priceAliases ?? {},
@@ -1092,6 +1094,7 @@ export function ShoppingScreen({
       const parts = [];
       if (tachIds.length) parts.push(`${tachIds.length} tachados`);
       if (saved) parts.push(`${saved} gastos guardados`);
+      else if (included.length) parts.push("el gasto no se ha guardado");
       if (pantried) parts.push(`${pantried} a En casa`);
       onToast?.(parts.length ? parts.join(" · ") : "Ticket procesado");
     }
@@ -1102,7 +1105,10 @@ export function ShoppingScreen({
   // tops up "En casa" (same single-source-of-truth rule as a plain Comprado).
   const handleAddManualSpend = async (entry) => {
     if (!setData) return;
-    appendManualSpend(setData, entry, ingredientDictionary(), data?.priceAliases ?? {});
+    if (!(await appendManualSpend(compra, entry, ingredientDictionary(), data?.priceAliases ?? {})).ok) {
+      onToast?.("No he podido guardar el gasto");
+      return;
+    }
     const boughtRow = purchaseChoice;
     if (boughtRow) {
       patchItem(boughtRow.id, { have: true });
@@ -1349,7 +1355,7 @@ export function ShoppingScreen({
               // and only passed priceObs, which silently left the SKU toggle
               // dead (2026-08-26 bug).
               data={data}
-              priceObs={data?.priceObs ?? []}
+              priceObs={compra.precios}
               pantryEpoch={pantryEpoch + pantryStockVersion}
               onToast={onToast}
             />
