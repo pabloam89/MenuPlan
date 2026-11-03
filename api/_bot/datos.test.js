@@ -657,9 +657,8 @@ describe("api/operacion.js: lo gastado (trozo 22) va a ticket y precio_observado
     const res = await leer({ casa: CASA, compra: "1" });
     expect(res.codigo).toBe(200);
     const lecturas = llamadas.filter((l) => l.ruta.startsWith("/rest/v1/ticket?"));
-    expect(lecturas.map((l) => decodeURIComponent(l.ruta).split("select=")[1].split("&")[0])).toEqual([
-      COLUMNAS_TICKET.join(","), COLUMNAS_TICKET.filter((c) => !DE_LA_0124.includes(c)).join(","),
-    ]);
+    const sin0124 = COLUMNAS_TICKET.filter((c) => !DE_LA_0124.includes(c));
+    expect(lecturas.map((l) => decodeURIComponent(l.ruta).split("select=")[1].split("&")[0])).toEqual([COLUMNAS_TICKET.join(","), sin0124.join(",")]);
     expect(aviso.mock.calls.map((c) => JSON.parse(c[0]))).toContainEqual({ evento: "ticket_sin_deshacer", motivo: "sin la 0124", lectura: true });
   });
 

@@ -15,10 +15,7 @@ import { insert, select, eq } from "./db.js";
 import { fallaCon, SIN_LEER } from "./avisar.js";
 import { paraEscribir } from "../../src/lib/vocabularios.js";
 
-/**
- * ¿El error es que la fila ya estaba (clave única, 23505)? Uno solo para todo el bot (#958). PostgREST contesta 409
- * también a una clave ajena que no está (23503): eso no es «ya estaba», y no se traga.
- */
+/** ¿La fila ya estaba (clave única, 23505)? Uno solo para todo el bot (#958). Un 409 por clave ajena (23503), no. */
 export const esDuplicado = (e) => {
   if (e?.codigo) return e.codigo === "23505";
   const m = String(e?.message ?? e);

@@ -24,10 +24,8 @@ const textos = (v, que) => {
 export const COLUMNAS_TICKET = ["id", "super", "comprado_at", "total", "lineas", "tachados", "tachados_semana", "despensa_ids"];
 /** Lo que la 0124 añade a `ticket`. */
 export const DE_LA_0124 = ["tachados", "tachados_semana", "despensa_ids"];
-export const COLUMNAS_PRECIO = [
-  "id", "ticket_id", "ingrediente_id", "nombre", "marca", "super", "precio", "cantidad", "unidad",
-  "tamano_cantidad", "tamano_unidad", "fuente", "tipo", "comprado_at",
-];
+export const COLUMNAS_PRECIO = ["id", "ticket_id", "ingrediente_id", "nombre", "marca", "super", "precio", "cantidad",
+  "unidad", "tamano_cantidad", "tamano_unidad", "fuente", "tipo", "comprado_at"];
 
 /** La fila de `ticket` de un ticket de la app (`data.receipts`); lo que no case con la tabla lanza. */
 export function filaDeTicket(r) {
