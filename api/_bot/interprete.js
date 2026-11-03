@@ -85,8 +85,18 @@ export function diaDeSemana(texto) {
   return i < 0 ? null : DIAS[i];
 }
 
-const ES_LABORABLES = /^(entre ?semana|laborables|dias laborables|de lunes a viernes|lunes a viernes)$/;
-const ES_FINDE = /^((el|los|este) )?(finde|findes|fin de semana|fines de semana)$/;
+// Las formas de nombrar un grupo de días, ya normalizadas: las leen diasDe/fechasDe (estas regex) y valoresNombrados (formasDe).
+const FORMAS_LABORABLES = Object.freeze(["entre semana", "entresemana", "laborables", "dias laborables", "de lunes a viernes", "lunes a viernes"]);
+const FORMAS_FINDE = Object.freeze(["finde", "findes", "fin de semana", "fines de semana"]);
+// Hoy y mañana por su nombre. Hoy por la hora («esta noche», «a mediodía») solo lo entiende fechasDe: en una
+// confirmación, «a mediodía» es la comida, no el día.
+const FORMAS_HOY = Object.freeze(["hoy"]);
+const HOY_POR_LA_HORA = Object.freeze(["esta noche", "esta tarde", "este mediodia", "a mediodia", "ahora"]);
+const FORMAS_MANANA = Object.freeze(["manana", "mañana"]);
+const ES_LABORABLES = new RegExp(`^(${FORMAS_LABORABLES.join("|")})$`);
+const ES_FINDE = new RegExp(`^((el|los|este) )?(${FORMAS_FINDE.join("|")})$`);
+const ES_HOY = new RegExp(`^(${[...FORMAS_HOY, ...HOY_POR_LA_HORA].join("|")})$`);
+const ES_MANANA = new RegExp(`^(${FORMAS_MANANA.join("|")})$`);
 const ES_TODOS = /^(todos( los dias)?|toda la semana|cada dia|a diario|siempre)$/;
 // «de lunes a jueves», «del lunes al jueves», «lunes a jueves», «lunes-jueves».
 const RANGO_DIAS = /^(?:de |del )?(?:el |los )?([a-z]+)\s*(?:a|al|hasta(?: el)?|-)\s*(?:el |los )?([a-z]+)$/;
@@ -183,8 +193,8 @@ export function fechasDe(texto, { hoy = isoDeCasa(), semana = null } = {}) {
   const ya = (iso) => ({ fechas: [iso] });
   const pasado = (iso) => ({ duda: `El ${fechaCorta(iso)} ya ha pasado. ¿Te refieres al de la semana que viene (${fechaCorta(sumarDias(iso, 7))})?` });
 
-  if (/^(hoy|esta noche|esta tarde|este mediodia|a mediodia|ahora)$/.test(t)) return ya(hoy);
-  if (/^(manana|mañana)$/.test(t)) return ya(sumarDias(hoy, 1));
+  if (ES_HOY.test(t)) return ya(hoy);
+  if (ES_MANANA.test(t)) return ya(sumarDias(hoy, 1));
   if (t === "pasado manana") return ya(sumarDias(hoy, 2));
 
   // ISO tal cual.
@@ -526,9 +536,14 @@ function formasDe({ hoy = null, nombres = [] } = {}) {
     f.push([EJE.DIA, n, [d]]);
     if (!n.endsWith("s")) f.push([EJE.DIA, `${n}s`, [d]]);
   }
-  f.push([EJE.DIA, "finde", [...DIAS_FINDE]], [EJE.DIA, "fin de semana", [...DIAS_FINDE]], [EJE.DIA, "entre semana", [...DIAS_LABORABLES]]);
+  const grupo = (formas, dias) => { for (const n of new Set(formas.map(normal))) f.push([EJE.DIA, n, [...dias]]); };
+  grupo(FORMAS_FINDE, DIAS_FINDE);
+  grupo(FORMAS_LABORABLES, DIAS_LABORABLES);
   const i = DIAS.indexOf(hoy);
-  if (i >= 0) f.push([EJE.DIA, "hoy", [hoy]], [EJE.DIA, "manana", [DIAS[(i + 1) % 7]]]);
+  if (i >= 0) {
+    grupo(FORMAS_HOY, [hoy]);
+    grupo(FORMAS_MANANA, [DIAS[(i + 1) % 7]]);
+  }
   for (const c of IDS_COMIDAS) {
     const x = comida(c);
     for (const s of new Set([x.nombre, x.plural, ...x.sinonimos].map(normal))) f.push([EJE.COMIDA, s, [c]]);
@@ -544,6 +559,7 @@ function formasDe({ hoy = null, nombres = [] } = {}) {
 const ART = "(?:el|la|los|las|de|del|en|para|a)\\s+";
 const NEGADO = new RegExp(`(?:^|[^${LETRA}])(?:no\\s+${ART}(?:${ART})?|(?:salvo|menos|excepto)\\s+(?:${ART}){0,2})$`);
 // «Mañana» que no es el día de mañana.
+const MANANA_NORMAL = new Set(FORMAS_MANANA.map(normal));
 const NO_ES_MANANA = /(?:pasado|la|esta|por la)\s+$/;
 
 /**
@@ -559,7 +575,7 @@ export function valoresNombrados(frase, opciones = {}) {
     const re = new RegExp(`(?<![${LETRA}])${escapar(forma)}(?![${LETRA}])`, "g");
     t = t.replace(re, (m, pos, todo) => {
       const antes = todo.slice(0, pos);
-      if (forma === "manana" && NO_ES_MANANA.test(antes)) return m;
+      if (MANANA_NORMAL.has(forma) && NO_ES_MANANA.test(antes)) return m;
       if (!NEGADO.test(antes)) for (const v of valores) (out[eje] ??= new Set()).add(v);
       // Tapada: «fin de semana» no vuelve a contar como otra cosa.
       return " ".repeat(m.length);

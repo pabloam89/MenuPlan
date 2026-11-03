@@ -31,6 +31,16 @@ describe("lo que nombra una frase, con el registro", () => {
     expect(menciones("el viernes ni comida ni cena").comida).toEqual(new Set(["Comida", "Cena"]));
   });
 
+  it("los grupos de días se nombran con las mismas formas que entiende el resto de Lola (findes, entresemana…)", async () => {
+    const { DIAS_FINDE, DIAS_LABORABLES } = await import("../../src/lib/dias.js");
+    for (const t of ["Apuntado el finde", "Apuntado los findes", "Apuntado los fines de semana", "Apuntado el fin de semana"]) {
+      expect(menciones(t).dia, t).toEqual(new Set(DIAS_FINDE));
+    }
+    for (const t of ["Apuntado entre semana", "Apuntado entresemana", "Apuntado los laborables", "Apuntado de lunes a viernes"]) {
+      expect(menciones(t).dia, t).toEqual(new Set(DIAS_LABORABLES));
+    }
+  });
+
   it("«por la mañana» y «pasado mañana» no son el día de mañana; «semana» sola no es un día", () => {
     expect(menciones("por la mañana", { hoy: "Mar" }).dia).toBeUndefined();
     expect(menciones("pasado mañana", { hoy: "Mar" }).dia).toBeUndefined();
