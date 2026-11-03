@@ -43,7 +43,7 @@ describe("los tres caminos, una sola lista para la app y Lola", () => {
     expect(fuente).not.toMatch(/^import /m);
   });
 
-  it("camino desconocido, ningún tema", () => {
-    expect(temasDelCamino("otro")).toEqual([]);
+  it("un camino desconocido falla en alto, no se lee como «nada que preguntar»", () => {
+    expect(() => temasDelCamino("otro")).toThrow(/Camino desconocido: otro/);
   });
 });

@@ -94,11 +94,12 @@ export const CAMINOS = Object.freeze([
 
 /**
  * Pura. Los temas que abre un camino en esta casa: sin niños, fuera los que solo
- * aplican con niños. Camino desconocido → [].
+ * aplican con niños. Un camino desconocido lanza: devolver «ningún tema» se
+ * leería como «no hay nada que preguntar».
  */
 export function temasDelCamino(caminoId, { hayNinos = false } = {}) {
   const camino = CAMINOS.find((c) => c.id === caminoId);
-  if (!camino) return [];
+  if (!camino) throw new Error(`Camino desconocido: ${caminoId}`);
   const aplica = new Set(TEMAS.filter((t) => hayNinos || !t.soloNinos).map((t) => t.id));
   return camino.temas.filter((id) => aplica.has(id));
 }
