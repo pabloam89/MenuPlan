@@ -9,23 +9,20 @@
  * y el aviso dice qué le pasa al menú de ahora.
  */
 
-/** Pura. Cuántos platos hay puestos en el plan de la semana. */
-export function platosEnPlan(plan) {
-  let n = 0;
-  for (const huecos of Object.values(plan ?? {})) {
-    if (!huecos || typeof huecos !== "object" || Array.isArray(huecos)) continue;
-    for (const hueco of Object.values(huecos)) if (hueco && typeof hueco === "object" && hueco.recipeId) n += 1;
-  }
-  return n;
-}
+import { recuentoDelMenu } from "./menuRecuento.js";
+
+/** El título del aviso, el mismo con cuenta y sin ella. */
+const TITULO = "¿Empezar un menú nuevo?";
 
 /**
- * Pura. El aviso antes de empezar en blanco, o null si no hace falta (el menú
- * de ahora no tiene platos: no hay nada que perder).
+ * Pura. El aviso antes de empezar en blanco, o null si no hace falta: el menú
+ * de ahora no tiene ningún hueco con plato (ni primero ni segundo), contados
+ * con el recuento de siempre (recuentoDelMenu, menuRecuento.js).
  */
 export function avisoAlEmpezar({ plan, conCuenta }) {
-  if (!platosEnPlan(plan)) return null;
-  return conCuenta
-    ? { titulo: "¿Empezar un menú nuevo?", texto: "El de ahora no se borra: queda en «Menús»." }
-    : { titulo: "¿Empezar un menú nuevo?", texto: "Sin cuenta no se guardan menús: el de ahora se borra." };
+  if (!recuentoDelMenu(plan, null).huecos) return null;
+  return {
+    titulo: TITULO,
+    texto: conCuenta ? "El de ahora no se borra: queda en «Menús»." : "Sin cuenta no se guardan menús: el de ahora se borra.",
+  };
 }

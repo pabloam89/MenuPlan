@@ -68,7 +68,7 @@ describe("«Nueva» con un menú que ya tiene platos", () => {
         <PizarraControles
           data={{ members: [], groups: [], menuWeek: { offset: 0 } }}
           setData={() => {}}
-          menuPlan={{ Lun: { comida: { recipeId: "r1" } } }}
+          menuPlan={{ g1: { "Lun-comida": { recipeId: "r1" } } }}
           groups={[]}
           onNuevaPizarra={onNueva}
           conCuenta
