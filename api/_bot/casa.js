@@ -29,6 +29,7 @@ import { menuActivoDe } from "../../src/lib/menuActivo.js";
 import { isoDeCasa } from "../../src/lib/dias.js";
 import { favoritasDeFilas, votosDeFavoritas, descartesDeFilas } from "../../src/lib/recetasDeLaCasa.js";
 import { sellarCambios } from "../../src/lib/sobreHueco.js";
+import { sinRecetasDeTabla } from "../../src/lib/recetasFuente.js";
 import { conCompraQueSeVe, semanaParaGuardar } from "./compraDeSemana.js";
 
 // En hora de España: a las 00:30 del jueves, «hoy» es jueves, no el miércoles de UTC.
@@ -338,7 +339,10 @@ export async function guardarCasa(casa, { state = null, semana = null, activar =
     return { ok: false, error: `no he podido apuntarlo: ${e.message}; no he cambiado nada` };
   }
   const { documento: sinSobre, cambios: datos } = separarConSobre(sinPreferencias, casa.conSobre, familiaTras);
-  const { documento, familia } = casa.familia ? separarFamilia(sinSobre, casa.familia) : { documento: sinSobre, familia: null };
+  const { documento: conRecetas, familia } = casa.familia ? separarFamilia(sinSobre, casa.familia) : { documento: sinSobre, familia: null };
+  // Las recetas de tabla no van al documento (recetasFuente.js, trozo 21); las propias, aún sí: hay casas cuyas recetas
+  // viejas solo están en el documento y Lola las lee de ahí (propias.js) hasta medirlas y llevarlas a su tabla.
+  const documento = conRecetas?.data ? { ...conRecetas, data: sinRecetasDeTabla(conRecetas.data, { salvo: ["userRecipes"] }) } : conRecetas;
   let cambios = null;
   if (familia) {
     const c = cambiosDePersonas(casa.familia, familia);
