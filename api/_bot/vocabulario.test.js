@@ -54,6 +54,11 @@ describe("0085: channel con los mismos valores en todas las tablas del bot", () 
 });
 
 describe("0085: bot_reminders.tipo = TIPOS_RECORDATORIO", () => {
+  it("es la lista de src/lib/vocabularios.js (AVISOS_RECORDATORIO, 0122), no una copia", async () => {
+    const { AVISOS_RECORDATORIO } = await import("../../src/lib/vocabularios.js");
+    expect(TIPOS_RECORDATORIO).toBe(AVISOS_RECORDATORIO);
+  });
+
   it("el CHECK tiene los valores del código, y es NOT VALID", () => {
     const m = sql.match(/check \(tipo in \(([^)]*)\)\)\s*not valid;/i);
     expect(m, "no encuentro el CHECK de tipo NOT VALID").toBeTruthy();
