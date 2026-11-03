@@ -22,7 +22,8 @@ describe("el menú se activa solo", () => {
     expect(menuPorActivar({ ...listo, soloLectura: true, data: casa({ id: "m1", activatedAt: null }) })).toBeNull();
   });
 
-  it("sin menú activo, nada", () => {
+  it("sin menú activo, o con un id que no está entre los menús, nada", () => {
     expect(menuPorActivar({ ...listo, data: { activeMenuId: null, menus: {} } })).toBeNull();
+    expect(menuPorActivar({ ...listo, data: { activeMenuId: "m9", menus: {} } })).toBeNull();
   });
 });
