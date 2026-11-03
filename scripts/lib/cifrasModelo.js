@@ -15,6 +15,7 @@ import { ESCRITORAS_HEREDADAS, LLAMADAS_HEREDADAS } from "../../src/lib/operacio
 import { PREFERENCIAS_SISTEMA } from "../../src/lib/preferenciasSistema.js";
 import { clavesGuardadas } from "./inventarioFicha.mjs";
 import { rotasDeLaBase } from "./referenciasRotasBase.mjs";
+import { medirCascadas } from "./cascadas.mjs";
 import CAPACIDADES_BASE from "../../src/lib/capacidades.base.json" with { type: "json" };
 
 /** De dónde sale una cifra: el código del repo, la base (producción, solo lectura) o el banco de frases. */
@@ -178,7 +179,10 @@ export const CIFRAS = [
     base: base(0, "2026-11-03", "node scripts/referencias-rotas.mjs", 15),
     medir: async (ctx) => { const { rotas, miradas } = await rotasDeLaBase(ctx.consultar); return { valor: rotas.length, de: miradas.enteras }; } },
   { id: "tablas_sin_cascada", nombre: "Tablas de casa o persona sin cascada declarada", trozo: 36, fuente: FUENTE.codigo, sentido: SENTIDO.baja, meta: 0,
-    base: null, falta: "supabase/cascadas.test.js" },
+    // 3 nov 2026: 0 de 62 columnas de dueño (household_id, user_id, persona_id) en las migraciones; la base, 0 de 61
+    // (la 62 es la tabla de la 0010, que no se creó). De: las columnas de dueño.
+    base: base(0, "2026-11-03", "supabase/cascadas.test.js (scripts/lib/cascadas.mjs)", 62),
+    medir: () => medirCascadas() },
 ];
 
 /** El valor de una medida en { valor, de }; falla en alto si no es un número (una cifra rota no sale como 0). */
