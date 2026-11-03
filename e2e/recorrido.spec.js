@@ -27,11 +27,6 @@ const FAMILIA = [["Papá", "Juan"], ["Mamá", "Ana"]];
 // La única función de api/ que el recorrido llama sin cuenta: la analítica.
 // Se le responde con un doble vacío; cualquier otra cuenta como escape.
 const API_ANALITICA = "/api/track";
-// Lo que se adelanta el reloj de la página con el dedo abajo para que salte
-// la pulsación larga (useLongPress en src/screens/Menu.jsx espera 420 ms).
-// Con el reloj de Playwright, y no en tiempo real: así no depende de lo
-// cargada que vaya la máquina.
-const PULSACION_LARGA_MS = 700;
 // Una tarjeta de plato en el menú lleva su franja escrita.
 const TARJETA_PLATO = /\b(comida|cena)\b/i;
 // La cabecera de una categoría de la compra: «Verduras 17».
@@ -116,17 +111,15 @@ async function abrirMenu(page) {
 
 const nombreDePlato = async (tarjeta) => (await tarjeta.innerText()).trim().split("\n").at(-1).trim();
 
-// Pulsación larga en el primer plato → «Cambiar» → «Elegir a mano» → la
-// primera sugerencia del hueco. Devuelve el plato que había y el que lo
-// sustituye.
+// Los «…» del primer plato → «Cambiar» → «Elegir a mano» → la primera
+// sugerencia del hueco. Devuelve el plato que había y el que lo sustituye.
+// Todo menú se maneja con el tablero de la pizarra (src/lib/modoMenu.js), y
+// allí la pulsación larga levanta el plato para moverlo: las acciones están
+// en sus «…».
 async function cambiarPrimerPlato(page, platos) {
   const tarjeta = platos.first();
   const antes = await nombreDePlato(tarjeta);
-  const caja = await tarjeta.boundingBox();
-  await page.mouse.move(caja.x + caja.width / 2, caja.y + caja.height / 2);
-  await page.mouse.down();
-  await page.clock.runFor(PULSACION_LARGA_MS);
-  await page.mouse.up();
+  await page.getByRole("button", { name: `Acciones de ${antes}`, exact: true }).first().click();
   await boton(page, "Cambiar").click();
   await boton(page, "Elegir a mano").click();
   const tira = page.locator("div", { has: page.getByText(SUGERENCIAS_HUECO, { exact: true }) }).last();

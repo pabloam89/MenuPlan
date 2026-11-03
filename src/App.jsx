@@ -72,7 +72,6 @@ import { GeneratingScreen } from "./screens/GeneratingScreen.jsx";
 // vive detrás de este hook: la fila de mandos sobre el menú, la burbuja del
 // bot y el modal que sale al dar a "Generar menú". Quitarlo es borrar sus
 // cuatro usos de aquí.
-import { useWizardMenu } from "./components/wizard/useWizardMenu.jsx";
 import { FeedScreen } from "./screens/FeedScreen.jsx";
 import { buildShoppingList } from "./lib/shoppingBuilder.js";
 import { clearPreparedFromSlot } from "./lib/freezer.js";
@@ -103,6 +102,7 @@ import { normalizeKidDinnerConfig } from "./lib/kidsMenu.js";
 import { loadState, saveState, clearState } from "./lib/storage.js";
 import { semanaDeHoy } from "./lib/menuArchive.js";
 import { menuPorActivar, devolucionAlActivar } from "./lib/activarSolo.js";
+import { usaTablero } from "./lib/modoMenu.js";
 import { puedeRegenerarDia } from "./lib/regenerarDia.js";
 import {
   clampWeekCount,
@@ -1206,10 +1206,9 @@ export default function App() {
   // "Elegir manualmente" (rosco): the slot we're filling from the catalog.
   const [slotPicker, setSlotPicker] = useState(null);
 
-  // El menú activo nació en blanco. Se pregunta al menú y no a un estado
-  // suelto para que sobreviva a recargar la app: la pizarra que dejaste a
-  // medias ayer sigue siendo una pizarra hoy.
-  const esPizarra = data.menus?.[data.activeMenuId]?.origin === "pizarra";
+  // Un solo modo de menú: el tablero, venga el menú de donde venga (ver
+  // lib/modoMenu.js).
+  const esPizarra = usaTablero(data);
   // El día cuyo "+" está abierto, o null.
   const [addSlotDay, setAddSlotDay] = useState(null);
   const [toast, setToast] = useState(null);
@@ -2722,22 +2721,6 @@ export default function App() {
     registrarDescartes({ user, householdId: casaActivaRef.current, recetaIds: recetasDelPlan(antes), ambito: ALCANCE_DESCARTE.MENU });
   }, [regenerateMenu, user, menuPlan]);
 
-  // Wizard generativo: el modal de entrada, la fila de mandos y la burbuja del
-  // bot. `onRegenerar` recibe el `data` ya actualizado porque `setData` no ha
-  // llegado todavía al render cuando esto se dispara — regenerar con el `data`
-  // viejo pintaría el menú de antes del ajuste.
-  const wizard = useWizardMenu({
-    data,
-    setData,
-    menuPlan,
-    onRegenerar: (nextData) => {
-      setScreen("menu");
-      regenerateMenu(nextData);
-    },
-    // Con el frontal del bot siguen aquí: se puede cambiar desde la app Y
-    // hablando con Lola (Pablo, 30 sep 2026), y los dos escriben en la casa.
-    habilitado: !householdReadOnly,
-  });
 
   // ── Ad-hoc individual menus ──────────────────────────────────────────────
   // Auto-offer a separate 3-day menu when a member gets a heavy, hard-to-share
@@ -6424,19 +6407,15 @@ export default function App() {
               }}
               onDeleteActive={householdReadOnly ? undefined : deleteActiveMenu}
               shoppingItems={compra.items}
-              // En la pizarra no se pinta la fila de mandos: los mandos
-              // ajustan lo que el motor decidirá en la próxima generación, y
-              // en un menú que montas a mano no hay próxima generación que
-              // ajustar. Y la burbuja tampoco: el asistente entero sobra en un
-              // menú que no genera nadie.
-              wizardControls={esPizarra ? null : wizard.controls}
-              wizardBubble={esPizarra
-                ? (!householdReadOnly && (
-                  <Suspense fallback={null}>
-                    <PizarraBurbuja onOrden={handleOrdenPizarra} onDeshacer={handleDeshacerPizarra} />
-                  </Suspense>
-                ))
-                : wizard.bubble}
+              // La fila de mandos del asistente antiguo (proporciones y
+              // estilos) ya no se pinta: lo mismo se le pide a Lola
+              // (ajustar_gustos, ajustar_cocina), y la pizarra trae su fila.
+              wizardControls={null}
+              wizardBubble={esPizarra && !householdReadOnly && (
+                <Suspense fallback={null}>
+                  <PizarraBurbuja onOrden={handleOrdenPizarra} onDeshacer={handleDeshacerPizarra} />
+                </Suspense>
+              )}
               modoPizarra={esPizarra}
               repartoKey={esPizarra ? repartoKey : 0}
               onAddSlot={esPizarra ? setAddSlotDay : null}
