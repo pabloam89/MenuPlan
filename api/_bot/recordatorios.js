@@ -10,7 +10,7 @@
 
 import { fallaCon } from "./avisar.js";
 import { select, insert, update, eq } from "./db.js";
-import { paraEscribir } from "../../src/lib/vocabularios.js";
+import { paraEscribir, AVISOS_RECORDATORIO, REPITES_RECORDATORIO, REPITE_RECORDATORIO } from "../../src/lib/vocabularios.js";
 import { isoDeCasa } from "../../src/lib/dias.js";
 
 const ZONA = "Europe/Madrid";
@@ -54,8 +54,11 @@ export const ahoraEnMadrid = (fecha = new Date()) => new Intl.DateTimeFormat("es
  * el texto que alguien pidió y se manda tal cual; «vispera» se monta al vencer
  * con el menú de mañana (vispera.js). Antes se distinguían por el texto, y un
  * recordatorio escrito igual que el aviso se habría portado como él.
+ *
+ * La lista vive en src/lib/vocabularios.js (AVISOS_RECORDATORIO, que la 0122 lleva a bot_tareas.aviso): esta es
+ * la misma, con su nombre de antes, hasta que el PR 2 del trozo 34 pase los recordatorios a bot_tareas.
  */
-export const TIPOS_RECORDATORIO = ["libre", "vispera"];
+export const TIPOS_RECORDATORIO = AVISOS_RECORDATORIO;
 
 export async function crearRecordatorio({ channel, chatId, householdId }, { texto, cuando, repite, tipo = null }) {
   if (tipo != null && !TIPOS_RECORDATORIO.includes(tipo)) throw new Error(`tipo de recordatorio desconocido: ${tipo}`);
@@ -69,13 +72,13 @@ export async function crearRecordatorio({ channel, chatId, householdId }, { text
   if (pendientes.length >= MAX_PENDIENTES) return `Ya hay ${MAX_PENDIENTES} recordatorios pendientes en este chat; cancela alguno antes.`;
   await insert("bot_reminders", [{
     channel: paraEscribir("canales", channel), chat_id: String(chatId), household_id: householdId, text: limpio,
-    due_at: fecha.toISOString(), repite: repite === "diario" || repite === "semanal" ? repite : null,
+    due_at: fecha.toISOString(), repite: REPITES_RECORDATORIO.includes(repite) ? repite : null,
     // Sin tipo, el default de la base («libre»): un recordatorio normal no
     // depende de que la 0085 esté aplicada. Y sin created_by: guardaba el nombre
     // de Telegram de quien lo pidió y nadie lo leía (un dato personal de balde).
     ...(tipo ? { tipo } : {}),
   }]);
-  const cada = repite === "diario" ? ", y luego cada día" : repite === "semanal" ? ", y luego cada semana" : "";
+  const cada = repite === REPITE_RECORDATORIO.DIARIO ? ", y luego cada día" : repite === REPITE_RECORDATORIO.SEMANAL ? ", y luego cada semana" : "";
   return `Recordatorio creado: «${limpio}», el ${enMadrid(fecha)}${cada}.`;
 }
 
@@ -156,7 +159,7 @@ function masDias(iso, n) {
  * Si estuvo parado, no se manda una vez por cada vuelta perdida. Pura.
  */
 export function siguienteVez(dueAt, repite, ahoraMs = Date.now()) {
-  const dias = repite === "diario" ? 1 : repite === "semanal" ? 7 : 0;
+  const dias = repite === REPITE_RECORDATORIO.DIARIO ? 1 : repite === REPITE_RECORDATORIO.SEMANAL ? 7 : 0;
   if (!dias) return null;
   const p = partesEn(new Date(dueAt));
   const hora = `${p.hour}:${p.minute}`;
