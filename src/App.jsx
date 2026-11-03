@@ -3613,7 +3613,8 @@ export default function App() {
       ...d,
       menus: {
         ...d.menus,
-        [menuId]: { ...d.menus[menuId], activatedAt: null },
+        // `desactivadoAt`: que la activación automática no lo vuelva a activar (lib/activarSolo.js).
+        [menuId]: { ...d.menus[menuId], activatedAt: null, desactivadoAt: Date.now() },
       },
       pantryGenDeltas: recon.genOut,
       pantryDayDeltas: recon.dayOut,

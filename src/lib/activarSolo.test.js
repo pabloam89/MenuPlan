@@ -30,22 +30,31 @@ describe("el menú se activa solo", () => {
 });
 
 describe("lo que se devuelve a la despensa al activar", () => {
-  // Un menú anterior activado, con lo que descontó al cocinar un plato.
+  // Un menú anterior activado: lo que descontó al generar y al cocinar un plato.
+  const arroz = { name: "Arroz", normalized: "arroz", qty: 200, unit: "g" };
+  const leche = { name: "Leche", normalized: "leche", qty: 1, unit: "l" };
   const casa = {
-    pantryGenDeltas: {},
+    pantryGenDeltas: { "2026-10-26": { menuId: "viejo", deltas: [leche] } },
     pantryDayDeltas: {},
-    cookedDeltas: { "viejo:lun:comida:0": [{ name: "Arroz", normalized: "arroz", qty: 200, unit: "g" }] },
+    cookedDeltas: { "viejo:lun:comida:0": [arroz] },
   };
 
-  it("solo (sin el rayo) no devuelve lo cocinado con el menú anterior: ya se comió", () => {
+  it("solo: vuelve lo previsto al generar, no lo cocinado (ya se comió), y el menú viejo deja de descontar", () => {
     const r = devolucionAlActivar(casa, ["viejo"], { automatica: true, reconcile: reconcileMenusRemoval });
-    expect(r.deltas).toEqual([]);
-    expect(r.cookedOut).toEqual(casa.cookedDeltas);
+    expect(r.deltas).toEqual([leche]);
+    expect(r.genOut).toEqual({});
+    expect(r.cookedOut).toEqual({});
   });
 
   it("a mano (el rayo) sigue devolviendo todo lo de los otros menús, como antes", () => {
     const r = devolucionAlActivar(casa, ["viejo"], { automatica: false, reconcile: reconcileMenusRemoval });
-    expect(r.deltas).toHaveLength(1);
+    expect(r.deltas).toHaveLength(2);
     expect(r.cookedOut).toEqual({});
+  });
+});
+
+describe("un menú desactivado a mano", () => {
+  it("no se vuelve a activar solo", () => {
+    expect(menuPorActivar({ ...listo, data: casa({ id: "m1", activatedAt: null, desactivadoAt: 123 }) })).toBeNull();
   });
 });
