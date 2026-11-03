@@ -34,6 +34,11 @@
  * no una operación de la ficha (no se deshace por aquí; se desmarca). Y GET ?casa=<uuid>&cocinados=<lunes> contesta
  * 200 con { cocinados: [{ semana, dia, comida, receta_id }] } a quien es de la casa.
  *
+ * Lo gastado (trozo 22), en vez de `dato`: { casa, compra: { ticket?, precios?, borrar_ticket? } }: guarda un ticket con
+ * sus precios, precios sueltos (un gasto a mano) o borra un ticket (y sus precios), en `ticket` y `precio_observado`
+ * (api/_bot/historialCompra.js) si quien lo manda edita la casa; sin clave, como lo cocinado. Y GET ?casa=&compra=1
+ * contesta 200 con { tickets, precios } en la forma de la app (src/lib/historialCompra.js) a quien es de la casa.
+ *
  * Y lee (trozo 12): GET ?casa=<uuid> contesta 200 con { v, datos }, los datos de la ficha Casa de ficha_casa v2
  * (leerDatosDeCasa; con la v1, 503). La app no puede llamar a ficha_casa (solo la service role, 0107):
  * los lee aquí quien es de la casa, con cualquier papel; quien no es de ella, sin_permiso.
@@ -46,6 +51,8 @@ import { motivoDe } from "./_bot/avisar.js";
 import { sumarSenales } from "./_bot/aprender.js";
 import { cocinadosDeSemana, ponerCocinado } from "./_bot/cocinados.js";
 import { filaDeCocinado } from "../src/lib/cocinados.js";
+import { guardarTicket, guardarPrecios, borrarTicket, leerCompra } from "./_bot/historialCompra.js";
+import { filaDeTicket, filaDePrecio } from "../src/lib/historialCompra.js";
 import { senalesDeLaApp } from "../src/lib/senales.js";
 import { puede } from "../src/lib/papeles.js";
 import { HTTP_DE_FALLO, apuntarSinGuardar, campoDelPedido } from "../src/lib/escribirDato.js";
@@ -72,6 +79,7 @@ async function leerCasa(req, res, accessToken) {
     if (!ids.casa.esNuevo(casa)) return contestar(res, FALLO_DATO.INVALIDO, "casa");
     // Con la service role, ficha_casa no mira quién lee: se mira aquí.
     if (!(await papelDeUsuario(casa, user.id))) return contestar(res, FALLO_DATO.SIN_PERMISO);
+    if (req.query?.compra !== undefined) return res.status(200).json(await leerCompra(casa));
     const semana = req.query?.cocinados;
     if (semana !== undefined) {
       // Primero la semana (inválida, sin pedir nada); luego la base, cuyo fallo va al catch de abajo.
@@ -111,6 +119,38 @@ async function apuntarCocinado(res, casa, cocinado, papel) {
   }
 }
 
+/**
+ * Lo gastado (trozo 22): quien edita la casa guarda un ticket con sus precios, precios sueltos o borra un ticket. Como
+ * lo cocinado: primero las filas (si no valen, inválido sin pedir nada) y aparte la base (red, corte o error: se dice).
+ */
+async function apuntarCompra(res, casa, compra, papel) {
+  if (!puede(papel, "editar_casa")) return contestar(res, FALLO_DATO.SIN_PERMISO);
+  const { ticket = null, precios = [], borrar_ticket: borrarId = null } = compra ?? {};
+  let filaTicket = null;
+  let filasPrecios;
+  try {
+    if (borrarId != null && (ticket != null || precios.length)) throw new Error("compra: borrar y guardar a la vez");
+    if (borrarId != null && typeof borrarId !== "string") throw new Error("compra: borrar_ticket no es un id");
+    if (!Array.isArray(precios)) throw new Error("compra: precios no es una lista");
+    if (borrarId == null && ticket == null && !precios.length) throw new Error("compra: nada que guardar");
+    filaTicket = ticket == null ? null : filaDeTicket(ticket);
+    filasPrecios = precios.map(filaDePrecio);
+    if (filaTicket && filasPrecios.some((p) => p.ticket_id !== filaTicket.id)) throw new Error("compra: un precio no es de este ticket");
+  } catch (e) {
+    return contestar(res, FALLO_DATO.INVALIDO, e.message);
+  }
+  try {
+    const r = borrarId != null
+      ? await borrarTicket(casa, borrarId)
+      : filaTicket ? await guardarTicket(casa, filaTicket, filasPrecios) : await guardarPrecios(casa, filasPrecios);
+    return res.status(200).json({ guardado: true, ...r });
+  } catch (e) {
+    const { fallo, motivo } = falloDeBase(e);
+    console.error(JSON.stringify({ evento: "compra_sin_apuntar", fallo, motivo }));
+    return contestar(res, fallo);
+  }
+}
+
 /** Las señales de la app (trozo 15): las de quien edita la casa, comprobadas, se suman; si la base falla, se dice. */
 async function contarSenales(res, casa, senales, papel) {
   if (!puede(papel, "editar_casa")) return contestar(res, FALLO_DATO.SIN_PERMISO);
@@ -141,7 +181,7 @@ export default async function handler(req, res) {
   if (!accessToken) return contestar(res, FALLO_DATO.SIN_SESION);
   if (req.method === "GET") return leerCasa(req, res, accessToken);
 
-  const { casa, clave, accion, ref_id, pedida_at = null, dato, datos, deshacer = null, personas, grupos, preferencias, senales, cocinado } = req.body ?? {};
+  const { casa, clave, accion, ref_id, pedida_at = null, dato, datos, deshacer = null, personas, grupos, preferencias, senales, cocinado, compra } = req.body ?? {};
   // Un dato o varios (`datos`); cuál de los dos, y su forma, lo mira operacionDeDato (escribirDato.js).
   const conDatos = dato != null || datos != null;
   // Un cambio de la familia (trozo 10) en vez de un dato: personas y, si cambiaron, los grupos.
@@ -152,6 +192,9 @@ export default async function handler(req, res) {
   const conSenales = senales !== undefined;
   // Un plato cocinado (trozo 22): un historial, como las señales, sin clave.
   const conCocinado = cocinado !== undefined;
+  // Lo gastado (trozo 22): tickets y precios, historiales como lo cocinado.
+  const conCompra = compra !== undefined;
+  const historial = conCocinado || conCompra;
   let user;
   let papel;
   try {
@@ -160,11 +203,11 @@ export default async function handler(req, res) {
     if (!ids.casa.esNuevo(casa)) return contestar(res, FALLO_DATO.INVALIDO, "casa");
     if (deshacer != null) {
       // Deshacer o escribir, nunca las dos en una petición: el dato no se tiraría en silencio.
-      if (!ids.operacion.esNuevo(deshacer) || conDatos || deFamilia || deLibreta || conSenales || conCocinado) return contestar(res, FALLO_DATO.INVALIDO, "deshacer");
-    } else if (Number(conDatos) + Number(deFamilia) + Number(deLibreta) + Number(conSenales) + Number(conCocinado) > 1) {
+      if (!ids.operacion.esNuevo(deshacer) || conDatos || deFamilia || deLibreta || conSenales || historial) return contestar(res, FALLO_DATO.INVALIDO, "deshacer");
+    } else if (Number(conDatos) + Number(deFamilia) + Number(deLibreta) + Number(conSenales) + Number(conCocinado) + Number(conCompra) > 1) {
       // Un dato, un cambio de la familia o uno de la libreta, nunca dos: uno se tiraría en silencio.
       return contestar(res, FALLO_DATO.INVALIDO, "dato");
-    } else if (!conSenales && !conCocinado && !ids.claveOperacion.esNuevo(clave)) {
+    } else if (!conSenales && !historial && !ids.claveOperacion.esNuevo(clave)) {
       // La clave la da la app (un uuid); va a su propio espacio, para que no pueda adelantarse a una de Lola.
       return contestar(res, FALLO_DATO.INVALIDO, "clave");
     }
@@ -178,6 +221,7 @@ export default async function handler(req, res) {
 
   if (conSenales) return contarSenales(res, casa, senales, papel);
   if (conCocinado) return apuntarCocinado(res, casa, cocinado, papel);
+  if (conCompra) return apuntarCompra(res, casa, compra, papel);
   // El papel (o null, si no es de la casa) lo juzga la puerta de la tubería, la misma que la de Lola.
   if (deshacer != null) {
     // Quien deshace es el de la sesión: la base solo deshace lo suyo (deshacer_operacion, 0111).

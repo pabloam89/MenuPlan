@@ -612,6 +612,14 @@
     "ticket.super": {
       "class": "free_text",
       "reason": "Súper del ticket, como sale de la foto o lo escribe la familia"
+    },
+    "ticket.tachados": {
+      "class": "identifier",
+      "reason": "Claves de artículos de la lista que tachó el ticket (tachedKeys de la app, nombre|unidad o id del artículo): las destacha al borrarlo"
+    },
+    "ticket.despensa_ids": {
+      "class": "identifier",
+      "reason": "Ids de lo que el ticket creó en la despensa (pantryIds): borrarlo los quita"
     }
   }
 }
