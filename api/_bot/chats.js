@@ -21,11 +21,13 @@
 
 import { select, update, borrar, eq } from "./db.js";
 import { CANAL } from "../../src/lib/vocabularios.js";
+import { descartarDelChat } from "./recordatorios.js";
 
 // Las tablas con lo de un chat que tiene que seguir al chat cuando cambia de
 // id. bot_cola y bot_candados no: son de segundos, y el id viejo ya no
 // escribe. bot_codigos tampoco: un código de acceso es de un privado.
-export const TABLAS_DEL_CHAT = ["bot_chats", "bot_reminders", "bot_messages", "bot_tareas"];
+// Los recordatorios van en bot_tareas (0122, trozo 34).
+export const TABLAS_DEL_CHAT = ["bot_chats", "bot_messages", "bot_tareas"];
 
 // Los estados de `my_chat_member` en que Lola ya no está en el chat (API de Telegram).
 export const FUERA_DEL_CHAT = new Set(["kicked", "left"]);
@@ -64,7 +66,8 @@ export async function alSalirDelChat(cambio) {
   if (!FUERA_DEL_CHAT.has(estado)) return null;
   const chatId = String(cambio.chat.id);
   const esGrupo = esGrupoDe(cambio.chat);
-  const cancelados = await update("bot_reminders", `${delChat(chatId)}&status=eq.pending`, { status: "cancelled" });
+  // Sus recordatorios (tareas de tipo recordatorio, 0122) se descartan: nadie los recibiría.
+  const cancelados = await descartarDelChat(chatId);
   let desenlazado = esGrupo;
   if (!esGrupo) {
     const [ident] = await select("bot_identities", `channel=eq.${CANAL.TELEGRAM}&external_id=${eq(chatId)}`, "user_id");
