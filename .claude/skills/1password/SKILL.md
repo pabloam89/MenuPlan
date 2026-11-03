@@ -123,7 +123,7 @@ niega `guardia-minima.mjs`), están en `.claude/skills/1password/referencias/bov
 
 ## Lo que falló y por qué
 
-- **2026-11-03 · cupo de la cuenta agotado (1000 lecturas al día) de madrugada; sin `npm run consulta` hasta las 9:10.**
+- **2026-11-03 · cupo de la cuenta agotado (1000 lecturas al día) de madrugada; sin base ni GitHub hasta que se reinició, por la mañana.**
   Causa, del registro `~/.menuplan/op-lecturas.jsonl`: el 2 nov este PC gastó 997 claves; 510 de `vite.js` (arrancar o
   compilar la app), casi todas reintentos de una en una: con una clave de administración en `.env.local` que la sesión no
   puede leer, cada arranque pedía las 17 juntas, fallaba y las volvía a pedir una a una (y la mala, en las dos bóvedas),

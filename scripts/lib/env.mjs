@@ -132,11 +132,14 @@ export function enOtraBoveda(ref) {
   return null;
 }
 
+/** ¿Falló por el límite de cupo de la cuenta? La única regla para reconocerlo (#556). */
+const esCupo = (e) => /too many requests/i.test(String(e.stderr || e.message));
+
 const motivoDe = (e) => {
   if (e.code === "ENOENT") return "no encuentro el comando `op` (instala 1Password CLI o reinicia el terminal)";
   const linea = String(e.stderr || e.message).trim().split("\n")[0];
   // El aviso de 1Password sale con el tiempo vacío («Try again in  seconds»): la hora de verdad la da `ratelimit` (#556).
-  return /too many requests/i.test(linea) ? `${linea} (cuándo se reinicia el cupo: npm run op -- service-account ratelimit)` : linea;
+  return esCupo(e) ? `${linea} (cuándo se reinicia el cupo: npm run op -- service-account ratelimit)` : linea;
 };
 
 /**
@@ -229,14 +232,13 @@ function resolverVarias(pares, { tolerante = false } = {}) {
     if (e.code === "SIN_TOKEN") throw new Error(`No pude leer de 1Password ${nuevas.map(([k]) => k).join(", ")}: ${e.message}`);
     if (e.code === "ENOENT") throw new Error(`No pude leer de 1Password ${nuevas.map(([k]) => k).join(", ")}: ${motivoDe(e)}`);
     // Sin cupo, pedirlas una a una solo gasta más intentos que también fallan: todas fallan con ese motivo.
-    if (/too many requests/i.test(String(e.stderr || e.message))) {
+    if (esCupo(e)) {
       motivo = motivoDe(e);
       fallan.push(...nuevas.map(([k]) => k));
       return acabar();
     }
   }
   const sinLeer = [];
-  const esCupo = (e) => /too many requests/i.test(String(e.stderr || e.message));
   for (const [k, ref] of nuevas) {
     let cupo = false;
     try {
