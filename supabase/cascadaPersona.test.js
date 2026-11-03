@@ -15,11 +15,11 @@
  * FK, cuenta la última (por eso la 0083 no falla).
  */
 import { describe, it, expect } from "vitest";
-import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { tmpdir } from "node:os";
-import { eventosTabla, sentencias } from "../scripts/lib/migraciones.mjs";
+import { aplicarEsquema, esquemaFinal, sentencias } from "../scripts/lib/migraciones.mjs";
 
 const DIR = join(dirname(fileURLToPath(import.meta.url)), "migrations");
 
@@ -34,50 +34,25 @@ export const CASCADA_PERMITIDA = new Map([
   ["plan_preferencias", "el conjunto de preferencias de esa persona (su dieta, su plan; 0109): sin ella no se aplica a nadie"],
 ]);
 
-/** Quita comentarios y cuerpos $x$…$x$, que no declaran FKs de tabla. */
-function limpiar(sql) {
-  return sql
-    .replace(/\$([a-z_]*)\$[\s\S]*?\$\1\$/gi, "''")
-    .replace(/--[^\n]*/g, "");
-}
+const PERSONA = "public.persona";
+const aPersona = (estado) => [...estado].flatMap(([tabla, t]) => [...t.fks.values()]
+  .filter((fk) => fk.destino === PERSONA)
+  .map((fk) => ({ tabla, nombre: fk.nombre, onDelete: fk.onDelete, ...(fk.fichero ? { fichero: fk.fichero } : {}) })));
 
 /**
- * FKs hacia persona de un SQL, en orden: { tabla, nombre, onDelete }.
- * La tabla es la del `create table` o `alter table` de la sentencia.
+ * FKs hacia persona de un SQL suelto, en orden: { tabla, nombre, onDelete }. La lectura es la de
+ * scripts/lib/migraciones.mjs (aplicarEsquema), la misma que usa supabase/cascadas.test.js; un `alter` de una
+ * tabla que el trozo no crea cuenta igual (crearSiFalta).
  */
 export function fksAPersona(sql) {
-  const fks = [];
-  for (const sentencia of limpiar(sql).split(";")) {
-    if (!/references\s+(public\.)?persona\s*\(/i.test(sentencia)) continue;
-    const tabla = /(?:create\s+table|alter\s+table)\s+(?:if\s+not\s+exists\s+|only\s+)?(?:public\.)?(\w+)/i.exec(sentencia)?.[1];
-    const trozos = sentencia.split(/(?=\breferences\s+(?:public\.)?\w+\s*\()/i);
-    for (let i = 1; i < trozos.length; i++) {
-      if (!/^references\s+(public\.)?persona\s*\(/i.test(trozos[i])) continue;
-      const nombre = /constraint\s+(\w+)\s+foreign\s+key\s*\([^)]*\)\s*$/i.exec(trozos[i - 1])?.[1] ?? null;
-      const accion = /on\s+delete\s+(cascade|set\s+null|set\s+default|restrict|no\s+action)/i.exec(trozos[i].split(/,\s*(?:add\s|foreign\s|constraint\s|\w+\s+\w)/i)[0])?.[1];
-      fks.push({ tabla, nombre, onDelete: (accion ?? "no action").toLowerCase().replace(/\s+/g, " ") });
-    }
-  }
-  return fks;
+  const estado = new Map();
+  for (const s of sentencias(sql)) aplicarEsquema(estado, s, { crearSiFalta: true });
+  return aPersona(estado);
 }
 
-/** Estado final tras todas las migraciones: la última definición de cada FK gana. */
+/** Estado final tras todas las migraciones: la última definición de cada FK gana, y un drop table se lleva las suyas. */
 export function estadoFinal(dir = DIR) {
-  const fks = new Map();
-  for (const f of readdirSync(dir).filter((n) => /^\d{4}.*\.sql$/.test(n)).sort()) {
-    // Sentencia a sentencia y en orden: un `drop table x` se lleva las FK de x que había
-    // hasta ahí, y un `create table x` posterior las vuelve a declarar.
-    for (const s of sentencias(readFileSync(join(dir, f), "utf8"))) {
-      for (const e of eventosTabla(s)) {
-        if (e.accion !== "borra" || e.tipo !== "tabla" || e.esquema !== "public") continue;
-        for (const k of [...fks.keys()]) if (k.startsWith(`${e.nombre}:`)) fks.delete(k);
-      }
-      for (const fk of fksAPersona(s)) {
-        fks.set(`${fk.tabla}:${fk.nombre ?? "persona"}`, { ...fk, fichero: f });
-      }
-    }
-  }
-  return [...fks.values()];
+  return aPersona(esquemaFinal(dir));
 }
 
 describe("cascada hacia persona", () => {
