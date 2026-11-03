@@ -7602,8 +7602,8 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle, onApple,
         .portada-logo { width: 84px; height: 84px; }
         .portada-letras { font-size: clamp(58px, 17vw, 84px); margin: 0 0 10px; }
         .portada-lema { font-size: 20px; }
-        /* Móvil con las barras del navegador: el título encoge y la foto baja el
-           encuadre para que las cuatro caras quepan entre él y los botones. */
+        /* Móvil con las barras del navegador: el título encoge para que las
+           cuatro caras quepan entre él y los botones. */
         @media (max-height: 800px) {
           .portada-titulo { padding-top: 28px; }
           .portada-logo { width: 52px; height: 52px; }
@@ -7671,7 +7671,6 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle, onApple,
         }}
       />
       <img
-        className="portada-foto"
         src="/portada.jpg"
         alt=""
         aria-hidden="true"
