@@ -1,11 +1,15 @@
 /**
  * El menú de la semana se activa solo (sin el botón del rayo).
  *
- * Activar es decir «este es el menú de casa»: lo marca (`activatedAt`), devuelve
- * a la despensa lo que se llevaron otros menús activados antes y, solo en el
- * modo de despensa «al generar», descuenta lo que este usa (App.jsx,
- * `activateActiveMenu`). Con el modo por defecto («al cocinar») no toca la
- * despensa.
+ * Activar a mano (el rayo) marca el menú (`activatedAt`), devuelve a la
+ * despensa TODO lo que descontaron los otros menús activados (lo de generar, lo
+ * del día y lo cocinado: `reconcileMenusRemoval`) y, en el modo «al generar»,
+ * descuenta lo que usa este (App.jsx, `activateActiveMenu`).
+ *
+ * Activar solo NO devuelve lo de los otros menús (`devolucionAlActivar`): el
+ * menú nuevo suele ser el de la semana siguiente, y lo cocinado con el anterior
+ * ya se comió; devolverlo llenaría «En casa» de comida que no está. Solo marca
+ * este menú y, en el modo «al generar», descuenta lo suyo.
  *
  * Antes había que pulsar un rayo que nadie entendía, y un menú sin activar no
  * descontaba nada. El menú activo solo cambia al crear uno (generar, pizarra en
@@ -26,4 +30,20 @@ export function menuPorActivar({ data, conCuenta, soloLectura, nubeLista }) {
   const menu = id ? data?.menus?.[id] : null;
   if (!menu || menu.activatedAt != null) return null;
   return id;
+}
+
+/**
+ * Pura. Lo que se devuelve a la despensa al activar, y cómo quedan los cubos de
+ * descuentos. A mano (`automatica: false`): lo de todos los otros menús
+ * activados, con `reconcile` (`reconcileMenusRemoval`). Solo: nada, y los cubos
+ * quedan como están.
+ */
+export function devolucionAlActivar(data, otrosActivados, { automatica, reconcile }) {
+  if (!automatica) return reconcile(data, otrosActivados);
+  return {
+    deltas: [],
+    genOut: data?.pantryGenDeltas ?? {},
+    dayOut: data?.pantryDayDeltas ?? {},
+    cookedOut: data?.cookedDeltas ?? {},
+  };
 }

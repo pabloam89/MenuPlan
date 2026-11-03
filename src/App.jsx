@@ -102,7 +102,7 @@ import {
 import { normalizeKidDinnerConfig } from "./lib/kidsMenu.js";
 import { loadState, saveState, clearState } from "./lib/storage.js";
 import { semanaDeHoy } from "./lib/menuArchive.js";
-import { menuPorActivar } from "./lib/activarSolo.js";
+import { menuPorActivar, devolucionAlActivar } from "./lib/activarSolo.js";
 import { puedeRegenerarDia } from "./lib/regenerarDia.js";
 import {
   clampWeekCount,
@@ -3527,7 +3527,8 @@ export default function App() {
     const otherActivatedIds = Object.values(data.menus ?? {})
       .filter((m) => m.id !== menuId && m.activatedAt)
       .map((m) => m.id);
-    const recon = reconcileMenusRemoval(data, otherActivatedIds);
+    // Solo (sin el rayo), no se devuelve lo de los otros menús: ver lib/activarSolo.js.
+    const recon = devolucionAlActivar(data, otherActivatedIds, { automatica: silencioso, reconcile: reconcileMenusRemoval });
     if (recon.deltas.length) {
       await restoreToPantry(recon.deltas, { user });
     }
