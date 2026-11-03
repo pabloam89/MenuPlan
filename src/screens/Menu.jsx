@@ -5590,6 +5590,10 @@ export const MenuScreen = memo(function MenuScreen({
   const puedeActivar = Boolean(hasMenu && onActivateMenu && menuNeedsActivation);
   const puedeFavorito = Boolean(onToggleFavorite && user);
   const accionesEnLaFila = hasMenu && Boolean(wizardControls);
+  // En la pizarra las acciones también viven en su fila (PizarraControles):
+  // la cabecera se queda con el título y las semanas, sin rayo, corazón ni
+  // burger que repitan lo de abajo.
+  const cabeceraLimpia = accionesEnLaFila || Boolean(modoPizarra && hasMenu && pizarraControles);
   const menuWeeks = useMemo(() => orderedWeeks(activeMenu), [activeMenu]);
   const currentWeekIdx = useMemo(
     () => menuWeeks.findIndex((w) => w.offset === data.menuWeek?.offset),
@@ -5991,7 +5995,7 @@ export const MenuScreen = memo(function MenuScreen({
                 Guardar como favorito solo tiene sentido con cuenta: sin ella no
                 hay histórico/favoritos persistentes donde recuperarlo, así que
                 no ofrecemos algo que no podemos cumplir. */}
-            {!accionesEnLaFila && hasMenu && onActivateMenu && menuNeedsActivation && (
+            {!cabeceraLimpia && hasMenu && onActivateMenu && menuNeedsActivation && (
               <button
                 type="button"
                 onClick={onActivateMenu}
@@ -6006,7 +6010,7 @@ export const MenuScreen = memo(function MenuScreen({
                 <Zap size={18} strokeWidth={2.5} color="#c9922a" fill="#f5d78a" />
               </button>
             )}
-            {!accionesEnLaFila && hasMenu && onToggleFavorite && user && (
+            {!cabeceraLimpia && hasMenu && onToggleFavorite && user && (
               <button
                 type="button"
                 onClick={onToggleFavorite}
@@ -6041,7 +6045,7 @@ export const MenuScreen = memo(function MenuScreen({
                 acciones en dos sitios obliga a mirar los dos para saber si
                 algo está hecho. Sin fila —hogar de solo lectura, o ningún
                 control visible— es la única puerta, así que no se borra. */}
-            {!accionesEnLaFila && (
+            {!cabeceraLimpia && (
               <button
                 type="button"
                 data-coach="menu-options"
@@ -6220,7 +6224,11 @@ export const MenuScreen = memo(function MenuScreen({
             )}
             <div style={{ minHeight: 78, background: "var(--pz-fondo-suave, #f1f5f9)", display: "flex", alignItems: "center" }}>
               <HuecosVivosContext.Provider value={huecosVivos}>
-                {pizarraControles}
+                {/* Llega como función para que esta pantalla le pase lo que
+                    solo ella sabe abrir: la hoja del PDF. */}
+                {typeof pizarraControles === "function"
+                  ? pizarraControles({ onDescargar: handleDownload })
+                  : pizarraControles}
               </HuecosVivosContext.Provider>
             </div>
           </div>
