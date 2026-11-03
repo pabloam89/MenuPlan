@@ -7,8 +7,6 @@ import {
   cookedKeyMenuId,
   collectMenuPantryDeltas,
   reconcileMenusRemoval,
-  stripCookedDishesForMenu,
-  stripCookedDishesForMenuList,
 } from "./pantryDeltas.js";
 
 const d = (name, qty) => ({ name, normalized: name, qty, unit: "u" });
@@ -123,23 +121,5 @@ describe("reconcileMenusRemoval", () => {
     const r = reconcileMenusRemoval(data, []);
     expect(r.deltas).toEqual([]);
     expect(r.genOut).toEqual(data.pantryGenDeltas);
-  });
-});
-
-describe("stripCookedDishes", () => {
-  const keys = [
-    "menu_a:0::mon::lunch::rec_1",
-    "menu_b:0::tue::dinner::rec_2",
-    "menu_a:1::wed::lunch::rec_3",
-  ];
-  it("removes one menú's cooked flags", () => {
-    expect(stripCookedDishesForMenu(keys, "menu_a")).toEqual(["menu_b:0::tue::dinner::rec_2"]);
-  });
-  it("removes several menús' cooked flags", () => {
-    expect(stripCookedDishesForMenuList(keys, ["menu_a", "menu_b"])).toEqual([]);
-  });
-  it("tolerates non-arrays", () => {
-    expect(stripCookedDishesForMenu(undefined, "menu_a")).toEqual([]);
-    expect(stripCookedDishesForMenuList(null, ["menu_a"])).toEqual([]);
   });
 });
