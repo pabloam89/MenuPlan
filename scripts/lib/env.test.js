@@ -29,7 +29,7 @@ vi.mock("node:child_process", () => ({
   },
 }));
 
-const { cargarEnv, enOtraBoveda, esReferencia, leerEnv, leerFichero, opPorLaApp } = await import("./env.mjs");
+const { cargarEnv, enOtraBoveda, esReferencia, leerEnv, leerFichero, opPorLaApp, MOTIVOS_AVISO } = await import("./env.mjs");
 
 const NOMBRES = ["PRUEBA_A", "PRUEBA_B", "PRUEBA_C", "PRUEBA_LLANA", "PRUEBA_D", "PRUEBA_E", "PRUEBA_F", "PRUEBA_G"];
 beforeEach(() => {
@@ -112,7 +112,7 @@ describe("plan B entre bóvedas (#299): HoMenu-sesiones y HoMenu", () => {
     expect(process.env.PRUEBA_D).toBe("VALOR-de-op://HoMenu/Nueva/PRUEBA_D");
     expect(process.env.PRUEBA_E).toBe("VALOR-de-op://HoMenu-sesiones/Ya/PRUEBA_E");
     expect(aviso).toHaveBeenCalledTimes(1);
-    expect(aviso.mock.calls[0][0]).toBe("env-boveda clave: PRUEBA_D de: HoMenu-sesiones a: HoMenu motivo: respaldo");
+    expect(aviso.mock.calls[0][0]).toBe(`env-boveda clave: PRUEBA_D de: HoMenu-sesiones a: HoMenu motivo: ${MOTIVOS_AVISO.RESPALDO}`);
     // Nunca el valor en el aviso.
     expect(aviso.mock.calls[0][0]).not.toMatch(/VALOR/);
     aviso.mockRestore();
@@ -146,7 +146,7 @@ describe("plan B entre bóvedas (#299): HoMenu-sesiones y HoMenu", () => {
     expect(process.env.PRUEBA_B).toBe("");
     expect(process.env.PRUEBA_C).toBe("VALOR-de-op://HoMenu-sesiones/Tolerante/PRUEBA_C");
     const avisos = aviso.mock.calls.map((c) => c[0]);
-    expect(avisos[0]).toBe("env-boveda clave: PRUEBA_B motivo: sin-acceso");
+    expect(avisos[0]).toBe(`env-boveda clave: PRUEBA_B motivo: ${MOTIVOS_AVISO.SIN_ACCESO}`);
     // El detalle dice lo que dijo 1Password, sin la dirección.
     expect(avisos.join("\n")).not.toContain("op://");
     aviso.mockRestore();
@@ -359,7 +359,7 @@ describe("lo que no se puede leer no se vuelve a pedir (cupo diario de la cuenta
       expect(process.env.PRUEBA_N).toBe("");
       expect(process.env.PRUEBA_P).toBe("VALOR-de-op://HoMenu-sesiones/Vite/PRUEBA_P");
       const avisos = aviso.mock.calls.map((c) => c[0]);
-      expect(avisos).toContain("env-boveda clave: PRUEBA_N motivo: apuntada");
+      expect(avisos).toContain(`env-boveda clave: PRUEBA_N motivo: ${MOTIVOS_AVISO.APUNTADA}`);
       expect(avisos.at(-1)).toMatch(/^env-boveda: sin acceso desde .*borra /);
     });
   });
@@ -389,7 +389,7 @@ describe("lo que no se puede leer no se vuelve a pedir (cupo diario de la cuenta
         cargarEnv(["PRUEBA_O"], { tolerante: true });
         const avisos = aviso.mock.calls.map((c) => c[0]);
         aviso.mockRestore();
-        expect(avisos).toContain("env-boveda clave: PRUEBA_O motivo: fallo");
+        expect(avisos).toContain(`env-boveda clave: PRUEBA_O motivo: ${MOTIVOS_AVISO.FALLO}`);
         expect(avisos.at(-1)).toMatch(/connection refused/);
         expect(process.env.PRUEBA_O).toBe("");
         expect(() => readFileSync(ruta, "utf8")).toThrow();
@@ -437,8 +437,8 @@ describe("lo que no se puede leer no se vuelve a pedir (cupo diario de la cuenta
         cargarEnv(["PRUEBA_O", "PRUEBA_P"], { tolerante: true });
         const avisos = aviso.mock.calls.map((c) => c[0]);
         aviso.mockRestore();
-        expect(avisos).toContain("env-boveda clave: PRUEBA_O motivo: sin-cupo");
-        expect(avisos).not.toContain("env-boveda clave: PRUEBA_O motivo: sin-acceso");
+        expect(avisos).toContain(`env-boveda clave: PRUEBA_O motivo: ${MOTIVOS_AVISO.SIN_CUPO}`);
+        expect(avisos).not.toContain(`env-boveda clave: PRUEBA_O motivo: ${MOTIVOS_AVISO.SIN_ACCESO}`);
         expect(avisos.at(-1)).toMatch(/^env-boveda: .*Too many requests/);
         expect(llamadas).toHaveLength(1);
         expect(process.env.PRUEBA_O).toBe("");

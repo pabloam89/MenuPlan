@@ -17,6 +17,7 @@ import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } fr
 import { homedir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { esCupo, esSinAcceso } from "./erroresOp.mjs";
 
 export const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const FICHERO = join(RAIZ, ".env.local");
@@ -132,9 +133,6 @@ export function enOtraBoveda(ref) {
   return null;
 }
 
-/** ¿Falló por el límite de cupo de la cuenta? La única regla para reconocerlo (#556). */
-const esCupo = (e) => /too many requests/i.test(String(e.stderr || e.message));
-
 /**
  * Por qué no se leyó una clave, en el aviso `env-boveda clave: … motivo: …` (vocabulario cerrado): no existe o la
  * cuenta no la ve; ya estaba apuntada como tal y no se pidió; sin cupo; otro fallo (red, token…); o se leyó de la
@@ -147,12 +145,6 @@ export const MOTIVOS_AVISO = Object.freeze({
   FALLO: "fallo",
   RESPALDO: "respaldo",
 });
-
-/**
- * ¿Falló porque la dirección no existe o la cuenta no la ve (item, bóveda o campo)? Solo eso se apunta en
- * FICHERO_SIN_ACCESO: un fallo de red, de token o de cupo pasa, y se vuelve a pedir la próxima vez.
- */
-const esSinAcceso = (e) => /isn't an? (item|vault)|could not resolve item|does not have a field|could not find/i.test(String(e.stderr || e.message));
 
 const motivoDe = (e) => {
   if (e.code === "ENOENT") return "no encuentro el comando `op` (instala 1Password CLI o reinicia el terminal)";

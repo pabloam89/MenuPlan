@@ -18,6 +18,7 @@ import { execFile } from "node:child_process";
 import * as fsReal from "node:fs";
 import { appendFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
+import { LIMITE_OP } from "./erroresOp.mjs";
 import { fileURLToPath } from "node:url";
 import { BOVEDA_PABLO, BOVEDA_SESIONES, entornoOp, leerEnv } from "./env.mjs";
 // El canje del token es de E1 (#327): permisos explícitos (con workflows desde #422, y sin él si la App aún no lo
@@ -77,7 +78,6 @@ export const AYUDANTES = ["gh-credential", "entorno"];
 /** `normal` exige un token con forma `ghs_…`; `sin-canje` solo acepta el token de relleno (el arranque lo escribe ANTES de canjear). */
 export const MODOS_ENTORNO = ["normal", "sin-canje"];
 /** Lo que dice la CLI cuando se agota el límite de lecturas por hora de la cuenta (visto el 10 oct 2026). */
-const LIMITE_OP = /too many requests|rate.?limit/i;
 
 export class ErrorTokenSesion extends Error {
   constructor(motivo, detalle = "") {
