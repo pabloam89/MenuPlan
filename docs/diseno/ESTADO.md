@@ -375,7 +375,7 @@ WebP en el pipeline (no se ha convertido nada para comprobar el peso resultante)
 | `foto-plato` | WebP | 1.035 en Vercel Blob; originales (~2,5 GB) fuera del repo | pendiente de medir en Blob |
 | `avatar` | WebP | grandes 1024 px: 69 png, 31,8 MB, mediana por rol de 366 a 649 KB, máx 691 KB · miniaturas 192 px: 69 png, máx 15 KB · `lola-perfil.jpg` | miniatura 15 KB; grande a decidir tras exportar (hoy se sirven 1024 px a pantallas de 30–130 px) |
 | `logo` (HoMenu y tiendas) | SVG | `brand/homenu-teal.*`, `public/logo-homenu.svg`, tiendas: `src/assets/store-logos` 17 ficheros con svg y png a la vez | 10 KB; un solo formato por logo |
-| `marca` (derivados de plataforma del logo) | SVG / PNG | `favicon.svg`, `pwa-icons` 6, `splash.jpg`, `splash.mp4` (2,3 MB) | según plataforma; el vídeo queda fuera de la regla de peso |
+| `marca` (derivados de plataforma del logo) | SVG / PNG | `favicon.svg`, `pwa-icons` 6, `portada.jpg` (foto de la portada, 200 KB) | según plataforma |
 
 **El logo de HoMenu está en la familia `logo`** (maestro único en `diseno/marca/`,
 D12); `marca` son sus derivados que exige el navegador o la tienda.
