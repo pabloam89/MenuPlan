@@ -310,10 +310,8 @@ export const KINDS_TAREA = ["seguimiento", "pregunta"];
 export const KIND_TAREA = porNombre(KINDS_TAREA);
 
 /** Tipo de una tarea (bot_tareas.tipo, 0080). */
-export const TIPOS_TAREA = ["espera", "falta_saber", "decision", "seguimiento"];
+export const TIPOS_TAREA = ["espera", "falta_saber", "decision", "seguimiento", "recordatorio"];
 export const TIPO_TAREA = porNombre(TIPOS_TAREA);
-/* El tipo «recordatorio» entra en TIPOS_TAREA cuando la 0122 esté aplicada (vocabularios.test.js: el código no ofrece
- * lo que el CHECK vivo no admite). */
 /** Si un recordatorio (tarea de tipo recordatorio, 0122) se repite: cada día o cada semana; null, una vez. */
 export const REPITES_RECORDATORIO = ["diario", "semanal"];
 export const REPITE_RECORDATORIO = porNombre(REPITES_RECORDATORIO);

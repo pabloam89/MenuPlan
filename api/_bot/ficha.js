@@ -36,6 +36,7 @@ import { hayTandasPedidas, minutosDeTanda, enHoras } from "../../src/lib/cookTim
 import { SEMI, COCINADO } from "../../src/lib/tandaFamiliasDefs.js";
 import { comidasDeLaCasa, comida as comidaDelCatalogo } from "../../src/lib/comidas.js";
 import { claveDeTarea } from "../../src/lib/registroTareas.js";
+import { TIPO_TAREA, ESTADO_TAREA } from "../../src/lib/vocabularios.js";
 import { vetosConAmbito, textoDeVeto, vetosDePersona } from "../../src/lib/vetos.js";
 import { DIAS, DIA_LARGO_MINUSCULAS, DIA_LETRA, diaDeISO, isoDeCasa } from "../../src/lib/dias.js";
 import { select, eq } from "./db.js";
@@ -507,8 +508,9 @@ export async function extrasDeFicha(householdId, chatId) {
       // en blanco desde el primer día sin que nadie se enterase.
       .catch((e) => { console.error("[ficha] nevera", e?.message); return []; }),
     chatId != null
-      ? select("bot_reminders", `chat_id=${eq(String(chatId))}&status=eq.pending&order=due_at.asc&limit=3`, "text,due_at,repite")
-        .then((fs) => fs.map((r) => `${r.text}${r.repite ? ` (${r.repite})` : ""}`))
+      // Los recordatorios son tareas de tipo recordatorio (0122, trozo 34).
+      ? select("bot_tareas", `chat_id=${eq(String(chatId))}&tipo=eq.${TIPO_TAREA.RECORDATORIO}&status=eq.${ESTADO_TAREA.ABIERTA}&order=ejecutar_at.asc&limit=3`, "texto,ejecutar_at,repite")
+        .then((fs) => fs.map((r) => `${r.texto}${r.repite ? ` (${r.repite})` : ""}`))
         .catch((e) => { console.error("[ficha] avisos", e?.message); return []; })
       : [],
   ]);

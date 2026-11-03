@@ -15,7 +15,9 @@ vi.mock("./menu.js", () => ({ describirCompra: vi.fn() }));
 vi.mock("./pintar.js", () => ({ pintarMenuEntero: vi.fn() }));
 
 const { select, insert, update } = await import("./db.js");
-const { TIPOS_RECORDATORIO, crearRecordatorio } = await import("./recordatorios.js");
+const { crearRecordatorio } = await import("./recordatorios.js");
+// Los avisos de hoy (bot_tareas.aviso, 0122) son los tipos que la 0085 cerró en bot_reminders: la misma lista.
+const { AVISOS_RECORDATORIO: TIPOS_RECORDATORIO, TIPO_TAREA, ESTADO_TAREA } = await import("../../src/lib/vocabularios.js");
 const { TIPO_VISPERA, VISPERA, avisoVispera } = await import("./vispera.js");
 const { recordar } = await import("./rapido.js");
 
@@ -95,33 +97,46 @@ describe("0085 solo añade (salvo bot_deshacer.descripcion)", () => {
   });
 });
 
-describe("el código usa el tipo, no el texto", () => {
+describe("el código usa el aviso, no el texto (recordatorios en bot_tareas, 0122)", () => {
   beforeEach(() => vi.clearAllMocks());
   const chat = { channel: "telegram", chatId: "c1", householdId: "h1", autor: "Ana" };
 
-  it("avisoVispera busca y crea el aviso por tipo", async () => {
-    select.mockResolvedValueOnce([{ id: 7 }]).mockResolvedValueOnce([]);
+  it("avisoVispera busca, descarta y crea el aviso por su aviso, en bot_tareas", async () => {
+    select.mockResolvedValueOnce([{ id: "u-7" }]).mockResolvedValueOnce([]);
     await avisoVispera(chat, { activar: true, hora: "20:30" });
-    expect(select.mock.calls[0][1]).toContain(`tipo=eq.${TIPO_VISPERA}`);
-    expect(select.mock.calls[0][1]).not.toContain("text=eq.");
-    expect(update.mock.calls[0][1]).toContain(`tipo=eq.${TIPO_VISPERA}`);
+    expect(select.mock.calls[0][0]).toBe("bot_tareas");
+    expect(select.mock.calls[0][1]).toContain(`aviso=eq.${TIPO_VISPERA}`);
+    expect(select.mock.calls[0][1]).toContain(`tipo=eq.${TIPO_TAREA.RECORDATORIO}`);
+    expect(select.mock.calls[0][1]).not.toContain("texto=eq.");
+    const [tablaU, filtroU, cambio] = update.mock.calls[0];
+    expect(tablaU).toBe("bot_tareas");
+    expect(filtroU).toContain(`aviso=eq.${TIPO_VISPERA}`);
+    expect(cambio).toMatchObject({ status: ESTADO_TAREA.DESCARTADA });
+    expect(cambio.closed_at).toBeTruthy();
     const [tabla, [fila]] = insert.mock.calls[0];
-    expect(tabla).toBe("bot_reminders");
-    expect(fila.tipo).toBe(TIPO_VISPERA);
-    expect(fila.text).toBe(VISPERA); // el bot de antes de la 0085 lo reconoce por el texto
+    expect(tabla).toBe("bot_tareas");
+    expect(fila).toMatchObject({ tipo: TIPO_TAREA.RECORDATORIO, aviso: TIPO_VISPERA, texto: VISPERA, repite: "diario" });
   });
 
-  it("un recordatorio normal va sin tipo (default de la base) y sin el nombre de quien lo pidió", async () => {
+  it("un recordatorio normal es «libre», con su hora y su caducidad, y sin el nombre de quien lo pidió", async () => {
     const manana = new Date(Date.now() + 86400000).toISOString().slice(0, 16);
     expect(await crearRecordatorio(chat, { texto: "Sacar el pollo", cuando: manana })).toMatch(/^Recordatorio creado/);
-    const [, [fila]] = insert.mock.calls.at(-1);
-    expect(fila).not.toHaveProperty("tipo");
+    const [tabla, [fila]] = insert.mock.calls.at(-1);
+    expect(tabla).toBe("bot_tareas");
+    expect(fila).toMatchObject({ tipo: TIPO_TAREA.RECORDATORIO, aviso: "libre", texto: "Sacar el pollo", repite: null });
+    // El CHECK de la 0122: caduca después de su hora.
+    expect(Date.parse(fila.caduca_at)).toBeGreaterThan(Date.parse(fila.ejecutar_at));
     expect(fila).not.toHaveProperty("created_by");
     expect(JSON.stringify(fila)).not.toContain("Ana");
   });
 
-  it("un tipo que no está en la lista no llega a la base", async () => {
-    await expect(crearRecordatorio(chat, { texto: "x", cuando: "2099-01-01T10:00", tipo: "otro" })).rejects.toThrow(/tipo/);
+  it("un aviso que no está en la lista no llega a la base", async () => {
+    await expect(crearRecordatorio(chat, { texto: "x", cuando: "2099-01-01T10:00", aviso: "otro" })).rejects.toThrow(/aviso/);
+    expect(insert).not.toHaveBeenCalled();
+  });
+
+  it("sin casa no hay dónde guardarlo: lo dice y no escribe", async () => {
+    expect(await crearRecordatorio({ ...chat, householdId: null }, { texto: "x", cuando: "2099-01-01T10:00" })).toMatch(/conecta/);
     expect(insert).not.toHaveBeenCalled();
   });
 

@@ -2,19 +2,32 @@
  * Recordatorios desde el chat («recuérdame el domingo a las 7 hacer la compra»).
  *
  * Solo los que el usuario acepta: el agente puede OFRECER uno, pero crearlo
- * exige su sí (api/_bot/conocimiento.md). Se guardan en `bot_reminders` con el
+ * exige su sí (api/_bot/conocimiento.md). Son tareas de tipo «recordatorio»
+ * (bot_tareas, 0122; trozo 34 de #1037: una sola lista de lo pendiente) con el
  * chat donde se pidieron, y los manda /api/bot/recordatorios cuando vencen.
+ *
+ * Su vida en la tabla: nace `abierta` con `ejecutar_at` y `caduca_at` un día
+ * después (la purga de la 0080 caduca lo que no salió a tiempo; el CHECK de la
+ * 0122 no deja que caduque antes de su hora). Mandado, `hecha` con `closed_at`;
+ * si se repite, sigue abierto con la siguiente hora. Cancelado, `descartada`.
  *
  * Las horas se hablan en hora de España; la tabla guarda UTC.
  */
 
 import { fallaCon } from "./avisar.js";
 import { select, insert, update, eq } from "./db.js";
-import { paraEscribir } from "../../src/lib/vocabularios.js";
+import { paraEscribir, AVISOS_RECORDATORIO, AVISO_RECORDATORIO, REPITES_RECORDATORIO, TIPO_TAREA, ESTADO_TAREA } from "../../src/lib/vocabularios.js";
 import { isoDeCasa } from "../../src/lib/dias.js";
 
 const ZONA = "Europe/Madrid";
 const MAX_PENDIENTES = 10;
+const TABLA = "bot_tareas";
+/** Lo que es un recordatorio, y uno pendiente: los filtros de siempre sobre la tabla de tareas. */
+const RECORDATORIOS = `tipo=eq.${TIPO_TAREA.RECORDATORIO}`;
+const PENDIENTES = `${RECORDATORIOS}&status=eq.${ESTADO_TAREA.ABIERTA}`;
+/** Hasta cuándo vale uno que no salió: un día después de su hora (la purga de la 0080 lo caduca). */
+const DIA_MS = 86400000;
+const caducaTras = (fecha) => new Date(new Date(fecha).getTime() + DIA_MS).toISOString();
 
 const partesEn = (fecha) => Object.fromEntries(
   new Intl.DateTimeFormat("en-GB", {
@@ -50,39 +63,35 @@ export const ahoraEnMadrid = (fecha = new Date()) => new Intl.DateTimeFormat("es
 }).format(fecha);
 
 /**
- * Qué clase de recordatorio es (bot_reminders.tipo, CHECK de 0085). «libre» es
- * el texto que alguien pidió y se manda tal cual; «vispera» se monta al vencer
- * con el menú de mañana (vispera.js). Antes se distinguían por el texto, y un
- * recordatorio escrito igual que el aviso se habría portado como él.
+ * Qué aviso es (bot_tareas.aviso, 0122; AVISOS_RECORDATORIO): «libre» es el texto que alguien pidió y se manda tal
+ * cual; «vispera» se monta al vencer con el menú de mañana (vispera.js).
  */
-export const TIPOS_RECORDATORIO = ["libre", "vispera"];
-
-export async function crearRecordatorio({ channel, chatId, householdId }, { texto, cuando, repite, tipo = null }) {
-  if (tipo != null && !TIPOS_RECORDATORIO.includes(tipo)) throw new Error(`tipo de recordatorio desconocido: ${tipo}`);
+export async function crearRecordatorio({ channel, chatId, householdId }, { texto, cuando, repite, aviso = AVISO_RECORDATORIO.LIBRE }) {
+  if (!AVISOS_RECORDATORIO.includes(aviso)) throw new Error(`aviso de recordatorio desconocido: ${aviso}`);
+  // Una tarea es de una casa (bot_tareas.household_id not null): un chat sin casa no tiene dónde guardarlo.
+  if (!householdId) return "Para guardarte recordatorios, conecta antes este chat a tu casa desde la app.";
   const limpio = String(texto ?? "").trim().slice(0, 300);
   if (!limpio) return "¿Qué quieres que te recuerde?";
   const fecha = madridAUtc(cuando);
   if (!fecha) return `No entiendo la fecha «${cuando}»: dámela como AAAA-MM-DDTHH:MM en hora de España.`;
   if (fecha.getTime() < Date.now() + 60000) return "Esa hora ya ha pasado. ¿Para cuándo lo quieres?";
   if (fecha.getTime() > Date.now() + 366 * 86400000) return "Como mucho, a un año vista.";
-  const pendientes = await select("bot_reminders", `chat_id=${eq(chatId)}&status=eq.pending`, "id");
+  const pendientes = await select(TABLA, `chat_id=${eq(chatId)}&${PENDIENTES}`, "id");
   if (pendientes.length >= MAX_PENDIENTES) return `Ya hay ${MAX_PENDIENTES} recordatorios pendientes en este chat; cancela alguno antes.`;
-  await insert("bot_reminders", [{
-    channel: paraEscribir("canales", channel), chat_id: String(chatId), household_id: householdId, text: limpio,
-    due_at: fecha.toISOString(), repite: repite === "diario" || repite === "semanal" ? repite : null,
-    // Sin tipo, el default de la base («libre»): un recordatorio normal no
-    // depende de que la 0085 esté aplicada. Y sin created_by: guardaba el nombre
-    // de Telegram de quien lo pidió y nadie lo leía (un dato personal de balde).
-    ...(tipo ? { tipo } : {}),
+  const cadaCuanto = REPITES_RECORDATORIO.includes(repite) ? repite : null;
+  await insert(TABLA, [{
+    channel: paraEscribir("canales", channel), chat_id: String(chatId), household_id: householdId, texto: limpio,
+    tipo: TIPO_TAREA.RECORDATORIO, aviso, ejecutar_at: fecha.toISOString(), caduca_at: caducaTras(fecha), repite: cadaCuanto,
+    // Sin created_by: el de bot_reminders guardaba el nombre de Telegram de quien lo pidió y nadie lo leía.
   }]);
-  const cada = repite === "diario" ? ", y luego cada día" : repite === "semanal" ? ", y luego cada semana" : "";
+  const cada = cadaCuanto === "diario" ? ", y luego cada día" : cadaCuanto === "semanal" ? ", y luego cada semana" : "";
   return `Recordatorio creado: «${limpio}», el ${enMadrid(fecha)}${cada}.`;
 }
 
 export async function verRecordatorios(chatId) {
-  const filas = await select("bot_reminders", `chat_id=${eq(chatId)}&status=eq.pending&order=due_at.asc`, "id,text,due_at,repite");
+  const filas = await select(TABLA, `chat_id=${eq(chatId)}&${PENDIENTES}&order=ejecutar_at.asc`, "id,texto,ejecutar_at,repite");
   if (!filas.length) return "No hay recordatorios pendientes en este chat.";
-  return filas.map((f) => `- [${f.id}] «${f.text}» el ${enMadrid(f.due_at)}${f.repite ? ` (${f.repite})` : ""}`).join("\n");
+  return filas.map((f) => `- [${f.id}] «${f.texto}» el ${enMadrid(f.ejecutar_at)}${f.repite ? ` (${f.repite})` : ""}`).join("\n");
 }
 
 export async function cancelarRecordatorio(chatId, id) {
@@ -90,12 +99,13 @@ export async function cancelarRecordatorio(chatId, id) {
   // que no existe uno que sigue pendiente y va a sonar.
   let r;
   try {
-    r = await update("bot_reminders", `id=${eq(id)}&chat_id=${eq(chatId)}&status=eq.pending`, { status: "cancelled" });
+    const ahora = new Date().toISOString();
+    r = await update(TABLA, `id=${eq(id)}&chat_id=${eq(chatId)}&${PENDIENTES}`, { status: ESTADO_TAREA.DESCARTADA, closed_at: ahora, updated_at: ahora });
   } catch (e) {
     console.error("[recordatorios] cancelar", e?.message);
     return "NO CANCELADO: no he podido cancelarlo ahora, sigue pendiente. Se puede volver a intentar.";
   }
-  return r?.length ? `Cancelado: «${r[0].text}».` : "No encuentro ese recordatorio pendiente en este chat.";
+  return r?.length ? `Cancelado: «${r[0].texto}».` : "No encuentro ese recordatorio pendiente en este chat.";
 }
 
 // Un envío que falla se suelta para la pasada siguiente, salvo si Telegram dice
@@ -106,33 +116,33 @@ const sinArreglo = (e) => [400, 403].includes(Number(e?.status));
 
 /**
  * Manda los vencidos. Cada uno se «reclama» con una escritura condicionada a
- * su due_at, así dos pasadas solapadas no lo mandan dos veces. Si el envío
+ * su ejecutar_at, así dos pasadas solapadas no lo mandan dos veces. Si el envío
  * falla, se devuelve como estaba (condicionado a lo que escribió el reclamo):
  * antes quedaba marcado como enviado y se perdía para siempre (#958).
  * @param {(r: object) => Promise<void>} mandar
  */
 export async function enviarPendientes(mandar, ahoraMs = Date.now()) {
   const ahora = new Date(ahoraMs).toISOString();
-  const vencidos = await select("bot_reminders", `status=eq.pending&due_at=lte.${encodeURIComponent(ahora)}&order=due_at.asc&limit=50`, "*");
+  const vencidos = await select(TABLA, `${PENDIENTES}&ejecutar_at=lte.${encodeURIComponent(ahora)}&order=ejecutar_at.asc&limit=50`, "id,channel,chat_id,household_id,texto,aviso,ejecutar_at,repite,caduca_at");
   let enviados = 0;
   for (const r of vencidos) {
-    const siguiente = siguienteVez(r.due_at, r.repite, ahoraMs);
+    const siguiente = siguienteVez(r.ejecutar_at, r.repite, ahoraMs);
     const cambios = siguiente
-      ? { due_at: siguiente.toISOString(), sent_at: ahora }
-      : { status: "sent", sent_at: ahora };
-    const reclamado = await update("bot_reminders", `id=${eq(r.id)}&status=eq.pending&due_at=eq.${encodeURIComponent(r.due_at)}`, cambios).catch(fallaCon("recordatorios_reclamar", []));
+      ? { ejecutar_at: siguiente.toISOString(), caduca_at: caducaTras(siguiente), updated_at: ahora }
+      : { status: ESTADO_TAREA.HECHA, closed_at: ahora, updated_at: ahora };
+    const reclamado = await update(TABLA, `id=${eq(r.id)}&${PENDIENTES}&ejecutar_at=eq.${encodeURIComponent(r.ejecutar_at)}`, cambios).catch(fallaCon("recordatorios_reclamar", []));
     if (!reclamado?.length) continue;
     try {
       await mandar(r);
       enviados++;
     } catch (e) {
       console.error("[recordatorios] envío", r.id, e?.message);
-      if (sinArreglo(e) || ahoraMs - Date.parse(r.due_at) > REINTENTAR_HASTA_MS) continue;
+      if (sinArreglo(e) || ahoraMs - Date.parse(r.ejecutar_at) > REINTENTAR_HASTA_MS) continue;
       // Solo si nadie lo ha tocado desde el reclamo (cancelado entretanto, otra pasada).
       const reclamo = siguiente
-        ? `id=${eq(r.id)}&status=eq.pending&due_at=eq.${encodeURIComponent(cambios.due_at)}`
-        : `id=${eq(r.id)}&status=eq.sent&sent_at=eq.${encodeURIComponent(ahora)}`;
-      await update("bot_reminders", reclamo, { status: "pending", due_at: r.due_at, sent_at: r.sent_at ?? null })
+        ? `id=${eq(r.id)}&${PENDIENTES}&ejecutar_at=eq.${encodeURIComponent(cambios.ejecutar_at)}`
+        : `id=${eq(r.id)}&${RECORDATORIOS}&status=eq.${ESTADO_TAREA.HECHA}&closed_at=eq.${encodeURIComponent(ahora)}`;
+      await update(TABLA, reclamo, { status: ESTADO_TAREA.ABIERTA, closed_at: null, ejecutar_at: r.ejecutar_at, caduca_at: r.caduca_at, updated_at: ahora })
         .catch(fallaCon("recordatorios_soltar", []));
     }
   }

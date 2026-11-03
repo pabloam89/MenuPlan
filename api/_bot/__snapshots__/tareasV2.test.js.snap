@@ -266,7 +266,7 @@ exports[`sin BOT_TAREAS_V2: lo de siempre, byte a byte > las mismas llamadas a l
   [
     "select",
     "bot_tareas",
-    "household_id=eq.11111111-1111-1111-1111-111111111111&status=eq.abierta&caduca_at=gt.2026-10-08T10%3A00%3A00.000Z&or=(scope.eq.casa,and(scope.eq.personal,owner_user_id.eq.22222222-2222-2222-2222-222222222222))&order=created_at.desc&limit=50",
+    "household_id=eq.11111111-1111-1111-1111-111111111111&status=eq.abierta&and=(or(tipo.is.null,tipo.neq.recordatorio))&caduca_at=gt.2026-10-08T10%3A00%3A00.000Z&or=(scope.eq.casa,and(scope.eq.personal,owner_user_id.eq.22222222-2222-2222-2222-222222222222))&order=created_at.desc&limit=50",
     "id,kind,scope,texto,falta,clave,chat_id,para_member,asignado_member,vence,caduca_at,created_at",
   ],
   [

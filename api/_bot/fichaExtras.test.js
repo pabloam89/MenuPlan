@@ -44,11 +44,12 @@ describe("extrasDeFicha", () => {
     for (const c of despensa.columnas.split(",").map((s) => s.trim())) expect(existen, `user_pantry.${c}`).toContain(c);
   });
 
-  it("los avisos piden columnas que existen en bot_reminders", async () => {
+  it("los avisos (recordatorios en bot_tareas, 0122) piden columnas que existen en bot_tareas", async () => {
     await extrasDeFicha("casa-1", 42);
-    const avisos = pedidas.find((p) => p.tabla === "bot_reminders");
-    const existen = columnasDe("bot_reminders");
-    for (const c of avisos.columnas.split(",").map((s) => s.trim())) expect(existen, `bot_reminders.${c}`).toContain(c);
+    const avisos = pedidas.find((p) => p.tabla === "bot_tareas");
+    expect(avisos, "la ficha no pide los recordatorios").toBeTruthy();
+    const existen = columnasDe("bot_tareas");
+    for (const c of avisos.columnas.split(",").map((s) => s.trim())) expect(existen, `bot_tareas.${c}`).toContain(c);
   });
 
   it("y lo pinta con el nombre del plato", async () => {

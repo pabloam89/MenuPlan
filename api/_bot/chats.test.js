@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-// Una base de mentira por tablas, con filtros por chat_id, status y external_id.
+// Una base de mentira por tablas, con filtros por chat_id, tipo, status y external_id.
 const t = vi.hoisted(() => ({ base: {} }));
 const valor = (filtro, k) => decodeURIComponent(filtro.split("&").find((p) => p.startsWith(`${k}=eq.`))?.slice(k.length + 4) ?? "");
-const casa = (filtro) => (f) => ["chat_id", "status", "external_id"].every((k) => !filtro.includes(`${k}=`) || String(f[k]) === valor(filtro, k));
+const casa = (filtro) => (f) => ["chat_id", "tipo", "status", "external_id"].every((k) => !filtro.includes(`${k}=`) || String(f[k]) === valor(filtro, k));
 vi.mock("./db.js", () => ({
   eq: (v) => `eq.${encodeURIComponent(v)}`,
   select: vi.fn(async (tabla, filtro) => (t.base[tabla] ?? []).filter(casa(filtro))),
@@ -20,9 +20,13 @@ const { migrarChat, alSalirDelChat, TABLAS_DEL_CHAT } = await import("./chats.js
 beforeEach(() => {
   t.base = {
     bot_chats: [{ chat_id: "-1", household_id: "h1", kind: "group" }],
-    bot_reminders: [{ chat_id: "-1", status: "pending" }, { chat_id: "-1", status: "sent" }, { chat_id: "7", status: "pending" }],
     bot_messages: [{ chat_id: "-1" }],
-    bot_tareas: [{ chat_id: "-1" }],
+    // Los recordatorios son tareas de tipo recordatorio (0122): uno abierto y uno ya mandado en el grupo, uno en el
+    // privado, y una tarea que no es recordatorio (no se toca al salir).
+    bot_tareas: [
+      { chat_id: "-1", tipo: "recordatorio", status: "abierta" }, { chat_id: "-1", tipo: "recordatorio", status: "hecha" },
+      { chat_id: "7", tipo: "recordatorio", status: "abierta" }, { chat_id: "-1", tipo: "espera", status: "abierta" },
+    ],
     bot_identities: [{ external_id: "7", user_id: "u7" }],
   };
 });
@@ -31,7 +35,7 @@ describe("un grupo que pasa a supergrupo (migrate_to_chat_id, #958)", () => {
   it("el enlace, los recordatorios, la charla y las tareas pasan al id nuevo", async () => {
     const { movidas } = await migrarChat("-1", "-100");
     for (const tabla of TABLAS_DEL_CHAT) expect(t.base[tabla].every((f) => f.chat_id !== "-1"), tabla).toBe(true);
-    expect(movidas).toEqual({ bot_chats: 1, bot_reminders: 2, bot_messages: 1, bot_tareas: 1 });
+    expect(movidas).toEqual({ bot_chats: 1, bot_messages: 1, bot_tareas: 3 });
   });
 
   it("los dos avisos (el del viejo y el del nuevo) no rompen nada: la segunda vez no hay nada que mover", async () => {
@@ -52,7 +56,10 @@ describe("echan a Lola o la bloquean (my_chat_member, #958)", () => {
   it("de un grupo: se cancelan sus recordatorios pendientes y se quita el enlace", async () => {
     const r = await alSalirDelChat({ chat: { id: -1, type: "group" }, new_chat_member: { status: "kicked" } });
     expect(r).toEqual({ cancelados: 1, desenlazado: true });
-    expect(t.base.bot_reminders.filter((x) => x.chat_id === "-1").map((x) => x.status).sort()).toEqual(["cancelled", "sent"]);
+    const delGrupo = t.base.bot_tareas.filter((x) => x.chat_id === "-1");
+    expect(delGrupo.filter((x) => x.tipo === "recordatorio").map((x) => x.status).sort()).toEqual(["descartada", "hecha"]);
+    expect(delGrupo.find((x) => x.tipo === "espera").status).toBe("abierta");
+    expect(delGrupo.find((x) => x.status === "descartada").closed_at).toBeTruthy();
     expect(t.base.bot_chats).toEqual([]);
   });
 

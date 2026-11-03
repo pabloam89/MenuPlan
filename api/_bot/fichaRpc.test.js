@@ -140,6 +140,8 @@ vi.mock("./db.js", () => ({
   select: vi.fn(async (tabla, filtro = "") => {
     llamadas.push(["select", tabla, filtro]);
     if (tabla !== "bot_tareas") return [];
+    // Los recordatorios (tipo recordatorio, 0122) los lee la ficha aparte (extrasDeFicha): aquí no hay ninguno.
+    if (filtro.includes("tipo=eq.recordatorio")) return filas.filter((t) => t.tipo === "recordatorio");
     if (/rechazada/.test(filtro)) return filas.filter((t) => t.status === "rechazada");
     return filas.filter((t) => vivas(t) && (t.scope === "casa" || filtro.includes(`owner_user_id.eq.${t.owner_user_id}`)));
   }),
@@ -230,7 +232,8 @@ describe("con BOT_FICHA_RPC encendido, ficha y tareas de ficha_casa en una ida",
     llamadas = [];
     return t;
   };
-  const selectsDeTareas = () => llamadas.filter(([q, tabla]) => q === "select" && tabla === "bot_tareas");
+  // Sin la lectura de los recordatorios (extrasDeFicha, 0122): esa no es la de las tareas.
+  const selectsDeTareas = () => llamadas.filter(([q, tabla, filtro]) => q === "select" && tabla === "bot_tareas" && !String(filtro).includes("tipo=eq.recordatorio"));
   const llamadasRpc = () => llamadas.filter(([q, f]) => q === "rpc" && f === "ficha_casa");
   let errores;
   beforeEach(async () => {

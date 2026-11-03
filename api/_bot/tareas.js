@@ -29,7 +29,7 @@ import {
 } from "../../src/lib/registroTareas.js";
 import { unaVez, tareasV2 } from "./idempotencia.js";
 import { esDuplicado } from "./entradas.js";
-import { CANAL, paraEscribir } from "../../src/lib/vocabularios.js";
+import { CANAL, TIPO_TAREA, paraEscribir } from "../../src/lib/vocabularios.js";
 
 export const LIMITE_ABIERTAS = 8;
 // Lo que se trae de la base es una cota, no el recorte: el recorte lo hace
@@ -39,6 +39,8 @@ const TEXTO_MAX = 240;
 const DIA = 86400000;
 const MAX_DIAS = 90;
 const EVENTO = { CREADA: "bot_task_created", CERRADA: "bot_task_closed", DUPLICADA: "bot_task_duplicate", AUTO: "bot_task_auto_closed", APLAZADA: "bot_task_postponed" };
+/** tipo null (filas del bot de antes) cuenta como «no es recordatorio»: un neq solo las dejaría fuera. */
+const SIN_RECORDATORIOS = `and=(or(tipo.is.null,tipo.neq.${TIPO_TAREA.RECORDATORIO}))`;
 const COLUMNAS = "id,kind,scope,texto,falta,clave,chat_id,para_member,asignado_member,vence,caduca_at,created_at";
 const COLUMNAS_V2 = `${COLUMNAS},tipo,campo,persona_id,status,vuelve_at`;
 
@@ -88,7 +90,8 @@ export function filtroDeLectura({ householdId, userId = null, privado = false, a
   const ver = privado && userId
     ? `or=(scope.eq.casa,and(scope.eq.personal,owner_user_id.eq.${userId}))`
     : "scope=eq.casa";
-  return `household_id=${eq(householdId)}&${filtroVivas()}&caduca_at=gt.${encodeURIComponent(ahora.toISOString())}&${ver}&order=created_at.desc&limit=${LIMITE_LECTURA}`;
+  // Sin los recordatorios (tareas de tipo recordatorio, 0122): tienen su lectura (recordatorios.js) y no son algo que preguntar.
+  return `household_id=${eq(householdId)}&${filtroVivas()}&${SIN_RECORDATORIOS}&caduca_at=gt.${encodeURIComponent(ahora.toISOString())}&${ver}&order=created_at.desc&limit=${LIMITE_LECTURA}`;
 }
 
 const importanciaDe = (t) => (CAMPOS[campoDe(t)]?.seguridad ? 0 : tipoDe(t) === "falta_saber" ? 1 : 2);
