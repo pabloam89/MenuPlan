@@ -73,7 +73,7 @@ select count(*) from public.bot_tareas
    and (pedido is null or length(pedido) <= 240), true);
 ```
 
-`bot_reminders_tarea_fk` (tabla `bot_reminders`)
+`bot_reminders_tarea_fk` (tabla `bot_reminders`): se va con la tabla en la 0123; se quita de aquí al aplicarla.
 ```sql
 select count(*) from public.bot_reminders r
  where r.tarea_id is not null and r.household_id is not null
@@ -152,7 +152,7 @@ Aún no está en esta rama; se apuntan para que no se pierdan al entrar.
 Condición: 0085 aplicada y el bot nuevo una semana sin errores.
 
 `bot_messages_channel_check`, `bot_reminders_channel_check`,
-`bot_tareas_channel_check`, `bot_cola_channel_check`
+`bot_tareas_channel_check`, `bot_cola_channel_check` (el de `bot_reminders` se va con la tabla en la 0123)
 ```sql
 select 'bot_messages' t, count(*) from public.bot_messages where channel not in ('telegram','whatsapp')
 union all select 'bot_reminders', count(*) from public.bot_reminders where channel not in ('telegram','whatsapp')
@@ -160,7 +160,7 @@ union all select 'bot_tareas',    count(*) from public.bot_tareas    where chann
 union all select 'bot_cola',      count(*) from public.bot_cola      where channel not in ('telegram','whatsapp');
 ```
 
-`bot_reminders_tipo_check`
+`bot_reminders_tipo_check`: se va con la tabla en la 0123; se quita de aquí al aplicarla.
 ```sql
 select count(*) from public.bot_reminders where tipo not in ('libre','vispera');
 ```
