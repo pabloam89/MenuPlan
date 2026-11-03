@@ -28,7 +28,8 @@ import { ESQUEMA_RASGOS, ESQUEMA_EJES, ESQUEMA_PERFIL } from "./esquemas.js";
 import { generarMenu, resultadoDeGenerar } from "./generar.js";
 import { esBotonRehacer, desdeDelBoton } from "./semanaPedida.js";
 import { diaDe } from "./interprete.js";
-import { isoDeCasa } from "../../src/lib/dias.js";
+import { isoDeCasa, diaDeISO } from "../../src/lib/dias.js";
+import { cuadre as cuadreDelTurno } from "./cuadre.js";
 import { avisoVispera } from "./vispera.js";
 import { registrar, EMBUDO, duenoDe } from "./embudo.js";
 import {
@@ -1427,7 +1428,11 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
   // código encima del mensaje de Lola. Y si ni con el aviso dejó de decir que
   // guardó sin guardar nada, la familia lo ve dicho: antes le llegaba la
   // promesa falsa tal cual (bot_claimed_unsaved con sigue = true).
-  const respuesta = conRecibo(conRecordatorio(visible, chat.recordarSilencio, chat.idioma ?? "es"), chat.resultados, { sinGuardar: sigueSinGuardar }) + avisoDeLimite(householdId, llevados);
+  // L1 (cuadre.js): lo que Lola confirma con su voz se compara con los valores
+  // guardados. Si cuadra, su frase basta y el ✅ de ese resultado no se repite;
+  // si no, sus frases de confirmar se quitan y entra el recibo en su lugar.
+  const cuadre = cuadreDelTurno(visible, chat.resultados, { confirma: diceQueGuardo, hoy: diaDeISO(hoyISO()), nombres: chat.nombresAntes ?? [] });
+  const respuesta = conRecibo(conRecordatorio(visible, chat.recordarSilencio, chat.idioma ?? "es"), chat.resultados, { sinGuardar: sigueSinGuardar, cuadre }) + avisoDeLimite(householdId, llevados);
 
   // Guardar la charla no tiene por qué retrasar la respuesta: va en
   // `guardado`, y quien entrega lo espera DESPUÉS de enviar y antes de soltar
