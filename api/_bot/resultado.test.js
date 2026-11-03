@@ -3,6 +3,12 @@
  * recibo que ve la familia, pintado por el código y no por Lola.
  */
 import { describe, it, expect } from "vitest";
+
+// menu.js (resultadoDeAusencia) pide estas dos al cargarse; aquí no se usa la base.
+process.env.VITE_SUPABASE_URL ||= "https://sin-base.invalid";
+process.env.SUPABASE_SERVICE_ROLE_KEY ||= "sin-clave";
+// Al cargar el fichero y no dentro del test: menu.js tarda en frío más que el plazo de un test.
+const { resultadoDeAusencia } = await import("./menu.js");
 import { resultado, esResultado, paraElModelo, recibo, conRecibo, RECIBO_SIN_GUARDAR, cuentaComoGuardado, ESTADO, EN_EL_RECIBO, ORDEN_CON_VALORES } from "./resultado.js";
 
 const datosDe = (t) => JSON.parse(t.split("\n")[0].replace(/^RESULTADO /, ""));
@@ -104,10 +110,7 @@ describe("los valores de lo guardado (L1)", () => {
 });
 
 describe("fuera_de_casa devuelve lo guardado con sus valores", () => {
-  it("lo apuntado: hecho y valores; una duda: sin línea en el recibo; un fallo al guardar: ⚠️", async () => {
-    process.env.VITE_SUPABASE_URL ||= "https://sin-base.invalid";
-    process.env.SUPABASE_SERVICE_ROLE_KEY ||= "sin-clave";
-    const { resultadoDeAusencia } = await import("./menu.js");
+  it("lo apuntado: hecho y valores; una duda: sin línea en el recibo; un fallo al guardar: ⚠️", () => {
     const ok = resultadoDeAusencia({ texto: "Apuntado: Leo fuera el viernes 6 (cena).", hecho: "Leo fuera el viernes 6 (cena)", valores: { dia: ["Vie"], comida: ["Cena"], persona: ["Leo"] } });
     expect(ok.estado).toBe(ESTADO.HECHO);
     expect(ok.hecho).toEqual(["Leo fuera el viernes 6 (cena)"]);
