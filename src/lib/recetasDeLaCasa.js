@@ -56,11 +56,17 @@ export function votosDeFavoritas(favorites, personal = {}, notaDe = () => null) 
 
 /**
  * La casa de Lola (api/_bot/casa.js) como la lee el motor: su data, más sus
- * favoritas y descartes (`casa.deLaCasa`). Solo para elegir platos: lo que se
- * guarda sigue siendo `casa.state.data`, que no los lleva. Sin `deLaCasa` (la
- * lectura falló), la data tal cual: el motor sigue como antes.
+ * favoritas y descartes (`casa.deLaCasa`) y sus recetas propias (`casa.recetasPropias`,
+ * de su tabla y sin las borradas: la copia vieja del documento traía de vuelta
+ * recetas ya borradas, #958 G). Solo para elegir platos: lo que se guarda sigue
+ * siendo `casa.state.data`, que no los lleva. Sin `deLaCasa` (la lectura falló),
+ * la data tal cual: el motor sigue como antes.
  */
-export const datosDelMotor = (casa) => ({ ...(casa?.state?.data ?? {}), ...(casa?.deLaCasa ?? {}) });
+export const datosDelMotor = (casa) => ({
+  ...(casa?.state?.data ?? {}),
+  ...(casa?.recetasPropias ? { userRecipes: casa.recetasPropias } : {}),
+  ...(casa?.deLaCasa ?? {}),
+});
 
 /**
  * Filas de household_recipe_discards → { forever, cooldownUntil }. Un descarte

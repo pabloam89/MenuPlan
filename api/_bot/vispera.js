@@ -18,9 +18,8 @@
 
 import { fallaCon } from "./avisar.js";
 import { cargarCasa } from "./casa.js";
-import { select, update } from "./db.js";
-import { crearRecordatorio } from "./recordatorios.js";
-import { TIPO_TAREA, ESTADO_TAREA, AVISO_RECORDATORIO, REPITE_RECORDATORIO } from "../../src/lib/vocabularios.js";
+import { crearRecordatorio, pendientesDeAviso, descartarDeAviso } from "./recordatorios.js";
+import { AVISO_RECORDATORIO, REPITE_RECORDATORIO } from "../../src/lib/vocabularios.js";
 import { batchCooking } from "./ficha.js";
 import { IDS_COMIDAS, comida as delCatalogo } from "../../src/lib/comidas.js";
 import { diaDeISO } from "../../src/lib/dias.js";
@@ -109,12 +108,10 @@ export async function avisoVispera(chat, { activar = true, hora = "20:30" } = {}
   // quedaba sin aviso y sin decirlo.
   if (activar && !/^([01]\d|2[0-3]):[0-5]\d$/.test(hora)) return "Dime la hora como HH:MM (por ejemplo 20:30).";
   // El aviso de la víspera es un recordatorio (una tarea de tipo recordatorio, 0122) con aviso «vispera».
-  const enChat = `chat_id=eq.${encodeURIComponent(String(chat.chatId))}&tipo=eq.${TIPO_TAREA.RECORDATORIO}&status=eq.${ESTADO_TAREA.ABIERTA}&aviso=eq.${TIPO_VISPERA}`;
-  const quitar = () => { const ahora = new Date().toISOString(); return { status: ESTADO_TAREA.DESCARTADA, closed_at: ahora, updated_at: ahora }; };
-  const ya = await select("bot_tareas", enChat, "id");
+  const ya = await pendientesDeAviso(chat.chatId, TIPO_VISPERA);
   // Si quitar el de antes falla, lanza: mejor un error que dos avisos cada noche.
   if (!activar) {
-    if (ya.length) await update("bot_tareas", enChat, quitar());
+    if (ya.length) await descartarDeAviso(chat.chatId, TIPO_VISPERA);
     return ya.length ? "Quitado: ya no te aviso la víspera." : "No tenías el aviso de la víspera puesto.";
   }
   // La próxima vez que toque esa hora en España: hoy si aún no ha pasado.
@@ -126,7 +123,6 @@ export async function avisoVispera(chat, { activar = true, hora = "20:30" } = {}
   // fallaba (tope de pendientes, la base) se quedaba sin ninguno (#958).
   const r = await crearRecordatorio(chat, { texto: VISPERA, cuando: `${d.toISOString().slice(0, 10)}T${hora}`, repite: REPITE_RECORDATORIO.DIARIO, aviso: TIPO_VISPERA });
   if (!/^Recordatorio creado/.test(r)) return r;
-  // Los ids de las tareas son uuid: van entre comillas en el filtro.
-  if (ya.length) await update("bot_tareas", `${enChat}&id=in.(${ya.map((x) => `"${x.id}"`).join(",")})`, quitar());
+  if (ya.length) await descartarDeAviso(chat.chatId, TIPO_VISPERA, ya);
   return `Hecho: cada noche a las ${hora} miro el menú de mañana y, si hay algo que preparar (remojo, sacar algo del congelador, tu día de batch cooking), te aviso. Si no hay nada, no te escribo.`;
 }

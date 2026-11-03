@@ -16,7 +16,7 @@
 
 import { fallaCon } from "./avisar.js";
 import { select, insert, update, eq } from "./db.js";
-import { paraEscribir, AVISOS_RECORDATORIO, AVISO_RECORDATORIO, REPITES_RECORDATORIO, TIPO_TAREA, ESTADO_TAREA } from "../../src/lib/vocabularios.js";
+import { paraEscribir, AVISOS_RECORDATORIO, AVISO_RECORDATORIO, REPITES_RECORDATORIO, REPITE_RECORDATORIO, TIPO_TAREA, ESTADO_TAREA } from "../../src/lib/vocabularios.js";
 import { isoDeCasa } from "../../src/lib/dias.js";
 
 const ZONA = "Europe/Madrid";
@@ -84,7 +84,7 @@ export async function crearRecordatorio({ channel, chatId, householdId }, { text
     tipo: TIPO_TAREA.RECORDATORIO, aviso, ejecutar_at: fecha.toISOString(), caduca_at: caducaTras(fecha), repite: cadaCuanto,
     // Sin created_by: el de bot_reminders guardaba el nombre de Telegram de quien lo pidió y nadie lo leía.
   }]);
-  const cada = cadaCuanto === "diario" ? ", y luego cada día" : cadaCuanto === "semanal" ? ", y luego cada semana" : "";
+  const cada = cadaCuanto === REPITE_RECORDATORIO.DIARIO ? ", y luego cada día" : cadaCuanto === REPITE_RECORDATORIO.SEMANAL ? ", y luego cada semana" : "";
   return `Recordatorio creado: «${limpio}», el ${enMadrid(fecha)}${cada}.`;
 }
 
@@ -92,6 +92,25 @@ export async function verRecordatorios(chatId) {
   const filas = await select(TABLA, `chat_id=${eq(chatId)}&${PENDIENTES}&order=ejecutar_at.asc`, "id,texto,ejecutar_at,repite");
   if (!filas.length) return "No hay recordatorios pendientes en este chat.";
   return filas.map((f) => `- [${f.id}] «${f.texto}» el ${enMadrid(f.ejecutar_at)}${f.repite ? ` (${f.repite})` : ""}`).join("\n");
+}
+
+/** Los próximos pendientes de un chat, por hora (los «avisos» de la ficha, ficha.js). */
+export async function proximosRecordatorios(chatId, limite = 3) {
+  return select(TABLA, `chat_id=${eq(String(chatId))}&${PENDIENTES}&order=ejecutar_at.asc&limit=${limite}`, "texto,ejecutar_at,repite");
+}
+
+const delAviso = (chatId, aviso) => `chat_id=${eq(String(chatId))}&${PENDIENTES}&aviso=eq.${aviso}`;
+const descartado = () => { const ahora = new Date().toISOString(); return { status: ESTADO_TAREA.DESCARTADA, closed_at: ahora, updated_at: ahora }; };
+
+/** Los ids de los pendientes de un chat con ese aviso (AVISOS_RECORDATORIO): el de la víspera, en vispera.js. */
+export async function pendientesDeAviso(chatId, aviso) {
+  return (await select(TABLA, delAviso(chatId, aviso), "id")).map((r) => r.id);
+}
+
+/** Descarta los pendientes de un chat con ese aviso; con `ids`, solo esos (los ids son uuid: entre comillas). Lanza si falla. */
+export async function descartarDeAviso(chatId, aviso, ids = null) {
+  const solo = ids ? `&id=in.(${ids.map((id) => `"${id}"`).join(",")})` : "";
+  return update(TABLA, `${delAviso(chatId, aviso)}${solo}`, descartado());
 }
 
 export async function cancelarRecordatorio(chatId, id) {
@@ -166,7 +185,7 @@ function masDias(iso, n) {
  * Si estuvo parado, no se manda una vez por cada vuelta perdida. Pura.
  */
 export function siguienteVez(dueAt, repite, ahoraMs = Date.now()) {
-  const dias = repite === "diario" ? 1 : repite === "semanal" ? 7 : 0;
+  const dias = repite === REPITE_RECORDATORIO.DIARIO ? 1 : repite === REPITE_RECORDATORIO.SEMANAL ? 7 : 0;
   if (!dias) return null;
   const p = partesEn(new Date(dueAt));
   const hora = `${p.hour}:${p.minute}`;

@@ -15,7 +15,7 @@
 --     ejecutar_at: la purga de la 0080 caduca lo abierto vencido).
 --   · Un índice parcial para el cron que los manda: los abiertos por `ejecutar_at`.
 --   · Lo demás del trozo 34 (origen enlazado, prioridad, intentos, qué bloquea, cerrada_por, objetivos con meta)
---     llega con su lector, en sus PR: un campo sin lector no entra (docs/datos/PRINCIPIOS.md §15).
+--     llega con su lector, en sus PR: un campo sin lector no entra (regla migraciones, .claude/rules/migraciones.md).
 -- AUDITADA: auditor-datos 2026-11-03 OK
 --   (un agente independiente, que no la escribió: encaja con kind null, el tope, v2_reglas_check, cierre_check, el
 --   índice por clave y el canal; no duplica; lector en el PR 2 como la 0113 y la 0119; sin RLS, permisos ni filas.

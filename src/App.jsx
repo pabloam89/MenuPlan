@@ -178,6 +178,7 @@ import { loadUserState, saveUserState, clearUserState } from "./lib/userState.js
 import { loadHouseholdState, saveHouseholdState, loadHouseholdBotRev, empezarCasaVacia, CASA_VACIA } from "./lib/householdState.js";
 import { leerBotRevVisto, guardarBotRevVisto } from "./lib/botRevVisto.js";
 import { guardandoCasa, guardadosDeCasa } from "./lib/versionCasa.js";
+import { sinRecetasDeTabla } from "./lib/recetasFuente.js";
 import { vigilarCasa, EVENTO_SENAL } from "./lib/realtimeCasa.js";
 import { leerFamiliaDeCasa, conFamiliaLeida, sinFamilia, familiaDeCasa, cargaSinSeguir, guardarFamiliaYDocumento, MODO_FAMILIA, contarSenales } from "./lib/familiaCasa.js";
 import { senalesDeCambio, senalesDePlato } from "./lib/senales.js";
@@ -926,10 +927,8 @@ const PANTRY_DAY_WINDOW_DAYS = 45;
 function snapshotDeCasa({ data, menuPlan, shopping, aiRecipes, onbStep }, modoFamilia, cargaCasa, cargaLibreta) {
   // La familia, si vive en sus filas (trozo 10), los datos de la casa con sobre (trozo 12) y la libreta, si vive en
   // sus filas de preferencia (trozo 14), van por api/operacion.js y no aquí (lib/familiaCasa.js, casaDatos.js, libretaCasa.js).
-  const profile = { ...sinLibretaLeida(sinCasa(sinFamilia(data, modoFamilia), cargaCasa), cargaLibreta) };
-  delete profile.userRecipes;
-  delete profile.recipeVotes;
-  delete profile.discards;
+  // Las recetas, votos, descartes, colecciones y carpetas viven en sus tablas (recetasFuente.js, trozo 21).
+  const profile = { ...sinRecetasDeTabla(sinLibretaLeida(sinCasa(sinFamilia(data, modoFamilia), cargaCasa), cargaLibreta)) };
   delete profile.menus;
   return { data: profile, menuPlan, shopping, aiRecipes, onbStep };
 }
@@ -3841,10 +3840,7 @@ export default function App() {
     setPantryEpoch((n) => n + 1);
 
     if (result.householdId) {
-      const profile = { ...emptyProfile };
-      delete profile.userRecipes;
-      delete profile.recipeVotes;
-      delete profile.discards;
+      const profile = { ...sinRecetasDeTabla(emptyProfile) };
       delete profile.menus;
       // Solo si la que queda está vacía, y con su versión (householdState.js, #958).
       const vacia = await empezarCasaVacia(result.householdId, {
@@ -6434,9 +6430,10 @@ export default function App() {
               onFillSlots={esPizarra ? handleFillSlots : null}
               // La fila de mandos de la pizarra. Va como prop y no importada
               // dentro de MenuScreen para que esa pantalla siga sin saber que
-              // la pizarra existe: recibe nodos, no modos.
+              // la pizarra existe: recibe nodos, no modos. Es una función
+              // porque Menu le añade lo que solo él abre (la hoja del PDF).
               pizarraControles={
-                esPizarra && !householdReadOnly && !pizarraArrancando ? (
+                esPizarra && !householdReadOnly && !pizarraArrancando ? (extra) => (
                   <Suspense fallback={null}>
                     <PizarraControles
                       data={data}
@@ -6454,6 +6451,8 @@ export default function App() {
                       onFavorito={householdReadOnly ? undefined : toggleActiveFavorite}
                       esFavorito={Boolean(data.menus?.[data.activeMenuId]?.isFavorite)}
                       onCompartir={householdReadOnly ? undefined : handleShareMenuLink}
+                      onMenus={openMenusScreen}
+                      {...extra}
                     />
                   </Suspense>
                 ) : null
@@ -7602,15 +7601,13 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle, onApple,
           0%   { transform: translateX(-120%) skewX(-18deg); }
           100% { transform: translateX(320%) skewX(-18deg); }
         }
-        .portada-foto { object-position: center 35%; }
         .portada-titulo { padding: 56px 32px 0; }
         .portada-logo { width: 84px; height: 84px; }
         .portada-letras { font-size: clamp(58px, 17vw, 84px); margin: 0 0 10px; }
         .portada-lema { font-size: 20px; }
-        /* Móvil con las barras del navegador: el título encoge y la foto baja el
-           encuadre para que las cuatro caras quepan entre él y los botones. */
+        /* Móvil con las barras del navegador: el título encoge para que las
+           cuatro caras quepan entre él y los botones. */
         @media (max-height: 800px) {
-          .portada-foto { object-position: center 72%; }
           .portada-titulo { padding-top: 28px; }
           .portada-logo { width: 52px; height: 52px; }
           .portada-letras { font-size: 48px; margin-bottom: 4px; }
@@ -7657,22 +7654,40 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle, onApple,
         }}
       />
 
-      {/* Foto fija de fondo. */}
+      {/* Foto fija (Pexels, Vanessa Loring). Debajo, la misma foto difuminada llena la
+          pantalla: la nítida se funde en ella y no se ve dónde acaba. */}
       <img
-        className="portada-foto"
         src="/portada.jpg"
         alt=""
         aria-hidden="true"
         style={{
           position: "absolute",
-          top: 0,
+          inset: -40,
+          width: "calc(100% + 80px)",
+          height: "calc(100% + 80px)",
+          objectFit: "cover",
+          objectPosition: "37% 40%",
+          filter: "blur(36px) saturate(.8) brightness(.85)",
+          zIndex: 1,
+          pointerEvents: "none",
+          animation: "fadeIn 1.2s ease-out",
+        }}
+      />
+      <img
+        src="/portada.jpg"
+        alt=""
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          top: "20%",
           left: 0,
           width: "100%",
-          // Más corta que la pantalla: su borde inferior se funde con el fondo.
-          height: "78%",
+          // Las caras quedan entre el título y los botones.
+          height: "60%",
           objectFit: "cover",
-          WebkitMaskImage: "linear-gradient(180deg, #000 82%, transparent 100%)",
-          maskImage: "linear-gradient(180deg, #000 82%, transparent 100%)",
+          objectPosition: "37% 40%",
+          WebkitMaskImage: "linear-gradient(180deg, transparent 0%, #000 22%, #000 78%, transparent 100%)",
+          maskImage: "linear-gradient(180deg, transparent 0%, #000 22%, #000 78%, transparent 100%)",
           zIndex: 1,
           pointerEvents: "none",
           animation: "fadeIn 1.2s ease-out",
