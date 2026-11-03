@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { CAMINO, CAMINOS, TEMA, TEMAS } from "../lib/caminos.js";
 import { Check } from "../components/icons.jsx";
 import { OnboardingShell } from "./Onboarding.jsx";
 import { hasChildMember } from "../lib/groups.js";
@@ -14,34 +15,38 @@ const SELECTED = "#0f766e";
  *
  * `onlyKids` marca los que solo aplican con niños en casa.
  */
-const TOPICS = [
-  { id: "semana",     title: "¿Para qué días quieres el menú?",          steps: [5] },
-  { id: "compra",     title: "¿Cuánto quieres gastarte en la compra?",   steps: [6] },
-  { id: "horario",    title: "¿Qué días coméis en casa?",                steps: [7] },
-  { id: "cole",       title: "¿Tienes el menú del cole de tus hijos?",   steps: [4],    onlyKids: true },
+// Los temas salen de la lista común (src/lib/caminos.js), que lee también
+// Lola. Aquí solo se añade lo propio de la pantalla: qué pasos abre cada uno.
+const PASOS_DE_TEMA = {
+  [TEMA.SEMANA]: [5],
+  [TEMA.COMPRA]: [6],
+  [TEMA.HORARIO]: [7],
+  [TEMA.COLE]: [4],
   // 3 (modelo de menú) casi siempre está oculto cuando hay niños — se deriva
   // de 8 (¿cómo comen los niños?). Se listan los dos y que decida App.jsx.
-  { id: "ninos",      title: "¿Comen tus hijos igual que vosotros?",     steps: [3, 8], onlyKids: true },
-  { id: "estilo",     title: "¿Qué estilo de comida preferís?",          steps: [9] },
-  { id: "estructura", title: "¿Cuántos platos por comida?",              steps: [10] },
+  [TEMA.NINOS]: [3, 8],
+  [TEMA.ESTILO]: [9],
+  [TEMA.ESTRUCTURA]: [10],
   // Ojo: el ON/OFF del desayuno sigue viviendo en "¿Dónde coméis?" (7); aquí
   // solo se afina la variedad (10) y merienda/postre (11).
-  { id: "extras",     title: "¿Queréis desayunos?",                      steps: [10, 11] },
-  // Dos pasos: lo que hay en casa (12) y cuánto pesa al armar el menú (13).
-  // Van juntos bajo el mismo tema porque la segunda no se entiende sin haber
-  // visto la primera.
-  { id: "despensa",   title: "¿Queréis usar lo que hay en casa?",        steps: [12, 13] },
-  { id: "cocina",     title: "¿Cuánto os gusta cocinar?",                steps: [14] },
-  { id: "electros",   title: "¿Qué tenéis en la cocina?",                steps: [15] },
-  { id: "tiempos",    title: "¿Cuánto tiempo tenéis para cocinar?",      steps: [16] },
-  // Batch cooking es tema propio y no un trozo de "tiempos", porque es otra
-  // pregunta: aquella es cuánto rato tienes un martes, y ésta qué dejas hecho
-  // el día que te pones. Las dos se contestan a la vez —"con prisa entre
-  // semana Y cocino el domingo"— y por eso ninguna puede ocupar el sitio de la
-  // otra. Quien no cocina en tanda no marca el tema; y si lo marca y no pide
-  // nada, tampoco pasa nada: sin tandas pedidas no hay batch cooking.
-  { id: "batch",      title: "¿Cocináis en tandas?",                     steps: [17] },
-];
+  [TEMA.EXTRAS]: [10, 11],
+  // Lo que hay en casa (12) y cuánto pesa al armar el menú (13): la segunda no
+  // se entiende sin haber visto la primera.
+  [TEMA.DESPENSA]: [12, 13],
+  [TEMA.COCINA]: [14],
+  [TEMA.ELECTROS]: [15],
+  [TEMA.TIEMPOS]: [16],
+  // Batch cooking es tema propio y no un trozo de "tiempos": aquella es cuánto
+  // rato tienes un martes, y ésta qué dejas hecho el día que te pones.
+  [TEMA.BATCH]: [17],
+};
+
+const TOPICS = TEMAS.map((t) => ({
+  id: t.id,
+  title: t.titulo,
+  steps: PASOS_DE_TEMA[t.id],
+  onlyKids: Boolean(t.soloNinos),
+}));
 
 /**
  * Pasos de `onbScreens` que abre cada tema. Lo consume App.jsx para decidir
@@ -67,50 +72,27 @@ const IMG = (slug) => `/avatares/cards/wizard_picker/${slug}.webp`;
  * propia implicación sin haber visto nada de la app todavía; el tiempo es
  * concreto y no juzga. (Aprendizaje del picker anterior, 2026-08-29.)
  */
-const MODES = [
-  {
-    id: "basico",
-    img: IMG("nivel_basico"),
-    // La ilustración es 4:5 y la tarjeta la recorta a cuadrado, así que cada
-    // una dice qué franja conserva: aquí el personaje manda y está centrado.
-    focus: "center 45%",
-    time: "1 minuto",
-    title: "Lo básico",
-    subtitle: "Dinos cuándo coméis en casa y del resto nos encargamos nosotros.",
-    // `cole` va en los tres modos: si los niños comen en el comedor, cuadrar
-    // las cenas con lo que han comido allí no es un refinamiento, es lo que
-    // hace que el menú no repita. Se cae solo cuando no hay niños (onlyKids).
-    //
-    // Sin `ninos` (¿comen lo mismo que vosotros?): esa es de las que este modo
-    // decide por ti. De paso, 4-5-7 ya salen en el orden que se quiere leer
-    // —cole, cuándo, dónde— sin tener que tocar los índices de onbScreens.
-    topics: ["cole", "semana", "horario"],
-    expert: false,
-  },
-  {
-    id: "medio",
-    img: IMG("nivel_medio"),
-    // Baja el encuadre: las dos sartenes humeando son la mitad del mensaje.
-    focus: "center 60%",
-    time: "3 minutos",
-    title: "A tu gusto",
-    subtitle: "Lo básico y, además, cómo os gusta comer y cómo cocináis.",
-    topics: ["semana", "horario", "ninos", "cole", "estilo", "cocina", "electros"],
-    expert: true,
-  },
-  {
-    id: "avanzado",
-    img: IMG("nivel_avanzado"),
-    // Sube para no decapitar el gorro, que es lo que la distingue.
-    focus: "center 40%",
-    time: "5 minutos",
-    title: "Al detalle",
-    subtitle: "Repasamos todas las preguntas contigo, sin saltarnos ninguna.",
-    // Todos: se resuelve contra TOPICS para no tener que mantener la lista.
-    topics: TOPICS.map((t) => t.id),
-    expert: true,
-  },
-];
+// Lo que ve la tarjeta de cada camino: la imagen y su encuadre. El resto
+// (título, tiempo, temas) sale de la lista común.
+const PRESENTACION = {
+  // La ilustración es 4:5 y la tarjeta la recorta a cuadrado, así que cada
+  // una dice qué franja conserva: aquí el personaje manda y está centrado.
+  [CAMINO.BASICO]: { img: IMG("nivel_basico"), focus: "center 45%" },
+  // Baja el encuadre: las dos sartenes humeando son la mitad del mensaje.
+  [CAMINO.MEDIO]: { img: IMG("nivel_medio"), focus: "center 60%" },
+  // Sube para no decapitar el gorro, que es lo que la distingue.
+  [CAMINO.AVANZADO]: { img: IMG("nivel_avanzado"), focus: "center 40%" },
+};
+
+const MODES = CAMINOS.map((c) => ({
+  id: c.id,
+  ...PRESENTACION[c.id],
+  time: c.minutos === 1 ? "1 minuto" : `${c.minutos} minutos`,
+  title: c.titulo,
+  subtitle: c.resumen,
+  topics: [...c.temas],
+  expert: c.experto,
+}));
 
 /**
  * "¿Qué quieres ajustar de tu menú?" — primer paso del asistente. Tres modos,
