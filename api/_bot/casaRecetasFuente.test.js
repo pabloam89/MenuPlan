@@ -34,10 +34,12 @@ describe("Lola no vuelve a escribir en el documento las recetas que viven en tab
   it("al guardar, el documento va sin recetas propias, carpetas, colecciones, votos ni descartes, y con lo demás", async () => {
     const casa = await cargarCasa("h1", { fresca: true });
     llamadas.length = 0;
-    expect((await guardarCasa(casa, { state: { ...casa.state, data: { ...casa.state.data, cookedDishes: { a: 1 } } } })).ok).toBe(true);
+    expect((await guardarCasa(casa, { state: { ...casa.state, data: { ...casa.state.data, cookedDishes: ["m:0::Mar::Cena::x"], garnishRepeat: "week" } } })).ok).toBe(true);
     const [, args] = llamadas.find(([fn]) => fn === "bot_save_casa");
     const data = args.p_state.data;
     for (const k of ["userRecipes", "recipeFolders", "recipeCollections", "recipeVotes", "discards"]) expect(data).not.toHaveProperty(k);
-    expect(data.cookedDishes).toEqual({ a: 1 });
+    expect(data.garnishRepeat).toBe("week");
+    // Lo cocinado vive en su tabla (trozo 22): la lista vieja no vuelve al documento.
+    expect(data).not.toHaveProperty("cookedDishes");
   });
 });

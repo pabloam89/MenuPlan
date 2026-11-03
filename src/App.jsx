@@ -127,7 +127,9 @@ import {
   MAX_MENU_WEEKS,
 } from "./lib/menuArchive.js";
 import { todayDayIdx, getWeekDatesByMenuWeek } from "./lib/weekCalendar.js";
-import { diaDeFecha, indiceDeFecha } from "./lib/dias.js";
+import { diaDeFecha, indiceDeFecha, isoDeCasa } from "./lib/dias.js";
+import { claveCocinado, cocinadosLocales, lunesDeSemanaAbierta, ponerCocinadoLocal, sinCocinados } from "./lib/cocinados.js";
+import { leerCocinados, mandarCocinado } from "./lib/cocinadosApp.js";
 import { pizarraActiva, fotoAntesDePizarra, volverAntesDePizarra, huecosDelPlan, conHuecosAlDia, conSemanasAlDia, semanaEnBlanco, conHuecoAnadido, sinHueco, franjasDelDia } from "./lib/pizarra.js";
 import { aplicarDiasDeSemana, diasPorDefecto, buildCalendarWeeks } from "./lib/semanaDias.js";
 import { reglaDeInvitado, invitadosPorHueco, sinInvitadosDelHueco } from "./lib/reglas.js";
@@ -247,8 +249,6 @@ import {
   bucketDeltas,
   collectMenuPantryDeltas,
   reconcileMenusRemoval,
-  stripCookedDishesForMenu,
-  stripCookedDishesForMenuList,
 } from "./lib/pantryDeltas.js";
 import demoState from "./dev/demoState.json";
 import * as ids from "./lib/ids.js";
@@ -930,7 +930,7 @@ function snapshotDeCasa({ data, menuPlan, shopping, aiRecipes, onbStep }, modoFa
   // La familia, si vive en sus filas (trozo 10), los datos de la casa con sobre (trozo 12) y la libreta, si vive en
   // sus filas de preferencia (trozo 14), van por api/operacion.js y no aquí (lib/familiaCasa.js, casaDatos.js, libretaCasa.js).
   // Las recetas, votos, descartes, colecciones y carpetas viven en sus tablas (recetasFuente.js, trozo 21).
-  const profile = { ...sinRecetasDeTabla(sinLibretaLeida(sinCasa(sinFamilia(data, modoFamilia), cargaCasa), cargaLibreta)) };
+  const profile = { ...sinCocinados(sinRecetasDeTabla(sinLibretaLeida(sinCasa(sinFamilia(data, modoFamilia), cargaCasa), cargaLibreta))) };
   delete profile.menus;
   return { data: profile, menuPlan, shopping, aiRecipes, onbStep };
 }
@@ -1067,6 +1067,8 @@ export default function App() {
   // Bumps after mergeLocalPantryIntoCloud so Pantry/Shopping/onboarding reload
   // stock once the local→cloud fold finishes (avoids a stale empty list).
   const [pantryEpoch, setPantryEpoch] = useState(0);
+  // Lo cocinado de la semana abierta (cocinados.js, trozo 22): su lunes y sus claves, de la tabla o, sin casa, del móvil.
+  const [cocinados, setCocinados] = useState(() => ({ semana: null, claves: new Set() }));
   // Cross-screen intents fired from "En casa": open the receipt capture flow in
   // Tu compra, and land on Análisis → Gasto. Cleared by the target once consumed.
   const [shoppingCaptureIntent, setShoppingCaptureIntent] = useState(false);
@@ -2635,7 +2637,6 @@ export default function App() {
         if (droppedMenuIds.length) {
           base.pantryDayDeltas = recon.dayOut;
           base.cookedDeltas = recon.cookedOut;
-          base.cookedDishes = stripCookedDishesForMenuList(d.cookedDishes, droppedMenuIds);
         }
         return base;
       });
@@ -3255,7 +3256,6 @@ export default function App() {
         base.pantryGenDeltas = recon.genOut;
         base.pantryDayDeltas = recon.dayOut;
         base.cookedDeltas = recon.cookedOut;
-        base.cookedDishes = stripCookedDishesForMenuList(d.cookedDishes, droppedMenuIds);
       }
       return base;
     });
@@ -3450,7 +3450,6 @@ export default function App() {
         pantryGenDeltas: recon.genOut,
         pantryDayDeltas: recon.dayOut,
         cookedDeltas: recon.cookedOut,
-        cookedDishes: stripCookedDishesForMenu(d.cookedDishes, menuIdToDelete),
       };
     });
     if (recon.deltas.length) {
@@ -3633,7 +3632,6 @@ export default function App() {
         pantryGenDeltas: recon.genOut,
         pantryDayDeltas: recon.dayOut,
         cookedDeltas: recon.cookedOut,
-        cookedDishes: stripCookedDishesForMenu(d.cookedDishes, menuId),
       };
     });
     if (recon.deltas.length) {
@@ -3737,7 +3735,6 @@ export default function App() {
           base.pantryGenDeltas = recon.genOut;
           base.pantryDayDeltas = recon.dayOut;
           base.cookedDeltas = recon.cookedOut;
-          base.cookedDishes = stripCookedDishesForMenuList(d.cookedDishes, droppedMenuIds);
         }
         return base;
       });
@@ -5922,6 +5919,44 @@ export default function App() {
   // equilibrado) y "Extras" (10-11, la estructura de plato se pregunta ya en
   // "¿Qué comidas quieres organizar?") se ocultan.
   const basicMode = !data.expertMode;
+  // La semana abierta, por su lunes (cocinados.js): la del archivo del menú o la de hoy más el offset.
+  const lunesAbierto = lunesDeSemanaAbierta({
+    lunesDelArchivo: semanaPorOffset(data.menus?.[data.activeMenuId]?.weeks, data.menuWeek?.offset ?? 0)?.[0] ?? null,
+    offset: data.menuWeek?.offset ?? 0,
+    hoyISO: isoDeCasa(),
+  });
+  useEffect(() => {
+    let vivo = true;
+    if (!activeHouseholdId) {
+      setCocinados({ semana: lunesAbierto, claves: cocinadosLocales(lunesAbierto) });
+      return undefined;
+    }
+    leerCocinados(activeHouseholdId, lunesAbierto).then((r) => {
+      if (!vivo) return;
+      // Sin leer no es «nada cocinado»: se queda sin claves de esa semana (la ficha no deja marcar) y se avisa.
+      if (r.ok) setCocinados({ semana: lunesAbierto, claves: r.claves });
+      else showToast("No he podido leer qué hay cocinado esta semana");
+    });
+    return () => { vivo = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeHouseholdId, lunesAbierto]);
+  // Marca o desmarca un plato cocinado: primero en su sitio (tabla o móvil) y, si se guardó, en pantalla.
+  const marcarCocinado = useCallback(async (fila, hecho) => {
+    if (activeHouseholdId) {
+      const r = await mandarCocinado(activeHouseholdId, fila, hecho);
+      if (!r.ok) return r;
+    } else {
+      ponerCocinadoLocal(fila, hecho);
+    }
+    setCocinados((c) => {
+      if (c.semana !== fila.semana) return c;
+      const claves = new Set(c.claves);
+      if (hecho) claves.add(claveCocinado(fila));
+      else claves.delete(claveCocinado(fila));
+      return { ...c, claves };
+    });
+    return { ok: true };
+  }, [activeHouseholdId]);
   // Presupuesto semanal / Tu compra (paso 6): ya cableado (toggle, cards y precios Mercadona).
   const skipBudgetStep = false;
   // "¿Cuánto tiramos de lo de casa?" (13) solo si hay algo en casa. Con la
@@ -7059,6 +7094,9 @@ export default function App() {
           day={selectedSlot.day ?? null}
           meal={selectedSlot.meal ?? null}
           cookWeekKey={`${data.activeMenuId ?? "live"}:${data.menuWeek?.offset ?? 0}`}
+          cookWeekMonday={lunesAbierto}
+          cocinados={cocinados.semana === lunesAbierto ? cocinados.claves : null}
+          onCocinado={marcarCocinado}
           user={user}
           data={householdReadOnly ? null : data}
           setData={householdReadOnly ? null : setData}

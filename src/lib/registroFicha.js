@@ -342,7 +342,7 @@ export const DATOS_CASA = Object.freeze({
   activeMenuId: dato({ entidad: "menu", tema: "menus", tipo: "ref" }),
   menuHistory: dato({ entidad: "menu", tema: "menus", tipo: "lista", ...historial, motivo: "la racha y el contador de menús" }),
   menuVarietyPref: dato({ entidad: "menu", tema: "menus", ficha: "casa", tipo: "enum", defecto: "strict", motivo: "cuánta repetición admite la casa en todos sus menús: de la casa, como el modelo de menú, no de una semana" }),
-  cookedDishes: dato({ entidad: "menu", tema: "menus", tipo: "mapa", ...historial }),
+  cookedDishes: dato({ entidad: "menu", tema: "menus", tipo: "mapa", ...historial, vive: "tabla:cocinado", motivo: "un plato cocinado en un hueco de la semana, una fila (cocinados.js, trozo 22); la lista vieja del documento no se copia" }),
 
   // ── Recetas de la casa ──
   userRecipes: dato({ entidad: "receta", tema: "recetas", tipo: "lista", vive: "tabla:user_recipes" }),
