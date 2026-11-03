@@ -81,7 +81,8 @@ export async function crearRecordatorio({ channel, chatId, householdId }, { text
   const cadaCuanto = REPITES_RECORDATORIO.includes(repite) ? repite : null;
   await insert(TABLA, [{
     channel: paraEscribir("canales", channel), chat_id: String(chatId), household_id: householdId, texto: limpio,
-    tipo: TIPO_TAREA.RECORDATORIO, aviso, ejecutar_at: fecha.toISOString(), caduca_at: caducaTras(fecha), repite: cadaCuanto,
+    tipo: TIPO_TAREA.RECORDATORIO, aviso: paraEscribir("avisos_recordatorio", aviso), ejecutar_at: fecha.toISOString(),
+    caduca_at: caducaTras(fecha), repite: paraEscribir("repites_recordatorio", cadaCuanto),
     // Sin created_by: el de bot_reminders guardaba el nombre de Telegram de quien lo pidió y nadie lo leía.
   }]);
   const cada = cadaCuanto === REPITE_RECORDATORIO.DIARIO ? ", y luego cada día" : cadaCuanto === REPITE_RECORDATORIO.SEMANAL ? ", y luego cada semana" : "";
