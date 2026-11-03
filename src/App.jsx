@@ -102,6 +102,7 @@ import {
 import { normalizeKidDinnerConfig } from "./lib/kidsMenu.js";
 import { loadState, saveState, clearState } from "./lib/storage.js";
 import { semanaDeHoy } from "./lib/menuArchive.js";
+import { puedeRegenerarDia } from "./lib/regenerarDia.js";
 import {
   clampWeekCount,
   computeWeekRange,
@@ -6389,7 +6390,7 @@ export default function App() {
               onDishPlace={householdReadOnly ? undefined : handlePlaceRecipeInSlot}
               onIncomingCancel={() => setPendingDish(null)}
               onDishManualPick={householdReadOnly ? undefined : handleManualPickSlot}
-              onRegenerateDay={householdReadOnly ? undefined : handleRegenerateDay}
+              onRegenerateDay={puedeRegenerarDia({ soloLectura: householdReadOnly, esPizarra }) ? handleRegenerateDay : undefined}
               onNav={handleNav}
               onRegenerate={householdReadOnly ? undefined : handleRegenerate}
               onRetry={retryGenerateMenu}
@@ -6430,9 +6431,10 @@ export default function App() {
               onFillSlots={esPizarra ? handleFillSlots : null}
               // La fila de mandos de la pizarra. Va como prop y no importada
               // dentro de MenuScreen para que esa pantalla siga sin saber que
-              // la pizarra existe: recibe nodos, no modos.
+              // la pizarra existe: recibe nodos, no modos. Es una función
+              // porque Menu le añade lo que solo él abre (la hoja del PDF).
               pizarraControles={
-                esPizarra && !householdReadOnly && !pizarraArrancando ? (
+                esPizarra && !householdReadOnly && !pizarraArrancando ? (extra) => (
                   <Suspense fallback={null}>
                     <PizarraControles
                       data={data}
@@ -6450,6 +6452,8 @@ export default function App() {
                       onFavorito={householdReadOnly ? undefined : toggleActiveFavorite}
                       esFavorito={Boolean(data.menus?.[data.activeMenuId]?.isFavorite)}
                       onCompartir={householdReadOnly ? undefined : handleShareMenuLink}
+                      onMenus={openMenusScreen}
+                      {...extra}
                     />
                   </Suspense>
                 ) : null
@@ -7598,15 +7602,13 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle, onApple,
           0%   { transform: translateX(-120%) skewX(-18deg); }
           100% { transform: translateX(320%) skewX(-18deg); }
         }
-        .portada-foto { object-position: center 35%; }
         .portada-titulo { padding: 56px 32px 0; }
         .portada-logo { width: 84px; height: 84px; }
         .portada-letras { font-size: clamp(58px, 17vw, 84px); margin: 0 0 10px; }
         .portada-lema { font-size: 20px; }
-        /* Móvil con las barras del navegador: el título encoge y la foto baja el
-           encuadre para que las cuatro caras quepan entre él y los botones. */
+        /* Móvil con las barras del navegador: el título encoge para que las
+           cuatro caras quepan entre él y los botones. */
         @media (max-height: 800px) {
-          .portada-foto { object-position: center 72%; }
           .portada-titulo { padding-top: 28px; }
           .portada-logo { width: 52px; height: 52px; }
           .portada-letras { font-size: 48px; margin-bottom: 4px; }
@@ -7653,22 +7655,40 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle, onApple,
         }}
       />
 
-      {/* Foto fija de fondo. */}
+      {/* Foto fija (Pexels, Vanessa Loring). Debajo, la misma foto difuminada llena la
+          pantalla: la nítida se funde en ella y no se ve dónde acaba. */}
       <img
-        className="portada-foto"
         src="/portada.jpg"
         alt=""
         aria-hidden="true"
         style={{
           position: "absolute",
-          top: 0,
+          inset: -40,
+          width: "calc(100% + 80px)",
+          height: "calc(100% + 80px)",
+          objectFit: "cover",
+          objectPosition: "37% 40%",
+          filter: "blur(36px) saturate(.8) brightness(.85)",
+          zIndex: 1,
+          pointerEvents: "none",
+          animation: "fadeIn 1.2s ease-out",
+        }}
+      />
+      <img
+        src="/portada.jpg"
+        alt=""
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          top: "20%",
           left: 0,
           width: "100%",
-          // Más corta que la pantalla: su borde inferior se funde con el fondo.
-          height: "78%",
+          // Las caras quedan entre el título y los botones.
+          height: "60%",
           objectFit: "cover",
-          WebkitMaskImage: "linear-gradient(180deg, #000 82%, transparent 100%)",
-          maskImage: "linear-gradient(180deg, #000 82%, transparent 100%)",
+          objectPosition: "37% 40%",
+          WebkitMaskImage: "linear-gradient(180deg, transparent 0%, #000 22%, #000 78%, transparent 100%)",
+          maskImage: "linear-gradient(180deg, transparent 0%, #000 22%, #000 78%, transparent 100%)",
           zIndex: 1,
           pointerEvents: "none",
           animation: "fadeIn 1.2s ease-out",
