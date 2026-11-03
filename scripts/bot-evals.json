@@ -3300,6 +3300,42 @@
       "noLlama": [
         "ajustar_horario"
       ]
+    },
+    {
+      "id": "horario-no-esta-en-la-casa",
+      "tipo": "herramienta",
+      "dominio": "ficha",
+      "origen": "escrito",
+      "dependeDeFecha": true,
+      "nombre": "ajustar_horario con alguien que no está en la casa → no da el horario por guardado y ofrece añadirlo",
+      "entrada": "Pepe come en el cole los lunes",
+      "llama": [
+        "ajustar_horario"
+      ],
+      "args": {
+        "ajustar_horario": {
+          "donde": "cole"
+        }
+      },
+      "noLlama": [
+        "fuera_de_casa"
+      ],
+      "respuestas": {
+        "ajustar_horario": {
+          "resultado": {
+            "accion": "horario",
+            "sinHacer": [
+              {
+                "que": "Pepe",
+                "motivo": "no está en la casa"
+              }
+            ],
+            "nota": "No encuentro a Pepe en la casa. No he cambiado el horario."
+          }
+        }
+      },
+      "texto": "Pepe",
+      "sinTexto": "^s*✅|ya (est[aá]|lo tienes)|(he|queda) (apuntad|guardad|cambiad)o"
     }
   ]
 }
