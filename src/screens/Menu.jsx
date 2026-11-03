@@ -5592,7 +5592,7 @@ export const MenuScreen = memo(function MenuScreen({
   const accionesEnLaFila = hasMenu && Boolean(wizardControls);
   // En la pizarra las acciones también viven en su fila (PizarraControles):
   // el corazón y el burger repetían lo de abajo y se van. El rayo (activar)
-  // no está en esa fila, así que se queda en la cabecera mientras exista.
+  // también: el menú se activa solo (lib/activarSolo.js).
   const cabeceraLimpia = accionesEnLaFila || Boolean(modoPizarra && hasMenu && pizarraControles);
   const menuWeeks = useMemo(() => orderedWeeks(activeMenu), [activeMenu]);
   const currentWeekIdx = useMemo(
@@ -5995,7 +5995,7 @@ export const MenuScreen = memo(function MenuScreen({
                 Guardar como favorito solo tiene sentido con cuenta: sin ella no
                 hay histórico/favoritos persistentes donde recuperarlo, así que
                 no ofrecemos algo que no podemos cumplir. */}
-            {!accionesEnLaFila && hasMenu && onActivateMenu && menuNeedsActivation && (
+            {!cabeceraLimpia && hasMenu && onActivateMenu && menuNeedsActivation && (
               <button
                 type="button"
                 onClick={onActivateMenu}

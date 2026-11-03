@@ -102,6 +102,7 @@ import {
 import { normalizeKidDinnerConfig } from "./lib/kidsMenu.js";
 import { loadState, saveState, clearState } from "./lib/storage.js";
 import { semanaDeHoy } from "./lib/menuArchive.js";
+import { menuPorActivar } from "./lib/activarSolo.js";
 import {
   clampWeekCount,
   computeWeekRange,
@@ -3516,7 +3517,7 @@ export default function App() {
     endOfDay: "Menú activo · En casa se ajusta al fin del día",
   };
 
-  const activateActiveMenu = useCallback(async () => {
+  const activateActiveMenu = useCallback(async ({ silencioso = false } = {}) => {
     if (householdReadOnly) return;
     const menuId = data.activeMenuId;
     const menu = data.menus?.[menuId];
@@ -3568,8 +3569,19 @@ export default function App() {
         : null),
     }));
     setPantryEpoch((n) => n + 1);
-    showToast(ACTIVATE_MENU_TOAST[consumeMode] ?? "Menú activado");
+    if (!silencioso) showToast(ACTIVATE_MENU_TOAST[consumeMode] ?? "Menú activado");
   }, [data, householdReadOnly, user, showToast]);
+
+  // El menú de la semana se activa solo, sin el rayo (ver lib/activarSolo.js).
+  // Una vez por menú: el ref evita repetirlo mientras `activatedAt` llega al
+  // estado. En silencio: nadie pidió nada, así que no hay aviso que dar.
+  const activadoSoloRef = useRef(null);
+  const porActivar = menuPorActivar({ data, conCuenta: Boolean(user), soloLectura: householdReadOnly, nubeLista });
+  useEffect(() => {
+    if (!porActivar || activadoSoloRef.current === porActivar) return;
+    activadoSoloRef.current = porActivar;
+    activateActiveMenu({ silencioso: true }).catch((e) => console.error("[activar solo]", e?.message));
+  }, [porActivar, activateActiveMenu]);
 
   /**
    * Desactivar: lo contrario de activar, y ya existía a medias.
