@@ -58,7 +58,8 @@ export const IDIOMAS = ["es", "en"];
  * se retira de la lista, su nombre desaparece de aquí, y vocabularios.test.js falla en cada
  * `CANAL.X` o `IDIOMA.X` del código que ya no existe.
  */
-const porNombre = (lista) => Object.freeze(Object.fromEntries(lista.map((v) => [v.toUpperCase(), v])));
+/** Una lista cerrada como mapa por nombre: ['a_b'] → { A_B: 'a_b' }. */
+export const porNombre = (lista) => Object.freeze(Object.fromEntries(lista.map((v) => [v.toUpperCase(), v])));
 export const CANAL = porNombre(CANALES);
 export const IDIOMA = porNombre(IDIOMAS);
 
