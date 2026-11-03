@@ -206,5 +206,11 @@
   ],
   "cocinado": [
     "api/_bot/cocinados.js"
+  ],
+  "ticket": [
+    "api/_bot/historialCompra.js"
+  ],
+  "precio_observado": [
+    "api/_bot/historialCompra.js"
   ]
 }
