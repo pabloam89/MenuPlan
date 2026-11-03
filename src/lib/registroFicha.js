@@ -348,8 +348,8 @@ export const DATOS_CASA = Object.freeze({
   userRecipes: dato({ entidad: "receta", tema: "recetas", tipo: "lista", vive: "tabla:user_recipes" }),
   recipeVotes: dato({ entidad: "receta", tema: "recetas", tipo: "mapa", vive: "tabla:recipe_votes" }),
   discards: dato({ entidad: "receta", tema: "recetas", tipo: "objeto", vive: "tabla:household_recipe_discards" }),
-  recipeCollections: dato({ entidad: "receta", tema: "recetas", tipo: "mapa", vocabulario: "carpetas_fijas" }),
-  recipeFolders: dato({ entidad: "receta", tema: "recetas", tipo: "lista" }),
+  recipeCollections: dato({ entidad: "receta", tema: "recetas", tipo: "mapa", vocabulario: "carpetas_fijas", vive: "tabla:recipe_collections" }),
+  recipeFolders: dato({ entidad: "receta", tema: "recetas", tipo: "lista", vive: "tabla:recipe_folders" }),
 
   // ── Cuenta y app ──
   accountMemberIdByUser: dato({ entidad: "persona", tema: "cuenta", ficha: "casa", tipo: "mapa", motivo: "quién soy por cuenta es de la casa (plan, ficha Casa)" }),

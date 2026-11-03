@@ -178,6 +178,7 @@ import { loadUserState, saveUserState, clearUserState } from "./lib/userState.js
 import { loadHouseholdState, saveHouseholdState, loadHouseholdBotRev, empezarCasaVacia, CASA_VACIA } from "./lib/householdState.js";
 import { leerBotRevVisto, guardarBotRevVisto } from "./lib/botRevVisto.js";
 import { guardandoCasa, guardadosDeCasa } from "./lib/versionCasa.js";
+import { sinRecetasDeTabla } from "./lib/recetasFuente.js";
 import { vigilarCasa, EVENTO_SENAL } from "./lib/realtimeCasa.js";
 import { leerFamiliaDeCasa, conFamiliaLeida, sinFamilia, familiaDeCasa, cargaSinSeguir, guardarFamiliaYDocumento, MODO_FAMILIA, contarSenales } from "./lib/familiaCasa.js";
 import { senalesDeCambio, senalesDePlato } from "./lib/senales.js";
@@ -926,10 +927,8 @@ const PANTRY_DAY_WINDOW_DAYS = 45;
 function snapshotDeCasa({ data, menuPlan, shopping, aiRecipes, onbStep }, modoFamilia, cargaCasa, cargaLibreta) {
   // La familia, si vive en sus filas (trozo 10), los datos de la casa con sobre (trozo 12) y la libreta, si vive en
   // sus filas de preferencia (trozo 14), van por api/operacion.js y no aquí (lib/familiaCasa.js, casaDatos.js, libretaCasa.js).
-  const profile = { ...sinLibretaLeida(sinCasa(sinFamilia(data, modoFamilia), cargaCasa), cargaLibreta) };
-  delete profile.userRecipes;
-  delete profile.recipeVotes;
-  delete profile.discards;
+  // Las recetas, votos, descartes, colecciones y carpetas viven en sus tablas (recetasFuente.js, trozo 21).
+  const profile = { ...sinRecetasDeTabla(sinLibretaLeida(sinCasa(sinFamilia(data, modoFamilia), cargaCasa), cargaLibreta)) };
   delete profile.menus;
   return { data: profile, menuPlan, shopping, aiRecipes, onbStep };
 }
@@ -3841,10 +3840,7 @@ export default function App() {
     setPantryEpoch((n) => n + 1);
 
     if (result.householdId) {
-      const profile = { ...emptyProfile };
-      delete profile.userRecipes;
-      delete profile.recipeVotes;
-      delete profile.discards;
+      const profile = { ...sinRecetasDeTabla(emptyProfile) };
       delete profile.menus;
       // Solo si la que queda está vacía, y con su versión (householdState.js, #958).
       const vacia = await empezarCasaVacia(result.householdId, {

@@ -29,6 +29,7 @@ import { menuActivoDe } from "../../src/lib/menuActivo.js";
 import { isoDeCasa } from "../../src/lib/dias.js";
 import { favoritasDeFilas, votosDeFavoritas, descartesDeFilas } from "../../src/lib/recetasDeLaCasa.js";
 import { sellarCambios } from "../../src/lib/sobreHueco.js";
+import { sinRecetasDeTabla } from "../../src/lib/recetasFuente.js";
 import { conCompraQueSeVe, semanaParaGuardar } from "./compraDeSemana.js";
 
 // En hora de España: a las 00:30 del jueves, «hoy» es jueves, no el miércoles de UTC.
@@ -124,7 +125,7 @@ async function leerCasa(householdId) {
       `household_id=${eq(householdId)}&is_active=eq.true&order=updated_at.desc&limit=5`,
       "id,user_id,is_active,updated_at",
     ),
-    recetasPropiasDeCasa(householdId, hogar?.owner_user_id ?? null, fila.state?.data?.userRecipes),
+    recetasPropiasDeCasa(householdId, hogar?.owner_user_id ?? null),
     recetasDeLaCasa(householdId),
   ]);
   // El mismo lector que la app (menuActivo.js): si hubiera dos activos, los
@@ -338,7 +339,9 @@ export async function guardarCasa(casa, { state = null, semana = null, activar =
     return { ok: false, error: `no he podido apuntarlo: ${e.message}; no he cambiado nada` };
   }
   const { documento: sinSobre, cambios: datos } = separarConSobre(sinPreferencias, casa.conSobre, familiaTras);
-  const { documento, familia } = casa.familia ? separarFamilia(sinSobre, casa.familia) : { documento: sinSobre, familia: null };
+  const { documento: conRecetas, familia } = casa.familia ? separarFamilia(sinSobre, casa.familia) : { documento: sinSobre, familia: null };
+  // Las recetas de la casa viven en sus tablas y no van al documento (recetasFuente.js, trozo 21).
+  const documento = conRecetas?.data ? { ...conRecetas, data: sinRecetasDeTabla(conRecetas.data) } : conRecetas;
   let cambios = null;
   if (familia) {
     const c = cambiosDePersonas(casa.familia, familia);
