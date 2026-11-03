@@ -135,6 +135,12 @@ export function enOtraBoveda(ref) {
 /** ¿Falló por el límite de cupo de la cuenta? La única regla para reconocerlo (#556). */
 const esCupo = (e) => /too many requests/i.test(String(e.stderr || e.message));
 
+/**
+ * ¿Falló porque la dirección no existe o la cuenta no la ve (item, bóveda o campo)? Solo eso se apunta en
+ * FICHERO_SIN_ACCESO: un fallo de red, de token o de cupo pasa, y se vuelve a pedir la próxima vez.
+ */
+const esSinAcceso = (e) => /isn't an? (item|vault)|could not resolve item|does not have a field|could not find/i.test(String(e.stderr || e.message));
+
 const motivoDe = (e) => {
   if (e.code === "ENOENT") return "no encuentro el comando `op` (instala 1Password CLI o reinicia el terminal)";
   const linea = String(e.stderr || e.message).trim().split("\n")[0];
@@ -217,12 +223,18 @@ function resolverVarias(pares, { tolerante = false } = {}) {
   const vistas = sinAcceso();
   const sabidas = pendientes.filter(([, ref]) => vistas[ref]);
   const nuevas = pendientes.filter(([, ref]) => !vistas[ref]);
-  const fallan = sabidas.map(([k]) => k);
-  let motivo = sabidas.length ? `sin acceso desde ${vistas[sabidas[0][1]]} (si ya lo tienes, borra ${FICHERO_SIN_ACCESO()})` : "";
+  // Dos grupos, cada uno con su motivo: las apuntadas (no se piden) y las que fallan ahora.
+  const apartadas = sabidas.map(([k]) => k);
+  const motivoApartadas = sabidas.length ? `sin acceso desde ${vistas[sabidas[0][1]]} (si ya lo tienes, borra ${FICHERO_SIN_ACCESO()})` : "";
+  const fallan = [];
+  let motivo = "";
   const acabar = () => {
-    if (fallan.length && !tolerante) throw new Error(`No pude leer de 1Password ${fallan.join(", ")}: ${motivo}`);
-    for (const k of fallan) console.error(`env-boveda clave: ${k} motivo: sin-acceso`);
-    return fallan;
+    const partes = [];
+    if (fallan.length) partes.push(`${fallan.join(", ")}: ${motivo}`);
+    if (apartadas.length) partes.push(`${apartadas.join(", ")}: ${motivoApartadas}`);
+    if (partes.length && !tolerante) throw new Error(`No pude leer de 1Password ${partes.join("; ")}`);
+    for (const k of [...fallan, ...apartadas]) console.error(`env-boveda clave: ${k} motivo: sin-acceso`);
+    return [...fallan, ...apartadas];
   };
   if (!nuevas.length) return acabar();
   try {
@@ -240,13 +252,14 @@ function resolverVarias(pares, { tolerante = false } = {}) {
   }
   const sinLeer = [];
   for (const [k, ref] of nuevas) {
-    let cupo = false;
+    // Se apunta solo si todos los intentos dicen «no existe o no la ves».
+    let noSeVe = true;
     try {
       resueltas.set(ref, inyectar([[k, ref]], true)[0]);
       continue;
     } catch (e) {
       motivo ||= motivoDe(e);
-      cupo = esCupo(e);
+      noSeVe = esSinAcceso(e);
     }
     const otra = enOtraBoveda(ref);
     if (otra) {
@@ -258,12 +271,11 @@ function resolverVarias(pares, { tolerante = false } = {}) {
         continue;
       } catch (e) {
         // a propósito: tampoco está en la otra bóveda; cuenta como fallo y se avisa abajo
-        cupo ||= esCupo(e);
+        noSeVe &&= esSinAcceso(e);
       }
     }
     fallan.push(k);
-    // Solo lo que no existe o no se deja leer; un límite de cupo no cuenta (se vuelve a pedir la próxima vez).
-    if (!cupo) sinLeer.push(ref);
+    if (noSeVe) sinLeer.push(ref);
   }
   apuntarSinAcceso(sinLeer);
   return acabar();

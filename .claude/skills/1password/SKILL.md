@@ -124,11 +124,11 @@ niega `guardia-minima.mjs`), están en `.claude/skills/1password/referencias/bov
 ## Lo que falló y por qué
 
 - **2026-11-03 · cupo de la cuenta agotado (1000 lecturas al día) de madrugada; sin base ni GitHub hasta que se reinició, por la mañana.**
-  Causa, del registro `~/.menuplan/op-lecturas.jsonl`: el 2 nov este PC gastó 997 claves; 510 de `vite.js` (arrancar o
+  Causa, del registro `~/.menuplan/op-lecturas.jsonl`: el 2 nov (día de Madrid) este PC gastó 1015 claves en 823 lecturas; 612 de `vite.js` (arrancar o
   compilar la app), casi todas reintentos de una en una: con una clave de administración en `.env.local` que la sesión no
   puede leer, cada arranque pedía las 17 juntas, fallaba y las volvía a pedir una a una (y la mala, en las dos bóvedas),
   unas 35 por arranque. Arreglo (`scripts/lib/env.mjs`): lo que no se puede leer se apunta en
-  `~/.menuplan/op-sin-acceso.json` (solo direcciones, sin valores) y durante 24 h no se pide; sin cupo no se reintenta.
+  `~/.menuplan/op-sin-acceso.json` (solo direcciones, sin valores) si 1Password dice que no existe o no la ve, y durante 24 h no se pide; un fallo de red, de token o de cupo no se apunta; sin cupo no se reintenta.
   Antes: ~35 lecturas por arranque de Vite con una clave mala; después: 1. Si ya tienes acceso a una clave apuntada,
   borra ese fichero. Tests en `scripts/lib/env.test.js`, vistos fallar.
 

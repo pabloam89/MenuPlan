@@ -19,6 +19,9 @@ vi.mock("node:child_process", () => ({
     }
     if (globalThis.__sinOp) throw Object.assign(new Error("spawn op ENOENT"), { code: "ENOENT" });
     if (globalThis.__limite) throw Object.assign(new Error("Command failed: op inject"), { status: 1, stderr: "[ERROR] 2026/10/11 08:36:59 Too many requests. Your client has been rate-limited. Try again in  seconds\n" });
+    // Un fallo que pasa (red caída): no dice que la dirección no exista.
+    const caida = [...(globalThis.__redCaida ?? [])].find((ref) => opts.input.includes(`{{ ${ref} }}`));
+    if (caida) throw Object.assign(new Error("Command failed: op inject"), { status: 1, stderr: "[ERROR] dial tcp: connection refused\n" });
     // Como `op inject`: basta una dirección que no existe para que falle entera.
     const mala = [...globalThis.__noExisten].find((ref) => opts.input.includes(`{{ ${ref} }}`));
     if (mala) throw Object.assign(new Error("Command failed: op inject"), { status: 1, stderr: `[ERROR] could not resolve item UUID for ${mala}\n` });
@@ -367,6 +370,38 @@ describe("lo que no se puede leer no se vuelve a pedir (cupo diario de la cuenta
       expect(error).toMatch(/No pude leer de 1Password PRUEBA_N: sin acceso desde /);
       expect(error).toContain(`borra ${ruta}`);
       expect(llamadas).toHaveLength(0);
+    });
+  });
+
+  it("un fallo que pasa (red, token) no se apunta: la próxima vez se vuelve a pedir", () => {
+    conFichero((ruta) => {
+      globalThis.__redCaida = new Set(["op://HoMenu-sesiones/Red/PRUEBA_O", enOtraBoveda("op://HoMenu-sesiones/Red/PRUEBA_O")]);
+      try {
+        process.env.PRUEBA_O = "op://HoMenu-sesiones/Red/PRUEBA_O";
+        cargarEnv(["PRUEBA_O"], { tolerante: true });
+        expect(process.env.PRUEBA_O).toBe("");
+        expect(() => readFileSync(ruta, "utf8")).toThrow();
+      } finally {
+        globalThis.__redCaida = null;
+      }
+    });
+  });
+
+  it("en un script, cada clave que falla lleva su motivo: la apuntada no tapa el de la nueva", () => {
+    conFichero((ruta) => {
+      writeFileSync(ruta, JSON.stringify({ [administracion]: new Date().toISOString() }));
+      globalThis.__noExisten.add("op://HoMenu-sesiones/Nueva/PRUEBA_Q");
+      globalThis.__noExisten.add(enOtraBoveda("op://HoMenu-sesiones/Nueva/PRUEBA_Q"));
+      process.env.PRUEBA_N = administracion;
+      process.env.PRUEBA_Q = "op://HoMenu-sesiones/Nueva/PRUEBA_Q";
+      let error = null;
+      try {
+        cargarEnv(["PRUEBA_N", "PRUEBA_Q"]);
+      } catch (e) {
+        error = e.message;
+      }
+      expect(error).toMatch(/PRUEBA_Q: \[ERROR\] could not resolve item UUID/);
+      expect(error).toMatch(/PRUEBA_N: sin acceso desde /);
     });
   });
 
