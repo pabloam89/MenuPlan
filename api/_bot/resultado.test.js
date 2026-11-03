@@ -40,6 +40,16 @@ describe("el resultado de una escritura", () => {
   });
 });
 
+describe("una duda no es un fallo", () => {
+  it("sin nada hecho ni motivo, Lola pregunta lo que falta y no promete un recibo que no sale", () => {
+    const duda = resultado({ accion: "fuera", nota: "¿Qué día no estáis?" });
+    expect(recibo([duda])).toBe("");
+    const t = paraElModelo(duda);
+    expect(t).toMatch(/pregúntalo/);
+    expect(t).not.toMatch(/recibo/);
+  });
+});
+
 describe("el recibo que ve la familia", () => {
   it("✅ lo hecho y ⚠️ lo que no, con su porqué; los primeros EN_EL_RECIBO y «y N más»", () => {
     const r = resultado({

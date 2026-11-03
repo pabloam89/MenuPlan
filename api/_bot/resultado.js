@@ -117,7 +117,10 @@ export const esResultado = (x) => Boolean(x && typeof x === "object" && x[MARCA]
 const ORDEN = {
   [ESTADO.HECHO]: () => "El recibo con lo hecho sale pintado encima de tu mensaje: no repitas la lista; di en una frase lo que sigue.",
   [ESTADO.PARCIAL]: (r) => `NO está todo: ${r.sinHacer.length} sin hacer. El recibo (✅ lo hecho, ⚠️ lo que falta y por qué) sale pintado encima de tu mensaje: no lo repitas, no digas «todo» y ofrece lo que se puede hacer con lo que falta.`,
-  [ESTADO.NADA]: () => "No se ha guardado NADA: no digas que está hecho. El recibo con el porqué sale pintado encima de tu mensaje; ofrece cómo arreglarlo.",
+  // Sin nada hecho ni motivo (una duda: qué día, quién): no hay recibo que pintar; lo que falta saber va en la nota.
+  [ESTADO.NADA]: (r) => (r.sinHacer.length
+    ? "No se ha guardado NADA: no digas que está hecho. El recibo con el porqué sale pintado encima de tu mensaje; ofrece cómo arreglarlo."
+    : "No se ha guardado NADA: no digas que está hecho. Falta un dato para hacerlo (en la nota): pregúntalo."),
 };
 
 /**

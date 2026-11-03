@@ -2,8 +2,8 @@ import { useContext, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { HuecosVivosContext } from "../lib/huecosVivos.js";
 import {
-  Apple, ArrowRight, BarChart3, Check, ChevronRight, Coffee, CookingPot, Eraser,
-  Heart, IceCream, Minus, Moon, Package, Plus, Salad, Search, Share2, Sparkles, Sun, X,
+  Apple, ArrowRight, BarChart3, Check, ChevronRight, Coffee, CookingPot, Download, Eraser,
+  Heart, History, IceCream, Minus, Moon, Package, Plus, Salad, Search, Share2, Sparkles, Sun, X,
 } from "../components/icons.jsx";
 import { ingredientImageSrc, ingredientThumbSrc } from "../lib/ingredientImages.js";
 import { normalizePantryInput } from "../utils/normalizePantryInput.js";
@@ -1788,7 +1788,7 @@ export function PizarraControles({
   data, setData, menuPlan, groups, onRellenar,
   despensa, onAddDespensa, onQuitarDespensa, onQtyDespensa,
   onNuevaPizarra, onVaciar, onFavorito, esFavorito = false,
-  onCompartir,
+  onCompartir, onMenus, onDescargar,
 }) {
   const [abierto, setAbierto] = useState(null);
   // Qué cara de la fila se ve. Arranca en las ACCIONES porque «Rellenar»
@@ -1941,14 +1941,16 @@ export function PizarraControles({
                   onClick={onNuevaPizarra}
                 />
               )}
-              {onVaciar && (
+              {/* Los menús de otras semanas, y los favoritos. Antes vivían en
+                  el burger de la cabecera; con todo aquí, el burger sobra. */}
+              {onMenus && (
                 <BaldosaMando
-                  Icon={Eraser}
-                  label="Vaciar"
+                  Icon={History}
+                  label="Menús"
                   orden={2}
-                  color="var(--color-aviso)"
-                  tinte="#fff"
-                  onClick={() => setConfirmarVaciar(true)}
+                  color={VERDE}
+                  tinte="var(--color-superficie)"
+                  onClick={onMenus}
                 />
               )}
               {/* La semana entera por un enlace. Va en las ACCIONES y no en los
@@ -1972,6 +1974,28 @@ export function PizarraControles({
                   color="#e0405a"
                   tinte="#fff"
                   onClick={onFavorito}
+                />
+              )}
+              {onDescargar && (
+                <BaldosaMando
+                  Icon={Download}
+                  label="Descargar"
+                  orden={5}
+                  color={NARANJA}
+                  tinte="var(--color-superficie)"
+                  onClick={onDescargar}
+                />
+              )}
+              {/* La última: borra la semana entera, que no quede a mano del
+                  pulgar por error. Pide confirmación igualmente. */}
+              {onVaciar && (
+                <BaldosaMando
+                  Icon={Eraser}
+                  label="Vaciar"
+                  orden={6}
+                  color="var(--color-aviso)"
+                  tinte="#fff"
+                  onClick={() => setConfirmarVaciar(true)}
                 />
               )}
             </>
