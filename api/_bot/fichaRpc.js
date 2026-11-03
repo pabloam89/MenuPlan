@@ -195,6 +195,9 @@ export function desfaseDe(ficha, data = {}) {
   return fuera;
 }
 
+/** Pura. Los datos de la ficha v2 leídos (estadosDeFichas), o null con la v1 o sin ficha: quien los usa no adivina. */
+export const estadosDeLaFicha = (ficha) => (ficha?.v === CON_ESTADO ? estadosDeFichas(ficha.fichas) : null);
+
 /**
  * Pura. La casa para montarFicha con lo de seguridad de las tablas (alergias,
  * intolerancias, estados con su «hasta», revisión), y lo que queda pendiente

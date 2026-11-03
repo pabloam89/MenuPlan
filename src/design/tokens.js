@@ -182,6 +182,9 @@ export const sombra = {
   'sombra-3': '0 24px 60px rgba(0,0,0,.25)',
 }
 
+// El velo oscuro para leer texto sobre una foto: `alfa` es lo que tapa.
+export const veloFoto = (alfa) => `rgba(10,22,13,${alfa})`
+
 // ── Capas (8 valores) ────────────────────────────────────────────────────────
 // Regla: el toast va por encima de toda hoja (≥ capa-hoja-2). `capa-local` es
 // el tope del 1–5 de contenido (cabeceras pegajosas dentro de una hoja); PROVISIONAL.

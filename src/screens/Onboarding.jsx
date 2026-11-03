@@ -154,6 +154,7 @@ import { importSchoolMenuFile, selectBestWeek } from "../lib/schoolMenuImport.js
 import { SchoolMenuDeck } from "./SchoolMenuDeck.jsx";
 import { estructuraDelGrupo, estructuraCenaDelGrupo, conEstructura } from "../lib/estructuraPlatos.js";
 import { conInterruptor, conPresupuesto, leerPresupuesto, PRESUPUESTO_DE_PARTIDA } from "../lib/presupuestoCasa.js";
+import { CLAVE_CASA } from "../lib/estiloEnFilas.js";
 
 const MEAL_STRUCTURE_CARDS = [
   {
@@ -7335,8 +7336,9 @@ const GOAL_ICON_MAP = {
   variado: Shuffle,
 };
 
+// La casa entera va con la misma clave que el estilo de comida (CLAVE_CASA, estiloEnFilas.js).
 function goalsManualKey(subjectId) {
-  return subjectId ?? "__global__";
+  return subjectId ?? CLAVE_CASA;
 }
 
 const BASE_KCAL = 2000;
@@ -7771,7 +7773,7 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
   }, [styleableGroups, activeGroupId]);
 
   const subjectId = activeGroupId;
-  const styleKey = subjectId ?? "__global__";
+  const styleKey = subjectId ?? CLAVE_CASA;
   const activeStyle = data.mealStyleByGroup?.[styleKey] ?? DEFAULT_MEAL_STYLE;
   const isCustom = activeStyle === "personalizado";
 
@@ -7876,11 +7878,11 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
   const customOverBudget = useMemo(() => {
     const subjects = styleableGroups.length > 0
       ? styleableGroups.map((g) => ({ key: g.id, group: g }))
-      : [{ key: "__global__", group: null }];
+      : [{ key: CLAVE_CASA, group: null }];
     return subjects.some(({ key, group }) => {
       const style = data.mealStyleByGroup?.[key] ?? DEFAULT_MEAL_STYLE;
       if (style !== "personalizado") return false;
-      const freqs = (key === "__global__" ? data.freqs : data.freqsByGroup?.[key]) ?? {};
+      const freqs = (key === CLAVE_CASA ? data.freqs : data.freqsByGroup?.[key]) ?? {};
       const used = FOOD_ORDER.reduce((s, k) => s + Math.max(0, freqs[k] ?? 0), 0);
       const budget = computeGroupSlotBudget(data, group);
       return used > budget.total;

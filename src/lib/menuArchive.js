@@ -1,3 +1,4 @@
+import { sellarCambios } from "./sobreHueco.js";
 import { getWeekDatesByMenuWeek, mondayISOForOffset } from "./weekCalendar.js";
 import * as ids from "./ids.js";
 
@@ -388,9 +389,9 @@ export function saveActivePlanAsFavorite(menus, activeMenuId, livePlan, activeOf
  * (borrar, cambiar de menú) y vaciaría la semana. Devuelve null si no hay nada
  * que guardar; si no, el archivo ya al día y la semana para la nube. Pura.
  */
-export function semanaVivaPorGuardar(menus, activeMenuId, activeOffset, livePlan, liveShopping) {
+export function semanaVivaPorGuardar(menus, activeMenuId, activeOffset, livePlanSinSellar, liveShopping, sobre = null) {
   const menu = activeMenuId ? menus?.[activeMenuId] : null;
-  if (!menu || !livePlan || Object.keys(livePlan).length === 0) return null;
+  if (!menu || !livePlanSinSellar || Object.keys(livePlanSinSellar).length === 0) return null;
   const entry = semanaPorOffset(menu.weeks, activeOffset);
   if (!entry) return null;
   const [weekStart, actual] = entry;
@@ -398,6 +399,9 @@ export function semanaVivaPorGuardar(menus, activeMenuId, activeOffset, livePlan
   // loadMenuDetail). Guardarla pisaría la fila con un horario y unos días que
   // no se leyeron (weekToRow: schedule {}, active_days null).
   if (!actual || actual.plan === undefined) return null;
+  // Cada hueco que cambió de plato lleva quién, cuándo y por dónde (sobreHueco.js, trozo 18). Si sella algo, el plan
+  // vivo cambia: quien llama lo pone en vivo (`week.plan`), y la vuelta siguiente ya no ve diferencia.
+  const livePlan = sobre ? sellarCambios(actual.plan, livePlanSinSellar, sobre) : livePlanSinSellar;
   const shopping = liveShopping ?? actual.shopping ?? { items: [] };
   const igual = (a, b) => a === b || JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
   if (igual(actual.plan, livePlan) && igual(actual.shopping, shopping)) return null;

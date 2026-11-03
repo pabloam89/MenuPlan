@@ -314,7 +314,7 @@ function subidasPendientes(userId, householdId) {
   return Promise.all(colas.map((p) => p.catch(() => {})));
 }
 
-export function saveAndActivateMenu(userId, menu, recipes, householdId = null) {
+function enCola(userId, householdId, tarea) {
   const queueKey = householdId ? `${householdId}:${userId}` : userId;
   const prev = activationQueues.get(queueKey) ?? Promise.resolve();
   const next = prev
@@ -323,8 +323,7 @@ export function saveAndActivateMenu(userId, menu, recipes, householdId = null) {
       // Nunca rechaza: quien llama avisa con `ok: false`, y un fallo al montar
       // las filas no puede acabar en una promesa rota que nadie mira.
       try {
-        const res = await saveMenu(userId, menu, recipes, householdId);
-        return res.ok ? await activateMenu(menu.id) : res;
+        return await tarea();
       } catch (err) {
         console.warn("[menusSync] save menu failed", err);
         return { ok: false, error: String(err?.message ?? err) };
@@ -332,6 +331,27 @@ export function saveAndActivateMenu(userId, menu, recipes, householdId = null) {
     });
   activationQueues.set(queueKey, next);
   return next;
+}
+
+export function saveAndActivateMenu(userId, menu, recipes, householdId = null) {
+  return enCola(userId, householdId, async () => {
+    const res = await saveMenu(userId, menu, recipes, householdId);
+    return res.ok ? await activateMenu(menu.id) : res;
+  });
+}
+
+/**
+ * Deshace un menú recién abierto: reactiva el de antes y borra el nuevo. Va en
+ * la misma cola que su subida, porque borrarlo antes de que suba lo dejaría
+ * activo en la nube. El borrado va aunque falle la activación: un menú en
+ * blanco no puede quedarse como el activo de la casa.
+ */
+export function descartarMenuNuevo(userId, menuId, anteriorId, householdId = null) {
+  return enCola(userId, householdId, async () => {
+    const activado = anteriorId ? await activateMenu(anteriorId) : { ok: true };
+    const borrado = await deleteMenu(userId, menuId, householdId);
+    return activado.ok ? borrado : activado;
+  });
 }
 
 /**
@@ -426,14 +446,15 @@ const marcasPendientes = new Map();
  * @param {string} householdId
  * @param {string} menuId
  * @param {string} weekStart
- * @param {{ name: string, unit: string, have: boolean }[]} marcas
+ * @param {{ id?: string, name: string, unit: string, have: boolean }[]} marcas
  * @param {{ version?: object, onError?: () => void }} [opts]
  */
 export function queueMarcarCompra(householdId, menuId, weekStart, marcas, { version = null, onError = null, delay = 1200 } = {}) {
   if (!supabase || !householdId || !menuId || !weekStart || !marcas?.length) return;
   const key = `${householdId}:${menuId}:${weekStart}`;
   const pendiente = marcasPendientes.get(key) ?? { marcas: new Map(), timer: null };
-  for (const m of marcas) pendiente.marcas.set(`${m.name}|${m.unit}`, m);
+  // Por id (el del artículo, compraMarcas.js): un derivado y un añadido a mano con el mismo nombre son dos.
+  for (const m of marcas) pendiente.marcas.set(m.id ?? `${m.name}|${m.unit}`, m);
   clearTimeout(pendiente.timer);
   pendiente.timer = setTimeout(async () => {
     marcasPendientes.delete(key);

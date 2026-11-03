@@ -20,7 +20,7 @@ import { select, insert, eq, contandoEscrituras } from "./db.js";
 import { cargarCasa, deshacer, hoyISO, apuntarOperacion } from "./casa.js";
 import {
   describirCasa, describirReceta, describirCompra,
-  marcarCompra, anadirCompra, quitarCompra, cambiarPlato, proponerPlatos, franjaDe,
+  marcarCompra, anadirCompra, quitarCompra, cambiarPlato, proponerPlatos, franjaDe, porQuePlato,
   rangosDelMenu, resultadoDeCambio, resultadoDeAnadir, SIN_CAMBIAR,
   apuntarAusencia,
 } from "./menu.js";
@@ -47,7 +47,8 @@ import { fueraDeLimite, contarUso, avisoDeLimite } from "./uso.js";
 import { quedaMs, plazoDeLlamada, RESERVA_MIN_MS } from "./plazo.js";
 import { supervisar, frenoDeshacer } from "./supervisor.js";
 import { montarFicha, extrasDeFicha } from "./ficha.js";
-import { fichaRpc, leerFichaCasa, tareasDeFicha, calladasDeFicha, conLaFicha, olvidarFicha } from "./fichaRpc.js";
+import { fichaRpc, leerFichaCasa, tareasDeFicha, calladasDeFicha, conLaFicha, olvidarFicha, estadosDeLaFicha } from "./fichaRpc.js";
+import { lineaDeAfinar } from "../../src/lib/siguientePregunta.js";
 import { montarMemoria, ORDEN as ORDEN_MEMORIA } from "./memoria.js";
 import { tramitar, bloqueDe, vigentesSegun } from "./pendientes.js";
 import { tareasAbiertas, clavesCalladas, anotarTarea, cerrarTarea, editarTarea, bloqueDeTareas, separarPorEstado, cerrarResueltas, promoverPreguntas } from "./tareas.js";
@@ -75,7 +76,9 @@ import { tareasV2 } from "./idempotencia.js";
 import { apuntarSilencio, conRecordatorio, NOTA_RECORDATORIO } from "./silencio.js";
 import { usoParcialDe, sumarUsos } from "./medidaTurno.js";
 import { esResultado, paraElModelo, conRecibo, recibo, cuentaComoGuardado, exigeResultado, SIN_RESULTADO } from "./resultado.js";
-import { operacion, claveDeEscritura, tipoDeHerramienta, YA_ESCRITA, SIN_COMPROBAR, ponerAutor, tomarAvisos } from "./operacion.js";
+import { operacion, claveDeEscritura, tipoDeHerramienta, YA_ESCRITA, SIN_COMPROBAR, ponerAutor, tomarAvisos, autorDelTurno } from "./operacion.js";
+import { tratoDeFicha, lineaDelTrato, guardarTrato, ESCRIBE_TRATO, ESQUEMA_TRATO, personaDeLaCuenta } from "./trato.js";
+import { escribirDato } from "./datos.js";
 import { primeraVez, yaVista } from "./entradas.js";
 
 const yaEscrita = (clave) => yaVista(CANAL.TELEGRAM, clave);
@@ -646,6 +649,23 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
       }),
       run: (args) => ajustarCompra(householdId, args),
     }),
+    herramienta({ capacidades: ["trato"], lee: ["accountMemberIdByUser"], escribe: [...ESCRIBE_TRATO], lector: false, soloLectura: false, pantalla: null }, {
+      name: "ajustar_trato",
+      description: "Cómo quiere quien escribe que le hables (solo a él o ella, no a toda la casa). ritmo: directo («no me preguntes tanto», «decide tú») o guiado («ve paso a paso», «pregúntame antes»). profundidad, cuánto afinar antes de hacer un menú: nada («hazlo ya»), poco, mucho («quiero afinarlo bien») o preguntar (preguntárselo cada vez). fotos: si quiere fotos de los platos. largo: corto («más corto», «al grano») o largo («explícame más»). Solo lo que diga; lo demás no se toca. Úsala cuando lo pida como algo para siempre, no por un mensaje suelto.",
+      inputSchema: obj({ ...ESQUEMA_TRATO }),
+      run: (args) => {
+        const op = operacion();
+        return guardarTrato(args, {
+          householdId,
+          personaId: personaDeLaCuenta(chat.casaData, quien.userId, chat.papel),
+          autor: autorDelTurno(),
+          op,
+          escribir: escribirDato,
+          // Como casa.js: sin mensaje no hay clave, y la operación sale «sin hacer» (no se inventa una).
+          clave: claveDeEscritura("dato:trato:ajustar_trato", args),
+        });
+      },
+    }),
     herramienta({ capacidades: ["extras"], lee: ["extraMeals", "members"], escribe: ["extraMeals"], lector: false, soloLectura: false, pantalla: null }, {
       name: "ajustar_extras",
       description: "Desayuno, merienda y postre, que van aparte de comida y cena. desayuno: off (sin desayuno), variado (uno distinto cada día), findes (el mismo entre semana y otro el finde), igual (siempre el mismo). merienda (solo para los niños): off, semana (los 7 días), laborables (de lunes a viernes). postre: off, comida, cena, ambas; postreTipo: inmediato (sin cocinar), cazo (cremas), horno (horneados); postreInmediato, si es sin cocinar: fruta, yogur, mix (alterna). Pasa solo lo que cambien.",
@@ -879,6 +899,27 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
       },
       run: ({ nombre }) => conCasa((casa) => describirReceta(casa, nombre)),
     }),
+    herramienta({ capacidades: ["por_que_plato"], lee: ["menus", "notepad"], escribe: [], lector: true, soloLectura: true, pantalla: null }, {
+      name: "por_que_plato",
+      description: "Por qué hay un plato en el menú («¿por qué el martes pescado?», «¿quién ha puesto esto?»): quién lo puso (el menú automático, alguien a mano en la app o tú por el chat), cuándo y, si fue el menú automático, qué preferencias de la casa lo pidieron. Di eso tal cual; no inventes motivos que no traiga.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          dia: { type: "string", description: "lunes…domingo, «hoy» o «mañana»." },
+          semana,
+          comida: { type: "string", enum: IDS_COMIDAS },
+          grupo: { type: "string", description: "Opcional: para quién, si no es el menú de toda la familia." },
+          cual: { type: "string", enum: IDS_PLATOS, description: "Por defecto el principal." },
+        },
+        required: ["dia", "comida"],
+        additionalProperties: false,
+      },
+      run: ({ dia, semana: cual_semana, comida, grupo, cual }) => {
+        const f = franjaDe(comida);
+        if (!f) return `No entiendo qué comida es («${comida}»).`;
+        return porQuePlato(householdId, { dia, semana: cual_semana, franja: f, grupo, cual: cual ?? "principal" });
+      },
+    }),
     herramienta({ capacidades: ["ver_compra"], lee: [], escribe: [], lector: true, soloLectura: true, pantalla: "compra" }, {
       name: "ver_compra",
       description: "La lista de la compra de la semana activa: lo que falta por comprar, por secciones.",
@@ -917,7 +958,7 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
     // comprado o decía que lo había quitado sin quitarlo.
     herramienta({ capacidades: ["quitar_compra"], lee: [], escribe: [], lector: false, soloLectura: false, pantalla: "compra" }, {
       name: "quitar_compra",
-      description: "Quita productos de la lista de la compra («quita el pan», «borra los yogures, que ya no hacen falta»). NO es marcarlos como comprados (eso es marcar_compra). manuales=true quita todo lo que se añadió a mano («borra lo que añadí»). Lo que sale del menú vuelve si se rehace la compra al cambiar el menú: dilo si preguntan. Usa los nombres como salen en la lista.",
+      description: "Quita productos de la lista de la compra («quita el pan», «borra los yogures, que ya no hacen falta»). NO es marcarlos como comprados (eso es marcar_compra). manuales=true quita todo lo que se añadió a mano («borra lo que añadí»). Lo quitado no vuelve aunque cambie el menú: dilo si preguntan. Usa los nombres como salen en la lista.",
       inputSchema: {
         type: "object",
         properties: {
@@ -1144,13 +1185,16 @@ const QUIEN_ESCRIBE = {
 const IDIOMA = {
   en: "IDIOMA: quien escribe eligió inglés. Contesta SIEMPRE en inglés, aunque escriba en español; ingredientes y pasos, traducidos. Pero dos cosas van TAL CUAL, en castellano: los botones [[…]] (el código los reconoce por su texto: «[[No es así]]», «[[Rehacer la del …]]») y el nombre de cada plato (búscalo y nómbralo como está guardado; si ayuda, la traducción entre paréntesis detrás).",
 };
+/** ¿Escribe alguien de fuera de la casa? Sin papel, como de fuera: falla cerrado (#958). */
+export const esDeFuera = (papel) => !papel || papel === "ajeno";
+
 export function conQuienEscribe(ficha, papel, idioma = null) {
   if (!ficha) return ficha;
   // Alguien de fuera no recibe la salud ni la gente de la casa (#958): antes
   // le llegaba la misma ficha y el único freno era una línea del prompt
   // (papeles.js ya le quita ver_casa y ver_ajustes; faltaba esto). Sin papel,
   // como de fuera: falla cerrado.
-  const deFuera = !papel || papel === "ajeno";
+  const deFuera = esDeFuera(papel);
   const base = deFuera ? { ...ficha, estable: sinSecciones(ficha.estable, SOLO_DE_LA_CASA) } : ficha;
   const lineas = [QUIEN_ESCRIBE[papel ?? "ajeno"], IDIOMA[idioma]].filter(Boolean);
   return lineas.length ? { ...base, delDia: [base.delDia, ...lineas].join("\n") } : base;
@@ -1268,7 +1312,13 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
   // Para las alergias por silencio (silencio.js): quién había ANTES del turno.
   chat.nombresAntes = (data.members ?? []).map((m) => m.name).filter(Boolean);
   // La ficha de la casa (api/_bot/ficha.js): lo que Lola ya sabe sin preguntar.
-  const ficha = casa ? conQuienEscribe(montarFicha(deLaFicha.casa, extras), chat.papel, chat.idioma) : null;
+  // El trato de quien escribe (trozo 16): de la ficha «trato» de ficha_casa, o sus defectos (trato.js, plan B). Va
+  // delante de lo del día: lo pendiente y quién escribe siguen cerrándolo, como siempre.
+  const fichaBase = casa ? conQuienEscribe(montarFicha(deLaFicha.casa, extras), chat.papel, chat.idioma) : null;
+  chat.trato = tratoDeFicha(tablas, personaDeLaCuenta(data, chat.userId, chat.papel));
+  // Si pidió afinar, la siguiente pregunta del catálogo (trozo 17, siguientePregunta.js); sin la ficha v2, ninguna.
+  const afinar = lineaDeAfinar(estadosDeLaFicha(tablas), chat.trato);
+  const ficha = fichaBase && !esDeFuera(chat.papel) ? { ...fichaBase, delDia: [lineaDelTrato(chat.trato), afinar, fichaBase.delDia].filter(Boolean).join("\n") } : fichaBase;
   let dicho, uso, corregido, medida, promesa, sigueSinGuardar = false;
   const tLola = Date.now();
   // La pista del enrutador (api/_bot/pista.js). `progreso` lo rellena Lola

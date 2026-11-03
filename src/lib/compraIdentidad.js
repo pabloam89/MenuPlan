@@ -25,6 +25,19 @@ export function sonElMismo(items) {
 }
 
 /**
+ * Un artículo apuntado a mano: lo que no sale del menú. La forma de un añadido
+ * vive solo aquí (al añadir, y al rehacerlo de sus marcas en compraMarcas.js).
+ * @param {{ id: string, name: string, unit?: string, have?: boolean, atHome?: boolean }} base
+ * @param {object} [extra] lo guardado del añadido (category, qty, displayQty)
+ */
+export function articuloAMano({ id, name, unit = "", have = false, atHome = false }, extra = {}) {
+  return {
+    category: "Otros", qty: null, displayQty: "", sources: [], adapted: false, ...extra,
+    id, name, unit, have, atHome, manual: true,
+  };
+}
+
+/**
  * Añade a mano `nombres` a `items` sin duplicar. Devuelve la lista nueva y qué
  * pasó con cada nombre: `anadidos` (nuevos), `yaEstaban` (pendientes ya) y
  * `devueltos` (estaban tachados o «en casa»: vuelven a pedirse). No muta.
@@ -32,6 +45,9 @@ export function sonElMismo(items) {
  * @param {string[]} nombres
  * @param {() => string} [sello] sufijo del id (por defecto, la hora)
  */
+/** El id de un añadido a mano: `manual:` + su clave (y el sello, al apuntarlo; sin él, el de una lista vieja sin id). */
+export const idManual = (nombre, sello = null) => `manual:${claveArticulo(nombre).replace(/\s+/g, "-")}${sello ? `:${sello}` : ""}`;
+
 export function anadirArticulos(items, nombres, sello = () => Date.now().toString(36)) {
   const lista = (items ?? []).map((it) => ({ ...it }));
   const res = { items: lista, anadidos: [], yaEstaban: [], devueltos: [] };
@@ -49,11 +65,7 @@ export function anadirArticulos(items, nombres, sello = () => Date.now().toStrin
       }
       continue;
     }
-    lista.push({
-      id: `manual:${clave.replace(/\s+/g, "-")}:${sello()}`,
-      name, category: "Otros", unit: "", qty: null, displayQty: "",
-      sources: [], have: false, atHome: false, manual: true, adapted: false,
-    });
+    lista.push(articuloAMano({ id: idManual(name, sello()), name }));
     res.anadidos.push(name);
   }
   return res;
@@ -62,6 +74,12 @@ export function anadirArticulos(items, nombres, sello = () => Date.now().toStrin
 // La clave con la que la lista junta ingredientes: la de cada fila nueva es su
 // `id` (buildShoppingList lo hace así); la de una vieja, de su nombre y unidad.
 const claveConUnidad = (it) => normalizeIngredientKey(it?.name ?? "", it?.unit ?? "ud");
+
+/**
+ * El id de un artículo: el suyo, o, en una lista vieja sin ids, el que tendría
+ * (el de buildShoppingList si sale del menú; uno de añadido si se apuntó a mano).
+ */
+export const idDeArticulo = (it) => it?.id ?? (it?.manual ? idManual(it.name) : claveConUnidad(it));
 
 /**
  * La lista `nuevos` con las marcas de `viejos` del mismo ingrediente y unidad:

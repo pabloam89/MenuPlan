@@ -19,12 +19,16 @@ import { select, insert, usuarioDeToken, eq } from "../_bot/db.js";
 import { nombreDelBot, enviar } from "../_bot/telegram.js";
 import { recordar } from "../_bot/rapido.js";
 import { puede } from "../../src/lib/papeles.js";
+import { PREGUNTA_DE_PROFUNDIDAD } from "../../src/lib/siguientePregunta.js";
 
 const VALIDEZ_MS = 15 * 60 * 1000;
-// El menú no sale solo: se ofrece (Pablo, 6 oct 2026). El botón vuelve como si
-// lo hubiera escrito (`t:`, sacarBotones en telegram.js) y Lola lo genera.
-export const AVISO_ALTA = "¡Listo, ya os tengo! 🙌 ¿Os preparo el menú de la semana?\n\nCuando quieras me pides lo que sea: «¿qué comemos hoy?», «cambia la cena del jueves» o «apunta leche».";
+// El menú no sale solo: se ofrece (Pablo, 6 oct 2026). Tras el alta, la pregunta de antes de afinar (trozo 17 de
+// #1037): prepararlo ya o afinarlo juntos, con la profundidad por defecto del trato (preguntar). Cada botón vuelve
+// como si lo hubiera escrito (`t:`, sacarBotones en telegram.js): «ya», y Lola lo genera; «afinar», y Lola guarda
+// la profundidad en su trato (ajustar_trato) y pregunta lo que falta, de una en una (siguientePregunta.js).
+export const AVISO_ALTA = `¡Listo, ya os tengo! 🙌 ${PREGUNTA_DE_PROFUNDIDAD}\n\nCuando quieras me pides lo que sea: «¿qué comemos hoy?», «cambia la cena del jueves» o «apunta leche».`;
 export const BOTON_ALTA = { texto: "🍽️ Prepáralo ya", dato: "t:Prepárame ya el menú de esta semana" };
+export const BOTON_AFINAR = { texto: "🧭 Afinémoslo juntos", dato: "t:Antes de preparar el menú, quiero afinarlo contigo: guíame" };
 
 export default async function handler(req, res) {
   // La app iOS (Capacitor) llama desde capacitor://localhost: sin CORS el
@@ -64,7 +68,7 @@ export default async function handler(req, res) {
     if (req.body?.aviso === "alta") {
       const chats = await select("bot_chats", `household_id=${eq(householdId)}&kind=eq.private&linked_by=${eq(user.id)}`, "chat_id");
       await Promise.all(chats.map(async ({ chat_id }) => {
-        await enviar(chat_id, AVISO_ALTA, { botones: [[BOTON_ALTA]] });
+        await enviar(chat_id, AVISO_ALTA, { botones: [[BOTON_ALTA, BOTON_AFINAR]] });
         await recordar({ chatId: chat_id, householdId, pregunta: "(He rellenado en la app quiénes comemos y las alergias.)", respuesta: AVISO_ALTA });
       }));
       return res.status(200).json({ avisados: chats.length });

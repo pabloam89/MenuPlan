@@ -19,6 +19,7 @@ import { operacion, quienEscribe, TIPO_OPERACION, QUE_FUE, autorDelTurno, avisar
 import { leerFamilia, escribirPersonas, leerCasaConSobre, escribirDato, leerPreferencias, escribirPreferencias } from "./datos.js";
 import { conLibretaDeFilas, sinLibreta, cambiosDePreferencias } from "../../src/lib/libretaEnData.js";
 import { PreferenciaInvalida } from "../../src/lib/preferencias.js";
+import { textoDeChoque } from "../../src/lib/choques.js";
 import { cambiosDePersonas, conOrdenDeTodos, textosDeAvisos, revSiguiente } from "../../src/lib/personas.js";
 import { CANAL_DATO, REF_OPERACION } from "../../src/lib/vocabularios.js";
 import { CAMPOS_CON_AMBITO_CON_SOBRE } from "../../src/lib/estadoDeDato.js";
@@ -27,6 +28,9 @@ import { recetasPropiasDeCasa, quitarRecetaGuardada } from "./propias.js";
 import { menuActivoDe } from "../../src/lib/menuActivo.js";
 import { isoDeCasa } from "../../src/lib/dias.js";
 import { favoritasDeFilas, votosDeFavoritas, descartesDeFilas } from "../../src/lib/recetasDeLaCasa.js";
+import { sellarCambios } from "../../src/lib/sobreHueco.js";
+import { sinRecetasDeTabla } from "../../src/lib/recetasFuente.js";
+import { conCompraQueSeVe, semanaParaGuardar } from "./compraDeSemana.js";
 
 // En hora de España: a las 00:30 del jueves, «hoy» es jueves, no el miércoles de UTC.
 export const hoyISO = () => isoDeCasa();
@@ -121,7 +125,7 @@ async function leerCasa(householdId) {
       `household_id=${eq(householdId)}&is_active=eq.true&order=updated_at.desc&limit=5`,
       "id,user_id,is_active,updated_at",
     ),
-    recetasPropiasDeCasa(householdId, hogar?.owner_user_id ?? null, fila.state?.data?.userRecipes),
+    recetasPropiasDeCasa(householdId, hogar?.owner_user_id ?? null),
     recetasDeLaCasa(householdId),
   ]);
   // El mismo lector que la app (menuActivo.js): si hubiera dos activos, los
@@ -146,7 +150,8 @@ async function leerCasa(householdId) {
     ?? semanas[0]
     ?? null;
 
-  return {
+  // La compra de cada semana que guarda marcas, como se ve: derivada del menú con las marcas encima (trozo 18).
+  return conCompraQueSeVe({
     householdId,
     botRev: Number(fila.bot_rev ?? 0),
     updatedAt: fila.updated_at,
@@ -168,7 +173,7 @@ async function leerCasa(householdId) {
     semana,
     semanas,
     semanaViva: semana?.weekStart ?? null,
-  };
+  });
 }
 
 /**
@@ -334,7 +339,9 @@ export async function guardarCasa(casa, { state = null, semana = null, activar =
     return { ok: false, error: `no he podido apuntarlo: ${e.message}; no he cambiado nada` };
   }
   const { documento: sinSobre, cambios: datos } = separarConSobre(sinPreferencias, casa.conSobre, familiaTras);
-  const { documento, familia } = casa.familia ? separarFamilia(sinSobre, casa.familia) : { documento: sinSobre, familia: null };
+  const { documento: conRecetas, familia } = casa.familia ? separarFamilia(sinSobre, casa.familia) : { documento: sinSobre, familia: null };
+  // Las recetas de la casa viven en sus tablas y no van al documento (recetasFuente.js, trozo 21).
+  const documento = conRecetas?.data ? { ...conRecetas, data: sinRecetasDeTabla(conRecetas.data) } : conRecetas;
   let cambios = null;
   if (familia) {
     const c = cambiosDePersonas(casa.familia, familia);
@@ -344,8 +351,12 @@ export async function guardarCasa(casa, { state = null, semana = null, activar =
   const falta = cambios || datos.length || preferencias.length ? faltaParaEscribir() : null;
   if (falta) return { ok: false, error: falta };
 
-  const week = semana && casa.semana
-    ? { menu_id: casa.semana.menuId, week_start: casa.semana.weekStart, ...semana }
+  // Un plato que cambia Lola lleva su sobre: el canal del turno, quién y cuándo (sobreHueco.js, trozo 18).
+  const semanaSellada = semana?.plan && casa.semana ? { ...semana, plan: sellarCambios(casa.semana.plan, semana.plan, sobreDelTurno()) } : semana;
+  // Una semana que guarda marcas vuelve a guardar marcas, no la lista que se ve (trozo 18).
+  const semanaGuardada = semanaSellada && casa.semana ? await semanaParaGuardar(casa, semanaSellada) : null;
+  const week = semanaGuardada
+    ? { menu_id: casa.semana.menuId, week_start: casa.semana.weekStart, ...semanaGuardada }
     : null;
   const r = await rpc(activar ? "bot_save_casa_activando" : "bot_save_casa", {
     p_household_id: casa.householdId,
@@ -377,8 +388,17 @@ export async function guardarCasa(casa, { state = null, semana = null, activar =
     }
     if (preferencias.length) {
       const r = await escribirLibreta(casa, preferencias);
-      if (!r.guardado) sinGuardar.push(`las preferencias: ${r.fallo ?? r.error ?? r.estado ?? "sin motivo"}`);
-      else {
+      // Lo que chocó con lo que ya tenía la casa (método de choques): Lola lo dice o lo pregunta, no se calla.
+      for (const c of r.choques ?? []) {
+        const texto = textoDeChoque(c, preferencias[c.nueva]);
+        if (texto) avisarEnElChat(texto);
+      }
+      // Si no se escribió nada porque todo chocó, no es un fallo: el aviso de arriba dice qué pasó. Si solo chocó una
+      // parte y lo demás no se guardó, sí lo es, y se dice.
+      const todoChoco = !r.fallo && r.apartadas?.length === preferencias.length;
+      if (!r.guardado) {
+        if (!todoChoco) sinGuardar.push(`las preferencias: ${r.fallo ?? r.error ?? r.estado ?? "sin motivo"}`);
+      } else {
         const tras = seguida ? revSiguiente(botRev, r.rev) : null;
         if (tras != null) botRev = tras;
       }
@@ -396,6 +416,15 @@ export async function guardarCasa(casa, { state = null, semana = null, activar =
   }
   if (r?.bot_rev != null) return { ok: false, conflicto: true, botRev: Number(r.bot_rev) };
   return { ok: false, error: r?.error ?? "error desconocido" };
+}
+
+/** El sobre de lo que escribe Lola en este turno: su canal y quién habla; fuera de un turno (un cron), el sistema. */
+// Fuera de un turno (crons, scripts) escribe el sistema. En un turno, el canal es el del autor: sin él se falla, no
+// se firma como el menú automático lo que pidió una persona.
+function sobreDelTurno() {
+  const autor = autorDelTurno();
+  if (autor && !autor.canal) throw new Error("sobre del hueco: el autor del turno no dice por qué canal habla");
+  return { canal: autor?.canal ?? CANAL_DATO.SISTEMA, cuando: new Date().toISOString(), quien: autor?.user_id ?? null };
 }
 
 // ── Deshacer (0060) ─────────────────────────────────────────────────────────

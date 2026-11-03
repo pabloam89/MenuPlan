@@ -125,6 +125,7 @@ export const MODOS_DESPENSA = ["strict", "only", "prefer", "off"];
 
 /** De dónde sale un dato de la ficha (registro «sobre»). */
 export const ORIGEN_DATO = ["dicho", "supuesto", "visto", "derivado", "por_defecto", "delegado", "no_quiere_decirlo"];
+export const ORIGEN = porNombre(ORIGEN_DATO);
 
 /**
  * De dónde sale el «ninguna» de las alergias de una persona (#229). `dicha`:
@@ -167,6 +168,7 @@ export const ORIGENES_DE_LA_FAMILIA = ["dicho", "delegado", "no_quiere_decirlo"]
 
 /** El estado de un dato de la ficha para quien la lee (ficha_casa v2, 0107): vacío, por defecto, supuesto, aprendido o dicho. */
 export const ESTADOS_DATO = ["vacio", "por_defecto", "supuesto", "aprendido", "dicho"];
+export const ESTADO_DATO = porNombre(ESTADOS_DATO);
 
 /** El estado que da ficha_casa v2 a un sobre vigente según su origen (ORIGEN_DATO); datoConSobre.test.js compara su case. */
 export const ESTADO_DE_ORIGEN = Object.freeze({
@@ -204,6 +206,30 @@ export const FALLO_DATO = porNombre(FALLOS_DATO);
  */
 export const MOTIVOS_PUERTA = ["sin_permiso", "origen_no_vale", "salud_sin_familia"];
 export const MOTIVO_PUERTA = porNombre(MOTIVOS_PUERTA);
+
+// ── Los del método de choques (specs/arquitectura-objetivo.md, «Choques», su única fuente; trozo 33). Su orden y
+// sus respuestas, con su test, en src/lib/choques.js.
+
+/** Qué clase de cosa choca, de la que más manda a la que menos: la seguridad no se rompe nunca; el sistema cede ante lo dicho. */
+export const CLASES_CHOQUE = ["seguridad", "hecho", "deseo", "aprendido", "supuesto", "sistema"];
+export const CLASE_CHOQUE = porNombre(CLASES_CHOQUE);
+/** Los siete criterios que deciden un choque, en su orden: gana el primero que distingue a las dos cosas. */
+export const CRITERIOS_CHOQUE = ["riesgo", "clase", "fuerza", "autoridad", "alcance", "tiempo", "peso_aprendido"];
+export const CRITERIO_CHOQUE = porNombre(CRITERIOS_CHOQUE);
+/** Cómo se responde a un choque: aplicar sin decir nada, aplicar y avisar en una línea, preguntar, o una tarea de decisión. */
+export const RESPUESTAS_CHOQUE = ["aplicar_en_silencio", "aplicar_y_avisar", "preguntar", "tarea_de_decision"];
+export const RESPUESTA_CHOQUE = porNombre(RESPUESTAS_CHOQUE);
+/** Cuándo se ve un choque: al guardar (la puerta), al generar (el motor), al ejecutar (comprar, cocinar) o al pasar el tiempo. */
+export const MOMENTOS_CHOQUE = ["al_guardar", "al_generar", "al_ejecutar", "al_pasar_el_tiempo"];
+export const MOMENTO_CHOQUE = porNombre(MOMENTOS_CHOQUE);
+
+/**
+ * Las marcas de la familia sobre un artículo de la compra (trozo 18, src/lib/compraMarcas.js): la lista sale del menú
+ * y solo se guarda esto. `anadido`: apuntado a mano; `comprado`: tachado; `en_casa`: no hace falta comprarlo;
+ * `quitado`: el menú lo pide, pero la familia lo quitó de la lista.
+ */
+export const MARCAS_COMPRA = ["anadido", "comprado", "en_casa", "quitado"];
+export const MARCA_COMPRA = porNombre(MARCAS_COMPRA);
 
 // ── Los del eje de la ficha (plan fichas con estado, trozo 5): columnas de registroFicha.js; la 0105 los lleva a registro_campo.
 
@@ -257,6 +283,7 @@ export const NIVELES_PREFERENCIA = ["plato", "comida", "dia", "semana"];
 export const MEDIDAS_PREFERENCIA = ["valor", "suma", "media", "cuenta"];
 /** Cómo se compara: es, no es, al menos, como mucho, más o menos (los dos últimos ordenan, no cortan). */
 export const OPERADORES_PREFERENCIA = ["es", "no_es", "al_menos", "como_mucho", "mas", "menos"];
+export const OPERADOR_PREFERENCIA = porNombre(OPERADORES_PREFERENCIA);
 /** Cuánto manda: obligatoria (nunca se rompe) o una preferencia con peso alto, medio o bajo (el solver, trozo 31). */
 export const FUERZAS_PREFERENCIA = ["obligatoria", "alto", "medio", "bajo"];
 /**
@@ -419,6 +446,20 @@ export const ACCIONES_ALERGIAS = ["apuntada", "recordada"];
  */
 export const MOTIVOS_TOPE_DIARIO = ["tope_alcanzado", "sin_redis", "error_redis"];
 
+// ── Los de la ficha Trato (plan fichas con estado, trozo 16): cómo quiere cada cuenta que le hable Lola.
+
+/** Ritmo con Lola: directo (decide y avisa, pregunta lo justo) o guiado (va paso a paso y pregunta más). */
+export const RITMOS_TRATO = ["directo", "guiado"];
+export const RITMO_TRATO = porNombre(RITMOS_TRATO);
+
+/** Cuánto se afina antes de generar un menú: nada (lo hace ya), poco, mucho, o preguntar cada vez (la pregunta del trozo 17). */
+export const PROFUNDIDADES_TRATO = ["nada", "poco", "mucho", "preguntar"];
+export const PROFUNDIDAD_TRATO = porNombre(PROFUNDIDADES_TRATO);
+
+/** Largo de los mensajes de Lola: corto (lo justo) o largo (con explicación). */
+export const LARGOS_TRATO = ["corto", "largo"];
+export const LARGO_TRATO = porNombre(LARGOS_TRATO);
+
 /**
  * Qué hizo la escritura con un valor en la línea de log `vocabulario_escritura` (paraEscribir,
  * más abajo, #539): `quitado`, un retirado sin sucesor que no se escribe.
@@ -458,6 +499,11 @@ export const VOCABULARIOS = Object.freeze({
   motivos_sin_deshacer: MOTIVOS_SIN_DESHACER,
   fallos_dato: FALLOS_DATO,
   motivos_puerta: MOTIVOS_PUERTA,
+  clases_choque: CLASES_CHOQUE,
+  criterios_choque: CRITERIOS_CHOQUE,
+  respuestas_choque: RESPUESTAS_CHOQUE,
+  momentos_choque: MOMENTOS_CHOQUE,
+  marcas_compra: MARCAS_COMPRA,
   origenes_de_la_familia: ORIGENES_DE_LA_FAMILIA,
   estados_dato: ESTADOS_DATO,
   fichas: FICHAS,
@@ -491,6 +537,9 @@ export const VOCABULARIOS = Object.freeze({
   motivos_sin_puerta: MOTIVOS_SIN_PUERTA,
   motivos_tope_diario: MOTIVOS_TOPE_DIARIO,
   acciones_escritura: ACCIONES_ESCRITURA,
+  ritmos_trato: RITMOS_TRATO,
+  profundidades_trato: PROFUNDIDADES_TRATO,
+  largos_trato: LARGOS_TRATO,
 });
 
 /** La lista de un vocabulario por su nombre, o null si no existe. */

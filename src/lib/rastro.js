@@ -15,7 +15,8 @@ export const RASTRO = {
   // Un plato quitado y otro puesto. metadata: day, meal, course, groupId,
   // oldRecipeId, newRecipeId, motivo (MOTIVO_CAMBIO).
   PLATO_CAMBIADO: "dish_replaced",
-  // Un menú generado. metadata: weekStart, weekEnd, slots, pedidos.
+  // Un menú generado. metadata: weekStart, weekEnd, slots, pedidos y, desde
+  // el trozo 31 de #1037, CAMPO_CUMPLIMIENTO.
   MENU_GENERADO: "menu_generated",
   // Se ofrecieron opciones y eligieron una (o «Elige tú»). metadata: day,
   // meal, ofrecidas[ids], elegida (id | null), eligeTu.
@@ -30,6 +31,10 @@ export const RASTRO = {
   // Tachado o desmarcado en la compra. metadata: n, estado.
   COMPRA_MARCADA: "shopping_marked",
 };
+
+/** La clave de MENU_GENERADO con lo dicho que cumple la semana, y las suyas (las de resumenCumplimiento). */
+export const CAMPO_CUMPLIMIENTO = "preferencias";
+export const CIFRA_CUMPLIMIENTO = Object.freeze({ dichas: "dichas", cumplidas: "cumplidas", pct: "pct" });
 
 /** Por qué cambió un plato: lo que el analista separa (un gusto no es un «lo que sea»). */
 export const MOTIVO_CAMBIO = {

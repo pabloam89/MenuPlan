@@ -10,7 +10,9 @@ import { EJES } from "../../src/data/axisRegistry.js";
 import { HUECO_EN_AVISO } from "../../src/lib/huecosDelPlan.js";
 import { PIEZAS_FUERA } from "../../api/_bot/interprete.js";
 import { CAMPO_LLEGARON } from "../../api/_bot/medidaTurno.js";
+import { RASTRO, CAMPO_CUMPLIMIENTO, CIFRA_CUMPLIMIENTO as C } from "../../src/lib/rastro.js";
 import { ESCRITORAS_HEREDADAS, LLAMADAS_HEREDADAS } from "../../src/lib/operaciones/escritoras.js";
+import { PREFERENCIAS_SISTEMA } from "../../src/lib/preferenciasSistema.js";
 import { clavesGuardadas } from "./inventarioFicha.mjs";
 import CAPACIDADES_BASE from "../../src/lib/capacidades.base.json" with { type: "json" };
 
@@ -152,11 +154,20 @@ export const CIFRAS = [
   { id: "ejes_sin_consumidor", nombre: "Ejes sin consumidor", trozo: 31, fuente: FUENTE.codigo, sentido: SENTIDO.baja, meta: null,
     base: base(27, DIA_PLAN, PLAN, 78), medir: () => ({ valor: EJES.filter((e) => !e.consumidores.length).length, de: EJES.length }) },
   { id: "pct_preferencias_cumplidas", nombre: "% de preferencias dichas cumplidas por semana", trozo: 31, fuente: FUENTE.base, sentido: SENTIDO.sube, meta: 100, unidad: "%",
-    base: null, falta: "src/lib/cumplimiento.js" },
+    base: null, nota: "la semana no decía qué cumplía; antes y después del solver, en el banco de casas del PR del trozo 31",
+    medir: async (ctx) => {
+      const [f] = await ctx.consultar(`select coalesce(sum((metadata->'${CAMPO_CUMPLIMIENTO}'->>'${C.cumplidas}')::int), 0)::int c,
+        coalesce(sum((metadata->'${CAMPO_CUMPLIMIENTO}'->>'${C.dichas}')::int), 0)::int d from user_events where event = '${RASTRO.MENU_GENERADO}' and metadata ? '${CAMPO_CUMPLIMIENTO}'`);
+      return f.d ? Math.round((100 * f.c) / f.d) : { sin_medir: `ningún menú con preferencias dichas medidas: ${RASTRO.MENU_GENERADO} lleva ${CAMPO_CUMPLIMIENTO} desde el trozo 31` };
+    } },
   { id: "reglas_fuera_de_preferencias", nombre: "Reglas del validador escritas a mano (no caben como preferencia)", trozo: 32, fuente: FUENTE.codigo, sentido: SENTIDO.baja, meta: null,
-    base: null, falta: "src/lib/preferenciasSistema.js" },
+    base: base(18, "2026-11-02", "trozo 32 (#1037)", 31),
+    medir: () => ({ valor: PREFERENCIAS_SISTEMA.filter((p) => p.forma === "escrita").length, de: PREFERENCIAS_SISTEMA.length }) },
   { id: "choques_repetidos", nombre: "Choques repetidos tras una tarea de decisión", trozo: 33, fuente: FUENTE.base, sentido: SENTIDO.baja, meta: 0,
-    base: null, falta: "src/lib/choques.js" },
+    // Para repetirse tras una tarea de decisión hace falta la tarea: el choque que la pide la creará con las tareas a
+    // fondo (la migración de MIGRACION_TAREAS, trozo 34). Hasta entonces no hay nada que contar, y se dice.
+    base: null, nota: "sin tareas de decisión no hay repetición que contar: la base sale con el trozo 34",
+    medir: () => ({ sin_medir: "sin tareas de decisión todavía: llegan con las tareas a fondo (trozo 34)" }) },
   { id: "preguntas_hasta_primer_menu", nombre: "Preguntas hasta el primer menú", trozo: 34, fuente: FUENTE.base, sentido: SENTIDO.baja, meta: null,
     base: null, falta: MIGRACION_TAREAS },
   { id: "tareas_caducadas_sin_respuesta", nombre: "Tareas caducadas sin respuesta", trozo: 34, fuente: FUENTE.base, sentido: SENTIDO.baja, meta: null,

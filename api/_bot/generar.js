@@ -30,7 +30,7 @@ import { datosDelMotor } from "../../src/lib/recetasDeLaCasa.js";
 import { motor, describirMenu, masParecida, normal, prepararRecetas, DIA_LARGO } from "./menu.js";
 import { propiasDe } from "./propias.js";
 import { registrar, rastro, EMBUDO } from "./embudo.js";
-import { RASTRO } from "../../src/lib/rastro.js";
+import { RASTRO, CAMPO_CUMPLIMIENTO } from "../../src/lib/rastro.js";
 import { isoDeCasa, DIAS, DIAS_FINDE, semanasEntre } from "../../src/lib/dias.js";
 import { collectMenuRecipeIds, pruneAiRecipes, planHasDishes } from "../../src/lib/menuArchive.js";
 import { huecosEsperados, huecosVacios, describirHuecos } from "../../src/lib/huecosDelPlan.js";
@@ -42,6 +42,7 @@ import { conRecordatorioDeSilencio } from "../../src/lib/alergiasBase.js";
 import { apuntarRecordatorio } from "./silencio.js";
 import { listaParaEscribir } from "../../src/lib/vocabularios.js";
 import { conMarcas, claveArticulo } from "../../src/lib/compraIdentidad.js";
+import { compraParaGuardar, articulosDe } from "../../src/lib/compraMarcas.js";
 import { modoDespensaAlGenerar, usaDespensa } from "../../src/lib/modoDespensa.js";
 import { resultado, NO_GUARDADO } from "./resultado.js";
 
@@ -378,7 +379,8 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   const pantryMode = modoDespensaAlGenerar(working);
   const pantryIngredients = usaDespensa(working) ? despensa : [];
 
-  const { plan, recipes } = await m.generateMenuWithAI(weekData, { pantryIngredients, pantryMode, crossWeek });
+  // El motor lee la semana compilada una vez (src/lib/entradaMotor.js), no la casa.
+  const { plan, recipes, cumplimiento } = await m.generateMenuWithAI(m.entradaDelMotor(weekData), { pantryIngredients, pantryMode, crossWeek });
   m.registerRecipes(recipes);
   // Lo pedido que el motor no haya dejado, antes de la compra (que sale del plan).
   if (pedidos.length) colocarPedidos(m, { schedule: {}, ...working, groups }, plan, recipes, pedidos, activeDays);
@@ -400,7 +402,7 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
     return "NO GUARDADO: el motor no ha podido poner ningún plato en esa semana (revisa los días elegidos y quién come). Sigue el menú de antes.";
   }
   const sh = m.buildShoppingList(plan, groups, m.getDayMeals(weekData), despensa);
-  const generados = [...sh.byCategory.flatMap((c) => c.items), ...(sh.pantryItems ?? [])];
+  const generados = articulosDe(sh);
   let shopping = { items: generados };
   // Rehaciendo la semana en curso, hoy y lo pasado vuelven del plan viejo
   // DESPUÉS de la compra: lo de días que ya pasaron no se vuelve a comprar.
@@ -437,7 +439,9 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   // de hoy (se ha pedido la siguiente): entonces lo apuntado a mano sigue
   // siendo de la de hoy, y solo de ella (compraDeLaSemanaNueva).
   const ponerSemanaNueva = !semanasQueSeQuedan.some((w) => w.week_start <= hoy && hoy <= w.week_end) || (startISO <= hoy && hoy <= endISO);
-  week.shopping = shopping = { items: compraDeLaSemanaNueva(generados, casa, { startISO, endISO, ponerSemanaNueva }) };
+  shopping = { items: compraDeLaSemanaNueva(generados, casa, { startISO, endISO, ponerSemanaNueva }) };
+  // La semana guarda solo las marcas (trozo 18): la lista sale del plan al leerla (compraDeSemana.js).
+  week.shopping = compraParaGuardar(shopping);
 
   try {
     await insert("user_menus", [m.menuToRow(menu, dueno, householdId)]);
@@ -489,7 +493,7 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
       // para «deshaz» lleva esa misma semana: deshacer reactiva el menú de
       // antes y deja la nueva como estaba.
       casa: { ...fresca, semana: { menuId: menu.id, weekStart: startISO, plan, shopping: compraFinal } },
-      semana: { shopping: compraFinal },
+      semana: { shopping: compraParaGuardar(compraFinal) },
       activar: menu.id,
       state: {
         ...fresca.state,
@@ -525,13 +529,15 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   // siempre si la semana cabe, no cabe o no se sabe. Nunca en silencio (#958).
   const presupuesto = m.frasePresupuesto(working, m.estimarSemana(plan, { recetas: recipes }));
   const conservadas = semanasQueSeQuedan.map((w) => `del ${w.week_start} al ${w.week_end}`);
+  // Lo que la familia dijo y el menú no cumple (src/lib/cumplimiento.js, trozo 31 de #1037): se dice en una línea.
+  const { incumplidas, ...cumplidas } = m.resumenCumplimiento(cumplimiento.preferencias);
   // La semana generada va en la propia respuesta: sin ella, el modelo llamaba
   // a ver_menu justo después (y otra vez tras cada cambio), y un «hazme el
   // menú con salmón un día» tardaba casi un minuto en seis vueltas.
   const semana = await describirMenu({ ...casa, menu: null, semanas: null, semana: { plan, weekStart: startISO, weekEnd: endISO, activeDays, startDayIdx, shopping } }).catch(fallaCon("generar_describir", ""));
   // Para la vía rápida del enrutador (api/_bot/turno.js): lo generado, en datos.
   Object.assign(out, {
-    ok: true, desde: startISO, hasta: endISO, platos, avisos, conservadas, recordarSilencio, presupuesto, quitados,
+    ok: true, desde: startISO, hasta: endISO, platos, avisos, conservadas, recordarSilencio, presupuesto, quitados, incumplidas,
     pedidos: pedidos.length ? dondeQuedaron(pedidos, plan, activeDays) : [],
     // Dónde quedó cada plato pedido («Jue-Comida»), para destacarlo al pintar.
     colocados: pedidos.map((p) => claveDelPedido(p.fijo, plan, activeDays)).filter(Boolean),
@@ -539,7 +545,9 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
     // rápida no diga «listo» a secas (#1029).
     huecosVacios: vacios,
   });
-  await rastro(householdId, RASTRO.MENU_GENERADO, { menuId: menu.id, weekStart: startISO, weekEnd: endISO, slots: platos, pedidos: pedidos.length });
+  await rastro(householdId, RASTRO.MENU_GENERADO, { menuId: menu.id, weekStart: startISO, weekEnd: endISO, slots: platos, pedidos: pedidos.length,
+    // La cifra del plan (#1037): de las preferencias dichas, cuántas cumple la semana y su % (cifras:modelo).
+    [CAMPO_CUMPLIMIENTO]: cumplidas });
   // Qué semana ha salido, en palabras (#915): también cuando la eligió el código
   // por «la siguiente» (la primera sin menú), que puede no ser la que ella esperaba.
   const libre = cual === "siguiente" && !desde ? " (la primera semana sin menú)" : "";
@@ -548,6 +556,7 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
     + (vacios.length ? `\nHUECOS SIN PLATO (dilo tal cual, no lo disimules; ofrece intentarlo de otra forma o ponerles algo con cambiar_plato): ${describirHuecos(vacios)}.` : "")
     + (conservadas.length ? ` Se conserva tal cual la semana ${conservadas.join(" y ")}.` : "")
     + (presupuesto ? `\nPRESUPUESTO (dilo con estas cifras, sin redondear a favor): ${presupuesto}` : "")
+    + (incumplidas.length ? `\nNO SE HA PODIDO CUMPLIR (lo pidieron; dilo en una línea, sin excusas): ${incumplidas.join("; ")}.` : "")
     + (pedidos.length ? `\nLo que pidieron, ya puesto (no hace falta cambiar_plato):\n${dondeQuedaron(pedidos, plan, activeDays).join("\n")}` : "")
     + (semana
       ? `\n\nLa semana SALE PINTADA debajo de tu mensaje, con lo pedido destacado: NO la escribas ni llames a ver_menu; di en una o dos frases qué semana es (la del rango de arriba) y dónde ha quedado lo que pidieron. Para que lo sepas (no lo copies):\n${semana}`

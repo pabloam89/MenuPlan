@@ -227,6 +227,11 @@ const deLaRutina = (campo) => ({ entidad: "casa", ficha: "rutina", campo, politi
  * entero, como los de la Casa (CAMPOS_CASA_CON_SOBRE).
  */
 const enElRegistro = (campo, ambito = []) => ({ ficha: "rutina", campo, politica: "nunca", ambito, vive: "tabla:sobre" });
+/**
+ * Un dato de la ficha Trato (trozo 16) con fila en registro_campo, por persona (la de cada cuenta), sin ámbito y sin
+ * tarea que lo pregunte: vive en su sobre y lo lee Lola (api/_bot/trato.js), con su defecto si nadie ha dicho nada.
+ */
+const delTrato = (campo) => ({ tema: "cuenta", ficha: FICHA.TRATO, campo, politica: "nunca", vive: "tabla:sobre" });
 /** Lo que solo apunta el sistema (contadores, avisos dados, alias aprendidos). */
 const delSistema = { escribe: ESCRITOR.SISTEMA };
 /** Lo que solo se añade (menús hechos, tickets, lo que descontó la despensa): tabla con fecha y poda (trozo 22). */
@@ -271,13 +276,13 @@ export const DATOS_CASA = Object.freeze({
   mealStructureCena: dato({ tema: "horario", tipo: "enum", vocabulario: "estructura_platos", defecto: "1_plato", ...deLaRutina("mealStructureCena") }),
   mealStructureByGroup: dato({ entidad: "grupo", tema: "horario", tipo: "enum", vocabulario: "estructura_platos", ...enElRegistro("mealStructureByGroup", ["grupo"]) }),
   mealStructureCenaByGroup: dato({ entidad: "grupo", tema: "horario", tipo: "enum", vocabulario: "estructura_platos", ...enElRegistro("mealStructureCenaByGroup", ["grupo"]) }),
-  mealStyleByGroup: dato({ entidad: "grupo", tema: "horario", tipo: "mapa" }),
+  mealStyleByGroup: dato({ entidad: "grupo", tema: "horario", ficha: "preferencia", tipo: "mapa", vive: "tabla:preferencia", motivo: "una fila por menú, eje estiloComida (trozo 14; estiloEnFilas.js)" }),
   menuWeekOffsets: dato({ tema: "horario", tipo: "lista", defecto: [0] }),
   menuWeek: dato({ tema: "horario", tipo: "objeto", ...derivado("menuWeekOffsets", "src/lib/semanaDias.js:aplicarDiasDeSemana"), motivo: "siempre el primero de menuWeekOffsets" }),
   menuWeekDays: dato({ tema: "horario", tipo: "lista_enum", vocabulario: "dias", minimo_para_generar: true, ...enElRegistro("menuWeekDays", ["semana"]), motivo: "los días que se planifican, por semana; menuWeekOffsets y menuWeek se derivan de aquí (semanaDias.js)" }),
   menuScheduleSameForAllWeeks: dato({ tema: "horario", tipo: "bool", defecto: true, ...enElRegistro("menuScheduleSameForAllWeeks") }),
   menuWeekOverrides: dato({ tema: "horario", ficha: "semana", tipo: "mapa", motivo: "el horario propio de una semana es de la semana, no de la rutina (plan, trozo 18)" }),
-  kidDinnerConfig: dato({ entidad: "grupo", tema: "horario", modulo: "cole", tipo: "objeto", peso_menu: 80 }),
+  kidDinnerConfig: dato({ entidad: "grupo", tema: "horario", modulo: "cole", ficha: "preferencia", tipo: "objeto", peso_menu: 80, vive: "tabla:preferencia", motivo: "las filas de cada niño, ejes de la 0117 (trozo 14; pequesEnFilas.js)" }),
   kidDinnerMatchesAdultLunch: dato({ entidad: "grupo", tema: "horario", modulo: "cole", tipo: "bool", ...derivado("kidDinnerConfig", "src/lib/kidsMenu.js:deriveKidDinnerMatchesAdultLunch"), motivo: "el motor del espejo lo lee; la verdad es kidDinnerConfig (kidsMenu.js)" }),
   schoolMenus: dato({ tema: "horario", modulo: "cole", tipo: "objeto", peso_menu: 98, motivo: "el menú del cole, común y por niño" }),
 
@@ -343,8 +348,8 @@ export const DATOS_CASA = Object.freeze({
   userRecipes: dato({ entidad: "receta", tema: "recetas", tipo: "lista", vive: "tabla:user_recipes" }),
   recipeVotes: dato({ entidad: "receta", tema: "recetas", tipo: "mapa", vive: "tabla:recipe_votes" }),
   discards: dato({ entidad: "receta", tema: "recetas", tipo: "objeto", vive: "tabla:household_recipe_discards" }),
-  recipeCollections: dato({ entidad: "receta", tema: "recetas", tipo: "mapa", vocabulario: "carpetas_fijas" }),
-  recipeFolders: dato({ entidad: "receta", tema: "recetas", tipo: "lista" }),
+  recipeCollections: dato({ entidad: "receta", tema: "recetas", tipo: "mapa", vocabulario: "carpetas_fijas", vive: "tabla:recipe_collections" }),
+  recipeFolders: dato({ entidad: "receta", tema: "recetas", tipo: "lista", vive: "tabla:recipe_folders" }),
 
   // ── Cuenta y app ──
   accountMemberIdByUser: dato({ entidad: "persona", tema: "cuenta", ficha: "casa", tipo: "mapa", motivo: "quién soy por cuenta es de la casa (plan, ficha Casa)" }),
@@ -384,6 +389,13 @@ export const DATOS_PERSONA = Object.freeze(Object.fromEntries(Object.entries({
   sexo: dato({ tema: "quien", tipo: "enum", vocabulario: "sexo", campo: "sexo", politica: "nunca", vive: "tabla:sobre", motivo: "solo para calorías" }),
   colegio: dato({ tema: "quien", tipo: "texto", campo: "colegio", politica: "nunca", vive: "tabla:sobre" }),
   patronSemanas: dato({ tema: "quien", tipo: "enum", vocabulario: "patron_semanas", campo: "patronSemanas", politica: "nunca", vive: "tabla:sobre", motivo: "custodia: semanas alternas" }),
+  // La ficha Trato (trozo 16): cómo quiere la persona de cada cuenta que le hable Lola. Es de la cuenta (los niños
+  // no tienen; la pareja puede querer otro ritmo), y se guarda en el sobre de la persona de esa cuenta
+  // (accountMemberIdByUser). Nunca se pregunta; la lee Lola en cada turno (api/_bot/trato.js).
+  tratoRitmo: dato({ ...delTrato("tratoRitmo"), tipo: "enum", vocabulario: "ritmos_trato", defecto: "guiado", motivo: "directo: decide y avisa; guiado: paso a paso" }),
+  tratoProfundidad: dato({ ...delTrato("tratoProfundidad"), tipo: "enum", vocabulario: "profundidades_trato", defecto: "preguntar", motivo: "cuánto se afina antes de generar; preguntar: la pregunta del trozo 17" }),
+  tratoFotos: dato({ ...delTrato("tratoFotos"), tipo: "bool", defecto: true, motivo: "si quiere fotos de los platos (enviarlas es otro trozo, #1030)" }),
+  tratoLargo: dato({ ...delTrato("tratoLargo"), tipo: "enum", vocabulario: "largos_trato", defecto: "corto", motivo: "largo de los mensajes de Lola" }),
   // Lo de la persona que no es salud ni gusto (quién es, avatar, color) es de su ficha.
 }).map(([k, v]) => [k, { ...v, entidad: "persona", ficha: v.ficha ?? "persona" }])));
 

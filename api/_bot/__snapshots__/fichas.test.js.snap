@@ -104,6 +104,56 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
  },
  {
   "type": "custom",
+  "name": "por_que_plato",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "dia": {
+     "type": "string",
+     "description": "lunes…domingo, «hoy» o «mañana»."
+    },
+    "semana": {
+     "type": "string",
+     "enum": [
+      "esta",
+      "siguiente"
+     ],
+     "description": "Opcional: «esta» semana o la «siguiente», si lo dicen. Sin ella, el próximo día con ese nombre que tenga menú."
+    },
+    "comida": {
+     "type": "string",
+     "enum": [
+      "Desayuno",
+      "Comida",
+      "Merienda",
+      "Cena",
+      "Postre",
+      "Aperitivo"
+     ]
+    },
+    "grupo": {
+     "type": "string",
+     "description": "Opcional: para quién, si no es el menú de toda la familia."
+    },
+    "cual": {
+     "type": "string",
+     "enum": [
+      "primero",
+      "principal"
+     ],
+     "description": "Por defecto el principal."
+    }
+   },
+   "required": [
+    "dia",
+    "comida"
+   ],
+   "additionalProperties": false
+  },
+  "description": "Por qué hay un plato en el menú («¿por qué el martes pescado?», «¿quién ha puesto esto?»): quién lo puso (el menú automático, alguien a mano en la app o tú por el chat), cuándo y, si fue el menú automático, qué preferencias de la casa lo pidieron. Di eso tal cual; no inventes motivos que no traiga."
+ },
+ {
+  "type": "custom",
   "name": "ver_compra",
   "input_schema": {
    "type": "object",
@@ -181,7 +231,7 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
    },
    "additionalProperties": false
   },
-  "description": "Quita productos de la lista de la compra («quita el pan», «borra los yogures, que ya no hacen falta»). NO es marcarlos como comprados (eso es marcar_compra). manuales=true quita todo lo que se añadió a mano («borra lo que añadí»). Lo que sale del menú vuelve si se rehace la compra al cambiar el menú: dilo si preguntan. Usa los nombres como salen en la lista."
+  "description": "Quita productos de la lista de la compra («quita el pan», «borra los yogures, que ya no hacen falta»). NO es marcarlos como comprados (eso es marcar_compra). manuales=true quita todo lo que se añadió a mano («borra lo que añadí»). Lo quitado no vuelve aunque cambie el menú: dilo si preguntan. Usa los nombres como salen en la lista."
  },
  {
   "type": "custom",
@@ -1059,6 +1109,44 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
    "additionalProperties": false
   },
   "description": "Dónde hace la compra la casa y cuánto quiere gastar. «También compramos en Lidl» es supermercadosMas [Lidl]; «ya no vamos al Dia», supermercadosMenos [Dia]: los demás se quedan. Uno que no está en la lista («compramos en la frutería de abajo»), supermercadoOtro. Con Mercadona, en la app la lista de la compra enseña el precio de cada cosa. presupuesto: euros por semana; sinPresupuesto=true si dicen que no tienen."
+ },
+ {
+  "type": "custom",
+  "name": "ajustar_trato",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "ritmo": {
+     "type": "string",
+     "enum": [
+      "directo",
+      "guiado"
+     ]
+    },
+    "profundidad": {
+     "type": "string",
+     "enum": [
+      "nada",
+      "poco",
+      "mucho",
+      "preguntar"
+     ]
+    },
+    "fotos": {
+     "type": "boolean"
+    },
+    "largo": {
+     "type": "string",
+     "enum": [
+      "corto",
+      "largo"
+     ]
+    }
+   },
+   "required": [],
+   "additionalProperties": false
+  },
+  "description": "Cómo quiere quien escribe que le hables (solo a él o ella, no a toda la casa). ritmo: directo («no me preguntes tanto», «decide tú») o guiado («ve paso a paso», «pregúntame antes»). profundidad, cuánto afinar antes de hacer un menú: nada («hazlo ya»), poco, mucho («quiero afinarlo bien») o preguntar (preguntárselo cada vez). fotos: si quiere fotos de los platos. largo: corto («más corto», «al grano») o largo («explícame más»). Solo lo que diga; lo demás no se toca. Úsala cuando lo pida como algo para siempre, no por un mensaje suelto."
  },
  {
   "type": "custom",

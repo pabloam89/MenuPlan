@@ -5,7 +5,7 @@
  * (un invitado no es de la casa); ámbito: dias, comidas, semanas, su salvedad (salvo_*) y la vigencia (desde, hasta).
  */
 import { CAMPOS, CAMPOS_POR_ID } from "./notepadFields.js";
-import { apunteDeFila, PreferenciaInvalida, FORMA_DE_PROYECCION, valorDelEje, valorIdDelEje, dia, sesgoEnFila, esSesgo, sesgoDeFila } from "./preferencias.js";
+import { apunteDeFila, PreferenciaInvalida, FORMA_DE_PROYECCION, valorDelEje, valorIdDelEje, dia, sesgoEnFila, esSesgo, sesgoDeFila, COLUMNAS_DE_AMBITO } from "./preferencias.js";
 import { PREFIJO_TECNICA } from "./excluirHueco.js";
 import { normalizarRegla, EFECTOS } from "./reglas.js";
 import { COMIDAS, DIAS } from "./vocabularios.js";
@@ -109,8 +109,7 @@ export function reglasDeFilas(filas, ctx = {}) {
 }
 
 /** Lo que hace a dos filas la misma preferencia: las columnas de preferencia_unica (0109) sin la casa; el test las compara. */
-export const CLAVES_DE_FIRMA = ["persona_id", "grupo_id", "plan_id", "nivel", "eje", "medida", "operador", "valor", "dias", "comidas", "semanas",
-  "salvo_dias", "salvo_comidas", "salvo_semanas", "desde", "hasta"];
+export const CLAVES_DE_FIRMA = ["persona_id", "grupo_id", "plan_id", "nivel", "eje", "medida", "operador", "valor", ...COLUMNAS_DE_AMBITO];
 const firma = (fila) => JSON.stringify(CLAVES_DE_FIRMA.map((k) => fila[k] ?? null));
 
 /**

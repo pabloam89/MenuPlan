@@ -45,6 +45,19 @@ function signo(valor) {
   return n > 0 ? 1 : -1;
 }
 
+/** Qué platos casan con cada sesgo (lo explica sesgoScoreBoost); lo lee también el informe de cumplimiento.js. */
+export const CASA_SESGO = Object.freeze({
+  tecnica: (r, v) => r.tecnica === v,
+  base: (r, v) => r.mainBase === v || (r.basesAparte ?? []).includes(v),
+  salsa: (r) => r.llevaSalsa === true,
+  favoritos: (r, v) => {
+    const f = String(v ?? "").toLowerCase().trim();
+    return !!f && (r.ingredients ?? []).some((i) => String(i?.name ?? "").toLowerCase().includes(f));
+  },
+});
+/** El signo de cada valor de la salsa: «no» es menos platos con salsa. */
+export const SIGNO_SALSA = Object.freeze({ si: 1, no: -1 });
+
 /**
  * Cuánto sube o baja `recipe` por los sesgos de la casa.
  *
@@ -61,7 +74,7 @@ export function sesgoScoreBoost(recipe, sesgos, favoritos = []) {
   // la del sesgo.
   for (const [tecnica, valor] of Object.entries(sesgos?.tecnica ?? {})) {
     const s = signo(valor);
-    if (s && recipe.tecnica === tecnica) boost += s * PESO_SESGO;
+    if (s && CASA_SESGO.tecnica(recipe, tecnica)) boost += s * PESO_SESGO;
   }
 
   // base: {arroz: 1, patatas: -1, sofrito: 1}. Casa por DOS sitios, y hacen
@@ -75,7 +88,7 @@ export function sesgoScoreBoost(recipe, sesgos, favoritos = []) {
   for (const [base, valor] of Object.entries(sesgos?.base ?? {})) {
     const s = signo(valor);
     if (!s) continue;
-    if (recipe.mainBase === base || (recipe.basesAparte ?? []).includes(base)) {
+    if (CASA_SESGO.base(recipe, base)) {
       boost += s * PESO_SESGO;
     }
   }
@@ -84,19 +97,15 @@ export function sesgoScoreBoost(recipe, sesgos, favoritos = []) {
   // sign(si) − sign(no): +1 quiere salsa, −1 no la quiere. Casan los platos
   // que la TRAEN (`llevaSalsa`, 172 recetas): con +1 suben, con −1 bajan. Los
   // que no la llevan no se tocan, igual que en los demás ejes.
-  const polaridad = signo(sesgos?.salsa?.si) - signo(sesgos?.salsa?.no);
-  if (polaridad && recipe.llevaSalsa === true) boost += Math.sign(polaridad) * PESO_SESGO;
+  const polaridad = signo(sesgos?.salsa?.si) * SIGNO_SALSA.si + signo(sesgos?.salsa?.no) * SIGNO_SALSA.no;
+  if (polaridad && CASA_SESGO.salsa(recipe)) boost += Math.sign(polaridad) * PESO_SESGO;
 
   // favoritos: nombres de ingrediente tal cual los dijo el usuario, en
   // minúsculas ("queso", "aguacate"). Casa si algún ingrediente del plato lo
   // contiene. Sube una sola vez por plato aunque case con varios: "más queso"
   // no debe convertir una tabla de quesos en el mejor plato de la semana.
   if (favoritos?.length) {
-    const nombres = (recipe.ingredients ?? []).map((i) => String(i?.name ?? "").toLowerCase());
-    const casa = favoritos.some((fav) => {
-      const f = String(fav ?? "").toLowerCase().trim();
-      return f && nombres.some((n) => n.includes(f));
-    });
+    const casa = favoritos.some((fav) => CASA_SESGO.favoritos(recipe, fav));
     if (casa) boost += PESO_SESGO;
   }
 

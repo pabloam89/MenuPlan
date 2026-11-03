@@ -37,6 +37,15 @@ describe("generar por la vía rápida: la plantilla dice lo que falta", () => {
     expect(r.texto.indexOf("¡Menú listo!")).toBeLessThan(r.texto.indexOf("Se quedan sin plato"));
   });
 
+  it("lo que pidieron y no ha podido ser, en una línea tras el titular (trozo 31 de #1037)", async () => {
+    t.out = { ...listo, incumplidas: ["más cosas al horno", "como mucho 2 de pescado"] };
+    const r = await generar("h1", { semana: "esta" });
+    expect(r.texto).toMatch(/🤏 Esta vez no ha podido ser: más cosas al horno, como mucho 2 de pescado\./);
+    expect(r.texto.indexOf("¡Menú listo!")).toBeLessThan(r.texto.indexOf("no ha podido ser"));
+    t.out = { ...listo, incumplidas: [] };
+    expect((await generar("h1", { semana: "esta" })).texto).not.toMatch(/no ha podido ser/);
+  });
+
   it("si no se generó (ya había menú, o quedó vacío), la vía rápida pasa el turno", async () => {
     t.out = { ok: false, aviso: "plan_vacio" };
     expect(await generar("h1", { semana: "esta" })).toBeNull();

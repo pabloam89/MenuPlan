@@ -43,6 +43,7 @@ export const ACCIONES = Object.freeze({
   plato: "Plato cambiado",
   compra_anadir: "Añadido a la compra",
   menu: "Menú nuevo",
+  trato: "Trato con Lola",
 });
 
 /** El estado de un resultado: sale de lo hecho y lo que no, nunca se escribe a mano. */

@@ -43,6 +43,8 @@ import { z } from "zod";
 export const ORIGENES = ["texto", "pregunta", "default", "perfil", "arquetipo"];
 export const ESTADOS = ["vacio", "inferido", "delegado", "fijado"];
 export const NOTEPAD_VERSION = 1;
+/** De dónde sale un apunte (`fuente`; ver `matizDe`): dicho, visto o supuesto. */
+export const FUENTES = ["dicho", "visto", "supuesto"];
 
 const ProcedenciaSchema = z.object({
   // La frase literal del usuario, entera y sin tocar: es lo que se le enseña
@@ -64,7 +66,7 @@ const CampoSchema = z.object({
   // De dónde sale, con matiz (ver `matizDe`). Sin campo = dicho: así estaba
   // todo lo escrito antes de que existiera, y era lo que el panel trataba como
   // dicho al proyectarlo.
-  fuente: z.enum(["dicho", "visto", "supuesto"]).optional(),
+  fuente: z.enum(FUENTES).optional(),
   // Cuándo se apuntó (lo supuesto caduca si no se repite) y cuándo vale.
   apuntado: z.string().optional(),
   desde: z.string().optional(),
