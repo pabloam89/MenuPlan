@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { filaDeCocinado, claveCocinado, clavesDeCocinados, sinCocinados, cocinadosLocales, ponerCocinadoLocal, lunesDeSemanaAbierta } from "./cocinados.js";
+import { filaDeCocinado, claveCocinado, clavesDeCocinados, sinCocinados, cocinadosLocales, ponerCocinadoLocal } from "./cocinados.js";
 import { leerCocinados, mandarCocinado } from "./cocinadosApp.js";
 import { DATOS_CASA } from "./registroFicha.js";
 
@@ -23,12 +23,6 @@ describe("lo cocinado vive en su tabla, no en el documento (trozo 22 de #1037)",
     expect(sinCocinados({ members: [], cookedDishes: ["m:0::Mar::Cena::x"], cookedDeltas: { k: [] } })).toEqual({ members: [], cookedDeltas: { k: [] } });
     const limpio = { members: [] };
     expect(sinCocinados(limpio)).toBe(limpio);
-  });
-
-  it("la semana abierta es el lunes del archivo; sin archivo, el de hoy más el offset", () => {
-    expect(lunesDeSemanaAbierta({ lunesDelArchivo: "2026-10-26", offset: 3, hoyISO: "2026-11-04" })).toBe("2026-10-26");
-    expect(lunesDeSemanaAbierta({ offset: 0, hoyISO: "2026-11-04" })).toBe("2026-11-02");
-    expect(lunesDeSemanaAbierta({ offset: 1, hoyISO: "2026-11-08" })).toBe("2026-11-09");
   });
 
   it("sin casa, lo recuerda el móvil por semana, con la misma clave", () => {

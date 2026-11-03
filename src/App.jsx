@@ -126,9 +126,9 @@ import {
   orderedWeeks,
   MAX_MENU_WEEKS,
 } from "./lib/menuArchive.js";
-import { todayDayIdx, getWeekDatesByMenuWeek } from "./lib/weekCalendar.js";
-import { diaDeFecha, indiceDeFecha, isoDeCasa } from "./lib/dias.js";
-import { claveCocinado, cocinadosLocales, lunesDeSemanaAbierta, ponerCocinadoLocal, sinCocinados } from "./lib/cocinados.js";
+import { todayDayIdx, getWeekDatesByMenuWeek, mondayISOForOffset } from "./lib/weekCalendar.js";
+import { diaDeFecha, indiceDeFecha } from "./lib/dias.js";
+import { claveCocinado, cocinadosLocales, ponerCocinadoLocal, sinCocinados } from "./lib/cocinados.js";
 import { leerCocinados, mandarCocinado } from "./lib/cocinadosApp.js";
 import { pizarraActiva, fotoAntesDePizarra, volverAntesDePizarra, huecosDelPlan, conHuecosAlDia, conSemanasAlDia, semanaEnBlanco, conHuecoAnadido, sinHueco, franjasDelDia } from "./lib/pizarra.js";
 import { aplicarDiasDeSemana, diasPorDefecto, buildCalendarWeeks } from "./lib/semanaDias.js";
@@ -5908,12 +5908,10 @@ export default function App() {
   // equilibrado) y "Extras" (10-11, la estructura de plato se pregunta ya en
   // "¿Qué comidas quieres organizar?") se ocultan.
   const basicMode = !data.expertMode;
-  // La semana abierta, por su lunes (cocinados.js): la del archivo del menú o la de hoy más el offset.
-  const lunesAbierto = lunesDeSemanaAbierta({
-    lunesDelArchivo: semanaPorOffset(data.menus?.[data.activeMenuId]?.weeks, data.menuWeek?.offset ?? 0)?.[0] ?? null,
-    offset: data.menuWeek?.offset ?? 0,
-    hoyISO: isoDeCasa(),
-  });
+  // La semana abierta, por su lunes: la del archivo del menú, o la de hoy más el offset con la misma cuenta que pone
+  // las claves del archivo (mondayISOForOffset, weekCalendar.js).
+  const lunesAbierto = semanaPorOffset(data.menus?.[data.activeMenuId]?.weeks, data.menuWeek?.offset ?? 0)?.[0]
+    ?? mondayISOForOffset(data.menuWeek?.offset ?? 0);
   useEffect(() => {
     let vivo = true;
     if (!activeHouseholdId) {

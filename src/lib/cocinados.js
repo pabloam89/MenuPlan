@@ -53,13 +53,3 @@ export function ponerCocinadoLocal(fila, hecho, almacen = window.localStorage) {
   almacen.setItem(claveLocal(f.semana), JSON.stringify([...claves]));
 }
 
-/**
- * El lunes de la semana abierta: el del archivo del menú si lo hay (`lunesDelArchivo`), y si no, el de hoy más
- * `offset` semanas (0 = esta, 1 = la que viene), como cuenta `data.menuWeek.offset`.
- */
-export function lunesDeSemanaAbierta({ lunesDelArchivo = null, offset = 0, hoyISO }) {
-  if (lunesDelArchivo) return lunesDelArchivo;
-  const d = new Date(`${hoyISO}T12:00:00Z`);
-  d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7) + 7 * (offset ?? 0));
-  return d.toISOString().slice(0, 10);
-}
