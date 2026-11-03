@@ -203,5 +203,8 @@
   ],
   "user_state": [
     "src/lib/userState.js"
+  ],
+  "cocinado": [
+    "api/_bot/cocinados.js"
   ]
 }

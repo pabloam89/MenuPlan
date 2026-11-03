@@ -45,6 +45,7 @@ import { escribirDato, escribirPersonas, escribirPreferencias, deshacerOperacion
 import { motivoDe } from "./_bot/avisar.js";
 import { sumarSenales } from "./_bot/aprender.js";
 import { cocinadosDeSemana, ponerCocinado } from "./_bot/cocinados.js";
+import { filaDeCocinado } from "../src/lib/cocinados.js";
 import { senalesDeLaApp } from "../src/lib/senales.js";
 import { puede } from "../src/lib/papeles.js";
 import { HTTP_DE_FALLO, apuntarSinGuardar, campoDelPedido } from "../src/lib/escribirDato.js";
@@ -73,12 +74,13 @@ async function leerCasa(req, res, accessToken) {
     if (!(await papelDeUsuario(casa, user.id))) return contestar(res, FALLO_DATO.SIN_PERMISO);
     const semana = req.query?.cocinados;
     if (semana !== undefined) {
+      // Primero la semana (inválida, sin pedir nada); luego la base, cuyo fallo va al catch de abajo.
       try {
-        return res.status(200).json({ cocinados: await cocinadosDeSemana(casa, semana) });
+        filaDeCocinado({ semana, dia: "Lun", comida: "Comida", receta_id: "semana" });
       } catch (e) {
-        if (!e?.status) return contestar(res, FALLO_DATO.INVALIDO, e.message);
-        throw e;
+        return contestar(res, FALLO_DATO.INVALIDO, e.message);
       }
+      return res.status(200).json({ cocinados: await cocinadosDeSemana(casa, semana) });
     }
     return res.status(200).json(await leerDatosDeCasa(casa, user.id));
   } catch (e) {
@@ -93,11 +95,16 @@ async function leerCasa(req, res, accessToken) {
 async function apuntarCocinado(res, casa, cocinado, papel) {
   if (!puede(papel, "editar_casa")) return contestar(res, FALLO_DATO.SIN_PERMISO);
   if (typeof cocinado?.hecho !== "boolean") return contestar(res, FALLO_DATO.INVALIDO, "cocinado.hecho");
+  // Como las señales: primero la fila (inválida, sin pedir nada) y aparte la base (red, corte o error: se dice).
+  let fila;
   try {
-    return res.status(200).json({ guardado: true, ...(await ponerCocinado(casa, cocinado, cocinado.hecho)) });
+    fila = filaDeCocinado(cocinado);
   } catch (e) {
-    // Sin status, lo rechazó filaDeCocinado (no es de la tabla): inválido. Con status, la base: se dice.
-    if (!e?.status) return contestar(res, FALLO_DATO.INVALIDO, e.message);
+    return contestar(res, FALLO_DATO.INVALIDO, e.message);
+  }
+  try {
+    return res.status(200).json({ guardado: true, ...(await ponerCocinado(casa, fila, cocinado.hecho)) });
+  } catch (e) {
     const { fallo, motivo } = falloDeBase(e);
     console.error(JSON.stringify({ evento: "cocinado_sin_apuntar", fallo, motivo }));
     return contestar(res, fallo);
