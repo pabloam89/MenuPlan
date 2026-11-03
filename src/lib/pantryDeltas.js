@@ -117,16 +117,3 @@ export function reconcileMenusRemoval(data, menuIds) {
   }
   return { deltas, genOut: cur.pantryGenDeltas, dayOut: cur.pantryDayDeltas, cookedOut: cur.cookedDeltas };
 }
-
-/** Quita de la lista de platos cocinados los que pertenecían a un menú. */
-export function stripCookedDishesForMenu(cookedDishes, menuId) {
-  if (!Array.isArray(cookedDishes)) return [];
-  return cookedDishes.filter((k) => cookedKeyMenuId(k) !== menuId);
-}
-
-/** Igual, para varios menús. */
-export function stripCookedDishesForMenuList(cookedDishes, menuIds) {
-  if (!Array.isArray(cookedDishes)) return [];
-  const set = new Set(menuIds ?? []);
-  return cookedDishes.filter((k) => !set.has(cookedKeyMenuId(k)));
-}
