@@ -7564,7 +7564,7 @@ function FlipCaseLetter({ upper, lower, active, activeColor, inactiveColor, dela
 function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle, onApple, abriendoCasa = false }) {
   const handleEnter = () => (hasSaved ? onResume() : onNext());
 
-  // El vídeo de bienvenida ocupa la pantalla entera sobre negro verdoso, y el
+  // La foto de bienvenida ocupa la pantalla entera sobre negro verdoso, y el
   // reloj cae encima: en oscuro desapareceria.
   useStatusBarSobreFondo("oscuro");
 
@@ -7588,7 +7588,7 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle, onApple,
   const nDelay = isMenu ? 0 : 300;
 
   // Solo los botones entran: antes TODA la pantalla era un «Entrar sin
-  // cuenta», y un toque despistado en el vídeo te metía en el alta.
+  // cuenta», y un toque despistado en la foto te metía en el alta.
   return (
     <div
       style={{
@@ -7603,10 +7603,6 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle, onApple,
       }}
     >
       <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to   { opacity: 1; }
-        }
         @keyframes fadeUp {
           from { opacity: 0; transform: translateY(22px); }
           to   { opacity: 1; transform: translateY(0); }
@@ -7618,6 +7614,14 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle, onApple,
         @keyframes shimmer {
           0%   { transform: translateX(-120%) skewX(-18deg); }
           100% { transform: translateX(320%) skewX(-18deg); }
+        }
+        @keyframes portadaZoom {
+          from { transform: scale(1); }
+          to   { transform: scale(1.06); }
+        }
+        .portada-foto { animation: portadaZoom 24s ease-in-out infinite alternate; }
+        @media (prefers-reduced-motion: reduce) {
+          .portada-foto { animation: none; }
         }
         @keyframes btnGlow {
           0%, 100% { box-shadow: 0 8px 28px rgba(61,122,82,.45), 0 2px 8px rgba(0,0,0,.25); }
@@ -7660,26 +7664,58 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle, onApple,
         }}
       />
 
-      {/* Vídeo a pantalla completa */}
-      <video
-        autoPlay
-        muted
-        loop
-        playsInline
+      {/* Foto real (Pexels, Vanessa Loring). Debajo, la misma foto difuminada llena la
+          pantalla: la nítida se funde en ella y no se ve dónde acaba. */}
+      <img
+        src="/portada.jpg"
+        alt=""
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          inset: -40,
+          width: "calc(100% + 80px)",
+          height: "calc(100% + 80px)",
+          objectFit: "cover",
+          objectPosition: "33% 40%",
+          filter: "blur(18px) saturate(.9)",
+          zIndex: 1,
+          pointerEvents: "none",
+        }}
+      />
+      <img
+        className="portada-foto"
+        src="/portada.jpg"
+        alt=""
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          top: "20%",
+          left: 0,
+          width: "100%",
+          // Las caras quedan entre el título y los botones.
+          height: "60%",
+          objectFit: "cover",
+          objectPosition: "33% 40%",
+          transformOrigin: "center center",
+          WebkitMaskImage: "linear-gradient(180deg, transparent 0%, #000 22%, #000 78%, transparent 100%), linear-gradient(90deg, transparent 0%, #000 5%, #000 95%, transparent 100%)",
+          WebkitMaskComposite: "source-in",
+          maskImage: "linear-gradient(180deg, transparent 0%, #000 22%, #000 78%, transparent 100%), linear-gradient(90deg, transparent 0%, #000 5%, #000 95%, transparent 100%)",
+          maskComposite: "intersect",
+          zIndex: 1,
+          pointerEvents: "none",
+        }}
+      />
+      {/* Oscurece arriba y abajo para que título y botones se lean sobre la foto. */}
+      <div
         aria-hidden="true"
         style={{
           position: "absolute",
           inset: 0,
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
           zIndex: 1,
           pointerEvents: "none",
-          animation: "fadeIn 1.2s ease-out",
+          background: "linear-gradient(180deg, rgba(10,22,13,.62) 0%, rgba(10,22,13,.12) 42%, rgba(10,22,13,.12) 58%, rgba(10,22,13,.72) 100%)",
         }}
-      >
-        <source src="/splash.mp4" type="video/mp4" />
-      </video>
+      />
 
       {/* Título arriba */}
       <div
