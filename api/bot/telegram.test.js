@@ -10,6 +10,11 @@ describe("bot_route guarda lo guardado de verdad y el recibo (#958)", () => {
     // Cero es un dato (no se guardó nada), no «sin medida».
     expect(medida({ lola: { herramientas: [], guardados: 0, recibo: [] } }, {}, 0).lola).toMatchObject({ guardados: 0, recibo: [] });
   });
+
+  it("lola.cuadre (L1) pasa tal cual; sin él, null", () => {
+    expect(medida({ lola: { herramientas: [], cuadre: ["no_cuadra", "otro_valor"] } }, {}, 0).lola.cuadre).toEqual(["no_cuadra", "otro_valor"]);
+    expect(medida({ lola: { herramientas: [] } }, {}, 0).lola.cuadre).toBeNull();
+  });
 });
 
 const YO = "homenuers_bot";
