@@ -7,9 +7,9 @@ import { PizarraControles } from "./PizarraControles.jsx";
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
 /**
- * La fila de la pizarra es la única puerta a las acciones del menú: la
- * cabecera ya no tiene burger, rayo ni corazón. Si una de estas baldosas se
- * pierde, esa acción deja de existir en la app.
+ * La fila de la pizarra es la puerta a las acciones del menú: la cabecera ya
+ * no tiene burger ni corazón. Si una de estas baldosas se pierde, esa acción
+ * deja de existir en la pizarra.
  */
 function montar(props = {}) {
   const caja = document.createElement("div");
