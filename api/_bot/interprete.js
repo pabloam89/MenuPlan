@@ -431,13 +431,18 @@ export function personasDe(data, dichos, quien = {}) {
   const sel = new Map();
   const dudas = [];
   const grupos = [];
+  // De las dudas, los nombres que no son nadie de la casa (ni una candidata ni
+  // varias): no hay nada que preguntar, es que no está. Siguen en `dudas`.
+  const noEstan = [];
   for (const x of lista) {
     const g = grupoDePersonas(x);
     if (g) { grupos.push(g); miembrosDeGrupo(miembros, g).forEach((p) => sel.set(p.id, p)); continue; }
     const r = buscarPersona(data, x, quien);
-    if (r.persona) sel.set(r.persona.id, r.persona); else dudas.push(dudaDePersona(data, x, quien));
+    if (r.persona) { sel.set(r.persona.id, r.persona); continue; }
+    dudas.push(dudaDePersona(data, x, quien));
+    if (!r.duda && !r.candidatas.length) noEstan.push(x);
   }
-  return { personas: [...sel.values()], dudas, grupos };
+  return { personas: [...sel.values()], dudas, grupos, noEstan };
 }
 
 /** La primera persona de la casa nombrada (por su primer nombre) en un texto libre, o null. */

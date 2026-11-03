@@ -66,7 +66,7 @@ describe("ajustar_horario", () => {
   it("«Nat» con Natalia y Natxo pregunta y no toca nada", async () => {
     limpio();
     const t = await ajustarHorario("h", { personas: ["Nat"], donde: "fuera" });
-    expect(t).toMatch(/Natalia o a Natxo/);
+    expect(t.nota).toMatch(/Natalia o a Natxo/);
     expect(guardada).toBe(null);
   });
   it("«yo» es la persona de la cuenta, no el nombre de Telegram", async () => {
