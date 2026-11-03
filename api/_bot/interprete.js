@@ -27,6 +27,7 @@
  */
 
 import { DIAS, NOMBRES_DIA, DIAS_LABORABLES, DIAS_FINDE, indiceDeISO, diaDeISO, isoDeCasa, DIA_LARGO_MINUSCULAS } from "../../src/lib/dias.js";
+import { IDS_COMIDAS, comida } from "../../src/lib/comidas.js";
 import { etapaDe, esMenor, esEtapaBebe, miembroDeCuentaId, findAccountMember } from "../../src/lib/stages.js";
 
 /** Sin tildes ni mayúsculas, con los espacios juntos. La única copia en api/_bot (#967, C8). */
@@ -508,3 +509,60 @@ export const PIEZAS_FUERA = Object.freeze({
   fecha: "(^|[^A-Za-z_])(fechaDe|fechaConMenu)\\(",
   candidatas: "[A-Za-z_]\\??\\.candidatas([^A-Za-z_]|$)",
 });
+
+// ── Lo que nombra una frase (L1, cuadre.js) ─────────────────────────────────
+
+const LETRA = "a-z0-9ñ";
+
+/**
+ * Las formas de nombrar cada valor, sacadas del registro (dias.js, comidas.js)
+ * y de los nombres de la casa: [eje, forma normalizada, valores que nombra].
+ */
+function formasDe({ hoy = null, nombres = [] } = {}) {
+  const f = [];
+  for (const d of DIAS) {
+    const n = normal(DIA_LARGO_MINUSCULAS[d]);
+    f.push(["dia", n, [d]]);
+    if (!n.endsWith("s")) f.push(["dia", `${n}s`, [d]]);
+  }
+  f.push(["dia", "finde", [...DIAS_FINDE]], ["dia", "fin de semana", [...DIAS_FINDE]], ["dia", "entre semana", [...DIAS_LABORABLES]]);
+  const i = DIAS.indexOf(hoy);
+  if (i >= 0) f.push(["dia", "hoy", [hoy]], ["dia", "manana", [DIAS[(i + 1) % 7]]]);
+  for (const c of IDS_COMIDAS) {
+    const x = comida(c);
+    for (const s of new Set([x.nombre, x.plural, ...x.sinonimos].map(normal))) f.push(["comida", s, [c]]);
+  }
+  for (const n of new Set(nombres.map(String).filter(Boolean))) f.push(["persona", normal(n), [n]]);
+  // Las largas primero: «fin de semana» antes que «semana», «a mediodia» antes que «mediodia».
+  return f.sort((a, b) => b[1].length - a[1].length);
+}
+
+// «No el sábado», «salvo la cena», «menos el lunes»: lo nombra para dejarlo
+// fuera. «Ni» y «sin» no: en una ausencia son el contenido («ni comida ni cena»).
+// Tras «no», con artículo: «Leo no cena en casa» niega el comer, no la cena.
+const ART = "(?:el|la|los|las|de|del|en|para|a)\\s+";
+const NEGADO = new RegExp(`(?:^|[^a-z0-9ñ])(?:no\\s+${ART}(?:${ART})?|(?:salvo|menos|excepto)\\s+(?:${ART}){0,2})$`);
+// «Mañana» que no es el día de mañana.
+const NO_ES_MANANA = /(?:pasado|la|esta|por la)\s+$/;
+
+/**
+ * Los valores cerrados que nombra una frase, por eje: { dia: Set, comida: Set,
+ * persona: Set } (L1: cuadre.js compara lo que confirma Lola con lo guardado).
+ * Días y comidas del registro (dias.js, comidas.js), personas de la casa;
+ * «hoy» y «mañana» con el día de hoy («Mar»).
+ */
+export function valoresNombrados(frase, opciones = {}) {
+  let t = normal(frase);
+  const out = {};
+  for (const [eje, forma, valores] of formasDe(opciones)) {
+    const re = new RegExp(`(?<![${LETRA}])${escapar(forma)}(?![${LETRA}])`, "g");
+    t = t.replace(re, (m, pos, todo) => {
+      const antes = todo.slice(0, pos);
+      if (forma === "manana" && NO_ES_MANANA.test(antes)) return m;
+      if (!NEGADO.test(antes)) for (const v of valores) (out[eje] ??= new Set()).add(v);
+      // Tapada: «fin de semana» no vuelve a contar como otra cosa.
+      return " ".repeat(m.length);
+    });
+  }
+  return out;
+}

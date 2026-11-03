@@ -52,7 +52,7 @@ export const ACCIONES = Object.freeze({
 
 /**
  * Los ejes de lo guardado (L1, «Lola solo confirma lo guardado»): los valores
- * con los que el código compara lo que dice Lola (cuadre.js, que llega encima). Cada eje, con su
+ * con los que el código compara lo que dice Lola (cuadre.js). Cada eje, con su
  * lista del registro (dias.js, comidas.js) y la etiqueta en castellano de cada
  * valor, sacada de allí y no escrita a mano. `persona` no tiene lista fija: es
  * la de la casa, y la trae quien compara (los nombres de la ficha).
@@ -149,11 +149,13 @@ function lista(cosas) {
 /**
  * El recibo del turno, en HTML de Telegram: una línea ✅ por acción con algo
  * hecho y una ⚠️ por cada motivo de lo que no. Vacío si no hubo resultados.
+ * `dichos`: los resultados cuyo ✅ ya ha dicho Lola con su voz y el código ha
+ * comprobado (cuadre.js): esos no repiten la línea ✅; lo que no se hizo, sí.
  */
-export function recibo(resultados = []) {
+export function recibo(resultados = [], { dichos = new Set() } = {}) {
   const lineas = [];
   for (const r of resultados) {
-    if (r.hecho.length) lineas.push(`✅ <b>${ACCIONES[r.accion]}</b>: ${lista(r.hecho)}.`);
+    if (r.hecho.length && !dichos.has(r)) lineas.push(`✅ <b>${ACCIONES[r.accion]}</b>: ${lista(r.hecho)}.`);
     const porMotivo = new Map();
     for (const s of r.sinHacer) porMotivo.set(s.motivo, [...(porMotivo.get(s.motivo) ?? []), s.que]);
     for (const [motivo, cosas] of porMotivo) lineas.push(`⚠️ <b>Sin hacer</b>: ${lista(cosas)}${motivo ? ` <i>(${esc(motivo)})</i>` : ""}.`);
@@ -164,10 +166,24 @@ export function recibo(resultados = []) {
 /** El aviso cuando, tras la segunda vuelta, Lola sigue diciendo que guardó sin haber guardado nada. */
 export const RECIBO_SIN_GUARDAR = "⚠️ <b>Ojo</b>: en este mensaje no se ha guardado nada. Si había que cambiar algo, pídemelo otra vez.";
 
-/** El mensaje que ve la familia: el recibo, encima; lo de Lola, debajo (así una pregunta suya sigue al final). */
-export function conRecibo(textoDeLola, resultados = [], { sinGuardar = false } = {}) {
-  const arriba = [recibo(resultados), sinGuardar ? RECIBO_SIN_GUARDAR : ""].filter(Boolean).join("\n");
-  return arriba ? `${arriba}\n\n${textoDeLola}` : textoDeLola;
+/**
+ * El mensaje que ve la familia: el recibo, encima; lo de Lola, debajo (así una
+ * pregunta suya sigue al final). Con `cuadre` (cuadre.js, L1): lo que Lola ha
+ * confirmado bien no repite su ✅; si no cuadra, sus frases de confirmar se
+ * quitan y entra el recibo en su lugar.
+ */
+export function conRecibo(textoDeLola, resultados = [], { sinGuardar = false, cuadre = null } = {}) {
+  const dichos = new Set(cuadre?.dichos ?? []);
+  const suyo = cuadre?.quitar?.length ? sinFrases(textoDeLola, cuadre.quitar) : textoDeLola;
+  const arriba = [recibo(resultados, { dichos }), sinGuardar ? RECIBO_SIN_GUARDAR : ""].filter(Boolean).join("\n");
+  return arriba ? (suyo ? `${arriba}\n\n${suyo}` : arriba) : suyo;
+}
+
+/** El texto sin esas frases (las que no cuadran), sin dejar huecos dobles. */
+function sinFrases(t, frases) {
+  let out = String(t);
+  for (const f of frases) out = out.replace(f, "");
+  return out.replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").replace(/ {2,}/g, " ").trim();
 }
 
 /**
