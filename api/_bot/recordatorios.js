@@ -23,7 +23,7 @@ const ZONA = "Europe/Madrid";
 const MAX_PENDIENTES = 10;
 const TABLA = "bot_tareas";
 /** Lo que es un recordatorio, y uno pendiente: los filtros de siempre sobre la tabla de tareas. */
-const RECORDATORIOS = `tipo=eq.${TIPO_TAREA.RECORDATORIO}`;
+export const RECORDATORIOS = `tipo=eq.${TIPO_TAREA.RECORDATORIO}`;
 const PENDIENTES = `${RECORDATORIOS}&status=eq.${ESTADO_TAREA.ABIERTA}`;
 /** Hasta cuándo vale uno que no salió: un día después de su hora (la purga de la 0080 lo caduca). */
 const DIA_MS = 86400000;
@@ -103,6 +103,11 @@ export async function proximosRecordatorios(chatId, limite = 3) {
 const delAviso = (chatId, aviso) => `chat_id=${eq(String(chatId))}&${PENDIENTES}&aviso=eq.${aviso}`;
 const descartado = () => { const ahora = new Date().toISOString(); return { status: ESTADO_TAREA.DESCARTADA, closed_at: ahora, updated_at: ahora }; };
 
+/** Descarta todos los pendientes de un chat (Lola sale del chat, chats.js): nadie los recibiría. Devuelve las filas. */
+export async function descartarDelChat(chatId) {
+  return update(TABLA, `chat_id=${eq(String(chatId))}&${PENDIENTES}`, descartado());
+}
+
 /** Los ids de los pendientes de un chat con ese aviso (AVISOS_RECORDATORIO): el de la víspera, en vispera.js. */
 export async function pendientesDeAviso(chatId, aviso) {
   return (await select(TABLA, delAviso(chatId, aviso), "id")).map((r) => r.id);
@@ -119,8 +124,7 @@ export async function cancelarRecordatorio(chatId, id) {
   // que no existe uno que sigue pendiente y va a sonar.
   let r;
   try {
-    const ahora = new Date().toISOString();
-    r = await update(TABLA, `id=${eq(id)}&chat_id=${eq(chatId)}&${PENDIENTES}`, { status: ESTADO_TAREA.DESCARTADA, closed_at: ahora, updated_at: ahora });
+    r = await update(TABLA, `id=${eq(id)}&chat_id=${eq(chatId)}&${PENDIENTES}`, descartado());
   } catch (e) {
     console.error("[recordatorios] cancelar", e?.message);
     return "NO CANCELADO: no he podido cancelarlo ahora, sigue pendiente. Se puede volver a intentar.";

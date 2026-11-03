@@ -20,7 +20,7 @@
 import { seguirCon } from "./avisar.js";
 import { select, eq, config, rpc } from "./db.js";
 import { llamar } from "./telegram.js";
-import { TIPO_TAREA } from "../../src/lib/vocabularios.js";
+import { RECORDATORIOS } from "./recordatorios.js";
 
 const ADMINS = (process.env.BOT_ADMINS || "491628449").split(",").map((s) => s.trim()).filter(Boolean);
 
@@ -84,7 +84,7 @@ export async function borrarLoDelBot(userId, { chatIds = [], telegramId = null, 
     const enChats = `chat_id=${lista([...chats])}`;
     for (const tabla of ["bot_messages", "bot_cola", "bot_candados", "bot_codigos", "bot_chats"]) borrados.push(borrarFilas(tabla, enChats));
     // Sus recordatorios (tareas de tipo recordatorio, 0122): las demás tareas son de la casa y se van con ella.
-    borrados.push(borrarFilas("bot_tareas", `${enChats}&tipo=eq.${TIPO_TAREA.RECORDATORIO}`));
+    borrados.push(borrarFilas("bot_tareas", `${enChats}&${RECORDATORIOS}`));
   }
   if (externos.size) {
     if (conIdentidades) borrados.push(borrarFilas("bot_identities", `external_id=${lista([...externos])}`));

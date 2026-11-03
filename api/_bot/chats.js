@@ -20,7 +20,8 @@
  */
 
 import { select, update, borrar, eq } from "./db.js";
-import { CANAL, TIPO_TAREA, ESTADO_TAREA } from "../../src/lib/vocabularios.js";
+import { CANAL } from "../../src/lib/vocabularios.js";
+import { descartarDelChat } from "./recordatorios.js";
 
 // Las tablas con lo de un chat que tiene que seguir al chat cuando cambia de
 // id. bot_cola y bot_candados no: son de segundos, y el id viejo ya no
@@ -66,9 +67,7 @@ export async function alSalirDelChat(cambio) {
   const chatId = String(cambio.chat.id);
   const esGrupo = esGrupoDe(cambio.chat);
   // Sus recordatorios (tareas de tipo recordatorio, 0122) se descartan: nadie los recibiría.
-  const ahora = new Date().toISOString();
-  const cancelados = await update("bot_tareas", `${delChat(chatId)}&tipo=eq.${TIPO_TAREA.RECORDATORIO}&status=eq.${ESTADO_TAREA.ABIERTA}`,
-    { status: ESTADO_TAREA.DESCARTADA, closed_at: ahora, updated_at: ahora });
+  const cancelados = await descartarDelChat(chatId);
   let desenlazado = esGrupo;
   if (!esGrupo) {
     const [ident] = await select("bot_identities", `channel=eq.${CANAL.TELEGRAM}&external_id=${eq(chatId)}`, "user_id");
