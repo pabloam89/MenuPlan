@@ -19,15 +19,17 @@ vi.mock("./apiUrl.js", () => ({ isNativeApp: false }));
 const { useAuth } = await import("./useAuth.js");
 const { AVISOS_AL_VOLVER } = await import("./cuentaTelegram.js");
 
-describe("useAuth: entrar también con Google", () => {
-  it("pide a Supabase añadir Google a la cuenta, volviendo a la app", async () => {
+describe("useAuth: añadir una forma de entrar", () => {
+  it("pide a Supabase añadir ese proveedor (Google, Apple) a la cuenta, volviendo a la app", async () => {
     let api;
     function Prueba() { api = useAuth(); return null; }
     const raiz = createRoot(document.createElement("div"));
     await act(async () => { raiz.render(<Prueba />); });
-    const r = await api.linkWithGoogle();
+    const r = await api.anadirFormaDeEntrar("google");
     expect(r.error).toBeNull();
     expect(auth.linkIdentity).toHaveBeenCalledWith({ provider: "google", options: { redirectTo: window.location.origin } });
+    await api.anadirFormaDeEntrar("apple");
+    expect(auth.linkIdentity).toHaveBeenLastCalledWith({ provider: "apple", options: { redirectTo: window.location.origin } });
     act(() => raiz.unmount());
   });
 
