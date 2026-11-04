@@ -64,6 +64,7 @@ export const PANTALLAS = Object.freeze({
 
 // Motivos de lo que está en el código y no se llega.
 const ASISTENTE = "el asistente de Inicio no sale con FRONTAL_BOT (Dashboard.jsx)";
+const SOLO_LOLA_GENERA = "el menú solo se genera desde Lola (#1210, 4 nov 2026): los botones de la app se lo piden a ella";
 const SIN_ENTRADA = "ningún botón lleva aquí";
 const EN_CASA_LECTURA = "En casa va dentro de Compra en solo lectura";
 // Decisiones de Pablo del 28 oct 2026.
@@ -105,7 +106,7 @@ const MAPA = [
   c("vaciar_hogar", "vaciar el hogar (menú, compra y despensa)", "casa", "quitar", "casa", { app: app("hogares"), aProposito: "borra mucho de golpe: solo en la app, con confirmación" }),
 
   // ── Menú: generarlo, verlo y cambiarlo ──
-  c("generar_menu", "generar o rehacer el menú de una semana", "menu", "generar", "menu", { app: app("menu", { escribe: ["menus", "activeMenuId"] }) }),
+  c("generar_menu", "generar o rehacer el menú de una semana", "menu", "generar", "menu", { app: app("menu", { escribe: ["menus", "activeMenuId"], apagada: SOLO_LOLA_GENERA }), aProposito: "decisión de Pablo (4 nov 2026, #1210): generar es cosa de Lola, que pregunta antes; la app solo abre la pizarra en blanco" }),
   c("asistente_menu", "montar el menú respondiendo el asistente paso a paso", "menu", "generar", "menu", { app: app("asistente", { apagada: ASISTENTE }), aProposito: "el asistente es solo de la app (Pablo, 28 oct 2026); en Lola se hace hablando" }),
   c("regenerar_dia", "rehacer un día del menú", "menu", "generar", "menu", { app: app("menu") }),
   c("ver_menu", "ver el menú de un día, una semana o un grupo", "menu", "ver", "menu", { app: app("menu", { lee: ["menuWeek"] }) }),
