@@ -226,6 +226,7 @@ import { suggestHomeRole, migrateHomeRole, resolveAccountMember, miembroDeCuenta
 import { migrateCookTime, COOK_TIME_DEFAULTS } from "./lib/cookTime.js";
 import { navDirection } from "./lib/motion.js";
 import { useAuth } from "./lib/useAuth.js";
+import { ofrecerGoogle, NO_SE_PUDO_GOOGLE } from "./lib/cuentaTelegram.js";
 import { FeedbackFAB } from "./components/FeedbackFAB.jsx";
 import { HomeCoachTour, RecipesCoachTour, MenuCoachTour, FeedCoachTour } from "./components/HomeCoachTour.jsx";
 import { RecipePrefsWizard } from "./components/ModeSheets.jsx";
@@ -1290,7 +1291,7 @@ export default function App() {
     [gruposCompra, comidasCompra],
   );
 
-  const { user, session, loading: authLoading, signInWithGoogle, signInWithApple, signOut } = useAuth();
+  const { user, session, loading: authLoading, signInWithGoogle, signInWithApple, linkWithGoogle, avisoAlEntrar, olvidarAvisoAlEntrar, signOut } = useAuth();
   const {
     households,
     activeHousehold,
@@ -2212,6 +2213,17 @@ export default function App() {
     // 1,8 s no daba para leer una frase entera (WCAG 2.2.1): 3,5 s.
     toastTimer.current = window.setTimeout(() => setToast(null), action ? 5000 : 3500);
   }, []);
+  // Al volver de añadir Google a una cuenta nacida en Telegram (#1238): si salió mal, qué hacer; y la URL, limpia.
+  useEffect(() => {
+    if (!avisoAlEntrar) return;
+    showToast(avisoAlEntrar);
+    window.history.replaceState(null, "", window.location.pathname);
+    olvidarAvisoAlEntrar();
+  }, [avisoAlEntrar, olvidarAvisoAlEntrar, showToast]);
+  const handleEntrarConGoogle = useCallback(async () => {
+    const { error } = await linkWithGoogle();
+    if (error) showToast(NO_SE_PUDO_GOOGLE);
+  }, [linkWithGoogle, showToast]);
   // Los menús generados (la racha), de su tabla (menusGenerados.js, trozo 22); sin casa, del móvil. Sin leer no es
   // «ningún menú»: `leidos: false`, Ajustes no enseña la racha y no cuenta como primer menú.
   const [menusHechos, setMenusHechos] = useState(() => ({ casa: null, leidos: false, lista: [] }));
@@ -7025,6 +7037,7 @@ export default function App() {
                 onSignOut={signOut}
                 onDeleteAccount={handleDeleteAccount}
                 onExportData={user && syncHouseholdId ? handleExportarCasa : null}
+                onEntrarConGoogle={ofrecerGoogle(user) ? handleEntrarConGoogle : null}
                 onEditMembers={() => fwd(() => setScreen("members"))}
                 onEditPreferences={() => openEditPreferences("profile")}
                 onOpenHouseholds={() => fwd(() => setScreen("households"))}
