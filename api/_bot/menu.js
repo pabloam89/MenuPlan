@@ -1210,7 +1210,8 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
     m.registerRecipes([elegido.frontendRecipe]);
 
     const plan = structuredClone(casa.semana.plan);
-    plan[g.id][clave] = { ...hueco, [course === "first" ? "firstRecipeId" : "recipeId"]: elegido.recipeId, warnings: [] };
+    // Con su guarnición, su salsa y para qué receta son (#1246): el plato sale del hueco.
+    plan[g.id][clave] = { ...hueco, ...elegido.hueco, warnings: [] };
     cambios.length = 0;
     cambios.push({ day: dia, meal: franja, course, groupId: g.id, oldRecipeId: idBase(course === "first" ? hueco.firstRecipeId : hueco.recipeId), newRecipeId: idBase(elegido.recipeId) });
 
@@ -1236,7 +1237,7 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
         const suyoElegido = m.pickCatalogReplacement(paraElegir, plan, { hoy: hoyISO(), groupId: x.id, day: dia, meal: franja, course: curso, forcedRecipe: elegido.frontendRecipe });
         if (!suyoElegido?.recipeId) { sinCambiar.push(x.label); continue; }
         m.registerRecipes([suyoElegido.frontendRecipe]);
-        plan[x.id][clave] = { ...suyo, [curso === "first" ? "firstRecipeId" : "recipeId"]: suyoElegido.recipeId, warnings: [] };
+        plan[x.id][clave] = { ...suyo, ...suyoElegido.hueco, warnings: [] };
         cambios.push({ day: dia, meal: franja, course: curso, groupId: x.id, oldRecipeId: idBase(curso === "first" ? suyo.firstRecipeId : suyo.recipeId), newRecipeId: idBase(suyoElegido.recipeId) });
         tambien.push(x.label);
       }
