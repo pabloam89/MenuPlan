@@ -2,7 +2,7 @@
 import { describe, it, expect, vi } from "vitest";
 import {
   probadores, esProbador, comandoFallo, leerBoton, datoTipo, botonesTipo, turnoDelMensaje,
-  abrirReporte, pulsarReporte, completarReporte, ADMIN_POR_DEFECTO, ETIQUETAS_REPORTE, EVENTO_REPORTE, PASO_REPORTE, ENLACE_REPORTE, APUNTADO,
+  abrirReporte, pulsarReporte, completarReporte, ADMIN_POR_DEFECTO, ETIQUETAS_REPORTE, EVENTO_REPORTE, PASO_REPORTE, ENLACE_REPORTE, SIN_LEER_REPORTE, APUNTADO,
 } from "./reporte.js";
 import { TIPOS_REPORTE } from "../../src/lib/vocabularios.js";
 
@@ -101,6 +101,17 @@ describe("abrirReporte", () => {
     await abrirReporte({ msg: { message_id: 601, from: { id: 222 } }, chatId: 7, householdId: "h1" }, x);
     expect(x.hecho.insertadas[0].metadata).toMatchObject({ msg_reportado: 554, ruta_id: 4242, ruta_enlace: ENLACE_REPORTE.ULTIMO, ultima: "Última de Lola" });
     expect(x.hecho.enviados[0].responderA).toBe(554);
+  });
+
+  it("si no se pueden leer los turnos o la charla, se apunta igual pero la fila dice qué falta y por qué (no «sin turno»)", async () => {
+    const x = io({ rutas: [TURNO] });
+    x.select.mockRejectedValue(new Error("base caída"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    await abrirReporte({ msg: { message_id: 600, from: { id: 222 }, reply_to_message: LOLA }, chatId: 7, householdId: "h1" }, x);
+    expect(x.hecho.insertadas[0].metadata).toMatchObject({ ruta_id: null, ruta_enlace: null, sin_leer: [SIN_LEER_REPORTE.RUTA, SIN_LEER_REPORTE.CHARLA] });
+    const bien = io({ rutas: [TURNO], charla: [] });
+    await abrirReporte({ msg: { message_id: 600, from: { id: 222 }, reply_to_message: LOLA }, chatId: 7, householdId: "h1" }, bien);
+    expect(bien.hecho.insertadas[0].metadata.sin_leer).toBeUndefined();
   });
 
   it("si no se puede apuntar, lo dice y no saca botones", async () => {

@@ -36,6 +36,13 @@ export const PASO_REPORTE = Object.freeze({ TIPO: "tipo", ESPERA: "espera", HECH
 /** Cómo se encontró el turno del mensaje (metadata.ruta_enlace): por el id que apuntó (msg_lola), por la hora, o el último del chat. */
 export const ENLACE_REPORTE = Object.freeze({ MENSAJE: "mensaje", HORA: "hora", ULTIMO: "ultimo" });
 
+/**
+ * Lo que no se pudo leer al abrir un reporte (metadata.sin_leer): los turnos (bot_route) o la charla (bot_messages).
+ * El reporte se apunta igual —perderlo sería peor—, pero la fila dice que su enlace o su texto faltan por un fallo,
+ * no porque no hubiera nada.
+ */
+export const SIN_LEER_REPORTE = Object.freeze({ RUTA: "ruta", CHARLA: "charla" });
+
 export const APUNTADO = "Apuntado 👍";
 /** El id de Telegram de Pablo: quien prueba y administra si no se dice otra cosa (también lo usa borrar.js). */
 export const ADMIN_POR_DEFECTO = "491628449";
@@ -111,16 +118,22 @@ export async function abrirReporte({ msg, chatId, householdId = null, texto = nu
   const ruta = `event=eq.bot_route&metadata->>sombra=is.null&metadata->>chat=${eq(chat)}`;
   // La pregunta y la respuesta de un turno se guardan juntas al acabarlo
   // (memoria.js): las de ese mensaje son el primer par desde él; sin mensaje, el último par.
-  const [rutas, charla] = await Promise.all([
+  const [rutasLeidas, charlaLeida] = await Promise.all([
     io.select("user_events", mensaje
       ? `${ruta}&created_at=gte.${iso(mensaje.fechaMs - HOLGURA_MS)}&created_at=lte.${iso(mensaje.fechaMs + VENTANA_TURNO_MS)}&order=created_at.asc&limit=20`
-      : `${ruta}&order=created_at.desc&limit=1`, "id,created_at,metadata").catch(fallaCon("reporte_ruta", [])),
+      : `${ruta}&order=created_at.desc&limit=1`, "id,created_at,metadata").catch(fallaCon("reporte_ruta", null)),
     householdId
       ? io.select("bot_messages", `${deLaCharla(CANAL.TELEGRAM, chat, householdId)}&${mensaje
         ? `created_at=gte.${iso(mensaje.fechaMs - HOLGURA_MS)}&order=created_at.asc,id.asc`
-        : "order=created_at.desc,id.desc"}&limit=2`, "role,content").catch(fallaCon("reporte_charla", []))
+        : "order=created_at.desc,id.desc"}&limit=2`, "role,content").catch(fallaCon("reporte_charla", null))
       : [],
   ]);
+  const sinLeer = [
+    ...(rutasLeidas === null ? [SIN_LEER_REPORTE.RUTA] : []),
+    ...(charlaLeida === null ? [SIN_LEER_REPORTE.CHARLA] : []),
+  ];
+  const rutas = rutasLeidas ?? [];
+  const charla = charlaLeida ?? [];
   const turno = mensaje ? turnoDelMensaje(rutas, mensaje) : rutas[0] ? { fila: rutas[0], enlace: ENLACE_REPORTE.ULTIMO } : null;
   const de = (rol) => charla.find((f) => f.role === rol)?.content?.texto ?? null;
   const reportado = mensaje?.id ?? turno?.fila.metadata?.msg_lola ?? null;
@@ -136,6 +149,7 @@ export async function abrirReporte({ msg, chatId, householdId = null, texto = nu
     ultima: corto(resp ? resp.text ?? resp.caption : de("assistant"), 1500),
     anterior: corto(turno?.fila.metadata?.texto ?? de("user"), 500),
     texto: corto(texto, 500),
+    ...(sinLeer.length ? { sin_leer: sinLeer } : {}),
   };
   let fila;
   try {
