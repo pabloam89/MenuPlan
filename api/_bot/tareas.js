@@ -40,7 +40,7 @@ const DIA = 86400000;
 const MAX_DIAS = 90;
 const EVENTO = { CREADA: "bot_task_created", CERRADA: "bot_task_closed", DUPLICADA: "bot_task_duplicate", AUTO: "bot_task_auto_closed", APLAZADA: "bot_task_postponed" };
 /** tipo null (filas del bot de antes) cuenta como «no es recordatorio»: un neq solo las dejaría fuera. */
-const SIN_RECORDATORIOS = `and=(or(tipo.is.null,tipo.neq.${TIPO_TAREA.RECORDATORIO}))`;
+export const SIN_RECORDATORIOS = `and=(or(tipo.is.null,tipo.neq.${TIPO_TAREA.RECORDATORIO}))`;
 const COLUMNAS = "id,kind,scope,texto,falta,clave,chat_id,para_member,asignado_member,vence,caduca_at,created_at";
 const COLUMNAS_V2 = `${COLUMNAS},tipo,campo,persona_id,status,vuelve_at`;
 
@@ -53,7 +53,7 @@ export const campoDe = (t) => t?.campo ?? campoDeClave(t?.clave);
 export const personaDe = (t) => t?.persona_id ?? personaDeClave(t?.clave) ?? t?.para_member ?? null;
 
 // Con v2, lo vivo es abierta o aplazada (una aplazada vuelve sola al llegar su vuelve_at).
-const filtroVivas = () => (tareasV2() ? "status=in.(abierta,aplazada)" : "status=eq.abierta");
+export const filtroVivas = () => (tareasV2() ? "status=in.(abierta,aplazada)" : "status=eq.abierta");
 
 /** Las columnas v2 de una fila nueva: nada sin BOT_TAREAS_V2 (la fila es la de siempre). */
 const columnasV2 = ({ tipo, campo = null, persona_id = null }) =>
