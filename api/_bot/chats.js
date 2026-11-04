@@ -36,6 +36,16 @@ export const FUERA_DEL_CHAT = new Set(["kicked", "left"]);
 // salida del chat la leen de aquí.
 export const esGrupoDe = (chat) => chat?.type === "group" || chat?.type === "supergroup";
 
+/**
+ * Lo que se lee de la charla (bot_messages): de este chat Y de esta casa. Un chat privado puede cambiar de casa
+ * (invitación, otra casa activa; #1238): lo dicho en la otra casa no es de esta familia y no viaja con el chat.
+ * Toda lectura de bot_messages pasa por aquí: charlaPorCasa.test.js lo comprueba en api/_bot y api/bot.
+ */
+export const deLaCharla = (channel, chatId, householdId) => {
+  if (!householdId) throw new Error("deLaCharla: sin casa no se lee la charla");
+  return `channel=${eq(channel)}&chat_id=${eq(String(chatId))}&household_id=${eq(householdId)}`;
+};
+
 const delChat = (chatId) => `channel=eq.${CANAL.TELEGRAM}&chat_id=${eq(String(chatId))}`;
 
 /**
