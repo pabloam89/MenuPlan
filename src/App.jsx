@@ -4910,7 +4910,7 @@ export default function App() {
       const prevSlot = plan[groupId]?.[slotKey] ?? {};
       const nextSlot = {
         ...prevSlot,
-        ...(course === "first" ? { firstRecipeId: recipeId } : { recipeId }),
+        ...result.hueco,
         warnings: [],
       };
       const next = {
@@ -5023,9 +5023,7 @@ export default function App() {
           newRecipes.push(result.frontendRecipe);
           working[g.id][key] = {
             ...working[g.id][key],
-            ...(course === "first"
-              ? { firstRecipeId: result.recipeId }
-              : { recipeId: result.recipeId }),
+            ...result.hueco,
             warnings: [],
           };
           changed++;
@@ -5234,7 +5232,7 @@ export default function App() {
           nuevas.push(r.frontendRecipe);
           trabajo[gid][key] = {
             ...trabajo[gid][key],
-            ...(course === "first" ? { firstRecipeId: r.recipeId } : { recipeId: r.recipeId }),
+            ...r.hueco,
             cleared: false,
             warnings: [],
           };
@@ -5509,7 +5507,7 @@ export default function App() {
       const first = pickCatalogReplacement(data, planForPick, { groupId, day, meal, course: "first" });
       if (!first) { showToast("No hay ningún primero para este hueco"); return; }
       picks.push({ course: "first", ...first });
-      const withFirst = { ...shaped, firstRecipeId: first.recipeId };
+      const withFirst = { ...shaped, ...first.hueco };
       planForPick = { ...planForPick, [groupId]: { ...planForPick[groupId], [slotKey]: withFirst } };
       const second = pickCatalogReplacement(data, planForPick, { groupId, day, meal, course: "main" });
       if (second) picks.push({ course: "main", ...second });
@@ -5531,10 +5529,7 @@ export default function App() {
     setMenuPlan((plan) => {
       const base = { ...(plan[groupId]?.[slotKey] ?? {}), warnings: [], cleared: false };
       if (toUnico) base.firstRecipeId = null;
-      for (const p of picks) {
-        if (p.course === "first") base.firstRecipeId = p.recipeId;
-        else base.recipeId = p.recipeId;
-      }
+      for (const p of picks) Object.assign(base, p.hueco);
       const next = { ...plan, [groupId]: { ...(plan[groupId] ?? {}), [slotKey]: base } };
       return next;
     });
@@ -5719,7 +5714,7 @@ export default function App() {
           ...(next[c.gid] ?? {}),
           [key]: {
             ...prevSlot,
-            ...(c.course === "first" ? { firstRecipeId: c.recipeId } : { recipeId: c.recipeId }),
+            ...c.hueco,
             // Plato único merges the two courses into one → drop the primero.
             ...(kind === "plato_unico" ? { firstRecipeId: null } : null),
             cleared: false,
