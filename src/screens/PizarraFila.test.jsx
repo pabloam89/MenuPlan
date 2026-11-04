@@ -27,6 +27,7 @@ function montar(props = {}) {
         onCompartir={() => {}}
         onMenus={props.onMenus ?? (() => {})}
         onDescargar={props.onDescargar ?? (() => {})}
+        quienCome={props.quienCome}
       />,
     );
   });
@@ -83,5 +84,14 @@ describe("«Nueva» con un menú que ya tiene platos", () => {
     expect(dialogo?.textContent).toMatch(/queda en «Menús»/);
     act(() => boton(dialogo, "Empezar").click());
     expect(onNueva).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("el orden de la fila", () => {
+  it("pone quién come a la izquierda y el chevron a la derecha", () => {
+    const caja = montar({ quienCome: <span data-testid="caras" /> });
+    const fila = caja.querySelector('[data-testid="caras"]').parentElement;
+    expect(fila.firstElementChild.dataset.testid).toBe("caras");
+    expect(fila.lastElementChild.getAttribute("aria-label")).toBe("Ver los ajustes");
   });
 });
