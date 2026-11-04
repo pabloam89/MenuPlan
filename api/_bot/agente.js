@@ -82,6 +82,7 @@ import { usoParcialDe, sumarUsos } from "./medidaTurno.js";
 import { esResultado, paraElModelo, conRecibo, recibo, cuentaComoGuardado, exigeResultado, SIN_RESULTADO } from "./resultado.js";
 import { operacion, claveDeEscritura, tipoDeHerramienta, YA_ESCRITA, SIN_COMPROBAR, ponerAutor, tomarAvisos, autorDelTurno } from "./operacion.js";
 import { tratoDeFicha, lineaDelTrato, guardarTrato, ESCRIBE_TRATO, ESQUEMA_TRATO, personaDeLaCuenta } from "./trato.js";
+import { personaQueEscribe, lineaDeQuienEscribe, seUneSola, unirCuenta } from "./quienEscribe.js";
 import { escribirDato } from "./datos.js";
 import { primeraVez, yaVista } from "./entradas.js";
 
@@ -591,7 +592,8 @@ function herramientasDeRecordatorios(chat) {
  * cuenta marcó en la app (accountMemberIdByUser) y no por el nombre de
  * Telegram (#958). Se lee al ejecutar: userId llega con el papel del turno.
  */
-const quienDe = (chat) => ({ get userId() { return chat.userId ?? null; }, get autor() { return chat.autor ?? null; } });
+// autor: en un grupo, el del mensaje; por privado, su nombre de Telegram (`nombre`), como en la línea «TE ESCRIBE».
+const quienDe = (chat) => ({ get userId() { return chat.userId ?? null; }, get autor() { return chat.autor ?? chat.nombre ?? null; }, get papel() { return chat.papel ?? null; } });
 
 function herramientasDeAjustes(householdId, gustos, chat = {}) {
   const quien = quienDe(chat);
@@ -1066,7 +1068,7 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
         additionalProperties: false,
       },
       run: async ({ de_nuevo, ...args }) => {
-        const r = await apuntarAusencia(householdId, { ...args, deNuevo: de_nuevo === true, autor: chat.autor ?? null, userId: quien.userId });
+        const r = await apuntarAusencia(householdId, { ...args, deNuevo: de_nuevo === true, autor: quien.autor, userId: quien.userId, papel: quien.papel });
         if (r.pintar) pintarTambien(chat, r.pintar);
         return resultadoDeAusencia(r);
       },
@@ -1273,8 +1275,10 @@ export function sinSecciones(estable, quitar) {
  * @param {(string|number)[]} [desde]  los ids de Telegram de quienes escriben en
  *   este turno (sin bots ni anónimos): de ahí sale su papel en la casa
  *   (papel.js). Sin ellos, como alguien sin cuenta: solo consulta.
+ * @param {string|null} [nombre]  por privado, el nombre de Telegram de quien escribe: de ahí se deduce qué persona
+ *   de la casa es si su cuenta no lo ha marcado (quienEscribe.js). En un grupo, null.
  */
-export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId, texto, autor, esGrupo, desde = [], adjunto = null, alEscribir = null, puerta = null, signal = null, pista = null, usoExtra = null }) {
+export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId, texto, autor, nombre = null, esGrupo, desde = [], adjunto = null, alEscribir = null, puerta = null, signal = null, pista = null, usoExtra = null }) {
   // Lo de este turno se cuenta en bot_usage UNA vez, aquí, con lo del enrutador
   // (`usoExtra`, una promesa) y también si el turno falla (#958: antes solo
   // contaba el turno de Lola que acababa bien, y el enrutador solo si ganaba
@@ -1298,7 +1302,7 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
   // `pintar`: qué trozo del menú sale pintado debajo del mensaje (pintar.js).
   // `llamadas`: las herramientas que Lola pide en el turno, en orden (silencio.js).
   // `resultados`: lo que devuelven con forma fija las herramientas que escriben (resultado.js): de ahí sale el recibo.
-  const chat = { channel, chatId: String(chatId), householdId, autor, adjunto, texto, fotos: [], ir: null, compartir: null, pintar: null, pintados: [], puerta, esGrupo: Boolean(esGrupo), papel: undefined, llamadas: [], pedidas: [], resultados: [] };
+  const chat = { channel, chatId: String(chatId), householdId, autor, nombre, adjunto, texto, fotos: [], ir: null, compartir: null, pintar: null, pintados: [], puerta, esGrupo: Boolean(esGrupo), papel: undefined, llamadas: [], pedidas: [], resultados: [] };
   // El papel de quien escribe, en cada turno (no se guarda: quitar a alguien
   // vale para el mensaje siguiente). Las herramientas se filtran con él.
   const conPapel = papelDeQuien({ householdId, chatId, esGrupo: Boolean(esGrupo), desde, channel })
@@ -1371,7 +1375,15 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
   chat.trato = tratoDeFicha(tablas, personaDeLaCuenta(data, chat.userId, chat.papel));
   // Si pidió afinar, la siguiente pregunta del catálogo (trozo 17, siguientePregunta.js); sin la ficha v2, ninguna.
   const afinar = lineaDeAfinar(estadosDeLaFicha(tablas), chat.trato);
-  const ficha = fichaBase && !esDeFuera(chat.papel) ? { ...fichaBase, delDia: [lineaDelTrato(chat.trato), afinar, fichaBase.delDia].filter(Boolean).join("\n") } : fichaBase;
+  // Quién de la casa escribe, por privado (quienEscribe.js): lo marcado en la app, o deducido por su nombre (y se
+  // guarda), o nadie. En un grupo no: cada mensaje ya llega con su «[Nombre]:».
+  const escribe = esDeFuera(chat.papel) || esGrupo ? null : personaQueEscribe(data, { userId: chat.userId, autor: nombre, papel: chat.papel });
+  const unida = escribe && seUneSola({ ...escribe, papel: chat.papel })
+    ? unirCuenta(householdId, chat.userId, escribe.persona.id)
+      .then((r) => { if (!r?.ok) console.error("[agente] unir cuenta", r?.error); })
+      .catch(fallaCon("agente_unir_cuenta", null))
+    : null;
+  const ficha = fichaBase && !esDeFuera(chat.papel) ? { ...fichaBase, delDia: [escribe && lineaDeQuienEscribe(escribe), lineaDelTrato(chat.trato), afinar, fichaBase.delDia].filter(Boolean).join("\n") } : fichaBase;
   let dicho, uso, corregido, medida, promesa, sigueSinGuardar = false;
   const tLola = Date.now();
   // La pista del enrutador (api/_bot/pista.js). `progreso` lo rellena Lola
@@ -1501,6 +1513,8 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
     // a propósito: es una señal del embudo; no toca la charla
     segundaSemana(householdId).catch(seguirCon("agente_segunda_semana")),
     cierresPorEstado,
+    // La cuenta unida a su persona deducida (quienEscribe.js), si tocaba.
+    unida,
     // Alergias por silencio (#229): se decide aquí, cuando Lola ya ha leído
     // el mensaje y se sabe a qué herramientas llamó (silencio.js). Tras la
     // promoción de preguntas, para que cerrarlas no se cruce con abrirlas.

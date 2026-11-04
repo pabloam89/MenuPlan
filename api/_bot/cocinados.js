@@ -8,7 +8,7 @@ import { filaDeCocinado } from "../../src/lib/cocinados.js";
 
 const COLUMNAS = "semana,dia,comida,receta_id";
 
-/** Las filas cocinadas de una semana (su lunes, ya comprobado con filaDeCocinado por quien llama). */
+/** Las filas cocinadas de una semana (su primer día, ya comprobado con filaDeCocinado por quien llama). */
 export async function cocinadosDeSemana(casa, semana) {
   return select("cocinado", `household_id=${eq(casa)}&semana=${eq(semana)}`, COLUMNAS);
 }

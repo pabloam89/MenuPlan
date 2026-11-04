@@ -1323,7 +1323,8 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
     m.registerRecipes([elegido.frontendRecipe]);
 
     const plan = structuredClone(casa.semana.plan);
-    plan[g.id][clave] = { ...hueco, [course === "first" ? "firstRecipeId" : "recipeId"]: elegido.recipeId, warnings: [] };
+    // Con su guarnición, su salsa y para qué receta son (#1246): el plato sale del hueco.
+    plan[g.id][clave] = { ...hueco, ...elegido.hueco, warnings: [] };
     cambios.length = 0;
     cambios.push({ day: dia, meal: franja, course, groupId: g.id, oldRecipeId: idBase(course === "first" ? hueco.firstRecipeId : hueco.recipeId), newRecipeId: idBase(elegido.recipeId) });
 
@@ -1349,7 +1350,7 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
         const suyoElegido = m.pickCatalogReplacement(paraElegir, plan, { hoy: hoyISO(), groupId: x.id, day: dia, meal: franja, course: curso, forcedRecipe: elegido.frontendRecipe });
         if (!suyoElegido?.recipeId) { sinCambiar.push(x.label); continue; }
         m.registerRecipes([suyoElegido.frontendRecipe]);
-        plan[x.id][clave] = { ...suyo, [curso === "first" ? "firstRecipeId" : "recipeId"]: suyoElegido.recipeId, warnings: [] };
+        plan[x.id][clave] = { ...suyo, ...suyoElegido.hueco, warnings: [] };
         cambios.push({ day: dia, meal: franja, course: curso, groupId: x.id, oldRecipeId: idBase(curso === "first" ? suyo.firstRecipeId : suyo.recipeId), newRecipeId: idBase(suyoElegido.recipeId) });
         tambien.push(x.label);
       }
@@ -1448,9 +1449,9 @@ export function repeticionReciente(existentes = [], nuevas = [], hoy) {
  * grupo queda fuera. Los días y las personas, con el intérprete
  * (interprete.js, #958): fechas concretas, `semana` para «de la que viene»,
  * y una persona dudosa («Nat» con Natalia y Natxo) se pregunta.
- * @param {{ userId?: string|null }} [x]  quién escribe, para «yo».
+ * @param {{ userId?: string|null, papel?: string|null }} [x]  quién escribe, para «yo».
  */
-export async function apuntarAusencia(householdId, { dia, dias, semana = null, comida, comidas, quienes = null, autor = null, userId = null, deNuevo = false }) {
+export async function apuntarAusencia(householdId, { dia, dias, semana = null, comida, comidas, quienes = null, autor = null, userId = null, papel = null, deNuevo = false }) {
   const pedidas = comidas?.length ? comidas : [comida];
   const lasComidas = [...new Set(pedidas.map((x) => comidaDe(x ?? "")))];
   if (!lasComidas.length || lasComidas.some((c) => !c)) return { texto: `¿Qué comida? («${pedidas.join(", ")}»)`, pintar: null, error: "comida" };
@@ -1504,7 +1505,7 @@ export async function apuntarAusencia(householdId, { dia, dias, semana = null, c
     if (quienes?.length) {
       // Con el intérprete: «Nat» con Natalia y Natxo se pregunta (antes cogía
       // a la primera), «yo» es la persona de esta cuenta, «los peques» un grupo.
-      const r = personasDe(data, quienes, { userId, autor });
+      const r = personasDe(data, quienes, { userId, autor, papel });
       if (r.dudas.length) { quien = r.dudas.join(" "); fallo = "quien"; return null; }
       if (!r.personas.length) { quien = "En la casa aún no hay nadie apuntado."; fallo = "quien"; return null; }
       fuera = r.personas;
