@@ -6,8 +6,8 @@
  * caducidades.js cada hora (referenciasRotas.js). Quedaban copias de sus datos (nombre, peso, alergias) en dos
  * historiales: las fotos para deshacer (`bot_deshacer`, la casa entera con su familia), que se anonimizan aquí
  * (anonimizarFoto, pura; quien escribe es api/_bot/borrarPersona.js), y el pedido y la inversa de sus operaciones
- * pasadas (`operacion`). Esa es tabla de ficha: solo la escribe la tubería en la base (tuberiaUnica.test.js), así que
- * su anonimizado irá dentro de escribir_persona, con una migración (#1249).
+ * pasadas (`operacion`). Esa es tabla de ficha y solo la escribe la tubería en la base (tuberiaUnica.test.js): la
+ * anonimiza el disparador persona_borrada_anonimiza (0127), en la misma transacción que el borrado.
  *
  * Una tabla nueva que apunte a una persona entra en AL_BORRAR_PERSONA: supabase/borrarPersona.test.js falla si una FK
  * a `persona` o una columna `*_member` no está, o si su destino no es el que dice su FK.
@@ -40,8 +40,8 @@ export const AL_BORRAR_PERSONA = Object.freeze({
   "bot_tareas.para_member": { destino: D.BARRE, por: "sin FK: caducidades.js descarta el recordatorio que era para ella" },
   "bot_tareas.asignado_member": { destino: D.BARRE, por: "sin FK: caducidades.js deja la tarea sin encargado" },
   "bot_deshacer.antes": { destino: D.ANONIMIZA, por: "la foto de la casa lleva su ficha en members: sale de las que ya no se pueden usar; la del propio borrado se queda para «deshaz»" },
-  "operacion.pedido": { destino: D.QUEDA, por: "lleva sus campos (alergias, salud); tabla de ficha: lo anonimizará escribir_persona con una migración (#1249)" },
-  "operacion.inversa": { destino: D.QUEDA, por: "lleva su fila entera; tabla de ficha: lo anonimizará escribir_persona con una migración (#1249)" },
+  "operacion.pedido": { destino: D.ANONIMIZA, por: "lleva sus campos (alergias, salud): el disparador de la 0127 la deja como «borrada» y quita sus datos y sus gustos" },
+  "operacion.inversa": { destino: D.ANONIMIZA, por: "lleva su fila entera y sus sobres de antes: el disparador de la 0127 la deja como «borrada» y quita sus sobres y datos" },
   "bot_messages.content": { destino: D.QUEDA, por: "lo que la familia escribió en la charla: no se reescribe; se va con la casa o con la cuenta (cascadas.mjs)" },
 });
 
