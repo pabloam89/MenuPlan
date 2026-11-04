@@ -285,6 +285,10 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
      "type": "string",
      "description": "Opcional: el plato que piden («salmón al horno con ensalada de mango»)."
     },
+    "plato": {
+     "type": "string",
+     "description": "Opcional: un plato que YA está en el menú, por su nombre («el shakshuka», «las lentejas»): el hueco es el suyo, de hoy en adelante. Sin dia ni comida."
+    },
     "estilo": {
      "type": "string",
      "enum": [
@@ -492,7 +496,7 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
    },
    "additionalProperties": false
   },
-  "description": "Recetas del catálogo que encajan en un hueco del menú (respetan alergias, gustos, tiempo y lo que ya hay en la semana), SIN cambiar nada. Para recomendar o dar a elegir; con parecido_a, las más parecidas a un plato que piden por su nombre. En la comida hay primero y segundo; «cual» dice cuál."
+  "description": "Recetas del catálogo que encajan en un hueco del menú (respetan alergias, gustos, tiempo y lo que ya hay en la semana), SIN cambiar nada. Para recomendar o dar a elegir; con parecido_a, las más parecidas a un plato que piden por su nombre. En la comida hay primero y segundo; «cual» dice cuál. Para cambiar un plato del menú dicho por su nombre («cámbiame el shakshuka»), pásalo en plato y no mires antes ver_menu: la herramienta encuentra su día y su comida. Devuelve también qué es el plato que hay ahora."
  },
  {
   "type": "custom",

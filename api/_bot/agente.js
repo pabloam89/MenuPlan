@@ -307,6 +307,7 @@ export async function herramientas(chat) {
         await registrar(FRENO_SUPERVISOR, { userId: await duenoDe(chat.householdId).catch(seguirCon("agente_dueno", null)), extra: { herramienta: t.name, texto: String(chat.texto ?? "").slice(0, 200), esGrupo: Boolean(chat.esGrupo) } });
         return freno;
       }
+      if (USAN_UN_HUECO.has(t.name)) callarConsultas(chat);
       if (t.name === "ver_menu" && yaLoTiene(args)) {
         return "Eso ya lo tienes: es lo que te devolvieron generar_menu o cambiar_plato en este turno, y es lo guardado. Además sale pintado debajo de tu mensaje: no lo escribas; di en una o dos frases qué has hecho.";
       }
@@ -847,12 +848,34 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
  * herramienta del turno: si genera y luego cambia o consulta, se ven todos
  * los días y no se pierde lo destacado.
  */
-function pintarTambien(chat, nuevo) {
+function pintarTambien(chat, nuevo, { consulta = false, fotos = [] } = {}) {
   if (!nuevo) return;
-  const antes = chat.pintar;
-  if (!antes) { chat.pintar = nuevo; return; }
+  // Cada trozo, con su origen: lo de una consulta (ver_menu) se puede callar
+  // después (callarConsultas).
+  (chat.pintados ??= []).push({ filtros: nuevo, consulta, fotos });
+  chat.pintar = chat.pintados.reduce((antes, p) => juntarPintados(antes, p.filtros), null);
+}
+
+/**
+ * Lo que Lola miró con ver_menu solo para encontrar un hueco no se enseña: si
+ * después usa una herramienta sobre un hueco del menú (USAN_UN_HUECO), lo
+ * pintado y las fotos de esas consultas se quitan. Pasó el 4 nov 2026: «¿me
+ * cambias el shakshuka? ¿eso qué es?» → ver_menu y proponer_platos, y la
+ * semana entera salió pintada debajo de las tres opciones.
+ */
+function callarConsultas(chat) {
+  const consultas = (chat.pintados ?? []).filter((p) => p.consulta);
+  if (!consultas.length) return;
+  const urls = new Set(consultas.flatMap((p) => p.fotos));
+  for (let i = chat.fotos.length - 1; i >= 0; i--) if (urls.has(chat.fotos[i].url)) chat.fotos.splice(i, 1);
+  chat.pintados = chat.pintados.filter((p) => !p.consulta);
+  chat.pintar = chat.pintados.reduce((antes, p) => juntarPintados(antes, p.filtros), null);
+}
+
+function juntarPintados(antes, nuevo) {
+  if (!antes) return nuevo;
   const igual = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
-  chat.pintar = {
+  return {
     dias: [...new Set([...(antes.dias ?? []), ...(nuevo.dias ?? [])])].sort(),
     destacar: [...(antes.destacar ?? []), ...(nuevo.destacar ?? [])],
     // Un filtro solo vale si lo piden todas: si no, la semana generada saldría
@@ -903,9 +926,10 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
         if (p.sinGrupo) return `${sinEtiquetas(p.texto)} Pregunta de quién hablan.`;
         // Sin menú, la pantalla de la app saldría vacía: sin botón (#935).
         if (!p.conMenu && !p.noPlanificadas.length) { chat.nadaQueVer = true; return `No hay menú para esos días (${dias[0]}${dias.length > 1 ? ` a ${dias.at(-1)}` : ""}). ${rangosDelMenu(casa)} Si lo quieren, generar_menu.`; }
-        pintarTambien(chat, filtros);
-        if (dias.length === 1 && fotos) for (const f of p.fotos) if (!fotos.some((x) => x.url === f.url)) fotos.push(f);
-        return `Sale pintado debajo de tu mensaje (NO lo copies; como mucho una frase). Para que lo sepas:\n${sinEtiquetas(p.texto)}`;
+        const puestas = dias.length === 1 && fotos ? p.fotos.filter((f) => !fotos.some((x) => x.url === f.url)) : [];
+        fotos?.push(...puestas);
+        pintarTambien(chat, filtros, { consulta: true, fotos: puestas.map((f) => f.url) });
+        return `Sale pintado debajo de tu mensaje (NO lo copies; como mucho una frase), salvo si después usas proponer_platos, cambiar_plato o por_que_plato: entonces era para buscar y no se pinta. Para que lo sepas:\n${sinEtiquetas(p.texto)}`;
       }),
     }),
     herramienta({ capacidades: ["ver_receta"], lee: ["menus", "userRecipes"], escribe: [], lector: true, riesgo: RIESGO_HERRAMIENTA.LEE, deshace: DESHACE.NO, pantalla: null }, {
@@ -991,7 +1015,7 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
     }),
     herramienta({ capacidades: ["elegir_plato"], lee: ["menus", "members", "members.allergies", "notepad"], escribe: [], lector: true, riesgo: RIESGO_HERRAMIENTA.LEE, deshace: DESHACE.NO, pantalla: null }, {
       name: "proponer_platos",
-      description: "Recetas del catálogo que encajan en un hueco del menú (respetan alergias, gustos, tiempo y lo que ya hay en la semana), SIN cambiar nada. Para recomendar o dar a elegir; con parecido_a, las más parecidas a un plato que piden por su nombre. En la comida hay primero y segundo; «cual» dice cuál.",
+      description: "Recetas del catálogo que encajan en un hueco del menú (respetan alergias, gustos, tiempo y lo que ya hay en la semana), SIN cambiar nada. Para recomendar o dar a elegir; con parecido_a, las más parecidas a un plato que piden por su nombre. En la comida hay primero y segundo; «cual» dice cuál. Para cambiar un plato del menú dicho por su nombre («cámbiame el shakshuka»), pásalo en plato y no mires antes ver_menu: la herramienta encuentra su día y su comida. Devuelve también qué es el plato que hay ahora.",
       inputSchema: {
         type: "object",
         properties: {
@@ -1002,6 +1026,7 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
           cual: { type: "string", enum: ["principal", "primero"], description: "Por defecto el principal (el segundo en la comida)." },
           n: { type: "integer", minimum: 2, maximum: 6, description: "Cuántas opciones; por defecto 3 (caben 3 botones más «Elige tú»)." },
           parecido_a: { type: "string", description: "Opcional: el plato que piden («salmón al horno con ensalada de mango»)." },
+          plato: { type: "string", description: "Opcional: un plato que YA está en el menú, por su nombre («el shakshuka», «las lentejas»): el hueco es el suyo, de hoy en adelante. Sin dia ni comida." },
           estilo: { type: "string", enum: ["ligero", "rapido"], description: "Opcional: si piden algo ligero (ordena por calorías y las enseña) o rápido (por tiempo)." },
           para: { type: "string", enum: ["mayores", "ninos", "bebe"], description: "Opcional: para quién. «Con mi mujer/marido», «para nosotros» = mayores. El bebé solo si lo nombran." },
           de_fuera: ESQUEMA_DE_FUERA,
@@ -1011,10 +1036,10 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
         },
         additionalProperties: false,
       },
-      run: ({ dia, semana: cual_semana, comida, grupo, cual, n, parecido_a, estilo, para, rasgos, ejes, perfil, de_fuera }) => {
+      run: ({ dia, semana: cual_semana, comida, grupo, cual, n, parecido_a, plato, estilo, para, rasgos, ejes, perfil, de_fuera }) => {
         const f = comida ? franjaDe(comida) : null;
         if (comida && !f) return `No entiendo qué comida es («${comida}»).`;
-        return proponerPlatos(householdId, { dia: dia || null, semana: cual_semana, franja: f, grupo, para: para || null, cual, n: n ?? 3, parecidoA: parecido_a || null, estilo: estilo || null, rasgos: rasgos || null, ejes: ejes ?? null, perfil: perfil || null, deFuera: de_fuera || null }, fotos);
+        return proponerPlatos(householdId, { plato: plato || null, dia: dia || null, semana: cual_semana, franja: f, grupo, para: para || null, cual, n: n ?? 3, parecidoA: parecido_a || null, estilo: estilo || null, rasgos: rasgos || null, ejes: ejes ?? null, perfil: perfil || null, deFuera: de_fuera || null }, fotos);
       },
     }),
     herramienta({ capacidades: ["fuera_de_casa"], lee: ["members", "schedule", "reglas", "menus"], escribe: ["reglas", "menus"], lector: false, riesgo: RIESGO_HERRAMIENTA.ESCRIBE_REVERSIBLE, deshace: DESHACE.FOTO, pantalla: "semana" }, {
@@ -1123,7 +1148,7 @@ export function adelantoDelTurno(chat) {
     if (!usado || aplicado) return;
     aplicado = true;
     if (fotos) for (const f of usado.fotos ?? []) if (!chat.fotos.some((x) => x.url === f.url)) chat.fotos.push(f);
-    if (usado.pintar) pintarTambien(chat, usado.pintar);
+    if (usado.pintar) pintarTambien(chat, usado.pintar, { consulta: usado.herramienta === "ver_menu", fotos: (usado.fotos ?? []).map((f) => f.url) });
     if (usado.ir && !chat.ir) chat.ir = usado.ir;
   };
   return {
@@ -1158,7 +1183,7 @@ async function adelantar(plan, chat) {
   if (plan.herramienta) {
     // Solo lecturas: una escritura nunca se adelanta (ni con la puerta abierta).
     if (!SOLO_LECTURA.has(plan.herramienta)) return null;
-    const copia = { ...chat, fotos: [], pintar: null, ir: null, compartir: null };
+    const copia = { ...chat, fotos: [], pintar: null, pintados: [], ir: null, compartir: null };
     const t = (await herramientas(copia)).find((x) => x.name === plan.herramienta);
     if (!t) return null;
     const r = await t.run(plan.args);
@@ -1265,7 +1290,7 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
   // `pintar`: qué trozo del menú sale pintado debajo del mensaje (pintar.js).
   // `llamadas`: las herramientas que Lola pide en el turno, en orden (silencio.js).
   // `resultados`: lo que devuelven con forma fija las herramientas que escriben (resultado.js): de ahí sale el recibo.
-  const chat = { channel, chatId: String(chatId), householdId, autor, adjunto, texto, fotos: [], ir: null, compartir: null, pintar: null, puerta, esGrupo: Boolean(esGrupo), papel: undefined, llamadas: [], pedidas: [], resultados: [] };
+  const chat = { channel, chatId: String(chatId), householdId, autor, adjunto, texto, fotos: [], ir: null, compartir: null, pintar: null, pintados: [], puerta, esGrupo: Boolean(esGrupo), papel: undefined, llamadas: [], pedidas: [], resultados: [] };
   // El papel de quien escribe, en cada turno (no se guarda: quitar a alguien
   // vale para el mensaje siguiente). Las herramientas se filtran con él.
   const conPapel = papelDeQuien({ householdId, chatId, esGrupo: Boolean(esGrupo), desde, channel })
@@ -1350,7 +1375,7 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
   const adelanto = adelantoDelTurno(chat);
   const conAdelanto = adelanto.servir(tools);
   let medidaPista = null;
-  const limpiarTurno = () => { chat.fotos.length = 0; chat.ir = null; chat.compartir = null; chat.pintar = null; chat.resultados.length = 0; };
+  const limpiarTurno = () => { chat.fotos.length = 0; chat.ir = null; chat.compartir = null; chat.pintar = null; chat.pintados = []; chat.resultados.length = 0; };
   const lanzar = (d, leido, sig, { reinicio }) => {
     if (reinicio) limpiarTurno();
     adelanto.usar(leido);
@@ -1831,6 +1856,9 @@ export const FICHAS = new Map(todasLasHerramientas({}, "").map((t) => [t.name, t
 
 // Las que no cambian nada: pueden correr antes de saber de quién es el turno.
 export const SOLO_LECTURA = new Set([...FICHAS].filter(([, f]) => f.soloLectura).map(([n]) => n));
+// Las que trabajan sobre UN hueco del menú (un día y una comida): un ver_menu
+// antes de ellas era para encontrarlo, y no se pinta (callarConsultas).
+export const USAN_UN_HUECO = new Set(["proponer_platos", "cambiar_plato", "por_que_plato"]);
 /** Si el vigilante (supervisor.js) contrasta la herramienta con lo que escribió la persona: lo que quita protección. */
 export const vigilada = (nombre) => FICHAS.get(nombre)?.riesgo === RIESGO_HERRAMIENTA.QUITA_PROTECCION;
 
