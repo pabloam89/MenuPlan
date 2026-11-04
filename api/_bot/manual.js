@@ -8,20 +8,25 @@
  * turno, así que la caché del prompt no se rompe.
  */
 import { DESHACE } from "../../src/lib/vocabularios.js";
+import { CAMINOS } from "../../src/lib/caminos.js";
 
 /** Las marcas del manual y de dónde sale cada una. */
 export const MARCAS_MANUAL = Object.freeze({
   QUE_SABES_HACER: "lo que se hace con tus herramientas (las capacidades con algo en Lola)",
   SOLO_EN_LA_APP: "lo que la app hace y tú no (las capacidades sin nada en Lola y con la app encendida)",
   QUE_SE_DESHACE: "lo que «deshaz» no vuelve atrás (las capacidades cuyas herramientas no se deshacen)",
+  CAMINOS: "los tres caminos de antes de cada menú, con su botón, qué pasa y un ejemplo (src/lib/caminos.js)",
 });
+
+/** Un camino como lo enseña Lola: el botón, qué pasa, cuánto se tarda y un ejemplo de respuesta. */
+const lineaDeCamino = (c) => `[[${c.titulo}]]: ${c.resumen.replace(/.$/, "")} (${c.minutos} min). Ej.: «${c.ejemplo}».`;
 
 const MARCA = /\{\{([A-Z_]+)\}\}/g;
 const lista = (caps) => caps.map((c) => `• ${c.accion}`).join("\n");
 const enApp = (c) => Boolean(c.app && !c.app.apagada);
 
 /**
- * Las tres listas, de las capacidades (con su `lola`, de capacidades.js) y las fichas (FICHAS de agente.js).
+ * Las listas, de las capacidades (con su `lola`, de capacidades.js) y las fichas (FICHAS de agente.js).
  * @param {{ capacidades: readonly object[], fichas: Map<string, object> }} o
  */
 export function rellenos({ capacidades, fichas }) {
@@ -35,6 +40,7 @@ export function rellenos({ capacidades, fichas }) {
     QUE_SABES_HACER: lista(deLola),
     SOLO_EN_LA_APP: lista(capacidades.filter((c) => c.lola.length === 0 && enApp(c))),
     QUE_SE_DESHACE: lista(sinDeshacer),
+    CAMINOS: CAMINOS.map(lineaDeCamino).join("\n"),
   };
 }
 
