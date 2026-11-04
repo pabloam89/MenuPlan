@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
-import { planVacio, fotoAntesDePizarra, volverAntesDePizarra, huecosDelPlan, conHuecosAlDia, conSemanasAlDia, conHuecoAnadido, sinHueco, franjasDelDia } from "./pizarra.js";
+import { planVacio, semanaEnBlanco, fotoAntesDePizarra, volverAntesDePizarra, huecosDelPlan, conHuecosAlDia, conSemanasAlDia, conHuecoAnadido, sinHueco, franjasDelDia } from "./pizarra.js";
 import { DAYS, getDayMeals, slotKey } from "./planner.js";
+import { compraQueSeVe, esCompraConMarcas } from "./compraMarcas.js";
 import { mondayISOForOffset } from "./weekCalendar.js";
 
 const ADULTOS = [
@@ -301,5 +302,16 @@ describe("salir de la hoja de arranque", () => {
     const { data } = volverAntesDePizarra(fotoAntesDePizarra(antes), abierta);
     expect(data.kitchenTools).toEqual(["horno", "airfryer"]);
     expect(data.pantryGenDeltas).toEqual({ sinM1: true });
+  });
+});
+
+// Desde #1210 la app no genera menús: la pizarra es lo único que los crea, y su compra tiene que salir de los platos
+// que se pongan. Con `{ items: [] }` la lista se quedaba vacía aunque el tablero estuviera lleno.
+describe("semanaEnBlanco: la compra sigue al menú", () => {
+  it("empieza sin marcas, así que la lista se saca de los platos", () => {
+    const { week } = semanaEnBlanco(casaBase(), [grupoCon(ADULTOS)], 0, true);
+    expect(esCompraConMarcas(week.shopping)).toBe(true);
+    const derivados = [{ id: "leche", name: "leche" }];
+    expect(compraQueSeVe(week.shopping, () => derivados).items).toEqual(derivados);
   });
 });

@@ -77,7 +77,7 @@ import { FeedScreen } from "./screens/FeedScreen.jsx";
 import { buildShoppingList } from "./lib/shoppingBuilder.js";
 import { clearPreparedFromSlot } from "./lib/freezer.js";
 import { normalizeIngredientKey } from "./lib/ingredientCategories.js";
-import { compraQueSeVe, compraParaGuardar, cambiarCompra, compraAlGenerar, articulosDe } from "./lib/compraMarcas.js";
+import { compraQueSeVe, compraParaGuardar, cambiarCompra, compraAlGenerar, compraNueva, articulosDe } from "./lib/compraMarcas.js";
 import { getDayMeals, getMeals, ALL_DAY_MEALS, DAYS } from "./lib/planner.js";
 import { estructuraDelGrupo } from "./lib/estructuraPlatos.js";
 import { estimarSemana, frasePresupuesto } from "./lib/presupuesto.js";
@@ -3224,7 +3224,7 @@ export default function App() {
     antesDePizarraRef.current.menuNuevoId = newMenu.id;
 
     setMenuPlan(firstWeekPlan);
-    setShopping({ items: [] });
+    setShopping(compraNueva());
 
     const keepHistory = Boolean(user);
     const foldedMenus = foldInNewMenu(data.menus, newMenu, { keepHistory });
