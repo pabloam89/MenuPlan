@@ -469,6 +469,7 @@ describe("lunesDeSemanaAbierta", () => {
   });
 
   it("sin esa semana en el archivo, la de hoy más el offset", () => {
-    expect(lunesDeSemanaAbierta({}, 2)).toBe(mondayISOForOffset(2));
+    // Jueves 5 nov 2026: dos semanas después, el lunes 16.
+    expect(lunesDeSemanaAbierta({}, 2, new Date(2026, 10, 5, 12))).toBe("2026-11-16");
   });
 });

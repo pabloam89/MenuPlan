@@ -334,11 +334,11 @@ export function toggleMenuFavorite(menus, menuId) {
  * El lunes de la semana abierta, que es como se nombra una semana en los cocinados (`filaDeCocinado` exige un lunes).
  * La clave del archivo es el PRIMER DÍA del menú, que no siempre es lunes: un menú rehecho el miércoles empieza el
  * jueves, y con esa clave la lectura de cocinados se rechazaba («No he podido leer qué hay cocinado esta semana»).
- * Sin semana en el archivo, la de hoy más el offset.
+ * Sin semana en el archivo, la de hoy más el offset (`hoy`, para los tests).
  */
-export function lunesDeSemanaAbierta(weeks, offset = 0) {
+export function lunesDeSemanaAbierta(weeks, offset = 0, hoy = new Date()) {
   const clave = semanaPorOffset(weeks, offset)?.[0];
-  return clave ? lunesDe(clave) : mondayISOForOffset(offset);
+  return clave ? lunesDe(clave) : mondayISOForOffset(offset, hoy);
 }
 
 export function semanaPorOffset(weeks, offset) {
