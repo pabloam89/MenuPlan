@@ -175,7 +175,7 @@ export function aplicarOrden(ops, { data, plan, dias, comidas, pick }) {
     nuevas.push(r.frontendRecipe);
     trabajo[gid][`${day}-${meal}`] = {
       ...trabajo[gid][`${day}-${meal}`],
-      ...(course === "first" ? { firstRecipeId: r.recipeId } : { recipeId: r.recipeId }),
+      ...r.hueco,
       cleared: false,
       warnings: [],
     };
