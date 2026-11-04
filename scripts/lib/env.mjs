@@ -177,13 +177,15 @@ function apuntarLectura(claves, reintento) {
  * tiene permiso), con cuándo se vio. Sin valores: solo direcciones. Durante SIN_ACCESO_HORAS no se vuelven a pedir: antes,
  * cada arranque de Vite con una clave de administración en `.env.local` gastaba ~35 lecturas del cupo diario de la
  * cuenta (1000) pidiéndolas una a una. Si ya tienes acceso, borra el fichero. En los tests, solo con MENUPLAN_OP_SIN_ACCESO.
+ * Es lo que no ve la cuenta de servicio: con la app de Pablo (MENUPLAN_OP_PABLO=1), que ve otras bóvedas, ni se mira ni
+ * se apunta.
  */
 export const SIN_ACCESO_HORAS = 24;
 export const FICHERO_SIN_ACCESO = () =>
   process.env.MENUPLAN_OP_SIN_ACCESO || (process.env.VITEST ? null : join(homedir(), ".menuplan", "op-sin-acceso.json"));
 function sinAcceso() {
   const ruta = FICHERO_SIN_ACCESO();
-  if (!ruta || !existsSync(ruta)) return {};
+  if (!ruta || process.env[VAR_OP_PABLO] === "1" || !existsSync(ruta)) return {};
   try {
     const todo = JSON.parse(readFileSync(ruta, "utf8"));
     const desde = Date.now() - SIN_ACCESO_HORAS * 3600e3;
@@ -195,7 +197,7 @@ function sinAcceso() {
 }
 function apuntarSinAcceso(refs) {
   const ruta = FICHERO_SIN_ACCESO();
-  if (!ruta || !refs.length) return;
+  if (!ruta || !refs.length || process.env[VAR_OP_PABLO] === "1") return;
   try {
     mkdirSync(dirname(ruta), { recursive: true });
     const ahora = new Date().toISOString();
