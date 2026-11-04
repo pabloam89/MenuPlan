@@ -61,7 +61,7 @@ const HouseholdsScreen = lazy(() => import("./screens/HouseholdsScreen.jsx").the
 const BibliotecaScreen = lazy(() => import("./screens/BibliotecaScreen.jsx").then(m => ({ default: m.BibliotecaScreen })));
 const UserStatsScreen = lazy(() => import("./screens/UserStatsScreen.jsx").then(m => ({ default: m.UserStatsScreen })));
 const MenuPeek = lazy(() => import("./screens/FeedScreen.jsx").then(m => ({ default: m.MenuPeek })));
-import { generateMenuWithAI, pickCatalogReplacement, motivoDelChoque, catalogToFrontendRecipe, createPlannerStats } from "./lib/aiPlanner.js";
+import { generateMenuWithAI, pickCatalogReplacement, motivoDelChoque, catalogToFrontendRecipe, createPlannerStats, platosDeMenus } from "./lib/aiPlanner.js";
 import { activeDiscardIds } from "./lib/entradaMotor.js";
 import { sugerenciasDeHueco } from "./lib/sugerenciasDeHueco.js";
 import { minimosQueFaltan } from "./lib/minimosParaGenerar.js";
@@ -1291,18 +1291,6 @@ export default function App() {
     (guardada, plan) => compraQueSeVe(guardada, () => articulosDe(buildShoppingList(plan ?? {}, gruposCompra, comidasCompra.split("|").filter(Boolean), []))),
     [gruposCompra, comidasCompra],
   );
-  // aiRecipes: una receta recién registrada cambia lo que sale del menú.
-  const compra = useMemo(() => vistaDeCompra(shopping, menuPlan), [vistaDeCompra, shopping, menuPlan, aiRecipes]);
-  // Las semanas del menú activo para la pantalla de la compra, cada una con su lista que se ve.
-  const semanasDeCompra = useMemo(
-    () => (data.activeMenuId ? orderedWeeks(data.menus?.[data.activeMenuId]).map((w) => ({ ...w, shopping: vistaDeCompra(w.shopping, w.plan) })) : null),
-    [data.activeMenuId, data.menus, vistaDeCompra, aiRecipes],
-  );
-  const vistaActualRef = useRef(null);
-  vistaActualRef.current = (guardada) => vistaDeCompra(guardada, menuPlan);
-  const setCompra = useCallback((cambio) => {
-    setShopping((guardada) => cambiarCompra(guardada, cambio, vistaActualRef.current));
-  }, []);
 
   const { user, session, loading: authLoading, signInWithGoogle, signInWithApple, linkWithGoogle, avisoAlEntrar, olvidarAvisoAlEntrar, signOut } = useAuth();
   const {
@@ -1386,6 +1374,28 @@ export default function App() {
     const eaters = Math.max(1, data.members?.length || 4);
     registerRecipes(ownUserRecipes.map((r) => catalogToFrontendRecipe(r, eaters)));
   }, [ownUserRecipes, data.members]);
+
+  // Los platos de cada semana de los menús salen de sus huecos (#1246, paso 2), sin copia: se registran al leer los
+  // menús, antes de pintar, con la fecha de su semana (la fruta de temporada). Los huecos de antes siguen con su copia.
+  const platosDeLosMenus = useMemo(() => {
+    const platos = platosDeMenus(data.menus, { propias: Object.fromEntries(ownUserRecipes.map((r) => [r.id, r])) });
+    registerRecipes(platos);
+    return platos;
+  }, [data.menus, ownUserRecipes]);
+
+  // La compra se saca del menú con RECIPES_BY_ID: va después de registrar los platos, y cambia con ellos
+  // (platosDeLosMenus) y con los que se registran de una copia (aiRecipes).
+  const compra = useMemo(() => vistaDeCompra(shopping, menuPlan), [vistaDeCompra, shopping, menuPlan, platosDeLosMenus, aiRecipes]);
+  // Las semanas del menú activo para la pantalla de la compra, cada una con su lista que se ve.
+  const semanasDeCompra = useMemo(
+    () => (data.activeMenuId ? orderedWeeks(data.menus?.[data.activeMenuId]).map((w) => ({ ...w, shopping: vistaDeCompra(w.shopping, w.plan) })) : null),
+    [data.activeMenuId, data.menus, vistaDeCompra, platosDeLosMenus, aiRecipes],
+  );
+  const vistaActualRef = useRef(null);
+  vistaActualRef.current = (guardada) => vistaDeCompra(guardada, menuPlan);
+  const setCompra = useCallback((cambio) => {
+    setShopping((guardada) => cambiarCompra(guardada, cambio, vistaActualRef.current));
+  }, []);
 
   // De qué casa es el estado que hay en memoria (y en localStorage): se apunta
   // al terminar de cargar una casa de la nube. Al cargar otra, si no coincide,
@@ -2610,11 +2620,8 @@ export default function App() {
       const foldedMenus = foldInNewMenu(data.menus, newMenu, { keepHistory });
       const keepRecipeIds = collectMenuRecipeIds(foldedMenus);
 
-      setAiRecipes((cur) => {
-        const byId = new Map(cur.map((r) => [r.id, r]));
-        for (const r of allRecipes) byId.set(r.id, r);
-        return pruneAiRecipes(Array.from(byId.values()), keepRecipeIds);
-      });
+      // Los platos del menú nuevo no se copian en la casa: salen de sus huecos (platosDelPlan, #1246).
+      setAiRecipes((cur) => pruneAiRecipes(cur, keepRecipeIds));
 
       // F2: al reemplazar el menú de un invitado (keepHistory=false) los menús
       // anteriores desaparecen del archivo con su consumo ya aplicado. Recogemos
