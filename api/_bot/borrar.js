@@ -21,8 +21,9 @@ import { seguirCon } from "./avisar.js";
 import { select, eq, config, rpc } from "./db.js";
 import { llamar } from "./telegram.js";
 import { RECORDATORIOS } from "./recordatorios.js";
+import { ADMIN_POR_DEFECTO } from "./reporte.js";
 
-const ADMINS = (process.env.BOT_ADMINS || "491628449").split(",").map((s) => s.trim()).filter(Boolean);
+const ADMINS = (process.env.BOT_ADMINS || ADMIN_POR_DEFECTO).split(",").map((s) => s.trim()).filter(Boolean);
 
 /**
  * ¿Puede este usuario de Telegram borrar su cuenta desde aquí?
