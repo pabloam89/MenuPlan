@@ -26,7 +26,7 @@ import { select, insert, eq, config } from "./db.js";
 import { deLaCharla } from "./chats.js";
 import { cargarCasa, olvidarCasa } from "./casa.js";
 import { motor, normal, prepararRecetas } from "./menu.js";
-import { propiasDe } from "./propias.js";
+import { propiasDe, marcarFavorita, borrarRecetaDeCasa } from "./propias.js";
 import { duenoDe, rastro, registrar } from "./embudo.js";
 import { RASTRO, ORIGEN_RECETA } from "../../src/lib/rastro.js";
 import { SYSTEM_PROMPTS } from "../_prompts.js";
@@ -399,4 +399,33 @@ export async function recetaPorNombre(householdId, texto) {
   const todas = [...propiasDe(casa), ...m.recipeCatalog];
   const q = normal(texto);
   return todas.find((r) => r.id === texto || normal(r.name) === q) ?? filtrarRecetas(todas, { consulta: texto })[0] ?? null;
+}
+
+/** Lo que hace receta_propia (agente.js, trozo 48): su `accion`, lista cerrada. */
+export const ACCIONES_RECETA = Object.freeze(["favorita", "no_favorita", "borrar"]);
+export const ACCION_RECETA = Object.freeze(Object.fromEntries(ACCIONES_RECETA.map((a) => [a.toUpperCase(), a])));
+
+/**
+ * Favoritas y borrar una receta propia desde Lola, como en la app (trozo 48, parte 1). Borrar no se deshace: pide
+ * `confirmado` y que la receta encontrada sea la que se nombró; sin eso, contesta cuál ha encontrado para preguntar.
+ * @param {{ accion: string, receta: string, confirmado?: boolean }} args
+ * @param {{ userId?: string|null }} quien
+ */
+export async function cambiarRecetaPropia(householdId, { accion, receta: nombre, confirmado = false }, quien = {}, deps = {}) {
+  const { buscar = recetaPorNombre, favorita = marcarFavorita, borrarDeCasa = borrarRecetaDeCasa, dueno = duenoDe } = deps;
+  const receta = await buscar(householdId, nombre);
+  if (!receta) return resultado({ accion: "recetas", sinHacer: [{ que: nombre, motivo: "no encuentro esa receta ni en las vuestras ni en el catálogo" }] });
+  if (accion === ACCION_RECETA.BORRAR) {
+    if (receta.source !== "user") return resultado({ accion: "recetas", sinHacer: [{ que: receta.name, motivo: "es del catálogo de HoMenu, no vuestra: no se puede borrar" }] });
+    if (confirmado !== true || !seVeEn(nombre, receta.name)) return `Antes de borrarla, pregunta si seguro que quieren borrar «${receta.name}» de sus recetas (no se puede deshacer), y bórrala solo con su «sí», llamando con ese nombre.`;
+    const hecho = await borrarDeCasa(householdId, await dueno(householdId), receta.id);
+    if (hecho) olvidarCasa(householdId);
+    return hecho
+      ? resultado({ accion: "recetas", hecho: [`«${receta.name}» borrada`] })
+      : resultado({ accion: "recetas", sinHacer: [{ que: receta.name, motivo: "no es una receta de esta casa" }] });
+  }
+  if (!quien.userId) return resultado({ accion: "recetas", sinHacer: [{ que: receta.name, motivo: "las favoritas son de cada cuenta y no sé cuál es la tuya: márcala desde la app" }] });
+  const marcar = accion === ACCION_RECETA.FAVORITA;
+  await favorita(quien.userId, receta.id, marcar);
+  return resultado({ accion: "recetas", hecho: [marcar ? `«${receta.name}» en favoritas` : `«${receta.name}» fuera de favoritas`] });
 }
