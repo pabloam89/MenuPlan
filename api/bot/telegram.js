@@ -72,6 +72,7 @@ import { primeraVez } from "../_bot/entradas.js";
 import { preguntoConAviso } from "../_bot/silencio.js";
 import { CANAL, CAMINO_ENLACE, RESULTADO_ENLACE } from "../../src/lib/vocabularios.js";
 import { conOperacion, operacion } from "../_bot/operacion.js";
+import { RE_BOTON } from "../_bot/formatoMensaje.js";
 
 const EMAIL_RE = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]{2,}$/;
 
@@ -874,6 +875,8 @@ export function medida(medir, d, t0, primer = null) {
       recibo: l.recibo ?? null,
       // L1: si lo que confirma Lola cuadra con lo guardado (cuadre.js), mismo lector.
       cuadre: l.cuadre ?? null,
+      // Trozo 54: las faltas de forma del mensaje de Lola (FALTAS_FORMATO, formatoMensaje.js); vacía si no tiene.
+      formato: l.formato ?? null,
     } : null,
   };
 }
@@ -1477,7 +1480,7 @@ async function enlaceGrupo(chatId, esGrupo, householdId, from) {
  */
 function sacarBotones(texto) {
   const opciones = [];
-  const cuerpo = String(texto).replace(/\[\[([^\]\n]{1,40})\]\]/g, (_, o) => { opciones.push(o.trim()); return ""; }).trim();
+  const cuerpo = String(texto).replace(RE_BOTON, (_, o) => { opciones.push(o.trim()); return ""; }).trim();
   const validas = opciones.filter((o) => Buffer.byteLength(`t:${o}`) <= 64).slice(0, 4);
   if (!validas.length) return { cuerpo, botones: undefined };
   const filas = [];

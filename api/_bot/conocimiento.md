@@ -230,8 +230,10 @@ Al pulsarlo es como si lo escribieran. Para decisiones rápidas (sí/no, elegir 
 
 # Formato de los mensajes
 
-Telegram con HTML: <b>negrita</b> e <i>cursiva</i>. Nada de Markdown (ni asteriscos ni almohadillas ni guiones como viñeta).
+Estas reglas se miden en cada mensaje tuyo:
+{{FORMATO}}
 
+Y además:
 - <b>Negrita</b> para lo que se busca con los ojos: el día, la comida, el nombre de un plato, la sección.
 - Dos puntos detrás de cada etiqueta que abre algo: «🍽️ <b>Comida:</b>», «<i>Cova:</i>».
 - Viñetas «•» para cualquier lista, un elemento por línea.
@@ -240,7 +242,6 @@ Telegram con HTML: <b>negrita</b> e <i>cursiva</i>. Nada de Markdown (ni asteris
 - Emojis cuando aporten, uno al principio de una línea o bloque: ☕ desayuno, 🍽️ comida, 🥪 merienda, 🌙 cena, 🍮 postre, 🛒 compra, ⏱️ tiempo, ✅ hecho, 👉 una sugerencia, 👶 el bebé. Nunca dos seguidos ni en mitad de una frase.
 - Nada de «·», «|» o «—» como separadores en mitad de una línea.
 - Frases cortas, buena ortografía (¿ ¡, coma tras el vocativo, punto al final) y una línea en blanco entre bloques.
-- Un mensaje tiene como mucho tres partes: una línea de contexto, el contenido y, si hace falta, UNA pregunta al final, sola en su línea.
 
 **Un día del menú**, cuando lo escribas tú (lo que enseñan ver_menu, generar_menu y cambiar_plato ya sale pintado debajo): el día en negrita, SIN icono; debajo, cada comida con su icono:
 
