@@ -2482,6 +2482,23 @@ export function apuntaSuPlato(hueco, curso = "principal") {
 }
 
 /**
+ * Lo que un cambio de plato escribe en el hueco (#1246, paso 2b): la receta de ese curso, su guarnición y su salsa, y
+ * para qué receta son (`platoDe`, `primeroDe`); y los recambios y para cuántos, si el hueco es de antes y no los tiene.
+ * Con eso el plato sale del hueco (`platoDelHueco`), como los que pone el motor.
+ */
+export function huecoDelCambio(hueco, course, recipeId, { garnishId = null, sauceId = null, restricciones = [] } = {}) {
+  const base = { restricciones: hueco?.restricciones ?? restricciones, eaters: hueco?.eaters ?? 2 };
+  return course === "first"
+    ? { ...base, firstRecipeId: recipeId, firstGarnishId: garnishId, firstSauceId: sauceId, primeroDe: recipeId }
+    : { ...base, recipeId, garnishId, sauceId, platoDe: recipeId };
+}
+
+/** El plato de un cambio, sacado del hueco ya cambiado. `receta` vale aunque no sea del catálogo (una propia). */
+function platoDelCambio(hueco, cambio, course, receta) {
+  return platoDelHueco({ ...hueco, ...cambio }, course === "first" ? "primero" : "principal", { propias: { [receta.id]: receta } });
+}
+
+/**
  * Los platos de un plan de una semana (`plan[grupo][hueco]`), sacados de sus huecos con `platoDelHueco`: los dos
  * cursos de cada hueco que apunta su plato (`apuntaSuPlato`). Los que no, no salen: su plato es aún su copia
  * (`aiRecipes`), hasta que se retire. Las claves que empiezan por «_» no son grupos (`_warnings`).
@@ -3029,12 +3046,10 @@ export function pickCatalogReplacement(dataOEntrada, menuPlan, { groupId, day, m
       ? frescos[Math.floor(Math.random() * frescos.length)]
       : pool[Math.floor(Math.random() * pool.length)];
     const pref = entrada.activos.length > 1 ? `${groupId}__` : "";
-    const comensales = currentSlot.eaters ?? 2;
-    const receta = catalogToFrontendRecipe(elegido, comensales, ctx.filterOpts.intolerances ?? []);
-    receta.id = pref + elegido.id;
-    receta.baseRecipeId = elegido.id;
     // Sin emparejar guarnición: un desayuno no lleva arroz de acompañamiento.
-    return { frontendRecipe: receta, recipeId: receta.id, course, reusedDuplicate: false };
+    const hueco = huecoDelCambio(currentSlot, course, pref + elegido.id, { restricciones: ctx.filterOpts.intolerances ?? [] });
+    const receta = platoDelCambio(currentSlot, hueco, course, elegido);
+    return { frontendRecipe: receta, recipeId: receta.id, course, reusedDuplicate: false, hueco };
   }
 
   let picked;
@@ -3299,11 +3314,6 @@ export function pickCatalogReplacement(dataOEntrada, menuPlan, { groupId, day, m
   const activeGroups = entrada.activos;
   const prefix = activeGroups.length > 1 ? `${groupId}__` : "";
 
-  const eaters = currentSlot.eaters ?? 2;
-  const fr = catalogToFrontendRecipe(picked, eaters, ctx.filterOpts.intolerances ?? []);
-  fr.id = prefix + picked.id;
-  fr.baseRecipeId = picked.id;
-
   // Pair a garnish exactly like the generator does. Many "principal" dishes only
   // have dish+garnish combo photos, so without this the photo would show a side
   // (e.g. rice) that isn't in the recipe.
@@ -3343,12 +3353,12 @@ export function pickCatalogReplacement(dataOEntrada, menuPlan, { groupId, day, m
   const safeGarnishes = filterGarnishes(ctx.filterOpts);
   const paired = pairGarnishes(dayAssignments, recipeCatalogById, {}, safeGarnishes);
   const targetGarnishId = paired.find((a) => a.slotId === targetSlotId)?.garnishId;
-  if (targetGarnishId) {
-    const garnish = guarnicionesData.find((g) => g.id === targetGarnishId);
-    if (garnish) applyGarnishToRecipe(fr, garnish, eaters, ctx.filterOpts.intolerances ?? []);
-  }
+  const garnishId = GUARNICION_POR_ID[targetGarnishId] ? targetGarnishId : null;
 
-  return { frontendRecipe: fr, recipeId: fr.id, course, reusedDuplicate };
+  // El plato sale del hueco ya cambiado, con sus recambios y para cuántos: lo mismo que se pinta al leerlo luego.
+  const hueco = huecoDelCambio(currentSlot, course, prefix + picked.id, { garnishId, restricciones: ctx.filterOpts.intolerances ?? [] });
+  const fr = platoDelCambio(currentSlot, hueco, course, picked);
+  return { frontendRecipe: fr, recipeId: fr.id, course, reusedDuplicate, hueco };
 }
 
 /**
