@@ -49,6 +49,7 @@ import { estructuraEfectiva } from "../../src/lib/estructuraPlatos.js";
 import { aparatosParaEnsenar, conSuNota } from "../../src/lib/aparatosDeCasa.js";
 import { modoDespensaAlGenerar, MODOS_DESPENSA_TEXTO } from "../../src/lib/modoDespensa.js";
 import { DATOS_CASA } from "../../src/lib/registroFicha.js";
+import { MARCAS_DEL_TURNO } from "./manual.js";
 
 const DIA_CORTO = Object.fromEntries(DIAS.map((d) => [d, d.toLowerCase()]));
 const DIA_LARGO = DIA_LARGO_MINUSCULAS;
@@ -455,7 +456,7 @@ function delDiaBloque(casa, extras, hoy) {
 export function montarFicha(casa, extras = {}, hoy = hoyMadrid()) {
   const data = casa?.state?.data ?? {};
   if (!(data.members ?? []).length) {
-    return { estable: "SEGURIDAD: SIN REVISAR · PARA EMPEZAR FALTA: quién come · alergias · comidas", delDia: cabeceraDia(hoy) };
+    return { estable: `SEGURIDAD: SIN REVISAR · ${MARCAS_DEL_TURNO.PARA_EMPEZAR}: quién come · alergias · comidas`, delDia: cabeceraDia(hoy) };
   }
   // Las secciones en el orden en que se recortan si no cabe (la última, nunca).
   const secciones = {

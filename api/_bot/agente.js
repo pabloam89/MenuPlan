@@ -49,7 +49,7 @@ import {
 import { fueraDeLimite, contarUso, avisoDeLimite } from "./uso.js";
 import { quedaMs, plazoDeLlamada, RESERVA_MIN_MS } from "./plazo.js";
 import { supervisar, frenoDeshacer } from "./supervisor.js";
-import { armarManual } from "./manual.js";
+import { armarManual, partesDelTurno, PARTES_MANUAL, MARCAS_DEL_TURNO } from "./manual.js";
 import { montarFicha, extrasDeFicha } from "./ficha.js";
 import { fichaRpc, leerFichaCasa, tareasDeFicha, calladasDeFicha, conLaFicha, olvidarFicha, estadosDeLaFicha } from "./fichaRpc.js";
 import { lineaDeAfinar } from "../../src/lib/siguientePregunta.js";
@@ -141,6 +141,8 @@ const CONOCIMIENTO = fs.readFileSync(new URL("./conocimiento.md", import.meta.ur
 // solo se hace en la app y qué no se deshace. Se arma la primera vez que hace falta y se guarda: el mapa
 // (src/lib/capacidades.js) importa este fichero, y a la carga sería un ciclo.
 let sistemaArmado = null;
+// Las partes que solo entran cuando hacen falta (manual.js, trozo 44): el alta y lo de fotos y voz.
+const PARTES = Object.fromEntries(Object.keys(PARTES_MANUAL).map((p) => [p, fs.readFileSync(new URL(`./manual/${p}.md`, import.meta.url), "utf8")]));
 export const sistema = () => (sistemaArmado ??= import("../../src/lib/capacidades.js")
   .then(({ CAPACIDADES }) => armarManual(CONOCIMIENTO, { capacidades: CAPACIDADES, fichas: FICHAS })));
 
@@ -1468,7 +1470,7 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
   // que lee memoria(); author_id solo duplicaba el nombre de Telegram sin lector.
   const guardado = Promise.all([
     insert("bot_messages", [
-      { channel: canal, chat_id: String(chatId), household_id: householdId, role: "user", author_id: null, content: { texto: adjunto ? `[${adjunto.tipo === "document" ? "PDF" : "foto"}] ${entrada}` : entrada } },
+      { channel: canal, chat_id: String(chatId), household_id: householdId, role: "user", author_id: null, content: { texto: adjunto ? `${adjunto.tipo === "document" ? MARCAS_DEL_TURNO.PDF : MARCAS_DEL_TURNO.FOTO} ${entrada}` : entrada } },
       { channel: canal, chat_id: String(chatId), household_id: householdId, role: "assistant", author_id: null, content: { texto: respuesta, pendientes: pendientesNuevas } },
     ]).catch((e) => console.error("[agente] memoria", e?.message)),
     // a propósito: es una señal del embudo; no toca la charla
@@ -1758,6 +1760,8 @@ async function unaVuelta({ historia, entrada, tools, adjunto, alEscribir, signal
       // puntos de caché que deja la API; el cuarto, el mensaje.
       ...(ficha?.estable ? [{ type: "text", text: `FICHA DE LA CASA (datos para ti, no un formato: tú contesta siempre en HTML de Telegram, nunca con ** ni guiones. Es lo guardado ahora y manda sobre lo dicho en charlas de otros días)\n${ficha.estable}`, cache_control: CACHE_FIJA }] : []),
       ...(ficha?.delDia ? [{ type: "text", text: ficha.delDia, cache_control: CACHE_FIJA }] : []),
+      // Las partes del manual de este turno, detrás de la caché: entran y salen sin romperla.
+      ...partesDelTurno({ entrada, adjunto, historia, ficha }).map((p) => ({ type: "text", text: PARTES[p] })),
       // Fuera de la caché: cambia en cada mensaje.
       { type: "text", text: `Ahora mismo en España: ${ahora ?? ahoraEnMadrid()}.` },
     ],
