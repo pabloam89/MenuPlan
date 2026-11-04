@@ -909,7 +909,8 @@ function snapshotDeCasa({ data, menuPlan, shopping, aiRecipes, onbStep }, modoFa
   // La familia, si vive en sus filas (trozo 10), los datos de la casa con sobre (trozo 12) y la libreta, si vive en
   // sus filas de preferencia (trozo 14), van por api/operacion.js y no aquí (lib/familiaCasa.js, casaDatos.js, libretaCasa.js).
   // Las recetas, votos, descartes, colecciones y carpetas viven en sus tablas (recetasFuente.js, trozo 21); las marcas
-  // de pantalla, en el móvil o en ningún sitio (marcasLocales.js, trozo 22); lo cocinado, en su tabla (cocinados.js).
+  // de pantalla, en el móvil o en ningún sitio (marcasLocales.js, trozo 22); lo cocinado y lo gastado, en sus tablas
+  // (cocinados.js, compraApp.js).
   const profile = { ...sinCompra(sinCocinados(sinMarcasDePantalla(sinRecetasDeTabla(sinLibretaLeida(sinCasa(sinFamilia(data, modoFamilia), cargaCasa), cargaLibreta))))) };
   delete profile.menus;
   return { data: profile, menuPlan, shopping, aiRecipes, onbStep };
