@@ -273,6 +273,7 @@ export const SIN_GENERAR = Object.freeze({
   CASA: "faltan datos de la casa",
   SEMANA: "esa semana ya tiene menú o no se puede generar",
   MINIMOS: "falta saber algo de la casa antes (alergias)",
+  PREGUNTAR: "falta preguntar para cuándo y cómo de a fondo",
   VACIO: "no ha salido ningún plato",
   NO_GUARDADO,
 });

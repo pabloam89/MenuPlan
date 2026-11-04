@@ -1626,6 +1626,15 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
   "input_schema": {
    "type": "object",
    "properties": {
+    "camino": {
+     "type": "string",
+     "enum": [
+      "basico",
+      "medio",
+      "avanzado"
+     ],
+     "description": "El que eligieron con los botones (basico = Lo básico, medio = A tu gusto, avanzado = Al detalle). Sin él no se genera: pregúntalo siempre."
+    },
     "semana": {
      "type": "string",
      "enum": [
@@ -1635,7 +1644,7 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
     },
     "desde": {
      "type": "string",
-     "description": "AAAA-MM-DD: genera la semana de esa fecha (manda sobre semana)."
+     "description": "AAAA-MM-DD: para cuándo, lo que hayan contestado (manda sobre semana). Se pregunta siempre."
     },
     "rehacer": {
      "type": "boolean",
