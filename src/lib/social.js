@@ -666,7 +666,7 @@ export async function loadProfileCounts(userId) {
 
 /**
  * Me gusta / no me gusta / veces incluida en un menú, para una tanda de
- * recetas. Vía RPC porque las políticas de recipe_votes y user_menu_recipes
+ * recetas. Vía RPC porque las políticas de recipe_votes y user_menu_weeks
  * solo dejan ver TUS filas: contado desde el cliente daría 0 o 1 siempre.
  *
  * Devuelve agregados, nunca quién votó qué.

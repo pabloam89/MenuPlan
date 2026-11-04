@@ -410,7 +410,7 @@ export const MOTIVO_FALLO = porNombre(MOTIVOS_FALLO);
  */
 export const SITIOS_FALLO = [
   // api/_bot/agente.js
-  "agente_casa", "agente_dueno", "agente_idioma", "agente_papel", "agente_segunda_semana", "agente_unir_cuenta", "apuntar_operacion", "uso_enrutador",
+  "agente_casa", "agente_dueno", "agente_huecos", "agente_idioma", "agente_papel", "agente_segunda_semana", "agente_unir_cuenta", "apuntar_operacion", "uso_enrutador",
   // api/bot/telegram.js
   "aclarar_via_rapida", "alta_adjunto", "apuntar_falta_via_rapida", "aviso_de_espera",
   "aviso_del_enrutador", "aviso_del_modo", "borrarcuenta_identidad", "borrarcuenta_nacida_aqui",
@@ -430,9 +430,9 @@ export const SITIOS_FALLO = [
   "db_usuario", "deshacer_paso", "deshacer_primer_menu", "embudo_dueno", "entradas_ya_vista", "ficharpc_casa", "generar_borrar_menu_a_medias",
   "generar_describir", "generar_despensa", "generar_recetas_propias", "generar_semanas_anteriores",
   "idempotencia_guardar_resultado", "idempotencia_soltar_la_llave", "invitacion_unirse", "invitacion_vigente",
-  "menu_describir", "menu_foto_de_la_receta", "menu_senales", "pintar_recetas", "pista_adelanto",
+  "menu_describir", "menu_foto_de_la_receta", "menu_senales", "pintar_huecos", "pintar_recetas", "pista_adelanto",
   "enlace_apuntar", "receta_ya_estaba", "recetas_busqueda", "recetas_subir_foto", "recordatorios_reclamar", "recordatorios_soltar", "silencio_apuntar", "silencio_cerrar", "telegram_json",
-  "traducir_memoria", "turno_casa", "turno_tras_escribir", "turnos_mirar_cola", "turnos_soltar_candado", "uso_limite", "vispera_casa",
+  "traducir_memoria", "turno_casa", "turno_tras_escribir", "turnos_mirar_cola", "turnos_soltar_candado", "uso_limite", "vispera_casa", "vispera_huecos",
   "voz_json",
 ];
 
