@@ -385,6 +385,8 @@ export const SITIOS_FALLO = [
   // el resto de api/_bot/
   "borrar_tanda", "casa_deshacer", "compartir_llave", "cuentas_hogar", "cuentas_json", "cuentas_nacida_aqui",
   "caducidades_personas_ilegibles",
+  // api/_bot/borrarPersona.js
+  "borrar_persona_fotos",
   "caducidades_rotas_demasiadas",
   "db_usuario", "deshacer_paso", "deshacer_primer_menu", "embudo_dueno", "entradas_ya_vista", "ficharpc_casa", "generar_borrar_menu_a_medias",
   "generar_describir", "generar_despensa", "generar_recetas_propias", "generar_semanas_anteriores",
