@@ -454,3 +454,21 @@ describe("planDeHoy", () => {
     expect(planDeHoy({}, null, 0, vivo, hoy)).toBe(vivo);
   });
 });
+
+import { lunesDeSemanaAbierta } from "./menuArchive.js";
+import { filaDeCocinado } from "./cocinados.js";
+
+// Un menú rehecho a mitad de semana empieza en jueves: su clave en el archivo no es un lunes, y los cocinados se
+// nombran por el lunes (filaDeCocinado). Con la clave tal cual, la app no podía leerlos (4 nov 2026).
+describe("lunesDeSemanaAbierta", () => {
+  it("de una semana que empieza en jueves, su lunes, que los cocinados aceptan", () => {
+    const weeks = { "2026-11-05": { offset: 0 }, "2026-11-09": { offset: 1 } };
+    expect(lunesDeSemanaAbierta(weeks, 0)).toBe("2026-11-02");
+    expect(lunesDeSemanaAbierta(weeks, 1)).toBe("2026-11-09");
+    expect(() => filaDeCocinado({ semana: lunesDeSemanaAbierta(weeks, 0), dia: "Lun", comida: "Comida", receta_id: "x" })).not.toThrow();
+  });
+
+  it("sin esa semana en el archivo, la de hoy más el offset", () => {
+    expect(lunesDeSemanaAbierta({}, 2)).toBe(mondayISOForOffset(2));
+  });
+});

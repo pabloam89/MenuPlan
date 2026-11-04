@@ -119,6 +119,7 @@ import {
   saveActivePlanAsFavorite,
   semanaVivaPorGuardar,
   semanaPorOffset,
+  lunesDeSemanaAbierta,
   punteroDeSemana,
   semanaAbiertaDe,
   collectMenuRecipeIds,
@@ -128,7 +129,7 @@ import {
   orderedWeeks,
   MAX_MENU_WEEKS,
 } from "./lib/menuArchive.js";
-import { todayDayIdx, getWeekDatesByMenuWeek, mondayISOForOffset } from "./lib/weekCalendar.js";
+import { todayDayIdx, getWeekDatesByMenuWeek } from "./lib/weekCalendar.js";
 import { diaDeFecha, indiceDeFecha } from "./lib/dias.js";
 import { claveCocinado, cocinadosLocales, ponerCocinadoLocal, sinCocinados } from "./lib/cocinados.js";
 import { CompraContext, cambiarCompraLocal, compraLocal, conCambio, leerCompra, mandarCompra, sinCompra } from "./lib/compraApp.js";
@@ -5925,10 +5926,8 @@ export default function App() {
   // equilibrado) y "Extras" (10-11, la estructura de plato se pregunta ya en
   // "¿Qué comidas quieres organizar?") se ocultan.
   const basicMode = !data.expertMode;
-  // La semana abierta, por su lunes: la del archivo del menú, o la de hoy más el offset con la misma cuenta que pone
-  // las claves del archivo (mondayISOForOffset, weekCalendar.js).
-  const lunesAbierto = semanaPorOffset(data.menus?.[data.activeMenuId]?.weeks, data.menuWeek?.offset ?? 0)?.[0]
-    ?? mondayISOForOffset(data.menuWeek?.offset ?? 0);
+  // La semana abierta, por su lunes (lunesDeSemanaAbierta, menuArchive.js): el menú puede empezar otro día.
+  const lunesAbierto = lunesDeSemanaAbierta(data.menus?.[data.activeMenuId]?.weeks, data.menuWeek?.offset ?? 0);
   useEffect(() => {
     let vivo = true;
     if (!activeHouseholdId) {

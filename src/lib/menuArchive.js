@@ -1,5 +1,6 @@
 import { sellarCambios } from "./sobreHueco.js";
 import { getWeekDatesByMenuWeek, mondayISOForOffset } from "./weekCalendar.js";
+import { lunesDe } from "./reglas.js";
 import * as ids from "./ids.js";
 
 // A "menú" used to mean exactly one calendar week. It can now span several
@@ -329,6 +330,17 @@ export function toggleMenuFavorite(menus, menuId) {
  * semanas conservadas) no se sabe cuál se ve, y guardar en la primera pisaba
  * lo que Lola acababa de generar: mejor no guardar que pisar la otra.
  */
+/**
+ * El lunes de la semana abierta, que es como se nombra una semana en los cocinados (`filaDeCocinado` exige un lunes).
+ * La clave del archivo es el PRIMER DÍA del menú, que no siempre es lunes: un menú rehecho el miércoles empieza el
+ * jueves, y con esa clave la lectura de cocinados se rechazaba («No he podido leer qué hay cocinado esta semana»).
+ * Sin semana en el archivo, la de hoy más el offset.
+ */
+export function lunesDeSemanaAbierta(weeks, offset = 0) {
+  const clave = semanaPorOffset(weeks, offset)?.[0];
+  return clave ? lunesDe(clave) : mondayISOForOffset(offset);
+}
+
 export function semanaPorOffset(weeks, offset) {
   const todas = Object.entries(weeks ?? {}).filter(([, w]) => w?.offset === offset);
   // No en silencio (revisor de #966, C5): queda en la consola por qué no se guardó.
