@@ -163,6 +163,28 @@ export function franjaDe(texto) {
   return comidaDe(t);
 }
 
+const propiasPorIdDe = (casa) => Object.fromEntries(propiasDe(casa).filter((r) => r?.id).map((r) => [r.id, r]));
+/** La semana a la vista y las demás de la casa, sin repetir. */
+const semanasDe = (casa) => [...new Set([casa.semana, ...(casa.semanas ?? [])].filter(Boolean))];
+
+/**
+ * El plato de un hueco, sacado del catálogo con lo que el hueco apunta (#1246). Carga el motor, así que lo pide quien
+ * va a pintar un hueco que apunta su plato (`apuntaSuPlato`), no quien solo mira la casa. Devuelve
+ * `(hueco, curso, lunes) => plato | null`: null si la receta ya no está o si el hueco no se puede leer.
+ */
+export async function resolverHuecos(casa) {
+  const m = await motor();
+  const propias = propiasPorIdDe(casa);
+  return (hueco, curso, lunes) => {
+    try {
+      return m.platoDelHueco(hueco, curso, { fecha: new Date(lunes), propias });
+    } catch (e) {
+      console.error("[menu] plato del hueco", e?.message);
+      return null;
+    }
+  };
+}
+
 /** Registra en el motor las recetas de la casa para poder resolver ids. */
 export async function prepararRecetas(casa) {
   const global = await motor();
@@ -185,6 +207,16 @@ export async function prepararRecetas(casa) {
     );
     const fotos = filas.map((f) => f.recipe_snapshot).filter(Boolean);
     if (fotos.length) m.registerRecipes(fotos);
+  }
+  // Los platos que salen de su hueco, después de las copias: si el id es el mismo, manda el hueco (#1246).
+  const propiasPorId = propiasPorIdDe(casa);
+  for (const s of semanasDe(casa)) {
+    try {
+      m.registerRecipes(m.platosDelPlan(s.plan, { fecha: new Date(s.weekStart), propias: propiasPorId }));
+    } catch (e) {
+      // Un hueco con una guarnición que ya no está no tumba el menú entero: ese plato sigue en su copia.
+      console.error("[menu] platos de la semana", s.weekStart, e?.message);
+    }
   }
   // Aquí había un repararGrupos que, para menús de antes del 30 sep 2026 con
   // grupos que la casa no conocía, reescribía casa.state.data.groups EN ESTA

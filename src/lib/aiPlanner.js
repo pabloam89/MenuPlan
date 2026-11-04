@@ -31,6 +31,8 @@ import {
 import { NUTRIENTES, CAMPOS_SECUNDARIOS } from "../data/nutrientes.js";
 import guarnicionesData from "../data/recipes/guarniciones.json" with { type: "json" };
 import salsasData from "../data/recipes/salsas.json" with { type: "json" };
+import { apuntaSuPlato } from "./apuntaSuPlato.js";
+
 // Las guarniciones y salsas del catálogo, por id: un solo índice para el motor y para platoDelHueco.
 const GUARNICION_POR_ID = Object.fromEntries(guarnicionesData.map((g) => [g.id, g]));
 const SALSA_POR_ID = Object.fromEntries(salsasData.map((x) => [x.id, x]));
@@ -2471,15 +2473,7 @@ export function platoDelHueco(hueco, curso = "principal", { fecha = new Date(), 
   return fr;
 }
 
-/**
- * Si el hueco apunta lo que hace falta para sacar del catálogo el plato de ese curso: recambios, para cuántos, y una
- * guarnición y una salsa que son de la receta que tiene (`platoDe`, `primeroDe`). Los huecos de antes de #1246 no, y
- * tampoco uno al que se le cambió la receta sin cambiarle lo demás (un intercambio, Lola): esos van con su copia.
- */
-export function apuntaSuPlato(hueco, curso = "principal") {
-  if (!Array.isArray(hueco?.restricciones) || !(hueco.eaters > 0)) return false;
-  return curso === "primero" ? hueco.primeroDe === hueco.firstRecipeId : hueco.platoDe === hueco.recipeId;
-}
+export { apuntaSuPlato };
 
 /**
  * Lo que un cambio de plato escribe en el hueco (#1246, paso 2b): la receta de ese curso, su guarnición y su salsa, y

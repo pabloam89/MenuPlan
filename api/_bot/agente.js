@@ -25,6 +25,7 @@ import {
   marcarCompra, anadirCompra, quitarCompra, cambiarPlato, proponerPlatos, franjaDe, porQuePlato,
   rangosDelMenu, resultadoDeCambio, resultadoDeAnadir, SIN_CAMBIAR,
   apuntarAusencia, resultadoDeAusencia,
+  resolverHuecos,
 } from "./menu.js";
 import { ESQUEMA_RASGOS, ESQUEMA_EJES, ESQUEMA_PERFIL } from "./esquemas.js";
 import { generarMenu, resultadoDeGenerar, SIN_GENERAR } from "./generar.js";
@@ -51,6 +52,7 @@ import { quedaMs, plazoDeLlamada, RESERVA_MIN_MS } from "./plazo.js";
 import { supervisar, frenoDeshacer } from "./supervisor.js";
 import { armarManual, USAN_UN_HUECO, oNombres, partesDelTurno, PARTES_MANUAL, MARCAS_DEL_TURNO } from "./manual.js";
 import { montarFicha, extrasDeFicha } from "./ficha.js";
+import { planApuntaPlatos } from "../../src/lib/apuntaSuPlato.js";
 import { fichaRpc, leerFichaCasa, tareasDeFicha, calladasDeFicha, conLaFicha, olvidarFicha, estadosDeLaFicha } from "./fichaRpc.js";
 import { lineaDeAfinar } from "../../src/lib/siguientePregunta.js";
 import { montarMemoria, ORDEN as ORDEN_MEMORIA } from "./memoria.js";
@@ -1371,7 +1373,10 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
   // La ficha de la casa (api/_bot/ficha.js): lo que Lola ya sabe sin preguntar.
   // El trato de quien escribe (trozo 16): de la ficha «trato» de ficha_casa, o sus defectos (trato.js, plan B). Va
   // delante de lo del día: lo pendiente y quién escribe siguen cerrándolo, como siempre.
-  const fichaBase = casa ? conQuienEscribe(montarFicha(deLaFicha.casa, extras), chat.papel, chat.idioma) : null;
+  // Los platos que salen de su hueco piden el motor (#1246); sin ninguno, la ficha no lo carga.
+  const platoDe = casa && [casa.semana, ...(casa.semanas ?? [])].some((s) => planApuntaPlatos(s?.plan))
+    ? await resolverHuecos(casa).catch(fallaCon("agente_huecos", null)) : null;
+  const fichaBase = casa ? conQuienEscribe(montarFicha(deLaFicha.casa, { ...extras, platoDe }), chat.papel, chat.idioma) : null;
   chat.trato = tratoDeFicha(tablas, personaDeLaCuenta(data, chat.userId, chat.papel));
   // Si pidió afinar, la siguiente pregunta del catálogo (trozo 17, siguientePregunta.js); sin la ficha v2, ninguna.
   const afinar = lineaDeAfinar(estadosDeLaFicha(tablas), chat.trato);
