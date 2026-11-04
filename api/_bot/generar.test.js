@@ -523,12 +523,14 @@ describe("el resultado de generar", () => {
     expect(recibo([r])).not.toMatch(/✅/);
   });
 
-  it("sin saber las alergias: no generado, con su motivo", async () => {
+  it("sin saber las alergias: no generado, y es una pregunta: sin ⚠️ en el recibo", async () => {
     cargarCasa.mockResolvedValue({ ...structuredClone(casaVieja), state: { data: { members: [{ id: "p1", name: "Ana" }], groups: [{ id: "g1", label: "Todos" }] } } });
     const out = {};
     const r = resultadoDeGenerar(out, await generarMenu("h1", "esta", [], out));
     expect(r.estado).toBe(ESTADO.NADA);
-    expect(r.sinHacer[0].motivo).toBe(SIN_GENERAR.MINIMOS);
+    expect(r.sinHacer).toEqual([]);
+    expect(recibo([r])).toBe("");
+    expect(r.nota).toMatch(/NO GENERADO/);
   });
 
   it("los huecos vacíos y lo quitado por seguridad van a «sin hacer»: parcial", () => {
