@@ -58,7 +58,8 @@ export const IDIOMAS = ["es", "en"];
  * se retira de la lista, su nombre desaparece de aquí, y vocabularios.test.js falla en cada
  * `CANAL.X` o `IDIOMA.X` del código que ya no existe.
  */
-const porNombre = (lista) => Object.freeze(Object.fromEntries(lista.map((v) => [v.toUpperCase(), v])));
+/** Una lista cerrada como mapa por nombre: ['a_b'] → { A_B: 'a_b' }. */
+export const porNombre = (lista) => Object.freeze(Object.fromEntries(lista.map((v) => [v.toUpperCase(), v])));
 export const CANAL = porNombre(CANALES);
 export const IDIOMA = porNombre(IDIOMAS);
 
@@ -384,6 +385,7 @@ export const SITIOS_FALLO = [
   // el resto de api/_bot/
   "borrar_tanda", "casa_deshacer", "compartir_llave", "cuentas_hogar", "cuentas_json", "cuentas_nacida_aqui",
   "caducidades_personas_ilegibles",
+  "caducidades_rotas_demasiadas",
   "db_usuario", "deshacer_paso", "deshacer_primer_menu", "embudo_dueno", "entradas_ya_vista", "ficharpc_casa", "generar_borrar_menu_a_medias",
   "generar_describir", "generar_despensa", "generar_recetas_propias", "generar_semanas_anteriores",
   "idempotencia_guardar_resultado", "idempotencia_soltar_la_llave", "invitacion_unirse", "invitacion_vigente",

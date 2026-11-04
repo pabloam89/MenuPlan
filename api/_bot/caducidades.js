@@ -28,13 +28,17 @@ import { isoDeCasa } from "../../src/lib/dias.js";
 import { CANAL, paraEscribir } from "../../src/lib/vocabularios.js";
 import { avisarFallo } from "./avisar.js";
 import { DURACION_CANDADO_S } from "./candado.js";
+import { cerrarResueltas, filtroVivas, SIN_RECORDATORIOS } from "./tareas.js";
+import { referenciasRotas, correccionesDeRotas } from "../../src/lib/referenciasRotas.js";
+import { EJE_POR_ID } from "../../src/data/axisRegistry.js";
+import { ESTADO_TAREA } from "../../src/lib/vocabularios.js";
 
 const MIN = 60000;
 const HORA = 60 * MIN;
 const DIA = 24 * HORA;
 
 /** Qué se hace al caducar. Vocabulario cerrado. */
-export const EFECTOS = ["ignorar", "preguntar", "avisar"];
+export const EFECTOS = ["ignorar", "preguntar", "avisar", "corregir"];
 /** Quién lo caduca. Vocabulario cerrado. */
 export const QUIENES = ["lectura", "barrido"];
 
@@ -47,6 +51,8 @@ export const CADUCA = {
   TAREAS_DEL_MENSAJE: "tareas_del_mensaje",
   /** Un mensaje en bot_cola que nadie tomó (murió el turno que tenía el candado). */
   COLA: "cola",
+  /** Una tarea o una preferencia que apunta a algo que ya no existe (src/lib/referenciasRotas.js, trozo 35). */
+  REFERENCIA_ROTA: "referencia_rota",
 };
 
 /**
@@ -63,6 +69,8 @@ export const COSAS_QUE_CADUCAN = {
   // Cuatro veces el candado (turnos.js, que ya es más que un turno entero): si
   // sigue sin tomar, el turno que lo tenía murió.
   [CADUCA.COLA]: { quien: "barrido", efecto: "avisar", vidaMs: 4 * DURACION_CANDADO_S * 1000, que: "un mensaje que se quedó sin contestar en la cola" },
+  // Lo obvio se corrige solo y lo dudoso se pregunta (Pablo, 4 nov 2026): cada rota dice cuál (ACCION_DE_ROTA).
+  [CADUCA.REFERENCIA_ROTA]: { quien: "barrido", efecto: "corregir", que: "una tarea o una preferencia que apunta a una persona, un campo o un valor que ya no existe" },
 };
 
 /**
@@ -92,6 +100,34 @@ export function vigente(cosa, creadoAt, ahoraMs = Date.now()) {
   const t = Date.parse(creadoAt);
   if (Number.isNaN(t)) throw new Error(`caducidades: fecha ilegible en ${cosa} («${String(creadoAt).slice(0, 40)}»)`);
   return ahoraMs - t < def.vidaMs;
+}
+
+// ── Preguntas que abre el barrido ────────────────────────────────────────────
+
+/** Cuánto vive una pregunta que abre el barrido (estados vencidos, referencias rotas). */
+export const VIDA_PREGUNTA_MS = 14 * DIA;
+
+/** El chat donde se pregunta: el privado antes que el grupo (puede ser salud). */
+export const chatParaPreguntar = (chats = []) => chats.find((x) => x.kind === "private") ?? chats[0] ?? null;
+
+/**
+ * Abre una pregunta para Lola una sola vez por casa y clave: si ya se preguntó (abierta o cerrada), no se repite.
+ * Devuelve si la abrió. El índice único (casa, clave) para una pasada solapada no es un fallo; lo demás se lanza.
+ */
+async function abrirPreguntaUnaVez({ householdId, chat, clave, texto, ahoraMs }) {
+  const ya = await select("bot_tareas", `household_id=${eq(householdId)}&clave=${eq(clave)}&limit=1`, "id");
+  if (ya.length) return false;
+  try {
+    await insert("bot_tareas", [{
+      household_id: householdId, channel: paraEscribir("canales", chat.channel ?? CANAL.TELEGRAM), chat_id: String(chat.chat_id),
+      kind: "pregunta", scope: "casa", texto, clave,
+      caduca_at: new Date(ahoraMs + VIDA_PREGUNTA_MS).toISOString(),
+    }]);
+    return true;
+  } catch (e) {
+    if (!esDuplicado(e)) throw e;
+    return false;
+  }
 }
 
 // ── Estados de salud con fecha ──────────────────────────────────────────────
@@ -169,24 +205,11 @@ async function barrerEstados({ ahoraMs, hoy }) {
     // Vivas antes de buscar el chat: sin chat no se abre nada, pero lo abierto sigue valiendo.
     for (const v of vencidos) vivas.add(`${c.household_id}|${v.clave}`);
     const chats = await select("bot_chats", `household_id=${eq(c.household_id)}&order=created_at.asc`, "channel,chat_id,kind");
-    // El privado antes que el grupo: es salud.
-    const chat = chats.find((x) => x.kind === "private") ?? chats[0];
+    const chat = chatParaPreguntar(chats);
     if (!chat) continue;
+    // Una vez por estado y fecha.
     for (const v of vencidos) {
-      // Una vez por estado y fecha: si ya se preguntó (abierta o cerrada), no se repite.
-      const ya = await select("bot_tareas", `household_id=${eq(c.household_id)}&clave=${eq(v.clave)}&limit=1`, "id");
-      if (ya.length) continue;
-      try {
-        await insert("bot_tareas", [{
-          household_id: c.household_id, channel: paraEscribir("canales", chat.channel ?? CANAL.TELEGRAM), chat_id: String(chat.chat_id),
-          kind: "pregunta", scope: "casa", texto: v.texto, clave: v.clave,
-          caduca_at: new Date(ahoraMs + 14 * DIA).toISOString(),
-        }]);
-        abiertas++;
-      } catch (e) {
-        // El índice único (casa, clave) para una pasada solapada: no es un fallo.
-        if (!esDuplicado(e)) throw e;
-      }
+      if (await abrirPreguntaUnaVez({ householdId: c.household_id, chat, clave: v.clave, texto: v.texto, ahoraMs })) abiertas++;
     }
   }
   // Las que ya no hacen falta (la quitaron o le dieron fecha nueva): cerradas.
@@ -197,6 +220,78 @@ async function barrerEstados({ ahoraMs, hoy }) {
     await update("bot_tareas", `id=in.(${sobran.map((t) => t.id).join(",")})&status=eq.abierta`, { status: "hecha", closed_at: ahora, updated_at: ahora });
   }
   return { abiertas, cerradas: sobran.length, sinLeer: sinLeer.size };
+}
+
+// ── Referencias rotas ───────────────────────────────────────────────────────
+
+/** Más correcciones que esto en una casa y una pasada no se hacen solas: algo raro pasa (se avisa y se deja). */
+export const TOPE_CORRECCIONES_POR_CASA = 5;
+
+/** La clave de la pregunta por una preferencia rota: una por persona, eje y valor, para no repetirla nunca. */
+export const claveDeRota = ({ personaId, eje, valor }) =>
+  claveDeTarea({ tipo: "falta_saber", personaId, palabras: ["rota", eje, String(valor).toLowerCase().replace(/[^a-z0-9_]+/g, "_")] });
+
+/** Pura. Lo que Lola tiene que preguntar por una preferencia rota. */
+export function textoDeRota({ eje, valor, personaId }, members = []) {
+  const nombre = (members ?? []).find((m) => String(m?.id) === String(personaId))?.name;
+  const que = EJE_POR_ID.get(eje)?.nombre ?? eje;
+  return `Preguntar qué quería decir con «${valor}» en «${que}»${nombre ? ` (de ${nombre})` : ""}: ya no es una de las opciones. Si ya no vale, quitar esa preferencia; si sí, cambiarla por la opción que más se parezca.`;
+}
+
+const COLUMNAS_ROTAS = "id,kind,clave,tipo,campo,persona_id,para_member,asignado_member";
+
+async function barrerReferencias({ ahoraMs }) {
+  // Las casas con chat: sin chat no hay a quién preguntar, y Lola es quien usa sus tareas.
+  const chats = await select("bot_chats", "household_id=not.is.null&order=created_at.asc", "household_id,channel,chat_id,kind");
+  const porCasa = new Map();
+  for (const c of chats) {
+    if (!porCasa.has(c.household_id)) porCasa.set(c.household_id, []);
+    porCasa.get(c.household_id).push(c);
+  }
+  const { cargarCasa } = await import("./casa.js");
+  const ahora = new Date(ahoraMs).toISOString();
+  const out = { casas: 0, sinLeer: 0, descartadas: 0, sinEncargado: 0, preguntas: 0, frenadas: 0 };
+  for (const [householdId, suyos] of porCasa) {
+    let casa;
+    try {
+      casa = await cargarCasa(householdId, { fresca: true });
+    } catch (e) {
+      // Sin la casa entera no se corrige nada: con una familia a medias, saldrían rotas tareas que no lo están.
+      console.error("[caducidades] referencias: casa sin leer", e?.message);
+      out.sinLeer++;
+      continue;
+    }
+    if (!casa) continue;
+    out.casas++;
+    const members = Array.isArray(casa.state?.members) ? casa.state.members : null;
+    const ids = (members ?? []).map((m) => m?.id).filter(Boolean);
+    const tareas = await select("bot_tareas", `household_id=${eq(householdId)}&${filtroVivas()}&${SIN_RECORDATORIOS}`, COLUMNAS_ROTAS);
+    // Sin nadie leído en la familia no se mira la persona (saldrían todas rotas), solo el campo.
+    const rotas = referenciasRotas({ preferencias: casa.preferencias ?? [], tareas, personas: ids.length ? ids : null });
+    if (!rotas.length) continue;
+    const { descartar, sinEncargado, preguntar } = correccionesDeRotas(rotas, casa.preferencias ?? []);
+    if (descartar.length + sinEncargado.length > TOPE_CORRECCIONES_POR_CASA) {
+      avisarFallo("caducidades_rotas_demasiadas", new Error(`${descartar.length + sinEncargado.length} correcciones en una casa`), { grave: false });
+      out.frenadas++;
+      continue;
+    }
+    // Lo obvio, solo y dicho (cerrarResueltas apunta cada cierre): las tareas de alguien que ya no está o de un campo que ya no existe.
+    const porId = new Map(tareas.map((t) => [t.id, t]));
+    await cerrarResueltas(descartar.map((id) => porId.get(id)).filter(Boolean), { householdId }, ESTADO_TAREA.DESCARTADA);
+    out.descartadas += descartar.length;
+    if (sinEncargado.length) {
+      await update("bot_tareas", `household_id=${eq(householdId)}&id=in.(${sinEncargado.join(",")})&${filtroVivas()}`, { asignado_member: null, updated_at: ahora });
+      out.sinEncargado += sinEncargado.length;
+    }
+    // Lo dudoso, a la familia: una pregunta por preferencia, una sola vez (abierta o cerrada, no se repite).
+    const chat = chatParaPreguntar(suyos);
+    for (const p of preguntar) {
+      const clave = claveDeRota(p);
+      if (!clave) continue;
+      if (await abrirPreguntaUnaVez({ householdId, chat, clave, texto: textoDeRota(p, members), ahoraMs })) out.preguntas++;
+    }
+  }
+  return out;
 }
 
 // ── La cola sin dueño ───────────────────────────────────────────────────────
@@ -246,10 +341,11 @@ async function barrerCola({ ahoraMs, enviar }) {
 export const BARRIDOS = {
   [CADUCA.ESTADO_SALUD]: barrerEstados,
   [CADUCA.COLA]: barrerCola,
+  [CADUCA.REFERENCIA_ROTA]: barrerReferencias,
 };
 
 // Lo que no hace falta mirar en cada pasada: una vez por hora basta.
-const CADA = { [CADUCA.ESTADO_SALUD]: HORA, [CADUCA.COLA]: 0 };
+const CADA = { [CADUCA.ESTADO_SALUD]: HORA, [CADUCA.COLA]: 0, [CADUCA.REFERENCIA_ROTA]: HORA };
 
 /**
  * La pasada del cron. Cada cosa por su cuenta: si una falla, las demás siguen.

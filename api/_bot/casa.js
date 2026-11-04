@@ -30,6 +30,7 @@ import { isoDeCasa } from "../../src/lib/dias.js";
 import { favoritasDeFilas, votosDeFavoritas, descartesDeFilas } from "../../src/lib/recetasDeLaCasa.js";
 import { sellarCambios } from "../../src/lib/sobreHueco.js";
 import { sinRecetasDeTabla } from "../../src/lib/recetasFuente.js";
+import { sinCocinados } from "../../src/lib/cocinados.js";
 import { sinMarcasDePantalla } from "../../src/lib/marcasLocales.js";
 import { conCompraQueSeVe, semanaParaGuardar } from "./compraDeSemana.js";
 
@@ -342,8 +343,9 @@ export async function guardarCasa(casa, { state = null, semana = null, activar =
   const { documento: sinSobre, cambios: datos } = separarConSobre(sinPreferencias, casa.conSobre, familiaTras);
   const { documento: conRecetas, familia } = casa.familia ? separarFamilia(sinSobre, casa.familia) : { documento: sinSobre, familia: null };
   // Las recetas de la casa viven en sus tablas y no van al documento (recetasFuente.js, trozo 21), ni las marcas de
-  // pantalla, que son del móvil o de nadie (marcasLocales.js, trozo 22).
-  const documento = conRecetas?.data ? { ...conRecetas, data: sinMarcasDePantalla(sinRecetasDeTabla(conRecetas.data)) } : conRecetas;
+  // pantalla, que son del móvil o de nadie (marcasLocales.js, trozo 22), ni lo cocinado, que vive en su tabla
+  // (cocinados.js, trozo 22).
+  const documento = conRecetas?.data ? { ...conRecetas, data: sinCocinados(sinMarcasDePantalla(sinRecetasDeTabla(conRecetas.data))) } : conRecetas;
   let cambios = null;
   if (familia) {
     const c = cambiosDePersonas(casa.familia, familia);
