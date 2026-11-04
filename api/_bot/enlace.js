@@ -32,7 +32,7 @@ export function idDePersona(from) {
  * specs/roles-de-la-casa-revision.md):
  *   · `nacida`: la cuenta se creó en este Telegram (email sintético de su id).
  *     Es la prueba más fuerte, y la única que corrige una identidad anterior.
- *   · `email`: escribió aquí el código que llegó al correo de la cuenta.
+ *   · `codigo_email`: escribió aquí el código que llegó al correo de la cuenta.
  *   · `ajustes`: el enlace de «Conectar Telegram» que el dueño sacó en su app,
  *     pulsado en un chat privado.
  *   · `cambio`: el mismo enlace, cuando este Telegram ya era de otra cuenta y
