@@ -118,7 +118,7 @@ describe("cada intento de enlace queda apuntado (bot_enlaces, #1238)", () => {
     await enlazar({ chatId: "p1", kind: "private", userId: TITULAR, externalId: "555", identidad: null });
     await enlazar({ chatId: "p1", kind: "private", householdId: "h2", userId: TITULAR, externalId: "555", identidad: null });
     expect(resultados()).toEqual([RESULTADO_ENLACE.NUEVO, RESULTADO_ENLACE.YA_ESTABA, RESULTADO_ENLACE.CASA_CAMBIADA]);
-    expect(filas.bot_enlaces[0]).toMatchObject({ camino_enlace: "app", household_id: "h1", user_id: TITULAR, channel: "telegram" });
+    expect(filas.bot_enlaces[0]).toEqual({ camino_enlace: "app", resultado_enlace: "nuevo", household_id: "h1", user_id: TITULAR });
   });
 
   it("un chat de otra casa y otra cuenta: rechazado como ocupado, y también se apunta", async () => {

@@ -56,7 +56,7 @@ export const chatOcupado = (actual, householdId, userId) =>
   Boolean(actual && actual.household_id !== householdId && actual.linked_by !== userId);
 
 /**
- * Pura. Cómo acaba un enlace que sí se hace (bot_enlaces.resultado, #1238): `actual` es la fila de bot_chats de antes
+ * Pura. Cómo acaba un enlace que sí se hace (bot_enlaces.resultado_enlace, #1238): `actual` es la fila de bot_chats de antes
  * (o nada) y `identidad`, lo que devolvió apuntarIdentidad.
  */
 export function resultadoDeEnlace(actual, householdId, identidad) {
@@ -71,11 +71,10 @@ export function resultadoDeEnlace(actual, householdId, identidad) {
  * que si la base no contesta o la 0126 no está aplicada; pero apuntar nunca tumba el enlace de la persona. Que cada
  * llamada a enlazarChat diga su camino lo vigila enlace.test.js recorriendo el código.
  */
-export async function apuntarEnlace({ channel = CANAL.TELEGRAM, camino, resultado, householdId = null, userId = null }) {
+export async function apuntarEnlace({ camino, resultado, householdId = null, userId = null }) {
   try {
     if (!camino || !resultado) throw new Error(`apuntarEnlace sin camino o resultado («${camino}», «${resultado}»)`);
     const fila = {
-      channel: paraEscribir("canales", channel),
       camino_enlace: paraEscribir("caminos_enlace", camino),
       resultado_enlace: paraEscribir("resultados_enlace", resultado),
       household_id: householdId ?? null,
@@ -83,14 +82,15 @@ export async function apuntarEnlace({ channel = CANAL.TELEGRAM, camino, resultad
     };
     await insert("bot_enlaces", [fila]);
   } catch (e) {
-    seguirCon("bot_enlaces")(e);
+    // a propósito: apuntar el intento es accesorio; el enlace de la persona sigue y el fallo queda en el log.
+    seguirCon("enlace_apuntar")(e);
   }
 }
 
 export async function enlazarChat({ channel = CANAL.TELEGRAM, camino, chatId, kind, householdId, userId, externalId, nombre, identidad = null }) {
   const [actual] = await select("bot_chats", `channel=${eq(channel)}&chat_id=${eq(chatId)}`, "household_id,linked_by");
   if (chatOcupado(actual, householdId, userId)) {
-    await apuntarEnlace({ channel, camino, resultado: RESULTADO_ENLACE.OCUPADO, householdId, userId });
+    await apuntarEnlace({ camino, resultado: RESULTADO_ENLACE.OCUPADO, householdId, userId });
     return { ok: false, ocupado: true };
   }
 
@@ -103,7 +103,7 @@ export async function enlazarChat({ channel = CANAL.TELEGRAM, camino, chatId, ki
     linked_by: userId,
   }], { upsert: true });
   await registrar(EMBUDO.ENLACE, { userId, telegramId: externalId, unaVez: true, extra: { tipo: kind } });
-  await apuntarEnlace({ channel, camino, resultado: resultadoDeEnlace(actual, householdId, estado), householdId, userId });
+  await apuntarEnlace({ camino, resultado: resultadoDeEnlace(actual, householdId, estado), householdId, userId });
   return { ok: true, identidad: estado };
 }
 

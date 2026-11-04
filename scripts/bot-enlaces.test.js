@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { contar, leerDias, DIAS_POR_DEFECTO } from "./bot-enlaces.mjs";
 import { CAMINO_ENLACE, RESULTADO_ENLACE, CAMINOS_ENLACE, RESULTADOS_ENLACE } from "../src/lib/vocabularios.js";
 
-const f = (cuenta, en, camino, resultado) => ({ cuenta, en, camino, resultado });
+const f = (cuenta, en, camino, resultado, casa = "h1") => ({ cuenta, en, camino, resultado, casa });
 
 describe("bot-enlaces: los intentos de conectar un chat (#1238)", () => {
   it("cuenta por camino y por resultado, con todos los valores de su lista", () => {
@@ -30,6 +30,17 @@ describe("bot-enlaces: los intentos de conectar un chat (#1238)", () => {
       f(null, 3, CAMINO_ENLACE.APP, RESULTADO_ENLACE.CADUCADO),
     ]);
     expect(c.fuera).toBe(1);
+  });
+
+  it("cuenta las cuentas que intentan enlazar desde más de una casa (#1238)", () => {
+    const c = contar([
+      f("a", 1, CAMINO_ENLACE.APP, RESULTADO_ENLACE.NUEVO, "h1"),
+      f("a", 2, CAMINO_ENLACE.APP, RESULTADO_ENLACE.CASA_CAMBIADA, "h2"),
+      f("b", 3, CAMINO_ENLACE.APP, RESULTADO_ENLACE.NUEVO, "h1"),
+      f("b", 4, CAMINO_ENLACE.APP, RESULTADO_ENLACE.YA_ESTABA, "h1"),
+      f("c", 5, CAMINO_ENLACE.APP, RESULTADO_ENLACE.CADUCADO, null),
+    ]);
+    expect(c.variasCasas).toBe(1);
   });
 
   it("un valor fuera de la lista es un error, no un cero", () => {

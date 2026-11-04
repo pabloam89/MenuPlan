@@ -5,7 +5,8 @@
  *   node scripts/bot-enlaces.mjs            los últimos 30 días
  *   node scripts/bot-enlaces.mjs --dias 7
  *
- * Cuenta cada intento por camino y por resultado (los dos de su lista cerrada, src/lib/vocabularios.js), y las
+ * Cuenta cada intento por camino y por resultado (los dos de su lista cerrada, src/lib/vocabularios.js); las
+ * cuentas que intentan enlazar desde más de una casa (el síntoma de #1238: la app en una casa y Lola en otra); y las
  * cuentas que se quedaron fuera: rechazadas al menos una vez y sin ningún enlace hecho después. Es la cifra que
  * #1238 quiere en 0 (el 4 nov 2026, deducida a mano de bot_link_tokens: 3 cuentas). Sin ids en la salida: solo
  * cifras (el repo es público).
@@ -31,8 +32,9 @@ export function leerDias(argv) {
 }
 
 /**
- * Pura, para el test. `filas`: [{ camino, resultado, cuenta, en (ms) }], en cualquier orden.
- * @returns {{ intentos: number, porCamino: object, porResultado: object, fuera: number }}
+ * Pura, para el test. `filas`: [{ camino, resultado, cuenta, casa, en (ms) }], en cualquier orden.
+ * @returns {{ intentos: number, porCamino: object, porResultado: object, variasCasas: number, fuera: number }}
+ *   `variasCasas`: cuentas con intentos para más de una casa;
  *   `porCamino` y `porResultado` traen todos los valores de su lista (0 si no salió); `fuera`: cuentas con un rechazo
  *   y ningún enlace hecho después de él.
  */
@@ -41,15 +43,18 @@ export function contar(filas) {
   const porCamino = ceros(CAMINOS_ENLACE);
   const porResultado = ceros(RESULTADOS_ENLACE);
   const ultimo = new Map();
+  const casas = new Map();
   for (const f of [...filas].sort((a, b) => a.en - b.en)) {
     if (!(f.camino in porCamino)) throw new Error(`camino fuera de la lista: «${f.camino}»`);
     if (!(f.resultado in porResultado)) throw new Error(`resultado fuera de la lista: «${f.resultado}»`);
     porCamino[f.camino]++;
     porResultado[f.resultado]++;
     if (f.cuenta) ultimo.set(f.cuenta, ENLAZADOS.has(f.resultado));
+    if (f.cuenta && f.casa) casas.set(f.cuenta, (casas.get(f.cuenta) ?? new Set()).add(f.casa));
   }
   const fuera = [...ultimo.values()].filter((enlazada) => !enlazada).length;
-  return { intentos: filas.length, porCamino, porResultado, fuera };
+  const variasCasas = [...casas.values()].filter((s) => s.size > 1).length;
+  return { intentos: filas.length, porCamino, porResultado, variasCasas, fuera };
 }
 
 const lista = (o) => Object.entries(o).filter(([, n]) => n).map(([k, n]) => `${k} ${n}`).join(", ") || "ninguno";
@@ -68,13 +73,14 @@ async function main() {
     await client.query("set local statement_timeout = '15s'");
     const desde = new Date(Date.now() - dias * 86400000).toISOString();
     const { rows } = await client.query({
-      text: "select camino_enlace, resultado_enlace, user_id, created_at from bot_enlaces where created_at > $1",
+      text: "select camino_enlace, resultado_enlace, user_id, household_id, created_at from bot_enlaces where created_at > $1",
       values: [desde],
     });
-    const c = contar(rows.map((r) => ({ camino: r.camino_enlace, resultado: r.resultado_enlace, cuenta: r.user_id, en: Date.parse(r.created_at) })));
+    const c = contar(rows.map((r) => ({ camino: r.camino_enlace, resultado: r.resultado_enlace, cuenta: r.user_id, casa: r.household_id, en: Date.parse(r.created_at) })));
     console.log(`Últimos ${dias} días: ${c.intentos} intentos de enlazar un chat.`);
     console.log(`Por camino: ${lista(c.porCamino)}.`);
     console.log(`Por resultado: ${lista(c.porResultado)}.`);
+    console.log(`Cuentas que intentan enlazar desde más de una casa: ${c.variasCasas}.`);
     console.log(`Cuentas que se quedaron fuera (rechazadas y sin enlazar después): ${c.fuera}.`);
   } finally {
     // Un rollback que falla se dice: la conexión se cierra igual.

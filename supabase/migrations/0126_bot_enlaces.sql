@@ -12,7 +12,11 @@
 -- camino y resultado y las cuentas rechazadas que no llegaron a enlazar.
 --
 --   · bot_enlaces (nueva): registro de solo añadir. Sin datos de Telegram (ni chat ni persona): quién lo pidió es la
---     cuenta (user_id, set null al borrarla) y para qué casa (household_id, cascade al borrarla).
+--     cuenta (user_id, set null al borrarla) y para qué casa (household_id, cascade al borrarla). El script cuenta con
+--     las dos las cuentas que intentan enlazar desde más de una casa, el síntoma de #1238. Sin canal: hoy todo es
+--     Telegram y nadie lo leería; cuando haya otro, se añade con su lector.
+--   · Aceptado: identidad_de_otra (el Telegram ya es de otra cuenta) gana a nuevo / ya_estaba / casa_cambiada en la
+--     misma columna; ese caso no dice si el chat era nuevo. Hoy importa saber que pasó, no de dónde venía el chat.
 --
 -- NO hace: no toca bot_chats, bot_identities ni bot_link_tokens, ni datos de familias, ni RLS de lo que ya existía.
 -- Plan B (regla migraciones): sin ella, el insert de apuntarEnlace falla, se apunta en el log (seguirCon) y el
@@ -26,7 +30,6 @@ create table if not exists public.bot_enlaces (
   -- Principio 1 roto a la vista (docs/datos/PRINCIPIOS.md): nullable. Un código caducado o de otro tipo se rechaza
   -- sin llegar a saber para qué casa era; sigue siendo un intento que contar.
   household_id     uuid references public.households(id) on delete cascade,
-  channel          text not null check (channel in ('telegram', 'whatsapp')),
   camino_enlace    text not null check (camino_enlace in ('app', 'grupo', 'email', 'alta_telegram', 'invitacion', 'reenganche')),
   resultado_enlace text not null check (resultado_enlace in (
                  'nuevo', 'ya_estaba', 'casa_cambiada', 'ocupado', 'identidad_de_otra',
