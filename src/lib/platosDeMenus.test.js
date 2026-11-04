@@ -1,4 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import fs from "node:fs";
+import path from "node:path";
 import { generateMenuWithAI, platosDeMenus, platosDelPlan } from "./aiPlanner.js";
 import { casaAleatoria } from "./casasAleatorias.js";
 
@@ -52,5 +54,21 @@ describe("los platos de los menús salen de sus huecos (#1246, paso 2)", () => {
     };
     expect(platosDelPlan(plan).map((r) => [r.id, r.garnishId])).toEqual([["carnes_037", "guarniciones_024"]]);
     expect(platosDeMenus({ m: { weeks: { [LUNES]: { plan } } }, vacio: {} })).toHaveLength(1);
+  });
+
+  // App.jsx no se monta en los tests: se mira su fuente. La compra lee RECIPES_BY_ID (buildShoppingList), así que se
+  // calcula después de registrar los platos y vuelve a calcularse cuando cambian; si no, un menú leído de la nube
+  // daba una compra sin sus platos.
+  it("la app registra los platos de los menús antes de sacar la compra, y la compra cambia con ellos", () => {
+    const app = fs.readFileSync(path.resolve(import.meta.dirname, "../App.jsx"), "utf8");
+    const registra = app.indexOf("const platosDeLosMenus = useMemo(");
+    expect(registra).toBeGreaterThan(0);
+    expect(app.slice(registra, registra + 400)).toContain("registerRecipes(platos)");
+    for (const nombre of ["const compra = useMemo(", "const semanasDeCompra = useMemo("]) {
+      const i = app.indexOf(nombre);
+      expect(i, nombre).toBeGreaterThan(registra);
+      // Hasta el primer «);», que cierra el useMemo con sus dependencias.
+      expect(app.slice(i, app.indexOf(");", i)), nombre).toContain("platosDeLosMenus");
+    }
   });
 });
