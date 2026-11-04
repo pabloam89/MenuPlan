@@ -40,7 +40,8 @@
  * contesta 200 con { tickets, precios } en la forma de la app (src/lib/historialCompra.js) a quien es de la casa.
  *
  * Exportar la casa (trozo 36, privacidad): GET ?casa=<uuid>&exportar=1 contesta 200 con todo lo que la base guarda de
- * esa casa, tabla a tabla (api/_bot/exportar.js, src/lib/exportarCasa.js), a quien es de ella, con cualquier papel.
+ * esa casa, tabla a tabla (api/_bot/exportar.js, src/lib/exportarCasa.js), a quien es de ella, con cualquier papel; sin
+ * secretos ni lo privado de las demás personas (sus chats a solas con Lola y sus tareas personales).
  *
  * Y lee (trozo 12): GET ?casa=<uuid> contesta 200 con { v, datos }, los datos de la ficha Casa de ficha_casa v2
  * (leerDatosDeCasa; con la v1, 503). La app no puede llamar a ficha_casa (solo la service role, 0107):
@@ -84,7 +85,7 @@ async function leerCasa(req, res, accessToken) {
     // Con la service role, ficha_casa no mira quién lee: se mira aquí.
     if (!(await papelDeUsuario(casa, user.id))) return contestar(res, FALLO_DATO.SIN_PERMISO);
     if (req.query?.compra !== undefined) return res.status(200).json(await leerCompra(casa));
-    if (req.query?.exportar !== undefined) return res.status(200).json(await exportarCasa(casa));
+    if (req.query?.exportar !== undefined) return res.status(200).json(await exportarCasa(casa, user.id));
     const semana = req.query?.cocinados;
     if (semana !== undefined) {
       // Primero la semana (inválida, sin pedir nada); luego la base, cuyo fallo va al catch de abajo.

@@ -8,6 +8,12 @@
  * service role), desde GET /api/operacion?casa=<uuid>&exportar=1.
  */
 
+import { AMBITOS_TAREA, porNombre } from "./vocabularios.js";
+
+const AMBITO_TAREA = porNombre(AMBITOS_TAREA);
+/** El tipo de chat de Telegram de una conversación a solas con Lola (bot_chats.kind). */
+const CHAT_PRIVADO = "private";
+
 /** Versión del formato del JSON: sube si cambia su forma. */
 export const VERSION_EXPORTAR = 1;
 
@@ -65,6 +71,25 @@ export const COLUMNAS_QUE_NO_SON_SECRETO = new Map([
   ["bot_usage.cache_write_tokens", "cuánto texto entró en la caché del modelo"],
 ]);
 
+/**
+ * Lo que es de una sola persona de la casa y no se da a las demás: su chat privado con Lola (`bot_chats` de tipo
+ * `private` y sus `bot_messages`) y sus tareas personales (`bot_tareas` con `scope` personal). En la app nadie
+ * ve esas tablas (0057: RLS sin policy), y en privado Lola habla solo con esa persona. Pura: deja lo de la casa y lo
+ * de quien exporta. `quien`: `{ userId, propios }`, los ids de mensajería de quien exporta (su chat privado).
+ */
+export function soloLoQueEsSuyo(leidas, { userId, propios = [] }) {
+  const mios = new Set(propios.map(String));
+  const chats = (leidas.bot_chats ?? []).filter((c) => c.kind !== CHAT_PRIVADO || mios.has(String(c.chat_id)));
+  const vistos = new Set(chats.map((c) => `${c.channel}|${c.chat_id}`));
+  return {
+    ...leidas,
+    bot_chats: chats,
+    // Un mensaje de un chat que no está entre los que se ven (de otra persona, o de un chat ya desenlazado) no sale.
+    bot_messages: (leidas.bot_messages ?? []).filter((m) => vistos.has(`${m.channel}|${m.chat_id}`)),
+    bot_tareas: (leidas.bot_tareas ?? []).filter((t) => t.scope !== AMBITO_TAREA.PERSONAL || (userId && t.owner_user_id === userId)),
+  };
+}
+
 const secretasDe = (tabla) => [...COLUMNAS_SECRETAS.keys()].filter((k) => k.startsWith(`${tabla}.`)).map((k) => k.slice(tabla.length + 1));
 const sinSecretas = (filas, fuera) => (fuera.length ? filas.map((f) => Object.fromEntries(Object.entries(f).filter(([c]) => !fuera.includes(c)))) : filas);
 
@@ -72,16 +97,18 @@ const sinSecretas = (filas, fuera) => (fuera.length ? filas.map((f) => Object.fr
  * Pura. El JSON de una casa: `{ formato, casa, exportado_at, tablas: { [tabla]: { filas, cortada } } }`.
  * `leidas`: `{ [tabla]: filas[] }` tal como salen de la base, con hasta LIMITE_FILAS + 1 filas (la de más dice
  * que había más). Una tabla de TABLAS_EXPORTADAS que no llega lanza: una exportación a medias no se da por buena.
- * Las columnas de COLUMNAS_SECRETAS se quitan de cada fila.
+ * Las columnas de COLUMNAS_SECRETAS se quitan de cada fila, y lo privado de otra persona (soloLoQueEsSuyo) no sale.
  */
-export function armarExportacion({ casa, leidas = {}, ahora = new Date() }) {
+export function armarExportacion({ casa, leidas: crudas = {}, quien, ahora = new Date() }) {
   if (!casa) throw new Error("exportar: falta la casa");
+  if (!quien?.userId) throw new Error("exportar: falta quién exporta (sin él no se sabe qué es privado de otro)");
+  for (const t of TABLAS_EXPORTADAS) if (!Array.isArray(crudas[t])) throw new Error(`exportar: la tabla ${t} no se ha leído`);
+  const leidas = soloLoQueEsSuyo(crudas, quien);
   const tablas = {};
   for (const t of TABLAS_EXPORTADAS) {
-    const filas = leidas[t];
-    if (!Array.isArray(filas)) throw new Error(`exportar: la tabla ${t} no se ha leído`);
-    const cortada = filas.length > LIMITE_FILAS;
-    tablas[t] = { filas: sinSecretas(cortada ? filas.slice(0, LIMITE_FILAS) : filas, secretasDe(t)), cortada };
+    // Cortada se mira en lo leído, antes de quitar lo privado de otros: si no, una tabla cortada podría parecer entera.
+    const cortada = crudas[t].length > LIMITE_FILAS;
+    tablas[t] = { filas: sinSecretas(leidas[t].slice(0, LIMITE_FILAS), secretasDe(t)), cortada };
   }
   return { formato: VERSION_EXPORTAR, casa, exportado_at: ahora.toISOString(), tablas };
 }

@@ -44,31 +44,64 @@ describe("exportar una casa: cada tabla de la casa, exportada o fuera con su por
 
 describe("armarExportacion", () => {
   const todas = (filas = []) => Object.fromEntries(TABLAS_EXPORTADAS.map((t) => [t, filas]));
+  const QUIEN = { userId: "u1", propios: ["111"] };
 
   it("da cada tabla con sus filas, la casa, la fecha y el formato", () => {
     const ahora = new Date("2026-11-04T10:00:00Z");
-    const r = armarExportacion({ casa: "c1", leidas: { ...todas(), persona: [{ id: "ana" }] }, ahora });
+    const r = armarExportacion({ casa: "c1", leidas: { ...todas(), persona: [{ id: "ana" }] }, quien: QUIEN, ahora });
     expect(r).toMatchObject({ formato: VERSION_EXPORTAR, casa: "c1", exportado_at: "2026-11-04T10:00:00.000Z" });
     expect(Object.keys(r.tablas)).toEqual([...TABLAS_EXPORTADAS]);
     expect(r.tablas.persona).toEqual({ filas: [{ id: "ana" }], cortada: false });
   });
 
   it("las columnas secretas se quitan de cada fila (el enlace de la casa no sale)", () => {
-    const r = armarExportacion({ casa: "c1", leidas: { ...todas(), households: [{ id: "c1", name: "Casa", invite_token: "abc" }] } });
+    const r = armarExportacion({ casa: "c1", leidas: { ...todas(), households: [{ id: "c1", name: "Casa", invite_token: "abc" }] }, quien: QUIEN });
     expect(r.tablas.households.filas).toEqual([{ id: "c1", name: "Casa" }]);
   });
 
   it("con más filas que el límite, corta y lo dice", () => {
-    const muchas = Array.from({ length: LIMITE_FILAS + 1 }, (_, i) => ({ id: i }));
-    const r = armarExportacion({ casa: "c1", leidas: { ...todas(), bot_messages: muchas } });
+    // Mensajes del grupo de la casa: los ve todo el mundo, así que el corte es lo único que los quita.
+    const muchas = Array.from({ length: LIMITE_FILAS + 1 }, (_, i) => ({ id: i, channel: "telegram", chat_id: "-900" }));
+    const grupo = [{ channel: "telegram", chat_id: "-900", kind: "group" }];
+    const r = armarExportacion({ casa: "c1", leidas: { ...todas(), bot_chats: grupo, bot_messages: muchas }, quien: QUIEN });
     expect(r.tablas.bot_messages.cortada).toBe(true);
     expect(r.tablas.bot_messages.filas).toHaveLength(LIMITE_FILAS);
     expect(r.tablas.persona.cortada).toBe(false);
   });
 
+  it("cortada se mira en lo leído: aunque lo privado de otros se quite, una tabla cortada lo dice", () => {
+    const deOtra = Array.from({ length: LIMITE_FILAS + 1 }, (_, i) => ({ id: i, channel: "telegram", chat_id: "222" }));
+    const r = armarExportacion({ casa: "c1", leidas: { ...todas(), bot_messages: deOtra }, quien: QUIEN });
+    expect(r.tablas.bot_messages).toEqual({ filas: [], cortada: true });
+  });
+
   it("una tabla sin leer lanza: no hay exportación a medias", () => {
     const { persona: _fuera, ...sinPersona } = todas();
-    expect(() => armarExportacion({ casa: "c1", leidas: sinPersona })).toThrow(/persona/);
-    expect(() => armarExportacion({ leidas: todas() })).toThrow(/casa/);
+    expect(() => armarExportacion({ casa: "c1", leidas: sinPersona, quien: QUIEN })).toThrow(/persona/);
+    expect(() => armarExportacion({ leidas: todas(), quien: QUIEN })).toThrow(/casa/);
+    expect(() => armarExportacion({ casa: "c1", leidas: todas() })).toThrow(/quién/);
+  });
+
+  it("lo privado de otra persona no sale: su chat a solas con Lola, sus mensajes y sus tareas personales", () => {
+    const chats = [
+      { channel: "telegram", chat_id: "111", kind: "private" },
+      { channel: "telegram", chat_id: "222", kind: "private" },
+      { channel: "telegram", chat_id: "-900", kind: "group" },
+    ];
+    const mensajes = [
+      { channel: "telegram", chat_id: "111", content: "mío" },
+      { channel: "telegram", chat_id: "222", content: "de otra" },
+      { channel: "telegram", chat_id: "-900", content: "del grupo" },
+      { channel: "telegram", chat_id: "333", content: "de un chat que ya no está" },
+    ];
+    const tareas = [
+      { id: "t1", scope: "casa" },
+      { id: "t2", scope: "personal", owner_user_id: "u1" },
+      { id: "t3", scope: "personal", owner_user_id: "u2" },
+    ];
+    const r = armarExportacion({ casa: "c1", leidas: { ...todas(), bot_chats: chats, bot_messages: mensajes, bot_tareas: tareas }, quien: QUIEN });
+    expect(r.tablas.bot_chats.filas.map((c) => c.chat_id)).toEqual(["111", "-900"]);
+    expect(r.tablas.bot_messages.filas.map((m) => m.content)).toEqual(["mío", "del grupo"]);
+    expect(r.tablas.bot_tareas.filas.map((t) => t.id)).toEqual(["t1", "t2"]);
   });
 });

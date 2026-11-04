@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const db = vi.hoisted(() => ({ select: vi.fn() }));
 vi.mock("./db.js", () => ({ ...db, eq: (v) => `eq.${encodeURIComponent(v)}` }));
+const papel = vi.hoisted(() => ({ identidadesDe: vi.fn(async () => [{ channel: "telegram", external_id: "111" }]) }));
+vi.mock("./papel.js", () => papel);
 
 const { exportarCasa } = await import("./exportar.js");
 const { TABLAS_EXPORTADAS, LIMITE_FILAS } = await import("../../src/lib/exportarCasa.js");
@@ -11,7 +13,8 @@ describe("exportarCasa: cada tabla de la lista, con las filas de esa casa", () =
 
   it("lee cada tabla exportada por su columna de casa, con el límite más una", async () => {
     db.select.mockImplementation(async (tabla) => (tabla === "persona" ? [{ id: "ana" }] : []));
-    const r = await exportarCasa("c1", new Date("2026-11-04T10:00:00Z"));
+    const r = await exportarCasa("c1", "u1", new Date("2026-11-04T10:00:00Z"));
+    expect(papel.identidadesDe).toHaveBeenCalledWith("u1");
     expect(db.select.mock.calls.map(([t]) => t)).toEqual([...TABLAS_EXPORTADAS]);
     const filtro = (t) => db.select.mock.calls.find(([x]) => x === t)[1];
     expect(filtro("persona")).toBe(`household_id=eq.c1&limit=${LIMITE_FILAS + 1}`);
@@ -25,6 +28,6 @@ describe("exportarCasa: cada tabla de la lista, con las filas de esa casa", () =
       if (tabla === "sobre") throw new Error("503");
       return [];
     });
-    await expect(exportarCasa("c1")).rejects.toThrow("503");
+    await expect(exportarCasa("c1", "u1")).rejects.toThrow("503");
   });
 });

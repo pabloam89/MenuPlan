@@ -688,11 +688,18 @@ describe("api/operacion.js: exportar la casa (trozo 36)", () => {
     responde(/household_members\?select=role/, { status: 200, cuerpo: [{ role: "viewer" }] });
     responde(/^\/rest\/v1\/persona\?/, { status: 200, cuerpo: [{ id: "ana" }] });
     responde(/^\/rest\/v1\/households\?/, { status: 200, cuerpo: [{ id: CASA, name: "Casa", invite_token: "secreto" }] });
+    // u1 es la identidad de Telegram 111; el 222 es el privado de otra persona de la casa.
+    responde(/^\/rest\/v1\/bot_identities\?/, { status: 200, cuerpo: [{ channel: "telegram", external_id: "111" }] });
+    responde(/^\/rest\/v1\/bot_chats\?/, { status: 200, cuerpo: [{ channel: "telegram", chat_id: "111", kind: "private" }, { channel: "telegram", chat_id: "222", kind: "private" }] });
+    responde(/^\/rest\/v1\/bot_messages\?/, { status: 200, cuerpo: [{ channel: "telegram", chat_id: "111", content: "lo mío" }, { channel: "telegram", chat_id: "222", content: "lo de otra" }] });
     const res = await leer({ casa: CASA, exportar: "1" });
     expect(res.codigo).toBe(200);
     // Ni a quien solo ve la casa le llega el enlace para entrar en ella.
     expect(JSON.stringify(res.body)).not.toContain("secreto");
     expect(res.body.tablas.households.filas).toEqual([{ id: CASA, name: "Casa" }]);
+    // Ni el chat a solas de otra persona con Lola.
+    expect(res.body.tablas.bot_messages.filas.map((m) => m.content)).toEqual(["lo mío"]);
+    expect(JSON.stringify(res.body)).not.toContain("lo de otra");
     expect(Object.keys(res.body.tablas)).toEqual([...TABLAS_EXPORTADAS]);
     expect(res.body.tablas.persona.filas).toEqual([{ id: "ana" }]);
     // Ninguna lectura sale de la casa pedida.
