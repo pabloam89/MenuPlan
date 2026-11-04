@@ -3325,6 +3325,32 @@
       "noLlama": [
         "ajustar_horario"
       ]
+    },
+    {
+      "id": "pregunta-y-pedido-contesta-primero",
+      "tipo": "herramienta",
+      "dominio": "menu",
+      "origen": "fallo_produccion",
+      "dependeDeFecha": true,
+      "nombre": "una pregunta y un pedido a la vez: contesta qué es el plato y propone, sin mirar el menú antes (4 nov 2026)",
+      "entrada": "me puedes cambiar la shakshuka esa? eso que es?",
+      "llama": [
+        "proponer_platos"
+      ],
+      "noLlama": [
+        "ver_menu",
+        "cambiar_plato",
+        "generar_menu"
+      ],
+      "args": {
+        "proponer_platos": {
+          "plato": "shakshuka"
+        }
+      },
+      "respuestas": {
+        "proponer_platos": "Opciones para la cena. Ahora mismo: Shakshuka (25 min, facil). Qué es (si lo preguntan, contéstalo antes de nada): Huevos escalfados hundidos en una salsa de tomate y pimiento especiada, para mojar pan.\n1. Merluza en salsa verde (25 min, facil)\n2. Crema de puerros con picatostes (30 min, facil)\n3. Pollo al horno con patatas (45 min, facil)\nNada está cambiado aún: para poner una, cambiar_plato con receta = su nombre."
+      },
+      "texto": "huevo[\\s\\S]*\\[\\[Elige tú\\]\\]"
     }
   ]
 }
