@@ -39,6 +39,7 @@ import {
 import { isBabyMenuGroup, membersOfGroup } from "./groups.js";
 import { esNino } from "./stages.js";
 import { computeWeekRange, explicitDaysForOffset, horarioDeSemana } from "./menuArchive.js";
+import { compraNueva } from "./compraMarcas.js";
 
 /**
  * Lo que abrir una pizarra cambia en `data`; salir de su hoja lo devuelve.
@@ -247,7 +248,8 @@ export function semanaEnBlanco(data, groups, offset, esAncla) {
     week: {
       offset, startDayIdx, days, startISO, endISO,
       plan: planVacio({ ...data, groups, schedule }, groups),
-      shopping: { items: [] },
+      // La compra sale de los platos que se vayan poniendo (compraMarcas.js).
+      shopping: compraNueva(),
       schedule,
     },
   };
