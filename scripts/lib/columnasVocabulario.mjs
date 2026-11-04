@@ -34,6 +34,10 @@ export const COLUMNAS_VOCABULARIO = Object.freeze({
   "bot_entradas.proveedor": { lista: "canales", comun: true },
   "bot_identities.channel": { lista: "canales", comun: true },
   "bot_chats.channel": { lista: "canales", comun: true },
+  // El registro de intentos de enlace (0126, #1238).
+  "bot_enlaces.channel": { lista: "canales", comun: true },
+  "bot_enlaces.camino_enlace": { lista: "caminos_enlace" },
+  "bot_enlaces.resultado_enlace": { lista: "resultados_enlace" },
   "bot_codigos.channel": { lista: "canales", comun: true },
   "bot_messages.channel": { lista: "canales", comun: true },
   "bot_tareas.channel": { lista: "canales", comun: true },
