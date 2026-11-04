@@ -178,7 +178,9 @@ export async function pulsarReporte(cq, io = IO(), entorno = process.env) {
   const [chat, mid] = [cq.message.chat.id, cq.message.message_id];
   // Sin lo que esperaba (ni detrás de /fallo), se pregunta; «Nada más» cierra sin ello.
   const paso = b.nada || fila.metadata?.texto ? PASO_REPORTE.HECHO : PASO_REPORTE.ESPERA;
-  await io.update("user_events", `id=eq.${fila.id}`, { metadata: { ...fila.metadata, ...(b.tipo ? { tipo: b.tipo } : {}), paso } });
+  // El plazo para decir qué esperaba (CADUCA.REPORTE) cuenta desde aquí, desde que se eligió el tipo, no desde el /fallo.
+  const espera = paso === PASO_REPORTE.ESPERA ? { espera_desde: new Date().toISOString() } : {};
+  await io.update("user_events", `id=eq.${fila.id}`, { metadata: { ...fila.metadata, ...(b.tipo ? { tipo: b.tipo } : {}), paso, ...espera } });
   if (paso === PASO_REPORTE.HECHO) await io.editar(chat, mid, APUNTADO);
   else await io.editar(chat, mid, `${ETIQUETAS_REPORTE[b.tipo]}. ¿Qué esperabas? Una línea o un audio.`, { botones: [[{ texto: "Nada más", dato: datoNada(fila.id) }]] });
   return { apuntado: true };
@@ -192,7 +194,7 @@ export async function completarReporte({ msg, chatId, householdId = null }, io =
   const chat = String(chatId);
   const [fila] = await io.select("user_events", `event=eq.${EVENTO_REPORTE}&metadata->>telegram_id=${eq(String(msg.from.id))}&metadata->>chat=${eq(chat)}&metadata->>paso=eq.${PASO_REPORTE.ESPERA}&order=created_at.desc&limit=1`, "id,created_at,metadata")
     .catch(fallaCon("reporte_espera", []));
-  if (!fila || !vigente(CADUCA.REPORTE, fila.created_at, ahoraMs)) return false;
+  if (!fila || !vigente(CADUCA.REPORTE, fila.metadata?.espera_desde ?? fila.created_at, ahoraMs)) return false;
   let texto = String(msg.text ?? "").trim();
   const audio = msg.voice ?? msg.audio;
   if (!texto && audio) {
