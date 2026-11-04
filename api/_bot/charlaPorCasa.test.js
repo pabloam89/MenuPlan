@@ -17,7 +17,7 @@ const fuentes = () => ["_bot", "bot"].flatMap((d) => readdirSync(join(RAIZ, d))
 
 // Las únicas lecturas que cruzan casas a propósito: solo piden la casa del mensaje, nunca lo dicho.
 const CRUZAN_CASAS = {
-  "api/_bot/casaDelTurno.js": "casaDelUltimoMensaje: la casa del último mensaje, para notar que la persona cambió de casa en la app",
+  "api/_bot/chats.js": "casaDelUltimoMensaje: la casa del último mensaje, para notar que la persona cambió de casa en la app",
 };
 
 describe("la charla se lee por chat y por casa", () => {

@@ -33,6 +33,13 @@ export async function quienesLlevanLaCasa(householdId) {
   return (filas ?? []).map((m) => m.user_id).filter(Boolean);
 }
 
+/** La casa que la cuenta tiene abierta en la app (user_profiles.active_household_id), o null. Un fallo de la base, lanza. */
+export async function casaActivaDe(userId) {
+  if (!userId) return null;
+  const [p] = await select("user_profiles", `user_id=${eq(userId)}`, "active_household_id");
+  return p?.active_household_id ?? null;
+}
+
 /** El papel de una cuenta en una casa (owner, editor o viewer), o null si no es de ella. */
 export async function papelDeUsuario(householdId, userId) {
   if (!userId) return null;

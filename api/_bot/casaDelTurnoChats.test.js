@@ -7,7 +7,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const t = vi.hoisted(() => ({ base: {}, falla: false }));
 const campo = (filtro, k) => decodeURIComponent(filtro.split("&").find((p) => p.startsWith(`${k}=eq.`))?.slice(k.length + 4) ?? "");
 vi.mock("./db.js", () => ({
-  eq: (v) => `eq.${encodeURIComponent(v)}`,
+  eq: (v) => `eq.${encodeURIComponent(v)}`, update: vi.fn(), borrar: vi.fn(),
   select: vi.fn(async (tabla, filtro) => {
     if (t.falla && tabla !== "bot_chats") throw new Error("sin base");
     const filas = t.base[tabla] ?? [];
@@ -15,8 +15,9 @@ vi.mock("./db.js", () => ({
   }),
 }));
 vi.mock("./telegram.js", () => ({ escaparHtml: (s) => s }));
+vi.mock("./recordatorios.js", () => ({ descartarDelChat: vi.fn() }));
 
-const { casaDelTurno, elegirCasa, avisoDeCambio } = await import("./casaDelTurno.js");
+const { casaDelTurno, elegirCasa, avisoDeCambio } = await import("./chats.js");
 
 const YO = "u1";
 beforeEach(() => {
@@ -54,10 +55,10 @@ describe("la casa del turno sigue a la app (#1238)", () => {
     expect(await casaDelTurno("555")).toBe("casaB");
   });
 
-  it("si no se puede leer la cuenta, la casa del chat, como antes", async () => {
+  it("si no se puede leer la cuenta, falla en alto: no se adivina la casa", async () => {
     t.base.user_profiles[0].active_household_id = "casaB";
     t.falla = true;
-    expect(await casaDelTurno("555")).toBe("casaA");
+    await expect(casaDelTurno("555")).rejects.toThrow(/sin base/);
   });
 
   it("un chat sin enlazar no tiene casa", async () => {
