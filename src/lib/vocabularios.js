@@ -63,6 +63,26 @@ export const porNombre = (lista) => Object.freeze(Object.fromEntries(lista.map((
 export const CANAL = porNombre(CANALES);
 export const IDIOMA = porNombre(IDIOMAS);
 
+/**
+ * Por qué camino llega un intento de conectar un chat con una casa (bot_enlaces.camino_enlace, 0126; #1238):
+ * app (el código de Ajustes), grupo (el de /grupo, el de la app o el botón del grupo), email (el código por correo),
+ * alta_telegram (la cuenta nace en Telegram), invitacion (inv_…) y reenganche (un Telegram que ya es una cuenta).
+ */
+export const CAMINOS_ENLACE = ["app", "grupo", "email", "alta_telegram", "invitacion", "reenganche"];
+export const CAMINO_ENLACE = porNombre(CAMINOS_ENLACE);
+
+/**
+ * Cómo acaba ese intento (bot_enlaces.resultado_enlace, 0126). Enlazado: nuevo (el chat no tenía casa), ya_estaba (ya estaba
+ * en esa), casa_cambiada (estaba en otra y lo mueve quien lo enlazó), identidad_de_otra (se enlaza, pero ese Telegram ya
+ * es de otra cuenta y no se cambia). Rechazado: ocupado (el chat es de otra casa y otra cuenta), caducado (código
+ * vencido o ya usado), no_miembro (quien firmó ya no está en la casa o no puede enlazar un grupo), codigo_de_grupo
+ * (uno de grupo usado en un privado).
+ */
+export const RESULTADOS_ENLACE = ["nuevo", "ya_estaba", "casa_cambiada", "identidad_de_otra", "ocupado", "caducado", "no_miembro", "codigo_de_grupo"];
+export const RESULTADO_ENLACE = porNombre(RESULTADOS_ENLACE);
+/** Los que dejan el chat enlazado (los demás son rechazos). */
+export const ENLAZADOS = Object.freeze(new Set([RESULTADO_ENLACE.NUEVO, RESULTADO_ENLACE.YA_ESTABA, RESULTADO_ENLACE.CASA_CAMBIADA, RESULTADO_ENLACE.IDENTIDAD_DE_OTRA]));
+
 // ── Los de la ficha de la casa (auditoría de tipos de menuplan-1e, 7 oct 2026).
 // Tal como se guardan hoy en producción: pasar a una forma canónica (minúscula,
 // sin tildes) es un paso aparte, con alias, nunca reescribiendo lo guardado.
@@ -392,7 +412,7 @@ export const SITIOS_FALLO = [
   "generar_describir", "generar_despensa", "generar_recetas_propias", "generar_semanas_anteriores",
   "idempotencia_guardar_resultado", "idempotencia_soltar_la_llave", "invitacion_unirse", "invitacion_vigente",
   "menu_describir", "menu_foto_de_la_receta", "menu_senales", "pintar_recetas", "pista_adelanto",
-  "receta_ya_estaba", "recetas_busqueda", "recetas_subir_foto", "recordatorios_reclamar", "recordatorios_soltar", "silencio_apuntar", "silencio_cerrar", "telegram_json",
+  "enlace_apuntar", "receta_ya_estaba", "recetas_busqueda", "recetas_subir_foto", "recordatorios_reclamar", "recordatorios_soltar", "silencio_apuntar", "silencio_cerrar", "telegram_json",
   "traducir_memoria", "turno_casa", "turno_tras_escribir", "turnos_mirar_cola", "turnos_soltar_candado", "uso_limite", "vispera_casa",
   "voz_json",
 ];
@@ -491,6 +511,8 @@ export const VOCABULARIOS = Object.freeze({
   modo_despensa: MODOS_DESPENSA,
   tipos_grupo: TIPOS_GRUPO,
   canales: CANALES,
+  caminos_enlace: CAMINOS_ENLACE,
+  resultados_enlace: RESULTADOS_ENLACE,
   idiomas: IDIOMAS,
   comidas: COMIDAS,
   estructura_platos: ESTRUCTURA_PLATOS,
