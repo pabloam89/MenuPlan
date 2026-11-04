@@ -1240,10 +1240,10 @@ export function textoBotonApp(ir, idioma = null) {
 }
 
 // El dominio que el bot tiene en @BotFather (DOMINIO_LOGIN_TELEGRAM, el mismo
-// que lee la app para «Entrar con Telegram»). Un botón de login a otro dominio
-// da error en Telegram, así que solo se usa si la app está en este; si no (otro
-// despliegue), la llave de un solo uso de antes.
-const DOMINIO_LOGIN = process.env.BOT_LOGIN_DOMINIO || DOMINIO_LOGIN_TELEGRAM;
+// que lee la app para «Entrar con Telegram»: un solo sitio). Un botón de login a
+// otro dominio da error en Telegram, así que solo se usa si la app está en este;
+// si no (otro despliegue), la llave de un solo uso de antes.
+const DOMINIO_LOGIN = DOMINIO_LOGIN_TELEGRAM;
 export const conLoginDeTelegram = (base) => {
   try { return new URL(base).host === DOMINIO_LOGIN; } catch (e) {
     // a propósito: sin base válida, el botón va sin login de Telegram.
