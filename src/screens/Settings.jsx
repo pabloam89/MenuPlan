@@ -370,7 +370,6 @@ export function SettingsScreen({
 
 export function AccountScreen({
   user,
-  menusHechos = { leidos: false, lista: [] },
   data,
   setData,
   menuPlan,
@@ -389,7 +388,7 @@ export function AccountScreen({
   const pendingMemberId = useRef(null);
 
   const members = data.members ?? [];
-  const history = menusHechos.lista;
+  const history = data.menuHistory ?? [];
   const streak = useMemo(() => computeStreak(history), [history]);
   const lastMenuAt = history.length ? history[history.length - 1].at : null;
 
@@ -687,16 +686,14 @@ export function AccountScreen({
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 16, fontWeight: 800, color: INK }}>
-                {!menusHechos.leidos
-                  ? "No he podido cargar tu racha"
-                  : streak > 0
-                    ? `${streak} ${streak === 1 ? "semana" : "semanas"} seguidas`
-                    : "Sin racha todavía"}
+                {streak > 0
+                  ? `${streak} ${streak === 1 ? "semana" : "semanas"} seguidas`
+                  : "Sin racha todavía"}
               </div>
-              {menusHechos.leidos && <div style={{ fontSize: 13, color: "#7a8a7f", marginTop: 2 }}>
+              <div style={{ fontSize: 13, color: "#7a8a7f", marginTop: 2 }}>
                 {history.length} {history.length === 1 ? "menú generado" : "menús generados"} ·
                 último {formatDate(lastMenuAt)}
-              </div>}
+              </div>
             </div>
           </Card>
         </div>
