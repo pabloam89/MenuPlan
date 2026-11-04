@@ -1,7 +1,7 @@
 /**
  * Antes de generar un menú, Lola pregunta siempre para cuándo y cómo de a fondo (decisión de Pablo del 4 nov 2026,
  * #1210): el menú solo se genera desde Lola, y cada vez se elige uno de los tres caminos de src/lib/caminos.js
- * (Lo básico / A tu gusto / Al detalle), la misma lista que el asistente de la app.
+ * (Solo los días / Unas preguntas / A fondo), la misma lista que el asistente de la app.
  *
  * Lo comprueba el código, no solo el manual: generar_menu no genera sin camino ni fecha, y tampoco en el mismo turno
  * en que se acaba de elegir el camino (entonces toca hacer sus preguntas). Puro: sin base.
@@ -13,7 +13,7 @@ import { esBotonRehacer } from "./semanaPedida.js";
 /** Los ids de los caminos, para el enum de generar_menu. */
 export const IDS_CAMINO = CAMINOS.map((c) => c.id);
 
-/** Qué id es cada botón, para la descripción de generar_menu: «basico = Lo básico, …». */
+/** Qué id es cada botón, para la descripción de generar_menu: «basico = Solo los días, …». */
 export const LEYENDA_CAMINOS = CAMINOS.map((c) => `${c.id} = ${c.titulo}`).join(", ");
 
 /** Los botones de elegir camino, con el texto que llega al pulsarlos. */
@@ -27,7 +27,7 @@ export const PREGUNTA_DE_CAMINO = "¿Para cuándo quieres el menú, y cuánto lo
 
 const tituloDeTema = (id) => TEMAS.find((t) => t.id === id).titulo;
 
-/** El camino cuyo botón es este mensaje («A tu gusto»), o null. */
+/** El camino cuyo botón es este mensaje («Unas preguntas»), o null. */
 export function caminoDelBoton(texto) {
   const t = String(texto ?? "").trim().toLowerCase();
   return CAMINOS.find((c) => c.titulo.toLowerCase() === t)?.id ?? null;

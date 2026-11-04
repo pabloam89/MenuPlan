@@ -738,11 +738,11 @@
         },
         {
           "role": "assistant",
-          "content": "Ya os tengo: Ana, Pablo y Leo, sin alergias. ¿Para cuándo quieres el menú, y cuánto lo afinamos?\n\n[[Lo básico]]\n[[A tu gusto]]\n[[Al detalle]]"
+          "content": "Ya os tengo: Ana, Pablo y Leo, sin alergias. ¿Para cuándo quieres el menú, y cuánto lo afinamos?\n\n[[Solo los días]]\n[[Unas preguntas]]\n[[A fondo]]"
         },
         {
           "role": "user",
-          "content": "Lo básico"
+          "content": "Solo los días"
         },
         {
           "role": "assistant",
@@ -1333,7 +1333,7 @@
       "noLlama": [
         "generar_menu"
       ],
-      "texto": "Lo básico"
+      "texto": "Solo los días"
     },
     {
       "id": "menu-pregunta-antes-de-generar",
@@ -1350,7 +1350,7 @@
       "entrada": "hazme el menú de la semana que viene",
       "llama": [],
       "noLlama": [],
-      "texto": "A tu gusto"
+      "texto": "Unas preguntas"
     },
     {
       "id": "formato-dia-sin-icono",

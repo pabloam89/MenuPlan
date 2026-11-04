@@ -42,7 +42,7 @@ describe("aviso de alta hecha en la app", () => {
     // El menú se ofrece, no se promete: la pregunta de antes de cada menú, con un botón por camino que se lo
     // pide a Lola como si lo escribiera (#1210).
     expect(AVISO_ALTA).toContain(PREGUNTA_DE_CAMINO);
-    expect(BOTONES_CAMINO_TELEGRAM.map((b) => b.dato)).toEqual(["t:Lo básico", "t:A tu gusto", "t:Al detalle"]);
+    expect(BOTONES_CAMINO_TELEGRAM.map((b) => b.dato)).toEqual(["t:Solo los días", "t:Unas preguntas", "t:A fondo"]);
     expect(recordar).toHaveBeenCalledWith(expect.objectContaining({ chatId: "7", householdId: "h1", respuesta: AVISO_ALTA }));
   });
 
