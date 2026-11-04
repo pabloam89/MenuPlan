@@ -159,6 +159,21 @@ export function useAuth() {
   }, []);
 
   const signInWithGoogle = useCallback(() => signInWith("google", "Google"), [signInWith]);
+
+  // Añadir Google a la cuenta con sesión (#1238): la nacida en Telegram, para entrar desde cualquier sitio. Es la
+  // misma cuenta; Supabase la reconoce por Google a partir de ahí.
+  const linkWithGoogle = useCallback(async () => {
+    if (!supabase) return { error: new Error("No disponible en este entorno.") };
+    if (isNativeApp) {
+      const { startNativeLink } = await import("./nativeAuth.js");
+      const { error } = await startNativeLink(supabase, "google");
+      if (error) console.error("[auth] añadir Google (nativo)", error);
+      return { error: error ?? null };
+    }
+    const { error } = await supabase.auth.linkIdentity({ provider: "google", options: { redirectTo: window.location.origin } });
+    if (error) console.error("[auth] añadir Google", error);
+    return { error: error ?? null };
+  }, []);
   const signInWithApple = useCallback(() => signInWith("apple", "Apple"), [signInWith]);
 
   const signOut = useCallback(async () => {
@@ -185,6 +200,7 @@ export function useAuth() {
     loading,
     signInWithGoogle,
     signInWithApple,
+    linkWithGoogle,
     signOut,
   };
 }

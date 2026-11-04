@@ -66,6 +66,21 @@ export async function startNativeOAuth(supabase, provider) {
 }
 
 /**
+ * Añade un proveedor (google…) a la cuenta con sesión (linkIdentity), por el navegador del sistema, como el login.
+ * La vuelta llega por el mismo listenForNativeAuthCallback.
+ */
+export async function startNativeLink(supabase, provider) {
+  const { data, error } = await supabase.auth.linkIdentity({
+    provider,
+    options: { redirectTo: NATIVE_REDIRECT_URL, skipBrowserRedirect: true },
+  });
+  if (error) return { error };
+  if (!data?.url) return { error: new Error("No se pudo abrir Google. Inténtalo de nuevo.") };
+  await Browser.open({ url: data.url });
+  return { error: null };
+}
+
+/**
  * Escucha la vuelta desde el navegador y canjea lo que traiga por una sesión.
  * @returns {() => void} función para dejar de escuchar.
  */
