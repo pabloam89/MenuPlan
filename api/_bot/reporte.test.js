@@ -2,7 +2,7 @@
 import { describe, it, expect, vi } from "vitest";
 import {
   probadores, esProbador, comandoFallo, leerBoton, datoTipo, botonesTipo, turnoDelMensaje,
-  abrirReporte, pulsarReporte, ADMIN_POR_DEFECTO, ETIQUETAS_REPORTE, EVENTO_REPORTE, PASO_REPORTE, ENLACE_REPORTE, APUNTADO,
+  abrirReporte, pulsarReporte, completarReporte, ADMIN_POR_DEFECTO, ETIQUETAS_REPORTE, EVENTO_REPORTE, PASO_REPORTE, ENLACE_REPORTE, APUNTADO,
 } from "./reporte.js";
 import { TIPOS_REPORTE } from "../../src/lib/vocabularios.js";
 
@@ -24,6 +24,7 @@ function io({ rutas = [], charla = [], reporte = null } = {}) {
     enviar: vi.fn(async (chat, texto, o) => { hecho.enviados.push({ chat, texto, ...o }); return { message_id: 900 }; }),
     editar: vi.fn(async (chat, mid, texto, o) => { hecho.editados.push({ mid, texto, ...o }); }),
     llamar: vi.fn(async () => true),
+    transcribir: vi.fn(async () => ({ texto: "quería la pasta del martes" })),
     duenoDe: vi.fn(async () => "u-dueno"),
   };
 }
@@ -129,10 +130,45 @@ describe("pulsarReporte", () => {
     expect(x.update).not.toHaveBeenCalled();
   });
 
-  it("con el tipo, cierra el reporte y dice solo «Apuntado»", async () => {
+  it("con el tipo y sin lo que esperaba, lo pregunta; con ello, «Apuntado»", async () => {
     const x = io({ reporte });
     expect(await pulsarReporte(cq(datoTipo("dato_mal", 77)), x, ENTORNO)).toEqual({ apuntado: true });
-    expect(x.hecho.cambios[0].metadata).toMatchObject({ tipo: "dato_mal", paso: PASO_REPORTE.HECHO, telegram_id: "222" });
+    expect(x.hecho.cambios[0].metadata).toMatchObject({ tipo: "dato_mal", paso: PASO_REPORTE.ESPERA, telegram_id: "222" });
+    expect(x.hecho.editados[0].texto).toMatch(/¿Qué esperabas\?/);
+    const y = io({ reporte: { ...reporte, metadata: { ...reporte.metadata, texto: "quería pasta" } } });
+    await pulsarReporte(cq(datoTipo("lento", 77)), y, ENTORNO);
+    expect(y.hecho.cambios[0].metadata).toMatchObject({ tipo: "lento", paso: PASO_REPORTE.HECHO });
+    expect(y.hecho.editados.map((e) => e.texto)).toEqual([APUNTADO]);
+  });
+
+  it("«Nada más» cierra sin tocar el tipo", async () => {
+    const x = io({ reporte: { ...reporte, metadata: { ...reporte.metadata, tipo: "lento", paso: PASO_REPORTE.ESPERA } } });
+    await pulsarReporte(cq("fallo:nada:77"), x, ENTORNO);
+    expect(x.hecho.cambios[0].metadata).toMatchObject({ tipo: "lento", paso: PASO_REPORTE.HECHO });
     expect(x.hecho.editados.map((e) => e.texto)).toEqual([APUNTADO]);
+  });
+});
+
+describe("completarReporte", () => {
+  const ahora = Date.parse("2026-11-04T18:42:00Z");
+  const esperando = { id: 77, created_at: "2026-11-04T18:41:00Z", metadata: { telegram_id: "222", chat: "7", paso: PASO_REPORTE.ESPERA, tipo: "dato_mal" } };
+
+  it("la línea siguiente es lo que esperaba, y contesta solo «Apuntado»", async () => {
+    const x = io({ reporte: esperando });
+    expect(await completarReporte({ msg: { from: { id: 222 }, text: "quería pasta" }, chatId: 7 }, x, ahora)).toBe(true);
+    expect(x.hecho.cambios[0].metadata).toMatchObject({ texto: "quería pasta", paso: PASO_REPORTE.HECHO, tipo: "dato_mal" });
+    expect(x.hecho.enviados.map((e) => e.texto)).toEqual([APUNTADO]);
+  });
+
+  it("un audio se transcribe", async () => {
+    const x = io({ reporte: esperando });
+    expect(await completarReporte({ msg: { from: { id: 222 }, voice: { file_id: "v" } }, chatId: 7, householdId: "h1" }, x, ahora)).toBe(true);
+    expect(x.hecho.cambios[0].metadata.texto).toBe("quería la pasta del martes");
+  });
+
+  it("pasado su cuarto de hora, el mensaje sigue a Lola", async () => {
+    const x = io({ reporte: esperando });
+    expect(await completarReporte({ msg: { from: { id: 222 }, text: "¿qué cenamos?" }, chatId: 7 }, x, ahora + 20 * 60000)).toBe(false);
+    expect(x.update).not.toHaveBeenCalled();
   });
 });
