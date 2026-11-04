@@ -59,9 +59,10 @@ describe("generar_menu no genera sin camino ni fecha (#1210)", () => {
     const r = await llamar("hazme el menú", { semana: "siguiente", desde: "2026-11-02" });
     expect(generarMenu).not.toHaveBeenCalled();
     expect(r).toMatch(/NO GENERADO: antes de generar, pregunta SIEMPRE/);
-    // Un RESULTADO sin nada hecho, con su motivo: no cuenta como guardado ni como fallo de la herramienta.
+    // Un RESULTADO sin nada hecho y sin «sin hacer»: es una pregunta pendiente, no un fallo (sin ⚠️ en el recibo).
     expect(r).toMatch(/^RESULTADO /);
-    expect(r).toContain(SIN_GENERAR.PREGUNTAR);
+    expect(r).not.toContain(SIN_GENERAR.PREGUNTAR);
+    expect(r).toMatch(/Falta un dato para hacerlo/);
   });
 
   it("con camino y sin fecha: no genera", async () => {

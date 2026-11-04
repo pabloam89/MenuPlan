@@ -279,12 +279,21 @@ export const SIN_GENERAR = Object.freeze({
 });
 
 /**
+ * Los motivos de no generar que son una pregunta pendiente, no un fallo: la familia no ve «⚠️ Sin hacer» por ellos
+ * (4 nov 2026: salió «⚠️ Sin hacer: el menú (falta preguntar para cuándo y cómo de a fondo)» mientras Lola preguntaba).
+ */
+export const SIN_GENERAR_ES_PREGUNTA = new Set([SIN_GENERAR.PREGUNTAR, SIN_GENERAR.MINIMOS]);
+
+/**
  * El RESULTADO de generar_menu (resultado.js, trozo 27 de #1037), de lo que
  * `generarMenu` deja en `out`: la semana guardada, y los huecos que se han
  * quedado sin plato o sin el plato por seguridad; o, si no se generó, por qué.
  * `texto`, lo que devolvió, va de nota para el modelo.
  */
 export function resultadoDeGenerar(out, texto) {
+  // Falta preguntar algo antes (fecha y camino, alergias): es una duda, no un fallo. Va como cualquier duda (resultado.js,
+  // ESTADO.NADA sin «sin hacer»): sin línea ⚠️ en el recibo, y al modelo, «pregúntalo» con lo que falta en la nota.
+  if (!out?.ok && SIN_GENERAR_ES_PREGUNTA.has(out?.motivo)) return resultado({ accion: "menu", nota: texto });
   if (!out?.ok) return resultado({ accion: "menu", sinHacer: [{ que: "el menú", motivo: out?.motivo ?? SIN_GENERAR.NO_GUARDADO }], nota: texto });
   const sinHacer = [
     ...(out.huecosVacios ?? []).map((h) => ({ que: describirHuecos([h]), motivo: "ningún plato encaja" })),
