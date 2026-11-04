@@ -131,7 +131,7 @@ Existing: `git grep -n "tgAuthResult\|oauth.telegram.org" -- src api` → sin sa
 Not done: la app de iOS (ver «No hecho»). Un Telegram atado a una cuenta de Google sigue sin abrirla (punto 3 de la sección 6; trozo 3). Fuera del dominio del bot (local, previews, y producción mientras @BotFather apunte a staging) el botón no sale, porque allí Telegram lo rechaza. No toca @BotFather ni Supabase.
 Done:
 ```sh
-npx vitest run src/lib/llaveLola.test.js src/lib/cuentaTelegram.test.js api/bot/entrar.test.js src/components/SignInOptions.test.jsx
+git grep -q "tgAuthResult" -- src/lib/llaveLola.test.js && git grep -q "Entrar con Telegram" -- src/components/SignInOptions.test.jsx && npx vitest run src/lib/llaveLola.test.js src/lib/cuentaTelegram.test.js api/bot/entrar.test.js src/components/SignInOptions.test.jsx
 ```
 
 #### 2. «Formas de entrar» en Mi perfil, en lugar del botón suelto
@@ -142,7 +142,7 @@ Existing: `git grep -n "Formas de entrar\|formasDeEntrar" -- src` → sin salida
 Not done: Telegram sale en la lista solo en las cuentas nacidas en Telegram, que son las que abre (las demás, trozo 3). Apple, solo donde ya se ofrece hoy (`conApple`, `src/components/ui.jsx:913`). Los avisos al volver de añadir un proveedor no cambian (`AVISOS_AL_VOLVER`).
 Done:
 ```sh
-npx vitest run src/lib/cuentaTelegram.test.js src/screens/HomeProfileScreen.descargar.test.jsx src/lib/useAuth.google.test.jsx
+git grep -q "formasDeEntrar" -- src/lib/cuentaTelegram.test.js && git grep -q "Formas de entrar" -- src/screens/HomeProfileScreen.descargar.test.jsx && npx vitest run src/lib/cuentaTelegram.test.js src/screens/HomeProfileScreen.descargar.test.jsx src/lib/useAuth.google.test.jsx
 ```
 
 #### 3. Telegram abre también la cuenta a la que se conectó desde la app
@@ -153,7 +153,7 @@ Existing: `cuentaNacidaAqui` (`api/_bot/cuentas.js:106`) solo da cuentas de emai
 Not done: WhatsApp (vendrá por canal, con la misma función que da la cuenta de una identidad de chat). Cambia una regla de seguridad: revisión de seguridad antes del PR.
 Done:
 ```sh
-npx vitest run api/bot/entrar.test.js src/lib/cuentaTelegram.test.js
+git grep -q "la cuenta a la que se conectó desde la app" -- api/bot/entrar.test.js && npx vitest run api/bot/entrar.test.js src/lib/cuentaTelegram.test.js
 ```
 
 ### No hecho
