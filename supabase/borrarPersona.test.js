@@ -2,6 +2,8 @@
 // está en AL_BORRAR_PERSONA (src/lib/borrarPersona.js), con el destino que dice su FK. Una tabla nueva que la nombre
 // y no esté, falla aquí.
 import { describe, it, expect } from "vitest";
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { esquemaFinal } from "../scripts/lib/migraciones.mjs";
 import { DIR_MIGRACIONES } from "../scripts/lib/cascadas.mjs";
 import { ACCION_BORRADO } from "../scripts/lib/migraciones.mjs";
@@ -45,5 +47,23 @@ describe("borrar una persona: cada tabla que la nombra, con su destino", () => {
       expect(por.length, k).toBeGreaterThan(5);
       if (k !== "persona.id" && [DESTINO_AL_BORRAR.BORRA, DESTINO_AL_BORRAR.SUELTA].includes(destino)) expect(fks[k], k).toBe(destino);
     }
+  });
+});
+
+describe("borrar una persona: lo que la base anonimiza (0127)", () => {
+  const sql = readdirSync(DIR_MIGRACIONES).filter((f) => f.endsWith(".sql")).sort().map((f) => readFileSync(join(DIR_MIGRACIONES, f), "utf8").replace(/--[^\n]*/g, "")).join("\n");
+  const cuerpoDe = (nombre) => [...sql.matchAll(new RegExp(String.raw`create\s+or\s+replace\s+function\s+public\.${nombre}\s*\([\s\S]*?\bas\s+(\$\w*\$)([\s\S]*?)\1`, "gi"))].at(-1)?.[2] ?? "";
+
+  it("toda columna de operacion que la lista da por anonimizada la reescribe el disparador de borrar persona", () => {
+    expect(sql).toMatch(/create\s+trigger\s+persona_borrada_anonimiza\s+after\s+delete\s+on\s+public\.persona\s+for\s+each\s+row\s+execute\s+function\s+public\._persona_borrada_anonimiza\(\)/i);
+    const cuerpo = cuerpoDe("_persona_borrada_anonimiza");
+    expect(cuerpo).toMatch(/update\s+public\.operacion/i);
+    const columnas = Object.entries(AL_BORRAR_PERSONA).filter(([k, v]) => k.startsWith("operacion.") && v.destino === DESTINO_AL_BORRAR.ANONIMIZA).map(([k]) => k.split(".")[1]);
+    expect(columnas.sort()).toEqual(["inversa", "pedido"]);
+    for (const c of columnas) expect(cuerpo, c).toMatch(new RegExp(String.raw`\b${c}\s*=\s*public\._sin_persona\(o\.${c},`));
+  });
+
+  it("si la casa entera se borra, no reescribe: sus operaciones se van en cascada", () => {
+    expect(cuerpoDe("_persona_borrada_anonimiza")).toMatch(/if\s+not\s+exists\s*\(\s*select\s+1\s+from\s+public\.households[\s\S]*?return\s+null/i);
   });
 });
