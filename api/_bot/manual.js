@@ -71,3 +71,47 @@ export function armarManual(manual, o) {
   if (faltan.length) throw new Error(`manual: marcas sin poner: ${faltan.join(", ")}`);
   return manual.replace(MARCA, (_, m) => r[m]);
 }
+
+// ── Las partes que solo entran cuando hacen falta (trozo 44) ────────────────────────────────────────────────
+// Cada una con su disparador exacto, que el código ve sin preguntar al modelo. Van en un bloque de sistema
+// aparte, detrás de los fijos (agente.js, unaVuelta): el manual fijo y la ficha siguen saliendo de caché.
+
+/** Las marcas que el código pone en lo que llega a Lola, y de las que salen los disparadores. */
+export const MARCAS_DEL_TURNO = Object.freeze({
+  // El primer mensaje de una casa nueva (api/bot/telegram.js).
+  ALTA: "[alta]",
+  // Una nota de voz pasada a texto (telegram.js); en el alta va dentro del primer mensaje.
+  VOZ: "[nota de voz]",
+  VOZ_EN_EL_ALTA: "(nota de voz)",
+  // Lo que se guarda en la charla de un mensaje con adjunto (agente.js, bot_messages).
+  FOTO: "[foto]",
+  PDF: "[PDF]",
+  // La ficha de una casa sin nadie todavía (ficha.js, montarFicha).
+  PARA_EMPEZAR: "PARA EMPEZAR FALTA",
+});
+const M = MARCAS_DEL_TURNO;
+
+/** Las partes, por nombre (su fichero es api/_bot/manual/<nombre>.md), con cuándo entra cada una. */
+export const PARTES_MANUAL = Object.freeze({
+  // Una casa vacía: el primer mensaje del alta, o la ficha que dice que falta todo. Lo de después del primer
+  // menú no va aquí: llega con la casa ya con gente, y se queda en el manual fijo.
+  alta: ({ entrada, ficha }) => entrada.startsWith(M.ALTA) || Boolean(ficha?.estable?.includes(M.PARA_EMPEZAR)),
+  // Una foto o un PDF en este mensaje o en el anterior de la persona (la confirmación del ticket, para quién es
+  // el menú del cole), o una nota de voz.
+  fotos: ({ entrada, adjunto, historia }) => {
+    const previo = historia.findLast((m) => m.role === "user")?.content;
+    // includes y no startsWith: la memoria le pone delante «[Escrito el …]» si es de otro día (memoria.js).
+    const conAdjunto = (t) => typeof t === "string" && (t.includes(M.FOTO) || t.includes(M.PDF));
+    return Boolean(adjunto) || conAdjunto(previo) || entrada.includes(M.VOZ) || entrada.includes(M.VOZ_EN_EL_ALTA);
+  },
+});
+
+/**
+ * Las partes que entran en este turno, en el orden de PARTES_MANUAL.
+ * @param {{ entrada?: string, adjunto?: object|null, historia?: {role: string, content: unknown}[], ficha?: {estable?: string}|null }} turno
+ * @returns {string[]}
+ */
+export function partesDelTurno({ entrada = "", adjunto = null, historia = [], ficha = null } = {}) {
+  const t = { entrada: String(entrada ?? ""), adjunto, historia: historia ?? [], ficha };
+  return Object.keys(PARTES_MANUAL).filter((p) => PARTES_MANUAL[p](t));
+}

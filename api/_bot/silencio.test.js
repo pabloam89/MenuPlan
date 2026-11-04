@@ -78,7 +78,9 @@ describe("¿preguntó con aviso? Solo si el aviso es la frase final y el mensaje
     const fs = await import("node:fs");
     const c = fs.readFileSync(new URL("./conocimiento.md", import.meta.url), "utf8");
     expect(c).toContain(`«${AVISO_SILENCIO}»`);
-    const alta = c.match(/«¿Quiénes coméis en casa\?[^»]*»/)?.[0]?.slice(1, -1);
+    // La pregunta del alta vive en su parte del manual, la que entra con la casa vacía (manual.js, trozo 44).
+    const parteAlta = fs.readFileSync(new URL("./manual/alta.md", import.meta.url), "utf8");
+    const alta = parteAlta.match(/«¿Quiénes coméis en casa\?[^»]*»/)?.[0]?.slice(1, -1);
     expect(preguntoConAviso(alta)).toBe(true);
   });
 });
