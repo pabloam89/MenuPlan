@@ -29,7 +29,7 @@ vi.mock("node:child_process", () => ({
   },
 }));
 
-const { cargarEnv, enOtraBoveda, esReferencia, leerEnv, leerFichero, opPorLaApp, MOTIVOS_AVISO } = await import("./env.mjs");
+const { cargarEnv, enOtraBoveda, esReferencia, leerEnv, leerFichero, opPorLaApp, MOTIVOS_AVISO, VAR_OP_PABLO } = await import("./env.mjs");
 
 const NOMBRES = ["PRUEBA_A", "PRUEBA_B", "PRUEBA_C", "PRUEBA_LLANA", "PRUEBA_D", "PRUEBA_E", "PRUEBA_F", "PRUEBA_G"];
 beforeEach(() => {
@@ -361,6 +361,28 @@ describe("lo que no se puede leer no se vuelve a pedir (cupo diario de la cuenta
       const avisos = aviso.mock.calls.map((c) => c[0]);
       expect(avisos).toContain(`env-boveda clave: PRUEBA_N motivo: ${MOTIVOS_AVISO.APUNTADA}`);
       expect(avisos.at(-1)).toMatch(/^env-boveda: sin acceso desde .*borra /);
+    });
+  });
+
+  it("con la app de Pablo (MENUPLAN_OP_PABLO=1), lo apuntado por la cuenta de servicio no frena ni se apunta", () => {
+    conFichero((ruta) => {
+      const deLaApp = administracion.replace("Admin3", "Admin5");
+      const antes = JSON.stringify({ [deLaApp]: new Date().toISOString() });
+      writeFileSync(ruta, antes);
+      process.env.PRUEBA_N = deLaApp;
+      process.env[VAR_OP_PABLO] = "1";
+      try {
+        cargarEnv(["PRUEBA_N"]);
+        expect(process.env.PRUEBA_N).toBe(`VALOR-de-${deLaApp}`);
+        expect(llamadas.length).toBeGreaterThan(0);
+        globalThis.__noExisten.add("op://HoMenu/Otra/PRUEBA_O");
+        globalThis.__noExisten.add("op://HoMenu-sesiones/Otra/PRUEBA_O");
+        process.env.PRUEBA_O = "op://HoMenu/Otra/PRUEBA_O";
+        cargarEnv(["PRUEBA_O"], { tolerante: true });
+        expect(readFileSync(ruta, "utf8")).toBe(antes);
+      } finally {
+        delete process.env[VAR_OP_PABLO];
+      }
     });
   });
 
