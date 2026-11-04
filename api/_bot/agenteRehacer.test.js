@@ -72,9 +72,9 @@ describe("generar_menu no genera sin camino ni fecha (#1210)", () => {
   });
 
   it("en el mensaje del botón del camino: no genera todavía, hace sus preguntas", async () => {
-    const r = await llamar("Al detalle", { semana: "siguiente", camino: "avanzado", desde: "2026-11-02" });
+    const r = await llamar("A fondo", { semana: "siguiente", camino: "avanzado", desde: "2026-11-02" });
     expect(generarMenu).not.toHaveBeenCalled();
-    expect(r).toMatch(/acaban de elegir «Al detalle»/);
+    expect(r).toMatch(/acaban de elegir «A fondo»/);
   });
 
   it("«Rehacer la del …» genera sin camino: ya se eligió al hacerla", async () => {
