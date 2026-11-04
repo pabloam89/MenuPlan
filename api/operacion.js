@@ -42,6 +42,8 @@
  * Exportar la casa (trozo 36, privacidad): GET ?casa=<uuid>&exportar=1 contesta 200 con todo lo que la base guarda de
  * esa casa, tabla a tabla (api/_bot/exportar.js, src/lib/exportarCasa.js), a quien es de ella, con cualquier papel; sin
  * secretos ni lo privado de las demás personas (sus chats a solas con Lola y sus tareas personales).
+ * Los menús generados (trozo 22): { casa, menu_generado: true } apunta uno en `menu_generado` (api/_bot/menusGenerados.js)
+ * si quien lo manda edita la casa, sin clave. Y GET ?casa=&menus=1 contesta 200 con { menus: [ISO] }, los últimos.
  *
  * Y lee (trozo 12): GET ?casa=<uuid> contesta 200 con { v, datos }, los datos de la ficha Casa de ficha_casa v2
  * (leerDatosDeCasa; con la v1, 503). La app no puede llamar a ficha_casa (solo la service role, 0107):
@@ -54,6 +56,7 @@ import { escribirDato, escribirPersonas, escribirPreferencias, deshacerOperacion
 import { motivoDe } from "./_bot/avisar.js";
 import { sumarSenales } from "./_bot/aprender.js";
 import { cocinadosDeSemana, ponerCocinado } from "./_bot/cocinados.js";
+import { menusGenerados, apuntarMenuGenerado } from "./_bot/menusGenerados.js";
 import { filaDeCocinado } from "../src/lib/cocinados.js";
 import { guardarTicket, guardarPrecios, borrarTicket, leerCompra } from "./_bot/historialCompra.js";
 import { exportarCasa } from "./_bot/exportar.js";
@@ -86,6 +89,7 @@ async function leerCasa(req, res, accessToken) {
     if (!(await papelDeUsuario(casa, user.id))) return contestar(res, FALLO_DATO.SIN_PERMISO);
     if (req.query?.compra !== undefined) return res.status(200).json(await leerCompra(casa));
     if (req.query?.exportar !== undefined) return res.status(200).json(await exportarCasa(casa, user.id));
+    if (req.query?.menus !== undefined) return res.status(200).json({ menus: await menusGenerados(casa) });
     const semana = req.query?.cocinados;
     if (semana !== undefined) {
       // Primero la semana (inválida, sin pedir nada); luego la base, cuyo fallo va al catch de abajo.
@@ -101,6 +105,19 @@ async function leerCasa(req, res, accessToken) {
     // No leída no es una casa sin datos: se dice (la app no sigue la carga) y queda en el log.
     const { fallo, motivo } = falloDeBase(e);
     console.error(JSON.stringify({ evento: "casa_sin_leer", fallo, motivo }));
+    return contestar(res, fallo);
+  }
+}
+
+/** Un menú generado (trozo 22): quien edita la casa lo apunta en su tabla; si la base falla, se dice. */
+async function apuntarMenu(res, casa, menu, papel) {
+  if (!puede(papel, "editar_casa")) return contestar(res, FALLO_DATO.SIN_PERMISO);
+  if (menu !== true) return contestar(res, FALLO_DATO.INVALIDO, "menu_generado");
+  try {
+    return res.status(200).json({ guardado: true, ...(await apuntarMenuGenerado(casa)) });
+  } catch (e) {
+    const { fallo, motivo } = falloDeBase(e);
+    console.error(JSON.stringify({ evento: "menu_sin_apuntar", fallo, motivo }));
     return contestar(res, fallo);
   }
 }
@@ -187,7 +204,7 @@ export default async function handler(req, res) {
   if (!accessToken) return contestar(res, FALLO_DATO.SIN_SESION);
   if (req.method === "GET") return leerCasa(req, res, accessToken);
 
-  const { casa, clave, accion, ref_id, pedida_at = null, dato, datos, deshacer = null, personas, grupos, preferencias, senales, cocinado, compra } = req.body ?? {};
+  const { casa, clave, accion, ref_id, pedida_at = null, dato, datos, deshacer = null, personas, grupos, preferencias, senales, cocinado, compra, menu_generado: menu } = req.body ?? {};
   // Un dato o varios (`datos`); cuál de los dos, y su forma, lo mira operacionDeDato (escribirDato.js).
   const conDatos = dato != null || datos != null;
   // Un cambio de la familia (trozo 10) en vez de un dato: personas y, si cambiaron, los grupos.
@@ -200,7 +217,9 @@ export default async function handler(req, res) {
   const conCocinado = cocinado !== undefined;
   // Lo gastado (trozo 22): tickets y precios, historiales como lo cocinado.
   const conCompra = compra !== undefined;
-  const historial = conCocinado || conCompra;
+  // Un menú generado (trozo 22): la racha, otro historial.
+  const conMenu = menu !== undefined;
+  const historial = conCocinado || conCompra || conMenu;
   let user;
   let papel;
   try {
@@ -210,7 +229,7 @@ export default async function handler(req, res) {
     if (deshacer != null) {
       // Deshacer o escribir, nunca las dos en una petición: el dato no se tiraría en silencio.
       if (!ids.operacion.esNuevo(deshacer) || conDatos || deFamilia || deLibreta || conSenales || historial) return contestar(res, FALLO_DATO.INVALIDO, "deshacer");
-    } else if (Number(conDatos) + Number(deFamilia) + Number(deLibreta) + Number(conSenales) + Number(conCocinado) + Number(conCompra) > 1) {
+    } else if (Number(conDatos) + Number(deFamilia) + Number(deLibreta) + Number(conSenales) + Number(conCocinado) + Number(conCompra) + Number(conMenu) > 1) {
       // Un dato, un cambio de la familia o uno de la libreta, nunca dos: uno se tiraría en silencio.
       return contestar(res, FALLO_DATO.INVALIDO, "dato");
     } else if (!conSenales && !historial && !ids.claveOperacion.esNuevo(clave)) {
@@ -228,6 +247,7 @@ export default async function handler(req, res) {
   if (conSenales) return contarSenales(res, casa, senales, papel);
   if (conCocinado) return apuntarCocinado(res, casa, cocinado, papel);
   if (conCompra) return apuntarCompra(res, casa, compra, papel);
+  if (conMenu) return apuntarMenu(res, casa, menu, papel);
   // El papel (o null, si no es de la casa) lo juzga la puerta de la tubería, la misma que la de Lola.
   if (deshacer != null) {
     // Quien deshace es el de la sesión: la base solo deshace lo suyo (deshacer_operacion, 0111).

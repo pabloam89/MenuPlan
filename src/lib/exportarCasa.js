@@ -29,7 +29,7 @@ export const TABLAS_EXPORTADAS = Object.freeze([
   // La ficha: cada dato con su sobre, las preferencias y lo aprendido.
   "sobre", "preferencia", "plan_preferencias", "senal", "operacion",
   // Menús, compra, despensa, cocina y gasto.
-  "user_menus", "user_menu_weeks", "user_menu_recipes", "user_pantry", "cocinado", "ticket", "precio_observado",
+  "user_menus", "user_menu_weeks", "user_menu_recipes", "menu_generado", "user_pantry", "cocinado", "ticket", "precio_observado",
   // Recetas de la casa.
   "household_favorites", "household_recipe_discards", "receta_descartes",
   // Lola: chats, conversación, tareas y uso.

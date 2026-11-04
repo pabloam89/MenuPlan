@@ -23,6 +23,7 @@
 
 import { seguirCon, fallaCon, SIN_LEER } from "./avisar.js";
 import { select, insert, eq, config } from "./db.js";
+import { deLaCharla } from "./chats.js";
 import { cargarCasa, olvidarCasa } from "./casa.js";
 import { motor, normal, prepararRecetas } from "./menu.js";
 import { propiasDe } from "./propias.js";
@@ -178,11 +179,11 @@ const TIPO_FOTO = "foto_receta";
 const VALIDEZ_BORRADOR_H = 24;
 
 /** La última fila apartada de un tipo en este chat (borrador o foto), si es de hoy. */
-async function ultimoApartado(chat, tipo) {
+async function ultimoApartado(householdId, chat, tipo) {
   const desde = encodeURIComponent(new Date(Date.now() - VALIDEZ_BORRADOR_H * 3600000).toISOString());
   const [fila] = await select(
     "bot_messages",
-    `channel=${eq(chat.channel)}&chat_id=${eq(String(chat.chatId))}&content->>tipo=eq.${tipo}&created_at=gt.${desde}&order=created_at.desc&limit=1`,
+    `${deLaCharla(chat.channel, chat.chatId, householdId)}&content->>tipo=eq.${tipo}&created_at=gt.${desde}&order=created_at.desc&limit=1`,
     "content,created_at",
   );
   return fila?.content ? { ...fila.content, creadaEn: fila.created_at ?? null } : null;
@@ -293,7 +294,7 @@ export async function prepararReceta(householdId, datos, chat) {
     if (chat.adjunto?.tipo === "image") {
       foto = await subirFoto(dueno, borrador.id, chat.adjunto).catch(fallaCon("recetas_subir_foto", null));
     } else {
-      const [apartada, anterior] = await Promise.all([ultimoApartado(chat, TIPO_FOTO), ultimoApartado(chat, TIPO_BORRADOR)]);
+      const [apartada, anterior] = await Promise.all([ultimoApartado(householdId, chat, TIPO_FOTO), ultimoApartado(householdId, chat, TIPO_BORRADOR)]);
       foto = fotoDeEstaReceta(apartada, anterior);
     }
   }
@@ -334,7 +335,7 @@ export async function prepararReceta(householdId, datos, chat) {
  */
 export async function guardarReceta(householdId, { confirmado, nombre = null }, chat) {
   if (confirmado !== true) return "Las recetas no se guardan sin su «sí». Enséñale el resumen y pregunta.";
-  const receta = (await ultimoApartado(chat, TIPO_BORRADOR))?.receta;
+  const receta = (await ultimoApartado(householdId, chat, TIPO_BORRADOR))?.receta;
   if (!receta) return "No tengo ninguna receta preparada en esta charla: prepárala primero con preparar_receta.";
   if (nombre && !seVeEn(nombre, receta.name)) {
     return resultado({ accion: "receta", sinHacer: [{ que: nombre, motivo: `la última preparada es «${receta.name}», no esa: hay que prepararla otra vez` }] });
