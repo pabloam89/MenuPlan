@@ -8,15 +8,15 @@
  * que no existe, Lola la inventa o dice que lo ha hecho sin poder.
  */
 import { describe, it, expect, vi } from "vitest";
-import { readFileSync } from "node:fs";
 import { CAPACIDADES } from "../../src/lib/capacidades.js";
 
 process.env.VITE_SUPABASE_URL ||= "https://sin-base.invalid";
 process.env.SUPABASE_SERVICE_ROLE_KEY ||= "sin-clave";
 vi.mock("./ajustes.js", async (original) => ({ ...(await original()), dominiosDeGustos: async () => "DOMINIOS" }));
 
-const { herramientas, FICHAS } = await import("./agente.js");
-const CONOCIMIENTO = readFileSync(new URL("./conocimiento.md", import.meta.url), "utf8");
+const { herramientas, FICHAS, sistema } = await import("./agente.js");
+// El manual tal como lo lee Lola, con sus listas rellenas (manual.js).
+const CONOCIMIENTO = await sistema();
 const tools = await herramientas({ householdId: "x", chatId: "1", channel: "telegram", fotos: [], papel: "owner" });
 const DESCRIPCIONES = tools.map((t) => `${t.description}\n${JSON.stringify(t.input_schema ?? t.inputSchema ?? {})}`).join("\n");
 
