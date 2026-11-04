@@ -410,7 +410,7 @@ export const MOTIVO_FALLO = porNombre(MOTIVOS_FALLO);
  */
 export const SITIOS_FALLO = [
   // api/_bot/agente.js
-  "agente_casa", "agente_dueno", "agente_idioma", "agente_papel", "agente_segunda_semana", "agente_unir_cuenta", "apuntar_operacion", "uso_enrutador",
+  "agente_casa", "agente_dueno", "agente_huecos", "agente_idioma", "agente_papel", "agente_segunda_semana", "agente_unir_cuenta", "apuntar_operacion", "uso_enrutador",
   // api/bot/telegram.js
   "aclarar_via_rapida", "alta_adjunto", "apuntar_falta_via_rapida", "aviso_de_espera",
   "aviso_del_enrutador", "aviso_del_modo", "borrarcuenta_identidad", "borrarcuenta_nacida_aqui",
@@ -418,7 +418,7 @@ export const SITIOS_FALLO = [
   "eleccion_via_rapida", "entregar_casa", "entregar_pintar", "escribiendo", "fallo_dueno", "fallo_tras_escribir",
   "grupo_casa", "grupo_nombre_del_bot", "idioma", "invitacion",
   "invitacion_cuentas", "lola", "lola_cancelada", "limite", "papel", "reconocer", "relevo", "relevo_llamar", "ruta",
-  "ruta_dueno", "ultima_de_lola", "uso", "vivo_borrar_aviso", "vivo_borrar_cortado", "vivo_editar", "vivo_enviar",
+  "reporte_charla", "reporte_ruta", "ruta_dueno", "ultima_de_lola", "uso", "vivo_borrar_aviso", "vivo_borrar_cortado", "vivo_editar", "vivo_enviar",
   // api/bot/entrar.js
   "bot_entrar",
   // el resto de api/_bot/
@@ -430,11 +430,21 @@ export const SITIOS_FALLO = [
   "db_usuario", "deshacer_paso", "deshacer_primer_menu", "embudo_dueno", "entradas_ya_vista", "ficharpc_casa", "generar_borrar_menu_a_medias",
   "generar_describir", "generar_despensa", "generar_recetas_propias", "generar_semanas_anteriores",
   "idempotencia_guardar_resultado", "idempotencia_soltar_la_llave", "invitacion_unirse", "invitacion_vigente",
-  "menu_describir", "menu_foto_de_la_receta", "menu_senales", "pintar_recetas", "pista_adelanto",
+  "menu_describir", "menu_foto_de_la_receta", "menu_senales", "pintar_huecos", "pintar_recetas", "pista_adelanto",
   "enlace_apuntar", "receta_ya_estaba", "recetas_busqueda", "recetas_subir_foto", "recordatorios_reclamar", "recordatorios_soltar", "silencio_apuntar", "silencio_cerrar", "telegram_json",
-  "traducir_memoria", "turno_casa", "turno_tras_escribir", "turnos_mirar_cola", "turnos_soltar_candado", "uso_limite", "vispera_casa",
+  "traducir_memoria", "turno_casa", "turno_tras_escribir", "turnos_mirar_cola", "turnos_soltar_candado", "uso_limite", "vispera_casa", "vispera_huecos",
   "voz_json",
 ];
+
+// ── Lo que apuntan los probadores con /fallo (api/_bot/reporte.js). No va a
+// ninguna columna: va en metadata.tipo del evento `bot_reporte` de user_events.
+
+/**
+ * Qué falló en un mensaje de Lola, según quien lo reporta: no le entendió,
+ * hizo otra cosa de la pedida, un dato mal (un plato, una cantidad, un día),
+ * el formato, tardó, u otro. Las etiquetas de los botones viven en reporte.js.
+ */
+export const TIPOS_REPORTE = ["no_entendio", "hizo_otra_cosa", "dato_mal", "formato", "lento", "otro"];
 
 // ── Los del vigía y el canario de Lola (#267). No van a ninguna tabla: van en
 // las líneas `vigia_aviso` y `canario` del log (scripts/vigia.mjs,
@@ -595,6 +605,7 @@ export const VOCABULARIOS = Object.freeze({
   largos_trato: LARGOS_TRATO,
   repites_recordatorio: REPITES_RECORDATORIO,
   avisos_recordatorio: AVISOS_RECORDATORIO,
+  tipos_reporte: TIPOS_REPORTE,
 });
 
 /** La lista de un vocabulario por su nombre, o null si no existe. */

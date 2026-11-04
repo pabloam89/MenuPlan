@@ -322,6 +322,72 @@ describe("registro de lecturas (#556)", () => {
   });
 });
 
+describe("una clave de la otra bóveda cuesta una lectura (cupo diario de la cuenta)", () => {
+  const movida = "op://HoMenu/Ruta/PRUEBA_N";
+  const buena = "op://HoMenu-sesiones/Ruta/PRUEBA_N";
+  // Otro proceso: lo leído en este se olvida y la dirección vuelve a venir de .env.local.
+  const arrancar = async () => {
+    vi.resetModules();
+    llamadas.length = 0;
+    process.env.PRUEBA_N = movida;
+    return import("./env.mjs");
+  };
+  const conRutas = async (fn) => {
+    const ruta = join(mkdtempSync(join(tmpdir(), "oprutas-")), "rutas.json");
+    process.env.MENUPLAN_OP_RUTAS = ruta;
+    const aviso = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      return await fn(ruta);
+    } finally {
+      delete process.env.MENUPLAN_OP_RUTAS;
+      delete process.env.PRUEBA_N;
+      aviso.mockRestore();
+    }
+  };
+
+  it("como consulta.mjs dos veces: la primera, tres lecturas y aprende la ruta, sin valores; la segunda, una, sin reintentos", async () => {
+    await conRutas(async (ruta) => {
+      globalThis.__noExisten.add(movida);
+      expect((await arrancar()).leerEnv("PRUEBA_N")).toBe(`VALOR-de-${buena}`);
+      expect(llamadas).toHaveLength(3);
+      expect(JSON.parse(readFileSync(ruta, "utf8"))).toEqual({ [movida]: buena });
+
+      expect((await arrancar()).leerEnv("PRUEBA_N")).toBe(`VALOR-de-${buena}`);
+      expect(llamadas).toHaveLength(1);
+      expect(llamadas[0].input).toContain(buena);
+    });
+  });
+
+  it("si la clave vuelve a su sitio, la lee y olvida la ruta", async () => {
+    await conRutas(async (ruta) => {
+      writeFileSync(ruta, JSON.stringify({ [movida]: buena }));
+      globalThis.__noExisten.add(buena);
+      expect((await arrancar()).leerEnv("PRUEBA_N")).toBe(`VALOR-de-${movida}`);
+      expect(JSON.parse(readFileSync(ruta, "utf8"))).toEqual({});
+    });
+  });
+
+  it("una ruta que no es entre las dos bóvedas no se obedece", async () => {
+    await conRutas(async (ruta) => {
+      writeFileSync(ruta, JSON.stringify({ [movida]: "op://Personal/Otra/PRUEBA_N" }));
+      expect((await arrancar()).leerEnv("PRUEBA_N")).toBe(`VALOR-de-${movida}`);
+      expect(llamadas[0].input).not.toContain("Personal");
+    });
+  });
+
+  it("con la app de Pablo no se mira ni se apunta", async () => {
+    await conRutas(async (ruta) => {
+      writeFileSync(ruta, JSON.stringify({ [movida]: buena }));
+      process.env[VAR_OP_PABLO] = "1";
+      try {
+        expect((await arrancar()).leerEnv("PRUEBA_N")).toBe(`VALOR-de-${movida}`);
+      } finally {
+        delete process.env[VAR_OP_PABLO];
+      }
+    });
+  });
+});
+
 describe("lo que no se puede leer no se vuelve a pedir (cupo diario de la cuenta)", () => {
   const conFichero = (fn) => {
     const ruta = join(mkdtempSync(join(tmpdir(), "opsin-")), "sin-acceso.json");

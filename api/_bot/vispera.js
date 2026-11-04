@@ -13,7 +13,8 @@
  * 0122) con aviso TIPO_VISPERA; al vencer, api/bot/recordatorios.js monta el mensaje con avisoDeVispera en vez
  * de mandar el texto.
  *
- * Sin el motor: las recetas salen de las guardadas con el menú (aiRecipes).
+ * Las recetas salen de las guardadas con el menú (aiRecipes), sin el motor, salvo
+ * los platos que salen de su hueco (#1246): esos los trae `platoDe`.
  */
 
 import { fallaCon } from "./avisar.js";
@@ -24,6 +25,8 @@ import { batchCooking } from "./ficha.js";
 import { IDS_COMIDAS, comida as delCatalogo } from "../../src/lib/comidas.js";
 import { diaDeISO } from "../../src/lib/dias.js";
 import { slotUsesFreezer } from "../../src/lib/freezer.js";
+import { apuntaSuPlato, planApuntaPlatos } from "../../src/lib/apuntaSuPlato.js";
+import { resolverHuecos } from "./menu.js";
 
 /** El texto con el que se guarda el aviso (lo que se ve al listar los recordatorios). No lo identifica: eso es el aviso. */
 export const VISPERA = "Aviso de la víspera";
@@ -43,9 +46,10 @@ const quitarTildes = (s) => String(s).normalize("NFD").replace(/\p{Diacritic}/gu
  * Lo que hay que hacer esta noche para mañana, o null si nada. Pura.
  * @param {object} casa  la de cargarCasa (state, semanas)
  * @param {string} manana  fecha ISO de mañana
+ * @param {{platoDe?: Function}} [opciones]  el plato de un hueco (resolverHuecos, menu.js)
  * @returns {string | null}  HTML de Telegram
  */
-export function avisoDeVispera(casa, manana) {
+export function avisoDeVispera(casa, manana, { platoDe } = {}) {
   const data = casa?.state?.data ?? {};
   const dia = diaDeFecha(manana);
   const recetas = new Map();
@@ -64,8 +68,9 @@ export function avisoDeVispera(casa, manana) {
     for (const c of IDS_COMIDAS) {
       const hueco = plan[`${dia}-${c}`];
       if (!hueco) continue;
-      for (const id of [hueco.firstRecipeId, hueco.recipeId].filter(Boolean)) {
-        const r = receta(id);
+      for (const [curso, id] of [["primero", hueco.firstRecipeId], ["principal", hueco.recipeId]]) {
+        if (!id) continue;
+        const r = apuntaSuPlato(hueco, curso) ? platoDe?.(hueco, curso, semana.weekStart) : receta(id);
         if (!r) continue;
         if (slotUsesFreezer(hueco, id)) { congelador.add(r.name); continue; }
         for (const ing of r.ingredients ?? []) {
@@ -96,7 +101,10 @@ export async function avisoDeVisperaDe(householdId, hoyISO) {
   if (!casa) return null;
   const d = new Date(`${hoyISO}T12:00:00Z`);
   d.setUTCDate(d.getUTCDate() + 1);
-  return avisoDeVispera(casa, d.toISOString().slice(0, 10));
+  const manana = d.toISOString().slice(0, 10);
+  const semana = (casa.semanas ?? []).find((w) => w.weekStart <= manana && manana <= w.weekEnd);
+  const platoDe = planApuntaPlatos(semana?.plan) ? await resolverHuecos(casa).catch(fallaCon("vispera_huecos", null)) : null;
+  return avisoDeVispera(casa, manana, { platoDe });
 }
 
 /**

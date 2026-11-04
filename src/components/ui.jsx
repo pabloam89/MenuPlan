@@ -1,8 +1,10 @@
 import { FRONTAL_BOT } from "../lib/frontalBot.js";
-import { isNativeApp } from "../lib/apiUrl.js";
+import { seOfreceApple } from "../lib/apiUrl.js";
 import { useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
-import { BookOpen, Calendar, ChevronDown, ClipboardList, CookingPot, Home, ShoppingCart, Sparkles, UserCircle, Users, X } from "./icons.jsx";
+import { BookOpen, Calendar, ChevronDown, ClipboardList, CookingPot, Home, Send, ShoppingCart, Sparkles, UserCircle, Users, X } from "./icons.jsx";
+import { color as tono } from "../design/tokens.js";
+import { urlEntrarConTelegram } from "../lib/cuentaTelegram.js";
 import { initialsOf, memberAvatarColor, memberAvatarThumbSrc } from "../lib/stages.js";
 import { formatWeekRangeLabel, getWeekDates } from "../lib/weekCalendar.js";
 import { adhocReasonLabel } from "../lib/groups.js";
@@ -895,7 +897,30 @@ export function AppleButton({ onClick, label = "Continuar con Apple", variant = 
 }
 
 /**
- * Las formas de entrar, juntas y con el mismo peso.
+ * «Entrar con Telegram» (specs/auth.md §7): lleva al login oficial de Telegram en
+ * la misma pestaña, y la vuelta la recoge BotEnlace.jsx como la llave de Lola.
+ */
+export function TelegramButton({ url, variant = "light" }) {
+  return (
+    <OAuthButton
+      onClick={() => { window.location.href = url; }}
+      label="Entrar con Telegram"
+      variant={variant}
+      glyph={<Send size={18} />}
+      background={tono.marca}
+      color={tono.superficie}
+      border={`1.5px solid ${tono.marca}`}
+      spinnerTrack={tono["marca-viva"]}
+      spinnerArc={tono.superficie}
+      failMessage="No se pudo abrir Telegram."
+    />
+  );
+}
+
+/**
+ * Las formas de entrar, juntas y con el mismo peso. Telegram va primero
+ * (Pablo, 4 nov 2026: «tu chat con Lola es tu llave»), solo donde el login
+ * de Telegram funciona (`urlEntrarConTelegram`).
  *
  * En la app de iOS van siempre las dos: ofrecer Google a solas es rechazo de
  * App Store por la Guideline 4.8. Por eso existe este componente y no se pinta
@@ -910,11 +935,13 @@ export function SignInOptions({
   onGoogle,
   onApple,
   variant = "light",
-  conApple = isNativeApp || import.meta.env.VITE_APPLE_WEB === "on",
+  conApple = seOfreceApple(),
+  urlTelegram = typeof window === "undefined" ? null : urlEntrarConTelegram(window.location),
 }) {
   const dark = variant === "dark";
   return (
     <div style={{ display: "grid", gap: 10 }}>
+      {urlTelegram && <TelegramButton url={urlTelegram} variant={variant} />}
       {conApple && <AppleButton onClick={onApple} variant={variant} />}
       <GoogleButton onClick={onGoogle} variant={variant} />
       {/* La aceptación de los términos vive aquí y no en cada pantalla porque

@@ -63,6 +63,7 @@
     "api/_bot/chats.js",
     "api/_bot/rapido.js",
     "api/_bot/recetas.js",
+    "api/_bot/reporte.js",
     "api/bot/telegram.js"
   ],
   "bot_tareas": [
@@ -157,6 +158,7 @@
   "user_events": [
     "api/_bot/agente.js",
     "api/_bot/embudo.js",
+    "api/_bot/reporte.js",
     "src/lib/analytics.js"
   ],
   "user_follows": [

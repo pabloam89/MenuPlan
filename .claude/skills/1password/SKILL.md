@@ -50,7 +50,10 @@ metadata:
   `HoMenu-sesiones` que no se lee se busca en `HoMenu` y al revés, con la
   línea `env-boveda clave: X de: A a: B motivo: respaldo`; Vite arranca sin las
   que no puede leer (`motivo: sin-acceso`, vacías). Un `.env.local` viejo
-  sigue sirviendo tras cambiar el token.
+  sigue sirviendo tras cambiar el token. La ruta que funcionó se apunta en
+  `~/.menuplan/op-rutas.json` (direcciones, sin valores) y la próxima vez se pide
+  directa: esa línea debe salir una vez por clave. Si sale en cada orden, se
+  están gastando tres lecturas por orden: mira ese fichero.
 - **Agente SSH de 1Password**: activo (alta en «Fechas» de Fuentes y comprobación). Guarda la llave
   `HoMenu - Hetzner Panel` (Ed25519, en `Private`); cada conexión pide
   aprobar **en la ventana de 1Password y con Pablo delante**: si nadie la contesta en
@@ -122,6 +125,13 @@ niega `guardia-minima.mjs`), están en `.claude/skills/1password/referencias/bov
 ábrelo antes de crear la bóveda o la service account.
 
 ## Lo que falló y por qué
+
+- **2026-11-04 · cupo de la cuenta agotado a las 18:16; sin base ni token nuevo de GitHub hasta el día siguiente.**
+  Causa, de `~/.menuplan/op-lecturas.jsonl`: 950 claves ese día, 848 de `consulta.mjs` y 496 de ellas reintentos, 509 desde las 17:30. Con un
+  `.env.local` que aún nombra HoMenu, cada consulta eran tres lecturas (`op inject`, la misma de una en una y la otra bóveda), y una sesión y su agente
+  lanzaron consultas en bucle con reintentos propios sin leer esta skill. Arreglo: `env.mjs` apunta la ruta en `~/.menuplan/op-rutas.json`. Antes: 3
+  lecturas por consulta; después: 1 (`scripts/lib/env.test.js`). Antes de un bucle contra la base, mira `npm run op -- service-account ratelimit` y, si falla
+  una lectura, para: reintentar gasta cupo de todas las sesiones.
 
 - **2026-11-03 · cupo de la cuenta agotado (1000 lecturas al día) de madrugada; sin base ni GitHub hasta que se reinició, por la mañana.**
   Causa, del registro `~/.menuplan/op-lecturas.jsonl`: el 2 nov (día de Madrid) este PC gastó 1015 claves en 823 lecturas; 612 de `vite.js` (arrancar o

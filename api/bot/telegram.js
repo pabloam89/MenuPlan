@@ -68,10 +68,12 @@ import { partirStart, fraseDePedido } from "../../src/lib/pedidoLola.js";
 import { payloadStart } from "../../src/lib/ids.js";
 import { enviarAcceso, verificarCodigoEmail, cuentaNacidaAqui } from "../_bot/cuentas.js";
 import { cuentaYChat as cuentaYChatDe } from "../_bot/altaTelegram.js";
+import { DOMINIO_LOGIN_TELEGRAM } from "../../src/lib/cuentaTelegram.js";
 import { primeraVez } from "../_bot/entradas.js";
 import { preguntoConAviso } from "../_bot/silencio.js";
 import { CANAL, CAMINO_ENLACE, RESULTADO_ENLACE } from "../../src/lib/vocabularios.js";
 import { conOperacion, operacion } from "../_bot/operacion.js";
+import { esProbador, comandoFallo, abrirReporte, esBotonReporte, pulsarReporte } from "../_bot/reporte.js";
 
 const EMAIL_RE = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]{2,}$/;
 
@@ -331,6 +333,11 @@ async function atender(msg, base, host = "") {
   const casaTurno = await casaDelTurno(chatId);
   let chat = casaTurno ? { household_id: casaTurno } : null;
   if (chat && !esGrupo) await avisarSiCambio(chatId, chat.household_id);
+
+  // /fallo de un probador (api/_bot/reporte.js): sin modelo y fuera de la charla.
+  // Para los demás no existe: sigue a Lola como cualquier texto.
+  const fallo = esProbador(msg.from?.id) ? comandoFallo(texto) : null;
+  if (fallo) return abrirReporte({ msg, chatId, householdId: chat?.household_id ?? null, texto: fallo.texto });
 
   // Un Telegram que ya es una cuenta (bot_identities) no vuelve a pasar por el
   // alta: se reengancha a su casa. Si no, «somos cuatro» le crearía otra cuenta
@@ -1238,10 +1245,11 @@ export function textoBotonApp(ir, idioma = null) {
   return "📱 Verlo en la app";
 }
 
-// El dominio que el bot tiene en @BotFather (/setdomain, 7 oct 2026). Un botón
-// de login a otro dominio da error en Telegram, así que solo se usa si la app
-// está en este; si no (otro despliegue), la llave de un solo uso de antes.
-const DOMINIO_LOGIN = process.env.BOT_LOGIN_DOMINIO || "homenu-staging.vercel.app";
+// El dominio que el bot tiene en @BotFather (DOMINIO_LOGIN_TELEGRAM, el mismo
+// que lee la app para «Entrar con Telegram»: un solo sitio). Un botón de login a
+// otro dominio da error en Telegram, así que solo se usa si la app está en este;
+// si no (otro despliegue), la llave de un solo uso de antes.
+const DOMINIO_LOGIN = DOMINIO_LOGIN_TELEGRAM;
 export const conLoginDeTelegram = (base) => {
   try { return new URL(base).host === DOMINIO_LOGIN; } catch (e) {
     // a propósito: sin base válida, el botón va sin login de Telegram.
@@ -1535,6 +1543,8 @@ async function botonAlta(chatId, from, base) {
 
 async function pulsado(cq, base, host = "") {
   const chatId = String(cq.message.chat.id);
+  // Los botones de /fallo (api/_bot/reporte.js): ni Lola ni la cola.
+  if (esBotonReporte(cq.data)) return void await pulsarReporte(cq);
   // Conectar un grupo a su casa: solo quien lo pidió (grupoSinCasa).
   const conecta = cq.data?.startsWith("cg:") ? cq.data.slice(3) : null;
   if (conecta && String(cq.from?.id) !== conecta) {

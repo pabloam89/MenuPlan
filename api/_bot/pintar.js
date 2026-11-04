@@ -28,7 +28,8 @@ import { fallaCon } from "./avisar.js";
 import fs from "node:fs";
 import { comida as delCatalogo, comidasDeLaCasa, iconoDe } from "../../src/lib/comidas.js";
 import { diaDeFecha, sumarDias } from "./cuando.js";
-import { grupos as gruposDeLaCasa, grupoPara, quienesDe, cambiosDe, normal, prepararRecetas } from "./menu.js";
+import { grupos as gruposDeLaCasa, grupoPara, quienesDe, cambiosDe, normal, prepararRecetas, resolverHuecos } from "./menu.js";
+import { apuntaSuPlato } from "../../src/lib/apuntaSuPlato.js";
 import { fueraEn } from "./presentes.js";
 import { propiasDe } from "./propias.js";
 import { DIA_LARGO_MINUSCULAS } from "../../src/lib/dias.js";
@@ -102,15 +103,17 @@ const pronombre = (cat) => (/^la\b/.test(cat?.articulo ?? "") ? "las" : "los");
 
 /**
  * Como pintarMenu, pero si algún plato no está entre las recetas guardadas con
- * el menú (un menú viejo, una receta del catálogo que nunca se registró), carga
- * el motor y repinta con su recetario. Solo entonces: el motor tarda ~2 s.
+ * el menú (un menú viejo, una receta del catálogo que nunca se registró) o sale
+ * de su hueco (#1246), carga el motor y repinta con su recetario. Solo entonces:
+ * el motor tarda ~2 s.
  */
 export async function pintarMenuEntero(casa, filtros) {
   const p = pintarMenu(casa, filtros);
   if (!p.faltan) return p;
   const m = await prepararRecetas(casa).catch(fallaCon("pintar_recetas", null));
   if (!m) return p;
-  return pintarMenu(casa, filtros, { otras: (id) => m.RECIPES_BY_ID[id] ?? m.RECIPES_BY_ID[String(id).split("__").pop()] ?? null });
+  const platoDe = await resolverHuecos(casa).catch(fallaCon("pintar_huecos", null));
+  return pintarMenu(casa, filtros, { platoDe, otras: (id) => m.RECIPES_BY_ID[id] ?? m.RECIPES_BY_ID[String(id).split("__").pop()] ?? null });
 }
 
 /**
@@ -119,7 +122,7 @@ export async function pintarMenuEntero(casa, filtros) {
  *   pedidas que la casa no planifica; faltan: platos cuyo nombre no se ha
  *   encontrado (pintarMenuEntero los busca en el motor).
  */
-export function pintarMenu(casa, { dias = [], comidas = null, platos = null, grupo = null, destacar = [] } = {}, { otras = null } = {}) {
+export function pintarMenu(casa, { dias = [], comidas = null, platos = null, grupo = null, destacar = [] } = {}, { otras = null, platoDe = null } = {}) {
   const data = casa?.state?.data ?? {};
   const deLaCasa = comidasDeLaCasa(data);
   const pedidas = comidas?.length ? comidas : deLaCasa;
@@ -169,10 +172,11 @@ export function pintarMenu(casa, { dias = [], comidas = null, platos = null, gru
         const h = plan[g.id]?.[`${dia}-${c}`];
         if (!h) return null;
         if ((g.memberIds ?? []).length && !enCasa(g).memberIds.length) return null;
-        const ids = (platos?.length ? platos : ["primero", "principal"])
-          .map((p) => (p === "primero" ? h.firstRecipeId : h.recipeId)).filter(Boolean);
-        const nombres = ids.map((id) => {
-          const r = receta(id);
+        const cursos = (platos?.length ? platos : ["primero", "principal"])
+          .map((curso) => ({ curso, id: curso === "primero" ? h.firstRecipeId : h.recipeId })).filter((x) => x.id);
+        const nombres = cursos.map(({ curso, id }) => {
+          // El hueco que apunta su plato manda sobre una copia con el mismo id: sin el motor, cuenta como que falta.
+          const r = apuntaSuPlato(h, curso) ? platoDe?.(h, curso, semana.weekStart) ?? null : receta(id);
           const nombre = r?.name ?? null;
           if (!nombre) { faltan++; return null; }
           if (dias.length === 1 && fotos.length < 10) {
