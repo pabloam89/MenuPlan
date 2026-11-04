@@ -17,6 +17,9 @@ const { ANADIDO, COMPRADO, EN_CASA, QUITADO } = MARCA_COMPRA;
 /** Si lo guardado ya es de marcas (y no la lista entera de antes). */
 export const esCompraConMarcas = (guardada) => Array.isArray(guardada?.marcas);
 
+/** La compra de un menú recién empezado: sin marcas, toda sale de sus platos. Con `{ items: [] }` no seguiría al menú. */
+export const compraNueva = () => ({ marcas: [] });
+
 // Lo que un añadido a mano necesita para pintarse sin derivarse de nada.
 const CAMPOS_ANADIDO = ["category", "qty", "displayQty"];
 
