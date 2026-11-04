@@ -10,12 +10,17 @@ const movil = () => {
 };
 
 describe("lo cocinado vive en su tabla, no en el documento (trozo 22 de #1037)", () => {
-  it("una fila es la de la tabla: lunes, día, comida y receta, del vocabulario; lo demás lanza antes de pedir nada", () => {
+  it("una fila es la de la tabla: primer día del menú, día, comida y receta, del vocabulario; lo demás lanza antes de pedir nada", () => {
     expect(filaDeCocinado(FILA)).toEqual(FILA);
-    expect(() => filaDeCocinado({ ...FILA, semana: "2026-11-03" })).toThrow(/lunes/);
+    expect(() => filaDeCocinado({ ...FILA, semana: "2026-02-30" })).toThrow(/fecha/);
+    expect(() => filaDeCocinado({ ...FILA, semana: "semana" })).toThrow(/fecha/);
     expect(() => filaDeCocinado({ ...FILA, dia: "Tue" })).toThrow(/día/);
     expect(() => filaDeCocinado({ ...FILA, comida: "dinner" })).toThrow(/comida/);
     expect(() => filaDeCocinado({ ...FILA, receta_id: "" })).toThrow(/receta/);
+  });
+
+  it("un menú empieza cualquier día: un jueves, un martes o un domingo también son su semana", () => {
+    for (const semana of ["2026-11-05", "2026-10-27", "2026-11-08"]) expect(filaDeCocinado({ ...FILA, semana }).semana).toBe(semana);
   });
 
   it("el registro dice dónde vive, y el documento que se guarda ya no lleva la lista vieja", () => {
