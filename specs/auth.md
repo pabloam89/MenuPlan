@@ -127,7 +127,7 @@ la página dice `invalid`.
 Files: `src/lib/llaveLola.js`, `src/lib/llaveLola.test.js`, `src/lib/cuentaTelegram.js`, `src/lib/cuentaTelegram.test.js`, `src/components/ui.jsx`, `src/components/SignInOptions.test.jsx`, `src/App.jsx`, `api/bot/entrar.js`, `api/bot/entrar.test.js`, `api/bot/telegram.js`
 Depends on: none
 Blocked by: none
-Existing: `git grep -n "tgAuthResult\|oauth.telegram.org" -- src api` → sin salida. Un Telegram sin cuenta que llega con una firma buena recibe un 404 (`api/bot/entrar.js:48`, «Aún no tienes cuenta: escríbele a Lola»). El dominio del login vive solo en el servidor (`api/bot/telegram.js:1244`, `DOMINIO_LOGIN`).
+Existing: `git grep -n "tgAuthResult\|oauth.telegram.org" -- src api` → sin salida. Un Telegram sin cuenta que llega con una firma buena recibe un 404 (`api/bot/entrar.js:48`, «Aún no tienes cuenta: escríbele a Lola»). El dominio del login vive solo en el servidor (`api/bot/telegram.js:1244`, `DOMINIO_LOGIN`, con `BOT_LOGIN_DOMINIO` por encima): el trozo lo pasa a una sola constante, `DOMINIO_LOGIN_TELEGRAM` en `src/lib/cuentaTelegram.js`, que leen la app y el bot, y quita la variable.
 Not done: la app de iOS (ver «No hecho»). Un Telegram atado a una cuenta de Google sigue sin abrirla (punto 3 de la sección 6; trozo 3). Fuera del dominio del bot (local, previews, y producción mientras @BotFather apunte a staging) el botón no sale, porque allí Telegram lo rechaza. No toca @BotFather ni Supabase.
 Done:
 ```sh
@@ -167,8 +167,10 @@ npx vitest run api/bot/entrar.test.js src/lib/cuentaTelegram.test.js
 ### Decisions taken
 
 - principio 4 | eligió: el login de Telegram vuelve con la firma y la comprueba `verificarLogin`, el de los botones de Lola | descartó: un segundo verificador para el widget | motivo: decidido
-- principio 4 | eligió: un Telegram sin cuenta que entra con firma buena recibe la cuenta que crea Lola (`cuentaYChat`, `api/_bot/altaTelegram.js:19`) | descartó: crearla con otro código, dos maneras de nacer una cuenta | motivo: decidido
-- principio 3 | eligió: fuera del dominio de @BotFather el botón no sale | descartó: enseñarlo y que Telegram conteste «Bot domain invalid» | motivo: decidido
+- principio 4 | eligió: un Telegram sin cuenta que entra con firma buena recibe la cuenta que crea Lola (`cuentaYChat`, `api/_bot/altaTelegram.js:21`) | descartó: crearla con otro código, dos maneras de nacer una cuenta | motivo: decidido
+- principio 1 | eligió: el botón sale solo donde Telegram acepta el login (el dominio de @BotFather) | descartó: enseñarlo en local y en previews, donde siempre acaba en «Bot domain invalid»: un botón que promete lo que no hace | motivo: decidido
+- principio 4 | eligió: el login en la misma pestaña, cuya vuelta lee `llaveLola.js` como la llave de Lola | descartó: la ventana aparte del widget, que devuelve los datos por otro camino (postMessage) y pediría un segundo lector de la firma | motivo: decidido
+- principio 4 | eligió: el dominio del bot en una sola constante que leen la app y el bot | descartó: mantener `BOT_LOGIN_DOMINIO` en el servidor, una segunda copia que nadie compara | motivo: decidido
 
 ### Para Pablo
 
@@ -179,7 +181,7 @@ A. ¿Telegram abre también una cuenta de Google a la que se conectó desde la a
 
 Pasos fuera del repo (Pablo):
 - Staging: ninguno. @BotFather ya tiene `homenu-staging.vercel.app` (`/setdomain`, 7 oct 2026).
-- Producción, antes de subir a `main`: un bot tiene un solo dominio. En @BotFather, `/setdomain` → el bot → el dominio de producción; desde ese momento el botón de login de Lola y «Entrar con Telegram» dejan de ir en staging. Ese mismo dominio, en un PR, en `DOMINIO_LOGIN_TELEGRAM` (`src/lib/cuentaTelegram.js`, trozo 1), y en `BOT_LOGIN_DOMINIO` de Vercel si está puesta.
+- Producción, antes de subir a `main`: un bot tiene un solo dominio. En @BotFather, `/setdomain` → el bot → el dominio de producción; desde ese momento el botón de login de Lola y «Entrar con Telegram» dejan de ir en staging. Ese mismo dominio, en un PR, en `DOMINIO_LOGIN_TELEGRAM` (`src/lib/cuentaTelegram.js`, trozo 1), el único sitio; si `BOT_LOGIN_DOMINIO` está puesta en Vercel, ya no la lee nadie y se puede borrar.
 
 ### Not verified
 
