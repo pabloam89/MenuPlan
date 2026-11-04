@@ -3,7 +3,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 const llamadas = vi.hoisted(() => []);
-vi.mock("../_bot/recordatorios.js", () => ({ enviarPendientes: vi.fn(async () => { llamadas.push("recordatorios"); return 0; }) }));
+const vencidos = vi.hoisted(() => []);
+// enviarPendientes, de mentira: manda los vencidos que le pongamos.
+vi.mock("../_bot/recordatorios.js", () => ({
+  enviarPendientes: vi.fn(async (mandar) => { llamadas.push("recordatorios"); for (const r of vencidos) await mandar(r); return vencidos.length; }),
+}));
 vi.mock("../_bot/telegram.js", () => ({ enviar: vi.fn(), escaparHtml: (t) => t }));
 vi.mock("../_bot/vispera.js", () => ({ VISPERA: "v", TIPO_VISPERA: "vispera", avisoDeVisperaDe: vi.fn() }));
 vi.mock("../_bot/db.js", () => ({ rpc: vi.fn(async () => { llamadas.push("tareas"); return 0; }) }));
@@ -18,6 +22,7 @@ vi.mock("../_bot/aprender.js", () => ({
 }));
 
 const { default: handler } = await import("./recordatorios.js");
+const { enviar } = await import("../_bot/telegram.js");
 
 const respuesta = () => {
   const r = { code: null, cuerpo: null };
@@ -28,7 +33,7 @@ const respuesta = () => {
 };
 const pedir = () => ({ method: "POST", headers: { authorization: "Bearer secreto" } });
 
-beforeEach(() => { llamadas.length = 0; aprender.falla = false; process.env.BOT_CRON_SECRET = "secreto"; });
+beforeEach(() => { llamadas.length = 0; vencidos.length = 0; vi.mocked(enviar).mockClear(); aprender.falla = false; process.env.BOT_CRON_SECRET = "secreto"; });
 afterEach(() => { delete process.env.BOT_CRON_SECRET; vi.restoreAllMocks(); });
 
 describe("cron: aprende de las señales en cada pasada", () => {
@@ -45,5 +50,16 @@ describe("cron: aprende de las señales en cada pasada", () => {
     expect(res.code).toBe(200);
     expect(res.cuerpo).toMatchObject({ ok: true, aprendido: null });
     expect(log).toHaveBeenCalledWith("[senales]", "sin base");
+  });
+});
+
+describe("cron: el botón de un recordatorio lleva su tarea (#1238)", () => {
+  it("también con un texto que no cabría en el botón", async () => {
+    const id = "0f8e2a1c-3b4d-4e5f-8a9b-0c1d2e3f4a5b";
+    vencidos.push({ id, channel: "telegram", chat_id: "7", household_id: "casaA", texto: "Sacar la carne del congelador para el guiso del domingo con los abuelos" });
+    await handler(pedir(), respuesta());
+    const [, texto, opciones] = vi.mocked(enviar).mock.calls[0];
+    expect(texto).toMatch(/Recordatorio/);
+    expect(opciones.botones).toEqual([[{ texto: "👉 Vamos", dato: `rec:${id}` }]]);
   });
 });

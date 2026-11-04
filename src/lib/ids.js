@@ -150,6 +150,8 @@ export const claveOperacion = claseUuid();
 export const operacion = claseUuid();
 /** Una cocinada (cookings.id; también la carpeta de su foto en Storage). */
 export const cocinada = claseUuid();
+/** Una tarea del bot (bot_tareas.id): el botón de un recordatorio la lleva (api/_bot/recordatorios.js). */
+export const tarea = claseUuid();
 /** El id anónimo de analítica de quien no ha entrado (localStorage). */
 export const anonimo = Object.freeze({ ...claseUuid(), es: (x) => esTexto(x) && (RE_UUID.test(x) || /^[0-9a-z]{8,24}$/.test(x)) });
 

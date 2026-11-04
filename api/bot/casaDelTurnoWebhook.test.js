@@ -43,7 +43,7 @@ vi.mock("../_bot/voz.js", () => ({ transcribir: vi.fn() }));
 vi.mock("../_bot/adjuntos.js", () => ({ adjuntoDe: vi.fn() }));
 vi.mock("../_bot/turnos.js", () => ({ enTurno: vi.fn(), aSolas: vi.fn(), juntar: vi.fn() }));
 vi.mock("../_bot/plato.js", () => ({ comidaElegida: () => null, quiereApuntar: () => false }));
-vi.mock("../_bot/recordatorios.js", () => ({ ahoraEnMadrid: () => "" }));
+vi.mock("../_bot/recordatorios.js", () => ({ ahoraEnMadrid: () => "", recordatorioDelBoton: vi.fn(async () => t.tablas.bot_tareas?.[0] ?? null) }));
 // cuentasDeQuien, la de verdad (con la base de mentira): es la que lee al dueño.
 vi.mock("../_bot/compartir.js", async (original) => {
   const real = await original();
@@ -59,6 +59,7 @@ vi.mock("../_bot/borrar.js", () => ({ puedeBorrar: () => false, borrarCuenta: vi
 vi.mock("../_bot/cuentas.js", () => ({ enviarAcceso: vi.fn(), verificarCodigoEmail: vi.fn(), crearCuentaTelegram: vi.fn(), cuentaNacidaAqui: vi.fn() }));
 
 const { default: handler } = await import("./telegram.js");
+const { enTurno } = await import("../_bot/turnos.js");
 
 const res = () => { const r = { status: () => r, json: () => r, end: () => r }; return r; };
 
@@ -118,5 +119,37 @@ describe("Lola sigue la casa activa de la app y lo dice (#1238)", () => {
     conCasas({ activa: "casaB", ultima: "casaA" });
     await pulsa("t:¿qué cenamos?");
     expect(textos()[0]).toMatch(CAMBIO);
+  });
+});
+
+// El botón de un recordatorio se hace en la casa del recordatorio, y solo si es la abierta en la app (#1238).
+describe("un recordatorio pulsado estando en otra casa (#1238)", () => {
+  const ID = "0f8e2a1c-3b4d-4e5f-8a9b-0c1d2e3f4a5b";
+  const conRecordatorio = (deCasa) => {
+    conCasas({ activa: "casaB", ultima: "casaB" });
+    t.tablas.bot_tareas = deCasa ? [{ household_id: deCasa, texto: "Sacar la carne del congelador" }] : [];
+    t.tablas.households = [{ id: "casaA", name: "Casa A" }, { id: "casaB", name: "Casa B" }];
+  };
+
+  it("de la casa abierta: se le pide a Lola su texto", async () => {
+    conRecordatorio("casaB");
+    await pulsa(`rec:${ID}`);
+    expect(enTurno).toHaveBeenCalledWith("7", expect.objectContaining({ texto: "Sacar la carne del congelador" }), expect.anything(), expect.anything());
+  });
+
+  it("de otra casa: no se hace; se dice de cuál es y vuelve el botón", async () => {
+    conRecordatorio("casaA");
+    await pulsa(`rec:${ID}`);
+    expect(enTurno).not.toHaveBeenCalled();
+    const ultimo = t.enviados.at(-1);
+    expect(ultimo.texto).toMatch(/es de <b>Casa A<.b>, y ahora tienes abierta <b>Casa B<.b>/);
+    expect(ultimo.opciones.botones).toEqual([[{ texto: "👉 Vamos", dato: `rec:${ID}` }]]);
+  });
+
+  it("si ya no está: se dice, y no se hace nada", async () => {
+    conRecordatorio(null);
+    await pulsa(`rec:${ID}`);
+    expect(enTurno).not.toHaveBeenCalled();
+    expect(textos().at(-1)).toMatch(/ya no está/);
   });
 });
