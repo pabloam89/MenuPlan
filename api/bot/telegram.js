@@ -55,8 +55,8 @@ import {
   recetaEnTexto, semanaEnTexto, copiarReceta, cuentasDeQuien,
 } from "../_bot/compartir.js";
 import { motor } from "../_bot/menu.js";
-import { enlazarChat, crearCodigo, gastarCodigo, baseDe, confirmarEnlace, casaPropia, idDePersona, codigoDeGrupo, esCodigoDeGrupo } from "../_bot/enlace.js";
-import { papelDeQuien } from "../_bot/papel.js";
+import { enlazarChat, crearCodigo, gastarCodigo, baseDe, confirmarEnlace, casaPropia, idDePersona, codigoDeGrupo, esCodigoDeGrupo, cuentaDeTelegram, pideCambioDeCuenta, preguntaDeCambio, CAMBIO } from "../_bot/enlace.js";
+import { papelDeQuien, casaActivaDe } from "../_bot/papel.js";
 import { unirsePorInvitacion, ES_INVITACION } from "../_bot/invitacion.js";
 import { traducir } from "../_bot/traducir.js";
 import { idiomaDe } from "../_bot/papel.js";
@@ -194,6 +194,9 @@ async function pulsarRecordatorio(cq, chatId, id, casa, { base, host }) {
   return enTurno(chatId, itemDe(cq.from, recordatorio.texto, { responderA: esGrupo ? cq.message.message_id : undefined, inmediato: true, mid: `b${cq.message.message_id}` }),
     atenderCola({ chatId, householdId: casa, esGrupo, base }), { alSobrar: relevo(chatId, host) });
 }
+
+/** El botón del cambio de cuenta: `cc:<enlace de la app>` o `cc:no`. */
+const CAMBIAR_CUENTA = "cc:";
 
 /** El relevo, al llegar: atiende lo que quedó en la cola del chat. */
 async function relevar(chatId, base, host) {
@@ -1587,6 +1590,13 @@ async function pulsado(cq, base, host = "") {
     return pulsarRecordatorio(cq, chatId, idRecordatorio, chat.household_id, { base, host });
   }
 
+  // El «sí» o el «no» del cambio de cuenta (#1238): solo en el privado de quien lo pidió.
+  if (cq.data?.startsWith(CAMBIAR_CUENTA) && !esGrupoDe(cq.message.chat) && chatId === idDePersona(cq.from)) {
+    const token = cq.data.slice(CAMBIAR_CUENTA.length);
+    if (token === "no") return enviar(chatId, "Vale, lo dejo como estaba.");
+    return enlazarDesdeAjustes({ from: cq.from }, chatId, false, token, { cambiar: true });
+  }
+
   // Quien recibe una receta: guardársela o ponerla en su menú.
   if (cq.data?.startsWith("comp:")) return usarCompartido(cq, chat, base);
 
@@ -1807,7 +1817,7 @@ async function abrirApp(msg, chatId, esGrupo, base) {
  * toca es atender lo pedido. Devuelve `{ ocupado: true }` si el chat es de
  * otra casa (y entonces no se atiende nada).
  */
-async function enlazarDesdeAjustes(msg, chatId, esGrupo, token, { callado = false } = {}) {
+async function enlazarDesdeAjustes(msg, chatId, esGrupo, token, { callado = false, cambiar = false } = {}) {
   const [fila] = await select("bot_link_tokens", `token=${eq(token)}`, "token,user_id,household_id,expires_at,used_at");
   if (!fila || fila.used_at || Date.parse(fila.expires_at) < Date.now()) {
     if (callado) return null;
@@ -1829,6 +1839,14 @@ async function enlazarDesdeAjustes(msg, chatId, esGrupo, token, { callado = fals
     return enviar(chatId, "Ese enlace ya no vale. Pide otro a quien gestiona la casa.");
   }
 
+  // Este Telegram ya es otra cuenta (#1238, recorrido 4): antes de gastar el enlace, se pregunta. El «sí» trae el
+  // mismo enlace y vuelve aquí con `cambiar`; mientras, lo pedido desde la app no se atiende (sería en la otra casa).
+  const deAntes = cambiar || esGrupo ? null : await cuentaDeTelegram(idDePersona(msg.from));
+  if (pideCambioDeCuenta({ esGrupo, deAntes, userId: fila.user_id })) {
+    await preguntarCambioDeCuenta(chatId, token, deAntes, fila.household_id);
+    return callado ? { ocupado: true } : null;
+  }
+
   // Marcarlo usado ANTES de enlazar: dos pulsaciones seguidas no enlazan dos veces.
   const usados = await update("bot_link_tokens", `token=${eq(token)}&used_at=is.null`, { used_at: new Date().toISOString() });
   if (!usados?.length) return callado ? null : enviar(chatId, "Ese enlace ya se ha usado. Pide otro desde la app.");
@@ -1843,7 +1861,7 @@ async function enlazarDesdeAjustes(msg, chatId, esGrupo, token, { callado = fals
     lang: msg.from?.language_code,
     // Solo en privado (enlazarChat lo vuelve a mirar): en un grupo, quien
     // pulsa no tiene por qué ser quien sacó el enlace.
-    identidad: esGrupo ? null : "ajustes",
+    identidad: esGrupo ? null : cambiar ? CAMBIO : "ajustes",
   });
   if (r.ocupado) {
     await enviar(chatId, "Este chat ya está conectado a otra casa. Solo quien lo conectó puede cambiarlo.");
@@ -1851,6 +1869,17 @@ async function enlazarDesdeAjustes(msg, chatId, esGrupo, token, { callado = fals
   }
   if (callado) return { ok: true };
   return confirmarEnlace(chatId, fila.household_id, esGrupo);
+}
+
+/** La pregunta del cambio de cuenta, con «Sí» (que lleva el mismo enlace, `cc:<enlace>`) y «No». */
+async function preguntarCambioDeCuenta(chatId, token, deAntes, casaApp) {
+  const casaAntes = await casaActivaDe(deAntes).catch(fallaCon("cambio_de_cuenta", null));
+  const casas = [casaAntes, casaApp].filter(Boolean);
+  const nombres = await select("households", `id=in.(${casas.map(encodeURIComponent).join(",")})`, "id,name").catch(fallaCon("cambio_de_cuenta", []));
+  const nombre = (h) => nombres.find((n) => n.id === h)?.name ?? null;
+  return enviar(chatId, preguntaDeCambio({ casaAntes: nombre(casaAntes), casaApp: nombre(casaApp) }), {
+    botones: [[{ texto: "Sí, pasarlo a esta cuenta", dato: `${CAMBIAR_CUENTA}${token}` }, { texto: "No", dato: `${CAMBIAR_CUENTA}no` }]],
+  });
 }
 
 function secretoValido(recibido) {

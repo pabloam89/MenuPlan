@@ -34,11 +34,15 @@ export function idDePersona(from) {
  *   · `email`: escribió aquí el código que llegó al correo de la cuenta.
  *   · `ajustes`: el enlace de «Conectar Telegram» que el dueño sacó en su app,
  *     pulsado en un chat privado.
+ *   · `cambio`: el mismo enlace, cuando este Telegram ya era de otra cuenta y
+ *     la persona confirmó aquí, en su privado, que lo pasa a la de la app
+ *     (#1238). Quien tiene el privado es quien tenía la otra cuenta: por eso
+ *     corrige la identidad y puede mover el chat que esa cuenta enlazó.
  * Sin prueba (`identidad` null), o en un grupo, solo se enlaza el chat: el
  * que pulsa «Añadir al grupo» no tiene por qué ser quien firmó el enlace.
  * Y una identidad que ya es de otra cuenta no se cambia por pulsar un enlace.
  *
- * @param {{ identidad?: "nacida" | "email" | "ajustes" | null }} args
+ * @param {{ identidad?: "nacida" | "email" | "ajustes" | "cambio" | null }} args
  * @returns {Promise<{ ok: true, identidad: "nueva" | "igual" | "de-otra" | "sin" } | { ok: false, ocupado: true }>}
  */
 // `lang` (el idioma de la app de Telegram) se sigue aceptando pero ya no se
@@ -51,12 +55,39 @@ export function idDePersona(from) {
  * su casa con su código. Una sola regla para enlazarChat y para la invitación,
  * que la mira antes de unirse (invitacion.js, #958).
  */
+/** La prueba de un cambio de cuenta confirmado en el privado (#1238); con `nacida`, las únicas que corrigen una identidad. */
+export const CAMBIO = "cambio";
+const CORRIGEN_IDENTIDAD = new Set(["nacida", CAMBIO]);
+
+/** La cuenta de este Telegram (bot_identities), o null. Un fallo de la base, lanza. */
+export async function cuentaDeTelegram(externalId, channel = CANAL.TELEGRAM) {
+  if (!externalId) return null;
+  const [ya] = await select("bot_identities", `channel=${eq(channel)}&external_id=${eq(String(externalId))}`, "user_id");
+  return ya?.user_id ?? null;
+}
+
+/**
+ * Pura. ¿Hay que preguntar antes de enlazar? En un privado, si este Telegram ya es otra cuenta que la del enlace: la
+ * persona tiene las dos (el privado y la sesión de la app), y elige con cuál sigue (#1238, recorrido 4).
+ */
+export const pideCambioDeCuenta = ({ esGrupo, deAntes, userId }) => Boolean(!esGrupo && deAntes && deAntes !== userId);
+
+/** Pura. La pregunta del cambio de cuenta, con los nombres de las dos casas si se saben. */
+export function preguntaDeCambio({ casaAntes, casaApp }) {
+  const nombre = (n, si) => (n ? `<b>${escaparHtml(n)}</b>` : si);
+  return `Este Telegram ya está conectado a otra cuenta de HoMenu (la de ${nombre(casaAntes, "otra casa")}). `
+    + `¿Lo pasas a la cuenta con la que has entrado en la app (${nombre(casaApp, "tu casa")})?\n\n`
+    + "Lo de la otra cuenta se queda en ella: no se pasa a esta.";
+}
+
 export const chatOcupado = (actual, householdId, userId) =>
   Boolean(actual && actual.household_id !== householdId && actual.linked_by !== userId);
 
 export async function enlazarChat({ channel = CANAL.TELEGRAM, chatId, kind, householdId, userId, externalId, nombre, identidad = null }) {
   const [actual] = await select("bot_chats", `channel=${eq(channel)}&chat_id=${eq(chatId)}`, "household_id,linked_by");
-  if (chatOcupado(actual, householdId, userId)) return { ok: false, ocupado: true };
+  // Un cambio confirmado mueve el chat que enlazó la cuenta de antes de este mismo Telegram, y ninguno más.
+  const deAntes = identidad === CAMBIO && kind === "private" ? await cuentaDeTelegram(externalId, channel) : null;
+  if (chatOcupado(actual, householdId, userId) && !(deAntes && actual.linked_by === deAntes)) return { ok: false, ocupado: true };
 
   const estado = await apuntarIdentidad({ channel, kind, userId, externalId, nombre, identidad });
   await insert("bot_chats", [{
@@ -73,7 +104,7 @@ export async function enlazarChat({ channel = CANAL.TELEGRAM, chatId, kind, hous
 async function apuntarIdentidad({ channel, kind, userId, externalId, nombre, identidad }) {
   if (!identidad || kind !== "private" || !externalId || NO_PERSONAS.has(String(externalId))) return "sin";
   const [ya] = await select("bot_identities", `channel=${eq(channel)}&external_id=${eq(String(externalId))}`, "user_id");
-  if (ya && ya.user_id !== userId && identidad !== "nacida") {
+  if (ya && ya.user_id !== userId && !CORRIGEN_IDENTIDAD.has(identidad)) {
     console.warn("[enlace] identidad de otra cuenta, no se cambia", { channel, identidad });
     return "de-otra";
   }

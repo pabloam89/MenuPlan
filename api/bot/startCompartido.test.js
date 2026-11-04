@@ -12,7 +12,7 @@ process.env.TELEGRAM_WEBHOOK_SECRET = "secreto";
 process.env.VITE_SUPABASE_URL ||= "https://sin-base.invalid";
 process.env.SUPABASE_SERVICE_ROLE_KEY ||= "sin-clave";
 
-const t = vi.hoisted(() => ({ tablas: {}, enviados: [], trabajo: [] }));
+const t = vi.hoisted(() => ({ deAntes: null, tablas: {}, enviados: [], trabajo: [] }));
 
 vi.mock("@vercel/functions", () => ({ waitUntil: (p) => t.trabajo.push(p) }));
 vi.mock("../_bot/db.js", () => ({
@@ -29,7 +29,7 @@ vi.mock("../_bot/embudo.js", () => ({ registrar: vi.fn(), rastro: vi.fn(), EMBUD
 vi.mock("../_bot/router.js", () => ({ clasificar: vi.fn(), vaPorLaRapida: () => false, permitidoEn: () => true }));
 vi.mock("../_bot/turno.js", () => ({ viaRapida: vi.fn(), eleccionDe: () => null, repiteLaPropuesta: () => false, aplicarEleccion: vi.fn(), contextoDe: vi.fn() }));
 vi.mock("../_bot/uso.js", () => ({ fueraDeLimite: vi.fn(), contarUso: vi.fn() }));
-vi.mock("../_bot/papel.js", () => ({ papelDeQuien: vi.fn(), idiomaDe: vi.fn() }));
+vi.mock("../_bot/papel.js", () => ({ papelDeQuien: vi.fn(), idiomaDe: vi.fn(), casaActivaDe: vi.fn(async () => "hAntes") }));
 vi.mock("../_bot/rapido.js", () => ({ respuestaHoy: vi.fn(), respuestaSemana: vi.fn(), respuestaCompra: vi.fn(), recordar: vi.fn() }));
 vi.mock("../_bot/pintar.js", () => ({ pintarMenuEntero: vi.fn() }));
 vi.mock("../_bot/voz.js", () => ({ transcribir: vi.fn() }));
@@ -40,7 +40,11 @@ vi.mock("../_bot/recordatorios.js", () => ({ ahoraEnMadrid: () => "" }));
 vi.mock("../_bot/compartir.js", () => ({ enlacesReceta: vi.fn(), enlacesSemana: vi.fn(), botonesCompartir: vi.fn(), resolverInvitacion: vi.fn(async () => null), recetaEnTexto: vi.fn(), semanaEnTexto: vi.fn(), copiarReceta: vi.fn(), cuentasDeQuien: vi.fn(async () => []) }));
 vi.mock("../_bot/menu.js", () => ({ motor: vi.fn() }));
 vi.mock("../_bot/ajustes.js", () => ({ sembrarCasa: vi.fn() }));
-vi.mock("../_bot/enlace.js", () => ({ enlazarChat: vi.fn(async () => ({ ok: true })), crearCodigo: vi.fn(), gastarCodigo: vi.fn(), baseDe: () => "https://x", confirmarEnlace: vi.fn(async () => ({})), casaPropia: vi.fn(), idDePersona: (f) => (f?.id ? String(f.id) : null), codigoDeGrupo: vi.fn(), esCodigoDeGrupo: () => false }));
+// Las piezas puras del cambio de cuenta, las de verdad; la cuenta de este Telegram, la que diga t.deAntes.
+vi.mock("../_bot/enlace.js", async (original) => ({
+  ...(({ pideCambioDeCuenta, preguntaDeCambio, CAMBIO }) => ({ pideCambioDeCuenta, preguntaDeCambio, CAMBIO }))(await original()),
+  cuentaDeTelegram: vi.fn(async () => t.deAntes),
+  enlazarChat: vi.fn(async () => ({ ok: true })), crearCodigo: vi.fn(), gastarCodigo: vi.fn(), baseDe: () => "https://x", confirmarEnlace: vi.fn(async () => ({})), casaPropia: vi.fn(), idDePersona: (f) => (f?.id ? String(f.id) : null), codigoDeGrupo: vi.fn(), esCodigoDeGrupo: () => false }));
 vi.mock("../_bot/invitacion.js", () => ({ unirsePorInvitacion: vi.fn(), ES_INVITACION: /^inv_([0-9a-f]{32})$/ }));
 vi.mock("../_bot/traducir.js", () => ({ traducir: vi.fn(async (xs) => xs) }));
 vi.mock("../_bot/casa.js", () => ({ hoyISO: () => "2026-10-06", cargarCasa: vi.fn() }));
@@ -49,6 +53,7 @@ vi.mock("../_bot/cuentas.js", () => ({ enviarAcceso: vi.fn(), verificarCodigoEma
 
 const { default: handler } = await import("./telegram.js");
 const { enlazarChat } = await import("../_bot/enlace.js");
+const { update } = await import("../_bot/db.js");
 const { resolverInvitacion } = await import("../_bot/compartir.js");
 
 async function escribe(texto, { chat = 7, from = 7 } = {}) {
@@ -67,7 +72,7 @@ const codigoValido = (token) => ({
 });
 
 beforeEach(() => {
-  t.tablas = {}; t.enviados.length = 0; t.trabajo.length = 0;
+  t.tablas = {}; t.deAntes = null; t.enviados.length = 0; t.trabajo.length = 0;
   vi.clearAllMocks();
 });
 
@@ -94,4 +99,56 @@ describe("/start: los enlaces de compartir de verdad siguen llegando a recibirCo
       expect(enlazarChat).not.toHaveBeenCalled();
     });
   }
+});
+
+async function pulsa(dato, { chat = 7, from = 7 } = {}) {
+  const res = { status: () => res, json: () => res, end: () => res };
+  await handler({
+    method: "POST",
+    headers: { "x-telegram-bot-api-secret-token": "secreto" },
+    body: { callback_query: { id: "q", data: dato, from: { id: from, first_name: "Ana" }, message: { message_id: 2, chat: { id: chat, type: "private" } } } },
+  }, res);
+  await Promise.all(t.trabajo);
+}
+
+// Este Telegram ya es otra cuenta y entra con «Conectar Telegram» de la cuenta de la app (#1238, recorrido 4).
+describe("/start: cambiar de cuenta, con confirmación (#1238)", () => {
+  const TOKEN = "Q3xk9TzA1bVwPq7yRt2uAb";
+
+  it("pregunta antes, sin gastar el enlace ni enlazar", async () => {
+    t.tablas = codigoValido(TOKEN);
+    t.deAntes = "u-antes";
+    await escribe(`/start ${TOKEN}`);
+    expect(enlazarChat).not.toHaveBeenCalled();
+    expect(update).not.toHaveBeenCalled();
+    const { texto, opciones } = t.enviados.at(-1);
+    expect(texto).toMatch(/ya está conectado a otra cuenta de HoMenu/);
+    expect(opciones.botones[0].map((b) => b.dato)).toEqual([`cc:${TOKEN}`, "cc:no"]);
+  });
+
+  it("con el «sí», se enlaza con la prueba del cambio", async () => {
+    t.tablas = codigoValido(TOKEN);
+    t.deAntes = "u-antes";
+    await pulsa(`cc:${TOKEN}`);
+    expect(enlazarChat).toHaveBeenCalledWith(expect.objectContaining({ userId: "u1", householdId: "h1", identidad: "cambio" }));
+  });
+
+  it("con el «no», nada", async () => {
+    await pulsa("cc:no");
+    expect(enlazarChat).not.toHaveBeenCalled();
+    expect(t.enviados.at(-1).texto).toMatch(/lo dejo como estaba/);
+  });
+
+  it("el «sí» pulsado por otra persona (en un chat que no es el suyo) no hace nada", async () => {
+    t.tablas = codigoValido(TOKEN);
+    await pulsa(`cc:${TOKEN}`, { chat: 7, from: 8 });
+    expect(enlazarChat).not.toHaveBeenCalled();
+  });
+
+  it("si el Telegram ya es de esta misma cuenta, no se pregunta", async () => {
+    t.tablas = codigoValido(TOKEN);
+    t.deAntes = "u1";
+    await escribe(`/start ${TOKEN}`);
+    expect(enlazarChat).toHaveBeenCalledWith(expect.objectContaining({ identidad: "ajustes" }));
+  });
 });
