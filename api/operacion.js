@@ -39,6 +39,9 @@
  * (api/_bot/historialCompra.js) si quien lo manda edita la casa; sin clave, como lo cocinado. Y GET ?casa=&compra=1
  * contesta 200 con { tickets, precios } en la forma de la app (src/lib/historialCompra.js) a quien es de la casa.
  *
+ * Exportar la casa (trozo 36, privacidad): GET ?casa=<uuid>&exportar=1 contesta 200 con todo lo que la base guarda de
+ * esa casa, tabla a tabla (api/_bot/exportar.js, src/lib/exportarCasa.js), a quien es de ella, con cualquier papel; sin
+ * secretos ni lo privado de las demás personas (sus chats a solas con Lola y sus tareas personales).
  * Los menús generados (trozo 22): { casa, menu_generado: true } apunta uno en `menu_generado` (api/_bot/menusGenerados.js)
  * si quien lo manda edita la casa, sin clave. Y GET ?casa=&menus=1 contesta 200 con { menus: [ISO] }, los últimos.
  *
@@ -56,6 +59,7 @@ import { cocinadosDeSemana, ponerCocinado } from "./_bot/cocinados.js";
 import { menusGenerados, apuntarMenuGenerado } from "./_bot/menusGenerados.js";
 import { filaDeCocinado } from "../src/lib/cocinados.js";
 import { guardarTicket, guardarPrecios, borrarTicket, leerCompra } from "./_bot/historialCompra.js";
+import { exportarCasa } from "./_bot/exportar.js";
 import { filaDeTicket, filaDePrecio } from "../src/lib/historialCompra.js";
 import { senalesDeLaApp } from "../src/lib/senales.js";
 import { puede } from "../src/lib/papeles.js";
@@ -84,6 +88,7 @@ async function leerCasa(req, res, accessToken) {
     // Con la service role, ficha_casa no mira quién lee: se mira aquí.
     if (!(await papelDeUsuario(casa, user.id))) return contestar(res, FALLO_DATO.SIN_PERMISO);
     if (req.query?.compra !== undefined) return res.status(200).json(await leerCompra(casa));
+    if (req.query?.exportar !== undefined) return res.status(200).json(await exportarCasa(casa, user.id));
     if (req.query?.menus !== undefined) return res.status(200).json({ menus: await menusGenerados(casa) });
     const semana = req.query?.cocinados;
     if (semana !== undefined) {
