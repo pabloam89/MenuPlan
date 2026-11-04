@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { AlertTriangle, RotateCw } from "./icons.jsx";
+import { PIDESELO_A_LOLA } from "../lib/frontalBot.js";
 
 // Non-blocking warning shown ABOVE an already-generated menu when a member's
 // allergies/intolerances changed after generation (e.g. edited from "Tu
@@ -29,7 +30,7 @@ export function RestrictionConflictBanner({ message, onRegenerate }) {
             Restricciones cambiadas desde que se generó este menú
           </div>
           <div style={{ fontSize: 12, color: "#7a4a12", lineHeight: 1.45, marginBottom: 10 }}>
-            {message} Revísalo antes de cocinar o genera un menú nuevo.
+            {message} Revísalo antes de cocinar o pídele a Lola uno nuevo.
           </div>
           <div style={{ display: "flex", gap: 8 }}>
             {onRegenerate && (
@@ -44,7 +45,7 @@ export function RestrictionConflictBanner({ message, onRegenerate }) {
                 }}
               >
                 <RotateCw size={12} />
-                Generar menú nuevo
+                {PIDESELO_A_LOLA}
               </button>
             )}
             <button

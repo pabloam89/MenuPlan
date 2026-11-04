@@ -92,17 +92,23 @@ async function darDeAlta(page) {
   await boton(page, "Nada que evitar").click();
 }
 
-// Tras el alta la app genera el menú sola; se espera a que la portada enseñe
-// el de hoy y se abre la semana. La entrada a la pizarra en la portada dice
-// que las banderas salieron como en staging (playwright.config.js); que el
-// motor es el `solver` lo dice la guarda de escapes: el otro llama a
-// /api/generate.
+// Tras el alta la app ya no genera el menú: eso es de Lola (#1210). La
+// portada no trae platos; se empieza en blanco (la entrada a la pizarra dice
+// que las banderas salieron como en staging, playwright.config.js) y
+// «Rellenar» pone platos del recetario en todos los huecos, sin el motor.
 async function abrirMenu(page) {
-  await expect(page.getByText("Hoy toca")).toBeVisible();
   await expect(page.getByText(ENTRADA_PIZARRA)).toBeVisible();
+  await expect(page.getByRole("button", { name: TARJETA_PLATO })).toHaveCount(0);
+  await page.getByText(ENTRADA_PIZARRA).click();
+  // La pizarra pregunta antes qué días pone: se deja lo que trae (esta semana).
+  const dias = page.getByRole("dialog", { name: "¿Qué días pones?" });
+  await expect(dias).toBeVisible();
+  await dias.getByRole("button", { name: "Siguiente" }).click();
+  await dias.getByRole("button", { name: "Empezar" }).click();
+  await expect(dias).toBeHidden();
+  // La baldosa lleva delante cuántos huecos quedan («14 Rellenar»).
+  await page.getByRole("button", { name: /^\d+ Rellenar$/ }).click();
   await expect(page.getByRole("button", { name: TARJETA_PLATO }).first()).toBeVisible();
-  await boton(page, "Menú").click();
-  await expect(page.getByText("Tu menú")).toBeVisible();
   for (const dia of NOMBRES_DIA) await expect(page.getByText(dia, { exact: true })).toBeVisible();
   const platos = page.getByRole("button", { name: TARJETA_PLATO });
   expect(await platos.count()).toBeGreaterThanOrEqual(NOMBRES_DIA.length);
