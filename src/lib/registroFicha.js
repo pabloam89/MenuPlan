@@ -331,9 +331,9 @@ export const DATOS_CASA = Object.freeze({
   supermarketsNota: dato({ tema: "compra", ficha: "casa", tipo: "texto", ...deLaCasa("supermarketsNota"), motivo: "el nombre de los súper que van como «Otro» en supermarkets" }),
   presupuesto: dato({ tema: "compra", ficha: "preferencia", tipo: "int", minimo: 0, peso_menu: 20, vive: "tabla:preferencia", motivo: "euros por semana, como mucho: una preferencia de la semana sobre el coste (trozo 14; presupuestoCasa.js); sin fila, sin presupuesto. Junta hasBudget y budget (trozo 12)" }),
   wantsPriceEstimates: dato({ tema: "compra", ficha: "casa", tipo: "bool", defecto: false, ...deLaCasa("wantsPriceEstimates") }),
-  priceObs: dato({ entidad: "compra", tema: "compra", tipo: "lista", ...historial }),
+  priceObs: dato({ entidad: "compra", tema: "compra", tipo: "lista", ...historial, vive: "tabla:precio_observado", motivo: "un precio visto, una fila (compraApp.js, trozo 22); la lista vieja del documento no se copia" }),
   priceAliases: dato({ entidad: "compra", tema: "compra", tipo: "mapa", ...delSistema }),
-  receipts: dato({ entidad: "compra", tema: "compra", tipo: "lista", ...historial, motivo: "los tickets que sube la familia" }),
+  receipts: dato({ entidad: "compra", tema: "compra", tipo: "lista", ...historial, vive: "tabla:ticket", motivo: "los tickets que sube la familia, una fila cada uno (compraApp.js, trozo 22)" }),
 
   // ── Menús ──
   menus: dato({ entidad: "menu", tema: "menus", tipo: "mapa", vive: "tabla:user_menus" }),
