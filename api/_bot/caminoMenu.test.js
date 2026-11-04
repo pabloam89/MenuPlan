@@ -26,6 +26,7 @@ describe("los caminos de Lola son los de la app", () => {
     const lineas = rellenos({ capacidades: [], fichas: new Map() }).CAMINOS.split("\n");
     expect(lineas).toHaveLength(CAMINOS.length);
     for (const [i, c] of CAMINOS.entries()) {
+      expect(c.ejemplo, c.id).toMatch(/\S/);
       expect(lineas[i]).toContain(`[[${c.titulo}]]`);
       expect(lineas[i]).toContain(c.ejemplo);
       expect(caminoDelBoton(c.titulo)).toBe(c.id);
