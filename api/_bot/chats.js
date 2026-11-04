@@ -39,7 +39,7 @@ export const esGrupoDe = (chat) => chat?.type === "group" || chat?.type === "sup
 /**
  * Lo que se lee de la charla (bot_messages): de este chat Y de esta casa. Un chat privado puede cambiar de casa
  * (invitación, otra casa activa; #1238): lo dicho en la otra casa no es de esta familia y no viaja con el chat.
- * Toda lectura de bot_messages pasa por aquí (chats.test.js lo comprueba en api/_bot).
+ * Toda lectura de bot_messages pasa por aquí: charlaPorCasa.test.js lo comprueba en api/_bot y api/bot.
  */
 export const deLaCharla = (channel, chatId, householdId) => {
   if (!householdId) throw new Error("deLaCharla: sin casa no se lee la charla");
