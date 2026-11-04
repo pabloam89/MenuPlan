@@ -46,7 +46,8 @@ import { SIN_ENRUTADOR, CAMPO_LLEGARON, CAMPO_REHECHO, motorFrioDesde, relojDeHe
 import { viaRapida, eleccionDe, aplicarEleccion, contextoDe, repiteLaPropuesta } from "../_bot/turno.js";
 import { fotosVistas, fotosSinRepetir } from "../_bot/fotosVistas.js";
 import { comidaElegida, quiereApuntar } from "../_bot/plato.js";
-import { ahoraEnMadrid } from "../_bot/recordatorios.js";
+import { ahoraEnMadrid, recordatorioDelBoton } from "../_bot/recordatorios.js";
+import { idDeBoton, alPulsar, AL_PULSAR, avisoDeOtraCasa, botonDeRecordatorio, RECORDATORIO_YA_NO_ESTA } from "../_bot/botonRecordatorio.js";
 import { vigente, CADUCA } from "../_bot/caducidades.js";
 import { fueraDeLimite, contarUso } from "../_bot/uso.js";
 import {
@@ -54,8 +55,8 @@ import {
   recetaEnTexto, semanaEnTexto, copiarReceta, cuentasDeQuien,
 } from "../_bot/compartir.js";
 import { motor } from "../_bot/menu.js";
-import { enlazarChat, crearCodigo, gastarCodigo, baseDe, confirmarEnlace, casaPropia, idDePersona, codigoDeGrupo, esCodigoDeGrupo } from "../_bot/enlace.js";
-import { papelDeQuien } from "../_bot/papel.js";
+import { enlazarChat, apuntarEnlace, crearCodigo, gastarCodigo, baseDe, confirmarEnlace, casaPropia, idDePersona, codigoDeGrupo, esCodigoDeGrupo, cuentaDeTelegram, pideCambioDeCuenta, preguntaDeCambio, CAMBIO } from "../_bot/enlace.js";
+import { papelDeQuien, casaActivaDe } from "../_bot/papel.js";
 import { unirsePorInvitacion, ES_INVITACION } from "../_bot/invitacion.js";
 import { traducir } from "../_bot/traducir.js";
 import { idiomaDe } from "../_bot/papel.js";
@@ -68,7 +69,7 @@ import { enviarAcceso, verificarCodigoEmail, cuentaNacidaAqui } from "../_bot/cu
 import { cuentaYChat as cuentaYChatDe } from "../_bot/altaTelegram.js";
 import { primeraVez } from "../_bot/entradas.js";
 import { preguntoConAviso } from "../_bot/silencio.js";
-import { CANAL } from "../../src/lib/vocabularios.js";
+import { CANAL, CAMINO_ENLACE, RESULTADO_ENLACE } from "../../src/lib/vocabularios.js";
 import { conOperacion, operacion } from "../_bot/operacion.js";
 
 const EMAIL_RE = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]{2,}$/;
@@ -173,6 +174,29 @@ async function avisarSiCambio(chatId, householdId) {
   const aviso = avisoDeCambio({ anterior, actual: householdId, nombre: hogar?.name ?? null });
   if (aviso) await enviar(chatId, aviso);
 }
+
+/**
+ * El botón de un recordatorio (#1238): lo pide a Lola como si se hubiera escrito, en la casa del recordatorio. Si la
+ * casa del turno es otra (la persona cambió de casa en la app), no se hace en la equivocada: se dice, con el botón otra
+ * vez para cuando la cambie. Un fallo al leer el recordatorio lanza (el webhook contesta «no pude»).
+ */
+async function pulsarRecordatorio(cq, chatId, id, casa, { base, host }) {
+  const recordatorio = await recordatorioDelBoton(chatId, id);
+  const que = alPulsar({ recordatorio, casa });
+  if (que === AL_PULSAR.YA_NO_ESTA) return enviar(chatId, RECORDATORIO_YA_NO_ESTA);
+  if (que === AL_PULSAR.OTRA_CASA) {
+    const nombres = await select("households", `id=in.(${[recordatorio.household_id, casa].map(encodeURIComponent).join(",")})`, "id,name").catch(fallaCon("casa_del_turno", []));
+    const nombre = (h) => nombres.find((n) => n.id === h)?.name ?? null;
+    return enviar(chatId, avisoDeOtraCasa({ suya: nombre(recordatorio.household_id), abierta: nombre(casa) }), { botones: [[botonDeRecordatorio(id)]] });
+  }
+  const esGrupo = esGrupoDe(cq.message.chat);
+  if (!esGrupo) await avisarSiCambio(chatId, casa);
+  return enTurno(chatId, itemDe(cq.from, recordatorio.texto, { responderA: esGrupo ? cq.message.message_id : undefined, inmediato: true, mid: `b${cq.message.message_id}` }),
+    atenderCola({ chatId, householdId: casa, esGrupo, base }), { alSobrar: relevo(chatId, host) });
+}
+
+/** El botón del cambio de cuenta: `cc:<enlace de la app>` o `cc:no`. */
+const CAMBIAR_CUENTA = "cc:";
 
 /** El relevo, al llegar: atiende lo que quedó en la cola del chat. */
 async function relevar(chatId, base, host) {
@@ -1377,7 +1401,7 @@ async function reconocer(from, chatId) {
   if (!casas.length) return null;
   const casa = { householdId: casas[0], userId: ident.user_id };
   const r = await enlazarChat({
-    chatId, kind: "private", householdId: casa.householdId, userId: casa.userId,
+    camino: CAMINO_ENLACE.REENGANCHE, chatId, kind: "private", householdId: casa.householdId, userId: casa.userId,
     externalId: ext, nombre: nombreDe(from), lang: from?.language_code, identidad: null,
   });
   return r.ok ? casa : null;
@@ -1413,7 +1437,7 @@ async function conectarGrupo(cq, chatId) {
     return enviar(chatId, "Meterme en el grupo de la familia lo hace quien gestiona la casa: pídeselo a esa persona.");
   }
   const r = await enlazarChat({
-    chatId, kind: "group", householdId: casa.householdId, userId,
+    camino: CAMINO_ENLACE.GRUPO, chatId, kind: "group", householdId: casa.householdId, userId,
     externalId: idDePersona(cq.from), nombre: nombreDe(cq.from), lang: cq.from?.language_code, identidad: null,
   });
   if (r.ocupado) return enviar(chatId, "Este chat ya está conectado a otra casa. Solo quien lo conectó puede cambiarlo.");
@@ -1519,6 +1543,7 @@ async function pulsado(cq, base, host = "") {
   }
   // [[Reintentar]] de otra persona: lo que se reintenta es SU mensaje (#958).
   const re = leerReintentar(cq.data);
+  const idRecordatorio = idDeBoton(cq.data);
   if (re?.persona && String(cq.from?.id) !== re.persona) {
     // a propósito: contestar al toque es adorno (y caduca a los 15 min)
     await llamar("answerCallbackQuery", { callback_query_id: cq.id, text: "Solo puede reintentarlo quien lo escribió." }).catch(seguirCon("boton_responder"));
@@ -1527,7 +1552,7 @@ async function pulsado(cq, base, host = "") {
   // Un botón del agente se atiende una vez por mensaje: un doble toque
   // llegaba como dos pulsaciones (dos update_id) antes de que se quitaran los
   // botones, y entraba dos veces en la cola (#958).
-  if ((cq.data?.startsWith("t:") || re) && cq.message?.message_id != null
+  if ((cq.data?.startsWith("t:") || re || idRecordatorio) && cq.message?.message_id != null
     && !(await primeraVez(CANAL.TELEGRAM, `boton:${chatId}:${cq.message.message_id}`))) {
     // a propósito: contestar al toque es adorno
     await llamar("answerCallbackQuery", { callback_query_id: cq.id }).catch(seguirCon("boton_responder"));
@@ -1557,6 +1582,19 @@ async function pulsado(cq, base, host = "") {
     if (!esGrupo) await avisarSiCambio(chatId, chat.household_id);
     return enTurno(chatId, itemDe(cq.from, re ? re.texto : cq.data.slice(2), { responderA: esGrupo ? cq.message.message_id : undefined, inmediato: true, mid, reintento: Boolean(re) }),
       atenderCola({ chatId, householdId: chat.household_id, esGrupo, base }), { alSobrar: relevo(chatId, host) });
+  }
+
+  // El botón de un recordatorio: se hace en la casa del recordatorio, y solo si es la del turno (#1238).
+  if (idRecordatorio) {
+    if (!chat) return bienvenida(chatId, cq.from, base);
+    return pulsarRecordatorio(cq, chatId, idRecordatorio, chat.household_id, { base, host });
+  }
+
+  // El «sí» o el «no» del cambio de cuenta (#1238): solo en el privado de quien lo pidió.
+  if (cq.data?.startsWith(CAMBIAR_CUENTA) && !esGrupoDe(cq.message.chat) && chatId === idDePersona(cq.from)) {
+    const token = cq.data.slice(CAMBIAR_CUENTA.length);
+    if (token === "no") return enviar(chatId, "Vale, lo dejo como estaba.");
+    return enlazarDesdeAjustes({ from: cq.from }, chatId, false, token, { cambiar: true });
   }
 
   // Quien recibe una receta: guardársela o ponerla en su menú.
@@ -1676,6 +1714,7 @@ async function comprobarCodigo(msg, chatId, token) {
     return enviar(chatId, "Tu cuenta no gestiona ninguna casa todavía. Entra en la app de HoMenu para crear la tuya y vuelve a escribirme.");
   }
   const r = await enlazarChat({
+    camino: CAMINO_ENLACE.EMAIL,
     chatId,
     kind: "private",
     householdId: hogar.id,
@@ -1779,9 +1818,16 @@ async function abrirApp(msg, chatId, esGrupo, base) {
  * toca es atender lo pedido. Devuelve `{ ocupado: true }` si el chat es de
  * otra casa (y entonces no se atiende nada).
  */
-async function enlazarDesdeAjustes(msg, chatId, esGrupo, token, { callado = false } = {}) {
+async function enlazarDesdeAjustes(msg, chatId, esGrupo, token, { callado = false, cambiar = false } = {}) {
   const [fila] = await select("bot_link_tokens", `token=${eq(token)}`, "token,user_id,household_id,expires_at,used_at");
+  // Cada intento se apunta (bot_enlaces, #1238), también los rechazados: el camino, por el chat y el código. Callado
+  // (un botón de la app con algo pedido), un código ya gastado no es un intento de enlazar: el chat ya lo estaba.
+  const camino = esGrupo || esCodigoDeGrupo(token) ? CAMINO_ENLACE.GRUPO : CAMINO_ENLACE.APP;
+  const rechazo = (resultado) => (callado && resultado === RESULTADO_ENLACE.CADUCADO
+    ? null
+    : apuntarEnlace({ camino, resultado, householdId: fila?.household_id ?? null, userId: fila?.user_id ?? null }));
   if (!fila || fila.used_at || Date.parse(fila.expires_at) < Date.now()) {
+    await rechazo(RESULTADO_ENLACE.CADUCADO);
     if (callado) return null;
     return enviar(chatId, "Ese enlace ya no vale (caduca a los 15 minutos y sirve una sola vez). Pide otro desde la app.");
   }
@@ -1789,6 +1835,7 @@ async function enlazarDesdeAjustes(msg, chatId, esGrupo, token, { callado = fals
   // enlazado: usado en un privado, enlazaría ese Telegram a la casa como si
   // fuera el titular. Solo vale para meter a Lola en un grupo.
   if (!esGrupo && esCodigoDeGrupo(token)) {
+    await rechazo(RESULTADO_ENLACE.CODIGO_DE_GRUPO);
     if (callado) return null;
     return enviar(chatId, "Ese enlace es para meterme en un grupo: púlsalo y elige el grupo de la familia.");
   }
@@ -1797,15 +1844,29 @@ async function enlazarDesdeAjustes(msg, chatId, esGrupo, token, { callado = fals
   // un grupo solo lo enlaza el titular o un cotitular.
   const [miembro] = await select("household_members", `household_id=${eq(fila.household_id)}&user_id=${eq(fila.user_id)}`, "role");
   if (!miembro || (esGrupo && !puede(miembro.role, "enlazar_grupo"))) {
+    await rechazo(RESULTADO_ENLACE.NO_MIEMBRO);
     if (callado) return null;
     return enviar(chatId, "Ese enlace ya no vale. Pide otro a quien gestiona la casa.");
   }
 
+  // Este Telegram ya es otra cuenta (#1238, recorrido 4): antes de gastar el enlace, se pregunta. El «sí» trae el
+  // mismo enlace y vuelve aquí con `cambiar`. Lo pedido desde la app (callado) no se hace, porque sería en la otra
+  // casa, ni se guarda: el «sí» no lo lleva, y la pregunta dice que hay que pedirlo otra vez.
+  const deAntes = cambiar || esGrupo ? null : await cuentaDeTelegram(idDePersona(msg.from));
+  if (pideCambioDeCuenta({ esGrupo, deAntes, userId: fila.user_id })) {
+    await preguntarCambioDeCuenta(chatId, token, deAntes, fila.household_id, { conPedido: callado });
+    return callado ? { ocupado: true } : null;
+  }
+
   // Marcarlo usado ANTES de enlazar: dos pulsaciones seguidas no enlazan dos veces.
   const usados = await update("bot_link_tokens", `token=${eq(token)}&used_at=is.null`, { used_at: new Date().toISOString() });
-  if (!usados?.length) return callado ? null : enviar(chatId, "Ese enlace ya se ha usado. Pide otro desde la app.");
+  if (!usados?.length) {
+    await rechazo(RESULTADO_ENLACE.CADUCADO);
+    return callado ? null : enviar(chatId, "Ese enlace ya se ha usado. Pide otro desde la app.");
+  }
 
   const r = await enlazarChat({
+    camino,
     chatId,
     kind: esGrupo ? "group" : "private",
     householdId: fila.household_id,
@@ -1815,7 +1876,7 @@ async function enlazarDesdeAjustes(msg, chatId, esGrupo, token, { callado = fals
     lang: msg.from?.language_code,
     // Solo en privado (enlazarChat lo vuelve a mirar): en un grupo, quien
     // pulsa no tiene por qué ser quien sacó el enlace.
-    identidad: esGrupo ? null : "ajustes",
+    identidad: esGrupo ? null : cambiar ? CAMBIO : "ajustes",
   });
   if (r.ocupado) {
     await enviar(chatId, "Este chat ya está conectado a otra casa. Solo quien lo conectó puede cambiarlo.");
@@ -1823,6 +1884,17 @@ async function enlazarDesdeAjustes(msg, chatId, esGrupo, token, { callado = fals
   }
   if (callado) return { ok: true };
   return confirmarEnlace(chatId, fila.household_id, esGrupo);
+}
+
+/** La pregunta del cambio de cuenta, con «Sí» (que lleva el mismo enlace, `cc:<enlace>`) y «No». */
+async function preguntarCambioDeCuenta(chatId, token, deAntes, casaApp, { conPedido = false } = {}) {
+  const casaAntes = await casaActivaDe(deAntes).catch(fallaCon("cambio_de_cuenta", null));
+  const casas = [casaAntes, casaApp].filter(Boolean);
+  const nombres = await select("households", `id=in.(${casas.map(encodeURIComponent).join(",")})`, "id,name").catch(fallaCon("cambio_de_cuenta", []));
+  const nombre = (h) => nombres.find((n) => n.id === h)?.name ?? null;
+  return enviar(chatId, preguntaDeCambio({ casaAntes: nombre(casaAntes), casaApp: nombre(casaApp), conPedido }), {
+    botones: [[{ texto: "Sí, pasarlo a esta cuenta", dato: `${CAMBIAR_CUENTA}${token}` }, { texto: "No", dato: `${CAMBIAR_CUENTA}no` }]],
+  });
 }
 
 function secretoValido(recibido) {
