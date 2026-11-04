@@ -8,6 +8,7 @@
 
 import crypto from "node:crypto";
 import { enviarPendientes } from "../_bot/recordatorios.js";
+import { botonDeRecordatorio } from "../_bot/botonRecordatorio.js";
 import { enviar, escaparHtml } from "../_bot/telegram.js";
 import { TIPO_VISPERA, avisoDeVisperaDe } from "../_bot/vispera.js";
 import { rpc } from "../_bot/db.js";
@@ -39,12 +40,10 @@ export default async function handler(req, res) {
       if (aviso) await enviar(r.chat_id, aviso);
       return;
     }
-    // Con un botón que se lo pide a Lola tal cual: «Preparar el menú de la
-    // semana que viene» se convierte en prepararlo, sin tener que escribir.
-    const cabe = Buffer.byteLength(`t:${r.texto}`) <= 64;
-    await enviar(r.chat_id, `⏰ <b>Recordatorio</b>: ${escaparHtml(r.texto)}`, cabe
-      ? { botones: [[{ texto: "👉 Vamos", dato: `t:${r.texto}` }]] }
-      : {});
+    // Con un botón que se lo pide a Lola: «Preparar el menú de la semana que
+    // viene» se convierte en prepararlo, sin tener que escribir. El botón lleva
+    // la tarea, no el texto: se hace en su casa (#1238), y vale para cualquier largo.
+    await enviar(r.chat_id, `⏰ <b>Recordatorio</b>: ${escaparHtml(r.texto)}`, { botones: [[botonDeRecordatorio(r.id)]] });
   });
   // Tareas caducadas y lo cerrado de hace más de 7 días (texto que puede llevar
   // salud o menores): fuera. Si falla, los recordatorios ya salieron.

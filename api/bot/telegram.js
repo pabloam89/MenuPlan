@@ -46,7 +46,8 @@ import { SIN_ENRUTADOR, CAMPO_LLEGARON, CAMPO_REHECHO, motorFrioDesde, relojDeHe
 import { viaRapida, eleccionDe, aplicarEleccion, contextoDe, repiteLaPropuesta } from "../_bot/turno.js";
 import { fotosVistas, fotosSinRepetir } from "../_bot/fotosVistas.js";
 import { comidaElegida, quiereApuntar } from "../_bot/plato.js";
-import { ahoraEnMadrid } from "../_bot/recordatorios.js";
+import { ahoraEnMadrid, recordatorioDelBoton } from "../_bot/recordatorios.js";
+import { idDeBoton, alPulsar, AL_PULSAR, avisoDeOtraCasa, botonDeRecordatorio, RECORDATORIO_YA_NO_ESTA } from "../_bot/botonRecordatorio.js";
 import { vigente, CADUCA } from "../_bot/caducidades.js";
 import { fueraDeLimite, contarUso } from "../_bot/uso.js";
 import {
@@ -172,6 +173,26 @@ async function avisarSiCambio(chatId, householdId) {
   const [hogar] = await select("households", `id=${eq(householdId)}`, "name").catch(fallaCon("casa_del_turno", []));
   const aviso = avisoDeCambio({ anterior, actual: householdId, nombre: hogar?.name ?? null });
   if (aviso) await enviar(chatId, aviso);
+}
+
+/**
+ * El botón de un recordatorio (#1238): lo pide a Lola como si se hubiera escrito, en la casa del recordatorio. Si la
+ * casa del turno es otra (la persona cambió de casa en la app), no se hace en la equivocada: se dice, con el botón otra
+ * vez para cuando la cambie. Un fallo al leer el recordatorio lanza (el webhook contesta «no pude»).
+ */
+async function pulsarRecordatorio(cq, chatId, id, casa, { base, host }) {
+  const recordatorio = await recordatorioDelBoton(chatId, id);
+  const que = alPulsar({ recordatorio, casa });
+  if (que === AL_PULSAR.YA_NO_ESTA) return enviar(chatId, RECORDATORIO_YA_NO_ESTA);
+  if (que === AL_PULSAR.OTRA_CASA) {
+    const nombres = await select("households", `id=in.(${[recordatorio.household_id, casa].map(encodeURIComponent).join(",")})`, "id,name").catch(fallaCon("casa_del_turno", []));
+    const nombre = (h) => nombres.find((n) => n.id === h)?.name ?? null;
+    return enviar(chatId, avisoDeOtraCasa({ suya: nombre(recordatorio.household_id), abierta: nombre(casa) }), { botones: [[botonDeRecordatorio(id)]] });
+  }
+  const esGrupo = esGrupoDe(cq.message.chat);
+  if (!esGrupo) await avisarSiCambio(chatId, casa);
+  return enTurno(chatId, itemDe(cq.from, recordatorio.texto, { responderA: esGrupo ? cq.message.message_id : undefined, inmediato: true, mid: `b${cq.message.message_id}` }),
+    atenderCola({ chatId, householdId: casa, esGrupo, base }), { alSobrar: relevo(chatId, host) });
 }
 
 /** El relevo, al llegar: atiende lo que quedó en la cola del chat. */
@@ -1519,6 +1540,7 @@ async function pulsado(cq, base, host = "") {
   }
   // [[Reintentar]] de otra persona: lo que se reintenta es SU mensaje (#958).
   const re = leerReintentar(cq.data);
+  const idRecordatorio = idDeBoton(cq.data);
   if (re?.persona && String(cq.from?.id) !== re.persona) {
     // a propósito: contestar al toque es adorno (y caduca a los 15 min)
     await llamar("answerCallbackQuery", { callback_query_id: cq.id, text: "Solo puede reintentarlo quien lo escribió." }).catch(seguirCon("boton_responder"));
@@ -1527,7 +1549,7 @@ async function pulsado(cq, base, host = "") {
   // Un botón del agente se atiende una vez por mensaje: un doble toque
   // llegaba como dos pulsaciones (dos update_id) antes de que se quitaran los
   // botones, y entraba dos veces en la cola (#958).
-  if ((cq.data?.startsWith("t:") || re) && cq.message?.message_id != null
+  if ((cq.data?.startsWith("t:") || re || idRecordatorio) && cq.message?.message_id != null
     && !(await primeraVez(CANAL.TELEGRAM, `boton:${chatId}:${cq.message.message_id}`))) {
     // a propósito: contestar al toque es adorno
     await llamar("answerCallbackQuery", { callback_query_id: cq.id }).catch(seguirCon("boton_responder"));
@@ -1557,6 +1579,12 @@ async function pulsado(cq, base, host = "") {
     if (!esGrupo) await avisarSiCambio(chatId, chat.household_id);
     return enTurno(chatId, itemDe(cq.from, re ? re.texto : cq.data.slice(2), { responderA: esGrupo ? cq.message.message_id : undefined, inmediato: true, mid, reintento: Boolean(re) }),
       atenderCola({ chatId, householdId: chat.household_id, esGrupo, base }), { alSobrar: relevo(chatId, host) });
+  }
+
+  // El botón de un recordatorio: se hace en la casa del recordatorio, y solo si es la del turno (#1238).
+  if (idRecordatorio) {
+    if (!chat) return bienvenida(chatId, cq.from, base);
+    return pulsarRecordatorio(cq, chatId, idRecordatorio, chat.household_id, { base, host });
   }
 
   // Quien recibe una receta: guardársela o ponerla en su menú.
