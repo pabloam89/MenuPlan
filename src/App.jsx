@@ -60,7 +60,7 @@ const HouseholdsScreen = lazy(() => import("./screens/HouseholdsScreen.jsx").the
 const BibliotecaScreen = lazy(() => import("./screens/BibliotecaScreen.jsx").then(m => ({ default: m.BibliotecaScreen })));
 const UserStatsScreen = lazy(() => import("./screens/UserStatsScreen.jsx").then(m => ({ default: m.UserStatsScreen })));
 const MenuPeek = lazy(() => import("./screens/FeedScreen.jsx").then(m => ({ default: m.MenuPeek })));
-import { generateMenuWithAI, pickCatalogReplacement, motivoDelChoque, catalogToFrontendRecipe, createPlannerStats } from "./lib/aiPlanner.js";
+import { generateMenuWithAI, pickCatalogReplacement, motivoDelChoque, catalogToFrontendRecipe, createPlannerStats, platosDeMenus } from "./lib/aiPlanner.js";
 import { activeDiscardIds } from "./lib/entradaMotor.js";
 import { sugerenciasDeHueco } from "./lib/sugerenciasDeHueco.js";
 import { minimosQueFaltan } from "./lib/minimosParaGenerar.js";
@@ -1391,6 +1391,12 @@ export default function App() {
     registerRecipes(ownUserRecipes.map((r) => catalogToFrontendRecipe(r, eaters)));
   }, [ownUserRecipes, data.members]);
 
+  // Los platos de cada semana de los menús salen de sus huecos (#1246, paso 2), sin copia: se registran al leer los
+  // menús, antes de pintar, con la fecha de su semana (la fruta de temporada). Los huecos de antes siguen con su copia.
+  useMemo(() => {
+    registerRecipes(platosDeMenus(data.menus, { propias: Object.fromEntries(ownUserRecipes.map((r) => [r.id, r])) }));
+  }, [data.menus, ownUserRecipes]);
+
   // De qué casa es el estado que hay en memoria (y en localStorage): se apunta
   // al terminar de cargar una casa de la nube. Al cargar otra, si no coincide,
   // manda la nube (soloNubeAlCargar, en profileMerge.js). null = sin apuntar.
@@ -2629,11 +2635,8 @@ export default function App() {
       const foldedMenus = foldInNewMenu(data.menus, newMenu, { keepHistory });
       const keepRecipeIds = collectMenuRecipeIds(foldedMenus);
 
-      setAiRecipes((cur) => {
-        const byId = new Map(cur.map((r) => [r.id, r]));
-        for (const r of allRecipes) byId.set(r.id, r);
-        return pruneAiRecipes(Array.from(byId.values()), keepRecipeIds);
-      });
+      // Los platos del menú nuevo no se copian en la casa: salen de sus huecos (platosDelPlan, #1246).
+      setAiRecipes((cur) => pruneAiRecipes(cur, keepRecipeIds));
 
       // F2: al reemplazar el menú de un invitado (keepHistory=false) los menús
       // anteriores desaparecen del archivo con su consumo ya aplicado. Recogemos
