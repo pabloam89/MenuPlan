@@ -22,7 +22,7 @@ import { cargarCasa, deshacer, hoyISO, apuntarOperacion } from "./casa.js";
 import { IDS_CAMINO, LEYENDA_CAMINOS, faltaParaGenerar, hayNinosEn } from "./caminoMenu.js";
 import {
   describirCasa, describirReceta, describirCompra,
-  marcarCompra, anadirCompra, quitarCompra, cambiarPlato, proponerPlatos, franjaDe, porQuePlato,
+  marcarCompra, anadirCompra, quitarCompra, cambiarPlato, proponerPlatos, franjaDe, porQuePlato, BOTON_REPETIR_VECINOS,
   rangosDelMenu, resultadoDeCambio, resultadoDeAnadir, SIN_CAMBIAR,
   apuntarAusencia, resultadoDeAusencia,
 } from "./menu.js";
@@ -1044,13 +1044,15 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
           rasgos: ESQUEMA_RASGOS,
           ejes: ESQUEMA_EJES,
           perfil: ESQUEMA_PERFIL,
+          repetir_vecinos: { type: "boolean", description: `Opcional: true si piden que valga repetir lo de los días de al lado (el botón «${BOTON_REPETIR_VECINOS}»): entran las proteínas que la respuesta dio por EXCLUIDAS.` },
         },
         additionalProperties: false,
       },
-      run: ({ dia, semana: cual_semana, comida, grupo, cual, n, parecido_a, plato, estilo, para, rasgos, ejes, perfil, de_fuera }) => {
+      run: ({ dia, semana: cual_semana, comida, grupo, cual, n, parecido_a, plato, estilo, para, rasgos, ejes, perfil, de_fuera, repetir_vecinos }) => {
         const f = comida ? franjaDe(comida) : null;
         if (comida && !f) return `No entiendo qué comida es («${comida}»).`;
-        return proponerPlatos(householdId, { plato: plato || null, dia: dia || null, semana: cual_semana, franja: f, grupo, para: para || null, cual, n: n ?? 3, parecidoA: parecido_a || null, estilo: estilo || null, rasgos: rasgos || null, ejes: ejes ?? null, perfil: perfil || null, deFuera: de_fuera || null }, fotos);
+        // `anterior`: lo último que dijo Lola, para no dar la misma lista dos veces sin decirlo.
+        return proponerPlatos(householdId, { plato: plato || null, dia: dia || null, semana: cual_semana, franja: f, grupo, para: para || null, cual, n: n ?? 3, parecidoA: parecido_a || null, estilo: estilo || null, rasgos: rasgos || null, ejes: ejes ?? null, perfil: perfil || null, deFuera: de_fuera || null, repetirVecinos: repetir_vecinos === true, anterior: chat.anterior ?? null }, fotos);
       },
     }),
     herramienta({ capacidades: ["fuera_de_casa"], lee: ["members", "schedule", "reglas", "menus"], escribe: ["reglas", "menus"], lector: false, riesgo: RIESGO_HERRAMIENTA.ESCRIBE_REVERSIBLE, deshace: DESHACE.FOTO, pantalla: "semana" }, {
