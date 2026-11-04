@@ -19,6 +19,10 @@
     "api/bot/link.js",
     "api/bot/telegram.js"
   ],
+  "bot_enlaces": [
+    "api/_bot/enlace.js",
+    "scripts/bot-enlaces.mjs"
+  ],
   "bot_codigos": [
     "api/_bot/enlace.js",
     "api/bot/entrar.js",

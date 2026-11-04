@@ -55,7 +55,7 @@ import {
   recetaEnTexto, semanaEnTexto, copiarReceta, cuentasDeQuien,
 } from "../_bot/compartir.js";
 import { motor } from "../_bot/menu.js";
-import { enlazarChat, crearCodigo, gastarCodigo, baseDe, confirmarEnlace, casaPropia, idDePersona, codigoDeGrupo, esCodigoDeGrupo, cuentaDeTelegram, pideCambioDeCuenta, preguntaDeCambio, CAMBIO } from "../_bot/enlace.js";
+import { enlazarChat, apuntarEnlace, crearCodigo, gastarCodigo, baseDe, confirmarEnlace, casaPropia, idDePersona, codigoDeGrupo, esCodigoDeGrupo, cuentaDeTelegram, pideCambioDeCuenta, preguntaDeCambio, CAMBIO } from "../_bot/enlace.js";
 import { papelDeQuien, casaActivaDe } from "../_bot/papel.js";
 import { unirsePorInvitacion, ES_INVITACION } from "../_bot/invitacion.js";
 import { traducir } from "../_bot/traducir.js";
@@ -69,7 +69,7 @@ import { enviarAcceso, verificarCodigoEmail, cuentaNacidaAqui } from "../_bot/cu
 import { cuentaYChat as cuentaYChatDe } from "../_bot/altaTelegram.js";
 import { primeraVez } from "../_bot/entradas.js";
 import { preguntoConAviso } from "../_bot/silencio.js";
-import { CANAL } from "../../src/lib/vocabularios.js";
+import { CANAL, CAMINO_ENLACE, RESULTADO_ENLACE } from "../../src/lib/vocabularios.js";
 import { conOperacion, operacion } from "../_bot/operacion.js";
 
 const EMAIL_RE = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]{2,}$/;
@@ -1401,7 +1401,7 @@ async function reconocer(from, chatId) {
   if (!casas.length) return null;
   const casa = { householdId: casas[0], userId: ident.user_id };
   const r = await enlazarChat({
-    chatId, kind: "private", householdId: casa.householdId, userId: casa.userId,
+    camino: CAMINO_ENLACE.REENGANCHE, chatId, kind: "private", householdId: casa.householdId, userId: casa.userId,
     externalId: ext, nombre: nombreDe(from), lang: from?.language_code, identidad: null,
   });
   return r.ok ? casa : null;
@@ -1437,7 +1437,7 @@ async function conectarGrupo(cq, chatId) {
     return enviar(chatId, "Meterme en el grupo de la familia lo hace quien gestiona la casa: pídeselo a esa persona.");
   }
   const r = await enlazarChat({
-    chatId, kind: "group", householdId: casa.householdId, userId,
+    camino: CAMINO_ENLACE.GRUPO, chatId, kind: "group", householdId: casa.householdId, userId,
     externalId: idDePersona(cq.from), nombre: nombreDe(cq.from), lang: cq.from?.language_code, identidad: null,
   });
   if (r.ocupado) return enviar(chatId, "Este chat ya está conectado a otra casa. Solo quien lo conectó puede cambiarlo.");
@@ -1714,6 +1714,7 @@ async function comprobarCodigo(msg, chatId, token) {
     return enviar(chatId, "Tu cuenta no gestiona ninguna casa todavía. Entra en la app de HoMenu para crear la tuya y vuelve a escribirme.");
   }
   const r = await enlazarChat({
+    camino: CAMINO_ENLACE.EMAIL,
     chatId,
     kind: "private",
     householdId: hogar.id,
@@ -1819,7 +1820,14 @@ async function abrirApp(msg, chatId, esGrupo, base) {
  */
 async function enlazarDesdeAjustes(msg, chatId, esGrupo, token, { callado = false, cambiar = false } = {}) {
   const [fila] = await select("bot_link_tokens", `token=${eq(token)}`, "token,user_id,household_id,expires_at,used_at");
+  // Cada intento se apunta (bot_enlaces, #1238), también los rechazados: el camino, por el chat y el código. Callado
+  // (un botón de la app con algo pedido), un código ya gastado no es un intento de enlazar: el chat ya lo estaba.
+  const camino = esGrupo || esCodigoDeGrupo(token) ? CAMINO_ENLACE.GRUPO : CAMINO_ENLACE.APP;
+  const rechazo = (resultado) => (callado && resultado === RESULTADO_ENLACE.CADUCADO
+    ? null
+    : apuntarEnlace({ camino, resultado, householdId: fila?.household_id ?? null, userId: fila?.user_id ?? null }));
   if (!fila || fila.used_at || Date.parse(fila.expires_at) < Date.now()) {
+    await rechazo(RESULTADO_ENLACE.CADUCADO);
     if (callado) return null;
     return enviar(chatId, "Ese enlace ya no vale (caduca a los 15 minutos y sirve una sola vez). Pide otro desde la app.");
   }
@@ -1827,6 +1835,7 @@ async function enlazarDesdeAjustes(msg, chatId, esGrupo, token, { callado = fals
   // enlazado: usado en un privado, enlazaría ese Telegram a la casa como si
   // fuera el titular. Solo vale para meter a Lola en un grupo.
   if (!esGrupo && esCodigoDeGrupo(token)) {
+    await rechazo(RESULTADO_ENLACE.CODIGO_DE_GRUPO);
     if (callado) return null;
     return enviar(chatId, "Ese enlace es para meterme en un grupo: púlsalo y elige el grupo de la familia.");
   }
@@ -1835,23 +1844,29 @@ async function enlazarDesdeAjustes(msg, chatId, esGrupo, token, { callado = fals
   // un grupo solo lo enlaza el titular o un cotitular.
   const [miembro] = await select("household_members", `household_id=${eq(fila.household_id)}&user_id=${eq(fila.user_id)}`, "role");
   if (!miembro || (esGrupo && !puede(miembro.role, "enlazar_grupo"))) {
+    await rechazo(RESULTADO_ENLACE.NO_MIEMBRO);
     if (callado) return null;
     return enviar(chatId, "Ese enlace ya no vale. Pide otro a quien gestiona la casa.");
   }
 
   // Este Telegram ya es otra cuenta (#1238, recorrido 4): antes de gastar el enlace, se pregunta. El «sí» trae el
-  // mismo enlace y vuelve aquí con `cambiar`; mientras, lo pedido desde la app no se atiende (sería en la otra casa).
+  // mismo enlace y vuelve aquí con `cambiar`. Lo pedido desde la app (callado) no se hace, porque sería en la otra
+  // casa, ni se guarda: el «sí» no lo lleva, y la pregunta dice que hay que pedirlo otra vez.
   const deAntes = cambiar || esGrupo ? null : await cuentaDeTelegram(idDePersona(msg.from));
   if (pideCambioDeCuenta({ esGrupo, deAntes, userId: fila.user_id })) {
-    await preguntarCambioDeCuenta(chatId, token, deAntes, fila.household_id);
+    await preguntarCambioDeCuenta(chatId, token, deAntes, fila.household_id, { conPedido: callado });
     return callado ? { ocupado: true } : null;
   }
 
   // Marcarlo usado ANTES de enlazar: dos pulsaciones seguidas no enlazan dos veces.
   const usados = await update("bot_link_tokens", `token=${eq(token)}&used_at=is.null`, { used_at: new Date().toISOString() });
-  if (!usados?.length) return callado ? null : enviar(chatId, "Ese enlace ya se ha usado. Pide otro desde la app.");
+  if (!usados?.length) {
+    await rechazo(RESULTADO_ENLACE.CADUCADO);
+    return callado ? null : enviar(chatId, "Ese enlace ya se ha usado. Pide otro desde la app.");
+  }
 
   const r = await enlazarChat({
+    camino,
     chatId,
     kind: esGrupo ? "group" : "private",
     householdId: fila.household_id,
@@ -1872,12 +1887,12 @@ async function enlazarDesdeAjustes(msg, chatId, esGrupo, token, { callado = fals
 }
 
 /** La pregunta del cambio de cuenta, con «Sí» (que lleva el mismo enlace, `cc:<enlace>`) y «No». */
-async function preguntarCambioDeCuenta(chatId, token, deAntes, casaApp) {
+async function preguntarCambioDeCuenta(chatId, token, deAntes, casaApp, { conPedido = false } = {}) {
   const casaAntes = await casaActivaDe(deAntes).catch(fallaCon("cambio_de_cuenta", null));
   const casas = [casaAntes, casaApp].filter(Boolean);
   const nombres = await select("households", `id=in.(${casas.map(encodeURIComponent).join(",")})`, "id,name").catch(fallaCon("cambio_de_cuenta", []));
   const nombre = (h) => nombres.find((n) => n.id === h)?.name ?? null;
-  return enviar(chatId, preguntaDeCambio({ casaAntes: nombre(casaAntes), casaApp: nombre(casaApp) }), {
+  return enviar(chatId, preguntaDeCambio({ casaAntes: nombre(casaAntes), casaApp: nombre(casaApp), conPedido }), {
     botones: [[{ texto: "Sí, pasarlo a esta cuenta", dato: `${CAMBIAR_CUENTA}${token}` }, { texto: "No", dato: `${CAMBIAR_CUENTA}no` }]],
   });
 }

@@ -10,7 +10,8 @@ import * as ids from "../../src/lib/ids.js";
 import { select, insert, update, eq } from "./db.js";
 import { enviar, escaparHtml, TECLADO } from "./telegram.js";
 import { registrar, EMBUDO } from "./embudo.js";
-import { CANAL, paraEscribir } from "../../src/lib/vocabularios.js";
+import { CANAL, paraEscribir, RESULTADO_ENLACE } from "../../src/lib/vocabularios.js";
+import { seguirCon } from "./avisar.js";
 
 // Ids de Telegram que no son una persona: el admin anónimo de un grupo
 // (GroupAnonymousBot), lo que se publica como canal (Channel_Bot) y los avisos
@@ -72,22 +73,61 @@ export async function cuentaDeTelegram(externalId, channel = CANAL.TELEGRAM) {
  */
 export const pideCambioDeCuenta = ({ esGrupo, deAntes, userId }) => Boolean(!esGrupo && deAntes && deAntes !== userId);
 
-/** Pura. La pregunta del cambio de cuenta, con los nombres de las dos casas si se saben. */
-export function preguntaDeCambio({ casaAntes, casaApp }) {
+/**
+ * Pura. La pregunta del cambio de cuenta, con los nombres de las dos casas si se saben. `conPedido`: venía de un botón
+ * de la app con algo pedido, que no se hace (sería en la otra casa) ni se guarda: se dice que hay que pedirlo otra vez.
+ */
+export function preguntaDeCambio({ casaAntes, casaApp, conPedido = false }) {
   const nombre = (n, si) => (n ? `<b>${escaparHtml(n)}</b>` : si);
   return `Este Telegram ya está conectado a otra cuenta de HoMenu (la de ${nombre(casaAntes, "otra casa")}). `
     + `¿Lo pasas a la cuenta con la que has entrado en la app (${nombre(casaApp, "tu casa")})?\n\n`
-    + "Lo de la otra cuenta se queda en ella: no se pasa a esta.";
+    + "Lo de la otra cuenta se queda en ella: no se pasa a esta."
+    + (conPedido ? "\n\nLo que me has pedido desde la app no lo he hecho: cuando contestes, pídemelo otra vez." : "");
 }
 
 export const chatOcupado = (actual, householdId, userId) =>
   Boolean(actual && actual.household_id !== householdId && actual.linked_by !== userId);
 
-export async function enlazarChat({ channel = CANAL.TELEGRAM, chatId, kind, householdId, userId, externalId, nombre, identidad = null }) {
+/**
+ * Pura. Cómo acaba un enlace que sí se hace (bot_enlaces.resultado_enlace, #1238): `actual` es la fila de bot_chats de antes
+ * (o nada) y `identidad`, lo que devolvió apuntarIdentidad.
+ */
+export function resultadoDeEnlace(actual, householdId, identidad) {
+  if (identidad === "de-otra") return RESULTADO_ENLACE.IDENTIDAD_DE_OTRA;
+  if (!actual) return RESULTADO_ENLACE.NUEVO;
+  return actual.household_id === householdId ? RESULTADO_ENLACE.YA_ESTABA : RESULTADO_ENLACE.CASA_CAMBIADA;
+}
+
+/**
+ * Apunta un intento de enlace en bot_enlaces (0126, #1238): por qué camino llegó y cómo acabó, los dos de su lista
+ * cerrada. Un valor que falta o fuera de la lista es un fallo del código y se avisa con su nombre (seguirCon), igual
+ * que si la base no contesta o la 0126 no está aplicada; pero apuntar nunca tumba el enlace de la persona. Que cada
+ * llamada a enlazarChat diga su camino lo vigila enlace.test.js recorriendo el código.
+ */
+export async function apuntarEnlace({ camino, resultado, householdId = null, userId = null }) {
+  try {
+    if (!camino || !resultado) throw new Error(`apuntarEnlace sin camino o resultado («${camino}», «${resultado}»)`);
+    const fila = {
+      camino_enlace: paraEscribir("caminos_enlace", camino),
+      resultado_enlace: paraEscribir("resultados_enlace", resultado),
+      household_id: householdId ?? null,
+      user_id: userId ?? null,
+    };
+    await insert("bot_enlaces", [fila]);
+  } catch (e) {
+    // a propósito: apuntar el intento es accesorio; el enlace de la persona sigue y el fallo queda en el log.
+    seguirCon("enlace_apuntar")(e);
+  }
+}
+
+export async function enlazarChat({ channel = CANAL.TELEGRAM, camino, chatId, kind, householdId, userId, externalId, nombre, identidad = null }) {
   const [actual] = await select("bot_chats", `channel=${eq(channel)}&chat_id=${eq(chatId)}`, "household_id,linked_by");
   // Un cambio confirmado mueve el chat que enlazó la cuenta de antes de este mismo Telegram, y ninguno más.
   const deAntes = identidad === CAMBIO && kind === "private" ? await cuentaDeTelegram(externalId, channel) : null;
-  if (chatOcupado(actual, householdId, userId) && !(deAntes && actual.linked_by === deAntes)) return { ok: false, ocupado: true };
+  if (chatOcupado(actual, householdId, userId) && !(deAntes && actual.linked_by === deAntes)) {
+    await apuntarEnlace({ camino, resultado: RESULTADO_ENLACE.OCUPADO, householdId, userId });
+    return { ok: false, ocupado: true };
+  }
 
   const estado = await apuntarIdentidad({ channel, kind, userId, externalId, nombre, identidad });
   await insert("bot_chats", [{
@@ -98,6 +138,7 @@ export async function enlazarChat({ channel = CANAL.TELEGRAM, chatId, kind, hous
     linked_by: userId,
   }], { upsert: true });
   await registrar(EMBUDO.ENLACE, { userId, telegramId: externalId, unaVez: true, extra: { tipo: kind } });
+  await apuntarEnlace({ camino, resultado: resultadoDeEnlace(actual, householdId, estado), householdId, userId });
   return { ok: true, identidad: estado };
 }
 
