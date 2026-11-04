@@ -27,7 +27,7 @@ describe("lo que Lola ve de sus herramientas", () => {
   });
 
   it("la ficha no viaja a la API", async () => {
-    expect(JSON.stringify(await herramientas(charla))).not.toMatch(/"(soloLectura|pantalla|avisoLento|lector|capacidades|lee|escribe)":/);
+    expect(JSON.stringify(await herramientas(charla))).not.toMatch(/"(soloLectura|riesgo|deshace|pantalla|avisoLento|lector|capacidades|lee|escribe)":/);
   });
 });
 

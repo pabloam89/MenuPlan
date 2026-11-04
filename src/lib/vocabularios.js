@@ -208,6 +208,25 @@ export const MOTIVOS_SIN_HACER_DATO = ["no_es_hecho", "persona_no_cuadra", "ambi
 export const MOTIVOS_SIN_DESHACER = ["no_existe", "no_es_suya", "no_esta_hecha", "cambio_despues"];
 
 /**
+ * El riesgo de cada herramienta de Lola, en su ficha (api/_bot/agente.js, trozo 42). `lee`: no cambia nada;
+ * `escribe_reversible`: cambia algo que «deshaz» vuelve atrás; `escribe_irreversible`: cambia algo que «deshaz» no
+ * vuelve atrás (se cambia otra vez, a mano); `quita_proteccion`: puede quitar una alergia, una intolerancia, un estado
+ * o a alguien de la casa, y por eso el vigilante (api/_bot/supervisor.js) lo contrasta con lo que escribió la persona.
+ * No va a ninguna tabla.
+ */
+export const RIESGOS_HERRAMIENTA = ["lee", "escribe_reversible", "escribe_irreversible", "quita_proteccion"];
+export const RIESGO_HERRAMIENTA = porNombre(RIESGOS_HERRAMIENTA);
+
+/**
+ * Cómo deshace «deshaz» lo que escribe una herramienta de Lola (su ficha, trozo 42; deshacer en api/_bot/casa.js).
+ * `foto`: vuelve a la foto de la casa de antes del cambio (bot_deshacer), con lo que apuntó fuera de la casa;
+ * `operacion`: no deja foto de la casa, y deshace los pasos que apuntó su operación (la receta guardada); `no`: no
+ * lo deshace y lo dice. No va a ninguna tabla.
+ */
+export const FORMAS_DE_DESHACER = ["foto", "operacion", "no"];
+export const DESHACE = porNombre(FORMAS_DE_DESHACER);
+
+/**
  * Por qué escribirDato no guardó un dato (plan fichas con estado, trozo 8: src/lib/escribirDato.js y
  * api/_bot/datos.js). No va a ninguna tabla: va en la respuesta de api/operacion.js y en la línea de log
  * `dato_sin_guardar`, para contarlos. `rpc_ausente`: la base aún no tiene aplicar_operacion (0106 sin
@@ -529,6 +548,8 @@ export const VOCABULARIOS = Object.freeze({
   estados_operacion: ESTADOS_OPERACION,
   motivos_sin_hacer_dato: MOTIVOS_SIN_HACER_DATO,
   motivos_sin_deshacer: MOTIVOS_SIN_DESHACER,
+  riesgos_herramienta: RIESGOS_HERRAMIENTA,
+  formas_de_deshacer: FORMAS_DE_DESHACER,
   fallos_dato: FALLOS_DATO,
   motivos_puerta: MOTIVOS_PUERTA,
   clases_choque: CLASES_CHOQUE,
