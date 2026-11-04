@@ -4604,7 +4604,7 @@ export function QuienCome({ groups, scope, onScopeChange, members }) {
 
   const contenido = (
     <>
-      {caras.length > 0 && <GroupAvatarStack faces={caras} size={26} max={3} />}
+      {caras.length > 0 && <GroupAvatarStack faces={caras} size={32} max={3} />}
       {variosMenus && (
         <span
           style={{
@@ -6237,7 +6237,9 @@ export const MenuScreen = memo(function MenuScreen({
             className="mp-franja-entra"
             style={{ margin: "0 calc(-1 * var(--esp-16)) var(--esp-12)" }}
           >
-            <div style={{ minHeight: 78, background: "var(--pz-fondo-suave, #f1f5f9)", display: "flex", alignItems: "center" }}>
+            {/* Sin fondo aquí: el tinte es de los mandos y lo pone PizarraControles;
+                las caras de quién come van sobre el fondo de la página (Pablo, 4 nov 2026). */}
+            <div style={{ minHeight: 78, display: "flex", alignItems: "stretch" }}>
               <HuecosVivosContext.Provider value={huecosVivos}>
                 {/* Llega como función para que esta pantalla le pase lo que
                     solo ella sabe hacer: la hoja del PDF y, sin cuenta,
