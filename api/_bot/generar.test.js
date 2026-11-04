@@ -204,12 +204,14 @@ describe("colocarPedidos", () => {
     const { colocarPedidos } = await import("./generar.js");
     const { isoDeCasa } = await import("../../src/lib/dias.js");
     const receta = { id: "lentejas", name: "Lentejas", time: 30, mealRole: ["main"] };
-    const pick = vi.fn(() => ({ recipeId: "lentejas", frontendRecipe: receta }));
+    // Como el de verdad, trae lo que se escribe en el hueco (#1246).
+    const pick = vi.fn(() => ({ recipeId: "lentejas", frontendRecipe: receta, hueco: { recipeId: "lentejas", garnishId: null, sauceId: null, platoDe: "lentejas" } }));
     const motorFalso = { recipeCatalogById: { lentejas: receta }, pickCatalogReplacement: pick, registerRecipes: () => {} };
     const planDeSemana = { g1: { "Lun-Comida": { recipeId: "otra" } } };
     const pedidos = [{ pedido: "lentejas", fijo: { catalogId: "lentejas", meals: ["Comida"] } }];
     expect(colocarPedidos(motorFalso, {}, planDeSemana, [], pedidos, ["Lun"])).toEqual(["lentejas"]);
     expect(pick.mock.calls[0][2].hoy).toBe(isoDeCasa());
+    expect(planDeSemana.g1["Lun-Comida"]).toMatchObject({ recipeId: "lentejas", platoDe: "lentejas", garnishId: null });
   });
 });
 
