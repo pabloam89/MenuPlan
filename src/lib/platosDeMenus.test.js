@@ -40,12 +40,14 @@ describe("los platos de los menús salen de sus huecos (#1246, paso 2)", () => {
     expect(new Set(platos.map((r) => r.id))).toEqual(new Set(copias.map((r) => r.id)));
   }, 120000);
 
-  it("un hueco de antes (sin recambios) no sale: va con su copia; lo que no es un grupo, tampoco", () => {
+  it("un hueco de antes, o con la receta cambiada sin su guarnición, no sale: va con su copia; lo que no es un grupo, tampoco", () => {
     const plan = {
       _warnings: [],
       adultos: {
         "0-Comida": { recipeId: "carnes_037", eaters: 2 },
-        "1-Comida": { recipeId: "carnes_037", eaters: 2, restricciones: [], garnishId: "guarniciones_024", sauceId: null },
+        "1-Comida": { recipeId: "carnes_037", eaters: 2, restricciones: [], garnishId: "guarniciones_024", sauceId: null, platoDe: "carnes_037" },
+        // Un intercambio le puso otra receta y dejó la guarnición de la de antes.
+        "2-Comida": { recipeId: "carnes_001", eaters: 2, restricciones: [], garnishId: "guarniciones_024", sauceId: null, platoDe: "carnes_037" },
       },
     };
     expect(platosDelPlan(plan).map((r) => [r.id, r.garnishId])).toEqual([["carnes_037", "guarniciones_024"]]);

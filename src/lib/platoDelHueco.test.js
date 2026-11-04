@@ -60,6 +60,8 @@ describe("el plato sale del hueco, sin copia (#1246)", () => {
       expect(h).toHaveProperty("garnishId");
       expect(h).toHaveProperty("sauceId");
       expect(Array.isArray(h.restricciones)).toBe(true);
+      expect(h.platoDe).toBe(h.recipeId);
+      if (h.firstRecipeId) expect(h.primeroDe).toBe(h.firstRecipeId);
     }
   }, 300000);
 
@@ -69,13 +71,20 @@ describe("el plato sale del hueco, sin copia (#1246)", () => {
   });
 
   it("un hueco que no apunta sus recambios o para cuántos (uno de antes) lanza, no da el plato sin recambios", () => {
-    expect(() => platoDelHueco({ recipeId: "carnes_037", eaters: 2 })).toThrow(/recambios/);
-    expect(() => platoDelHueco({ recipeId: "carnes_037", restricciones: [] })).toThrow(/recambios/);
+    expect(() => platoDelHueco({ recipeId: "carnes_037", eaters: 2, platoDe: "carnes_037" })).toThrow(/recambios/);
+    expect(() => platoDelHueco({ recipeId: "carnes_037", restricciones: [], platoDe: "carnes_037" })).toThrow(/recambios/);
+  });
+
+  it("un hueco al que se le cambió la receta sin su guarnición lanza: no le pone la guarnición de la otra", () => {
+    const hueco = { recipeId: "carnes_001", eaters: 2, restricciones: [], garnishId: "guarniciones_024", platoDe: "carnes_037" };
+    expect(() => platoDelHueco(hueco)).toThrow(/guarnición/);
+    expect(() => platoDelHueco({ ...hueco, firstRecipeId: "carnes_037" }, "primero")).toThrow(/guarnición/);
   });
 
   it("la guarnición y la salsa son del catálogo: una que no está, lanza", () => {
-    expect(() => platoDelHueco({ recipeId: "carnes_037", eaters: 2, restricciones: [], garnishId: "guarniciones_999" })).toThrow(/guarnición/);
-    expect(() => platoDelHueco({ recipeId: "carnes_037", eaters: 2, restricciones: [], sauceId: "salsas_999" })).toThrow(/salsa/);
-    expect(platoDelHueco({ recipeId: "carnes_037", eaters: 2, restricciones: [], garnishId: "guarniciones_024", sauceId: "salsas_001" })).toMatchObject({ garnishId: "guarniciones_024", sauceId: "salsas_001" });
+    const hueco = { recipeId: "carnes_037", eaters: 2, restricciones: [], platoDe: "carnes_037" };
+    expect(() => platoDelHueco({ ...hueco, garnishId: "guarniciones_999" })).toThrow(/la guarnición «guarniciones_999»/);
+    expect(() => platoDelHueco({ ...hueco, sauceId: "salsas_999" })).toThrow(/la salsa «salsas_999»/);
+    expect(platoDelHueco({ ...hueco, garnishId: "guarniciones_024", sauceId: "salsas_001" })).toMatchObject({ garnishId: "guarniciones_024", sauceId: "salsas_001" });
   });
 });
