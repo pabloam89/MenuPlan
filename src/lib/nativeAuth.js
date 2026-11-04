@@ -15,6 +15,7 @@
 // que los plugins de Capacitor no entran en el bundle de la web.
 import { App as CapacitorApp } from "@capacitor/app";
 import { Browser } from "@capacitor/browser";
+import { avisoAlVolver, NO_SE_PUDO_GOOGLE } from "./cuentaTelegram.js";
 
 export const NATIVE_REDIRECT_URL = "com.homenu.app://auth-callback";
 
@@ -75,23 +76,39 @@ export async function startNativeLink(supabase, provider) {
     options: { redirectTo: NATIVE_REDIRECT_URL, skipBrowserRedirect: true },
   });
   if (error) return { error };
-  if (!data?.url) return { error: new Error("No se pudo abrir Google. Inténtalo de nuevo.") };
+  if (!data?.url) return { error: new Error(NO_SE_PUDO_GOOGLE) };
   await Browser.open({ url: data.url });
   return { error: null };
 }
 
 /**
- * Escucha la vuelta desde el navegador y canjea lo que traiga por una sesión.
+ * Pura. Qué trae una URL de vuelta al móvil: una sesión que canjear, un error que avisar (solo en la de vuelta del
+ * login, NATIVE_REDIRECT_URL) o nada: otras URLs con el mismo esquema (enlaces compartidos) no son cosa nuestra.
+ */
+export function vueltaNativa(url) {
+  const sesion = parseAuthCallback(url);
+  if (sesion) return { sesion };
+  const aviso = String(url).startsWith(NATIVE_REDIRECT_URL) ? avisoAlVolver(url) : null;
+  return aviso ? { aviso } : null;
+}
+
+/**
+ * Escucha la vuelta desde el navegador y canjea lo que traiga por una sesión; si trae un error, lo pasa a `alAvisar`.
  * @returns {() => void} función para dejar de escuchar.
  */
-export function listenForNativeAuthCallback(supabase) {
+export function listenForNativeAuthCallback(supabase, { alAvisar = () => {} } = {}) {
   if (!supabase) return () => {};
 
   const handle = CapacitorApp.addListener("appUrlOpen", async ({ url }) => {
-    const parsed = parseAuthCallback(url);
-    // Otras URLs con el mismo esquema (enlaces compartidos, por ejemplo) no
-    // son cosa nuestra: se ignoran en vez de tratarlas como un login fallido.
-    if (!parsed) return;
+    const vuelta = vueltaNativa(url);
+    if (!vuelta) return;
+    if (vuelta.aviso) {
+      console.warn("[auth] el navegador volvió con un error", vuelta.aviso);
+      alAvisar(vuelta.aviso);
+      Browser.close().catch(() => {});
+      return;
+    }
+    const parsed = vuelta.sesion;
 
     try {
       if (parsed.code) {

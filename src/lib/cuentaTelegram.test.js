@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { emailSintetico, esCuentaDeTelegram, tieneProveedor, ofrecerGoogle, avisoAlVolver, AVISOS_AL_VOLVER } from "./cuentaTelegram.js";
+import { emailSintetico, esCuentaDeTelegram, tieneProveedor, ofrecerGoogle, avisoAlVolver, AVISOS_AL_VOLVER, NO_SE_PUDO_GOOGLE } from "./cuentaTelegram.js";
 import { emailSintetico as delBot } from "../../api/_bot/cuentas.js";
 
 // Las cuentas nacidas en Telegram y «Entrar también con Google» (#1238).
@@ -32,9 +32,14 @@ describe("al volver de añadir Google", () => {
     expect(avisoAlVolver("https://homenu.app/#error=x&error_code=identity_already_exists")).toBe(AVISOS_AL_VOLVER.identity_already_exists);
   });
 
-  it("sin error, con otro error o con una URL rota, nada", () => {
+  it("cualquier otro error también se dice: cancelar en Google, un código sin aviso propio", () => {
+    expect(avisoAlVolver("https://homenu.app/?error_code=otra_cosa")).toBe(NO_SE_PUDO_GOOGLE);
+    expect(avisoAlVolver("https://homenu.app/#error=access_denied&error_description=cancelado")).toBe(NO_SE_PUDO_GOOGLE);
+  });
+
+  it("sin error o con una URL rota, nada", () => {
     expect(avisoAlVolver("https://homenu.app/")).toBeNull();
-    expect(avisoAlVolver("https://homenu.app/?error_code=otra_cosa")).toBeNull();
+    expect(avisoAlVolver("https://homenu.app/?code=abc")).toBeNull();
     expect(avisoAlVolver("no es una url")).toBeNull();
   });
 });

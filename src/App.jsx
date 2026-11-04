@@ -225,7 +225,7 @@ import { suggestHomeRole, migrateHomeRole, resolveAccountMember, miembroDeCuenta
 import { migrateCookTime, COOK_TIME_DEFAULTS } from "./lib/cookTime.js";
 import { navDirection } from "./lib/motion.js";
 import { useAuth } from "./lib/useAuth.js";
-import { ofrecerGoogle, avisoAlVolver } from "./lib/cuentaTelegram.js";
+import { ofrecerGoogle, NO_SE_PUDO_GOOGLE } from "./lib/cuentaTelegram.js";
 import { FeedbackFAB } from "./components/FeedbackFAB.jsx";
 import { HomeCoachTour, RecipesCoachTour, MenuCoachTour, FeedCoachTour } from "./components/HomeCoachTour.jsx";
 import { RecipePrefsWizard } from "./components/ModeSheets.jsx";
@@ -1309,7 +1309,7 @@ export default function App() {
     setShopping((guardada) => cambiarCompra(guardada, cambio, vistaActualRef.current));
   }, []);
 
-  const { user, session, loading: authLoading, signInWithGoogle, signInWithApple, linkWithGoogle, signOut } = useAuth();
+  const { user, session, loading: authLoading, signInWithGoogle, signInWithApple, linkWithGoogle, avisoAlEntrar, olvidarAvisoAlEntrar, signOut } = useAuth();
   const {
     households,
     activeHousehold,
@@ -2237,14 +2237,14 @@ export default function App() {
   }, []);
   // Al volver de añadir Google a una cuenta nacida en Telegram (#1238): si salió mal, qué hacer; y la URL, limpia.
   useEffect(() => {
-    const aviso = avisoAlVolver(window.location.href);
-    if (!aviso) return;
-    showToast(aviso);
+    if (!avisoAlEntrar) return;
+    showToast(avisoAlEntrar);
     window.history.replaceState(null, "", window.location.pathname);
-  }, [showToast]);
+    olvidarAvisoAlEntrar();
+  }, [avisoAlEntrar, olvidarAvisoAlEntrar, showToast]);
   const handleEntrarConGoogle = useCallback(async () => {
     const { error } = await linkWithGoogle();
-    if (error) showToast("No se pudo abrir Google. Inténtalo de nuevo.");
+    if (error) showToast(NO_SE_PUDO_GOOGLE);
   }, [linkWithGoogle, showToast]);
   // Los menús generados (la racha), de su tabla (menusGenerados.js, trozo 22); sin casa, del móvil. Sin leer no es
   // «ningún menú»: `leidos: false`, Ajustes no enseña la racha y no cuenta como primer menú.

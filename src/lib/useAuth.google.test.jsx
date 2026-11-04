@@ -17,6 +17,7 @@ vi.mock("./appleTokens.js", () => ({ rememberAppleRefreshToken: vi.fn() }));
 vi.mock("./apiUrl.js", () => ({ isNativeApp: false }));
 
 const { useAuth } = await import("./useAuth.js");
+const { AVISOS_AL_VOLVER } = await import("./cuentaTelegram.js");
 
 describe("useAuth: entrar también con Google", () => {
   it("pide a Supabase añadir Google a la cuenta, volviendo a la app", async () => {
@@ -28,5 +29,18 @@ describe("useAuth: entrar también con Google", () => {
     expect(r.error).toBeNull();
     expect(auth.linkIdentity).toHaveBeenCalledWith({ provider: "google", options: { redirectTo: window.location.origin } });
     act(() => raiz.unmount());
+  });
+
+  it("si la vuelta de Google trae un error, lo da para avisar; olvidado, ya no", async () => {
+    window.history.replaceState(null, "", "/?error=server_error&error_code=identity_already_exists");
+    let api;
+    function Prueba() { api = useAuth(); return null; }
+    const raiz = createRoot(document.createElement("div"));
+    await act(async () => { raiz.render(<Prueba />); });
+    expect(api.avisoAlEntrar).toBe(AVISOS_AL_VOLVER.identity_already_exists);
+    await act(async () => { api.olvidarAvisoAlEntrar(); });
+    expect(api.avisoAlEntrar).toBeNull();
+    act(() => raiz.unmount());
+    window.history.replaceState(null, "", "/");
   });
 });
