@@ -28,6 +28,9 @@
 --     disparador, la cascada ya ha borrado sus filas de plan_preferencias (los disparadores RI_… van antes, por orden de
 --     nombre), y solo cuentan los que ya no están: un plan suyo que pasó a otra persona sigue vivo y no se toca;
 --   · `hecho` y los `personas` de cada grupo en `grupos` no se tocan: solo llevan ids, sin nada suyo.
+--   · también reescribe la propia operación del borrado, que escribir_persona inserta antes del delete (0108): su
+--     `{ id, borrar: true }` pasa a `{ id, borrada: true }`. Nadie lo lee: una operación repetida devuelve `hecho`, no
+--     el pedido (0108), y la inversa del borrado ya decía `borrada`.
 -- deshacer_operacion (0111, 0115) solo lee `inversa->'datos'` y solo hace update o delete de sobres. Hoy, un dato de
 -- una persona borrada hace que todo el deshacer se rechace (`cambio_despues`, 0115). Con esto, se deshace el resto de
 -- la operación (lo de las demás personas); lo suyo ya no está en la inversa. Si `datos` queda vacía, la operación pasa
