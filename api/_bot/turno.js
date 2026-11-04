@@ -16,7 +16,7 @@ import { BOTONES, esEligeTu } from "./botones.js";
 import { cargarCasa, deshacer, hoyISO } from "./casa.js";
 import { quitaProteccion } from "./supervisor.js";
 import {
-  proponerPlatos, cambiarPlato, anadirCompra, marcarCompra, normal, DIA_LARGO, grupos, quienesDe, cambiosDe,
+  proponerPlatos, cambiarPlato, anadirCompra, marcarCompra, normal, DIA_LARGO, grupos, quienesDe, cambiosDe, BOTON_REPETIR_VECINOS,
 } from "./menu.js";
 import { respuestaCompra, respuestaMenu } from "./rapido.js";
 import { fechasDe } from "./cuando.js";
@@ -120,9 +120,11 @@ export async function recomendar(householdId, x) {
   const opciones = bloques.flatMap((b) => b.opciones);
   const aviso = (out.aviso || bloques.some((b) => b.aviso)) ? "\n\n<i>No había ninguna que cumpliera todo lo que pides: estas son las que más se acercan.</i>" : "";
   const pregunta = out.conMenu ? "¿Cuál te pongo?" : "¿Te paso la receta de alguna?";
-  const botones = [...botonesDe(opciones.slice(0, 3).map((r) => r.name)).map((b) => `[[${b}]]`), ...(out.conMenu ? [`[[${BOTONES.eligeTu.es}]]`] : [])].join("\n");
+  // El porqué de lo que no sale (lo dice el motor) y, si se puede soltar, su botón.
+  const porQue = out.porQue ? `\n\n<i>${esc(out.porQue)}</i>` : "";
+  const botones = [...botonesDe(opciones.slice(0, 3).map((r) => r.name)).map((b) => `[[${b}]]`), ...(out.conMenu ? [`[[${BOTONES.eligeTu.es}]]`] : []), ...(out.soltable ? [`[[${BOTON_REPETIR_VECINOS}]]`] : [])].join("\n");
   return {
-    texto: `${cabecera}\n\n${cuerpo}${aviso}\n\n${pregunta}\n${botones}`,
+    texto: `${cabecera}\n\n${cuerpo}${aviso}${porQue}\n\n${pregunta}\n${botones}`,
     fotos,
     deshacible: false,
     ir: null,

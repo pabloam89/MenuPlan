@@ -2997,7 +2997,20 @@ export function choquesDelPlan(dataOEntrada, plan, { antes = null } = {}) {
   return choques;
 }
 
-export function pickCatalogReplacement(dataOEntrada, menuPlan, { groupId, day, meal, course = "main", forcedRecipe = null, sameCategory = false, candidatos = 0, admiteMontaje = false, pedido = false, hoy = null, usadosEnOtrasSemanas = null }) {
+/**
+ * Por qué un cambio de plato deja fuera candidatas que sí encajaban (vocabulario cerrado): lo devuelve
+ * pickCatalogReplacement con `candidatos`, para que quien enseña las opciones diga el porqué de verdad.
+ * VECINOS se puede saltar (`repetirVecinos`); MISMO_DIA no, que es lo que se ve en el plato.
+ */
+export const DESCARTE = Object.freeze({ VECINOS: "vecinos", MISMO_DIA: "mismo_dia" });
+/** Cada motivo, en palabras: «para no repetir <esto>». */
+export const DESCARTE_EN_PALABRAS = Object.freeze({
+  [DESCARTE.VECINOS]: "lo de los días de al lado",
+  [DESCARTE.MISMO_DIA]: "lo de la otra comida del mismo día",
+});
+for (const d of Object.values(DESCARTE)) if (!DESCARTE_EN_PALABRAS[d]) throw new Error(`aiPlanner: el descarte ${d} no tiene palabras`);
+
+export function pickCatalogReplacement(dataOEntrada, menuPlan, { groupId, day, meal, course = "main", forcedRecipe = null, sameCategory = false, candidatos = 0, admiteMontaje = false, pedido = false, hoy = null, usadosEnOtrasSemanas = null, repetirVecinos = false }) {
   // Los vetos de la libreta se leen con fecha (lib/vetos.js): un cambio de
   // plato es HOY, salvo que quien llama diga otra cosa (el bot pasa la de
   // Madrid). Sin esto, un «sin X hasta el día 31» seguía vetando en noviembre.
@@ -3185,15 +3198,23 @@ export function pickCatalogReplacement(dataOEntrada, menuPlan, { groupId, day, m
   const siblingHasProtein =
     proteinGroupsOf(recipeCatalogById[stripGroupPrefix(siblingRecipeId)]).size > 0;
 
-  const collectGroups = (into, dayName, skipMeal = null) => {
+  // Las proteínas (mainProtein y extraProteins, sin repetir) de los platos de un día. De aquí salen a la vez
+  // los grupos que filtran (collectGroups) y lo que se le cuenta a la persona (descartes): un solo recorrido,
+  // para que el porqué no pueda separarse de la regla.
+  const proteinasDelDia = (dayName, skipMeal = null) => {
+    const out = new Set();
     for (const m of entrada.comidas) {
       if (skipMeal && m === skipMeal) continue;
       const s = menuPlan[groupId]?.[`${dayName}-${m}`];
-      if (!s) continue;
-      for (const rid of [s.firstRecipeId, s.recipeId]) {
-        for (const g of proteinGroupsOf(recipeCatalogById[stripGroupPrefix(rid)])) into.add(g);
+      for (const rid of [s?.firstRecipeId, s?.recipeId]) {
+        const r = recipeCatalogById[stripGroupPrefix(rid)];
+        for (const p of [r?.mainProtein, ...(r?.extraProteins ?? [])]) if (PROTEIN_GROUP_BY_MAIN_PROTEIN[p]) out.add(p);
       }
     }
+    return [...out];
+  };
+  const collectGroups = (into, dayName, skipMeal = null) => {
+    for (const p of proteinasDelDia(dayName, skipMeal)) into.add(PROTEIN_GROUP_BY_MAIN_PROTEIN[p]);
   };
 
   // Same day, other meal (comida <-> cena) — the slot being replaced is excluded.
@@ -3213,7 +3234,9 @@ export function pickCatalogReplacement(dataOEntrada, menuPlan, { groupId, day, m
     for (const g of gs) if (sameDayGroups.has(g)) return false;
     return true;
   };
+  // `repetirVecinos`: lo ha pedido la persona («repetir con los días de al lado»).
   const neighborDayOk = (r) => {
+    if (repetirVecinos) return true;
     for (const g of proteinGroupsOf(r)) if (neighborDayGroups.has(g)) return false;
     return true;
   };
@@ -3227,6 +3250,20 @@ export function pickCatalogReplacement(dataOEntrada, menuPlan, { groupId, day, m
   // relaxed first.
   const strict = candidates.filter((r) => sameDayOk(r) && neighborDayOk(r));
   const relaxed = strict.length > 0 ? strict : candidates.filter(sameDayOk);
+  // Lo que cada escalón ha dejado fuera, con las proteínas de qué día (DESCARTE). Solo si el escalón se
+  // aplicó: el de los vecinos se suelta solo cuando no queda nada, y entonces no ha quitado nada.
+  const descartes = [];
+  if (relaxed.length > 0) {
+    const porVecinos = strict.length > 0 ? candidates.filter((r) => sameDayOk(r) && !neighborDayOk(r)) : [];
+    const porMismoDia = candidates.filter((r) => !sameDayOk(r));
+    const vecinos = [DAYS[dayIdx - 1], DAYS[dayIdx + 1]].filter(Boolean).map((d) => [d, null]);
+    for (const [motivo, quitadas, dias] of [[DESCARTE.VECINOS, porVecinos, vecinos], [DESCARTE.MISMO_DIA, porMismoDia, [[day, meal]]]]) {
+      const grupos = new Set(quitadas.flatMap((r) => [...proteinGroupsOf(r)]));
+      const donde = dias.map(([d, sin]) => ({ dia: d, proteinas: proteinasDelDia(d, sin).filter((p) => grupos.has(PROTEIN_GROUP_BY_MAIN_PROTEIN[p])) }))
+        .filter((x) => x.proteinas.length > 0);
+      if (donde.length > 0) descartes.push({ motivo, dias: donde });
+    }
+  }
   if (relaxed.length > 0) candidates = relaxed;
 
   // ── La base del día, una vez ────────────────────────────────────────────
@@ -3313,7 +3350,7 @@ export function pickCatalogReplacement(dataOEntrada, menuPlan, { groupId, day, m
   // exactamente lo que hace que una sugerencia sea buena. Calcularlas por otro
   // camino sería tener dos ideas distintas de "qué cabe aquí", y la que ve el
   // usuario acabaría proponiéndole platos que el botón de al lado descarta.
-  if (candidatos > 0) return { candidatos: candidates.slice(0, candidatos) };
+  if (candidatos > 0) return { candidatos: candidates.slice(0, candidatos), descartes };
   picked = candidates[Math.floor(Math.random() * candidates.length)];
   }
 
