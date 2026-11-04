@@ -512,6 +512,21 @@
       "sinTexto": "\\*\\*|^#| · "
     },
     {
+      "id": "pregunta-del-camino-corta",
+      "tipo": "formato",
+      "dominio": "menu",
+      "origen": "conversacion_real",
+      "dependeDeFecha": true,
+      "dia": "miercoles",
+      "nombre": "pedir el menú de la semana que viene: la pregunta del camino en corto, sin fecha AAAA-MM-DD ni líneas que empiezan por «:» (Pablo, 4 nov 2026)",
+      "entrada": "prepárame el menú de la semana que viene",
+      "noLlama": [
+        "cambiar_plato"
+      ],
+      "texto": "<b>Solo los días</b>",
+      "sinTexto": "[0-9]{4}-[0-9]{2}-[0-9]{2}|^\\s*:|\\]\\]\\s*:"
+    },
+    {
       "id": "no-inventa-recetas-fuera-del-motor",
       "tipo": "herramienta",
       "dominio": "recetas",

@@ -103,7 +103,7 @@ const { supervisar } = await import("../api/_bot/supervisor.js");
 // La pista del enrutador (BOT_PISTA), con el mismo texto que en Telegram: un
 // caso con "pista" { decision, adelanto } mide si Lola la usa sin fiarse de más.
 const { textoPista } = await import("../api/_bot/pista.js");
-const { botonRehacer, lunesDe, sumarDias, fechaCorta: corta } = await import("../api/_bot/semanaPedida.js");
+const { botonRehacer, lunesDe, sumarDias, fechaCorta: corta, fechasParaLola } = await import("../api/_bot/semanaPedida.js");
 const { ahoraEnMadrid } = await import("../api/_bot/recordatorios.js");
 // Un solo modelo por pasada: sin esto, un fallo de la API caería al plan B en
 // silencio y la medida mezclaría dos modelos. Los nombres cortos de --modelo
@@ -166,8 +166,9 @@ const RESPUESTAS = {
   // no se rehace sin rehacer: true; avisa y no toca nada.
   // Ahora la fecha va siempre (#1210): «ya hay menú» solo si cae en la semana del menú activo de ver_menu.
   // Como la de verdad (caminoMenu.js, #1210): sin camino o sin fecha, o en el turno del botón del camino, no genera.
-  generar_menu: (a, texto) => faltaParaGenerar({ camino: a.camino, desde: a.desde, texto })
-    ? paraElModelo(resultadoDeGenerar({ ok: false, motivo: SIN_GENERAR.PREGUNTAR }, faltaParaGenerar({ camino: a.camino, desde: a.desde, texto })))
+  // Hoy y el menú, los de la ficha de estas pruebas (esta semana con menú, la siguiente sin él), para la pregunta corta.
+  generar_menu: (a, texto, hoy) => faltaParaGenerar({ camino: a.camino, desde: a.desde, texto, hoy })
+    ? paraElModelo(resultadoDeGenerar({ ok: false, motivo: SIN_GENERAR.PREGUNTAR }, faltaParaGenerar({ camino: a.camino, desde: a.desde, texto, hoy, semanas: [{ weekStart: lunesDe(hoy), weekEnd: sumarDias(lunesDe(hoy), 6) }] })))
     : paraElModelo(resultadoDeGenerar(a.desde < LUNES_SIN_MENU && !a.rehacer ? { ok: false, motivo: SIN_GENERAR.SEMANA } : { ok: true, desde: a.semana === "siguiente" ? "2026-10-05" : "2026-09-30", hasta: a.semana === "siguiente" ? "2026-10-11" : "2026-10-04", platos: 14 },
     a.desde < LUNES_SIN_MENU && !a.rehacer ? `YA HAY MENÚ en la semana del ${a.desde}: NO lo he rehecho ni he cambiado nada. Pregunta si quieren rehacer esa (generar_menu con rehacer: true).` : `Menú nuevo generado y activado: del ${a.semana === "siguiente" ? "2026-10-05 al 2026-10-11" : "2026-09-30 al 2026-10-04"}, 14 huecos con plato.`
     + ((a.fijos ?? []).length ? `\nLo que pidieron, ya puesto (no hace falta cambiar_plato):\n${a.fijos.map((f, i) => `«${f.nombre}» → ${f.nombre} (${["lunes", "martes", "jueves"][i % 3]}, ${String(f.comida ?? "comida").toLowerCase()})`).join("\n")}` : "")
@@ -323,9 +324,10 @@ async function intentar(caso) {
       // El resultado se guarda con la llamada: cuando las herramientas devuelvan
       // su sobre (trozo 26), operacionExacta lo compara con espera.sobre.
       const resultado = propia != null ? (Array.isArray(propia) ? propia[Math.min(vez, propia.length - 1)] : propia)
-        : typeof fija === "function" ? fija(args, caso.entrada) : fija ?? `Hecho (${t.name}).`;
+        : typeof fija === "function" ? fija(args, caso.entrada, hoy) : fija ?? `Hecho (${t.name}).`;
       llamadas.push({ nombre: t.name, args, resultado });
-      return resultado;
+      // Como en Telegram (agente.js): el modelo lee las fechas en humano, con la de máquina marcada al lado.
+      return fechasParaLola(resultado);
     },
   }));
   let dicho = "";
