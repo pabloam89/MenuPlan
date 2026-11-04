@@ -5,6 +5,7 @@ import { clearState, congelarCopia } from "./storage.js";
 import { traeLlaveDeLola } from "./llaveLola.js";
 import { rememberAppleRefreshToken } from "./appleTokens.js";
 import { isNativeApp } from "./apiUrl.js";
+import { avisoAlVolver } from "./cuentaTelegram.js";
 
 // De quién es la copia de la casa que guarda este navegador (storage.js). Si
 // esa cuenta deja de existir (/borrarme en Telegram, o borrada en otro
@@ -59,6 +60,9 @@ let lastUpsertedUserId = null;
 export function useAuth() {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
+  // Si volver de Google trajo un error (#1238): en la web viene en la URL; en el móvil, por la vuelta del navegador.
+  const [avisoAlEntrar, setAvisoAlEntrar] = useState(() => (typeof window === "undefined" ? null : avisoAlVolver(window.location.href)));
+  const olvidarAvisoAlEntrar = useCallback(() => setAvisoAlEntrar(null), []);
 
   useEffect(() => {
     if (!supabase) { setLoading(false); return; }
@@ -115,7 +119,7 @@ export function useAuth() {
     if (isNativeApp) {
       import("./nativeAuth.js")
         .then(({ listenForNativeAuthCallback }) => {
-          if (mounted) stopNativeListener = listenForNativeAuthCallback(supabase);
+          if (mounted) stopNativeListener = listenForNativeAuthCallback(supabase, { alAvisar: setAvisoAlEntrar });
         })
         .catch((err) => console.error("[auth] no se pudo escuchar la vuelta del login", err));
     }
@@ -159,6 +163,21 @@ export function useAuth() {
   }, []);
 
   const signInWithGoogle = useCallback(() => signInWith("google", "Google"), [signInWith]);
+
+  // Añadir Google a la cuenta con sesión (#1238): la nacida en Telegram, para entrar desde cualquier sitio. Es la
+  // misma cuenta; Supabase la reconoce por Google a partir de ahí.
+  const linkWithGoogle = useCallback(async () => {
+    if (!supabase) return { error: new Error("No disponible en este entorno.") };
+    if (isNativeApp) {
+      const { startNativeLink } = await import("./nativeAuth.js");
+      const { error } = await startNativeLink(supabase, "google");
+      if (error) console.error("[auth] añadir Google (nativo)", error);
+      return { error: error ?? null };
+    }
+    const { error } = await supabase.auth.linkIdentity({ provider: "google", options: { redirectTo: window.location.origin } });
+    if (error) console.error("[auth] añadir Google", error);
+    return { error: error ?? null };
+  }, []);
   const signInWithApple = useCallback(() => signInWith("apple", "Apple"), [signInWith]);
 
   const signOut = useCallback(async () => {
@@ -185,6 +204,9 @@ export function useAuth() {
     loading,
     signInWithGoogle,
     signInWithApple,
+    linkWithGoogle,
+    avisoAlEntrar,
+    olvidarAvisoAlEntrar,
     signOut,
   };
 }
