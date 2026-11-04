@@ -8,12 +8,19 @@
  */
 import { CAMINOS, TEMAS, temasDelCamino } from "../../src/lib/caminos.js";
 import { hasChildMember } from "../../src/lib/groups.js";
+import { esBotonRehacer } from "./semanaPedida.js";
 
 /** Los ids de los caminos, para el enum de generar_menu. */
 export const IDS_CAMINO = CAMINOS.map((c) => c.id);
 
 /** Los botones de elegir camino, con el texto que llega al pulsarlos. */
 export const BOTONES_CAMINO = CAMINOS.map((c) => `[[${c.titulo}]]`).join(" ");
+
+/** Los mismos, como botones de Telegram que vuelven como si los escribieran (`t:`, sacarBotones en telegram.js). */
+export const BOTONES_CAMINO_TELEGRAM = CAMINOS.map((c) => ({ texto: c.titulo, dato: `t:${c.titulo}` }));
+
+/** La pregunta de antes de cada menú: para cuándo y cómo de a fondo. */
+export const PREGUNTA_DE_CAMINO = "¿Para cuándo quieres el menú, y cuánto lo afinamos?";
 
 const tituloDeTema = (id) => TEMAS.find((t) => t.id === id).titulo;
 
@@ -33,11 +40,11 @@ export function preguntasDelCamino(camino, { hayNinos = false } = {}) {
 
 /**
  * Pura. Si no se puede generar todavía, el «NO GENERADO» con lo que Lola tiene que preguntar; si se puede, null.
- * @param {{ camino?: string|null, desde?: string|null, texto?: string, delBoton?: boolean, hayNinos?: boolean }} p
- *   `texto`: el mensaje de este turno; `delBoton`: pulsado «Rehacer la del…», que ya trae su semana y no pregunta.
+ * @param {{ camino?: string|null, desde?: string|null, texto?: string, hayNinos?: boolean }} p
+ *   `texto`: el mensaje de este turno. Si es el botón «Rehacer la del…», ya trae su semana y no se pregunta.
  */
-export function faltaParaGenerar({ camino = null, desde = null, texto = "", delBoton = false, hayNinos = false }) {
-  if (delBoton) return null;
+export function faltaParaGenerar({ camino = null, desde = null, texto = "", hayNinos = false }) {
+  if (esBotonRehacer(texto)) return null;
   if (!IDS_CAMINO.includes(camino)) {
     const caminos = CAMINOS.map((c) => `${c.titulo}: ${c.resumen}`).join(" ");
     return `NO GENERADO: antes de generar, pregunta SIEMPRE para cuándo lo quieren y cómo de a fondo, en un solo mensaje, con estos botones: ${BOTONES_CAMINO}. ${caminos} Cuando elijan, haz las preguntas de ese camino (te las da generar_menu con camino) y genera.`;

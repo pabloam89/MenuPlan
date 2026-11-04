@@ -27,7 +27,7 @@ import {
   apuntarAusencia, resultadoDeAusencia,
 } from "./menu.js";
 import { ESQUEMA_RASGOS, ESQUEMA_EJES, ESQUEMA_PERFIL } from "./esquemas.js";
-import { generarMenu, resultadoDeGenerar } from "./generar.js";
+import { generarMenu, resultadoDeGenerar, SIN_GENERAR } from "./generar.js";
 import { esBotonRehacer, desdeDelBoton } from "./semanaPedida.js";
 import { diaDe } from "./interprete.js";
 import { isoDeCasa, diaDeISO } from "../../src/lib/dias.js";
@@ -812,8 +812,11 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
       run: async ({ camino, semana, fijos, desde, rehacer }) => {
         // Antes de generar, para cuándo y el camino (caminoMenu.js, #1210): si falta, qué preguntar, y nada se genera.
         // La casa solo se lee si hay que preguntar (sus temas de niños); un fallo al leerla lanza, no pregunta de menos.
-        const pedido = { camino, desde, texto: chat.texto, delBoton: esBotonRehacer(chat.texto) };
-        if (faltaParaGenerar(pedido)) return faltaParaGenerar({ ...pedido, hayNinos: hayNinosEn(await cargarCasa(householdId)) });
+        const pedido = { camino, desde, texto: chat.texto };
+        if (faltaParaGenerar(pedido)) {
+          const falta = faltaParaGenerar({ ...pedido, hayNinos: hayNinosEn(await cargarCasa(householdId)) });
+          return resultadoDeGenerar({ ok: false, motivo: SIN_GENERAR.PREGUNTAR }, falta);
+        }
         // La semana generada sale pintada debajo del mensaje de Lola (entregar()).
         // Alergias por silencio (#229): antes de generar, para que el menú de
         // este mismo turno ya salga con todo el catálogo.
