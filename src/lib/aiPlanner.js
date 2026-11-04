@@ -2077,9 +2077,10 @@ export async function generateMenuWithAI(dataOEntrada, { signal, pantryIngredien
         };
       }
       // La guarnición y la salsa del plato, en el hueco (#1246): con ellas, el plato sale del catálogo (platoDelHueco).
+      // `platoDe`/`primeroDe`: la receta para la que son. Quien cambia la receta sin cambiarlas no las hereda.
       const decisiones = (curso) => (curso === "primero"
-        ? { firstGarnishId: garnishId ?? null, firstSauceId: sauceId ?? null }
-        : { garnishId: garnishId ?? null, sauceId: sauceId ?? null });
+        ? { firstGarnishId: garnishId ?? null, firstSauceId: sauceId ?? null, primeroDe: frontendId }
+        : { garnishId: garnishId ?? null, sauceId: sauceId ?? null, platoDe: frontendId });
 
       // Una cena de un plato no trae posición y es el plato de la noche. Una de
       // DOS la trae, y entonces se reparte igual que una comida: el primero al
@@ -2202,6 +2203,8 @@ export async function generateMenuWithAI(dataOEntrada, { signal, pantryIngredien
             sauceId: null,
             firstGarnishId: mainId && firstId ? src.firstGarnishId ?? null : null,
             firstSauceId: null,
+            platoDe: mainId ?? firstId,
+            primeroDe: mainId ? firstId : null,
             eaters,
             raciones,
             restricciones: restriccionesOlla,
@@ -2251,6 +2254,7 @@ export async function generateMenuWithAI(dataOEntrada, { signal, pantryIngredien
         restricciones: [],
         garnishId: null,
         sauceId: null,
+        platoDe: frontendId,
         mode: "casa",
         warnings: [],
         extraMeal: a.mealKey,
@@ -2451,8 +2455,8 @@ export function platoDelHueco(hueco, curso = "principal", { fecha = new Date(), 
   const baseId = recetaEnGrupo.leer(id).receta;
   const receta = recipeCatalogById[baseId] ?? propias[baseId];
   if (!receta) return null;
-  if (!Array.isArray(hueco.restricciones) || !(hueco.eaters > 0)) {
-    throw new Error(`hueco: ${id} no apunta sus recambios o para cuántos (un hueco de antes de #1246 se lee de su copia)`);
+  if (!apuntaSuPlato(hueco, curso)) {
+    throw new Error(`hueco: ${id} no apunta sus recambios, para cuántos o su guarnición (un hueco de antes de #1246, o con la receta cambiada, se lee de su copia)`);
   }
   const { restricciones, eaters } = hueco;
   const raciones = hueco.raciones || eaters;
@@ -2466,6 +2470,45 @@ export function platoDelHueco(hueco, curso = "principal", { fecha = new Date(), 
   if (guarnicionId) applyGarnishToRecipe(fr, GUARNICION_POR_ID[guarnicionId], raciones, restricciones);
   if (salsaId) applySauceToRecipe(fr, SALSA_POR_ID[salsaId], raciones, restricciones);
   return fr;
+}
+
+/**
+ * Si el hueco apunta lo que hace falta para sacar del catálogo el plato de ese curso: recambios, para cuántos, y una
+ * guarnición y una salsa que son de la receta que tiene (`platoDe`, `primeroDe`). Los huecos de antes de #1246 no, y
+ * tampoco uno al que se le cambió la receta sin cambiarle lo demás (un intercambio, Lola): esos van con su copia.
+ */
+export function apuntaSuPlato(hueco, curso = "principal") {
+  if (!Array.isArray(hueco?.restricciones) || !(hueco.eaters > 0)) return false;
+  return curso === "primero" ? hueco.primeroDe === hueco.firstRecipeId : hueco.platoDe === hueco.recipeId;
+}
+
+/**
+ * Los platos de un plan de una semana (`plan[grupo][hueco]`), sacados de sus huecos con `platoDelHueco`: los dos
+ * cursos de cada hueco que apunta su plato (`apuntaSuPlato`). Los que no, no salen: su plato es aún su copia
+ * (`aiRecipes`), hasta que se retire. Las claves que empiezan por «_» no son grupos (`_warnings`).
+ */
+export function platosDelPlan(plan, opciones = {}) {
+  const platos = [];
+  for (const [grupo, huecos] of Object.entries(plan ?? {})) {
+    if (grupo.startsWith("_")) continue;
+    for (const hueco of Object.values(huecos ?? {})) {
+      for (const curso of ["principal", "primero"]) {
+        if (!apuntaSuPlato(hueco, curso)) continue;
+        const plato = platoDelHueco(hueco, curso, opciones);
+        if (plato) platos.push(plato);
+      }
+    }
+  }
+  return platos;
+}
+
+/**
+ * Los platos de todas las semanas de los menús de la casa (`data.menus[id].weeks[lunes].plan`), cada semana con su
+ * fecha (la fruta de temporada). Es lo que la app registra al leer los menús, en vez de guardar copias.
+ */
+export function platosDeMenus(menus, { propias = {} } = {}) {
+  return Object.values(menus ?? {}).flatMap((menu) => Object.entries(menu?.weeks ?? {})
+    .flatMap(([lunes, semana]) => platosDelPlan(semana?.plan, { fecha: new Date(lunes), propias })));
 }
 export function applyGarnishToRecipe(fr, garnish, eaters, restrictions = []) {
   if (!fr || !garnish) return fr;
