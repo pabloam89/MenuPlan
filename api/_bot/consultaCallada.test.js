@@ -24,7 +24,7 @@ vi.mock("./menu.js", async (original) => ({
   describirReceta: vi.fn(async () => "Shakshuka (25 min)"),
 }));
 
-const { herramientas } = await import("./agente.js");
+const { herramientas, USAN_UN_HUECO, FICHAS } = await import("./agente.js");
 
 /** Un turno: las herramientas, en orden, sobre el mismo chat. */
 async function turno(...pasos) {
@@ -61,5 +61,9 @@ describe("un ver_menu para buscar no se pinta", () => {
   it("ver_menu y ver_receta: se pinta (ver_receta no busca un hueco)", async () => {
     const chat = await turno(["ver_menu", {}], ["ver_receta", { nombre: "shakshuka" }]);
     expect(chat.pintar?.dias?.length).toBeGreaterThan(0);
+  });
+
+  it("USAN_UN_HUECO nombra herramientas que existen", () => {
+    expect([...USAN_UN_HUECO].filter((n) => !FICHAS.has(n))).toEqual([]);
   });
 });
