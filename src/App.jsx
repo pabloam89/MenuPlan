@@ -227,7 +227,7 @@ import { suggestHomeRole, migrateHomeRole, resolveAccountMember, miembroDeCuenta
 import { migrateCookTime, COOK_TIME_DEFAULTS } from "./lib/cookTime.js";
 import { navDirection } from "./lib/motion.js";
 import { useAuth } from "./lib/useAuth.js";
-import { ofrecerGoogle, NO_SE_PUDO_GOOGLE } from "./lib/cuentaTelegram.js";
+import { ofrecerGoogle, NO_SE_PUDO_GOOGLE, urlEntrarConTelegram } from "./lib/cuentaTelegram.js";
 import { FeedbackFAB } from "./components/FeedbackFAB.jsx";
 import { HomeCoachTour, RecipesCoachTour, MenuCoachTour, FeedCoachTour } from "./components/HomeCoachTour.jsx";
 import { RecipePrefsWizard } from "./components/ModeSheets.jsx";
@@ -4376,7 +4376,7 @@ export default function App() {
     if (!falloLlave) return;
     // Con otra sesión en este navegador, el aviso y se sigue donde se esté.
     if (user) { showToast(falloLlave); return; }
-    // Sin sesión: en el splash, que ya ofrece «Habla con Lola en Telegram».
+    // Sin sesión: en el splash, que ya ofrece Telegram («Entrar con Telegram» o «Habla con Lola»).
     // El destino se olvida: sin cuenta no hay qué enseñar.
     avisoEntrarRef.current = true;
     setDestinoBot(null);
@@ -7893,7 +7893,8 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle, onApple,
           </GhostPillButton>
         ) : (
           <>
-            {FRONTAL_BOT && (
+            {/* Donde se entra con Telegram (SignInOptions, primero), sobra otro botón de Telegram. */}
+            {FRONTAL_BOT && !urlEntrarConTelegram(window.location) && (
               <GhostPillButton onClick={abrirLola} tone="solid">
                 Habla con Lola en Telegram
               </GhostPillButton>
