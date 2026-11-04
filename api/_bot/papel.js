@@ -33,6 +33,13 @@ export async function quienesLlevanLaCasa(householdId) {
   return (filas ?? []).map((m) => m.user_id).filter(Boolean);
 }
 
+/** La casa que la cuenta tiene abierta en la app (user_profiles.active_household_id), o null. Un fallo de la base, lanza. */
+export async function casaActivaDe(userId) {
+  if (!userId) return null;
+  const [p] = await select("user_profiles", `user_id=${eq(userId)}`, "active_household_id");
+  return p?.active_household_id ?? null;
+}
+
 /** Las identidades de mensajería de una cuenta: [{ channel, external_id }]. En Telegram, su chat privado tiene ese id. */
 export async function identidadesDe(userId) {
   if (!userId) return [];
@@ -65,10 +72,11 @@ export async function papelDeQuien({ householdId, chatId, esGrupo, desde, channe
     const papel = papelMasBajo(vistos.map((v) => v.papel));
     return { papel, userId: vistos.length === 1 ? vistos[0].userId : null };
   }
-  // En privado, quien enlazó este chat (con prueba desde C-3).
+  // En privado, quien enlazó este chat (con prueba desde C-3). Su papel en la casa del turno, que puede no ser la del
+  // chat (casaDelTurno, #1238): papelDeUsuario ya mira que sea miembro de esa casa.
   if (!esGrupo && ids.length <= 1) {
     const [chat] = await select("bot_chats", `channel=${eq(channel)}&chat_id=${eq(String(chatId))}`, "linked_by,household_id,kind");
-    if (chat?.kind === "private" && chat.household_id === householdId) {
+    if (chat?.kind === "private") {
       const papel = await papelDeUsuario(householdId, chat.linked_by);
       if (papel) return { papel, userId: chat.linked_by };
     }
