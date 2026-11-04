@@ -418,7 +418,7 @@ export const SITIOS_FALLO = [
   "eleccion_via_rapida", "entregar_casa", "entregar_pintar", "escribiendo", "fallo_dueno", "fallo_tras_escribir",
   "grupo_casa", "grupo_nombre_del_bot", "idioma", "invitacion",
   "invitacion_cuentas", "lola", "lola_cancelada", "limite", "papel", "reconocer", "relevo", "relevo_llamar", "ruta",
-  "ruta_dueno", "ultima_de_lola", "uso", "vivo_borrar_aviso", "vivo_borrar_cortado", "vivo_editar", "vivo_enviar",
+  "reporte_charla", "reporte_ruta", "ruta_dueno", "ultima_de_lola", "uso", "vivo_borrar_aviso", "vivo_borrar_cortado", "vivo_editar", "vivo_enviar",
   // api/bot/entrar.js
   "bot_entrar",
   // el resto de api/_bot/
@@ -435,6 +435,16 @@ export const SITIOS_FALLO = [
   "traducir_memoria", "turno_casa", "turno_tras_escribir", "turnos_mirar_cola", "turnos_soltar_candado", "uso_limite", "vispera_casa", "vispera_huecos",
   "voz_json",
 ];
+
+// ── Lo que apuntan los probadores con /fallo (api/_bot/reporte.js). No va a
+// ninguna columna: va en metadata.tipo del evento `bot_reporte` de user_events.
+
+/**
+ * Qué falló en un mensaje de Lola, según quien lo reporta: no le entendió,
+ * hizo otra cosa de la pedida, un dato mal (un plato, una cantidad, un día),
+ * el formato, tardó, u otro. Las etiquetas de los botones viven en reporte.js.
+ */
+export const TIPOS_REPORTE = ["no_entendio", "hizo_otra_cosa", "dato_mal", "formato", "lento", "otro"];
 
 // ── Los del vigía y el canario de Lola (#267). No van a ninguna tabla: van en
 // las líneas `vigia_aviso` y `canario` del log (scripts/vigia.mjs,
@@ -595,6 +605,7 @@ export const VOCABULARIOS = Object.freeze({
   largos_trato: LARGOS_TRATO,
   repites_recordatorio: REPITES_RECORDATORIO,
   avisos_recordatorio: AVISOS_RECORDATORIO,
+  tipos_reporte: TIPOS_REPORTE,
 });
 
 /** La lista de un vocabulario por su nombre, o null si no existe. */
