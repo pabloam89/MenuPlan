@@ -252,6 +252,7 @@ export function HomeProfileScreen({
   onSignOut,
   onDeleteAccount,
   onExportData = null,
+  onEntrarConGoogle = null,
   onEditMembers,
   onEditPreferences,
   onOpenHouseholds,
@@ -475,6 +476,15 @@ export function HomeProfileScreen({
             img="/avatares/cards/cerrar_sesion.jpg"
             title="Cerrar sesión"
             onClick={onSignOut}
+          />
+        )}
+        {/* Cuenta nacida en Telegram (#1238): añadirle Google para abrir HoMenu desde cualquier sitio. */}
+        {onEntrarConGoogle && (
+          <ProfileOptionRow
+            icon={User}
+            title="Entrar también con Google"
+            subtitle="Tu cuenta nació en Telegram: con Google la abres desde cualquier sitio."
+            onClick={onEntrarConGoogle}
           />
         )}
         {/* «Reiniciar menú» se mudó a Inicio, a la fila de «Hoy toca» (30 oct 2026). */}

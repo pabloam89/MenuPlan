@@ -22,10 +22,10 @@
 import { seguirCon, fallaCon } from "./avisar.js";
 import { config, select, eq } from "./db.js";
 import { CANAL } from "../../src/lib/vocabularios.js";
+// El email sintético, de un solo sitio: la app lo usa para ofrecer «Entrar también con Google» (#1238).
+import { emailSintetico } from "../../src/lib/cuentaTelegram.js";
 
-const DOMINIO_SINTETICO = "usuarios.menuplanai.com";
-
-export const emailSintetico = (telegramId) => `tg${telegramId}@${DOMINIO_SINTETICO}`;
+export { emailSintetico };
 
 async function auth(ruta, { method = "POST", body, token } = {}) {
   const { url, key, headers } = config();
