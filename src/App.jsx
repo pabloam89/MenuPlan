@@ -5922,25 +5922,25 @@ export default function App() {
   const basicMode = !data.expertMode;
   // La semana abierta, por su lunes: la del archivo del menú, o la de hoy más el offset con la misma cuenta que pone
   // las claves del archivo (mondayISOForOffset, weekCalendar.js).
-  const lunesAbierto = semanaPorOffset(data.menus?.[data.activeMenuId]?.weeks, data.menuWeek?.offset ?? 0)?.[0]
+  const semanaAbierta = semanaPorOffset(data.menus?.[data.activeMenuId]?.weeks, data.menuWeek?.offset ?? 0)?.[0]
     ?? mondayISOForOffset(data.menuWeek?.offset ?? 0);
   useEffect(() => {
     let vivo = true;
     if (!activeHouseholdId) {
-      setCocinados({ semana: lunesAbierto, claves: cocinadosLocales(lunesAbierto) });
+      setCocinados({ semana: semanaAbierta, claves: cocinadosLocales(semanaAbierta) });
       return undefined;
     }
     // Otra casa u otra semana: hasta leer la suya no hay claves (la ficha no deja marcar), ni las de la anterior.
     setCocinados({ semana: null, claves: new Set() });
-    leerCocinados(activeHouseholdId, lunesAbierto).then((r) => {
+    leerCocinados(activeHouseholdId, semanaAbierta).then((r) => {
       if (!vivo) return;
       // Sin leer no es «nada cocinado»: se queda sin claves de esa semana (la ficha no deja marcar) y se avisa.
-      if (r.ok) setCocinados({ semana: lunesAbierto, claves: r.claves });
+      if (r.ok) setCocinados({ semana: semanaAbierta, claves: r.claves });
       else showToast("No he podido leer qué hay cocinado esta semana");
     });
     return () => { vivo = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeHouseholdId, lunesAbierto]);
+  }, [activeHouseholdId, semanaAbierta]);
   // Marca o desmarca un plato cocinado: primero en su sitio (tabla o móvil) y, si se guardó, en pantalla.
   const marcarCocinado = useCallback(async (fila, hecho) => {
     if (activeHouseholdId) {
@@ -7137,8 +7137,8 @@ export default function App() {
           day={selectedSlot.day ?? null}
           meal={selectedSlot.meal ?? null}
           cookWeekKey={`${data.activeMenuId ?? "live"}:${data.menuWeek?.offset ?? 0}`}
-          cookWeekMonday={lunesAbierto}
-          cocinados={cocinados.semana === lunesAbierto ? cocinados.claves : null}
+          cookWeekMonday={semanaAbierta}
+          cocinados={cocinados.semana === semanaAbierta ? cocinados.claves : null}
           onCocinado={marcarCocinado}
           user={user}
           data={householdReadOnly ? null : data}
