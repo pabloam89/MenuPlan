@@ -130,6 +130,8 @@ import { todayDayIdx, getWeekDatesByMenuWeek, mondayISOForOffset } from "./lib/w
 import { diaDeFecha, indiceDeFecha } from "./lib/dias.js";
 import { claveCocinado, cocinadosLocales, ponerCocinadoLocal, sinCocinados } from "./lib/cocinados.js";
 import { leerCocinados, mandarCocinado } from "./lib/cocinadosApp.js";
+import { apuntarMenuLocal, menusLocales, sinHistorialDeMenus } from "./lib/menusGenerados.js";
+import { leerMenusGenerados, mandarMenuGenerado } from "./lib/menusGeneradosApp.js";
 import { pizarraActiva, fotoAntesDePizarra, volverAntesDePizarra, huecosDelPlan, conHuecosAlDia, conSemanasAlDia, semanaEnBlanco, conHuecoAnadido, sinHueco, franjasDelDia } from "./lib/pizarra.js";
 import { aplicarDiasDeSemana, diasPorDefecto, buildCalendarWeeks } from "./lib/semanaDias.js";
 import { reglaDeInvitado, invitadosPorHueco, sinInvitadosDelHueco } from "./lib/reglas.js";
@@ -917,7 +919,7 @@ function snapshotDeCasa({ data, menuPlan, shopping, aiRecipes, onbStep }, modoFa
   // sus filas de preferencia (trozo 14), van por api/operacion.js y no aquí (lib/familiaCasa.js, casaDatos.js, libretaCasa.js).
   // Las recetas, votos, descartes, colecciones y carpetas viven en sus tablas (recetasFuente.js, trozo 21); las marcas
   // de pantalla, en el móvil o en ningún sitio (marcasLocales.js, trozo 22); lo cocinado, en su tabla (cocinados.js).
-  const profile = { ...sinCocinados(sinMarcasDePantalla(sinRecetasDeTabla(sinLibretaLeida(sinCasa(sinFamilia(data, modoFamilia), cargaCasa), cargaLibreta)))) };
+  const profile = { ...sinHistorialDeMenus(sinCocinados(sinMarcasDePantalla(sinRecetasDeTabla(sinLibretaLeida(sinCasa(sinFamilia(data, modoFamilia), cargaCasa), cargaLibreta))))) };
   delete profile.menus;
   return { data: profile, menuPlan, shopping, aiRecipes, onbStep };
 }
@@ -2231,6 +2233,39 @@ export default function App() {
     // 1,8 s no daba para leer una frase entera (WCAG 2.2.1): 3,5 s.
     toastTimer.current = window.setTimeout(() => setToast(null), action ? 5000 : 3500);
   }, []);
+  // Los menús generados (la racha), de su tabla (menusGenerados.js, trozo 22); sin casa, del móvil. Sin leer no es
+  // «ningún menú»: `leidos: false`, Ajustes no enseña la racha y no cuenta como primer menú.
+  const [menusHechos, setMenusHechos] = useState(() => ({ casa: null, leidos: false, lista: [] }));
+  useEffect(() => {
+    let vivo = true;
+    if (!activeHouseholdId) {
+      try { setMenusHechos({ casa: null, leidos: true, lista: menusLocales() }); } catch (e) {
+        console.error("[menus]", e.message);
+        setMenusHechos({ casa: null, leidos: false, lista: [] });
+      }
+      return undefined;
+    }
+    setMenusHechos({ casa: activeHouseholdId, leidos: false, lista: [] });
+    leerMenusGenerados(activeHouseholdId).then((r) => {
+      if (vivo && r.ok) setMenusHechos({ casa: activeHouseholdId, leidos: true, lista: r.menus });
+    });
+    return () => { vivo = false; };
+  }, [activeHouseholdId]);
+  // Un menú generado: primero en su sitio (tabla o móvil) y, si se guardó, en la racha; si no, se dice.
+  const apuntarMenu = useCallback(async () => {
+    if (!activeHouseholdId) {
+      try { setMenusHechos({ casa: null, leidos: true, lista: apuntarMenuLocal() }); } catch (e) {
+        console.error("[menus]", e.message);
+      }
+      return;
+    }
+    const r = await mandarMenuGenerado(activeHouseholdId);
+    if (!r.ok) {
+      showToast("No he podido apuntar este menú en tu racha");
+      return;
+    }
+    setMenusHechos((m) => (m.casa === activeHouseholdId && m.leidos ? { ...m, lista: [...m.lista, { at: Date.now() }] } : m));
+  }, [activeHouseholdId, showToast]);
   showToastRef.current = showToast;
 
   // Las recetas del titular no se han podido leer (#958): no es lo mismo que
@@ -2557,7 +2592,8 @@ export default function App() {
 
       registerRecipes(allRecipes);
       setMenuPlan(firstWeekPlan);
-      const isFirstMenu = (data.menuHistory ?? []).length === 0;
+      const isFirstMenu = menusHechos.leidos && menusHechos.lista.length === 0;
+      apuntarMenu();
       trackEvent(user, "menu_generated", "menu", {
         groupCount: groups.length,
         memberCount: working.members.length,
@@ -2620,7 +2656,6 @@ export default function App() {
           // la primera): sin esto el puntero se quedaba en null o en el del
           // menú anterior, y la compra leía la copia archivada (#1063).
           menuWeek: punteroDeSemana(weeks[weekResults[0].startISO]),
-          menuHistory: [...(d.menuHistory ?? []), { at: Date.now(), groups: groups.length }].slice(-60),
           pantryGenDeltas: droppedMenuIds.length ? recon.genOut : nextGenDeltas,
         };
         if (droppedMenuIds.length) {
@@ -2696,7 +2731,7 @@ export default function App() {
       if (generateAbortRef.current === ctrl) generateAbortRef.current = null;
       setIsGeneratingMenu(false);
     }
-  }, [data, showToast, pararSiFaltanMinimos]);
+  }, [data, showToast, pararSiFaltanMinimos, apuntarMenu, menusHechos]);
 
   // El último plan ya apuntado como descartado: dos pulsaciones seguidas sobre el mismo plan
   // no cuentan dos veces lo que solo se tira una.
@@ -3713,12 +3748,6 @@ export default function App() {
         menus: foldedMenus,
         activeMenuId: newMenu.id,
         menuWeek: punteroDeSemana(weeks[firstKey]),
-        // "Repetir → Mismos platos" still generates and activates a real
-        // menú for the week — it just clones dishes instead of asking the AI
-        // for new ones. Without this it never appended to menuHistory, so
-        // the streak (computeStreak) and the Dashboard's "menús generados"
-        // counter silently undercounted a week the user did have a menú for.
-        menuHistory: [...(d.menuHistory ?? []), { at: Date.now(), groups: (d.groups ?? []).length }].slice(-60),
         };
         if (droppedMenuIds.length) {
           base.pantryGenDeltas = recon.genOut;
@@ -3745,6 +3774,8 @@ export default function App() {
           }
         });
       }
+      // «Repetir → Mismos platos» también es un menú de la semana: cuenta en la racha.
+      apuntarMenu();
       showToast("Menú repetido con los mismos platos");
       fwd(() => setScreen("menu"));
       return;
@@ -3759,7 +3790,7 @@ export default function App() {
       menuWeek: { offset: 0, startDayIdx },
     });
     fwd(() => setScreen("menu"));
-  }, [data, regenerateMenu, showToast, user, pararSiFaltanMinimos]);
+  }, [data, regenerateMenu, showToast, user, pararSiFaltanMinimos, apuntarMenu]);
 
   // Opens a history entry in the read-only viewer — same lazy-detail fetch as
   // reuseMenu, since a history row hydrated from the cloud read-preference may
@@ -6676,6 +6707,7 @@ export default function App() {
               <AccountScreen
                 user={user}
                 data={data}
+                menusHechos={menusHechos}
                 setData={setData}
                 menuPlan={menuPlan}
                 setMenuPlan={setMenuPlan}

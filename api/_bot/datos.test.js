@@ -8,6 +8,7 @@ import { escribirDato, falloDeMotivo } from "./datos.js";
 import { RPC_OPERACION, RPC_DESHACER, SUFIJO_CLAVE_PERSONA, RPC_PREFERENCIAS } from "../../src/lib/operaciones/tuberia.js";
 import { ACCION_LIBRETA } from "../../src/lib/libretaCasa.js";
 import handler from "../operacion.js";
+import { MENUS_QUE_SE_LEEN } from "../../src/lib/menusGenerados.js";
 import { filaDeTicket, filaDePrecio, COLUMNAS_TICKET, COLUMNAS_PRECIO, DE_LA_0124 } from "../../src/lib/historialCompra.js";
 import { HTTP_DE_FALLO } from "../../src/lib/escribirDato.js";
 import { FALLO_DATO, MOTIVOS_FALLO, FALLOS_DATO, ESTADO_OPERACION, SEXO, CANAL_DATO, REF_OPERACION } from "../../src/lib/vocabularios.js";
@@ -670,5 +671,49 @@ describe("api/operacion.js: lo gastado (trozo 22) va a ticket y precio_observado
     expect(res.codigo).toBe(200);
     expect(res.body.tickets).toEqual([{ ...TICKET }]);
     expect(res.body.precios).toEqual([{ ...GASTO, qty: 1, sizeQty: null, sizeUnit: null }]);
+  });
+});
+
+describe("api/operacion.js: los menús generados (trozo 22) van a menu_generado", () => {
+  const leer = async (query) => {
+    const res = resFalso();
+    await handler({ method: "GET", headers: { host: "prueba.invalid", authorization: "Bearer tok" }, query }, res);
+    return res;
+  };
+  beforeEach(() => {
+    responde(/^\/auth\/v1\/user/, { status: 200, cuerpo: { id: "u1" } });
+  });
+
+  it("quien edita apunta un menú en su tabla, nunca en el documento; un lector no; otra forma es inválida", async () => {
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "editor" }] });
+    expect(await pedir({ body: { casa: CASA, menu_generado: true } })).toMatchObject({ codigo: 200, body: { guardado: true, apuntado: true } });
+    expect(llamadas.filter((l) => l.metodo === "POST" && l.ruta.startsWith("/rest/v1/"))).toEqual([
+      { ruta: "/rest/v1/menu_generado", metodo: "POST", cuerpo: [{ household_id: CASA }] },
+    ]);
+    expect((await pedir({ body: { casa: CASA, menu_generado: { grupos: 2 } } })).codigo).toBe(HTTP_DE_FALLO[FALLO_DATO.INVALIDO]);
+    respuestas.length = 0;
+    responde(/^\/auth\/v1\/user/, { status: 200, cuerpo: { id: "u1" } });
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "viewer" }] });
+    expect((await pedir({ body: { casa: CASA, menu_generado: true } })).codigo).toBe(HTTP_DE_FALLO[FALLO_DATO.SIN_PERMISO]);
+    expect(llamadas.filter((l) => DEL_DOCUMENTO.test(l.ruta))).toEqual([]);
+  });
+
+  it("si la base falla, se dice (servidor) y queda en el log", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "owner" }] });
+    responde(/^\/rest\/v1\/menu_generado/, { status: 500, cuerpo: { code: "XX000", message: "roto" } });
+    expect((await pedir({ body: { casa: CASA, menu_generado: true } })).codigo).toBe(HTTP_DE_FALLO[FALLO_DATO.SERVIDOR]);
+    expect(log.mock.calls.map((c) => JSON.parse(c[0])).find((l) => l.evento === "menu_sin_apuntar")).toMatchObject({ fallo: FALLO_DATO.SERVIDOR });
+  });
+
+  it("GET ?menus=1: los últimos, del más viejo al más nuevo, a quien es de la casa", async () => {
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "viewer" }] });
+    responde(/^\/rest\/v1\/menu_generado/, { status: 200, cuerpo: [{ generado_at: "2026-11-04T10:00:00+00:00" }, { generado_at: "2026-10-28T10:00:00+00:00" }] });
+    const res = await leer({ casa: CASA, menus: "1" });
+    expect(res.codigo).toBe(200);
+    expect(res.body).toEqual({ menus: ["2026-10-28T10:00:00+00:00", "2026-11-04T10:00:00+00:00"] });
+    const ruta = decodeURIComponent(llamadas.find((l) => l.ruta.startsWith("/rest/v1/menu_generado")).ruta);
+    expect(ruta).toContain(`household_id=eq.${CASA}`);
+    expect(ruta).toContain(`limit=${MENUS_QUE_SE_LEEN}`);
   });
 });
