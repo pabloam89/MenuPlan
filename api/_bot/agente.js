@@ -19,7 +19,7 @@ import { betaTool } from "@anthropic-ai/sdk/helpers/beta/json-schema";
 import { select, insert, eq, contandoEscrituras } from "./db.js";
 import { deLaCharla } from "./chats.js";
 import { cargarCasa, deshacer, hoyISO, apuntarOperacion } from "./casa.js";
-import { IDS_CAMINO, faltaParaGenerar, hayNinosEn } from "./caminoMenu.js";
+import { IDS_CAMINO, LEYENDA_CAMINOS, faltaParaGenerar, hayNinosEn } from "./caminoMenu.js";
 import {
   describirCasa, describirReceta, describirCompra,
   marcarCompra, anadirCompra, quitarCompra, cambiarPlato, proponerPlatos, franjaDe, porQuePlato,
@@ -797,7 +797,7 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
       name: "generar_menu",
       description: "Genera un menú NUEVO con el motor de HoMenu (respeta toda la configuración) y lo deja activo: «esta» semana desde hoy, la «siguiente» (la primera semana SIN menú a partir del lunes que viene) o, con desde, la semana de esa fecha («a partir del 2 de noviembre» → desde 2026-11-02). Una semana que ya tiene menú NO se rehace sin rehacer: true, que solo va cuando piden rehacer esa semana («rehaz», «cambia el menú de…», el botón «Rehacer la del…»); si no, la herramienta avisa sin tocar nada y tú preguntas. Rehacer la semana en curso empieza mañana: hoy y lo pasado no cambian. Tarda unos segundos. fijos: los platos que piden por su nombre para esa semana («un día salmón al horno», «otro pollo con patatas»); se ponen al generar, una vez cada uno, con la receta exacta o la más parecida. Con fijos NO hace falta cambiar_plato después. Solo si piden generar o rehacer, o si no hay menú: una pregunta sobre lo ya generado («¿y las recetas?», «¿y la compra?», «¿y el domingo?») se contesta con ver_receta, ver_compra o ver_menu y NUNCA regenera, porque rehacerlo cambia los platos que ya han visto.",
       inputSchema: obj({
-        camino: { type: "string", enum: IDS_CAMINO, description: "El que eligieron con los botones (basico = Lo básico, medio = A tu gusto, avanzado = Al detalle). Sin él no se genera: pregúntalo siempre." },
+        camino: { type: "string", enum: IDS_CAMINO, description: `El que eligieron con los botones (${LEYENDA_CAMINOS}). Sin él no se genera: pregúntalo siempre.` },
         semana: { type: "string", enum: ["esta", "siguiente"] },
         desde: { type: "string", description: "AAAA-MM-DD: para cuándo, lo que hayan contestado (manda sobre semana). Se pregunta siempre." },
         rehacer: { type: "boolean", description: "true si piden rehacer una semana que ya tiene menú, o al pulsar [[Rehacer la del …]]: entonces desde = ese lunes y rehacer: true, los dos." },

@@ -13,6 +13,9 @@ import { esBotonRehacer } from "./semanaPedida.js";
 /** Los ids de los caminos, para el enum de generar_menu. */
 export const IDS_CAMINO = CAMINOS.map((c) => c.id);
 
+/** Qué id es cada botón, para la descripción de generar_menu: «basico = Lo básico, …». */
+export const LEYENDA_CAMINOS = CAMINOS.map((c) => `${c.id} = ${c.titulo}`).join(", ");
+
 /** Los botones de elegir camino, con el texto que llega al pulsarlos. */
 export const BOTONES_CAMINO = CAMINOS.map((c) => `[[${c.titulo}]]`).join(" ");
 

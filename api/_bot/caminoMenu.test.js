@@ -1,11 +1,23 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { CAMINO, CAMINOS } from "../../src/lib/caminos.js";
-import { BOTONES_CAMINO, IDS_CAMINO, caminoDelBoton, faltaParaGenerar, hayNinosEn, preguntasDelCamino } from "./caminoMenu.js";
+import { BOTONES_CAMINO, IDS_CAMINO, LEYENDA_CAMINOS, caminoDelBoton, faltaParaGenerar, hayNinosEn, preguntasDelCamino } from "./caminoMenu.js";
 
 describe("los caminos de Lola son los de la app", () => {
   it("los ids y los botones salen de src/lib/caminos.js, sin copiarlos", () => {
     expect(IDS_CAMINO).toEqual(Object.values(CAMINO));
     expect(BOTONES_CAMINO).toBe("[[Lo básico]] [[A tu gusto]] [[Al detalle]]");
+  });
+
+  it("la leyenda de generar_menu sale de la misma lista", () => {
+    expect(LEYENDA_CAMINOS).toBe("basico = Lo básico, medio = A tu gusto, avanzado = Al detalle");
+  });
+
+  it("el manual de Lola enseña los botones con los títulos de CAMINOS (si cambia uno, caminoDelBoton no lo reconocería)", () => {
+    const manual = readFileSync(new URL("./conocimiento.md", import.meta.url), "utf8");
+    const enElManual = [...manual.matchAll(/\[\[(Lo [^\]]+|A tu [^\]]+|Al [^\]]+)\]\]/g)].map((m) => m[1]);
+    expect(new Set(enElManual)).toEqual(new Set(CAMINOS.map((c) => c.titulo)));
+    for (const t of enElManual) expect(caminoDelBoton(t)).not.toBe(null);
   });
 
   it("pulsar un botón da su camino; otro texto, ninguno", () => {
