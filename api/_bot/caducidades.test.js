@@ -14,7 +14,7 @@ vi.mock("./embudo.js", () => ({ registrar: vi.fn(async () => {}), EVENTO: new Pr
 
 const {
   COSAS_QUE_CADUCAN, CADUCA, EFECTOS, QUIENES, BARRIDOS, vigente, estadosVencidos, casasDeEstados, avisoDeCola, claveDeEstadoVencido,
-  barridosQueFaltan, PATRON_VENCIDO, barrer: barrerReal, claveDeRota, textoDeRota, TOPE_CORRECCIONES_POR_CASA,
+  barridosQueFaltan, PATRON_VENCIDO, barrer: barrerReal, claveDeRota, textoDeRota, TOPE_CORRECCIONES_POR_CASA, VIDA_PREGUNTA_MS,
 } = await import("./caducidades.js");
 const { EJES } = await import("../../src/data/axisRegistry.js");
 const { ESTADO_TAREA } = await import("../../src/lib/vocabularios.js");
@@ -261,8 +261,8 @@ describe("la cola sin dueño", () => {
 });
 
 describe("referencias rotas: lo obvio se corrige solo y lo dudoso se pregunta (Pablo, 4 nov 2026)", () => {
-  // Medianoche UTC: la pasada del día, cuando corre este barrido.
-  const ahoraMs = Date.parse("2026-11-05T00:00:00Z");
+  // En punto: la primera pasada de la hora, cuando corre este barrido.
+  const ahoraMs = Date.parse("2026-11-05T09:00:00Z");
   const eje = EJES.find((e) => Array.isArray(e.vocabulario) && e.vocabulario.length && e.tipo !== "booleano");
   const CHAT = { household_id: "h1", channel: "telegram", chat_id: "7", kind: "private" };
   const casaDe = ({ members = [{ id: "ana", name: "Ana" }], preferencias = [] } = {}) => ({ state: { members }, preferencias });
@@ -299,6 +299,7 @@ describe("referencias rotas: lo obvio se corrige solo y lo dudoso se pregunta (P
     expect(updates().some(([, q]) => /t3/.test(q))).toBe(false);
     const [[, [fila]]] = inserts();
     expect(fila).toMatchObject({ household_id: "h1", chat_id: "7", kind: "pregunta", clave: claveDeRota({ personaId: "ana", eje: eje.id, valor: "ya-no-existe" }) });
+    expect(Date.parse(fila.caduca_at) - ahoraMs).toBe(VIDA_PREGUNTA_MS);
     expect(fila.texto).toMatch(/ya-no-existe/);
     expect(fila.texto).toMatch(/Ana/);
   });
@@ -336,9 +337,9 @@ describe("referencias rotas: lo obvio se corrige solo y lo dudoso se pregunta (P
     expect(updates()).toEqual([]);
   });
 
-  it("solo una vez al día: a otra hora no corre", async () => {
+  it("una vez por hora: en otra pasada de la hora no corre", async () => {
     casa.cargarCasa.mockResolvedValue(casaDe());
-    expect((await barrer({ ahoraMs: Date.parse("2026-11-05T09:00:00Z") }))[CADUCA.REFERENCIA_ROTA]).toBeUndefined();
+    expect((await barrer({ ahoraMs: Date.parse("2026-11-05T09:33:00Z") }))[CADUCA.REFERENCIA_ROTA]).toBeUndefined();
     expect(casa.cargarCasa).not.toHaveBeenCalled();
   });
 

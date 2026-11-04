@@ -102,6 +102,34 @@ export function vigente(cosa, creadoAt, ahoraMs = Date.now()) {
   return ahoraMs - t < def.vidaMs;
 }
 
+// ── Preguntas que abre el barrido ────────────────────────────────────────────
+
+/** Cuánto vive una pregunta que abre el barrido (estados vencidos, referencias rotas). */
+export const VIDA_PREGUNTA_MS = 14 * DIA;
+
+/** El chat donde se pregunta: el privado antes que el grupo (puede ser salud). */
+export const chatParaPreguntar = (chats = []) => chats.find((x) => x.kind === "private") ?? chats[0] ?? null;
+
+/**
+ * Abre una pregunta para Lola una sola vez por casa y clave: si ya se preguntó (abierta o cerrada), no se repite.
+ * Devuelve si la abrió. El índice único (casa, clave) para una pasada solapada no es un fallo; lo demás se lanza.
+ */
+async function abrirPreguntaUnaVez({ householdId, chat, clave, texto, ahoraMs }) {
+  const ya = await select("bot_tareas", `household_id=${eq(householdId)}&clave=${eq(clave)}&limit=1`, "id");
+  if (ya.length) return false;
+  try {
+    await insert("bot_tareas", [{
+      household_id: householdId, channel: paraEscribir("canales", chat.channel ?? CANAL.TELEGRAM), chat_id: String(chat.chat_id),
+      kind: "pregunta", scope: "casa", texto, clave,
+      caduca_at: new Date(ahoraMs + VIDA_PREGUNTA_MS).toISOString(),
+    }]);
+    return true;
+  } catch (e) {
+    if (!esDuplicado(e)) throw e;
+    return false;
+  }
+}
+
 // ── Estados de salud con fecha ──────────────────────────────────────────────
 
 /** La clave de la pregunta de un estado vencido: una por persona, estado y fecha. */
@@ -177,24 +205,11 @@ async function barrerEstados({ ahoraMs, hoy }) {
     // Vivas antes de buscar el chat: sin chat no se abre nada, pero lo abierto sigue valiendo.
     for (const v of vencidos) vivas.add(`${c.household_id}|${v.clave}`);
     const chats = await select("bot_chats", `household_id=${eq(c.household_id)}&order=created_at.asc`, "channel,chat_id,kind");
-    // El privado antes que el grupo: es salud.
-    const chat = chats.find((x) => x.kind === "private") ?? chats[0];
+    const chat = chatParaPreguntar(chats);
     if (!chat) continue;
+    // Una vez por estado y fecha.
     for (const v of vencidos) {
-      // Una vez por estado y fecha: si ya se preguntó (abierta o cerrada), no se repite.
-      const ya = await select("bot_tareas", `household_id=${eq(c.household_id)}&clave=${eq(v.clave)}&limit=1`, "id");
-      if (ya.length) continue;
-      try {
-        await insert("bot_tareas", [{
-          household_id: c.household_id, channel: paraEscribir("canales", chat.channel ?? CANAL.TELEGRAM), chat_id: String(chat.chat_id),
-          kind: "pregunta", scope: "casa", texto: v.texto, clave: v.clave,
-          caduca_at: new Date(ahoraMs + 14 * DIA).toISOString(),
-        }]);
-        abiertas++;
-      } catch (e) {
-        // El índice único (casa, clave) para una pasada solapada: no es un fallo.
-        if (!esDuplicado(e)) throw e;
-      }
+      if (await abrirPreguntaUnaVez({ householdId: c.household_id, chat, clave: v.clave, texto: v.texto, ahoraMs })) abiertas++;
     }
   }
   // Las que ya no hacen falta (la quitaron o le dieron fecha nueva): cerradas.
@@ -269,23 +284,11 @@ async function barrerReferencias({ ahoraMs }) {
       out.sinEncargado += sinEncargado.length;
     }
     // Lo dudoso, a la familia: una pregunta por preferencia, una sola vez (abierta o cerrada, no se repite).
-    const chat = suyos.find((x) => x.kind === "private") ?? suyos[0];
+    const chat = chatParaPreguntar(suyos);
     for (const p of preguntar) {
       const clave = claveDeRota(p);
       if (!clave) continue;
-      const ya = await select("bot_tareas", `household_id=${eq(householdId)}&clave=${eq(clave)}&limit=1`, "id");
-      if (ya.length) continue;
-      try {
-        await insert("bot_tareas", [{
-          household_id: householdId, channel: paraEscribir("canales", chat.channel ?? CANAL.TELEGRAM), chat_id: String(chat.chat_id),
-          kind: "pregunta", scope: "casa", texto: textoDeRota(p, members), clave,
-          caduca_at: new Date(ahoraMs + 14 * DIA).toISOString(),
-        }]);
-        out.preguntas++;
-      } catch (e) {
-        // El índice único (casa, clave) para una pasada solapada: no es un fallo.
-        if (!esDuplicado(e)) throw e;
-      }
+      if (await abrirPreguntaUnaVez({ householdId, chat, clave, texto: textoDeRota(p, members), ahoraMs })) out.preguntas++;
     }
   }
   return out;
@@ -342,8 +345,7 @@ export const BARRIDOS = {
 };
 
 // Lo que no hace falta mirar en cada pasada: una vez por hora basta.
-// Las referencias rotas, una vez al día: lee la casa entera de cada una.
-const CADA = { [CADUCA.ESTADO_SALUD]: HORA, [CADUCA.COLA]: 0, [CADUCA.REFERENCIA_ROTA]: DIA };
+const CADA = { [CADUCA.ESTADO_SALUD]: HORA, [CADUCA.COLA]: 0, [CADUCA.REFERENCIA_ROTA]: HORA };
 
 /**
  * La pasada del cron. Cada cosa por su cuenta: si una falla, las demás siguen.
