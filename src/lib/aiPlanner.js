@@ -3191,18 +3191,9 @@ export function pickCatalogReplacement(dataOEntrada, menuPlan, { groupId, day, m
   const siblingHasProtein =
     proteinGroupsOf(recipeCatalogById[stripGroupPrefix(siblingRecipeId)]).size > 0;
 
-  const collectGroups = (into, dayName, skipMeal = null) => {
-    for (const m of entrada.comidas) {
-      if (skipMeal && m === skipMeal) continue;
-      const s = menuPlan[groupId]?.[`${dayName}-${m}`];
-      if (!s) continue;
-      for (const rid of [s.firstRecipeId, s.recipeId]) {
-        for (const g of proteinGroupsOf(recipeCatalogById[stripGroupPrefix(rid)])) into.add(g);
-      }
-    }
-  };
-
-  // Las proteínas (mainProtein y extraProteins, sin repetir) de los platos de un día, para decir el porqué.
+  // Las proteínas (mainProtein y extraProteins, sin repetir) de los platos de un día. De aquí salen a la vez
+  // los grupos que filtran (collectGroups) y lo que se le cuenta a la persona (descartes): un solo recorrido,
+  // para que el porqué no pueda separarse de la regla.
   const proteinasDelDia = (dayName, skipMeal = null) => {
     const out = new Set();
     for (const m of entrada.comidas) {
@@ -3214,6 +3205,9 @@ export function pickCatalogReplacement(dataOEntrada, menuPlan, { groupId, day, m
       }
     }
     return [...out];
+  };
+  const collectGroups = (into, dayName, skipMeal = null) => {
+    for (const p of proteinasDelDia(dayName, skipMeal)) into.add(PROTEIN_GROUP_BY_MAIN_PROTEIN[p]);
   };
 
   // Same day, other meal (comida <-> cena) — the slot being replaced is excluded.
