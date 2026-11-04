@@ -102,3 +102,86 @@ Tres fallos al pasar de Telegram a la app, y la regla que dejó cada uno:
 Flujo vigente: Lola saluda sin preguntas de cuenta, con «Prefiero rellenarlo
 en la app» a un toque (código `alta`, migración 0084). El alta en la app acaba
 en Inicio sin generar el menú, y Lola lo ofrece en el chat.
+
+## 7. Tu chat con Lola es tu llave (plan, 4 nov 2026, #1238)
+
+Decisión de Pablo (4 nov 2026): quien usa a Lola nunca necesita Google. En la
+pantalla de entrada, «Entrar con Telegram» va primero, y Google y Apple debajo;
+en Mi perfil, «Formas de entrar» dice con qué entra la cuenta y deja añadir las
+demás, por si un día no tiene Telegram a mano. Las cuentas de Google y Apple
+siguen igual, y conectar a Lola desde la app también.
+
+Cómo entra Telegram: con el login oficial de Telegram (`oauth.telegram.org`,
+el mismo que usa su widget), en la misma pestaña. Telegram vuelve a la app con
+`#tgAuthResult=` y los mismos campos firmados que el botón de Lola, así que la
+firma la comprueba `verificarLogin` (`api/_bot/loginTelegram.js:27`) y la sesión
+la abre `api/bot/entrar.js`, como hoy. Solo funciona en el dominio que el bot
+tiene en @BotFather. Comprobado el 4 nov:
+`curl -s "https://oauth.telegram.org/embed/homenuers_bot?origin=https%3A%2F%2Fhomenu-staging.vercel.app" | grep -o "TWidgetLogin.init([^,]*, [0-9]*"`
+→ `TWidgetLogin.init('widget_login', 8808620013`; con `origin=https%3A%2F%2Fejemplo.com`
+la página dice `invalid`.
+
+### Chunks
+
+#### 1. «Entrar con Telegram» primero en la pantalla de entrada
+Files: `src/lib/llaveLola.js`, `src/lib/llaveLola.test.js`, `src/lib/cuentaTelegram.js`, `src/lib/cuentaTelegram.test.js`, `src/components/ui.jsx`, `src/components/SignInOptions.test.jsx`, `src/App.jsx`, `api/bot/entrar.js`, `api/bot/entrar.test.js`, `api/bot/telegram.js`
+Depends on: none
+Blocked by: none
+Existing: `git grep -n "tgAuthResult\|oauth.telegram.org" -- src api` → sin salida. Un Telegram sin cuenta que llega con una firma buena recibe un 404 (`api/bot/entrar.js:48`, «Aún no tienes cuenta: escríbele a Lola»). El dominio del login vive solo en el servidor (`api/bot/telegram.js:1244`, `DOMINIO_LOGIN`).
+Not done: la app de iOS (ver «No hecho»). Un Telegram atado a una cuenta de Google sigue sin abrirla (punto 3 de la sección 6; trozo 3). Fuera del dominio del bot (local, previews, y producción mientras @BotFather apunte a staging) el botón no sale, porque allí Telegram lo rechaza. No toca @BotFather ni Supabase.
+Done:
+```sh
+npx vitest run src/lib/llaveLola.test.js src/lib/cuentaTelegram.test.js api/bot/entrar.test.js src/components/SignInOptions.test.jsx
+```
+
+#### 2. «Formas de entrar» en Mi perfil, en lugar del botón suelto
+Files: `src/lib/cuentaTelegram.js`, `src/lib/cuentaTelegram.test.js`, `src/lib/useAuth.js`, `src/screens/HomeProfileScreen.jsx`, `src/screens/HomeProfileScreen.descargar.test.jsx`, `src/App.jsx`
+Depends on: 1
+Blocked by: none
+Existing: `git grep -n "Formas de entrar\|formasDeEntrar" -- src` → sin salida. Hoy hay un botón suelto, «Entrar también con Google» (`src/screens/HomeProfileScreen.jsx:485`, `ofrecerGoogle` en `src/lib/cuentaTelegram.js:21`).
+Not done: Telegram sale en la lista solo en las cuentas nacidas en Telegram, que son las que abre (las demás, trozo 3). Apple, solo donde ya se ofrece hoy (`conApple`, `src/components/ui.jsx:913`). Los avisos al volver de añadir un proveedor no cambian (`AVISOS_AL_VOLVER`).
+Done:
+```sh
+npx vitest run src/lib/cuentaTelegram.test.js src/screens/HomeProfileScreen.descargar.test.jsx
+```
+
+#### 3. Telegram abre también la cuenta a la que se conectó desde la app
+Files: `api/bot/entrar.js`, `api/bot/entrar.test.js`, `api/_bot/cuentas.js`, `src/lib/cuentaTelegram.js`, `src/screens/HomeProfileScreen.jsx`
+Depends on: 2
+Blocked by: A
+Existing: `cuentaNacidaAqui` (`api/_bot/cuentas.js:106`) solo da cuentas de email sintético, y `api/bot/entrar.js:46` contesta 403 a un Telegram de otra cuenta.
+Not done: WhatsApp (vendrá por canal, con la misma función que da la cuenta de una identidad de chat). Cambia una regla de seguridad: revisión de seguridad antes del PR.
+Done:
+```sh
+npx vitest run api/bot/entrar.test.js src/lib/cuentaTelegram.test.js
+```
+
+### No hecho
+
+- **App de iOS.** La guía 4.8 de Apple pide, con un login de terceros, «also offer as an equivalent option another login
+  service» (https://developer.apple.com/app-store/review/guidelines/#login-services). La app nativa ya ofrece Apple
+  (`conApple = isNativeApp`, `src/components/ui.jsx:913`), así que la guía no lo impide. Lo impide algo técnico: la app
+  nativa se sirve desde `capacitor://localhost` (`src/lib/nativeAuth.js:10`), que no es el dominio del bot, y Telegram
+  rechaza el login. Hasta resolverlo, en iOS no sale «Entrar con Telegram».
+
+### Decisions taken
+
+- principio 4 | eligió: el login de Telegram vuelve con la firma y la comprueba `verificarLogin`, el de los botones de Lola | descartó: un segundo verificador para el widget | motivo: decidido
+- principio 4 | eligió: un Telegram sin cuenta que entra con firma buena recibe la cuenta que crea Lola (`cuentaYChat`, `api/_bot/altaTelegram.js:19`) | descartó: crearla con otro código, dos maneras de nacer una cuenta | motivo: decidido
+- principio 3 | eligió: fuera del dominio de @BotFather el botón no sale | descartó: enseñarlo y que Telegram conteste «Bot domain invalid» | motivo: decidido
+
+### Para Pablo
+
+A. ¿Telegram abre también una cuenta de Google a la que se conectó desde la app?
+   1. **Sí, si ese Telegram se conectó desde la app con la sesión de esa cuenta o con el código del email** (recomendada: es «tu chat es tu llave»; pide revisión de seguridad).
+   2. No: solo las cuentas nacidas en Telegram, como hoy.
+   3. Sí, pero solo tras entrar una vez con Google en ese móvil.
+
+Pasos fuera del repo (Pablo):
+- Staging: ninguno. @BotFather ya tiene `homenu-staging.vercel.app` (`/setdomain`, 7 oct 2026).
+- Producción, antes de subir a `main`: un bot tiene un solo dominio. En @BotFather, `/setdomain` → el bot → el dominio de producción; desde ese momento el botón de login de Lola y «Entrar con Telegram» dejan de ir en staging. Ese mismo dominio, en un PR, en `DOMINIO_LOGIN_TELEGRAM` (`src/lib/cuentaTelegram.js`, trozo 1), y en `BOT_LOGIN_DOMINIO` de Vercel si está puesta.
+
+### Not verified
+
+- Que `oauth.telegram.org/auth`, abierto en la misma pestaña, vuelve a `return_to` con `#tgAuthResult=`: se lee en el código del widget (`telegram-widget.js?22`, `haveTgAuthResult`), sin probar con una cuenta de Telegram real.
+- Dentro del navegador de Telegram: sin probar.
