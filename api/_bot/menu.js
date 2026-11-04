@@ -1382,9 +1382,9 @@ export function repeticionReciente(existentes = [], nuevas = [], hoy) {
  * grupo queda fuera. Los días y las personas, con el intérprete
  * (interprete.js, #958): fechas concretas, `semana` para «de la que viene»,
  * y una persona dudosa («Nat» con Natalia y Natxo) se pregunta.
- * @param {{ userId?: string|null }} [x]  quién escribe, para «yo».
+ * @param {{ userId?: string|null, papel?: string|null }} [x]  quién escribe, para «yo».
  */
-export async function apuntarAusencia(householdId, { dia, dias, semana = null, comida, comidas, quienes = null, autor = null, userId = null, deNuevo = false }) {
+export async function apuntarAusencia(householdId, { dia, dias, semana = null, comida, comidas, quienes = null, autor = null, userId = null, papel = null, deNuevo = false }) {
   const pedidas = comidas?.length ? comidas : [comida];
   const lasComidas = [...new Set(pedidas.map((x) => comidaDe(x ?? "")))];
   if (!lasComidas.length || lasComidas.some((c) => !c)) return { texto: `¿Qué comida? («${pedidas.join(", ")}»)`, pintar: null, error: "comida" };
@@ -1438,7 +1438,7 @@ export async function apuntarAusencia(householdId, { dia, dias, semana = null, c
     if (quienes?.length) {
       // Con el intérprete: «Nat» con Natalia y Natxo se pregunta (antes cogía
       // a la primera), «yo» es la persona de esta cuenta, «los peques» un grupo.
-      const r = personasDe(data, quienes, { userId, autor });
+      const r = personasDe(data, quienes, { userId, autor, papel });
       if (r.dudas.length) { quien = r.dudas.join(" "); fallo = "quien"; return null; }
       if (!r.personas.length) { quien = "En la casa aún no hay nadie apuntado."; fallo = "quien"; return null; }
       fuera = r.personas;

@@ -29,7 +29,8 @@
 import { DIAS, NOMBRES_DIA, DIAS_LABORABLES, DIAS_FINDE, indiceDeISO, diaDeISO, isoDeCasa, DIA_LARGO_MINUSCULAS } from "../../src/lib/dias.js";
 import { IDS_COMIDAS, comida } from "../../src/lib/comidas.js";
 import { EJE } from "./resultado.js";
-import { etapaDe, esMenor, esEtapaBebe, miembroDeCuentaId, findAccountMember } from "../../src/lib/stages.js";
+import { etapaDe, esMenor, esEtapaBebe, findAccountMember } from "../../src/lib/stages.js";
+import { personaDeLaCuenta } from "./trato.js";
 
 /** Sin tildes ni mayúsculas, con los espacios juntos. La única copia en api/_bot (#967, C8). */
 export const normal = (s) => String(s ?? "").normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/\s+/g, " ").trim();
@@ -388,25 +389,44 @@ export function miembrosDeGrupo(miembros, grupo) {
   return [];
 }
 
+/** ¿La cuenta ya dijo algo en la app? También vale un «no soy ninguno» (null): ese no se adivina por encima. */
+export const marcoLaCuenta = (data, userId) => Boolean(userId) && Object.prototype.hasOwnProperty.call(data?.accountMemberIdByUser ?? {}, userId);
+
+/**
+ * Pura. La persona de la casa que escribe, y si es deducida por el nombre.
+ * @param {object} data  household_state.data
+ * @param {{ userId?: string|null, autor?: string|null, papel?: string|null }} quien  autor: su nombre de Telegram
+ * @returns {{ persona: object|null, deducida: boolean }}
+ */
+export function personaQueEscribe(data, { userId = null, autor = null, papel = null } = {}) {
+  const miembros = data?.members ?? [];
+  const id = personaDeLaCuenta(data, userId, papel);
+  const marcada = id != null ? miembros.find((m) => String(m.id) === String(id)) : null;
+  if (marcada) return { persona: marcada, deducida: false };
+  if (marcoLaCuenta(data, userId) || !autor) return { persona: null, deducida: false };
+  const porNombre = findAccountMember(miembros, autor);
+  return { persona: porNombre ?? null, deducida: Boolean(porNombre) };
+}
+
 /**
  * Una persona de la casa por cómo la nombran: exacto, primer nombre exacto,
  * prefijo. Con varias candidatas en un paso, NO elige: `candidatas` («Nat»
  * con Natalia y Natxo). «Yo» es quien escribe: la persona que esa cuenta
  * marcó en la app (`accountMemberIdByUser`), o, si no marcó, la única cuyo
- * nombre coincide con su nombre de Telegram; si no, se pregunta.
+ * nombre coincide con su nombre de Telegram (personaQueEscribe, la misma regla
+ * que la línea «TE ESCRIBE» de la ficha); si no, se pregunta.
  * @param {object} data  household_state.data
  * @param {string} nombre
- * @param {{ userId?: string|null, autor?: string|null }} [quien]
+ * @param {{ userId?: string|null, autor?: string|null, papel?: string|null }} [quien]
  * @returns {{ persona: object|null, candidatas: object[], duda?: string }}
  */
-export function buscarPersona(data, nombre, { userId = null, autor = null } = {}) {
+export function buscarPersona(data, nombre, { userId = null, autor = null, papel = null } = {}) {
   const q = normal(nombre).replace(/^(a|para|de)\s+/, "");
   // Sin nombre no hay nadie: un startsWith("") casaría con el primero de la casa.
   if (!q) return { persona: null, candidatas: [] };
   const miembros = data?.members ?? [];
   if (ES_YO.test(q)) {
-    const id = miembroDeCuentaId(data, userId);
-    const p = (id && miembros.find((x) => String(x.id) === String(id))) || (autor ? findAccountMember(miembros, autor) : null);
+    const p = personaQueEscribe(data, { userId, autor, papel }).persona;
     return p ? { persona: p, candidatas: [] } : { persona: null, candidatas: [], duda: "¿Quién eres tú de la casa? Dímelo por tu nombre (o márcalo en la app, en Mi perfil)." };
   }
   const unica = (lista) => (lista.length === 1 ? { persona: lista[0], candidatas: [] } : lista.length > 1 ? { persona: null, candidatas: lista } : null);
