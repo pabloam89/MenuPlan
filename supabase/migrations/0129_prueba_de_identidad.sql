@@ -8,7 +8,7 @@
 -- la cuenta nacida en Telegram acaban en la misma fila.
 --
 --   · bot_identities.prueba_identidad (nueva, nullable): la prueba con la que se apuntó la fila, de la lista cerrada
---     PRUEBAS_IDENTIDAD de src/lib/vocabularios.js (nacida, email, ajustes, cambio). La escribe enlace.js
+--     PRUEBAS_IDENTIDAD de src/lib/vocabularios.js (nacida, codigo_email, ajustes, cambio). La escribe enlace.js
 --     (apuntarIdentidad) y la lee cuentas.js (cuentaConectadaDesdeLaApp), que solo abre sesión con ajustes o cambio.
 --   · Principio 1 roto a la vista (docs/datos/PRINCIPIOS.md): nullable. Las filas de antes no dicen con qué prueba se
 --     apuntaron y no se rellenan: null es «no se sabe», y no abre nada. Quien quiera entrar así se conecta otra vez
@@ -23,7 +23,7 @@ set lock_timeout = '5s';
 
 alter table public.bot_identities
   add column if not exists prueba_identidad text
-  check (prueba_identidad in ('nacida', 'email', 'ajustes', 'cambio'));
+  check (prueba_identidad in ('nacida', 'codigo_email', 'ajustes', 'cambio'));
 
 comment on column public.bot_identities.prueba_identidad is
-  'Con qué prueba se apuntó que este Telegram es la cuenta (#1238): nacida, email, ajustes o cambio. Null en las de antes de la 0129. Escribe api/_bot/enlace.js; lee api/_bot/cuentas.js (solo ajustes y cambio abren sesión).';
+  'Con qué prueba se apuntó que este Telegram es la cuenta (#1238): nacida, codigo_email, ajustes o cambio. Null en las de antes de la 0129. Escribe api/_bot/enlace.js; lee api/_bot/cuentas.js (solo ajustes y cambio abren sesión).';

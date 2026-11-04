@@ -173,8 +173,8 @@ describe("«Entrar con Telegram»: una cuenta por Telegram, la que ya tiene Lola
       expect(res.cuerpo).toEqual({ token_hash: "hash-ana@gmail.com", user_id: "g1" });
     });
 
-    it("atado por el código del email (email): 403, sin sesión", async () => {
-      atado({ prueba_identidad: "email" });
+    it("atado por el código del email (codigo_email): 403, sin sesión", async () => {
+      atado({ prueba_identidad: "codigo_email" });
       const res = await entra({ id: "7" });
       expect(res.code).toBe(403);
       expect(res.cuerpo.token_hash).toBeUndefined();

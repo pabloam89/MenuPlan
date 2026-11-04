@@ -32,7 +32,7 @@ vi.mock("./embudo.js", () => ({ registrar: vi.fn(), EMBUDO: {} }));
 
 const { enlazarChat, idDePersona, codigoDeGrupo, codigoNuevo, esCodigoDeGrupo, apuntarEnlace, resultadoDeEnlace, pideCambioDeCuenta, preguntaDeCambio, CAMBIO, escribePrueba } = await import("./enlace.js");
 const { update } = await import("./db.js");
-const { CAMINO_ENLACE, RESULTADO_ENLACE } = await import("../../src/lib/vocabularios.js");
+const { CAMINO_ENLACE, RESULTADO_ENLACE, PRUEBA_IDENTIDAD } = await import("../../src/lib/vocabularios.js");
 const { readFileSync, readdirSync } = await import("node:fs");
 const { join, resolve } = await import("node:path");
 
@@ -73,7 +73,7 @@ describe("C-3: un Telegram es una cuenta solo con prueba", () => {
 
   it("ni con el código del correo", async () => {
     filas.bot_identities = [{ channel: "telegram", external_id: "777", user_id: ASISTENTA }];
-    await enlazar({ kind: "private", userId: TITULAR, externalId: "777", identidad: "email" });
+    await enlazar({ kind: "private", userId: TITULAR, externalId: "777", identidad: PRUEBA_IDENTIDAD.CODIGO_EMAIL });
     expect(identidadDe("777")).toBe(ASISTENTA);
   });
 
@@ -131,19 +131,19 @@ describe("la prueba con la que se apuntó cada Telegram (prueba_identidad)", () 
     expect(pruebaDe("555")).toBe("ajustes");
   });
 
-  it("el código del email: email (no abre sesión)", async () => {
-    await privado("email");
-    expect(pruebaDe("555")).toBe("email");
+  it("el código del email: codigo_email (no abre sesión)", async () => {
+    await privado(PRUEBA_IDENTIDAD.CODIGO_EMAIL);
+    expect(pruebaDe("555")).toBe(PRUEBA_IDENTIDAD.CODIGO_EMAIL);
   });
 
   it("el código del email no le quita a la fila el «se conectó desde la app»", async () => {
     await privado("ajustes");
-    await privado("email");
+    await privado(PRUEBA_IDENTIDAD.CODIGO_EMAIL);
     expect(pruebaDe("555")).toBe("ajustes");
   });
 
   it("conectarlo desde la app sube una fila del email a ajustes", async () => {
-    await privado("email");
+    await privado(PRUEBA_IDENTIDAD.CODIGO_EMAIL);
     await privado("ajustes");
     expect(pruebaDe("555")).toBe("ajustes");
   });
@@ -164,9 +164,9 @@ describe("la prueba con la que se apuntó cada Telegram (prueba_identidad)", () 
   });
 
   it("en la misma cuenta, solo se escribe una prueba que abre sesión", () => {
-    expect(escribePrueba({ identidad: "email", estado: "igual" })).toBe(false);
+    expect(escribePrueba({ identidad: PRUEBA_IDENTIDAD.CODIGO_EMAIL, estado: "igual" })).toBe(false);
     expect(escribePrueba({ identidad: "ajustes", estado: "igual" })).toBe(true);
-    expect(escribePrueba({ identidad: "email", estado: "nueva" })).toBe(true);
+    expect(escribePrueba({ identidad: PRUEBA_IDENTIDAD.CODIGO_EMAIL, estado: "nueva" })).toBe(true);
   });
 });
 
