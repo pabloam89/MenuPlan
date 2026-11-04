@@ -19,6 +19,12 @@ export const LEYENDA_CAMINOS = CAMINOS.map((c) => `${c.id} = ${c.titulo}`).join(
 /** Los botones de elegir camino, con el texto que llega al pulsarlos. */
 export const BOTONES_CAMINO = CAMINOS.map((c) => `[[${c.titulo}]]`).join(" ");
 
+/** Los mismos, como botones de Telegram que vuelven como si los escribieran (`t:`, sacarBotones en telegram.js). */
+export const BOTONES_CAMINO_TELEGRAM = CAMINOS.map((c) => ({ texto: c.titulo, dato: `t:${c.titulo}` }));
+
+/** La pregunta de antes de cada menú: para cuándo y cómo de a fondo (la misma que enseña el manual de Lola). */
+export const PREGUNTA_DE_CAMINO = "¿Para cuándo quieres el menú, y cuánto lo afinamos?";
+
 const tituloDeTema = (id) => TEMAS.find((t) => t.id === id).titulo;
 
 /** El camino cuyo botón es este mensaje («A tu gusto»), o null. */
