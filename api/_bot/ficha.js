@@ -41,6 +41,7 @@ import { vetosConAmbito, textoDeVeto, vetosDePersona } from "../../src/lib/vetos
 import { DIAS, DIA_LARGO_MINUSCULAS, DIA_LETRA, diaDeISO, isoDeCasa } from "../../src/lib/dias.js";
 import { select, eq } from "./db.js";
 import { propiasDe } from "./propias.js";
+import { apuntaSuPlato } from "../../src/lib/apuntaSuPlato.js";
 import { alergiasPorSilencio } from "../../src/lib/alergiasBase.js";
 import { leerPresupuesto } from "../../src/lib/presupuestoCasa.js";
 import { botonRehacer } from "./semanaPedida.js";
@@ -175,14 +176,19 @@ function personaCorta(m) {
 }
 
 /** De un id de plan al nombre del plato (lo hidratado del menú lleva el nombre). */
-function nombrador(casa) {
+function nombrador(casa, platoDe) {
   const porId = new Map();
   for (const r of [...(casa?.state?.aiRecipes ?? []), ...propiasDe(casa)]) {
     if (!r?.id || !r?.name) continue;
     porId.set(r.id, r.name);
     porId.set(String(r.id).split("__").pop(), r.name);
   }
-  return (id) => (id ? porId.get(id) ?? porId.get(String(id).split("__").pop()) ?? null : null);
+  const copia = (id) => (id ? porId.get(id) ?? porId.get(String(id).split("__").pop()) ?? null : null);
+  // El hueco que apunta su plato manda sobre una copia con el mismo id (#1246).
+  return (hueco, curso, lunes) => {
+    const id = curso === "primero" ? hueco.firstRecipeId : hueco.recipeId;
+    return apuntaSuPlato(hueco, curso) && id ? platoDe?.(hueco, curso, lunes)?.name ?? copia(id) : copia(id);
+  };
 }
 
 // ── SEGURIDAD ───────────────────────────────────────────────────────────────
@@ -392,7 +398,7 @@ function platosDelDia(casa, dia, nombre) {
   for (const franja of comidasDeLaCasa(casa.state?.data ?? {})) {
     const porGrupo = grupos.map((g) => {
       const h = plan[g.id]?.[`${dia}-${franja}`];
-      const platos = h ? [nombre(h.firstRecipeId), nombre(h.recipeId)].filter(Boolean) : [];
+      const platos = h ? [nombre(h, "primero", casa.semana?.weekStart), nombre(h, "principal", casa.semana?.weekStart)].filter(Boolean) : [];
       return { g, platos: platos.join(" + ") };
     }).filter((x) => x.platos);
     if (!porGrupo.length) continue;
@@ -424,7 +430,7 @@ function delDiaBloque(casa, extras, hoy) {
   if (!vivas.length) {
     lineas.push(semanas.length ? `MENÚ: el último (${ddmm(semanas.at(-1).weekStart)}–${ddmm(semanas.at(-1).weekEnd)}) ya pasó; no hay menú para esta semana.` : "MENÚ: todavía no hay ninguno.");
   } else {
-    const nombre = nombrador(casa);
+    const nombre = nombrador(casa, extras.platoDe);
     lineas.push(`MENÚ ${vivas.map((w) => `${ddmm(w.weekStart)}–${ddmm(w.weekEnd)}`).join(" y ")}${vivas.length === 1 ? " (no hay semana siguiente)" : ""}`);
     const manana = sumarDias(hoy, 1);
     const enHoy = casa.semana && casa.semana.weekStart <= hoy && hoy <= casa.semana.weekEnd ? platosDelDia(casa, diaDeFecha(hoy), nombre) : "";
