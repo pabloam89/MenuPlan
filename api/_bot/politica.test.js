@@ -8,7 +8,6 @@ const DATOS = {
   compra_anadir: { productos: ["leche"] },
   compra_marcar: { productos: ["leche"] },
   cambiar: { dia: "jueves", comida: "Cena", receta: "tortilla" },
-  generar: { semana: "esta" },
   deshacer: {},
 };
 const d = (modo, confianza) => ({ modo, confianza, datos: DATOS[modo] ?? {} });
@@ -32,10 +31,11 @@ describe("la política del enrutador, por modo", () => {
     expect(vaPorLaRapida(d("cambiar", 0.95), PRIVADO)).toBe(true);
   });
 
-  it("generar con platos pedidos va a Lola, por segura que esté", () => {
-    expect(vaPorLaRapida({ modo: "generar", confianza: 0.99, datos: { semana: "siguiente", fijos: "salmon" } }, PRIVADO)).toBe(false);
-    expect(vaPorLaRapida({ modo: "generar", confianza: 0.99, datos: { semana: "siguiente", fijos: ["salmon"] } }, PRIVADO)).toBe(false);
-    expect(vaPorLaRapida({ modo: "generar", confianza: 0.99, datos: { semana: "siguiente", fijos: [] } }, PRIVADO)).toBe(true);
+  // #1210 (4 nov 2026): un menú se genera siempre con Lola, que pregunta antes para cuándo y cómo de a fondo.
+  it("generar va siempre a Lola, por segura que esté y por simple que sea", () => {
+    expect(vaPorLaRapida({ modo: "generar", confianza: 0.99, datos: { semana: "siguiente" } }, PRIVADO)).toBe(false);
+    expect(vaPorLaRapida({ modo: "generar", confianza: 0.99, datos: { semana: "esta" } }, PRIVADO)).toBe(false);
+    expect(permitidoEn("generar", { papel: "owner" })).toBe(false);
   });
 
   it("en un chat de grupo, una persona: leer y la compra, sí; cambiar, generar y deshacer, a Lola", () => {

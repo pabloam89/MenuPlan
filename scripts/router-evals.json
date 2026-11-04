@@ -551,7 +551,8 @@
     {
       "texto": "hazme el menú de la semana que viene",
       "modo": "generar",
-      "rapida": true,
+      "rapida": false,
+      "_nota": "#1210: generar va siempre a Lola, que pregunta para cuándo y cómo de a fondo",
       "datos": {
         "semana": "siguiente"
       }
@@ -559,7 +560,7 @@
     {
       "texto": "genera un menú nuevo para esta semana",
       "modo": "generar",
-      "rapida": true,
+      "rapida": false,
       "datos": {
         "semana": "esta"
       }
@@ -568,10 +569,9 @@
       "texto": "Vale hazme el menú para la semana que viene. Un día quiero salmón al horno con ensalada de mango, otro pollo al horno con patatas y el resto lo que sea",
       "modo": "generar",
       "rapida": false,
-      "_nota": "Con la tabla POLITICA, generar pide 0,9: con platos pedidos lo lleva Lola (y la semana sale pintada debajo)",
+      "_nota": "#1210: generar va siempre a Lola (los platos pedidos se los queda ella)",
       "datos": {
-        "semana": "siguiente",
-        "fijos": "salmon"
+        "semana": "siguiente"
       }
     },
     {
