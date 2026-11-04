@@ -35,6 +35,7 @@ import { RASTRO } from "../../src/lib/rastro.js";
 import { pintarMenuEntero } from "../_bot/pintar.js";
 import { transcribir } from "../_bot/voz.js";
 import { adjuntoDe, porQueNoAdjunto, adjuntoDelAlta } from "../_bot/adjuntos.js";
+import { MARCAS_DEL_TURNO } from "../_bot/manual.js";
 import { enTurno, aSolas, drenar, juntar } from "../_bot/turnos.js";
 import { conPlazo } from "../_bot/plazo.js";
 import { migrarChat, alSalirDelChat, esGrupoDe, deLaCharla, casaDelTurno, casaDelUltimoMensaje, avisoDeCambio } from "../_bot/chats.js";
@@ -994,8 +995,8 @@ async function conversar({ chatId, householdId, texto, from, desde = null, esGru
     // y los confirma (conocimiento.md, «Fotos y voz»). En el alta va dentro,
     // para que el mensaje siga empezando por «[alta]».
     const paraLola = !oido ? texto
-      : texto.startsWith("[alta]") ? texto.replace("Mi primer mensaje:", "Mi primer mensaje (nota de voz):")
-        : `[nota de voz] ${texto}`;
+      : texto.startsWith(MARCAS_DEL_TURNO.ALTA) ? texto.replace("Mi primer mensaje:", `Mi primer mensaje ${MARCAS_DEL_TURNO.VOZ_EN_EL_ALTA}:`)
+        : `${MARCAS_DEL_TURNO.VOZ} ${texto}`;
     r = await responder({ chatId, householdId, texto: paraLola, autor: esGrupo ? nombreDe(from) : null, nombre: esGrupo ? null : nombreDe(from), esGrupo, desde: desde ?? (from ? [idDePersona(from)].filter(Boolean) : []), adjunto, alEscribir, puerta, signal, pista, usoExtra }).finally(() => { contestado = true; clearTimeout(reloj); });
     if (puerta && !(await puerta)) { if (medir) { medir.cancelada = true; medir.lola = r?.medida ?? null; } return; } // el turno fue de la vía rápida
   } catch (err) {
@@ -1780,8 +1781,8 @@ async function crearCuenta(from, chatId, primero = {}) {
   return conversarMedido(SIN_ENRUTADOR.ALTA, {
     chatId, householdId: cuenta.householdId, from, esGrupo: false, oido, adjunto, base: primero.base ?? null,
     texto: texto
-      ? `[alta] Casa recién creada desde Telegram. Mi primer mensaje: ${texto}`
-      : "[alta] Casa recién creada desde Telegram. Ayúdame a montarla.",
+      ? `${MARCAS_DEL_TURNO.ALTA} Casa recién creada desde Telegram. Mi primer mensaje: ${texto}`
+      : `${MARCAS_DEL_TURNO.ALTA} Casa recién creada desde Telegram. Ayúdame a montarla.`,
   }, { desdeMs });
 }
 
