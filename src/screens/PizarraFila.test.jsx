@@ -92,6 +92,16 @@ describe("el orden de la fila", () => {
     const caja = montar({ quienCome: <span data-testid="caras" /> });
     const fila = caja.querySelector('[data-testid="caras"]').parentElement;
     expect(fila.firstElementChild.dataset.testid).toBe("caras");
-    expect(fila.lastElementChild.getAttribute("aria-label")).toBe("Ver los ajustes");
+    const mandos = fila.querySelector("[data-franja-mandos]");
+    expect(mandos.lastElementChild.getAttribute("aria-label")).toBe("Ver los ajustes");
+  });
+
+  it("el tinte de la franja empieza en los mandos: las caras van sin fondo (Pablo, 4 nov 2026)", () => {
+    const caja = montar({ quienCome: <span data-testid="caras" /> });
+    const caras = caja.querySelector('[data-testid="caras"]');
+    const mandos = caja.querySelector("[data-franja-mandos]");
+    expect(mandos.style.background).toContain("--pz-fondo-suave");
+    expect(mandos.contains(caras)).toBe(false);
+    for (let el = caras; el && el !== caja; el = el.parentElement) expect(el.style.background, el.tagName).toBe("");
   });
 });

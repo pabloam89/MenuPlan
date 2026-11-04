@@ -8,6 +8,10 @@ const NATIVE_API_BASE = import.meta.env.VITE_API_BASE || "https://homenu.vercel.
 
 export const isNativeApp = Capacitor.isNativePlatform();
 
+// ¿Se ofrece «Continuar con Apple» aquí? En la app nativa (Guideline 4.8) y en la web con VITE_APPLE_WEB (#890).
+// Lo leen SignInOptions (src/components/ui.jsx) y «Formas de entrar» de Mi perfil.
+export const seOfreceApple = () => isNativeApp || import.meta.env.VITE_APPLE_WEB === "on";
+
 export function apiUrl(path) {
   return isNativeApp ? `${NATIVE_API_BASE}${path}` : path;
 }
