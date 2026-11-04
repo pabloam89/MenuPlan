@@ -23,7 +23,7 @@ vi.mock("./db.js", () => ({
 vi.mock("./telegram.js", () => ({ enviar: vi.fn(), escaparHtml: (s) => s, TECLADO: {} }));
 vi.mock("./embudo.js", () => ({ registrar: vi.fn(), EMBUDO: {} }));
 
-const { enlazarChat, idDePersona, codigoDeGrupo, codigoNuevo, esCodigoDeGrupo, apuntarEnlace, resultadoDeEnlace } = await import("./enlace.js");
+const { enlazarChat, idDePersona, codigoDeGrupo, codigoNuevo, esCodigoDeGrupo, apuntarEnlace, resultadoDeEnlace, pideCambioDeCuenta, preguntaDeCambio, CAMBIO } = await import("./enlace.js");
 const { CAMINO_ENLACE, RESULTADO_ENLACE } = await import("../../src/lib/vocabularios.js");
 const { readFileSync, readdirSync } = await import("node:fs");
 const { join, resolve } = await import("node:path");
@@ -109,6 +109,53 @@ describe("códigos de /grupo", () => {
       }
     }
     expect(malos).toEqual([]);
+  });
+});
+
+// Cambiar de cuenta, confirmado en el privado (#1238, recorrido 4): el Telegram 777 era de ANTES, que enlazó su
+// privado a su casa; la persona entra con la cuenta de la app (APP) y confirma.
+describe("cambiar de cuenta con confirmación (#1238)", () => {
+  const ANTES = "u-antes";
+  const APP = "u-app";
+  const conAntes = (linkedBy = ANTES) => {
+    filas.bot_identities = [{ channel: "telegram", external_id: "777", user_id: ANTES }];
+    filas.bot_chats = [{ chat_id: "777", household_id: "h-antes", linked_by: linkedBy }];
+  };
+
+  it("con la prueba del cambio, el Telegram pasa a la cuenta de la app y el chat a su casa", async () => {
+    conAntes();
+    const r = await enlazarChat({ chatId: "777", kind: "private", householdId: "h-app", userId: APP, externalId: "777", identidad: CAMBIO });
+    expect(r).toEqual({ ok: true, identidad: "nueva" });
+    expect(identidadDe("777")).toBe(APP);
+    expect(filas.bot_chats[0]).toMatchObject({ household_id: "h-app", linked_by: APP });
+  });
+
+  it("sin confirmar (el enlace a secas), el chat sigue ocupado", async () => {
+    conAntes();
+    const r = await enlazarChat({ chatId: "777", kind: "private", householdId: "h-app", userId: APP, externalId: "777", identidad: "ajustes" });
+    expect(r).toEqual({ ok: false, ocupado: true });
+    expect(identidadDe("777")).toBe(ANTES);
+  });
+
+  it("el cambio no mueve un chat que enlazó una tercera cuenta", async () => {
+    conAntes("u-otra");
+    const r = await enlazarChat({ chatId: "777", kind: "private", householdId: "h-app", userId: APP, externalId: "777", identidad: CAMBIO });
+    expect(r).toEqual({ ok: false, ocupado: true });
+    expect(identidadDe("777")).toBe(ANTES);
+  });
+
+  it("se pregunta solo en privado y si el Telegram es de otra cuenta", () => {
+    expect(pideCambioDeCuenta({ esGrupo: false, deAntes: ANTES, userId: APP })).toBe(true);
+    expect(pideCambioDeCuenta({ esGrupo: false, deAntes: APP, userId: APP })).toBe(false);
+    expect(pideCambioDeCuenta({ esGrupo: false, deAntes: null, userId: APP })).toBe(false);
+    expect(pideCambioDeCuenta({ esGrupo: true, deAntes: ANTES, userId: APP })).toBe(false);
+  });
+
+  it("la pregunta nombra las dos casas y dice que lo de la otra cuenta no se pasa", () => {
+    const p = preguntaDeCambio({ casaAntes: "Casa Telegram", casaApp: "Casa App" });
+    expect(p).toMatch(/la de <b>Casa Telegram<.b>/);
+    expect(p).toMatch(/(<b>Casa App<.b>)/);
+    expect(p).toMatch(/no se pasa/);
   });
 });
 

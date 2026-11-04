@@ -403,7 +403,7 @@ export const SITIOS_FALLO = [
   // api/bot/entrar.js
   "bot_entrar",
   // el resto de api/_bot/
-  "borrar_tanda", "casa_deshacer", "casa_del_turno", "compartir_llave", "cuentas_hogar", "cuentas_json", "cuentas_nacida_aqui",
+  "borrar_tanda", "cambio_de_cuenta", "casa_deshacer", "casa_del_turno", "compartir_llave", "cuentas_hogar", "cuentas_json", "cuentas_nacida_aqui",
   "caducidades_personas_ilegibles",
   // api/_bot/borrarPersona.js
   "borrar_persona_fotos",
