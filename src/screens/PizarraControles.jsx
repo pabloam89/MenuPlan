@@ -1930,8 +1930,17 @@ export function PizarraControles({
           la otra crece. Se anima el reparto (`flex-grow`) y NO se desmonta
           ninguna: montarlas al vuelo daría el salto a mitad de animación. */}
       <div style={{ display: "flex", alignItems: "stretch", width: "100%", minWidth: 0 }}>
-        {/* Quién come, a la izquierda (ver `QuienCome` en Menu.jsx). */}
+        {/* Quién come, a la izquierda (ver `QuienCome` en Menu.jsx), sin el tinte:
+            el tinte empieza en los mandos, que son lo que se toca del tablero. */}
         {quienCome}
+
+        <div
+          data-franja-mandos=""
+          style={{
+            flex: 1, minWidth: 0, display: "flex", alignItems: "center",
+            background: "var(--pz-fondo-suave, #f1f5f9)",
+          }}
+        >
 
         {/* Una ventana, y dentro un carril con las DOS caras puestas.
             Antes se cambiaba desmontando una y montando la otra: la que se iba
@@ -2122,6 +2131,7 @@ export function PizarraControles({
             <ChevronRight size={15} strokeWidth={2.8} />
           </span>
         </button>
+        </div>
       </div>
 
       {/* Vaciar sí pregunta: se lleva por delante todo lo que has puesto y no
