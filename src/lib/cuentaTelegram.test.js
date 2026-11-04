@@ -6,8 +6,9 @@ import { emailSintetico as delBot } from "../../api/_bot/cuentas.js";
 describe("cuenta nacida en Telegram", () => {
   const deTelegram = { email: emailSintetico(555), identities: [{ provider: "email" }] };
 
-  it("el email sintético es el mismo que pone Lola al crearla", () => {
-    expect(emailSintetico(555)).toBe(delBot(555));
+  it("el email sintético no cambia: las cuentas que ya hay se reconocen por él, y Lola lo usa de aquí", () => {
+    expect(emailSintetico(555)).toBe("tg555@usuarios.menuplanai.com");
+    expect(delBot).toBe(emailSintetico);
   });
 
   it("se reconoce por su email; una de Google, no", () => {
