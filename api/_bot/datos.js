@@ -13,6 +13,8 @@
  */
 import { rpc } from "./db.js";
 import { motivoDe } from "./avisar.js";
+import { quitarDeLasFotos } from "./borrarPersona.js";
+import { borradasDe } from "../../src/lib/borrarPersona.js";
 import { operar, operarPersonas, operarPreferencias, deshacer, RPC_LEER_PREFERENCIAS } from "../../src/lib/operaciones/tuberia.js";
 import { membersDeFilas, FamiliaSinLeer, RPC_FAMILIA } from "../../src/lib/personas.js";
 import { FALLO_DATO, MOTIVO_FALLO, CANAL_DATO } from "../../src/lib/vocabularios.js";
@@ -49,10 +51,16 @@ export const escribirDato = (pedido, { papel }) => operar(pedido, { papel, rpc, 
 /**
  * Un cambio de la familia (personas, su salud y grupos; escribir_persona, 0108) por la tubería y su puerta
  * (lo que devuelve, en `operarPersonas`). Lo usan api/operacion.js (la app) y, con el corte del trozo 10, Lola.
+ * Si se guardó y borraba a alguien, la quita de las fotos para deshacer ya inservibles (borrarPersona.js, trozo 36).
  * @param {Parameters<typeof operarPersonas>[0]} pedido
  * @param {{ papel: string|null }} quien  el papel en la casa del autor, o null si no es de ella
  */
-export const escribirPersonas = (pedido, { papel }) => operarPersonas(pedido, { papel, rpc, falloDeError });
+export async function escribirPersonas(pedido, { papel }) {
+  const r = await operarPersonas(pedido, { papel, rpc, falloDeError });
+  const borradas = r?.guardado ? borradasDe(pedido) : [];
+  if (borradas.length) await quitarDeLasFotos(pedido.casa, borradas, Number(r.rev));
+  return r;
+}
 
 /**
  * Un cambio de preferencias (la libreta; escribir_preferencias, 0109) por la tubería y su puerta (lo que devuelve,
