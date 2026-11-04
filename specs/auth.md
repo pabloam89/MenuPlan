@@ -135,14 +135,14 @@ npx vitest run src/lib/llaveLola.test.js src/lib/cuentaTelegram.test.js api/bot/
 ```
 
 #### 2. «Formas de entrar» en Mi perfil, en lugar del botón suelto
-Files: `src/lib/cuentaTelegram.js`, `src/lib/cuentaTelegram.test.js`, `src/lib/useAuth.js`, `src/screens/HomeProfileScreen.jsx`, `src/screens/HomeProfileScreen.descargar.test.jsx`, `src/App.jsx`
+Files: `src/lib/cuentaTelegram.js`, `src/lib/cuentaTelegram.test.js`, `src/lib/useAuth.js`, `src/lib/useAuth.google.test.jsx`, `src/lib/apiUrl.js`, `src/components/ui.jsx`, `src/screens/HomeProfileScreen.jsx`, `src/screens/HomeProfileScreen.descargar.test.jsx`, `src/App.jsx`
 Depends on: 1
 Blocked by: none
 Existing: `git grep -n "Formas de entrar\|formasDeEntrar" -- src` → sin salida. Hoy hay un botón suelto, «Entrar también con Google» (`src/screens/HomeProfileScreen.jsx:485`, `ofrecerGoogle` en `src/lib/cuentaTelegram.js:21`).
 Not done: Telegram sale en la lista solo en las cuentas nacidas en Telegram, que son las que abre (las demás, trozo 3). Apple, solo donde ya se ofrece hoy (`conApple`, `src/components/ui.jsx:913`). Los avisos al volver de añadir un proveedor no cambian (`AVISOS_AL_VOLVER`).
 Done:
 ```sh
-npx vitest run src/lib/cuentaTelegram.test.js src/screens/HomeProfileScreen.descargar.test.jsx
+npx vitest run src/lib/cuentaTelegram.test.js src/screens/HomeProfileScreen.descargar.test.jsx src/lib/useAuth.google.test.jsx
 ```
 
 #### 3. Telegram abre también la cuenta a la que se conectó desde la app
