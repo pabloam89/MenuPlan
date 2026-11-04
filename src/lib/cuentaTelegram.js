@@ -5,6 +5,34 @@
  * cuenta, con otra forma de entrar. Puro: sin red.
  */
 
+/**
+ * El dominio que el bot tiene en @BotFather (/setdomain, 7 oct 2026). El login de Telegram (el botón de Lola y
+ * «Entrar con Telegram») solo funciona en él: en otro, Telegram contesta «Bot domain invalid». Lo leen la app y el
+ * servidor (api/bot/telegram.js). Un bot tiene uno solo: al pasar a producción, cambia aquí y en @BotFather a la vez.
+ */
+export const DOMINIO_LOGIN_TELEGRAM = "homenu-staging.vercel.app";
+
+/** El id del bot de Lola (@homenuers_bot). Es público: el número de su usuario, que enseña el propio widget de Telegram. */
+export const BOT_ID = 8808620013;
+
+/**
+ * Adónde lleva «Entrar con Telegram» (specs/auth.md §7): al login oficial de Telegram, en la misma pestaña. Telegram
+ * vuelve a `return_to` con `#tgAuthResult=` y los campos firmados (los lee src/lib/llaveLola.js). `request_access`
+ * deja a Lola escribirle. Fuera del dominio del bot, null: allí Telegram lo rechaza y el botón no sale.
+ * @param {{ host: string, origin: string, pathname: string, search: string }} loc  window.location
+ */
+export function urlEntrarConTelegram(loc) {
+  if (loc?.host !== DOMINIO_LOGIN_TELEGRAM) return null;
+  const p = new URLSearchParams({
+    bot_id: String(BOT_ID),
+    origin: loc.origin,
+    request_access: "write",
+    lang: "es",
+    return_to: `${loc.origin}${loc.pathname}${loc.search}`,
+  });
+  return `https://oauth.telegram.org/auth?${p}`;
+}
+
 /** El dominio de los emails sintéticos de las cuentas nacidas en Telegram. */
 export const DOMINIO_SINTETICO = "usuarios.menuplanai.com";
 

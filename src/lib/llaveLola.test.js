@@ -28,4 +28,23 @@ describe("la llave con la que se llega desde Lola", () => {
     expect(sacarLlaveDeLola()).toBeNull();
     expect(window.location.search).toBe("?ir=semana&id=7");
   });
+
+  // «Entrar con Telegram» (specs/auth.md §7): el login oficial vuelve con los mismos campos firmados, en el hash.
+  const vuelta = (datos) => Buffer.from(JSON.stringify(datos)).toString("base64url");
+
+  it("vuelta del login oficial de Telegram: la misma firma que el botón de Lola, y se quita del hash", () => {
+    ir(`?ir=semana#tgAuthResult=${vuelta({ id: 7, first_name: "Ana", auth_date: 1, hash: "ff" })}`);
+    expect(traeLlaveDeLola()).toBe(true);
+    expect(sacarLlaveDeLola()).toEqual({ telegram: { id: "7", first_name: "Ana", auth_date: "1", hash: "ff" } });
+    expect(window.location.search).toBe("?ir=semana");
+    expect(window.location.hash).toBe("");
+  });
+
+  it("una vuelta ilegible no se calla: llega vacía y el servidor la rechaza", () => {
+    // «no-json» en base64url: se lee como llave, pero sin campos.
+    ir("#tgAuthResult=bm8tanNvbg");
+    expect(traeLlaveDeLola()).toBe(true);
+    expect(sacarLlaveDeLola()).toEqual({ telegram: {} });
+    expect(window.location.hash).toBe("");
+  });
 });
