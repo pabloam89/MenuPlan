@@ -37,7 +37,7 @@ import { transcribir } from "../_bot/voz.js";
 import { adjuntoDe, porQueNoAdjunto, adjuntoDelAlta } from "../_bot/adjuntos.js";
 import { enTurno, aSolas, drenar, juntar } from "../_bot/turnos.js";
 import { conPlazo } from "../_bot/plazo.js";
-import { migrarChat, alSalirDelChat, esGrupoDe, deLaCharla } from "../_bot/chats.js";
+import { migrarChat, alSalirDelChat, esGrupoDe, deLaCharla, casaDelTurno, casaDelUltimoMensaje, avisoDeCambio } from "../_bot/chats.js";
 import { pedidoCompartido } from "../_bot/comoDato.js";
 import { clasificar, vaPorLaRapida, permitidoEn } from "../_bot/router.js";
 import { prediceRapida, ESPERA_MAX_MS } from "../_bot/prediceRapida.js";
@@ -162,12 +162,25 @@ export const relevo = (chatId, host) => async () => {
   if (r && !r.ok) console.warn("[relevo] no lo ha cogido:", r.status);
 };
 
+/**
+ * Si la casa de este turno no es la del último mensaje del chat (la persona cambió de casa en la app), Lola lo dice
+ * antes de contestar (#1238). Si no se puede leer, no se dice: es un aviso, y el turno sigue en la casa correcta.
+ */
+async function avisarSiCambio(chatId, householdId) {
+  const anterior = await casaDelUltimoMensaje(chatId).catch(fallaCon("casa_del_turno", null));
+  if (!anterior || anterior === householdId) return;
+  const [hogar] = await select("households", `id=${eq(householdId)}`, "name").catch(fallaCon("casa_del_turno", []));
+  const aviso = avisoDeCambio({ anterior, actual: householdId, nombre: hogar?.name ?? null });
+  if (aviso) await enviar(chatId, aviso);
+}
+
 /** El relevo, al llegar: atiende lo que quedó en la cola del chat. */
 async function relevar(chatId, base, host) {
   const [chat] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id,kind");
   if (!chat?.household_id) return;
   const esGrupo = chat.kind === "group";
-  return drenar(chatId, atenderCola({ chatId, householdId: chat.household_id, esGrupo, base }), { espera: 0, alSobrar: relevo(chatId, host) });
+  const householdId = esGrupo ? chat.household_id : await casaDelTurno(chatId);
+  return drenar(chatId, atenderCola({ chatId, householdId, esGrupo, base }), { espera: 0, alSobrar: relevo(chatId, host) });
 }
 
 // Cómo se la nombra al empezar una frase: para saber si le hablan a ella
@@ -253,16 +266,17 @@ async function atender(msg, base, host = "") {
       const r = await enlazarDesdeAjustes(msg, chatId, false, conPedido.codigo, { callado: true });
       if (r?.ocupado) return;
     }
-    const [enlazado] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id");
-    if (!enlazado) return bienvenida(chatId, msg.from, base);
+    const casa = await casaDelTurno(chatId);
+    if (!casa) return bienvenida(chatId, msg.from, base);
+    await avisarSiCambio(chatId, casa);
     return enTurno(chatId, itemDe(msg.from, frase ?? COMANDOS.start, { mid: msg.message_id }),
-      atenderCola({ chatId, householdId: enlazado.household_id, esGrupo: false, base }), { alSobrar: relevo(chatId, host) });
+      atenderCola({ chatId, householdId: casa, esGrupo: false, base }), { alSobrar: relevo(chatId, host) });
   }
   // `grupo`: el botón de un grupo sin casa abre el privado con esto. Con casa,
   // el enlace para meter a Lola en el grupo; sin ella, primero el alta.
   if (start?.[1] === "grupo" && !esGrupo) {
-    const [suyo] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id");
-    return suyo ? enlaceGrupo(chatId, false, suyo.household_id, msg.from) : bienvenida(chatId, msg.from, base);
+    const casa = await casaDelTurno(chatId);
+    return casa ? enlaceGrupo(chatId, false, casa, msg.from) : bienvenida(chatId, msg.from, base);
   }
   if (start?.[1]) return enlazarDesdeAjustes(msg, chatId, esGrupo, start[1]);
 
@@ -288,7 +302,10 @@ async function atender(msg, base, host = "") {
     });
   }
 
-  let [chat] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id");
+  // La casa de este mensaje: en privado, la que tiene abierta en la app (casaDelTurno, #1238); en un grupo, la suya.
+  const casaTurno = await casaDelTurno(chatId);
+  let chat = casaTurno ? { household_id: casaTurno } : null;
+  if (chat && !esGrupo) await avisarSiCambio(chatId, chat.household_id);
 
   // Un Telegram que ya es una cuenta (bot_identities) no vuelve a pasar por el
   // alta: se reengancha a su casa. Si no, «somos cuatro» le crearía otra cuenta
@@ -1233,7 +1250,8 @@ async function botonApp(base, ir, from, chatId) {
  * alta (atender, «lo primero que escriben»).
  */
 async function recibirCompartido(chatId, param, from) {
-  const [chat] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id");
+  const casaTurno = await casaDelTurno(chatId);
+  const chat = casaTurno ? { household_id: casaTurno } : null;
   // Sin saber quién lo abre no se puede comprobar el bloqueo: no se enseña, y
   // tampoco se dice que el enlace no vale (#208).
   const usuarios = await cuentasDeQuien({ fromId: idDePersona(from), householdId: chat?.household_id }).catch(fallaCon("invitacion_cuentas", SIN_LEER));
@@ -1526,7 +1544,8 @@ async function pulsado(cq, base, host = "") {
     reply_markup: { inline_keyboard: [] },
   }).catch(seguirCon("boton_quitar")); // a propósito: si no se quitan, el botón viejo se puede pulsar otra vez y no rompe nada
   if (conecta) return conectarGrupo(cq, chatId);
-  const [chat] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id");
+  const casaTurno = await casaDelTurno(chatId);
+  const chat = casaTurno ? { household_id: casaTurno } : null;
 
   // Un botón que puso el agente: cuenta como si se hubiera escrito (también en grupo).
   if (cq.data?.startsWith("t:") || re) {
@@ -1535,6 +1554,7 @@ async function pulsado(cq, base, host = "") {
     // La intención de un botón: el mensaje que lo llevaba; la de un
     // reintento, la del mensaje original.
     const mid = re ? re.mid : `b${cq.message.message_id}`;
+    if (!esGrupo) await avisarSiCambio(chatId, chat.household_id);
     return enTurno(chatId, itemDe(cq.from, re ? re.texto : cq.data.slice(2), { responderA: esGrupo ? cq.message.message_id : undefined, inmediato: true, mid, reintento: Boolean(re) }),
       atenderCola({ chatId, householdId: chat.household_id, esGrupo, base }), { alSobrar: relevo(chatId, host) });
   }
