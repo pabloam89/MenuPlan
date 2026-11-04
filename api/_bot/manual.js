@@ -16,7 +16,18 @@ export const MARCAS_MANUAL = Object.freeze({
   SOLO_EN_LA_APP: "lo que la app hace y tú no (las capacidades sin nada en Lola y con la app encendida)",
   QUE_SE_DESHACE: "lo que «deshaz» no vuelve atrás (las capacidades cuyas herramientas no se deshacen)",
   CAMINOS: "los tres caminos de antes de cada menú, con su botón, qué pasa y un ejemplo (src/lib/caminos.js)",
+  USAN_UN_HUECO: "las herramientas que trabajan sobre un hueco del menú, tras las que un ver_menu no se pinta (USAN_UN_HUECO)",
 });
+
+// Las que trabajan sobre UN hueco del menú (un día y una comida): un ver_menu antes de ellas era para
+// encontrarlo, y no se pinta (callarConsultas, agente.js). Vive aquí porque el manual la nombra.
+export const USAN_UN_HUECO = Object.freeze(new Set(["proponer_platos", "cambiar_plato", "por_que_plato"]));
+
+/** «a, b o c»: unos nombres dichos como los diría Lola. */
+export const oNombres = (nombres) => {
+  const xs = [...nombres];
+  return xs.length < 2 ? xs.join("") : `${xs.slice(0, -1).join(", ")} o ${xs.at(-1)}`;
+};
 
 /** Un camino como lo enseña Lola: el botón, qué pasa, cuánto se tarda y un ejemplo de respuesta. */
 const lineaDeCamino = (c) => `[[${c.titulo}]]: ${c.resumen.replace(/.$/, "")} (${c.minutos} min). Ej.: «${c.ejemplo}».`;
@@ -41,6 +52,7 @@ export function rellenos({ capacidades, fichas }) {
     SOLO_EN_LA_APP: lista(capacidades.filter((c) => c.lola.length === 0 && enApp(c))),
     QUE_SE_DESHACE: lista(sinDeshacer),
     CAMINOS: CAMINOS.map(lineaDeCamino).join("\n"),
+    USAN_UN_HUECO: oNombres(USAN_UN_HUECO),
   };
 }
 

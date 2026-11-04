@@ -96,7 +96,7 @@ const MAPA = [
   c("alergia_otra", "apuntar una alergia que no está en la lista", "casa", "anadir", "persona", { app: app("familia", { escribe: ["customAllergies"] }), salud: true }),
   c("salud", "marcar intolerancias, problemas de salud o un estado temporal", "casa", "cambiar", "persona", { app: app("familia", { escribe: ["members.intolerances", "members.healthProfiles", "members.dietaryStates"] }), salud: true }),
   c("menu_dieta_blanda", "aceptar un menú aparte para quien está a dieta blanda", "casa", "cambiar", "grupo", { app: app("familia", { escribe: ["groups"] }), salud: true }),
-  c("quien_soy", "decir cuál de la familia eres tú", "casa", "cambiar", "persona", { app: app("perfil", { escribe: ["accountMemberIdByUser"] }), aProposito: "Lola ya sabe quién escribe por su cuenta de Telegram" }),
+  c("quien_soy", "decir cuál de la familia eres tú", "casa", "cambiar", "persona", { app: app("perfil", { escribe: ["accountMemberIdByUser"] }), aProposito: "se marca en la app; Lola lo deduce por el nombre de Telegram si coincide con una sola persona y lo guarda (api/_bot/quienEscribe.js), y si no, lo pregunta" }),
   c("foto_perfil", "cambiar la foto de perfil", "casa", "cambiar", "casa", { app: app("perfil", { escribe: ["profilePhoto"] }), aProposito: "es de pintar la app" }),
   c("entrar", "entrar con Google o Apple, o sin cuenta", "casa", "conectar", "casa", { app: app("entrada"), aProposito: "Lola entra por su chat" }),
   c("conectar_lola", "conectar la casa con el chat de Lola", "casa", "conectar", "casa", { app: app("inicio"), aProposito: "se hace desde la app hacia Lola" }),

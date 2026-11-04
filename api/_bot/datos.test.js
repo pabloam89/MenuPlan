@@ -511,14 +511,14 @@ describe("api/operacion.js: lo cocinado (trozo 22) va a su tabla, cocinado", () 
     expect(borrado.ruta).toBe(`/rest/v1/cocinado?household_id=eq.${CASA}&semana=eq.2026-11-02&dia=eq.Mar&comida=eq.Cena&receta_id=eq.lentejas`);
   });
 
-  it("un lector no marca; una fila que no es de la tabla (un martes como semana, una comida que no existe) es inválida y no se pide", async () => {
+  it("un lector no marca; una fila que no es de la tabla (una fecha que no existe como semana, una comida que no existe) es inválida y no se pide", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     responde(/household_members/, { status: 200, cuerpo: [{ role: "viewer" }] });
     expect((await pedir({ body: { casa: CASA, cocinado: { ...FILA, hecho: true } } })).codigo).toBe(HTTP_DE_FALLO[FALLO_DATO.SIN_PERMISO]);
     respuestas.length = 0;
     responde(/^\/auth\/v1\/user/, { status: 200, cuerpo: { id: "u1" } });
     responde(/household_members/, { status: 200, cuerpo: [{ role: "owner" }] });
-    for (const cocinado of [{ ...FILA, semana: "2026-11-03", hecho: true }, { ...FILA, comida: "Cena tardía", hecho: true }, { ...FILA }]) {
+    for (const cocinado of [{ ...FILA, semana: "2026-02-30", hecho: true }, { ...FILA, comida: "Cena tardía", hecho: true }, { ...FILA }]) {
       expect((await pedir({ body: { casa: CASA, cocinado } })).codigo, JSON.stringify(cocinado)).toBe(HTTP_DE_FALLO[FALLO_DATO.INVALIDO]);
     }
     expect((await pedir({ body: { ...CUERPO, cocinado: { ...FILA, hecho: true } } })).codigo).toBe(HTTP_DE_FALLO[FALLO_DATO.INVALIDO]);
@@ -545,13 +545,14 @@ describe("api/operacion.js: lo cocinado (trozo 22) va a su tabla, cocinado", () 
     expect(log.mock.calls.map((c) => JSON.parse(c[0])).find((l) => l.evento === "cocinado_sin_apuntar")).toMatchObject({ fallo: FALLO_DATO.SIN_RED });
   });
 
-  it("GET ?cocinados=<lunes>: las filas de esa semana, a quien es de la casa (también a un lector)", async () => {
+  it("GET ?cocinados=<primer día del menú>: las filas de esa semana, empiece el día que empiece, a quien es de la casa (también a un lector)", async () => {
     responde(/household_members/, { status: 200, cuerpo: [{ role: "viewer" }] });
     responde(/^\/rest\/v1\/cocinado/, { status: 200, cuerpo: [FILA] });
     const res = await leer({ casa: CASA, cocinados: "2026-11-02" });
     expect(res).toMatchObject({ codigo: 200, body: { cocinados: [FILA] } });
     expect(llamadas.find((l) => l.ruta.startsWith("/rest/v1/cocinado")).ruta).toContain(`household_id=eq.${CASA}&semana=eq.2026-11-02`);
-    expect((await leer({ casa: CASA, cocinados: "2026-11-04" })).codigo).toBe(HTTP_DE_FALLO[FALLO_DATO.INVALIDO]);
+    expect((await leer({ casa: CASA, cocinados: "2026-02-30" })).codigo).toBe(HTTP_DE_FALLO[FALLO_DATO.INVALIDO]);
+    expect((await leer({ casa: CASA, cocinados: "2026-11-05" })).codigo).toBe(200);
   });
 });
 
