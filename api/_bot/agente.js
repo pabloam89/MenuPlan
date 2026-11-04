@@ -49,6 +49,7 @@ import {
 import { fueraDeLimite, contarUso, avisoDeLimite } from "./uso.js";
 import { quedaMs, plazoDeLlamada, RESERVA_MIN_MS } from "./plazo.js";
 import { supervisar, frenoDeshacer } from "./supervisor.js";
+import { armarManual } from "./manual.js";
 import { montarFicha, extrasDeFicha } from "./ficha.js";
 import { fichaRpc, leerFichaCasa, tareasDeFicha, calladasDeFicha, conLaFicha, olvidarFicha, estadosDeLaFicha } from "./fichaRpc.js";
 import { lineaDeAfinar } from "../../src/lib/siguientePregunta.js";
@@ -136,7 +137,12 @@ const DIAS_DE_MEMORIA = 3;
 const CONOCIMIENTO = fs.readFileSync(new URL("./conocimiento.md", import.meta.url), "utf8");
 // Antes había aquí unas REGLAS aparte; desde el 1 oct 2026 todo vive en
 // conocimiento.md, con lo que manda arriba (una sola fuente, sin contradicciones).
-const SISTEMA = CONOCIMIENTO;
+// Con sus marcas rellenas desde las fichas y el mapa de capacidades (manual.js, trozo 43): qué sabe hacer, qué
+// solo se hace en la app y qué no se deshace. Se arma la primera vez que hace falta y se guarda: el mapa
+// (src/lib/capacidades.js) importa este fichero, y a la carga sería un ciclo.
+let sistemaArmado = null;
+export const sistema = () => (sistemaArmado ??= import("../../src/lib/capacidades.js")
+  .then(({ CAPACIDADES }) => armarManual(CONOCIMIENTO, { capacidades: CAPACIDADES, fichas: FICHAS })));
 
 let cliente = null;
 const anthropic = () => (cliente ??= new Anthropic());
@@ -1771,7 +1777,7 @@ async function unaVuelta({ historia, entrada, tools, adjunto, alEscribir, signal
     // Haiku no tiene «effort» (si se pone de reserva con BOT_MODELO_RESERVA): va sin él.
     ...(/haiku/.test(modelo) ? {} : { output_config: { effort: EFFORT } }),
     system: [
-      { type: "text", text: SISTEMA, cache_control: CACHE_FIJA },
+      { type: "text", text: await sistema(), cache_control: CACHE_FIJA },
       // La ficha, en dos bloques con su caché: el estable casi no cambia y el
       // del día cambia una vez al día (o al cambiar el menú). Son 3 de los 4
       // puntos de caché que deja la API; el cuarto, el mensaje.
