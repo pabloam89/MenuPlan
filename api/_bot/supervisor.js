@@ -9,6 +9,9 @@
  * sí o pedirlo ella con esas palabras. Si no, la herramienta no se ejecuta y
  * Lola recibe la instrucción de preguntar.
  *
+ * Qué herramientas pasan por aquí lo dice su ficha (riesgo quita_proteccion,
+ * en api/_bot/agente.js); riesgoHerramientas.test.js cuadra esas con las de abajo.
+ *
  * Lo que AÑADE protección (apuntar una alergia) no se frena aquí: pararlo
  * sería peor que dejarlo pasar. Sigue necesitando su confirmado, como siempre.
  *
