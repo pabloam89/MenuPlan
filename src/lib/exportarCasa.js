@@ -45,6 +45,7 @@ export const TABLAS_NO_EXPORTADAS = new Map([
   ["bot_link_tokens", "secreto: el token que enlaza un chat con la cuenta; exportarlo dejaría enlazar otro chat"],
   ["household_invites", "secreto: el código de invitación a la casa; exportarlo dejaría entrar a otra persona"],
   ["bot_idempotencia", "técnico: las claves para no hacer dos veces el mismo mensaje; no dicen nada de la familia"],
+  ["bot_enlaces", "medida: cada intento de conectar un chat (camino y resultado, 0126, #1238), para contar los rechazos; no guarda nada de lo que la familia dice o come, y leerla antes de aplicar la 0126 tumbaría la descarga entera"],
   ["bot_deshacer", "técnico: la copia de antes de cada cambio de Lola para deshacerlo; lo que guarda ya sale de sus tablas"],
 ]);
 
