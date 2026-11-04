@@ -39,7 +39,7 @@ const TAB_OPTIONS = [
   { id: "gasto", label: "Gasto" },
 ];
 
-export function AnalyticsScreen({ data, setData, menuPlan, shopping, setShopping, readOnly = false, readOnlyLabel = null, onUndoReceiptTachado, onNav, onToast, initialTab = null, onInitialTabHandled = null }) {
+export function AnalyticsScreen({ data, menuPlan, shopping, readOnly = false, readOnlyLabel = null, onUndoReceiptTachado, onNav, onToast, initialTab = null, onInitialTabHandled = null }) {
   const [tab, setTab] = useState(initialTab ?? "cocina");
   const tabDirRef = useRef(0);
   // Deep link from "En casa" → Gastos: land directly on the requested tab.
@@ -139,7 +139,7 @@ export function AnalyticsScreen({ data, setData, menuPlan, shopping, setShopping
         style={{ padding: "0 16px", paddingBottom: `calc(${bottomNavSpacer()} + 12px)` }}
       >
         {tab === "gasto" ? (
-          <SpendPanel data={data} setData={setData} shopping={shopping} setShopping={setShopping} readOnly={readOnly} onUndoReceiptTachado={onUndoReceiptTachado} onToast={onToast} />
+          <SpendPanel readOnly={readOnly} onUndoReceiptTachado={onUndoReceiptTachado} onToast={onToast} />
         ) : !insights.hasMenu ? (
           <EmptyAnalytics onNav={onNav} />
         ) : tab === "cocina" ? (

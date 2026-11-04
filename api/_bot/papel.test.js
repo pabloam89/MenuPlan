@@ -133,7 +133,7 @@ describe("la vía rápida según el papel", () => {
   });
 
   it("titular y cotitular, como siempre", () => {
-    expect(permitidoEn("generar", { papel: "editor" })).toBe(true);
+    expect(permitidoEn("cambiar", { papel: "editor" })).toBe(true);
     expect(permitidoEn("cambiar", { papel: "owner" })).toBe(true);
   });
 });

@@ -65,6 +65,7 @@ import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { DATE_BUCKET_OPTIONS, matchesDateBucket } from "../lib/priceHistory.js";
 import { priceShoppingList } from "../lib/listPricing.js";
 import { isMercadonaStore } from "../lib/storeCatalog.js";
+import { useCompra } from "../lib/compraApp.js";
 
 // Las 3 ubicaciones que el usuario ve como filtros. La única que el usuario
 // elige al guardar es "congelador" (frozen); nevera vs despensa se deriva del
@@ -1386,7 +1387,7 @@ export function PantryScreen({
   const canUploadReceipt = Boolean(setData);
   // Stable empty-array fallback (not a fresh `?? []` literal each render) so
   // the useMemos below that depend on it don't re-run every single render.
-  const receipts = useMemo(() => data?.receipts ?? [], [data?.receipts]);
+  const { tickets: receipts } = useCompra();
 
   // Only offer categories actually present — a static 11-aisle list would be
   // mostly dead filters for a pantry that only has a handful of items.
