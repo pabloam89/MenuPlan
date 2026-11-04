@@ -164,18 +164,18 @@ export function useAuth() {
 
   const signInWithGoogle = useCallback(() => signInWith("google", "Google"), [signInWith]);
 
-  // Añadir Google a la cuenta con sesión (#1238): la nacida en Telegram, para entrar desde cualquier sitio. Es la
-  // misma cuenta; Supabase la reconoce por Google a partir de ahí.
-  const linkWithGoogle = useCallback(async () => {
+  // Añadir una forma de entrar (google, apple) a la cuenta con sesión (#1238, «Formas de entrar» de Mi perfil): por
+  // si un día no tiene Telegram a mano. Es la misma cuenta; Supabase la reconoce por ese proveedor a partir de ahí.
+  const anadirFormaDeEntrar = useCallback(async (proveedor) => {
     if (!supabase) return { error: new Error("No disponible en este entorno.") };
     if (isNativeApp) {
       const { startNativeLink } = await import("./nativeAuth.js");
-      const { error } = await startNativeLink(supabase, "google");
-      if (error) console.error("[auth] añadir Google (nativo)", error);
+      const { error } = await startNativeLink(supabase, proveedor);
+      if (error) console.error(`[auth] añadir ${proveedor} (nativo)`, error);
       return { error: error ?? null };
     }
-    const { error } = await supabase.auth.linkIdentity({ provider: "google", options: { redirectTo: window.location.origin } });
-    if (error) console.error("[auth] añadir Google", error);
+    const { error } = await supabase.auth.linkIdentity({ provider: proveedor, options: { redirectTo: window.location.origin } });
+    if (error) console.error(`[auth] añadir ${proveedor}`, error);
     return { error: error ?? null };
   }, []);
   const signInWithApple = useCallback(() => signInWith("apple", "Apple"), [signInWith]);
@@ -204,7 +204,7 @@ export function useAuth() {
     loading,
     signInWithGoogle,
     signInWithApple,
-    linkWithGoogle,
+    anadirFormaDeEntrar,
     avisoAlEntrar,
     olvidarAvisoAlEntrar,
     signOut,

@@ -17,6 +17,8 @@ import { findAccountMember,
 import { esTitular } from "../lib/householdsSync.js";
 import { fileToAvatarDataUrl } from "../lib/avatarImage.js";
 import { NOMBRE_PAPEL, papelDe } from "../lib/papeles.js";
+import { FORMA_DE_ENTRAR } from "../lib/cuentaTelegram.js";
+import { color as tono, tipografia, espaciado, radio, tamano } from "../design/tokens.js";
 
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
@@ -239,6 +241,61 @@ function FieldLabel({ children }) {
   );
 }
 
+// ── Formas de entrar (#1238, specs/auth.md §7) ──────────────────────────────
+
+const NOMBRE_FORMA = { [FORMA_DE_ENTRAR.TELEGRAM]: "Telegram", [FORMA_DE_ENTRAR.GOOGLE]: "Google", [FORMA_DE_ENTRAR.APPLE]: "Apple" };
+
+// Con qué entra la cuenta (✓) y qué se le puede añadir. Sirve para recuperarla: por eso la línea de arriba.
+function FormasDeEntrar({ formas, onAnadir }) {
+  const conTelegram = formas.some((f) => f.forma === FORMA_DE_ENTRAR.TELEGRAM);
+  return (
+    <section aria-label="Formas de entrar" style={{ marginBottom: espaciado["esp-12"] }}>
+      <FieldLabel>Formas de entrar</FieldLabel>
+      {conTelegram && (
+        <p style={{ margin: `0 0 ${espaciado["esp-8"]}px`, fontSize: tipografia["paso-12"], color: tono["tinta-tenue"] }}>
+          Por si un día no tienes Telegram a mano.
+        </p>
+      )}
+      <Card>
+        {formas.map(({ forma, tiene }, i) => (
+          <div
+            key={forma}
+            style={{
+              display: "flex", alignItems: "center", justifyContent: "space-between", gap: espaciado["esp-12"],
+              minHeight: tamano["tam-tactil"],
+              padding: `${espaciado["esp-8"]}px ${espaciado["esp-16"]}px`,
+              borderTop: i === 0 ? "none" : `1px solid ${tono["linea-suave"]}`,
+            }}
+          >
+            <span style={{ fontSize: tipografia["paso-14"], fontWeight: tipografia["peso-800"], color: tono.tinta }}>
+              {NOMBRE_FORMA[forma]}
+            </span>
+            {tiene ? (
+              <span role="img" aria-label={`Ya entras con ${NOMBRE_FORMA[forma]}`}>
+                <Check size={tamano["tam-icono-18"]} color={tono.marca} />
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={() => onAnadir(forma)}
+                aria-label={`Añadir ${NOMBRE_FORMA[forma]}`}
+                style={{
+                  minHeight: tamano["tam-tactil"], padding: `0 ${espaciado["esp-16"]}px`,
+                  borderRadius: radio["radio-pildora"], border: `1.5px solid ${tono.linea}`, background: tono.superficie,
+                  color: tono.marca, fontSize: tipografia["paso-13"], fontWeight: tipografia["peso-800"],
+                  fontFamily: "inherit", cursor: "pointer",
+                }}
+              >
+                Añadir
+              </button>
+            )}
+          </div>
+        ))}
+      </Card>
+    </section>
+  );
+}
+
 // ── Main screen ─────────────────────────────────────────────────────────────
 
 export function HomeProfileScreen({
@@ -252,7 +309,8 @@ export function HomeProfileScreen({
   onSignOut,
   onDeleteAccount,
   onExportData = null,
-  onEntrarConGoogle = null,
+  formasDeEntrar = null,
+  onAnadirFormaDeEntrar,
   onEditMembers,
   onEditPreferences,
   onOpenHouseholds,
@@ -467,6 +525,8 @@ export function HomeProfileScreen({
         )}
 
         {/* ── Cuenta y datos ─────────────────────── */}
+        {/* Formas de entrar (#1238): en lugar del botón suelto «Entrar también con Google». */}
+        {formasDeEntrar && <FormasDeEntrar formas={formasDeEntrar} onAnadir={onAnadirFormaDeEntrar} />}
         {/* Solo tiene sentido con sesión activa — sin este guard se mostraba
             también en el estado deslogueado (junto a la tarjeta "Continuar
             con Google" de arriba), y pulsarlo no hacía nada porque no había
@@ -476,15 +536,6 @@ export function HomeProfileScreen({
             img="/avatares/cards/cerrar_sesion.jpg"
             title="Cerrar sesión"
             onClick={onSignOut}
-          />
-        )}
-        {/* Cuenta nacida en Telegram (#1238): añadirle Google para abrir HoMenu desde cualquier sitio. */}
-        {onEntrarConGoogle && (
-          <ProfileOptionRow
-            icon={User}
-            title="Entrar también con Google"
-            subtitle="Tu cuenta nació en Telegram: con Google la abres desde cualquier sitio."
-            onClick={onEntrarConGoogle}
           />
         )}
         {/* «Reiniciar menú» se mudó a Inicio, a la fila de «Hoy toca» (30 oct 2026). */}
