@@ -66,7 +66,7 @@ import { activeDiscardIds } from "./lib/entradaMotor.js";
 import { sugerenciasDeHueco } from "./lib/sugerenciasDeHueco.js";
 import { minimosQueFaltan } from "./lib/minimosParaGenerar.js";
 import { resolvePlannerModel, resolvePlannerFormat } from "./lib/aiModels.js";
-import { apiUrl } from "./lib/apiUrl.js";
+import { apiUrl, seOfreceApple } from "./lib/apiUrl.js";
 import { pedirExportacion, nombreDelFichero } from "./lib/descargarCasa.js";
 import { findMenuRestrictionConflicts } from "./utils/menuConflicts.js";
 import { GeneratingScreen } from "./screens/GeneratingScreen.jsx";
@@ -227,7 +227,7 @@ import { suggestHomeRole, migrateHomeRole, resolveAccountMember, miembroDeCuenta
 import { migrateCookTime, COOK_TIME_DEFAULTS } from "./lib/cookTime.js";
 import { navDirection } from "./lib/motion.js";
 import { useAuth } from "./lib/useAuth.js";
-import { ofrecerGoogle, NO_SE_PUDO_GOOGLE, urlEntrarConTelegram } from "./lib/cuentaTelegram.js";
+import { formasDeEntrar, NO_SE_PUDO_ANADIR, urlEntrarConTelegram } from "./lib/cuentaTelegram.js";
 import { FeedbackFAB } from "./components/FeedbackFAB.jsx";
 import { HomeCoachTour, RecipesCoachTour, MenuCoachTour, FeedCoachTour } from "./components/HomeCoachTour.jsx";
 import { RecipePrefsWizard } from "./components/ModeSheets.jsx";
@@ -1292,7 +1292,7 @@ export default function App() {
     [gruposCompra, comidasCompra],
   );
 
-  const { user, session, loading: authLoading, signInWithGoogle, signInWithApple, linkWithGoogle, avisoAlEntrar, olvidarAvisoAlEntrar, signOut } = useAuth();
+  const { user, session, loading: authLoading, signInWithGoogle, signInWithApple, anadirFormaDeEntrar, avisoAlEntrar, olvidarAvisoAlEntrar, signOut } = useAuth();
   const {
     households,
     activeHousehold,
@@ -2221,10 +2221,10 @@ export default function App() {
     window.history.replaceState(null, "", window.location.pathname);
     olvidarAvisoAlEntrar();
   }, [avisoAlEntrar, olvidarAvisoAlEntrar, showToast]);
-  const handleEntrarConGoogle = useCallback(async () => {
-    const { error } = await linkWithGoogle();
-    if (error) showToast(NO_SE_PUDO_GOOGLE);
-  }, [linkWithGoogle, showToast]);
+  const handleAnadirFormaDeEntrar = useCallback(async (forma) => {
+    const { error } = await anadirFormaDeEntrar(forma);
+    if (error) showToast(NO_SE_PUDO_ANADIR[forma]);
+  }, [anadirFormaDeEntrar, showToast]);
   // Los menús generados (la racha), de su tabla (menusGenerados.js, trozo 22); sin casa, del móvil. Sin leer no es
   // «ningún menú»: `leidos: false`, Ajustes no enseña la racha y no cuenta como primer menú.
   const [menusHechos, setMenusHechos] = useState(() => ({ casa: null, leidos: false, lista: [] }));
@@ -7012,7 +7012,8 @@ export default function App() {
                 onSignOut={signOut}
                 onDeleteAccount={handleDeleteAccount}
                 onExportData={user && syncHouseholdId ? handleExportarCasa : null}
-                onEntrarConGoogle={ofrecerGoogle(user) ? handleEntrarConGoogle : null}
+                formasDeEntrar={user ? formasDeEntrar(user, { conApple: seOfreceApple() }) : null}
+                onAnadirFormaDeEntrar={handleAnadirFormaDeEntrar}
                 onEditMembers={() => fwd(() => setScreen("members"))}
                 onEditPreferences={() => openEditPreferences("profile")}
                 onOpenHouseholds={() => fwd(() => setScreen("households"))}
