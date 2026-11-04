@@ -40,23 +40,6 @@ export function filasDeDescartes(recetaIds, ambito) {
 }
 
 /**
- * Los platos de un menú entero (todos los grupos, primero y segundo plato), sin los huecos
- * vaciados: lo que se tira al regenerar el menú.
- * @param {Record<string, Record<string, {recipeId?: string, firstRecipeId?: string, cleared?: boolean}>>} menuPlan
- */
-export function recetasDelPlan(menuPlan) {
-  const ids = [];
-  for (const grupo of Object.values(menuPlan ?? {})) {
-    for (const hueco of Object.values(grupo ?? {})) {
-      if (!hueco || hueco.cleared) continue;
-      if (hueco.firstRecipeId) ids.push(hueco.firstRecipeId);
-      if (hueco.recipeId) ids.push(hueco.recipeId);
-    }
-  }
-  return ids;
-}
-
-/**
  * Apunta lo que se descarta. Nunca lanza: devuelve cuántas filas mandó (0 si no había
  * nada, no hay sesión de Supabase o falló).
  * @param {{ user: {id: string}|null, householdId?: string|null, recetaIds: Array<string|null|undefined>, ambito: string }} args
