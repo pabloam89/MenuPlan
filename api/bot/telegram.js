@@ -37,7 +37,7 @@ import { transcribir } from "../_bot/voz.js";
 import { adjuntoDe, porQueNoAdjunto, adjuntoDelAlta } from "../_bot/adjuntos.js";
 import { enTurno, aSolas, drenar, juntar } from "../_bot/turnos.js";
 import { conPlazo } from "../_bot/plazo.js";
-import { migrarChat, alSalirDelChat, esGrupoDe } from "../_bot/chats.js";
+import { migrarChat, alSalirDelChat, esGrupoDe, deLaCharla } from "../_bot/chats.js";
 import { casaDelTurno, casaDelUltimoMensaje, avisoDeCambio } from "../_bot/casaDelTurno.js";
 import { pedidoCompartido } from "../_bot/comoDato.js";
 import { clasificar, vaPorLaRapida, permitidoEn } from "../_bot/router.js";
@@ -566,10 +566,10 @@ const RUTA = "bot_route";
 const usoDelEnrutador = (decisionP) => decisionP.then((d) => d?.uso ?? null, () => null);
 
 /** Lo último que dijo Lola en este chat (y su propuesta de opciones, si la hubo). */
-async function ultimaDeLola(chatId) {
+async function ultimaDeLola(chatId, householdId) {
   // Pregunta y respuesta comparten created_at: el id desempata (memoria.js).
   // Sin la última, el turno sigue sin ella (sin aclaraciones ni elecciones), pero es un fallo.
-  const filas = await select("bot_messages", `channel=eq.telegram&chat_id=${eq(chatId)}&order=created_at.desc,id.desc&limit=2`, "role,content,created_at").catch(fallaCon("ultima_de_lola", []));
+  const filas = await select("bot_messages", `${deLaCharla(CANAL.TELEGRAM, chatId, householdId)}&order=created_at.desc,id.desc&limit=2`, "role,content,created_at").catch(fallaCon("ultima_de_lola", []));
   const f = filas.find((x) => x.role === "assistant");
   // Tras un /nueva (marcador de corte) no hay «último» que valga.
   if (!f || filas[0]?.content?.corte) return null;
@@ -656,7 +656,7 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
   const idiomaP = papelP.then((q) => (q !== SIN_LEER && q.userId ? idiomaDe(q.userId) : null)).catch(seguirCon("idioma", null));
   // a propósito: sin poder leer el uso, mejor contestar que bloquear
   const limiteP = fueraDeLimite(householdId).catch(seguirCon("limite", null));
-  const [ultima, contexto, quien, idioma] = await Promise.all([ultimaDeLola(chatId), contextoDe(householdId), papelP, idiomaP]);
+  const [ultima, contexto, quien, idioma] = await Promise.all([ultimaDeLola(chatId, householdId), contextoDe(householdId), papelP, idiomaP]);
   if (quien === SIN_LEER) return enviar(chatId, noPude("papel", idioma ?? from?.language_code), { responderA });
   chatDe.papel = quien.papel;
   // Alergias por silencio (#229, api/_bot/silencio.js): si lo último de Lola
