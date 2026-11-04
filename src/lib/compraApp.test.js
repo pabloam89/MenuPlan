@@ -31,13 +31,17 @@ describe("lo gastado vive en sus tablas, no en el documento (trozo 22 de #1037)"
     expect(conCambio(conGasto, { borrar_ticket: "tk_1" })).toEqual({ tickets: [], precios: [GASTO] });
   });
 
-  it("sin casa, lo guarda el móvil con el mismo cambio", () => {
+  it("sin casa, lo guarda el móvil con el mismo cambio; si no se puede leer, lo dice y no lo pisa", () => {
     const almacen = movil();
     expect(compraLocal(almacen)).toEqual({ tickets: [], precios: [] });
     cambiarCompraLocal({ ticket: TICKET, precios: [PRECIO] }, almacen);
     expect(compraLocal(almacen)).toEqual({ tickets: [TICKET], precios: [PRECIO] });
     cambiarCompraLocal({ borrar_ticket: "tk_1" }, almacen);
     expect(compraLocal(almacen)).toEqual({ tickets: [], precios: [] });
+    almacen.setItem("hm.compra", "{roto");
+    expect(() => compraLocal(almacen)).toThrow(/no se puede leer/);
+    expect(() => cambiarCompraLocal({ precios: [GASTO] }, almacen)).toThrow();
+    expect(almacen.getItem("hm.compra")).toBe("{roto");
   });
 });
 

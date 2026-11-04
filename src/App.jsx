@@ -5920,7 +5920,11 @@ export default function App() {
   useEffect(() => {
     let vivo = true;
     if (!activeHouseholdId) {
-      setGasto({ casa: null, leida: true, ...compraLocal() });
+      try { setGasto({ casa: null, leida: true, ...compraLocal() }); } catch (e) {
+        console.error("[compra]", e.message);
+        setGasto({ casa: null, leida: false, tickets: [], precios: [] });
+        showToast("No he podido cargar lo gastado");
+      }
       return undefined;
     }
     setGasto({ casa: activeHouseholdId, leida: false, tickets: [], precios: [] });
@@ -5935,9 +5939,10 @@ export default function App() {
   // Un ticket, un gasto o borrar un ticket: primero en su sitio (tabla o móvil) y, si se guardó, en pantalla.
   const apuntarCompra = useCallback(async (cambio) => {
     if (!activeHouseholdId) {
-      const nueva = cambiarCompraLocal(cambio);
-      setGasto({ casa: null, leida: true, ...nueva });
-      return { ok: true };
+      try { setGasto({ casa: null, leida: true, ...cambiarCompraLocal(cambio) }); return { ok: true }; } catch (e) {
+        console.error("[compra]", e.message);
+        return { ok: false };
+      }
     }
     const r = await mandarCompra(activeHouseholdId, cambio);
     if (r.ok) setGasto((c) => (c.casa === activeHouseholdId && c.leida ? { ...c, ...conCambio(c, cambio) } : c));

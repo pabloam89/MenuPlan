@@ -1,11 +1,7 @@
 /**
- * La app y lo gastado de su casa (trozo 22 de #1037): los tickets y los precios viven en `ticket` y
- * `precio_observado` (0109, 0124), que solo escribe el servidor (api/operacion.js), y no en el documento de la casa
- * (`data.receipts`, `data.priceObs`). Sin casa (invitado), los guarda el móvil, en la misma forma.
- *
- * En memoria van como `{ tickets, precios }`, en la forma de la app (la de historialCompra.js: `ticketDeFila`,
- * `precioDeFila`). Las pantallas los leen de CompraContext y los cambian con `apuntar`, que guarda primero en su
- * sitio y solo si se guardó lo pinta. Leer o mandar nunca lanza por la red ni por la sesión: `{ ok: false, fallo }`.
+ * Lo gastado de la casa (trozo 22 de #1037) vive en `ticket` y `precio_observado`, que escribe el servidor
+ * (api/operacion.js), no en el documento; sin casa, en el móvil. En memoria, `{ tickets, precios }` en la forma de la
+ * app (historialCompra.js). Leer o mandar no lanza por la red ni por la sesión: `{ ok: false, fallo }`.
  */
 import { createContext, useContext } from "react";
 import { enviarAlServidor, falloDeEnvio, jsonDeTexto } from "./escribirDato.js";
@@ -24,10 +20,7 @@ export function sinCompra(data) {
   return resto;
 }
 
-/**
- * Lo gastado tras un cambio (`{ ticket?, precios?, borrar_ticket? }`, lo mismo que se manda al servidor): un ticket
- * nuevo va el primero; un precio que ya estaba no se repite; borrar un ticket se lleva sus precios.
- */
+/** Lo gastado tras un cambio (el mismo que va al servidor): ticket nuevo el primero, sin repetir precios; borrar un ticket se lleva sus precios. */
 export function conCambio({ tickets, precios }, { ticket = null, precios: nuevos = [], borrar_ticket: borrar = null }) {
   if (borrar != null) {
     return { tickets: tickets.filter((t) => t.id !== borrar), precios: precios.filter((p) => p.receiptId !== borrar) };
@@ -40,12 +33,14 @@ export function conCambio({ tickets, precios }, { ticket = null, precios: nuevos
 }
 
 const CLAVE_LOCAL = "hm.compra";
-/** Lo gastado del invitado, en este móvil. */
+/** Lo gastado del invitado, en este móvil. Si lo guardado no se puede leer, lanza: no es «nada gastado». */
 export function compraLocal(almacen = window.localStorage) {
-  const c = jsonDeTexto(almacen.getItem(CLAVE_LOCAL) ?? "");
+  const crudo = almacen.getItem(CLAVE_LOCAL);
+  const c = crudo ? jsonDeTexto(crudo) : null;
+  if (crudo && !c) throw new Error("compra: lo del móvil no se puede leer");
   return { tickets: Array.isArray(c?.tickets) ? c.tickets : [], precios: Array.isArray(c?.precios) ? c.precios : [] };
 }
-/** Aplica un cambio a lo gastado del invitado y lo devuelve. */
+/** Aplica un cambio a lo gastado del invitado y lo devuelve; si no se puede leer lo de antes, lanza y no lo pisa. */
 export function cambiarCompraLocal(cambio, almacen = window.localStorage) {
   const nueva = conCambio(compraLocal(almacen), cambio);
   almacen.setItem(CLAVE_LOCAL, JSON.stringify(nueva));
