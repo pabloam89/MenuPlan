@@ -205,3 +205,9 @@ export function siguienteVez(dueAt, repite, ahoraMs = Date.now()) {
   }
   return null;
 }
+
+/** El recordatorio del botón de un recordatorio en este chat ({ household_id, texto }), o null si ya no está. Un fallo de la base, lanza. */
+export async function recordatorioDelBoton(chatId, id) {
+  const [r] = await select(TABLA, `id=${eq(id)}&chat_id=${eq(String(chatId))}&${RECORDATORIOS}`, "household_id,texto");
+  return r ?? null;
+}
