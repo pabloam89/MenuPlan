@@ -23,7 +23,7 @@ const marcoLaCuenta = (data, userId) => Boolean(userId) && Object.prototype.hasO
  * @param {{ userId?: string|null, autor?: string|null, papel?: string|null }} quien  autor: su nombre de Telegram
  * @returns {{ persona: object|null, deducida: boolean }}
  */
-export function quienEscribe(data, { userId = null, autor = null, papel = null } = {}) {
+export function personaQueEscribe(data, { userId = null, autor = null, papel = null } = {}) {
   const miembros = data?.members ?? [];
   const id = personaDeLaCuenta(data, userId, papel);
   const marcada = id != null ? miembros.find((m) => String(m.id) === String(id)) : null;

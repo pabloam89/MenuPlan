@@ -82,7 +82,7 @@ import { usoParcialDe, sumarUsos } from "./medidaTurno.js";
 import { esResultado, paraElModelo, conRecibo, recibo, cuentaComoGuardado, exigeResultado, SIN_RESULTADO } from "./resultado.js";
 import { operacion, claveDeEscritura, tipoDeHerramienta, YA_ESCRITA, SIN_COMPROBAR, ponerAutor, tomarAvisos, autorDelTurno } from "./operacion.js";
 import { tratoDeFicha, lineaDelTrato, guardarTrato, ESCRIBE_TRATO, ESQUEMA_TRATO, personaDeLaCuenta } from "./trato.js";
-import { quienEscribe, lineaDeQuienEscribe, seUneSola, unirCuenta } from "./quienEscribe.js";
+import { personaQueEscribe, lineaDeQuienEscribe, seUneSola, unirCuenta } from "./quienEscribe.js";
 import { escribirDato } from "./datos.js";
 import { primeraVez, yaVista } from "./entradas.js";
 
@@ -1349,7 +1349,7 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
   const afinar = lineaDeAfinar(estadosDeLaFicha(tablas), chat.trato);
   // Quién de la casa escribe, por privado (quienEscribe.js): lo marcado en la app, o deducido por su nombre (y se
   // guarda), o nadie. En un grupo no: cada mensaje ya llega con su «[Nombre]:».
-  const escribe = esDeFuera(chat.papel) || esGrupo ? null : quienEscribe(data, { userId: chat.userId, autor: nombre, papel: chat.papel });
+  const escribe = esDeFuera(chat.papel) || esGrupo ? null : personaQueEscribe(data, { userId: chat.userId, autor: nombre, papel: chat.papel });
   const unida = escribe && seUneSola({ ...escribe, papel: chat.papel })
     ? unirCuenta(householdId, chat.userId, escribe.persona.id)
       .then((r) => { if (!r?.ok) console.error("[agente] unir cuenta", r?.error); })

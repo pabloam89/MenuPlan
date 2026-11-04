@@ -11,7 +11,7 @@ vi.mock("./casa.js", () => ({
   }),
 }));
 
-const { quienEscribe, lineaDeQuienEscribe, seUneSola, unirCuenta } = await import("./quienEscribe.js");
+const { personaQueEscribe, lineaDeQuienEscribe, seUneSola, unirCuenta } = await import("./quienEscribe.js");
 
 const MIEMBROS = [
   { id: "p", name: "Pablo", homeRole: "Papá" },
@@ -21,26 +21,26 @@ const MIEMBROS = [
 ];
 const casa = (extra = {}) => ({ members: MIEMBROS, accountMemberIdByUser: {}, ...extra });
 
-describe("quienEscribe: la persona de la casa de quien escribe", () => {
+describe("personaQueEscribe: la persona de la casa de quien escribe", () => {
   it("manda lo que la cuenta marcó en la app, aunque su nombre de Telegram sea otro", () => {
-    const r = quienEscribe(casa({ accountMemberIdByUser: { u1: "i" } }), { userId: "u1", autor: "Pablo", papel: "editor" });
+    const r = personaQueEscribe(casa({ accountMemberIdByUser: { u1: "i" } }), { userId: "u1", autor: "Pablo", papel: "editor" });
     expect(r).toEqual({ persona: MIEMBROS[1], deducida: false });
   });
 
   it("sin marcar, la única persona con su primer nombre, y deducida (el caso de Pablo, 4 nov)", () => {
-    const r = quienEscribe(casa(), { userId: "u1", autor: "Pablo Artiñano", papel: "owner" });
+    const r = personaQueEscribe(casa(), { userId: "u1", autor: "Pablo Artiñano", papel: "owner" });
     expect(r).toEqual({ persona: MIEMBROS[0], deducida: true });
   });
 
   it("sin marcar y sin una sola coincidencia, nadie", () => {
-    expect(quienEscribe(casa(), { userId: "u1", autor: "Manu", papel: "owner" }).persona).toBe(null);
+    expect(personaQueEscribe(casa(), { userId: "u1", autor: "Manu", papel: "owner" }).persona).toBe(null);
     const dosPablos = { members: [...MIEMBROS, { id: "p2", name: "Pablo hijo" }], accountMemberIdByUser: {} };
-    expect(quienEscribe(dosPablos, { userId: "u1", autor: "Pablo", papel: "owner" }).persona).toBe(null);
-    expect(quienEscribe(casa(), { userId: "u1", autor: null, papel: "owner" }).persona).toBe(null);
+    expect(personaQueEscribe(dosPablos, { userId: "u1", autor: "Pablo", papel: "owner" }).persona).toBe(null);
+    expect(personaQueEscribe(casa(), { userId: "u1", autor: null, papel: "owner" }).persona).toBe(null);
   });
 
   it("si la cuenta desmarcó en la app («no soy ninguno»), no se adivina por encima", () => {
-    const r = quienEscribe(casa({ accountMemberIdByUser: { u1: null } }), { userId: "u1", autor: "Pablo", papel: "owner" });
+    const r = personaQueEscribe(casa({ accountMemberIdByUser: { u1: null } }), { userId: "u1", autor: "Pablo", papel: "owner" });
     expect(r).toEqual({ persona: null, deducida: false });
   });
 });
