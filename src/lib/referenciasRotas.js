@@ -2,7 +2,7 @@
  * Referencias rotas de una casa (trozo 35 de #1037; #958 G, «borrar una persona deja restos»): filas de preferencia o
  * tareas que apuntan a algo que ya no existe. Pura: recibe la foto de la casa y devuelve la lista; no escribe nada.
  * Quién la usa: scripts/referencias-rotas.mjs (el informe, solo lectura) y el barrido del cron (api/_bot/caducidades.js,
- * una vez al día), que con correccionesDeRotas corrige lo obvio y pregunta lo dudoso (decisión de Pablo, 4 nov 2026).
+ * una vez por hora), que con correccionesDeRotas corrige lo obvio y pregunta lo dudoso (decisión de Pablo, 4 nov 2026).
  *
  * Lo que se mira, porque es lo que hoy puede quedar colgando (3 nov 2026):
  *   · una preferencia con un valor que ya no está en el vocabulario de su eje (`vocabulario` de EJES, axisRegistry.js);
