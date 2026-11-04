@@ -48,6 +48,7 @@ export const ACCIONES = Object.freeze({
   menu: "Menú nuevo",
   trato: "Trato con Lola",
   fuera: "Fuera de casa",
+  horario: "Horario cambiado",
 });
 
 /**
