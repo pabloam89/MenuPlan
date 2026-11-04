@@ -207,6 +207,37 @@ function apuntarSinAcceso(refs) {
   }
 }
 
+/**
+ * Las claves que se leyeron en la otra bóveda (`enOtraBoveda`), para pedirlas directas la próxima vez: dirección de
+ * `.env.local` → la que funcionó. Sin valores. Antes, con un `.env.local` que aún nombra HoMenu, cada `consulta` hacía
+ * tres lecturas (la pedida, la misma de una en una y la buena): 496 de las 848 del 4 nov 2026 fueron reintentos, y se
+ * agotó el cupo diario de la cuenta. Solo vale una ruta entre las dos bóvedas; si deja de funcionar, se aprende la nueva.
+ * Con la app de Pablo no se mira. En los tests, solo con MENUPLAN_OP_RUTAS.
+ */
+export const FICHERO_RUTAS = () =>
+  process.env.MENUPLAN_OP_RUTAS || (process.env.VITEST ? null : join(homedir(), ".menuplan", "op-rutas.json"));
+function rutas() {
+  const ruta = FICHERO_RUTAS();
+  if (!ruta || process.env[VAR_OP_PABLO] === "1" || !existsSync(ruta)) return {};
+  try {
+    return Object.fromEntries(Object.entries(JSON.parse(readFileSync(ruta, "utf8"))).filter(([ref, otra]) => enOtraBoveda(ref) === otra));
+  } catch (e) {
+    console.error(`env-boveda: no pude leer ${ruta} (${e.message}); pido las direcciones de .env.local`);
+    return {};
+  }
+}
+function apuntarRuta(ref, leida) {
+  const ruta = FICHERO_RUTAS();
+  if (!ruta || process.env[VAR_OP_PABLO] === "1") return;
+  try {
+    mkdirSync(dirname(ruta), { recursive: true });
+    const { [ref]: _vieja, ...demas } = rutas();
+    writeFileSync(ruta, JSON.stringify(leida === ref ? demas : { ...demas, [ref]: leida }, null, 1));
+  } catch (e) {
+    console.error(`env-boveda: no pude apuntar en ${ruta} la ruta de una clave (${e.message})`);
+  }
+}
+
 /** Los valores de varias direcciones, en una sola llamada a `op inject`. Lanza si falla alguna. */
 function inyectar(pares, reintento = false) {
   apuntarLectura(pares.length, reintento);
@@ -250,8 +281,10 @@ function resolverVarias(pares, { tolerante = false } = {}) {
     return [...fallan, ...apartadas];
   };
   if (!nuevas.length) return acabar();
+  const ruta = rutas();
+  const direccionDe = (ref) => ruta[ref] ?? ref;
   try {
-    inyectar(nuevas).forEach((v, i) => resueltas.set(nuevas[i][1], v));
+    inyectar(nuevas.map(([k, ref]) => [k, direccionDe(ref)])).forEach((v, i) => resueltas.set(nuevas[i][1], v));
     return acabar();
   } catch (e) {
     if (e.code === "SIN_TOKEN") throw new Error(`No pude leer de 1Password ${nuevas.map(([k]) => k).join(", ")}: ${e.message}`);
@@ -271,19 +304,21 @@ function resolverVarias(pares, { tolerante = false } = {}) {
     // Se apunta solo si todos los intentos dicen «no existe o no la ves».
     let noSeVe = true;
     let cupo = false;
+    const pedida = direccionDe(ref);
     try {
-      resueltas.set(ref, inyectar([[k, ref]], true)[0]);
+      resueltas.set(ref, inyectar([[k, pedida]], true)[0]);
       continue;
     } catch (e) {
       motivo ||= motivoDe(e);
       noSeVe = esSinAcceso(e);
       cupo = esCupo(e);
     }
-    const otra = enOtraBoveda(ref);
+    const otra = enOtraBoveda(pedida);
     if (otra) {
       try {
         resueltas.set(ref, inyectar([[k, otra]], true)[0]);
-        const de = ref.split("/")[2];
+        apuntarRuta(ref, otra);
+        const de = pedida.split("/")[2];
         const a = otra.split("/")[2];
         console.error(`env-boveda clave: ${k} de: ${de} a: ${a} motivo: ${MOTIVOS_AVISO.RESPALDO}`);
         continue;
