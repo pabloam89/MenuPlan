@@ -8,6 +8,7 @@ import { normalizePantryInput } from "../utils/normalizePantryInput.js";
 import { addPantryItems, addLocalPantryItems } from "../lib/pantry.js";
 import { useAuth } from "../lib/useAuth.js";
 import { appendReceiptSpend } from "./SpendPanel.jsx";
+import { useCompra } from "../lib/compraApp.js";
 // Reuse the exact capture wizard the shopping screen uses (kept there with all
 // its helpers) — this flow only differs in what it does on confirm.
 import { ReceiptWizard, DemoReceiptSheet } from "./Shopping.jsx";
@@ -29,6 +30,7 @@ const NEUTRAL_WEEK = { startISO: null, endISO: null, label: "" };
  * intent is "pantry".
  */
 export function PantryReceiptFlow({ data, setData, shopping = null, setShopping = null, onToast, onClose, onPantryChanged }) {
+  const compra = useCompra();
   const { user } = useAuth();
   const [intent, setIntent] = useState(null); // "pantry" | "spend"
   const [busy, setBusy] = useState(false);
@@ -204,10 +206,11 @@ export function PantryReceiptFlow({ data, setData, shopping = null, setShopping 
       }));
     }
 
-    // Spend is always recorded (both intents).
-    if (setData && included.length) {
-      appendReceiptSpend(setData, { store, date, lines: included, pantryIds }, data?.priceAliases ?? {});
-    }
+    // Spend is always recorded (both intents), primero en su tabla (compraApp.js): si no se guarda, se dice.
+    const guardados = setData && included.length
+      ? await appendReceiptSpend(compra, setData, { store, date, lines: included, pantryIds }, data?.priceAliases ?? {})
+      : 0;
+    const gasto = guardados > 0 ? "gasto guardado" : "el gasto no se ha guardado";
 
     setFreezeStep(null);
     setWizard(null);
@@ -218,9 +221,9 @@ export function PantryReceiptFlow({ data, setData, shopping = null, setShopping 
     onToast?.(
       intent === "pantry"
         ? pantried > 0
-          ? `${pantried} ${pantried === 1 ? "producto añadido" : "productos añadidos"} a En casa · gasto guardado${tachSuffix}${coverageSuffix}`
-          : `Gasto guardado${tachSuffix}`
-        : `Gasto guardado · ${included.length} ${included.length === 1 ? "producto" : "productos"}${tachSuffix}`,
+          ? `${pantried} ${pantried === 1 ? "producto añadido" : "productos añadidos"} a En casa · ${gasto}${tachSuffix}${coverageSuffix}`
+          : `${gasto[0].toUpperCase()}${gasto.slice(1)}${tachSuffix}`
+        : guardados > 0 ? `Gasto guardado · ${guardados} ${guardados === 1 ? "producto" : "productos"}${tachSuffix}` : `El gasto no se ha guardado${tachSuffix}`,
     );
     onClose?.();
   };
