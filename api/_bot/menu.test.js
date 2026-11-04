@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
-import { resolverDia, masParecida, huecoDe, resultadoDeCambio, resultadoDeAnadir, SIN_CAMBIAR } from "./menu.js";
+import { resolverDia, masParecida, huecoDe, huecoDelPlato, queEs, resultadoDeCambio, resultadoDeAnadir, SIN_CAMBIAR } from "./menu.js";
 import { diaDe } from "./interprete.js";
 import { ESTADO, recibo } from "./resultado.js";
 
@@ -105,6 +105,32 @@ describe("huecoDe: un entrante se añade, nunca sustituye al principal", () => {
   it("una comida sin primero (desayuno) no cae al principal: error", () => {
     const h = huecoDe(conPlan({ recipeId: "tostadas" }, "Desayuno"), { dia: "Vie", franja: "Desayuno", cual: "primero" });
     expect(h.error).toMatch(/no lleva primero/);
+  });
+});
+
+// 4 nov 2026: «¿me cambias el shakshuka? ¿eso qué es?». proponer_platos
+// encuentra el hueco por el nombre del plato y dice qué es el que hay.
+describe("un plato del menú por su nombre", () => {
+  const recetas = { shak: { name: "Shakshuka" }, lent: { name: "Lentejas estofadas" }, crema: { name: "Crema de calabaza" } };
+  const plan = { g1: { "Lun-Cena": { recipeId: "shak" }, "Mar-Comida": { recipeId: "lent", firstRecipeId: "crema" }, "Jue-Cena": { recipeId: "shak" } } };
+  const conMenu = { semanas: [{ weekStart: "2026-11-02", weekEnd: "2026-11-08", plan }], state: { data: { groups: [{ id: "g1", label: "Familia", memberIds: [] }] } } };
+  const recetaDe = (id) => recetas[id] ?? null;
+
+  it("da su día, su comida y cuál, de hoy en adelante (lo pasado no cuenta)", () => {
+    expect(huecoDelPlato(conMenu, recetaDe, "el shakshuka", "2026-11-04")).toEqual({ fecha: "2026-11-05", franja: "Cena", cual: "principal", grupo: "Familia" });
+    expect(huecoDelPlato(conMenu, recetaDe, "shakshuka", "2026-11-02")?.fecha).toBe("2026-11-02");
+  });
+
+  it("también el primero, y sin menú o sin ese plato, null", () => {
+    expect(huecoDelPlato(conMenu, recetaDe, "la crema de calabaza", "2026-11-02")).toMatchObject({ fecha: "2026-11-03", franja: "Comida", cual: "primero" });
+    expect(huecoDelPlato(conMenu, recetaDe, "paella", "2026-11-02")).toBeNull();
+    expect(huecoDelPlato({ semanas: [] }, recetaDe, "shakshuka", "2026-11-02")).toBeNull();
+  });
+
+  it("qué es: la descripción del catálogo o, sin ella, lo que lleva", () => {
+    expect(queEs({ description: "Huevos escalfados en salsa de tomate especiada." })).toBe("Huevos escalfados en salsa de tomate especiada.");
+    expect(queEs({ ingredients: [{ name: "Huevo" }, { name: "Tomate triturado" }, { name: "Pimiento rojo" }] })).toBe("Lleva huevo, tomate triturado y pimiento rojo.");
+    expect(queEs(null)).toBe("");
   });
 });
 
