@@ -4,34 +4,18 @@
  * Lola sabe la CUENTA que escribe (papel.js), no la PERSONA de la casa. La unión cuenta → persona
  * (`accountMemberIdByUser`) solo se marcaba a mano en la app (Mi perfil, «¿Quién eres?»), y la ficha no decía a
  * Lola quién escribía. Aquí se resuelve, en este orden:
- *  1. la persona que la cuenta marcó (personaDeLaCuenta, trato.js → miembroDeCuentaId de stages.js);
+ *  1. la persona que la cuenta marcó (personaQueEscribe, en interprete.js, con personaDeLaCuenta de trato.js);
  *  2. si la cuenta no marcó nada, la única persona cuyo primer nombre es el de Telegram (findAccountMember);
  *  3. si no, no se sabe, y la ficha se lo dice a Lola para que lo pregunte una vez.
  * Lo deducido en el paso 2 se guarda (unirCuenta) para no depender de adivinar en cada turno.
  */
-import { findAccountMember, conMiembroDeCuenta, migrateHomeRole } from "../../src/lib/stages.js";
+import { conMiembroDeCuenta, migrateHomeRole } from "../../src/lib/stages.js";
 import { PAPEL } from "../../src/lib/papeles.js";
-import { personaDeLaCuenta } from "./trato.js";
+// La regla de quién es vive en interprete.js, con el «yo» de las herramientas: una sola para la ficha y para ellas.
+import { personaQueEscribe, marcoLaCuenta } from "./interprete.js";
 import { conCasa } from "./casa.js";
 
-/** ¿La cuenta ya dijo algo en la app? También vale un «no soy ninguno» (null): ese no se adivina por encima. */
-const marcoLaCuenta = (data, userId) => Boolean(userId) && Object.prototype.hasOwnProperty.call(data?.accountMemberIdByUser ?? {}, userId);
-
-/**
- * Pura. La persona de la casa que escribe, y si es deducida por el nombre.
- * @param {object} data  household_state.data
- * @param {{ userId?: string|null, autor?: string|null, papel?: string|null }} quien  autor: su nombre de Telegram
- * @returns {{ persona: object|null, deducida: boolean }}
- */
-export function personaQueEscribe(data, { userId = null, autor = null, papel = null } = {}) {
-  const miembros = data?.members ?? [];
-  const id = personaDeLaCuenta(data, userId, papel);
-  const marcada = id != null ? miembros.find((m) => String(m.id) === String(id)) : null;
-  if (marcada) return { persona: marcada, deducida: false };
-  if (marcoLaCuenta(data, userId) || !autor) return { persona: null, deducida: false };
-  const porNombre = findAccountMember(miembros, autor);
-  return { persona: porNombre ?? null, deducida: Boolean(porNombre) };
-}
+export { personaQueEscribe };
 
 /** Pura. La línea de la ficha del turno con quién escribe. */
 export function lineaDeQuienEscribe({ persona, deducida }) {

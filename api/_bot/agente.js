@@ -591,7 +591,8 @@ function herramientasDeRecordatorios(chat) {
  * cuenta marcó en la app (accountMemberIdByUser) y no por el nombre de
  * Telegram (#958). Se lee al ejecutar: userId llega con el papel del turno.
  */
-const quienDe = (chat) => ({ get userId() { return chat.userId ?? null; }, get autor() { return chat.autor ?? null; } });
+// autor: en un grupo, el del mensaje; por privado, su nombre de Telegram (`nombre`), como en la línea «TE ESCRIBE».
+const quienDe = (chat) => ({ get userId() { return chat.userId ?? null; }, get autor() { return chat.autor ?? chat.nombre ?? null; }, get papel() { return chat.papel ?? null; } });
 
 function herramientasDeAjustes(householdId, gustos, chat = {}) {
   const quien = quienDe(chat);
@@ -1040,7 +1041,7 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
         additionalProperties: false,
       },
       run: async ({ de_nuevo, ...args }) => {
-        const r = await apuntarAusencia(householdId, { ...args, deNuevo: de_nuevo === true, autor: chat.autor ?? null, userId: quien.userId });
+        const r = await apuntarAusencia(householdId, { ...args, deNuevo: de_nuevo === true, autor: quien.autor, userId: quien.userId, papel: quien.papel });
         if (r.pintar) pintarTambien(chat, r.pintar);
         return resultadoDeAusencia(r);
       },
@@ -1274,7 +1275,7 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
   // `pintar`: qué trozo del menú sale pintado debajo del mensaje (pintar.js).
   // `llamadas`: las herramientas que Lola pide en el turno, en orden (silencio.js).
   // `resultados`: lo que devuelven con forma fija las herramientas que escriben (resultado.js): de ahí sale el recibo.
-  const chat = { channel, chatId: String(chatId), householdId, autor, adjunto, texto, fotos: [], ir: null, compartir: null, pintar: null, puerta, esGrupo: Boolean(esGrupo), papel: undefined, llamadas: [], pedidas: [], resultados: [] };
+  const chat = { channel, chatId: String(chatId), householdId, autor, nombre, adjunto, texto, fotos: [], ir: null, compartir: null, pintar: null, puerta, esGrupo: Boolean(esGrupo), papel: undefined, llamadas: [], pedidas: [], resultados: [] };
   // El papel de quien escribe, en cada turno (no se guarda: quitar a alguien
   // vale para el mensaje siguiente). Las herramientas se filtran con él.
   const conPapel = papelDeQuien({ householdId, chatId, esGrupo: Boolean(esGrupo), desde, channel })

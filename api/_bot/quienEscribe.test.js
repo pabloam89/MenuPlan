@@ -12,6 +12,7 @@ vi.mock("./casa.js", () => ({
 }));
 
 const { personaQueEscribe, lineaDeQuienEscribe, seUneSola, unirCuenta } = await import("./quienEscribe.js");
+const { buscarPersona } = await import("./interprete.js");
 
 const MIEMBROS = [
   { id: "p", name: "Pablo", homeRole: "Papá" },
@@ -89,5 +90,19 @@ describe("unirCuenta: guarda la unión deducida sin pisar lo marcado", () => {
     casaEnBase = { state: { data: casa() } };
     expect(await unirCuenta("casa", null, "p")).toEqual({ ok: false, error: "sin cuenta" });
     expect(guardados).toEqual([]);
+  });
+});
+
+describe("el «yo» de las herramientas (buscarPersona) sigue la misma regla que la ficha", () => {
+  const casos = [
+    ["marcada", casa({ accountMemberIdByUser: { u1: "i" } }), "Pablo", "editor"],
+    ["deducida", casa(), "Pablo Artiñano", "owner"],
+    ["deducida, lector (no se guarda, pero es él)", casa(), "Pablo", "viewer"],
+    ["desmarcada", casa({ accountMemberIdByUser: { u1: null } }), "Pablo", "owner"],
+    ["nadie", casa(), "Manu", "owner"],
+  ];
+  it.each(casos)("%s", (_, data, autor, papel) => {
+    const quien = { userId: "u1", autor, papel };
+    expect(buscarPersona(data, "yo", quien).persona).toBe(personaQueEscribe(data, quien).persona);
   });
 });
