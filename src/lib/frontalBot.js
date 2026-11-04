@@ -48,6 +48,10 @@ export const BOT_URL = "https://t.me/homenuers_bot";
  * nada más abrirse, como si se lo hubieran escrito.
  */
 let abriendo = false;
+
+/** El botón de todo lo que antes generaba un menú en la app: el menú solo se genera desde Lola (#1210, 4 nov 2026). */
+export const PIDESELO_A_LOLA = "Pídeselo a Lola";
+
 export async function abrirLola(pedido = null) {
   // `onClick={abrirLola}` pasa el evento del clic: eso no es un pedido.
   if (typeof pedido !== "string") pedido = null;

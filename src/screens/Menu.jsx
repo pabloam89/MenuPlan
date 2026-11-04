@@ -141,7 +141,7 @@ import { ShareMenuSheet } from "../components/ShareMenuSheet.jsx";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
 import { BasesPreferidas } from "../components/BasesPreferidas.jsx";
 import { MenuCoachTour, CoachHelpButton } from "../components/HomeCoachTour.jsx";
-import { FRONTAL_BOT, GUIAS_ACTIVAS, GENTE_ACTIVA, abrirLola } from "../lib/frontalBot.js";
+import { FRONTAL_BOT, GUIAS_ACTIVAS, GENTE_ACTIVA, PIDESELO_A_LOLA, abrirLola } from "../lib/frontalBot.js";
 import { pedidoCambiar, pedidoMenu } from "../lib/pedidoLola.js";
 import lolaFoto from "../assets/lola/lola-perfil.jpg";
 import { RestrictionConflictBanner } from "../components/RestrictionConflictBanner.jsx";
@@ -6136,7 +6136,7 @@ export const MenuScreen = memo(function MenuScreen({
                     !FRONTAL_BOT && hasMenu && onPublishToFeed && { key: "feed", label: menuSharedInFeed ? "Menú publicado" : "Publicar en Gente", Icon: Users, action: () => setPublishSheetOpen(true), tint: "#e6efff", ink: "#4a6fd4" },
                     hasMenu && { key: "share", label: "Compartir fuera", Icon: Share2, action: handleShare, tint: "#e0f4f1", ink: "#0d9488" },
                     hasMenu && { key: "download", label: "Descargar PDF", Icon: Download, action: handleDownload, tint: "#fdf0e0", ink: "#d97706" },
-                    !isGenerating && !readOnly && onRegenerate && { key: "regen", label: "Regenerar menú", Icon: RotateCw, action: onRegenerate, tint: "#e6f6ec", ink: "#16a34a" },
+                    !isGenerating && !readOnly && onRegenerate && { key: "regen", label: PIDESELO_A_LOLA, Icon: RotateCw, action: onRegenerate, tint: "#e6f6ec", ink: "#16a34a" },
                   ]
                     .filter(Boolean)
                     .map((a, i, arr) => (

@@ -1,4 +1,5 @@
 import { FRONTAL_BOT, GUIAS_ACTIVAS, GENTE_ACTIVA, abrirLola, avisarAltaALola } from "./lib/frontalBot.js";
+import { pedidoMenu } from "./lib/pedidoLola.js";
 import { cerrarAlta, MOTIVO } from "./lib/altaGuardada.js";
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { LogOut, RotateCcw, AlertTriangle, Trash2, Check, Play, Eraser, X } from "./components/icons.jsx";
@@ -77,7 +78,7 @@ import { FeedScreen } from "./screens/FeedScreen.jsx";
 import { buildShoppingList } from "./lib/shoppingBuilder.js";
 import { clearPreparedFromSlot } from "./lib/freezer.js";
 import { normalizeIngredientKey } from "./lib/ingredientCategories.js";
-import { compraQueSeVe, compraParaGuardar, cambiarCompra, compraAlGenerar, articulosDe } from "./lib/compraMarcas.js";
+import { compraQueSeVe, compraParaGuardar, cambiarCompra, compraAlGenerar, compraNueva, articulosDe } from "./lib/compraMarcas.js";
 import { getDayMeals, getMeals, ALL_DAY_MEALS, DAYS } from "./lib/planner.js";
 import { estructuraDelGrupo } from "./lib/estructuraPlatos.js";
 import { estimarSemana, frasePresupuesto } from "./lib/presupuesto.js";
@@ -237,7 +238,7 @@ import { RASTRO, MOTIVO_CAMBIO, ORIGEN_RECETA, idBase } from "./lib/rastro.js";
 
 /** La receta de un hueco, para las señales (trozo 15): la registrada o, sin ella, la del catálogo por su id. */
 const recetaDelPlato = (id) => (id ? RECIPES_BY_ID[id] ?? recipeCatalogById[idBase(id)] ?? null : null);
-import { registrarDescartes, recetasDelPlan, refrescarDescartadas } from "./lib/descartes.js";
+import { registrarDescartes, refrescarDescartadas } from "./lib/descartes.js";
 import { ALCANCE_DESCARTE, CANAL_DATO } from "./lib/vocabularios.js";
 import { barrerDias } from "./lib/barridoDia.js";
 import { loadPantry, loadLocalPantry, mergeLocalPantryIntoCloud, clearLocalPantry, clearHouseholdPantry, addPantryItems, addLocalPantryItems, removePantryItem, removeLocalPantryItem, setPantryItemQty, setLocalPantryItemQty } from "./lib/pantry.js";
@@ -2702,18 +2703,10 @@ export default function App() {
     }
   }, [data, showToast, pararSiFaltanMinimos, apuntarMenu, menusHechos]);
 
-  // El último plan ya apuntado como descartado: dos pulsaciones seguidas sobre el mismo plan
-  // no cuentan dos veces lo que solo se tira una.
-  const planDescartadoRef = useRef(null);
-  const handleRegenerate = useCallback(async () => {
-    const antes = menuPlan;
-    // regenerateMenu devuelve true solo si el menú nuevo llegó a generarse: si falla o se
-    // aborta, el menú de antes sigue ahí y no se ha tirado nada.
-    const generado = await regenerateMenu();
-    if (generado !== true || planDescartadoRef.current === antes) return;
-    planDescartadoRef.current = antes;
-    registrarDescartes({ user, householdId: casaActivaRef.current, recetaIds: recetasDelPlan(antes), ambito: ALCANCE_DESCARTE.MENU });
-  }, [regenerateMenu, user, menuPlan]);
+  // El menú solo se genera desde Lola (#1210, Pablo, 4 nov 2026): «Regenerar», el aviso de restricciones y
+  // «Platos nuevos» se lo piden a ella, que pregunta para cuándo y cómo de a fondo. Los platos del menú que se
+  // tira ya no se apuntan como descartes (ALCANCE_DESCARTE.MENU): eso lo hacía este botón, y Lola aún no.
+  const handleRegenerate = useCallback(() => abrirLola(pedidoMenu("esta")), []);
 
 
   // ── Ad-hoc individual menus ──────────────────────────────────────────────
@@ -2871,13 +2864,9 @@ export default function App() {
     }
   }, [pendingInvite, user?.id, screen]);
 
-  // `destino`: el fin del alta deja en Inicio (el menú se genera igual, por
-  // detrás, y el «Hoy toca» se rellena al llegar); el resto, al Menú.
-  // `generar: false`: el alta que vino de Lola. El menú se le pide a ella
-  // (lo ofrece en su chat), no sale solo sin esperarlo.
-  // `datos`: la casa con la que se genera, si el clic que trae aquí acaba de
-  // cambiarla (el setData de ese clic aún no ha llegado a `data`).
-  const goToMenu = async (destino = "menu", { generar = true, datos } = {}) => {
+  // `destino`: el fin del alta deja en Inicio; el resto, al Menú. Aquí ya no se
+  // genera nada: el menú se le pide a Lola (#1210), también tras el alta.
+  const goToMenu = async (destino = "menu") => {
     // Hard gate: no menu without at least one family member. The family step's
     // "Siguiente" is already blocked, but the progress-dot jump skips it (and any
     // later step's "Generar menú" would otherwise reach the planner), so the AI
@@ -2900,7 +2889,6 @@ export default function App() {
         onboarding_step_max: onbStep,
       });
     }
-    if (generar) await regenerateMenu(datos);
   };
 
   const goToDashboard = useCallback(() => fwd(() => setScreen("dashboard")), []);
@@ -3217,7 +3205,7 @@ export default function App() {
     antesDePizarraRef.current.menuNuevoId = newMenu.id;
 
     setMenuPlan(firstWeekPlan);
-    setShopping({ items: [] });
+    setShopping(compraNueva());
 
     const keepHistory = Boolean(user);
     const foldedMenus = foldInNewMenu(data.menus, newMenu, { keepHistory });
@@ -3750,16 +3738,9 @@ export default function App() {
       return;
     }
 
-    // Fresh dishes: reuse only the logistics, regenerate for the new dates.
-    await regenerateMenu({
-      ...data,
-      schedule: oldSchedule,
-      menuWeekOffsets: Array.from({ length: count }, (_, i) => i),
-      menuScheduleSameForAllWeeks: true,
-      menuWeek: { offset: 0, startDayIdx },
-    });
-    fwd(() => setScreen("menu"));
-  }, [data, regenerateMenu, showToast, user, pararSiFaltanMinimos, apuntarMenu]);
+    // Platos nuevos: un menú generado, y eso solo lo hace Lola (#1210).
+    handleRegenerate();
+  }, [data, showToast, user, pararSiFaltanMinimos, apuntarMenu, handleRegenerate]);
 
   // Opens a history entry in the read-only viewer — same lazy-detail fetch as
   // reuseMenu, since a history row hydrated from the cloud read-preference may
@@ -6199,9 +6180,8 @@ export default function App() {
                 if (desdeLola && !r.avisado) showToast("Guardado. Si Lola no te escribe, dile «ya está» en Telegram");
                 altaDesdeLolaRef.current = false;
                 setFirstRunOnboarding(false);
-                // Con la casa ya revisada, no con `data`: es de antes del
-                // clic y el motor esquivaría los 14 alérgenos.
-                fwd(() => goToMenu("dashboard", { generar: !desdeLola, datos: revisada }));
+                // Sin menú: se le pide a Lola desde Inicio (#1210).
+                fwd(() => goToMenu("dashboard"));
               }
             : nextOf(2)
       }
@@ -6215,7 +6195,7 @@ export default function App() {
           ? () => back(() => { setScreen(editPreferencesOrigin); setEditPreferencesOrigin(null); })
           : firstRunOnboarding
             ? undefined
-            : (revisada) => fwd(() => goToMenu("menu", { datos: revisada }))
+            : () => fwd(() => goToMenu("menu"))
       }
       onReset={handleAbandonOnboarding}
       {...(editPreferencesOrigin ? { finishLabel: "Guardar" } : {})}

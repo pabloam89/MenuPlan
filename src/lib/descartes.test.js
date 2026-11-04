@@ -15,7 +15,7 @@ const from = vi.fn(() => ({ insert, select: () => cadena }));
 vi.mock("./supabase.js", () => ({ supabase: { from: (...a) => from(...a) } }));
 vi.mock("./analytics.js", () => ({ getAnonId: () => "3f2b8c1e-7a4d-4e0b-9c5a-1d2e3f4a5b6c" }));
 
-import { filasDeDescartes, recetasDelPlan, refrescarDescartadas, registrarDescartes } from "./descartes.js";
+import { filasDeDescartes, refrescarDescartadas, registrarDescartes } from "./descartes.js";
 import { descartadasVigentes, fijarDescartadas } from "./descartesPrioridad.js";
 import { MAX_DESCARTES, RECETA_ID_MAX, RECETA_ID_RE } from "./descartesForma.js";
 import { ALCANCES_DESCARTE, ALCANCE_DESCARTE } from "./vocabularios.js";
@@ -72,20 +72,6 @@ describe("filasDeDescartes", () => {
 
   it("los alcances con nombre son los del vocabulario", () => {
     expect(Object.values(ALCANCE_DESCARTE)).toEqual(ALCANCES_DESCARTE);
-  });
-});
-
-describe("recetasDelPlan", () => {
-  it("junta primer y segundo plato de todos los grupos y salta los huecos vaciados", () => {
-    const plan = {
-      g1: {
-        "Lun-Comida": { firstRecipeId: "a_1", recipeId: "b_2" },
-        "Lun-Cena": { recipeId: "c_3", cleared: true },
-      },
-      g2: { "Mar-Comida": { recipeId: "d_4" } },
-    };
-    expect(recetasDelPlan(plan)).toEqual(["a_1", "b_2", "d_4"]);
-    expect(recetasDelPlan(undefined)).toEqual([]);
   });
 });
 

@@ -382,7 +382,7 @@ function ReuseMenuSheet({ menu, onClose, onConfirm }) {
               boxShadow: "0 8px 20px rgba(45,90,61,.25)",
             }}
           >
-            <Sparkles size={15} /> Platos nuevos
+            <Sparkles size={15} /> Platos nuevos, con Lola
           </button>
         </div>
       </div>
