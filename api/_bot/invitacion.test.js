@@ -33,6 +33,14 @@ beforeEach(() => {
 });
 
 describe("entrar con una invitación desde Telegram", () => {
+  it("un privado de otra casa y otra cuenta: ocupado, se apunta (#1238) y no se entra", async () => {
+    base.bot_chats = [{ chat_id: "c77", household_id: "otra", linked_by: "otro" }];
+    const r = await unirsePorInvitacion({ from: { id: 77 }, chatId: "c77", token: TOKEN });
+    expect(r.householdId).toBeNull();
+    expect((base.bot_enlaces ?? []).map((e) => `${e.camino_enlace}:${e.resultado_enlace}`)).toEqual(["invitacion:ocupado"]);
+    expect(creadas).toEqual([]);
+  });
+
   it("el enlace se reconoce, y nada más", () => {
     expect(ES_INVITACION.test(`inv_${TOKEN}`)).toBe(true);
     expect(ES_INVITACION.test("inv_hola")).toBe(false);

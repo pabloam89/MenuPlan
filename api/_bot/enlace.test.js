@@ -12,6 +12,8 @@ vi.mock("./db.js", () => ({
   }),
   insert: vi.fn(async (tabla, nuevas) => {
     filas[tabla] = filas[tabla] ?? [];
+    // El registro de enlaces es de solo añadir.
+    if (tabla === "bot_enlaces") { filas[tabla].push(...nuevas); return; }
     for (const n of nuevas) {
       const clave = n.chat_id ?? n.external_id;
       filas[tabla] = filas[tabla].filter((f) => (f.chat_id ?? f.external_id) !== clave).concat(n);
@@ -21,12 +23,16 @@ vi.mock("./db.js", () => ({
 vi.mock("./telegram.js", () => ({ enviar: vi.fn(), escaparHtml: (s) => s, TECLADO: {} }));
 vi.mock("./embudo.js", () => ({ registrar: vi.fn(), EMBUDO: {} }));
 
-const { enlazarChat, idDePersona, codigoDeGrupo, codigoNuevo, esCodigoDeGrupo } = await import("./enlace.js");
+const { enlazarChat, idDePersona, codigoDeGrupo, codigoNuevo, esCodigoDeGrupo, apuntarEnlace, resultadoDeEnlace } = await import("./enlace.js");
+const { CAMINO_ENLACE, RESULTADO_ENLACE } = await import("../../src/lib/vocabularios.js");
+const { readFileSync, readdirSync } = await import("node:fs");
+const { join, resolve } = await import("node:path");
 
 const TITULAR = "u-titular";
 const ASISTENTA = "u-asistenta";
 const identidadDe = (tg) => filas.bot_identities?.find((f) => f.external_id === String(tg))?.user_id ?? null;
-const enlazar = (args) => enlazarChat({ chatId: "c1", householdId: "h1", nombre: "x", ...args });
+const enlazar = (args) => enlazarChat({ camino: CAMINO_ENLACE.APP, chatId: "c1", householdId: "h1", nombre: "x", ...args });
+const resultados = () => (filas.bot_enlaces ?? []).map((f) => f.resultado_enlace);
 
 beforeEach(() => {
   filas = {};
@@ -103,5 +109,48 @@ describe("códigos de /grupo", () => {
       }
     }
     expect(malos).toEqual([]);
+  });
+});
+
+describe("cada intento de enlace queda apuntado (bot_enlaces, #1238)", () => {
+  it("nuevo, ya estaba y casa cambiada, según cómo estaba el chat", async () => {
+    await enlazar({ chatId: "p1", kind: "private", userId: TITULAR, externalId: "555", identidad: null });
+    await enlazar({ chatId: "p1", kind: "private", userId: TITULAR, externalId: "555", identidad: null });
+    await enlazar({ chatId: "p1", kind: "private", householdId: "h2", userId: TITULAR, externalId: "555", identidad: null });
+    expect(resultados()).toEqual([RESULTADO_ENLACE.NUEVO, RESULTADO_ENLACE.YA_ESTABA, RESULTADO_ENLACE.CASA_CAMBIADA]);
+    expect(filas.bot_enlaces[0]).toEqual({ camino_enlace: "app", resultado_enlace: "nuevo", household_id: "h1", user_id: TITULAR });
+  });
+
+  it("un chat de otra casa y otra cuenta: rechazado como ocupado, y también se apunta", async () => {
+    await enlazar({ chatId: "p1", kind: "private", userId: TITULAR, externalId: "555", identidad: null });
+    const r = await enlazar({ chatId: "p1", kind: "private", householdId: "h2", userId: ASISTENTA, externalId: "556", identidad: null });
+    expect(r.ocupado).toBe(true);
+    expect(resultados()).toEqual([RESULTADO_ENLACE.NUEVO, RESULTADO_ENLACE.OCUPADO]);
+  });
+
+  it("si el Telegram ya es de otra cuenta, el enlace se hace y se apunta como identidad_de_otra", () => {
+    expect(resultadoDeEnlace(null, "h1", "de-otra")).toBe(RESULTADO_ENLACE.IDENTIDAD_DE_OTRA);
+    expect(resultadoDeEnlace(null, "h1", "nueva")).toBe(RESULTADO_ENLACE.NUEVO);
+  });
+
+  it("sin camino no se apunta nada y el enlace sigue (se avisa del fallo)", async () => {
+    const r = await enlazarChat({ chatId: "p9", kind: "private", householdId: "h1", userId: TITULAR, externalId: "557", identidad: null });
+    expect(r.ok).toBe(true);
+    expect(filas.bot_enlaces ?? []).toEqual([]);
+    await apuntarEnlace({ camino: "otro", resultado: RESULTADO_ENLACE.NUEVO });
+    expect(filas.bot_enlaces ?? []).toEqual([]);
+  });
+
+  it("toda llamada a enlazarChat en api/ dice su camino", () => {
+    const raiz = resolve(import.meta.dirname, "..");
+    const llamadas = [];
+    for (const d of ["_bot", "bot"]) {
+      for (const f of readdirSync(join(raiz, d)).filter((x) => x.endsWith(".js") && !x.endsWith(".test.js"))) {
+        const texto = readFileSync(join(raiz, d, f), "utf8");
+        for (const m of texto.matchAll(/(?<!function )enlazarChat\(\{([\s\S]*?)\}\)/g)) llamadas.push({ f: `${d}/${f}`, camino: /\bcamino\b/.test(m[1]) });
+      }
+    }
+    expect(llamadas.length).toBeGreaterThanOrEqual(6);
+    expect(llamadas.filter((l) => !l.camino).map((l) => l.f)).toEqual([]);
   });
 });
