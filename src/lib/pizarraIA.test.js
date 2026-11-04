@@ -18,7 +18,9 @@ function pick(_data, plan, { groupId, day, meal, course, forcedRecipe, candidato
   const usados = new Set(Object.values(plan[groupId]).flatMap((s) => [s.recipeId, s.firstRecipeId]).filter(Boolean));
   if (candidatos) return { candidatos: CATALOGO.filter((r) => !usados.has(r.id)).slice(0, candidatos) };
   const r = forcedRecipe ?? CATALOGO.find((x) => !usados.has(x.id));
-  return r ? { frontendRecipe: { id: r.id, name: r.name }, recipeId: r.id, course } : null;
+  // Como el de verdad, trae lo que se escribe en el hueco (#1246, paso 2b).
+  const hueco = course === "first" ? { firstRecipeId: r?.id, primeroDe: r?.id } : { recipeId: r?.id, platoDe: r?.id };
+  return r ? { frontendRecipe: { id: r.id, name: r.name }, recipeId: r.id, course, hueco } : null;
 }
 
 function planVacio() {
