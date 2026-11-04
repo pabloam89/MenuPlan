@@ -31,9 +31,12 @@ metadata:
   - **`Private`**: lo personal de Pablo. Ninguna sesión escribe aquí, y la
     service account no la ve.
   - **`Shared`** («Compartida»): de la familia, no del proyecto.
-- **`.env.local` guarda direcciones, no claves.** La plantilla es
-  `ops/env.1password`. Al abrir una carpeta de trabajo se copia el `.env.local` de la
-  carpeta principal (CLAUDE.md), así que cada worktree hereda las direcciones.
+- **Las direcciones viven en git, en `ops/env.1password`**, y las lee
+  `direcciones()` de `scripts/lib/env.mjs`: ninguna carpeta copia nada. Un
+  `.env.local` es opcional y solo añade lo de un PC (un valor en claro de
+  prueba, las claves de administración de Pablo); una dirección suya distinta de
+  la plantilla se ignora con la línea `env-direcciones: …` (ver «Lo que falló»,
+  4 nov). En el CI y en Vercel no se usa la plantilla.
 - **Quién las resuelve**: `scripts/lib/env.mjs` (`leerEnv`, `cargarEnv`) en los
   scripts y `vite.config.js` en la app. En los tests no se resuelven: corren
   sin claves, como en el CI.
@@ -98,7 +101,8 @@ metadata:
 
 | Qué | Comando | Debe salir |
 |---|---|---|
-| Worktree nuevo sin `.env.local` | `cp ops/env.1password .env.local` | un `.env.local` con líneas `NOMBRE=op://…` |
+| Worktree nuevo | nada: las direcciones salen de `ops/env.1password` | los scripts leen sin `.env.local` |
+| Sale `env-direcciones: .env.local nombra otra dirección para …` | borra esas líneas de ese `.env.local` (o el fichero entero, si solo tenía direcciones) | sin la línea; cada clave, una lectura |
 | Leer una clave desde un script nuevo | `leerEnv("NOMBRE")` de `scripts/lib/env.mjs`; nunca un `readFileSync(".env.local")` propio | el valor en memoria; en pantalla nada |
 | Lanzar algo que lee `process.env` (`node --env-file`, `vercel`…) | `npm run op -- run --env-file=.env.local -- <comando>` | el comando corre; si imprime una clave, sale `<concealed by 1Password>` |
 | Comprobar que una clave está bien | comparar a ciegas (`valor === otro`) e imprimir solo el sí o el no | `COINCIDEN` o `NO COINCIDEN`, nunca el valor |
@@ -132,6 +136,12 @@ niega `guardia-minima.mjs`), están en `.claude/skills/1password/referencias/bov
   lanzaron consultas en bucle con reintentos propios sin leer esta skill. Arreglo: `env.mjs` apunta la ruta en `~/.menuplan/op-rutas.json`. Antes: 3
   lecturas por consulta; después: 1 (`scripts/lib/env.test.js`). Antes de un bucle contra la base, mira `npm run op -- service-account ratelimit` y, si falla
   una lectura, para: reintentar gasta cupo de todas las sesiones.
+  La raíz, medida esa noche: las 186 carpetas de `C:\dev\MenuPlan*` tenían un `.env.local` con las 17 direcciones a la bóveda de Pablo, porque
+  cada carpeta nueva copiaba el de la principal (CLAUDE.md) y la plantilla, que ya apuntaba a HoMenu-sesiones desde #328, no la leía nadie. El
+  respaldo entre bóvedas hacía que todo funcionara, así que el error solo se veía en el cupo. Arreglo: las direcciones salen de `ops/env.1password`
+  (`direcciones()`); una de `.env.local` distinta de la plantilla se ignora y se avisa, y CLAUDE.md ya no manda copiar nada. Medido con `direcciones()` sobre cada
+  `.env.local` de `C:\dev\MenuPlan*` (sin llamar a `op`): carpetas que piden alguna clave de la plantilla a otra bóveda, antes 186 de 186, después 0,
+  sin tocar ningún `.env.local`.
 
 - **2026-11-03 · cupo de la cuenta agotado (1000 lecturas al día) de madrugada; sin base ni GitHub hasta que se reinició, por la mañana.**
   Causa, del registro `~/.menuplan/op-lecturas.jsonl`: el 2 nov (día de Madrid) este PC gastó 1015 claves en 823 lecturas; 612 de `vite.js` (arrancar o

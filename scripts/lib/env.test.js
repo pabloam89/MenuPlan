@@ -29,7 +29,7 @@ vi.mock("node:child_process", () => ({
   },
 }));
 
-const { cargarEnv, enOtraBoveda, esReferencia, leerEnv, leerFichero, opPorLaApp, MOTIVOS_AVISO, VAR_OP_PABLO } = await import("./env.mjs");
+const { cargarEnv, direcciones, enOtraBoveda, esReferencia, leerEnv, leerFichero, opPorLaApp, MOTIVOS_AVISO, VAR_OP_PABLO } = await import("./env.mjs");
 
 const NOMBRES = ["PRUEBA_A", "PRUEBA_B", "PRUEBA_C", "PRUEBA_LLANA", "PRUEBA_D", "PRUEBA_E", "PRUEBA_F", "PRUEBA_G"];
 beforeEach(() => {
@@ -53,6 +53,59 @@ describe("leerFichero", () => {
 
   it("sin fichero, vacío (el CI no tiene .env.local)", () => {
     expect(leerFichero(join(tmpdir(), "no-existe", ".env.local"))).toEqual({});
+  });
+});
+
+describe("direcciones: la plantilla de git manda, .env.local solo añade lo de cada PC", () => {
+  const SESIONES = "op://HoMenu-sesiones/Supabase lectura/URL";
+  const VIEJA = "op://HoMenu/Supabase lectura/URL";
+  const ADMIN = "op://HoMenu/Supabase/ADMIN";
+  function ficheros(local) {
+    const dir = mkdtempSync(join(tmpdir(), "dir-"));
+    writeFileSync(join(dir, "plantilla"), `# comentario\nLECTURA=${SESIONES}\nOTRA=op://HoMenu-sesiones/X/OTRA\n`);
+    if (local !== undefined) writeFileSync(join(dir, ".env.local"), local);
+    return { plantilla: join(dir, "plantilla"), local: join(dir, ".env.local"), entorno: {} };
+  }
+
+  it("sin .env.local, las de la plantilla (una carpeta nueva no copia nada)", () => {
+    expect(direcciones(ficheros())).toEqual({ LECTURA: SESIONES, OTRA: "op://HoMenu-sesiones/X/OTRA" });
+  });
+
+  it("una dirección vieja de .env.local no pisa a la plantilla, y lo avisa con su nombre y sin la dirección", () => {
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      const d = direcciones(ficheros(`LECTURA=${VIEJA}\nADMIN=${ADMIN}\n`));
+      expect(d.LECTURA).toBe(SESIONES);
+      expect(d.ADMIN).toBe(ADMIN);
+      expect(err).toHaveBeenCalledTimes(1);
+      expect(err.mock.calls[0][0]).toMatch(/env-direcciones: .*LECTURA/);
+      expect(err.mock.calls[0][0]).not.toContain("op://");
+    } finally {
+      err.mockRestore();
+    }
+  });
+
+  it("un valor en claro de .env.local sí manda (una prueba a mano), y la misma dirección no avisa", () => {
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      expect(direcciones(ficheros(`LECTURA=postgres://a-mano\nOTRA=op://HoMenu-sesiones/X/OTRA\n`)).LECTURA).toBe("postgres://a-mano");
+      expect(err).not.toHaveBeenCalled();
+    } finally {
+      err.mockRestore();
+    }
+  });
+
+  it("en el CI y en Vercel no hay plantilla: solo lo que hubiera en .env.local", () => {
+    for (const entorno of [{ CI: "true" }, { VERCEL: "1" }]) {
+      expect(direcciones({ ...ficheros(), entorno })).toEqual({});
+    }
+  });
+
+  it("la plantilla de verdad solo nombra HoMenu-sesiones: lo que lee una carpeta nueva lo ve la cuenta de las sesiones", () => {
+    const d = direcciones({ local: join(tmpdir(), "no-existe", ".env.local"), entorno: {} });
+    const refs = Object.values(d).filter(esReferencia);
+    expect(refs.length).toBeGreaterThan(0);
+    expect(refs.filter((r) => !r.startsWith("op://HoMenu-sesiones/"))).toEqual([]);
   });
 });
 
