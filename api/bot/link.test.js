@@ -21,6 +21,8 @@ vi.mock("../_bot/rapido.js", () => ({ recordar: vi.fn(async () => {}) }));
 const { default: handler, AVISO_ALTA } = await import("./link.js");
 const { BOTONES_CAMINO_TELEGRAM, PREGUNTA_DE_CAMINO } = await import("../_bot/caminoMenu.js");
 const { recordar } = await import("../_bot/rapido.js");
+const { insert } = await import("../_bot/db.js");
+const { codigoGrupo, codigoBot } = await import("../../src/lib/ids.js");
 
 function llama(body, token = "bueno") {
   const res = { code: 0, json: (j) => { res.cuerpo = j; return res; }, status: (c) => { res.code = c; return res; } };
@@ -91,5 +93,29 @@ describe("enlace desde la app nativa (CORS)", () => {
   it("desde otro origen no se añade ninguna cabecera", async () => {
     const res = await conOrigen("GET", "https://evil.example");
     expect(res.cabeceras["Access-Control-Allow-Origin"]).toBeUndefined();
+  });
+});
+
+// El enlace de «añadir al grupo» se reenvía: con el mismo código que el del privado, quien lo recibiera lo abriría en su
+// privado y su Telegram pasaría a ser esta cuenta (specs/auth.md §7, trozo 3). Cada uno lleva su código.
+describe("«Conectar Telegram»: el enlace del grupo no abre un privado", () => {
+  const codigoDe = (url, param) => new URL(url).searchParams.get(param);
+
+  it("el del grupo lleva un código de grupo, distinto del del privado", async () => {
+    const res = await llama({});
+    const privado = codigoDe(res.cuerpo.privado, "start");
+    const grupo = codigoDe(res.cuerpo.grupo, "startgroup");
+    expect(grupo).not.toBe(privado);
+    expect(codigoGrupo.es(grupo)).toBe(true);
+    expect(codigoGrupo.es(privado)).toBe(false);
+    expect(codigoBot.es(privado)).toBe(true);
+    expect(insert.mock.calls[0][1].map((f) => f.token)).toEqual([privado, grupo]);
+  });
+
+  it("quien no puede enlazar un grupo recibe solo el del privado", async () => {
+    t.tablas.household_members = [{ role: "viewer" }];
+    const res = await llama({});
+    expect(res.cuerpo.grupo).toBe(null);
+    expect(insert.mock.calls[0][1]).toHaveLength(1);
   });
 });
