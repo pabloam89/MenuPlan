@@ -492,6 +492,10 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
       "ricoHierro"
      ],
      "description": "Opcional: un perfil del plato entero, varios nutrientes a la vez. equilibrado = equilibrado; altoProteina = alto en proteína; despuesEntrenar = para después de entrenar; antesEntrenar = para antes de entrenar; ligeroQueSacie = ligero pero que sacie; bajoSal = bajo en sal; ricoHierro = rico en hierro. «Más completo», «que tenga de todo», «un compendio de proteína, grasa e hidratos» → equilibrado. Solo para el plato principal."
+    },
+    "repetir_vecinos": {
+     "type": "boolean",
+     "description": "Opcional: true si piden que valga repetir lo de los días de al lado (el botón «Repetir con los días de al lado»): entran las proteínas que la respuesta dio por EXCLUIDAS."
     }
    },
    "additionalProperties": false

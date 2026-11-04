@@ -3351,6 +3351,36 @@
         "proponer_platos": "Opciones para la cena. Ahora mismo: Shakshuka (25 min, facil). Qué es (si lo preguntan, contéstalo antes de nada): Huevos escalfados hundidos en una salsa de tomate y pimiento especiada, para mojar pan.\n1. Merluza en salsa verde (25 min, facil)\n2. Crema de puerros con picatostes (30 min, facil)\n3. Pollo al horno con patatas (45 min, facil)\nNada está cambiado aún: para poner una, cambiar_plato con receta = su nombre."
       },
       "texto": "huevo[\\s\\S]*\\[\\[Elige tú\\]\\]"
+    },
+    {
+      "id": "alternativas-dicen-por-que-y-no-repiten",
+      "tipo": "multiturno",
+      "dominio": "menu",
+      "origen": "fallo_produccion",
+      "dependeDeFecha": true,
+      "nombre": "«más variado» tras unas opciones de huevo: dice el porqué real (los días de al lado), no las da por nuevas y ofrece soltarlo (4 nov 2026)",
+      "historia": [
+        {
+          "role": "user",
+          "content": "cámbiame la shakshuka del sábado por algo con más hidratos"
+        },
+        {
+          "role": "assistant",
+          "content": "👉 Para la <b>cena del sábado</b> te encajan:\n• <b>Lentejas con verduras</b>, 45 min\n• <b>Pisto con huevo y patatas fritas</b>, 40 min\n• <b>Ensalada de pasta mediterránea</b>, 15 min\n• <b>Arroz blanco con tomate frito, huevo frito y plátano</b>, 25 min\n\n¿Cuál te pongo?\n[[Lentejas con verduras]]\n[[Pisto con huevo]]\n[[Ensalada de pasta]]\n[[Elige tú]]"
+        }
+      ],
+      "entrada": "mmm algo más variado",
+      "llama": [
+        "proponer_platos"
+      ],
+      "noLlama": [
+        "cambiar_plato",
+        "generar_menu"
+      ],
+      "respuestas": {
+        "proponer_platos": "Opciones para el sábado 10, cena. Ahora mismo: Shakshuka de huevos poché en salsa de tomate (25 min, facil).\n1. Garbanzos especiados con espinacas y piñones (25 min, facil)\n2. Tortilla francesa rellena de queso y espinacas (10 min, facil)\n3. Pasta rápida con tomate cherry, ajo y albahaca (20 min, facil)\n4. Sopa de cocido con fideos finos (20 min, facil)\nEXCLUIDO (dilo en una frase, con estas palabras, sin inventar otro motivo): No repito lo de los días de al lado: el viernes hay pescado blanco y cerdo, y el domingo pollo. Ofrece el botón [[Repetir con los días de al lado]]: proponer_platos con repetir_vecinos.\nREPETIDA: casi todas eran las de tu último mensaje: estas son otras, sin las ya dadas. Dilo.\nNada está cambiado aún: para poner una, cambiar_plato con receta = su nombre."
+      },
+      "texto": "(d[ií]as de al lado|viernes)[\\s\\S]*\\[\\[Repetir con los d[ií]as de al lado\\]\\]"
     }
   ]
 }
