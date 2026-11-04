@@ -5836,7 +5836,7 @@ export default function App() {
   // entero, no se baja nada y se dice.
   const handleExportarCasa = useCallback(async () => {
     try {
-      const texto = await pedirExportacion({ casa: syncHouseholdId, token: session?.access_token, url: apiUrl });
+      const texto = await pedirExportacion({ casa: syncHouseholdId, token: session?.access_token });
       const enlace = document.createElement("a");
       enlace.href = URL.createObjectURL(new Blob([texto], { type: "application/json" }));
       enlace.download = nombreDelFichero();

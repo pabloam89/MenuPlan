@@ -6,8 +6,8 @@ const respuesta = (status, cuerpo) => ({ ok: status >= 200 && status < 300, stat
 describe("descargar los datos de la casa", () => {
   it("pide la exportación de esa casa con el token y devuelve el JSON entero", async () => {
     const pedir = vi.fn(async () => respuesta(200, { formato: 1, casa: "c1", tablas: { persona: { filas: [], cortada: false } } }));
-    const texto = await pedirExportacion({ casa: "c1", token: "tok", pedir, url: (r) => `https://x${r}` });
-    expect(pedir).toHaveBeenCalledWith(`https://x${rutaDeExportar("c1")}`, { headers: { Authorization: "Bearer tok" } });
+    const texto = await pedirExportacion({ casa: "c1", token: "tok", pedir });
+    expect(pedir).toHaveBeenCalledWith(rutaDeExportar("c1"), { headers: { Authorization: "Bearer tok" } });
     expect(JSON.parse(texto)).toMatchObject({ casa: "c1", tablas: { persona: { filas: [] } } });
   });
 
@@ -25,5 +25,7 @@ describe("descargar los datos de la casa", () => {
   it("la ruta lleva la casa y exportar; el fichero, la fecha", () => {
     expect(rutaDeExportar("c 1")).toBe("/api/operacion?casa=c%201&exportar=1");
     expect(nombreDelFichero(new Date("2026-11-04T10:00:00Z"))).toBe("homenu-mis-datos-2026-11-04.json");
+    // la fecha es la de Madrid: a las 23:30 UTC del 4 ya es día 5 en casa
+    expect(nombreDelFichero(new Date("2026-11-04T23:30:00Z"))).toBe("homenu-mis-datos-2026-11-05.json");
   });
 });
