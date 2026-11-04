@@ -8,8 +8,7 @@
  * Cuenta cada intento por camino y por resultado (los dos de su lista cerrada, src/lib/vocabularios.js); las
  * cuentas que intentan enlazar desde más de una casa (el síntoma de #1238: la app en una casa y Lola en otra); y las
  * cuentas que se quedaron fuera: rechazadas al menos una vez y sin ningún enlace hecho después. Es la cifra que
- * #1238 quiere en 0 (el 4 nov 2026, deducida a mano de bot_link_tokens: 3 cuentas). Sin ids en la salida: solo
- * cifras (el repo es público).
+ * #1238 quiere en 0. Sin ids en la salida: solo cifras (el repo es público).
  *
  * Mismas barreras que scripts/consulta.mjs: el usuario de solo lectura y una transacción read only.
  */
