@@ -708,7 +708,7 @@ describe("api/operacion.js: los menús generados (trozo 22) van a menu_generado"
 
   it("GET ?menus=1: los últimos, del más viejo al más nuevo, a quien es de la casa", async () => {
     responde(/household_members/, { status: 200, cuerpo: [{ role: "viewer" }] });
-    responde(/^\/rest\/v1\/menu_generado/, { status: 200, cuerpo: [{ generado_at: "2026-11-04T10:00:00+00:00" }, { generado_at: "2026-10-28T10:00:00+00:00" }] });
+    responde(/^\/rest\/v1\/menu_generado/, { status: 200, cuerpo: [{ created_at: "2026-11-04T10:00:00+00:00" }, { created_at: "2026-10-28T10:00:00+00:00" }] });
     const res = await leer({ casa: CASA, menus: "1" });
     expect(res.codigo).toBe(200);
     expect(res.body).toEqual({ menus: ["2026-10-28T10:00:00+00:00", "2026-11-04T10:00:00+00:00"] });

@@ -7,8 +7,8 @@ import { MENUS_QUE_SE_LEEN } from "../../src/lib/menusGenerados.js";
 
 /** Cuándo se generaron los últimos menús de la casa (ISO), del más viejo al más nuevo. */
 export async function menusGenerados(casa) {
-  const filas = await select("menu_generado", `household_id=${eq(casa)}&order=generado_at.desc&limit=${MENUS_QUE_SE_LEEN}`, "generado_at");
-  return filas.map((f) => f.generado_at).reverse();
+  const filas = await select("menu_generado", `household_id=${eq(casa)}&order=created_at.desc&limit=${MENUS_QUE_SE_LEEN}`, "created_at");
+  return filas.map((f) => f.created_at).reverse();
 }
 
 /** Apunta un menú generado ahora. Lo que falle, lanza. */

@@ -1,9 +1,11 @@
+-- AUDITADA: auditor-datos 2026-11-04 OK
 -- El historial de menús generados, en su tabla (plan fichas con estado, trozo 22; #1037). Hoy es data.menuHistory en
 -- el documento de la casa: una entrada `{ at, groups }` por menú generado (o repetido), recortada a las 60 últimas
 -- (src/App.jsx). Lo leen la racha (computeStreak), el contador y «último menú» de Ajustes (src/lib/menuStats.js,
 -- src/screens/Settings.jsx) y el «primer menú» de la analítica (App.jsx). `groups` no lo lee nadie: no se guarda.
 --
---   · menu_generado: una fila por menú generado, con su casa y cuándo. Solo el servidor (como cocinado, 0109): RLS
+--   · menu_generado: una fila por menú generado, con su casa y cuándo (`created_at`: no se copia nada, así que es
+--     la hora del menú; sin otra columna de fecha con el mismo valor). Solo el servidor (como cocinado, 0109): RLS
 --     sin políticas y sin permisos de usuario; la app llega por api/operacion.js.
 --   · historial_podar() (0109) gana su plazo: un año, como lo cocinado. Los demás plazos, iguales.
 --
@@ -11,7 +13,7 @@
 -- filas). No toca las otras tablas del historial ni el pg_cron `historial-podar`, que ya llama a historial_podar().
 --
 -- Plan B (regla migraciones): sin la tabla, api/_bot/menusGenerados.js recibe un error de PostgREST y lo dice
--- (`servidor`); la app no apunta el menú y la racha sale de lo que pudo leer, sin inventar un cero.
+-- (`servidor`); la app avisa de que no apuntó el menú, y Ajustes dice que no pudo cargar la racha (no inventa un cero).
 --
 -- Lector: api/_bot/menusGenerados.js (para la app: src/lib/menusGenerados.js → racha, contador, primer menú).
 --
@@ -33,10 +35,9 @@ end $$;
 create table public.menu_generado (
   id           bigint generated always as identity primary key,
   household_id uuid not null references public.households(id) on delete cascade,
-  generado_at  timestamptz not null default now(),
   created_at   timestamptz not null default now()
 );
-create index menu_generado_casa on public.menu_generado (household_id, generado_at desc);
+create index menu_generado_casa on public.menu_generado (household_id, created_at desc);
 comment on table public.menu_generado is
   'Un menú generado o repetido (hoy data.menuHistory): la racha y el contador de menús. Lo escribe el trozo 22; se poda al año (historial_podar). Solo el servidor.';
 alter table public.menu_generado enable row level security;
@@ -58,7 +59,7 @@ begin
   get diagnostics v_n = row_count; v_total := v_total + v_n;
   delete from public.cocinado where cocinado_at < now() - c_cocinado;
   get diagnostics v_n = row_count; v_total := v_total + v_n;
-  delete from public.menu_generado where generado_at < now() - c_menus;
+  delete from public.menu_generado where created_at < now() - c_menus;
   get diagnostics v_n = row_count; v_total := v_total + v_n;
   return v_total;
 end $$;
@@ -77,12 +78,12 @@ begin
   select id into v_casa from public.households order by created_at limit 1;
   if v_casa is null then raise notice '0125 autoprueba: no hay ninguna casa, no se prueba la poda'; return; end if;
   begin
-    insert into public.menu_generado (household_id, generado_at) values (v_casa, now()), (v_casa, now() - interval '2 years');
+    insert into public.menu_generado (household_id, created_at) values (v_casa, now()), (v_casa, now() - interval '2 years');
     perform public.historial_podar();
     select count(*) into v_n from public.menu_generado where household_id = v_casa;
     if v_n <> 1 then raise exception '0125 autoprueba: tras la poda quedan % menús (debía quedar 1)', v_n; end if;
-    raise exception 'deshacer' using errcode = 'P0001', hint = '0125-ok';
-  exception when sqlstate 'P0001' then
-    if sqlerrm <> 'deshacer' then raise; end if;
+    raise exception '0125 autoprueba bien' using errcode = 'MP125';
+  exception when sqlstate 'MP125' then
+    raise notice '0125 autoprueba: la poda quita el menú viejo y deja el de hoy (deshecho)';
   end;
 end $$;
