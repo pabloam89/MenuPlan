@@ -8,6 +8,7 @@ import {
   Check,
   Info,
   ShieldCheck,
+  Download,
 } from "../components/icons.jsx";
 import { Avatar, BottomNav, bottomNavSpacer, safeTop, SignInOptions } from "../components/ui.jsx";
 import { googleInfo } from "./Settings.jsx";
@@ -250,6 +251,7 @@ export function HomeProfileScreen({
   onAppleSignIn,
   onSignOut,
   onDeleteAccount,
+  onExportData = null,
   onEditMembers,
   onEditPreferences,
   onOpenHouseholds,
@@ -476,6 +478,15 @@ export function HomeProfileScreen({
           />
         )}
         {/* «Reiniciar menú» se mudó a Inicio, a la fila de «Hoy toca» (30 oct 2026). */}
+        {/* Descargar los datos de la casa (trozo 36): solo con sesión y casa, junto a eliminar la cuenta. */}
+        {onExportData && (
+          <ProfileOptionRow
+            icon={Download}
+            title="Descargar mis datos"
+            subtitle="Todo lo que HoMenu guarda de tu casa, en un fichero."
+            onClick={onExportData}
+          />
+        )}
         <ProfileOptionRow
           img="/avatares/cards/eliminar_cuenta.jpg"
           title="Eliminar cuenta"
