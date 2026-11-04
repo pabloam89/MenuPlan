@@ -42,6 +42,18 @@ describe("cuándo entra cada parte", () => {
     expect(telegram).not.toMatch(/"\[alta\]|`\[alta\]|`\[nota de voz\]/);
     expect(leer("./agente.js")).toMatch(/MARCAS_DEL_TURNO\.PDF : MARCAS_DEL_TURNO\.FOTO\} \$\{entrada\}/);
   });
+
+  it("el vigilante quita la marca de voz de la lista, y el texto para Lola nombra las marcas que de verdad llegan", () => {
+    // Fuera de manual.js, en código, ninguna marca escrita a mano.
+    const supervisor = leer("./supervisor.js");
+    expect(supervisor).toMatch(/MARCAS_DEL_TURNO\.VOZ/);
+    expect(supervisor).not.toMatch(/\\\[nota de voz\\\]/);
+    // El texto es para el modelo y no puede importar: el test lo cuadra con la lista.
+    expect(PARTES.fotos).toContain(`«${M.VOZ}»`);
+    expect(PARTES.fotos).toContain(`«${M.VOZ_EN_EL_ALTA}»`);
+    expect(PARTES.alta).toContain(`«${M.ALTA}»`);
+    expect(PARTES.alta).toContain(`«${M.PARA_EMPEZAR}»`);
+  });
 });
 
 describe("cada cosa en un sitio", () => {

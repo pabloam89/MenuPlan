@@ -19,6 +19,7 @@
  */
 
 import { normal } from "./menu.js";
+import { MARCAS_DEL_TURNO } from "./manual.js";
 
 // Un sí al principio del mensaje: «sí», «vale», «correcto, guárdalo», el botón
 // «Sí». Frontera a mano y no \b: en JavaScript \b no ve la «í» de «sí». El
@@ -87,8 +88,10 @@ function mencionaPersona(persona, txt) {
   return new RegExp(`\\b${nombre}\\b`).test(txt);
 }
 
-/** Lo que escribió la persona, sin el «[Ana]: » de los grupos, el «[nota de voz]» de los audios ni signos de apertura. */
-const limpio = (texto) => String(texto ?? "").trim().replace(/^\[[^\]]{1,40}\]:\s*/, "").replace(/^\[nota de voz\]\s*/i, "").replace(/^[¡¿]+/, "").trim();
+// La marca que pone el webhook delante de una nota de voz (MARCAS_DEL_TURNO.VOZ, manual.js), escapada.
+const MARCA_DE_VOZ = new RegExp(`^${MARCAS_DEL_TURNO.VOZ.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*`, "i");
+/** Lo que escribió la persona, sin el «[Ana]: » de los grupos, la marca de las notas de voz ni signos de apertura. */
+const limpio = (texto) => String(texto ?? "").trim().replace(/^\[[^\]]{1,40}\]:\s*/, "").replace(MARCA_DE_VOZ, "").replace(/^[¡¿]+/, "").trim();
 
 /**
  * Lo que restaurar `antes` quitaría de `ahora`: personas que desaparecen y
