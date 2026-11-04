@@ -212,5 +212,8 @@
   ],
   "precio_observado": [
     "api/_bot/historialCompra.js"
+  ],
+  "menu_generado": [
+    "api/_bot/menusGenerados.js"
   ]
 }

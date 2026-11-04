@@ -33,6 +33,12 @@ export async function quienesLlevanLaCasa(householdId) {
   return (filas ?? []).map((m) => m.user_id).filter(Boolean);
 }
 
+/** Las identidades de mensajería de una cuenta: [{ channel, external_id }]. En Telegram, su chat privado tiene ese id. */
+export async function identidadesDe(userId) {
+  if (!userId) return [];
+  return select("bot_identities", `user_id=${eq(userId)}`, "channel,external_id");
+}
+
 /** El papel de una cuenta en una casa (owner, editor o viewer), o null si no es de ella. */
 export async function papelDeUsuario(householdId, userId) {
   if (!userId) return null;
