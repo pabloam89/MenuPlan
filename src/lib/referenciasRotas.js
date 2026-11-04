@@ -1,8 +1,8 @@
 /**
  * Referencias rotas de una casa (trozo 35 de #1037; #958 G, «borrar una persona deja restos»): filas de preferencia o
  * tareas que apuntan a algo que ya no existe. Pura: recibe la foto de la casa y devuelve la lista; no escribe nada.
- * Quién la usa: scripts/referencias-rotas.mjs (el informe, solo lectura). El barrido del cron (api/_bot/caducidades.js)
- * la usará para corregir o abrir la tarea de cada una, en otro PR.
+ * Quién la usa: scripts/referencias-rotas.mjs (el informe, solo lectura) y el barrido del cron (api/_bot/caducidades.js,
+ * una vez por hora), que con correccionesDeRotas corrige lo obvio y pregunta lo dudoso (decisión de Pablo, 4 nov 2026).
  *
  * Lo que se mira, porque es lo que hoy puede quedar colgando (3 nov 2026):
  *   · una preferencia con un valor que ya no está en el vocabulario de su eje (`vocabulario` de EJES, axisRegistry.js);
@@ -71,11 +71,40 @@ export function rotasDeTareas(tareas = [], personas = []) {
     const quienes = deLaCasa == null ? []
       : [t.persona_id, personaDeClave(t.clave), t.para_member, t.asignado_member].filter((x) => x != null && x !== "");
     const fuera = quienes.find((p) => !deLaCasa.has(String(p)));
-    if (fuera != null) out.push(rota("tarea", t, TIPO_ROTA.PERSONA_AUSENTE, String(fuera)));
+    // Solo falta el encargado (lo demás es de la casa): se le quita el encargado y la tarea sigue.
+    const soloEncargado = fuera != null && String(fuera) === String(t.asignado_member)
+      && quienes.filter((p) => !deLaCasa.has(String(p))).every((p) => String(p) === String(t.asignado_member));
+    if (fuera != null) out.push({ ...rota("tarea", t, TIPO_ROTA.PERSONA_AUSENTE, String(fuera)), ...(soloEncargado ? { soloEncargado: true } : {}) });
     const campo = t.campo ?? campoDeClave(t.clave);
     if (campo != null && !REGISTRO_CAMPOS[campo]) out.push(rota("tarea", t, TIPO_ROTA.CAMPO_DESCONOCIDO, String(campo)));
   }
   return out;
+}
+
+/**
+ * Pura. Qué se hace con las rotas de una casa (ACCION_DE_ROTA), en tres listas sin repetidos:
+ *   · descartar: las tareas de alguien que ya no está o sobre un campo que ya no existe (ya no hay a quién ni qué
+ *     preguntar);
+ *   · sinEncargado: las tareas en las que solo falta el encargado: se le quita y la tarea sigue;
+ *   · preguntar: las preferencias con un valor que su eje ya no conoce, con lo que hace falta para preguntarlo
+ *     (`preferencias`: las filas de la casa, de donde sale la persona).
+ * Una tarea que hay que descartar no sale también en sinEncargado.
+ */
+export function correccionesDeRotas(rotas = [], preferencias = []) {
+  const descartar = new Set();
+  const sinEncargado = new Set();
+  const preguntar = [];
+  const porId = new Map((preferencias ?? []).map((f) => [String(f.id), f]));
+  for (const x of rotas ?? []) {
+    if (x.donde === "tarea" && x.accion === ACCION_ROTA.CORREGIR) (x.soloEncargado ? sinEncargado : descartar).add(x.id);
+    if (x.donde === "preferencia" && x.accion === ACCION_ROTA.PREGUNTAR) {
+      const f = porId.get(String(x.id));
+      const [eje, valor] = x.ref.split("=");
+      preguntar.push({ preferenciaId: x.id, eje, valor, personaId: f?.persona_id ?? null });
+    }
+  }
+  for (const id of descartar) sinEncargado.delete(id);
+  return { descartar: [...descartar], sinEncargado: [...sinEncargado], preguntar };
 }
 
 /** Pura. Todas las de una casa: `{ preferencias, tareas, personas }` (filas tal cual de la base; `personas: null`, sin leer). */
