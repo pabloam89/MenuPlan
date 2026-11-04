@@ -687,8 +687,12 @@ describe("api/operacion.js: exportar la casa (trozo 36)", () => {
   it("a quien es de la casa (también con papel de ver), todas sus tablas en un JSON", async () => {
     responde(/household_members\?select=role/, { status: 200, cuerpo: [{ role: "viewer" }] });
     responde(/^\/rest\/v1\/persona\?/, { status: 200, cuerpo: [{ id: "ana" }] });
+    responde(/^\/rest\/v1\/households\?/, { status: 200, cuerpo: [{ id: CASA, name: "Casa", invite_token: "secreto" }] });
     const res = await leer({ casa: CASA, exportar: "1" });
     expect(res.codigo).toBe(200);
+    // Ni a quien solo ve la casa le llega el enlace para entrar en ella.
+    expect(JSON.stringify(res.body)).not.toContain("secreto");
+    expect(res.body.tablas.households.filas).toEqual([{ id: CASA, name: "Casa" }]);
     expect(Object.keys(res.body.tablas)).toEqual([...TABLAS_EXPORTADAS]);
     expect(res.body.tablas.persona.filas).toEqual([{ id: "ana" }]);
     // Ninguna lectura sale de la casa pedida.

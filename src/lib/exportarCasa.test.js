@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { esquemaFinal } from "../../scripts/lib/migraciones.mjs";
-import { armarExportacion, columnaDeCasa, TABLAS_EXPORTADAS, TABLAS_NO_EXPORTADAS, LIMITE_FILAS, VERSION_EXPORTAR } from "./exportarCasa.js";
+import { armarExportacion, columnaDeCasa, COLUMNAS_SECRETAS, COLUMNAS_QUE_NO_SON_SECRETO, PARECE_SECRETO, TABLAS_EXPORTADAS, TABLAS_NO_EXPORTADAS, LIMITE_FILAS, VERSION_EXPORTAR } from "./exportarCasa.js";
 
 const MIGRACIONES = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "supabase", "migrations");
 // La tabla de la 0010 que no se creó nunca, a propósito (supabase/ESTADO.md, fila 0010).
@@ -25,6 +25,15 @@ describe("exportar una casa: cada tabla de la casa, exportada o fuera con su por
     expect([...TABLAS_EXPORTADAS, ...TABLAS_NO_EXPORTADAS.keys()].filter((t) => !tablas.has(t))).toEqual([]);
   });
 
+  it("toda columna con nombre de secreto de una tabla exportada está clasificada: secreta (se quita) o no", () => {
+    const esquema = esquemaFinal(MIGRACIONES);
+    const conNombre = TABLAS_EXPORTADAS.flatMap((t) => [...(esquema.get(t)?.columnas ?? [])].filter((c) => PARECE_SECRETO.test(c)).map((c) => `${t}.${c}`));
+    // Suelo: el 4 nov 2026 eran 9, invite_token de households entre ellas.
+    expect(conNombre).toContain("households.invite_token");
+    expect(conNombre.filter((k) => !COLUMNAS_SECRETAS.has(k) && !COLUMNAS_QUE_NO_SON_SECRETO.has(k)), "Columna con nombre de secreto: ponla en COLUMNAS_SECRETAS (se quita) o en COLUMNAS_QUE_NO_SON_SECRETO con su porqué").toEqual([]);
+    expect([...COLUMNAS_SECRETAS.keys(), ...COLUMNAS_QUE_NO_SON_SECRETO.keys()].filter((k) => !conNombre.includes(k))).toEqual([]);
+  });
+
   it("los secretos no se exportan", () => {
     for (const t of ["bot_link_tokens", "household_invites"]) {
       expect(TABLAS_EXPORTADAS).not.toContain(t);
@@ -42,6 +51,11 @@ describe("armarExportacion", () => {
     expect(r).toMatchObject({ formato: VERSION_EXPORTAR, casa: "c1", exportado_at: "2026-11-04T10:00:00.000Z" });
     expect(Object.keys(r.tablas)).toEqual([...TABLAS_EXPORTADAS]);
     expect(r.tablas.persona).toEqual({ filas: [{ id: "ana" }], cortada: false });
+  });
+
+  it("las columnas secretas se quitan de cada fila (el enlace de la casa no sale)", () => {
+    const r = armarExportacion({ casa: "c1", leidas: { ...todas(), households: [{ id: "c1", name: "Casa", invite_token: "abc" }] } });
+    expect(r.tablas.households.filas).toEqual([{ id: "c1", name: "Casa" }]);
   });
 
   it("con más filas que el límite, corta y lo dice", () => {

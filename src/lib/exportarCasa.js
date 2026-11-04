@@ -43,9 +43,36 @@ export const TABLAS_NO_EXPORTADAS = new Map([
 ]);
 
 /**
+ * Columnas secretas de una tabla que sí se exporta: se quitan de cada fila, con su porqué. La base solo enseña
+ * invite_token a quien edita la casa (0087, `ficha` de la casa); en la exportación no va a nadie.
+ */
+export const COLUMNAS_SECRETAS = new Map([
+  ["households.invite_token", "secreto: el enlace para entrar en la casa; con él, quien tenga el fichero metería a otra persona"],
+]);
+
+/** Lo que tiene nombre de secreto (token, clave, código…): cada columna así de una tabla exportada tiene que estar clasificada. */
+export const PARECE_SECRETO = /(token|secret|clave|code|codigo|password|key|hash)/i;
+
+/** Las columnas con nombre de secreto que no lo son, con su porqué (exportarCasa.test.js exige una u otra lista). */
+export const COLUMNAS_QUE_NO_SON_SECRETO = new Map([
+  ["persona.clave_perfil", "la clave de la persona en la ficha (de quién es cada dato), no una contraseña"],
+  ["persona.clave_avatar", "qué dibujo lleva la persona"],
+  ["operacion.clave", "la clave para no apuntar dos veces la misma operación"],
+  ["bot_tareas.clave", "la clave para no abrir dos veces la misma tarea"],
+  ["bot_usage.input_tokens", "cuánto texto leyó el modelo en ese turno (una cuenta, no una credencial)"],
+  ["bot_usage.output_tokens", "cuánto texto escribió el modelo en ese turno"],
+  ["bot_usage.cache_read_tokens", "cuánto texto salió de la caché del modelo"],
+  ["bot_usage.cache_write_tokens", "cuánto texto entró en la caché del modelo"],
+]);
+
+const secretasDe = (tabla) => [...COLUMNAS_SECRETAS.keys()].filter((k) => k.startsWith(`${tabla}.`)).map((k) => k.slice(tabla.length + 1));
+const sinSecretas = (filas, fuera) => (fuera.length ? filas.map((f) => Object.fromEntries(Object.entries(f).filter(([c]) => !fuera.includes(c)))) : filas);
+
+/**
  * Pura. El JSON de una casa: `{ formato, casa, exportado_at, tablas: { [tabla]: { filas, cortada } } }`.
  * `leidas`: `{ [tabla]: filas[] }` tal como salen de la base, con hasta LIMITE_FILAS + 1 filas (la de más dice
  * que había más). Una tabla de TABLAS_EXPORTADAS que no llega lanza: una exportación a medias no se da por buena.
+ * Las columnas de COLUMNAS_SECRETAS se quitan de cada fila.
  */
 export function armarExportacion({ casa, leidas = {}, ahora = new Date() }) {
   if (!casa) throw new Error("exportar: falta la casa");
@@ -54,7 +81,7 @@ export function armarExportacion({ casa, leidas = {}, ahora = new Date() }) {
     const filas = leidas[t];
     if (!Array.isArray(filas)) throw new Error(`exportar: la tabla ${t} no se ha leído`);
     const cortada = filas.length > LIMITE_FILAS;
-    tablas[t] = { filas: cortada ? filas.slice(0, LIMITE_FILAS) : filas, cortada };
+    tablas[t] = { filas: sinSecretas(cortada ? filas.slice(0, LIMITE_FILAS) : filas, secretasDe(t)), cortada };
   }
   return { formato: VERSION_EXPORTAR, casa, exportado_at: ahora.toISOString(), tablas };
 }
