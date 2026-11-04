@@ -69,4 +69,16 @@ describe("SignInOptions", () => {
     container.remove();
     expect(await montar(true, { conApple: false })).not.toContain("Apple");
   });
+
+  // «Entrar con Telegram» va primero (specs/auth.md §7), donde funciona el login de Telegram.
+  it("con el login de Telegram, «Entrar con Telegram» es el primer botón", async () => {
+    vi.stubEnv("VITE_APPLE_WEB", "on");
+    await montar(false, { urlTelegram: "https://oauth.telegram.org/auth?bot_id=1" });
+    const botones = [...container.querySelectorAll("button")].map((b) => b.textContent);
+    expect(botones).toEqual(["Entrar con Telegram", "Continuar con Apple", "Continuar con Google"]);
+  });
+
+  it("fuera del dominio del bot (aquí, localhost), no sale", async () => {
+    expect(await montar(false)).not.toContain("Telegram");
+  });
 });
