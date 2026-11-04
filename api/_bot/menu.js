@@ -570,6 +570,45 @@ export function candidataPorNombre(candidatas, texto) {
   return todas.length === 1 ? todas[0] : todas.find((r) => normal(r.name).startsWith(q)) ?? todas[0] ?? null;
 }
 
+/**
+ * El hueco de un plato que YA está en el menú, dicho por su nombre («el
+ * shakshuka»): el primero de hoy en adelante. Sin esto Lola llamaba a ver_menu
+ * solo para encontrarlo (4 nov 2026). `recetaDe(id)` da la receta del id. Pura.
+ * @returns {{ fecha: string, franja: string, cual: "principal"|"primero", grupo: string } | null}
+ */
+export function huecoDelPlato(casa, recetaDe, texto, hoy) {
+  const huecos = [];
+  const semanas = [...(casa?.semanas ?? [])].filter((w) => w.plan && w.weekEnd >= hoy).sort((a, b) => (a.weekStart < b.weekStart ? -1 : 1));
+  for (const w of semanas) {
+    const gs = grupos({ ...casa, semana: w });
+    for (let fecha = w.weekStart < hoy ? hoy : w.weekStart; fecha <= w.weekEnd; fecha = sumarDias(fecha, 1)) {
+      const dia = diaDeFecha(fecha);
+      for (const g of gs) {
+        for (const [clave, h] of Object.entries(w.plan[g.id] ?? {})) {
+          if (!clave.startsWith(`${dia}-`)) continue;
+          for (const [cual, id] of [["principal", h?.recipeId], ["primero", h?.firstRecipeId]]) {
+            const name = id ? recetaDe(id)?.name : null;
+            if (name) huecos.push({ name, fecha, franja: clave.slice(dia.length + 1), cual, grupo: g.label });
+          }
+        }
+      }
+    }
+  }
+  const h = candidataPorNombre(huecos, texto) ?? candidataPorNombre(huecos, String(texto ?? "").replace(/^\s*(el|la|los|las|ese|esa|eso)\s+/i, ""));
+  return h ? { fecha: h.fecha, franja: h.franja, cual: h.cual, grupo: h.grupo } : null;
+}
+
+/**
+ * Qué es un plato, en una línea: su descripción del catálogo o, sin ella, lo
+ * que lleva. Para contestar «¿eso qué es?» antes de proponer otro. Pura.
+ */
+export function queEs(r) {
+  if (!r) return "";
+  if (r.description) return String(r.description).trim();
+  const ing = (r.ingredients ?? []).map((i) => i?.name).filter(Boolean).slice(0, 4);
+  return ing.length ? `Lleva ${ing.length > 1 ? `${ing.slice(0, -1).join(", ").toLowerCase()} y ${ing.at(-1).toLowerCase()}` : ing[0].toLowerCase()}.` : "";
+}
+
 // Palabras que no dicen qué plato es.
 const VACIAS = new Set(["con", "del", "las", "los", "para", "una", "uno", "unos", "unas", "tipo", "algo", "plato", "receta", "rico", "rica", "facil", "rapido", "rapida"]);
 // Por palabras enteras (se parte por lo que no es letra: sin trozos, «pollo»
@@ -621,12 +660,19 @@ const POOL_PARA_APROXIMAR = 400;
  *   `dia` tal cual lo dicen («hoy», «jueves»); `parecidoA`, un plato que
  *   piden por su nombre: las opciones salen ordenadas por parecido.
  */
-export async function proponerPlatos(householdId, { dia: diaDicho = null, semana, franja: franjaDicha = null, grupo: grupoDicho = null, para = null, cual = "principal", n = 3, parecidoA = null, estilo = null, rasgos = null, ejes = null, perfil = null, deFuera = null, tipo = null }, fotos = null, out = null) {
+export async function proponerPlatos(householdId, { plato = null, dia: diaDicho = null, semana, franja: franjaDicha = null, grupo: grupoDicho = null, para = null, cual = "principal", n = 3, parecidoA = null, estilo = null, rasgos = null, ejes = null, perfil = null, deFuera = null, tipo = null }, fotos = null, out = null) {
   const cargada = await cargarCasa(householdId);
   // Lo que no pueden comer los invitados: lo filtra el motor (api/_bot/deFuera.js).
   const rf = restriccionesDeFuera(deFuera);
   const filtradoPara = rf ? ` Filtrado también para quien viene: ${describirDeFuera(rf)}.` : "";
   if (!cargada) return "Esta casa todavía no tiene datos en la nube.";
+  // Un plato del menú por su nombre: su hueco manda sobre día, comida y cuál.
+  if (plato) {
+    const mp = await prepararRecetas(cargada);
+    const h = huecoDelPlato(cargada, (id) => mp.RECIPES_BY_ID[id] ?? mp.RECIPES_BY_ID[idBase(id)], plato, hoyISO());
+    if (!h) return `No encuentro «${plato}» en el menú de hoy en adelante. ${rangosDelMenu(cargada)} Pregunta qué día es o míralo con ver_menu.`;
+    return proponerPlatos(householdId, { dia: h.fecha, franja: h.franja, cual: h.cual, grupo: grupoDicho ?? h.grupo, para, n, parecidoA, estilo, rasgos, ejes, perfil, deFuera, tipo }, fotos, out);
+  }
   // Nada obligatorio: sin día ni comida, la próxima que toca; «para los
   // mayores» → su grupo (el de la casa o el del plan, que pueden no coincidir).
   const { dia: diaPedido, franja } = cuandoPorDefecto({ dia: diaDicho, franja: franjaDicha }, horaMadrid());
@@ -685,7 +731,7 @@ export async function proponerPlatos(householdId, { dia: diaDicho = null, semana
   const detalle = (r) => detalleDe(r, estilo);
   lista.forEach((r, i) => apuntarFoto(m, fotos, r, `${i + 1}. ${r.name}`));
   return [
-    `Opciones para el ${fechaCorta(fecha)}, ${franja.toLowerCase()}${h.course === "first" ? " (primero)" : ""}${h.gs.length > 1 ? `, para ${quienesDe(h.g, casa.state?.data?.members ?? [])}` : ""}. Ahora mismo: ${ahora ?? "nada"}.${parecidoA ? ` Ordenadas por parecido a «${parecidoA}» (ninguna es exactamente eso salvo que se llame igual).` : ""}${estilo ? ` Las más ${estilo === "ligero" ? "ligeras" : "rápidas"} que encajan, variadas.` : ""}${aviso ? ` ${aviso}` : ""}${filtradoPara}`,
+    `Opciones para el ${fechaCorta(fecha)}, ${franja.toLowerCase()}${h.course === "first" ? " (primero)" : ""}${h.gs.length > 1 ? `, para ${quienesDe(h.g, casa.state?.data?.members ?? [])}` : ""}. Ahora mismo: ${ahora ?? "nada"}.${queEs(actual) ? ` Qué es (si lo preguntan, contéstalo antes de nada): ${queEs(actual)}` : ""}${parecidoA ? ` Ordenadas por parecido a «${parecidoA}» (ninguna es exactamente eso salvo que se llame igual).` : ""}${estilo ? ` Las más ${estilo === "ligero" ? "ligeras" : "rápidas"} que encajan, variadas.` : ""}${aviso ? ` ${aviso}` : ""}${filtradoPara}`,
     ...lista.map((r, i) => `${i + 1}. ${r.name}${detalle(r) ? ` (${detalle(r)})` : ""}`),
     "Nada está cambiado aún: para poner una, cambiar_plato con receta = su nombre.",
   ].join("\n");
