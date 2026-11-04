@@ -8,7 +8,7 @@ import { tokenDeSesion, urlOperacion } from "./familiaCasa.js";
 import { clavesDeCocinados, filaDeCocinado } from "./cocinados.js";
 import { FALLO_DATO } from "./vocabularios.js";
 
-/** Las claves cocinadas de la semana `semana` (su lunes) en `casa`: `{ ok: true, claves }` o `{ ok: false, fallo }`. */
+/** Las claves cocinadas de la semana `semana` (el primer día del menú) en `casa`: `{ ok: true, claves }` o `{ ok: false, fallo }`. */
 export async function leerCocinados(casa, semana, { token = tokenDeSesion, fetcher = fetch } = {}) {
   let res;
   let texto;

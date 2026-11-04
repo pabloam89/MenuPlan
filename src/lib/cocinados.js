@@ -1,6 +1,6 @@
 /**
  * Lo cocinado de la semana (trozo 22 de #1037): un plato marcado «cocinado» en un hueco es un historial, y vive en la
- * tabla `cocinado` (0109: casa, lunes de la semana, día, comida y receta; se poda al año), no en el documento de la
+ * tabla `cocinado` (0109: casa, primer día del menú, día, comida y receta; se poda al año), no en el documento de la
  * casa (`data.cookedDishes`, que crecía sin poda). La app lo escribe y lo lee por api/operacion.js (la tabla es solo
  * del servidor). Sin casa (invitado), lo recuerda el móvil (localStorage), con la misma clave.
  *
@@ -8,22 +8,22 @@
  * cambia aparte (cambiar el modo de despensa o desactivar un menú devuelve lo descontado y el plato sigue cocinado).
  */
 import { DIAS, COMIDAS } from "./vocabularios.js";
-
-const LUNES = /^\d{4}-\d{2}-\d{2}$/;
+import { fechaValida } from "./personas.js";
 
 /**
  * La fila de un cocinado, comprobada: lo que no case con la tabla (0109) lanza aquí, antes de pedir nada.
  * @param {{ semana: string, dia: string, comida: string, receta_id: string }} f
  */
 export function filaDeCocinado({ semana, dia, comida, receta_id } = {}) {
-  if (!LUNES.test(String(semana ?? "")) || new Date(`${semana}T12:00:00Z`).getUTCDay() !== 1) throw new Error(`cocinado: «${semana}» no es el lunes de una semana`);
+  // `semana` es el primer día del menú, sea el que sea: un menú puede empezar cualquier día (Pablo, 4 nov 2026).
+  if (!fechaValida(semana)) throw new Error(`cocinado: «${semana}» no es una fecha`);
   if (!DIAS.includes(dia)) throw new Error(`cocinado: «${dia}» no es un día`);
   if (!COMIDAS.includes(comida)) throw new Error(`cocinado: «${comida}» no es una comida`);
   if (!receta_id || typeof receta_id !== "string") throw new Error("cocinado: falta la receta");
   return { semana, dia, comida, receta_id };
 }
 
-/** La clave de un cocinado en la app (un Set por semana): lunes, día, comida y receta. */
+/** La clave de un cocinado en la app (un Set por semana): primer día del menú, día, comida y receta. */
 export const claveCocinado = ({ semana, dia, comida, receta_id }) => `${semana}::${dia}::${comida}::${receta_id}`;
 
 /** Las claves de unas filas de la tabla. */

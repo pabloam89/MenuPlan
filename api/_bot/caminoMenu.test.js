@@ -1,12 +1,13 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { rellenos } from "./manual.js";
 import { CAMINO, CAMINOS } from "../../src/lib/caminos.js";
 import { BOTONES_CAMINO, BOTONES_CAMINO_TELEGRAM, IDS_CAMINO, PREGUNTA_DE_CAMINO, LEYENDA_CAMINOS, caminoDelBoton, faltaParaGenerar, hayNinosEn, preguntasDelCamino } from "./caminoMenu.js";
 
 describe("los caminos de Lola son los de la app", () => {
   it("los ids y los botones salen de src/lib/caminos.js, sin copiarlos", () => {
     expect(IDS_CAMINO).toEqual(Object.values(CAMINO));
-    expect(BOTONES_CAMINO).toBe("[[Lo básico]] [[A tu gusto]] [[Al detalle]]");
+    expect(BOTONES_CAMINO).toBe("[[Solo los días]] [[Unas preguntas]] [[A fondo]]");
   });
 
   it("los botones de Telegram vuelven con el título, que caminoDelBoton reconoce; la pregunta es la del manual", () => {
@@ -16,20 +17,26 @@ describe("los caminos de Lola son los de la app", () => {
   });
 
   it("la leyenda de generar_menu sale de la misma lista", () => {
-    expect(LEYENDA_CAMINOS).toBe("basico = Lo básico, medio = A tu gusto, avanzado = Al detalle");
+    expect(LEYENDA_CAMINOS).toBe("basico = Solo los días, medio = Unas preguntas, avanzado = A fondo");
   });
 
-  it("el manual de Lola enseña los botones con los títulos de CAMINOS (si cambia uno, caminoDelBoton no lo reconocería)", () => {
+  it("el manual enseña los caminos desde CAMINOS (marca {{CAMINOS}}): cada botón con qué pasa y su ejemplo, y caminoDelBoton lo reconoce", () => {
     const manual = readFileSync(new URL("./conocimiento.md", import.meta.url), "utf8");
-    const enElManual = [...manual.matchAll(/\[\[(Lo [^\]]+|A tu [^\]]+|Al [^\]]+)\]\]/g)].map((m) => m[1]);
-    expect(new Set(enElManual)).toEqual(new Set(CAMINOS.map((c) => c.titulo)));
-    for (const t of enElManual) expect(caminoDelBoton(t)).not.toBe(null);
+    expect(manual).toContain("{{CAMINOS}}");
+    const lineas = rellenos({ capacidades: [], fichas: new Map() }).CAMINOS.split("\n");
+    expect(lineas).toHaveLength(CAMINOS.length);
+    for (const [i, c] of CAMINOS.entries()) {
+      expect(c.ejemplo, c.id).toMatch(/\S/);
+      expect(lineas[i]).toContain(`[[${c.titulo}]]`);
+      expect(lineas[i]).toContain(c.ejemplo);
+      expect(caminoDelBoton(c.titulo)).toBe(c.id);
+    }
   });
 
   it("pulsar un botón da su camino; otro texto, ninguno", () => {
-    expect(caminoDelBoton("A tu gusto")).toBe(CAMINO.MEDIO);
-    expect(caminoDelBoton(" lo básico ")).toBe(CAMINO.BASICO);
-    expect(caminoDelBoton("hazme el menú a tu gusto")).toBe(null);
+    expect(caminoDelBoton("Unas preguntas")).toBe(CAMINO.MEDIO);
+    expect(caminoDelBoton(" solo los días ")).toBe(CAMINO.BASICO);
+    expect(caminoDelBoton("hazme el menú a fondo")).toBe(null);
     expect(caminoDelBoton(undefined)).toBe(null);
   });
 
@@ -61,8 +68,8 @@ describe("faltaParaGenerar: no se genera sin preguntar", () => {
   });
 
   it("recién pulsado el camino, toca hacer sus preguntas, aunque el modelo traiga fecha", () => {
-    const r = faltaParaGenerar({ camino: CAMINO.MEDIO, desde: "2026-11-02", texto: "A tu gusto" });
-    expect(r).toMatch(/^NO GENERADO: acaban de elegir «A tu gusto»/);
+    const r = faltaParaGenerar({ camino: CAMINO.MEDIO, desde: "2026-11-02", texto: "Unas preguntas" });
+    expect(r).toMatch(/^NO GENERADO: acaban de elegir «Unas preguntas»/);
     for (const p of preguntasDelCamino(CAMINO.MEDIO)) expect(r).toContain(p);
   });
 

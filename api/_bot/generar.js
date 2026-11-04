@@ -135,7 +135,8 @@ export function colocarPedidos(m, data, plan, recipes, pedidos, activeDays) {
         const course = h.firstRecipeId && roles.includes("primero") && !roles.includes("segundo") ? "first" : "main";
         const el = m.pickCatalogReplacement(data, plan, { groupId: gid, day: d, meal: franja, course, forcedRecipe: receta, hoy: hoyISO() });
         if (!el?.recipeId) continue;
-        plan[gid][clave] = { ...h, [course === "first" ? "firstRecipeId" : "recipeId"]: el.recipeId, warnings: [] };
+        // Con su guarnición, su salsa y para qué receta son (#1246): el plato sale del hueco.
+        plan[gid][clave] = { ...h, ...el.hueco, warnings: [] };
         m.registerRecipes([el.frontendRecipe]);
         recipes.push(el.frontendRecipe);
         puesto = true;
