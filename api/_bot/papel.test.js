@@ -67,6 +67,12 @@ describe("el papel de quien escribe", () => {
     expect((await de([], { esGrupo: true, chatId: "privado-viejo" })).papel).toBe("ajeno");
   });
 
+  it("en privado sin identidad, en otra casa suya (casaDelTurno, #1238): su papel en esa; en una ajena, nada", async () => {
+    base.miembros.push({ household_id: "otra", user_id: "pareja", role: "viewer" });
+    expect((await de([], { esGrupo: false, chatId: "privado-viejo", householdId: "otra" })).papel).toBe("viewer");
+    expect((await de([], { esGrupo: false, chatId: "privado-viejo", householdId: "ajena" })).papel).toBe("ajeno");
+  });
+
   it("si le quitan de la casa, al mensaje siguiente ya no", async () => {
     base.miembros = base.miembros.filter((m) => m.user_id !== "asistenta");
     expect((await de(["3"])).papel).toBe("ajeno");
