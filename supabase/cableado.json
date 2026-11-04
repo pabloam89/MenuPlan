@@ -29,6 +29,7 @@
     "api/_bot/turnos.js"
   ],
   "bot_deshacer": [
+    "api/_bot/borrarPersona.js",
     "api/_bot/casa.js"
   ],
   "bot_entradas": [
