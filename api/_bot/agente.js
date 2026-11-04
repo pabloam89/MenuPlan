@@ -17,6 +17,7 @@ import fs from "node:fs";
 import Anthropic from "@anthropic-ai/sdk";
 import { betaTool } from "@anthropic-ai/sdk/helpers/beta/json-schema";
 import { select, insert, eq, contandoEscrituras } from "./db.js";
+import { deLaCharla } from "./chats.js";
 import { cargarCasa, deshacer, hoyISO, apuntarOperacion } from "./casa.js";
 import {
   describirCasa, describirReceta, describirCompra,
@@ -1064,11 +1065,11 @@ export async function cortarCharla(channel, chatId, householdId) {
   }]);
 }
 
-async function memoria(channel, chatId) {
+async function memoria(channel, chatId, householdId) {
   const desde = encodeURIComponent(new Date(Date.now() - DIAS_DE_MEMORIA * 86400000).toISOString());
   const filas = await select(
     "bot_messages",
-    `channel=${eq(channel)}&chat_id=${eq(chatId)}&created_at=gt.${desde}&order=${ORDEN_MEMORIA}&limit=${TURNOS_DE_MEMORIA}`,
+    `${deLaCharla(channel, chatId, householdId)}&created_at=gt.${desde}&order=${ORDEN_MEMORIA}&limit=${TURNOS_DE_MEMORIA}`,
     "id,role,content,created_at",
   );
   return montarMemoria(filas, hoyISO());
@@ -1272,7 +1273,7 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
   // Todo a la vez: no depende entre sí, y en serie eran varias idas a la base.
   // La casa ya la leyó el enrutador (casa.js la recuerda unos segundos).
   const [tope, mem, tools, casa, extrasBase, tareas, calladas, tablas] = await Promise.all([
-    fueraDeLimite(householdId), memoria(channel, chatId), conPapel.then(() => herramientas(chat)),
+    fueraDeLimite(householdId), memoria(channel, chatId, householdId), conPapel.then(() => herramientas(chat)),
     cargarCasa(householdId).catch(fallaCon("agente_casa", SIN_LEER)), extrasDeFicha(householdId, chatId),
     conPapel.then(() => deTablas).then((f) => (f ? tareasDeFicha(f, { userId: chat.userId, privado: !esGrupo }) : tareasAbiertas(householdId, { userId: chat.userId, privado: !esGrupo }))).catch((e) => { console.error("[agente] tareas", e?.message); return []; }),
     deTablas.then((f) => (f ? calladasDeFicha(f) : clavesCalladas(householdId))).catch((e) => { console.error("[agente] calladas", e?.message); return new Set(); }),
