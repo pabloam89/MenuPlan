@@ -1,5 +1,6 @@
 import { getConsumptionInsights, mergeConsumptionGroups } from "./consumptionInsights.js";
 import { indiceDeFecha } from "./dias.js";
+import { MENUS_QUE_SE_LEEN } from "./menusGenerados.js";
 
 function weekStart(ts) {
   const d = new Date(ts);
@@ -23,9 +24,8 @@ export function computeStreak(history) {
   return streak;
 }
 
-// menuHistory is capped to the last 60 entries (see App.jsx), so report a
-// "60+" style count once the log is saturated instead of a false total.
-const HISTORY_CAP = 60;
+// Solo se leen los últimos MENUS_QUE_SE_LEEN menús (menusGenerados.js): con la lista llena, «60+» y no un total falso.
+const HISTORY_CAP = MENUS_QUE_SE_LEEN;
 
 export function countMenusGenerated(history) {
   const count = history?.length ?? 0;
