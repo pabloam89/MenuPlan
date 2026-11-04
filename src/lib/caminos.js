@@ -2,7 +2,7 @@
  * Los tres caminos de preguntas antes del menú, una sola lista para la app y Lola.
  *
  * Nacieron en el asistente de la app (src/screens/ScopePickerScreen.jsx, sept.
- * 2026): «Lo básico», «A tu gusto» y «Al detalle». Desde noviembre de 2026 Lola
+ * 2026): hoy «Solo los días», «Unas preguntas» y «A fondo». Desde noviembre de 2026 Lola
  * ofrece los mismos tres al preparar el menú (el trato de cada cuenta propone uno
  * y los otros quedan a un toque), así que la lista vive aquí y no en una pantalla:
  * si mañana se añade un tema, sale en los dos a la vez.
@@ -60,7 +60,10 @@ export const CAMINO = Object.freeze({ BASICO: "basico", MEDIO: "medio", AVANZADO
  * Los tres caminos. `temas`: los que abre cada uno (el resto se queda con su
  * valor por defecto sin preguntar). `experto`: con él apagado el asistente de la
  * app simplifica algunos pasos (ver ScopePickerScreen). `minutos`: lo que se
- * tarda, que es como se presentan («por tiempo y no por nivel»).
+ * tarda, que es como se presentan («por tiempo y no por nivel»). `ejemplo`: lo que
+ * alguien contestaría en ese camino, para que se entienda qué se le va a pedir.
+ * El `titulo` es el botón: dice qué pasa al elegirlo, no un nivel abstracto (en
+ * Telegram «Lo básico / A tu gusto / Al detalle» no se entendía, 4 nov 2026).
  *
  * El `cole` va en los tres: si los niños comen en el comedor, cuadrar las cenas
  * con lo de allí es lo que hace que el menú no repita (se cae solo sin niños).
@@ -68,25 +71,28 @@ export const CAMINO = Object.freeze({ BASICO: "basico", MEDIO: "medio", AVANZADO
 export const CAMINOS = Object.freeze([
   {
     id: CAMINO.BASICO,
-    titulo: "Lo básico",
+    titulo: "Solo los días",
     minutos: 1,
-    resumen: "Dinos cuándo coméis en casa y del resto nos encargamos nosotros.",
+    resumen: "Me dices qué días coméis en casa y del resto me encargo yo.",
+    ejemplo: "de lunes a viernes, solo cenas",
     temas: [TEMA.COLE, TEMA.SEMANA, TEMA.HORARIO],
     experto: false,
   },
   {
     id: CAMINO.MEDIO,
-    titulo: "A tu gusto",
+    titulo: "Unas preguntas",
     minutos: 3,
-    resumen: "Lo básico y, además, cómo os gusta comer y cómo cocináis.",
+    resumen: "Los días y, además, cómo os gusta comer y cómo cocináis.",
+    ejemplo: "menos fritos, y tengo airfryer",
     temas: [TEMA.SEMANA, TEMA.HORARIO, TEMA.NINOS, TEMA.COLE, TEMA.ESTILO, TEMA.COCINA, TEMA.ELECTROS],
     experto: true,
   },
   {
     id: CAMINO.AVANZADO,
-    titulo: "Al detalle",
+    titulo: "A fondo",
     minutos: 5,
-    resumen: "Repasamos todas las preguntas contigo, sin saltarnos ninguna.",
+    resumen: "Repasamos todo: el cole, el presupuesto, los tiempos y los aparatos.",
+    ejemplo: "60 € a la semana, y cocino en tandas el domingo",
     temas: TEMAS.map((t) => t.id),
     experto: true,
   },

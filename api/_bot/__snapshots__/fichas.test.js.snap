@@ -1633,7 +1633,7 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
       "medio",
       "avanzado"
      ],
-     "description": "El que eligieron con los botones (basico = Lo básico, medio = A tu gusto, avanzado = Al detalle). Sin él no se genera: pregúntalo siempre."
+     "description": "El que eligieron con los botones (basico = Solo los días, medio = Unas preguntas, avanzado = A fondo). Sin él no se genera: pregúntalo siempre."
     },
     "semana": {
      "type": "string",
