@@ -271,7 +271,7 @@ async function barrerReferencias({ ahoraMs }) {
     if (!rotas.length) continue;
     const { descartar, sinEncargado, preguntar } = correccionesDeRotas(rotas, casa.preferencias ?? []);
     if (descartar.length + sinEncargado.length > TOPE_CORRECCIONES_POR_CASA) {
-      avisarFallo("referencias_rotas_demasiadas", new Error(`${descartar.length + sinEncargado.length} correcciones en una casa`), { grave: false });
+      avisarFallo("caducidades_rotas_demasiadas", new Error(`${descartar.length + sinEncargado.length} correcciones en una casa`), { grave: false });
       out.frenadas++;
       continue;
     }
