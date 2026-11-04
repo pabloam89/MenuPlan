@@ -5,7 +5,9 @@
  * salió la semana entera. Se prueban las herramientas de verdad (herramientas()
  * de agente.js), con la casa, lo pintado y las opciones de mentira.
  */
+import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
+import { rellenos } from "./manual.js";
 
 process.env.VITE_SUPABASE_URL ||= "https://sin-base.invalid";
 process.env.SUPABASE_SERVICE_ROLE_KEY ||= "sin-clave";
@@ -65,5 +67,17 @@ describe("un ver_menu para buscar no se pinta", () => {
 
   it("USAN_UN_HUECO nombra herramientas que existen", () => {
     expect([...USAN_UN_HUECO].filter((n) => !FICHAS.has(n))).toEqual([]);
+  });
+
+  it("el manual y lo que contesta ver_menu nombran USAN_UN_HUECO desde la tabla, sin copiarla", async () => {
+    const manual = readFileSync(new URL("./conocimiento.md", import.meta.url), "utf8");
+    expect(manual).toContain("{{USAN_UN_HUECO}}");
+    const lista = rellenos({ capacidades: [], fichas: new Map() }).USAN_UN_HUECO;
+    const chat = { householdId: "casa", chatId: "1", channel: "telegram", fotos: [], pintar: null, pintados: [], papel: "owner", esGrupo: false, texto: "", llamadas: [], resultados: [] };
+    const respuesta = await (await herramientas(chat)).find((t) => t.name === "ver_menu").run({}, { toolUse: { id: "t-ver" } });
+    for (const n of USAN_UN_HUECO) {
+      expect(lista).toContain(n);
+      expect(String(respuesta)).toContain(n);
+    }
   });
 });

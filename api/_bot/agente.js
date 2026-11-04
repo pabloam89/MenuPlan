@@ -49,7 +49,7 @@ import {
 import { fueraDeLimite, contarUso, avisoDeLimite } from "./uso.js";
 import { quedaMs, plazoDeLlamada, RESERVA_MIN_MS } from "./plazo.js";
 import { supervisar, frenoDeshacer } from "./supervisor.js";
-import { armarManual } from "./manual.js";
+import { armarManual, USAN_UN_HUECO, oNombres } from "./manual.js";
 import { montarFicha, extrasDeFicha } from "./ficha.js";
 import { fichaRpc, leerFichaCasa, tareasDeFicha, calladasDeFicha, conLaFicha, olvidarFicha, estadosDeLaFicha } from "./fichaRpc.js";
 import { lineaDeAfinar } from "../../src/lib/siguientePregunta.js";
@@ -935,7 +935,7 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
         const puestas = dias.length === 1 && fotos ? p.fotos.filter((f) => !fotos.some((x) => x.url === f.url)) : [];
         fotos?.push(...puestas);
         pintarTambien(chat, filtros, { consulta: true, fotos: puestas.map((f) => f.url) });
-        return `Sale pintado debajo de tu mensaje (NO lo copies; como mucho una frase), salvo si después usas proponer_platos, cambiar_plato o por_que_plato: entonces era para buscar y no se pinta. Para que lo sepas:\n${sinEtiquetas(p.texto)}`;
+        return `Sale pintado debajo de tu mensaje (NO lo copies; como mucho una frase), salvo si después usas ${oNombres(USAN_UN_HUECO)}: entonces era para buscar y no se pinta. Para que lo sepas:\n${sinEtiquetas(p.texto)}`;
       }),
     }),
     herramienta({ capacidades: ["ver_receta"], lee: ["menus", "userRecipes"], escribe: [], lector: true, riesgo: RIESGO_HERRAMIENTA.LEE, deshace: DESHACE.NO, pantalla: null }, {
@@ -1862,9 +1862,8 @@ export const FICHAS = new Map(todasLasHerramientas({}, "").map((t) => [t.name, t
 
 // Las que no cambian nada: pueden correr antes de saber de quién es el turno.
 export const SOLO_LECTURA = new Set([...FICHAS].filter(([, f]) => f.soloLectura).map(([n]) => n));
-// Las que trabajan sobre UN hueco del menú (un día y una comida): un ver_menu
-// antes de ellas era para encontrarlo, y no se pinta (callarConsultas).
-export const USAN_UN_HUECO = new Set(["proponer_platos", "cambiar_plato", "por_que_plato"]);
+// USAN_UN_HUECO vive en manual.js, que la nombra en el manual; los tests la leen de aquí.
+export { USAN_UN_HUECO };
 /** Si el vigilante (supervisor.js) contrasta la herramienta con lo que escribió la persona: lo que quita protección. */
 export const vigilada = (nombre) => FICHAS.get(nombre)?.riesgo === RIESGO_HERRAMIENTA.QUITA_PROTECCION;
 
