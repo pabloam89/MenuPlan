@@ -2,7 +2,8 @@
 import { describe, it, expect, vi } from "vitest";
 import { createRoot } from "react-dom/client";
 import { act, useState } from "react";
-import { QuienCome, DeckFilter, opcionesDeMenu } from "./Menu.jsx";
+import { QuienCome, DeckFilter } from "./Menu.jsx";
+import { opcionesDeMenu } from "../lib/groups.js";
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
