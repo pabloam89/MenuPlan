@@ -29,7 +29,10 @@ import { POLITICA } from "../api/_bot/router.js";
 
 // Los modos de la vía rápida que escriben: los de riesgo «escribe…» en la
 // tabla del enrutador, sacados de ella para que no haya una copia que se desfase.
-export const MODOS_QUE_ESCRIBEN = Object.entries(POLITICA).filter(([, p]) => /^escribe/.test(p.riesgo)).map(([modo]) => modo);
+// «generar» ya no va por la vía rápida (#1210, 4 nov 2026) y no tiene fila en POLITICA, pero las rutas rápidas de
+// antes siguen en los 15 días que se leen (DIAS_GUARDADOS): escribían la semana. Se puede quitar a partir del 20 nov 2026.
+const ESCRIBIAN_POR_LA_RAPIDA = ["generar"];
+export const MODOS_QUE_ESCRIBEN = [...Object.entries(POLITICA).filter(([, p]) => /^escribe/.test(p.riesgo)).map(([modo]) => modo), ...ESCRIBIAN_POR_LA_RAPIDA];
 
 /** Los días que guarda bot_messages (0065_bot_retencion): el valor sin --dias, y el tope. */
 export const DIAS_GUARDADOS = 15;
