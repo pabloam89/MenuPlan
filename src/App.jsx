@@ -66,6 +66,7 @@ import { sugerenciasDeHueco } from "./lib/sugerenciasDeHueco.js";
 import { minimosQueFaltan } from "./lib/minimosParaGenerar.js";
 import { resolvePlannerModel, resolvePlannerFormat } from "./lib/aiModels.js";
 import { apiUrl } from "./lib/apiUrl.js";
+import { pedirExportacion, nombreDelFichero } from "./lib/descargarCasa.js";
 import { findMenuRestrictionConflicts } from "./utils/menuConflicts.js";
 import { GeneratingScreen } from "./screens/GeneratingScreen.jsx";
 // Wizard generativo (experimento local, rama wizard/generativo). Todo lo suyo
@@ -5862,6 +5863,23 @@ export default function App() {
     back(() => setScreen("dashboard"));
   }, []);
 
+  // Descargar los datos de la casa (trozo 36): todo lo que la base guarda de ella, en un fichero JSON. Si no llega
+  // entero, no se baja nada y se dice.
+  const handleExportarCasa = useCallback(async () => {
+    try {
+      const texto = await pedirExportacion({ casa: syncHouseholdId, token: session?.access_token });
+      const enlace = document.createElement("a");
+      enlace.href = URL.createObjectURL(new Blob([texto], { type: "application/json" }));
+      enlace.download = nombreDelFichero();
+      enlace.click();
+      URL.revokeObjectURL(enlace.href);
+      showToast("Tus datos se han descargado.");
+    } catch (err) {
+      console.error("[exportar] failed", err);
+      showToast("No se han podido descargar tus datos. Inténtalo de nuevo.");
+    }
+  }, [syncHouseholdId, session, showToast]);
+
   // Deletes the actual Supabase Auth account (not just app data) via
   // api/delete-account — required for App Store 5.1.1(v). Every user-scoped
   // table cascades from auth.users(id), so this one call is enough; there's
@@ -6997,6 +7015,7 @@ export default function App() {
                 onAppleSignIn={signInWithApple}
                 onSignOut={signOut}
                 onDeleteAccount={handleDeleteAccount}
+                onExportData={user && syncHouseholdId ? handleExportarCasa : null}
                 onEditMembers={() => fwd(() => setScreen("members"))}
                 onEditPreferences={() => openEditPreferences("profile")}
                 onOpenHouseholds={() => fwd(() => setScreen("households"))}
