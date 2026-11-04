@@ -2,7 +2,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { createRoot } from "react-dom/client";
 import { act, useState } from "react";
-import { QuienCome } from "./Menu.jsx";
+import { QuienCome, DeckFilter, opcionesDeMenu } from "./Menu.jsx";
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -61,5 +61,15 @@ describe("quién come, en la fila de la pizarra", () => {
     const grupos = [{ id: "ga", label: "Mayores" }, { id: "gb", label: "Peques" }];
     const caja = montar(<QuienCome groups={grupos} scope="borrado" onScopeChange={() => {}} members={casa} />);
     expect(caja.querySelector("button").getAttribute("aria-label")).toBe("Menú de Todos. Toca para ver Mayores");
+  });
+
+  it("QuienCome y DeckFilter sacan las opciones de opcionesDeMenu: el mismo nombre para el mismo menú", () => {
+    const grupos = [{ id: "ga", label: "Mayores" }, { id: "gx", label: "interno", adHoc: true, reason: "sin-motivo-conocido" }];
+    expect(opcionesDeMenu(grupos, "gx").opciones.map((o) => o.label)).toEqual(["Todos", "Mayores", "Menú individual"]);
+    expect(opcionesDeMenu(grupos, "borrado").indice).toBe(0);
+    const quien = montar(<QuienCome groups={grupos} scope="gx" onScopeChange={() => {}} members={casa} />);
+    const filtro = montar(<DeckFilter groups={grupos} scope="gx" onScopeChange={() => {}} members={casa} />);
+    expect(quien.querySelector("button").getAttribute("aria-label")).toMatch(/^Menú de Menú individual\./);
+    expect(filtro.querySelector("button").getAttribute("aria-label")).toBe("Filtrar menú (Menú individual)");
   });
 });

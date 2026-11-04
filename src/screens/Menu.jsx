@@ -4589,15 +4589,24 @@ function ScopeCircle({ opt, active, size = 42, members }) {
  * Con un solo menú no hay nada que filtrar: son solo las caras y no es un
  * botón, porque un botón que no hace nada parece roto.
  */
-export function QuienCome({ groups, scope, onScopeChange, members }) {
-  const roster = members ?? [];
+/**
+ * Las opciones del filtro de menú, para QuienCome y DeckFilter: «Todos» y un
+ * menú por grupo. `indice` es la del `scope`; un menú que ya no existe cae en
+ * Todos (0).
+ */
+export function opcionesDeMenu(groups, scope) {
   const opciones = [
     { id: "all", label: "Todos", group: null },
     ...(groups ?? []).map((g) => ({ id: g.id, label: g.adHoc ? adhocReasonLabel(g.reason) : g.label, group: g })),
   ];
+  return { opciones, indice: Math.max(0, opciones.findIndex((o) => o.id === scope)) };
+}
+
+export function QuienCome({ groups, scope, onScopeChange, members }) {
+  const roster = members ?? [];
+  const { opciones, indice } = opcionesDeMenu(groups, scope);
   const variosMenus = opciones.length > 2;
-  // Un menú que ya no existe cae en Todos, como en DeckFilter.
-  const i = variosMenus ? Math.max(0, opciones.findIndex((o) => o.id === scope)) : 0;
+  const i = variosMenus ? indice : 0;
   const actual = opciones[i];
   const siguiente = opciones[(i + 1) % opciones.length];
   // Con un solo menú, quien come es quien está en él (o la casa, si el menú no
@@ -4658,8 +4667,8 @@ export function QuienCome({ groups, scope, onScopeChange, members }) {
 export function DeckFilter({ groups, scope, onScopeChange, members }) {
   const [open, setOpen] = useState(false);
 
-  const scopeOptions = [{ id: "all", label: "Todos", group: null }, ...groups.map((g) => ({ id: g.id, label: g.label, group: g }))];
-  const activeOpt = scopeOptions.find((o) => o.id === scope) ?? scopeOptions[0];
+  const { opciones: scopeOptions, indice } = opcionesDeMenu(groups, scope);
+  const activeOpt = scopeOptions[indice];
 
   return (
     <>
