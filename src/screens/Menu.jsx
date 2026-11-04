@@ -132,7 +132,7 @@ import { findMatchingPantryItem } from "../lib/shoppingBuilder.js";
 import { consumeFromPantry, restoreToPantry, pantryConsumeMode } from "../lib/cookPantry.js";
 import { addPantryItems, addLocalPantryItems, adjustCookedDishPortions, adjustLocalCookedDishPortions, loadPantry, loadLocalPantry } from "../lib/pantry.js";
 import { normalizePantryInput } from "../utils/normalizePantryInput.js";
-import { membersOfGroup, isBabyMenuGroup, adhocReasonLabel } from "../lib/groups.js";
+import { membersOfGroup, isBabyMenuGroup, adhocReasonLabel, opcionesDeMenu } from "../lib/groups.js";
 import { eatersForSlot } from "../lib/slotEaters.js";
 import { summarizeMenuRestrictionConflicts } from "../utils/menuConflicts.js";
 import { Avatar, BottomNav, Chip, EmptyIllustration, GroupAvatarStack, GroupScopePicker, WeekRangeBadge, WizardSheet, bottomNavSpacer, safeTop, groupAvatarFaces, APP_SHELL_MAX_WIDTH } from "../components/ui.jsx";
@@ -4577,62 +4577,85 @@ function ScopeCircle({ opt, active, size = 42, members }) {
 }
 
 /**
+ * Quién come, a la izquierda de la fila de la pizarra: hasta tres caras y un
+ * «+N». Con varios menús, tocarlo pasa a la opción siguiente (Todos → cada
+ * menú → Todos) y filtra el tablero con el mismo `scope` de la pantalla.
+ *
+ * Aquí antes había chips, y con razón: tocar las caras pasaba a la siguiente
+ * sin decir a cuál, y una pila de caras no explica que lo que se filtra es un
+ * menú y no una persona. Por eso el nombre de la opción va siempre bajo las
+ * caras, y el `aria-label` dice cuál viene después.
+ *
+ * Con un solo menú no hay nada que filtrar: son solo las caras y no es un
+ * botón, porque un botón que no hace nada parece roto.
+ */
+export function QuienCome({ groups, scope, onScopeChange, members }) {
+  const roster = members ?? [];
+  const { opciones, indice } = opcionesDeMenu(groups, scope);
+  const variosMenus = opciones.length > 2;
+  const i = variosMenus ? indice : 0;
+  const actual = opciones[i];
+  const siguiente = opciones[(i + 1) % opciones.length];
+  // Con un solo menú, quien come es quien está en él (o la casa, si el menú no
+  // dice quién).
+  const grupo = variosMenus ? actual.group : groups?.[0] ?? null;
+  const quienes = grupo?.memberIds ? roster.filter((m) => grupo.memberIds.includes(m.id)) : roster;
+  const caras = groupAvatarFaces(quienes, roster);
+
+  const contenido = (
+    <>
+      {caras.length > 0 && <GroupAvatarStack faces={caras} size={26} max={3} />}
+      {variosMenus && (
+        <span
+          style={{
+            fontSize: "var(--tipo-paso-10)", fontWeight: "var(--tipo-peso-800)", lineHeight: 1,
+            color: "var(--color-marca)", whiteSpace: "nowrap",
+          }}
+        >
+          {actual.label}
+        </span>
+      )}
+    </>
+  );
+  const caja = {
+    flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center",
+    justifyContent: "center", gap: "var(--esp-4)", minWidth: "var(--tam-tactil)",
+    padding: "0 var(--esp-8)",
+  };
+
+  if (!variosMenus) {
+    if (caras.length === 0) return null;
+    const nombres = quienes.map((m) => m.name).filter(Boolean).join(", ");
+    return (
+      <div role="img" aria-label={`Comen: ${nombres}`} style={caja}>
+        {contenido}
+      </div>
+    );
+  }
+  return (
+    <button
+      type="button"
+      className="deck-press"
+      data-coach="menu-filters"
+      onClick={() => onScopeChange(siguiente.id)}
+      aria-label={`Menú de ${actual.label}. Toca para ver ${siguiente.label}`}
+      style={{ ...caja, border: "none", background: "transparent", cursor: "pointer", fontFamily: "inherit" }}
+    >
+      {contenido}
+    </button>
+  );
+}
+
+/**
  * Deck filter — a circular chip (identical to the popup circles) that opens a
  * centered "liquid glass" modal to filter by menú (dieta/bebés/niños…) and by
  * persona. Only rendered when there are several menús.
  */
-export function DeckFilter({ groups, scope, onScopeChange, members, chips = false }) {
+export function DeckFilter({ groups, scope, onScopeChange, members }) {
   const [open, setOpen] = useState(false);
 
-  const scopeOptions = [{ id: "all", label: "Todos", group: null }, ...groups.map((g) => ({ id: g.id, label: g.label, group: g }))];
-  const activeOpt = scopeOptions.find((o) => o.id === scope) ?? scopeOptions[0];
-
-  // En la pizarra las opciones se ven todas y con su nombre. Tocar las caras
-  // pasaba a la siguiente sin decir a cuál, y una pila de caras no explica que
-  // lo que se filtra es un menú y no una persona.
-  if (chips) {
-    return (
-      <div
-        role="group"
-        aria-label="Filtrar menú"
-        data-coach="menu-filters"
-        style={{
-          display: "flex", gap: "var(--esp-8)", padding: "0 var(--esp-16)",
-          overflowX: "auto", scrollbarWidth: "none",
-        }}
-      >
-        {scopeOptions.map((opt) => {
-          const activo = opt.id === activeOpt.id;
-          return (
-            <button
-              key={opt.id}
-              type="button"
-              className="deck-press"
-              aria-pressed={activo}
-              onClick={() => onScopeChange(opt.id)}
-              style={{
-                flexShrink: 0, display: "inline-flex", alignItems: "center",
-                height: "var(--tam-tactil)", border: "none", background: "transparent",
-                padding: 0, cursor: "pointer", fontFamily: "inherit",
-              }}
-            >
-              <span
-                style={{
-                  padding: "var(--esp-6) var(--esp-12)", borderRadius: "var(--radio-pildora)",
-                  fontSize: "var(--tipo-paso-13)", fontWeight: "var(--tipo-peso-800)", whiteSpace: "nowrap",
-                  background: activo ? "var(--color-marca)" : "var(--color-marca-fondo)",
-                  color: activo ? "var(--color-superficie)" : "var(--color-marca)",
-                  transition: "background var(--mov-rapida) var(--mov-curva), color var(--mov-rapida) var(--mov-curva)",
-                }}
-              >
-                {opt.group?.adHoc ? adhocReasonLabel(opt.group.reason) : opt.label}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-    );
-  }
+  const { opciones: scopeOptions, indice } = opcionesDeMenu(groups, scope);
+  const activeOpt = scopeOptions[indice];
 
   return (
     <>
@@ -6172,7 +6195,7 @@ export const MenuScreen = memo(function MenuScreen({
       {/* ── Zona de navegación: cabecera clásica (fecha/perfil/chevron) o nav del deck ── */}
       {/* En la pizarra esta franja se queda pegada arriba al bajar.
           Los mandos de aquí no son decoración de cabecera: son con lo que
-          rellenas: los chips dicen para qué menú estás poniendo platos y las
+          rellenas: las caras dicen para qué menú estás poniendo platos y las
           baldosas abren balance, despensa, batch y rellenar. Con siete
           días en pantalla, tocar un hueco del domingo y querer cambiar de
           comensal obligaba a subir hasta arriba, cambiar y volver a bajar.
@@ -6198,13 +6221,13 @@ export const MenuScreen = memo(function MenuScreen({
 
         {/* View controls — deck: vistas (izq) · semana (centro) · filtro círculo (der) */}
         {/* ── La fila de la pizarra ─────────────────────────────────────
-            Arriba, para qué menú (solo si hay más de uno: un filtro de una
-            opción no filtra nada). Debajo, con qué se maneja el tablero, en el
+            A la izquierda, quién come y para qué menú (`QuienCome`). Al lado,
+            con qué se maneja el tablero, en el
             slate que esta app ya reserva para lo logístico — ver la escala de
             Compra en DESIGN_SYSTEM §7. El tinte llega de borde a borde porque
             la franja es una zona, no una tarjeta. */}
         {/* `pizarraControles` manda: mientras la pizarra arranca llega vacío,
-            y entonces la franja ENTERA se va, chips incluidos: sin baldosas
+            y entonces la franja ENTERA se va, caras incluidas: sin baldosas
             solo dirían «hay cosas que todavía no puedes tocar». */}
         {hasMenu && modoPizarra && pizarraControles && (
           <div
@@ -6214,22 +6237,22 @@ export const MenuScreen = memo(function MenuScreen({
             className="mp-franja-entra"
             style={{ margin: "0 calc(-1 * var(--esp-16)) var(--esp-12)" }}
           >
-            {multiGroup && (
-              <DeckFilter
-                groups={data.groups}
-                scope={scope}
-                onScopeChange={setScope}
-                members={data.members ?? []}
-                chips
-              />
-            )}
             <div style={{ minHeight: 78, background: "var(--pz-fondo-suave, #f1f5f9)", display: "flex", alignItems: "center" }}>
               <HuecosVivosContext.Provider value={huecosVivos}>
                 {/* Llega como función para que esta pantalla le pase lo que
                     solo ella sabe hacer: la hoja del PDF y, sin cuenta,
                     compartir el menú como texto (el enlace pide sesión). */}
                 {typeof pizarraControles === "function"
-                  ? pizarraControles({ onDescargar: handleDownload, ...(user ? null : { onCompartir: handleShare }) })
+                  ? pizarraControles({
+                    onDescargar: handleDownload,
+                    ...(user ? null : { onCompartir: handleShare }),
+                    // Quién come, a la izquierda de la fila. Sustituye a los
+                    // chips que iban encima: dos mandos del mismo filtro
+                    // obligan a mirar los dos para saber cuál manda.
+                    quienCome: (
+                      <QuienCome groups={data.groups} scope={scope} onScopeChange={setScope} members={data.members ?? []} />
+                    ),
+                  })
                   : pizarraControles}
               </HuecosVivosContext.Provider>
             </div>

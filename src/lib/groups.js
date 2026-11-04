@@ -417,6 +417,19 @@ export function adhocReasonLabel(reason) {
   return ADHOC_REASON_LABEL[reason] ?? "Menú individual";
 }
 
+/**
+ * Las opciones del filtro de menú, para QuienCome y DeckFilter: «Todos» y un
+ * menú por grupo. `indice` es la del `scope`; un menú que ya no existe cae en
+ * Todos (0).
+ */
+export function opcionesDeMenu(groups, scope) {
+  const opciones = [
+    { id: "all", label: "Todos", group: null },
+    ...(groups ?? []).map((g) => ({ id: g.id, label: g.adHoc ? adhocReasonLabel(g.reason) : g.label, group: g })),
+  ];
+  return { opciones, indice: Math.max(0, opciones.findIndex((o) => o.id === scope)) };
+}
+
 /** Create the ad-hoc group for one member, remembering their home group. */
 export function createIndividualMenuGroup(member, sourceGroupId, reason) {
   return {

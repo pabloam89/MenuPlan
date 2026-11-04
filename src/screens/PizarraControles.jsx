@@ -1853,7 +1853,7 @@ export function PizarraControles({
   data, setData, menuPlan, groups, onRellenar,
   despensa, onAddDespensa, onQuitarDespensa, onQtyDespensa,
   onNuevaPizarra, onVaciar, onFavorito, esFavorito = false,
-  onCompartir, onMenus, onDescargar, conCuenta = false,
+  onCompartir, onMenus, onDescargar, conCuenta = false, quienCome = null,
 }) {
   const [abierto, setAbierto] = useState(null);
   // Qué cara de la fila se ve. Arranca en las ACCIONES porque «Rellenar»
@@ -1926,34 +1926,12 @@ export function PizarraControles({
           guardarlo) y lo que lo AJUSTA (balance, despensa, batch) nunca se
           necesitan a la vez: o estás montando la semana o estás haciendo algo
           con ella. Mismo gesto que la fila del menú generado (ControlRow): una
-          pestaña fija a la izquierda, y al tocarla una cara se pliega mientras
+          pestaña fija (aquí a la derecha), y al tocarla una cara se pliega mientras
           la otra crece. Se anima el reparto (`flex-grow`) y NO se desmonta
           ninguna: montarlas al vuelo daría el salto a mitad de animación. */}
       <div style={{ display: "flex", alignItems: "stretch", width: "100%", minWidth: 0 }}>
-        <button
-          type="button"
-          onClick={() => setCara((c) => (c === "acciones" ? "controles" : "acciones"))}
-          aria-label={cara === "acciones" ? "Ver los ajustes" : "Ver las acciones"}
-          style={{
-            flexShrink: 0, width: 38, border: "none", padding: "0 6px", cursor: "pointer",
-            background: "transparent", display: "flex", alignItems: "center",
-            justifyContent: "center", fontFamily: "inherit",
-          }}
-        >
-          <span
-            style={{
-              width: 24, height: 24, borderRadius: 999,
-              background: "var(--pz-linea, rgba(45,90,61,.1))", color: "var(--pz-verde, #2d5a3d)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              // Gira al cambiar de cara: es la única pieza que se queda
-              // quieta, así que es la que tiene que decir que hay otra.
-              transform: cara === "acciones" ? "none" : "rotate(180deg)",
-              transition: "transform .28s cubic-bezier(.2,.9,.3,1)",
-            }}
-          >
-            <ChevronRight size={15} strokeWidth={2.8} />
-          </span>
-        </button>
+        {/* Quién come, a la izquierda (ver `QuienCome` en Menu.jsx). */}
+        {quienCome}
 
         {/* Una ventana, y dentro un carril con las DOS caras puestas.
             Antes se cambiaba desmontando una y montando la otra: la que se iba
@@ -2119,6 +2097,31 @@ export function PizarraControles({
             </div>
           </div>
         </div>
+        {/* El chevron, a la derecha: la izquierda es de las caras. */}
+        <button
+          type="button"
+          onClick={() => setCara((c) => (c === "acciones" ? "controles" : "acciones"))}
+          aria-label={cara === "acciones" ? "Ver los ajustes" : "Ver las acciones"}
+          style={{
+            flexShrink: 0, width: 38, border: "none", padding: "0 6px", cursor: "pointer",
+            background: "transparent", display: "flex", alignItems: "center",
+            justifyContent: "center", fontFamily: "inherit",
+          }}
+        >
+          <span
+            style={{
+              width: 24, height: 24, borderRadius: 999,
+              background: "var(--pz-linea, rgba(45,90,61,.1))", color: "var(--pz-verde, #2d5a3d)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              // Gira al cambiar de cara: es la única pieza que se queda
+              // quieta, así que es la que tiene que decir que hay otra.
+              transform: cara === "acciones" ? "none" : "rotate(180deg)",
+              transition: "transform .28s cubic-bezier(.2,.9,.3,1)",
+            }}
+          >
+            <ChevronRight size={15} strokeWidth={2.8} />
+          </span>
+        </button>
       </div>
 
       {/* Vaciar sí pregunta: se lleva por delante todo lo que has puesto y no
