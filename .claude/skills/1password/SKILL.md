@@ -136,12 +136,12 @@ niega `guardia-minima.mjs`), están en `.claude/skills/1password/referencias/bov
   lanzaron consultas en bucle con reintentos propios sin leer esta skill. Arreglo: `env.mjs` apunta la ruta en `~/.menuplan/op-rutas.json`. Antes: 3
   lecturas por consulta; después: 1 (`scripts/lib/env.test.js`). Antes de un bucle contra la base, mira `npm run op -- service-account ratelimit` y, si falla
   una lectura, para: reintentar gasta cupo de todas las sesiones.
-  La raíz, medida esa noche: las 186 carpetas de `C:\dev\MenuPlan*` tenían un `.env.local` con las 17 direcciones a la bóveda de Pablo, porque
+  La raíz, medida esa noche: todas las carpetas de `C:\dev\MenuPlan*` tenían un `.env.local` con las 17 direcciones a la bóveda de Pablo, porque
   cada carpeta nueva copiaba el de la principal (CLAUDE.md) y la plantilla, que ya apuntaba a HoMenu-sesiones desde #328, no la leía nadie. El
   respaldo entre bóvedas hacía que todo funcionara, así que el error solo se veía en el cupo. Arreglo: las direcciones salen de `ops/env.1password`
-  (`direcciones()`); una de `.env.local` distinta de la plantilla se ignora y se avisa, y CLAUDE.md ya no manda copiar nada. Medido con `direcciones()` sobre cada
-  `.env.local` de `C:\dev\MenuPlan*` (sin llamar a `op`): carpetas que piden alguna clave de la plantilla a otra bóveda, antes 186 de 186, después 0,
-  sin tocar ningún `.env.local`.
+  (`direcciones()`); una de `.env.local` distinta de la plantilla se ignora y se avisa, y CLAUDE.md ya no manda copiar nada. Medido el 4 nov a
+  las 21:40 con `node scripts/direcciones-carpetas.mjs` (sin llamar a `op`): carpetas que piden alguna clave de la plantilla a otra bóveda, antes
+  192 de 192, después 0, sin tocar ningún `.env.local`.
 
 - **2026-11-03 · cupo de la cuenta agotado (1000 lecturas al día) de madrugada; sin base ni GitHub hasta que se reinició, por la mañana.**
   Causa, del registro `~/.menuplan/op-lecturas.jsonl`: el 2 nov (día de Madrid) este PC gastó 1015 claves en 823 lecturas; 612 de `vite.js` (arrancar o

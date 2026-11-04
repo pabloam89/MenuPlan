@@ -49,8 +49,9 @@ export const esReferencia = (v) => typeof v === "string" && v.startsWith("op://"
  * Dónde está cada clave: la plantilla de git (`ops/env.1password`) y, encima,
  * `.env.local`. Así una dirección se cambia una vez, en git, y vale para todas
  * las carpetas. Antes cada carpeta copiaba el `.env.local` de la principal, y el
- * 4 nov las 184 seguían nombrando la bóveda de Pablo tras el paso a
- * HoMenu-sesiones (#328): tres lecturas del cupo por clave, hasta agotarlo.
+ * 4 nov todas seguían nombrando la bóveda de Pablo tras el paso a
+ * HoMenu-sesiones (#328): tres lecturas del cupo por clave, hasta agotarlo. Lo
+ * cuenta `node scripts/direcciones-carpetas.mjs`.
  *
  * Una dirección op:// de `.env.local` para una clave que la plantilla ya trae,
  * y distinta, se ignora con un aviso: es una copia vieja. Un valor en claro sí
