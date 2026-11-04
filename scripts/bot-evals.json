@@ -738,10 +738,18 @@
         },
         {
           "role": "assistant",
-          "content": "Ya os tengo: Ana, Pablo y Leo, sin alergias. ¿Te hago unas preguntas para afinarlo, te lo preparo ya y lo ajustamos sobre la marcha, o prefieres rellenarlo tú en la app?\n\n[[Hazme las preguntas]]\n[[Prepáralo ya]]\n[[Lo relleno yo en la app]]"
+          "content": "Ya os tengo: Ana, Pablo y Leo, sin alergias. ¿Para cuándo quieres el menú, y cuánto lo afinamos?\n\n[[Lo básico]]\n[[A tu gusto]]\n[[Al detalle]]"
+        },
+        {
+          "role": "user",
+          "content": "Lo básico"
+        },
+        {
+          "role": "assistant",
+          "content": "¡Vamos! Cuéntame, en un mensaje o en un audio: ¿para qué días lo quieres, qué días coméis en casa y tenéis el menú del cole de Leo?\n\n[[Ya está, genéralo]]"
         }
       ],
-      "entrada": "Prepáralo ya",
+      "entrada": "Desde el lunes 5, para toda la semana. Comemos todos en casa salvo Leo a mediodía, que come en el cole",
       "llama": [
         "generar_menu"
       ],
@@ -1303,7 +1311,7 @@
       "tipo": "multiturno",
       "dominio": "alta",
       "origen": "escrito",
-      "nombre": "alta: con quién come y alergias, deja elegir el camino",
+      "nombre": "alta: con quién come y alergias, y pregunta para cuándo y cómo de a fondo",
       "ficha": {
         "estable": "SEGURIDAD: SIN REVISAR · PARA EMPEZAR FALTA: quién come · alergias · comidas",
         "delDia": "jue 1 oct"
@@ -1325,7 +1333,24 @@
       "noLlama": [
         "generar_menu"
       ],
-      "texto": "Prepáralo ya"
+      "texto": "Lo básico"
+    },
+    {
+      "id": "menu-pregunta-antes-de-generar",
+      "tipo": "multiturno",
+      "dominio": "menu",
+      "origen": "escrito",
+      "dependeDeFecha": true,
+      "nombre": "pedido el menú, antes pregunta para cuándo y cómo de a fondo (#1210)",
+      "ficha": {
+        "estable": "SEGURIDAD\n- Ana, Pablo, Leo: ninguna.\nCASA\n- Ana 38 · Pablo 40 · Leo 6.",
+        "delDia": "jue 1 oct\nMENÚ: no hay menú la semana que viene"
+      },
+      "historia": [],
+      "entrada": "hazme el menú de la semana que viene",
+      "llama": [],
+      "noLlama": [],
+      "texto": "A tu gusto"
     },
     {
       "id": "formato-dia-sin-icono",

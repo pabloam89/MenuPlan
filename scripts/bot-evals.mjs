@@ -96,6 +96,7 @@ const { ejecutar, herramientas, conQuienEscribe, MODELO, MODELO_RESERVA } = awai
 const { paraElModelo, resultado: resultadoDe } = await import("../api/_bot/resultado.js");
 const { resultadoDeCambio, resultadoDeAnadir } = await import("../api/_bot/menu.js");
 const { resultadoDeGenerar, SIN_GENERAR } = await import("../api/_bot/generar.js");
+const { faltaParaGenerar } = await import("../api/_bot/caminoMenu.js");
 const { bloqueDe } = await import("../api/_bot/pendientes.js");
 const { bloqueDeTareas } = await import("../api/_bot/tareas.js");
 const { supervisar } = await import("../api/_bot/supervisor.js");
@@ -149,6 +150,8 @@ const fichaDel = (hoy) => ({
     ...(() => { const b = botonRehacer([{ weekStart: lunesDe(hoy), weekEnd: sumarDias(lunesDe(hoy), 6) }], hoy); return b ? [`- Botón tras un ajuste: [[${b}]]`] : []; })(),
   ].join("\n"),
 });
+/** El primer lunes sin menú en estas pruebas: el menú activo de ver_menu va del 2026-09-28 al 2026-10-04. */
+const LUNES_SIN_MENU = "2026-10-05";
 const RESPUESTAS = {
   ver_casa: FAMILIA,
   ver_ajustes: "Estructura: primero y segundo. Esfuerzo normal. Trastos: Horno, Microondas. Gustos: nada anotado. Leo come en el cole de lunes a viernes.",
@@ -161,8 +164,12 @@ const RESPUESTAS = {
   // El pollo al horno ya está (martes): pedido el salmón, basta un cambio.
   // Como generarMenu (semanaPedida.js): una fecha cuya semana ya tiene menú
   // no se rehace sin rehacer: true; avisa y no toca nada.
-  generar_menu: (a) => paraElModelo(resultadoDeGenerar(a.desde && !a.rehacer ? { ok: false, motivo: SIN_GENERAR.SEMANA } : { ok: true, desde: a.semana === "siguiente" ? "2026-10-05" : "2026-09-30", hasta: a.semana === "siguiente" ? "2026-10-11" : "2026-10-04", platos: 14 },
-    a.desde && !a.rehacer ? `YA HAY MENÚ en la semana del ${a.desde}: NO lo he rehecho ni he cambiado nada. Pregunta si quieren rehacer esa (generar_menu con rehacer: true).` : `Menú nuevo generado y activado: del ${a.semana === "siguiente" ? "2026-10-05 al 2026-10-11" : "2026-09-30 al 2026-10-04"}, 14 huecos con plato.`
+  // Ahora la fecha va siempre (#1210): «ya hay menú» solo si cae en la semana del menú activo de ver_menu.
+  // Como la de verdad (caminoMenu.js, #1210): sin camino o sin fecha, o en el turno del botón del camino, no genera.
+  generar_menu: (a, texto) => faltaParaGenerar({ camino: a.camino, desde: a.desde, texto })
+    ? paraElModelo(resultadoDeGenerar({ ok: false, motivo: SIN_GENERAR.PREGUNTAR }, faltaParaGenerar({ camino: a.camino, desde: a.desde, texto })))
+    : paraElModelo(resultadoDeGenerar(a.desde < LUNES_SIN_MENU && !a.rehacer ? { ok: false, motivo: SIN_GENERAR.SEMANA } : { ok: true, desde: a.semana === "siguiente" ? "2026-10-05" : "2026-09-30", hasta: a.semana === "siguiente" ? "2026-10-11" : "2026-10-04", platos: 14 },
+    a.desde < LUNES_SIN_MENU && !a.rehacer ? `YA HAY MENÚ en la semana del ${a.desde}: NO lo he rehecho ni he cambiado nada. Pregunta si quieren rehacer esa (generar_menu con rehacer: true).` : `Menú nuevo generado y activado: del ${a.semana === "siguiente" ? "2026-10-05 al 2026-10-11" : "2026-09-30 al 2026-10-04"}, 14 huecos con plato.`
     + ((a.fijos ?? []).length ? `\nLo que pidieron, ya puesto (no hace falta cambiar_plato):\n${a.fijos.map((f, i) => `«${f.nombre}» → ${f.nombre} (${["lunes", "martes", "jueves"][i % 3]}, ${String(f.comida ?? "comida").toLowerCase()})`).join("\n")}` : "")
     + `\n\nAsí queda (no hace falta ver_menu):\nSemana del 5 oct al 11 oct.\n\nlunes:\n  Comida: primero Crema de calabaza; segundo Merluza en salsa verde\n  Cena: Tortilla francesa con ensalada\nmartes:\n  Comida: Lentejas estofadas\n  Cena: Pollo al horno con patatas\nmiércoles:\n  Comida: Arroz con verduras\n  Cena: Sopa de fideos\njueves:\n  Comida: primero Ensalada mixta; segundo Albóndigas en salsa\n  Cena: Revuelto de setas\nviernes:\n  Comida: Paella de verduras\n  Cena: Pizza casera de jamón y queso\nsábado:\n  Comida: Garbanzos con espinacas\n  Cena: Hamburguesa de ternera\ndomingo:\n  Comida: Lasaña de carne\n  Cena: Crema de puerros`)),
   cambiar_plato: (a) => paraElModelo(resultadoDeCambio({ cambiado: true, fecha: "2026-10-08", franja: a.comida ?? "Cena", antes: "Tortilla francesa con ensalada", despues: a.receta ?? "Merluza en salsa verde" }, `Cambiado (${a.dia ?? "?"}, ${a.comida ?? "?"}): Tortilla francesa con ensalada → ${a.receta ?? "Merluza en salsa verde"}.\n\nAsí queda ese día (es lo guardado, no hace falta ver_menu):\nSemana del 5 oct al 11 oct.\n\n${a.dia ?? "lunes"}:\n  Comida: primero Crema de calabaza; segundo Merluza en salsa verde\n  ${a.comida ?? "Cena"}: ${a.receta ?? "Merluza en salsa verde"}`, { dia: a.dia, franja: a.comida })),
@@ -316,7 +323,7 @@ async function intentar(caso) {
       // El resultado se guarda con la llamada: cuando las herramientas devuelvan
       // su sobre (trozo 26), operacionExacta lo compara con espera.sobre.
       const resultado = propia != null ? (Array.isArray(propia) ? propia[Math.min(vez, propia.length - 1)] : propia)
-        : typeof fija === "function" ? fija(args) : fija ?? `Hecho (${t.name}).`;
+        : typeof fija === "function" ? fija(args, caso.entrada) : fija ?? `Hecho (${t.name}).`;
       llamadas.push({ nombre: t.name, args, resultado });
       return resultado;
     },
