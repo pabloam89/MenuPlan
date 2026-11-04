@@ -1,4 +1,9 @@
 -- El registro de cada intento de conectar un chat con una casa (#1238).
+-- AUDITADA: auditor-datos 2026-11-04 OK
+--   (un agente independiente, que no la escribió, leyendo producción: tabla nueva de solo añadir, sin bloqueos ni datos
+--   de Telegram; household_id y user_id con lector en bot-enlaces.mjs, CHECK iguales a las listas JS, RLS sin políticas y
+--   plan B que no tumba el enlace. En su primera pasada pidió quitar channel, dar lector a household_id y registrar el
+--   sitio de fallo enlace_apuntar: hecho)
 --
 -- Un mismo Telegram con dos cuentas de la app acababa con Lola en una casa y la persona mirando otra, sin aviso. El
 -- 4 nov 2026 se vio que 3 cuentas habían intentado conectar su Telegram desde la app (6 veces) y se habían rechazado
