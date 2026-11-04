@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { referenciasRotas, rotasDePreferencias, rotasDeTareas, TIPOS_ROTA, TIPO_ROTA, ACCIONES_ROTA, ACCION_DE_ROTA } from "./referenciasRotas.js";
+import { referenciasRotas, rotasDePreferencias, rotasDeTareas, correccionesDeRotas, TIPOS_ROTA, TIPO_ROTA, ACCIONES_ROTA, ACCION_DE_ROTA } from "./referenciasRotas.js";
 import { EJES } from "../data/axisRegistry.js";
 
 // Un eje de enum con vocabulario, uno sin vocabulario y uno booleano, del registro de verdad.
@@ -72,6 +72,27 @@ describe("rotasDeTareas: una persona que ya no es de la casa o un campo que ya n
   it("un campo que ya no está en el registro sale; uno que está, no", () => {
     expect(rotasDeTareas([{ id: "t1", campo: "campoQueYaNoEsta" }, { id: "t2", campo: "alergias" }], personas))
       .toEqual([{ donde: "tarea", id: "t1", tipo: TIPO_ROTA.CAMPO_DESCONOCIDO, ref: "campoQueYaNoEsta", accion: "corregir" }]);
+  });
+});
+
+describe("correccionesDeRotas: qué se descarta, a qué se le quita el encargado y qué se pregunta", () => {
+  it("falta el «para» → descartar; falta solo el encargado → quitarlo; faltan los dos → descartar", () => {
+    const tareas = [
+      { id: "t1", para_member: "marta" },
+      { id: "t2", para_member: "ana", asignado_member: "pedro" },
+      { id: "t3", para_member: "marta", asignado_member: "pedro" },
+      { id: "t4", campo: "campoQueYaNoEsta", asignado_member: "pedro" },
+    ];
+    const r = correccionesDeRotas(rotasDeTareas(tareas, ["ana"]));
+    expect(r.descartar.sort()).toEqual(["t1", "t3", "t4"]);
+    expect(r.sinEncargado).toEqual(["t2"]);
+    expect(r.preguntar).toEqual([]);
+  });
+
+  it("una preferencia fuera de su eje se pregunta, con su persona", () => {
+    const filas = [{ id: "p1", eje: conVocabulario.id, valor: "fuera", persona_id: "ana" }];
+    expect(correccionesDeRotas(rotasDePreferencias(filas), filas).preguntar)
+      .toEqual([{ preferenciaId: "p1", eje: conVocabulario.id, valor: "fuera", personaId: "ana" }]);
   });
 });
 

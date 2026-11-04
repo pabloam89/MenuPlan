@@ -1822,7 +1822,7 @@ export const SOLO_LECTURA = new Set([...FICHAS].filter(([, f]) => f.soloLectura)
  */
 export const SIN_RESULTADO_TODAVIA = new Set([
   "guardar_receta", "guardar_menu_cole", "ajustar_gustos", "descartar_supuesto", "ajustar_cocina", "ajustar_compra",
-  "ajustar_extras", "ajustar_semana", "ajustar_uso_despensa", "pedir_tanda", "ajustar_horario", "anadir_invitado",
+  "ajustar_extras", "ajustar_semana", "ajustar_uso_despensa", "pedir_tanda", "anadir_invitado",
   "anadir_comensal", "ajustar_persona", "ajustar_menu_peques", "quitar_comensal", "ajustar_alergias", "ajustar_salud",
 ]);
 
