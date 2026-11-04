@@ -35,7 +35,7 @@ import { EXTRAS, conExtras } from "../../src/lib/extras.js";
 import { quitarPersona } from "../../src/lib/quitarPersona.js";
 import { aplicarDiasDeSemana, diasDeSemana } from "../../src/lib/semanaDias.js";
 import { estructuraEfectiva } from "../../src/lib/estructuraPlatos.js";
-import { resultado } from "./resultado.js";
+import { resultado, NO_GUARDADO } from "./resultado.js";
 
 const hoyISO = () => isoDeCasa();
 // Del catálogo de comidas (src/lib/comidas.js).
@@ -75,7 +75,14 @@ export async function conData(householdId, cambiar, ctx = null) {
     if (!res.data) return null;
     return { state: { ...casa.state, data: res.data } };
   });
-  if (!r.ok) return `No he podido guardarlo: ${r.error}.`;
+  if (!r.ok) {
+    const error = `No he podido guardarlo: ${r.error}.`;
+    // Con resultado, el fallo también lo es: lo que iba a quedar hecho, sin hacer y por qué
+    // (sin él, la puerta de agente.js lo contaría como herramienta sin resultado).
+    if (!hecho) return error;
+    const pedido = [...hecho.hecho, ...hecho.sinHacer.map((x) => x.que)];
+    return resultado({ accion: hecho.accion, sinHacer: pedido.map((que) => ({ que, motivo: NO_GUARDADO })), nota: error });
+  }
   if (guardado && cimientosCompletos(guardado)) {
     await registrar(EMBUDO.CIMIENTOS, { userId: await duenoDe(householdId), unaVez: true });
   }
@@ -507,16 +514,34 @@ export function personasDeEdad(miembros, cuales) {
   return miembrosDeGrupo(miembros, cuales === "ninos" ? "ninos" : "adultos");
 }
 
+/** Por qué no se ha cambiado el horario de alguien, para el recibo (⚠️). */
+export const SIN_HORARIO = Object.freeze({ NO_ESTA: "no está en la casa" });
+
+/** La acción del resultado de ajustar_horario: su etiqueta del recibo está en ACCIONES (resultado.js). */
+const ACCION_HORARIO = "horario";
+
+/**
+ * El RESULTADO de ajustar_horario (trozo 27 de #1037): lo cambiado, en una
+ * línea; quien no está en la casa, sin hacer y por qué; y lo que falta saber
+ * (qué día, cuál de dos personas) o el aviso del cole, en la nota, sin línea
+ * en el recibo: Lola lo pregunta. Sin `valores`: el horario guarda también
+ * DÓNDE se come (casa, tupper, fuera, cole, off), y ese eje aún no se compara.
+ */
 export async function ajustarHorario(householdId, { personas, dias, comidas, donde }, quien = {}) {
+  const enNota = (texto) => ({ texto, resultado: resultado({ accion: ACCION_HORARIO, nota: texto }) });
   return conData(householdId, (data, m) => {
-    if (!m.SLOT_VALUES.includes(donde)) return { texto: `«${donde}» no vale: casa, tupper, fuera, cole u off.` };
+    if (!m.SLOT_VALUES.includes(donde)) return enNota(`«${donde}» no vale: casa, tupper, fuera, cole u off.`);
     const miembros = data.members ?? [];
     // Personas y grupos («los peques», «yo»), con el intérprete. Una dudosa
     // («Nat» con Natalia y Natxo) para todo: el horario es de cada semana.
     const rp = personasDe(data, personas?.length ? personas : ["todos"], quien);
-    if (rp.dudas.length) return { texto: `${rp.dudas.join(" ")} No he cambiado el horario.` };
+    if (rp.dudas.length) {
+      const texto = `${rp.dudas.join(" ")} No he cambiado el horario.`;
+      // Todas las dudas son nombres que no están en la casa: no hay nada que preguntar, se dice qué no se hizo.
+      if (rp.noEstan.length === rp.dudas.length) return { texto, resultado: resultado({ accion: ACCION_HORARIO, sinHacer: rp.noEstan.map((que) => ({ que, motivo: SIN_HORARIO.NO_ESTA })), nota: texto }) };
+      return enNota(texto);
+    }
     const sel = new Set(rp.personas.map((x) => x.id));
-    const noEncontradas = [];
     // Al cole solo van los menores. «Todos» + cole dejaba también a los adultos
     // sin comida entre semana: el motor no les planificaba nada a mediodía
     // (staging, 2 oct 2026: un adulto de 36 años con «cole» de lunes a viernes).
@@ -527,26 +552,25 @@ export async function ajustarHorario(householdId, { personas, dias, comidas, don
     const avisoCole = adultosAlCole.length
       ? ` ${adultosAlCole.map((x) => x.name).join(", ")} no ${adultosAlCole.length > 1 ? "van" : "va"} al cole: no se ha tocado su horario. Si a mediodía no ${adultosAlCole.length > 1 ? "comen" : "come"} en casa, pregunta si es fuera o con táper.`
       : "";
-    if (adultosAlCole.length && !sel.size) return { texto: `No he cambiado nada.${avisoCole}` };
+    if (adultosAlCole.length && !sel.size) return enNota(`No he cambiado nada.${avisoCole}`);
     const rd = diasDeLaSemana(dias);
-    if (rd.malos.length) return { texto: `No entiendo qué días son «${rd.malos.join("», «")}». No he cambiado el horario.` };
+    if (rd.malos.length) return enNota(`No entiendo qué días son «${rd.malos.join("», «")}». No he cambiado el horario.`);
     const ds = rd.dias;
     // Sin comidas: comida y cena. Al cole, solo la comida: «comen en el cole
     // de lunes a jueves» apuntaba también la cena en el cole y los niños se
     // quedaban sin cena (#958).
     const porDefecto = donde === "cole" ? ["Comida"] : COMIDAS_PRINCIPALES;
     const cs = (comidas?.length ? comidas : porDefecto).map((c) => COMIDAS.find((x) => normal(x) === normal(c))).filter(Boolean);
-    if (!sel.size || !ds.length || !cs.length) return { texto: `No sé a quién o cuándo aplicarlo${noEncontradas.length ? ` (no conozco a ${noEncontradas.join(", ")})` : ""}.` };
+    if (!sel.size || !ds.length || !cs.length) return enNota("No sé a quién o cuándo aplicarlo.");
     const schedule = { ...(data.schedule ?? {}) };
     for (const id of sel) for (const d of ds) for (const c of cs) {
       const k = m.slotKey(id, d, c);
       if (donde === "casa") delete schedule[k]; else schedule[k] = donde;
     }
     const nombres = miembros.filter((x) => sel.has(x.id)).map((x) => x.name).join(", ");
-    return {
-      data: { ...data, schedule },
-      texto: `Horario guardado: ${nombres} → ${donde} (${ds.map((d) => DIA_LARGO[d]).join(", ")}; ${cs.join(", ")}).${noEncontradas.length ? ` No conozco a ${noEncontradas.join(", ")}.` : ""}${avisoCole}`,
-    };
+    const hecho = `${nombres} → ${donde} (${ds.map((d) => DIA_LARGO[d]).join(", ")}; ${cs.join(", ")})`;
+    const texto = `Horario guardado: ${hecho}.${avisoCole}`;
+    return { data: { ...data, schedule }, texto, resultado: resultado({ accion: ACCION_HORARIO, hecho: [hecho], nota: avisoCole.trim() }) };
   });
 }
 
