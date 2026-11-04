@@ -12,7 +12,7 @@ process.env.TELEGRAM_WEBHOOK_SECRET = "secreto";
 process.env.VITE_SUPABASE_URL ||= "https://sin-base.invalid";
 process.env.SUPABASE_SERVICE_ROLE_KEY ||= "sin-clave";
 
-const t = vi.hoisted(() => ({ tablas: {}, enviados: [], trabajo: [] }));
+const t = vi.hoisted(() => ({ deGrupo: false, tablas: {}, enviados: [], trabajo: [] }));
 
 vi.mock("@vercel/functions", () => ({ waitUntil: (p) => t.trabajo.push(p) }));
 vi.mock("../_bot/db.js", () => ({
@@ -40,7 +40,7 @@ vi.mock("../_bot/recordatorios.js", () => ({ ahoraEnMadrid: () => "" }));
 vi.mock("../_bot/compartir.js", () => ({ enlacesReceta: vi.fn(), enlacesSemana: vi.fn(), botonesCompartir: vi.fn(), resolverInvitacion: vi.fn(async () => null), recetaEnTexto: vi.fn(), semanaEnTexto: vi.fn(), copiarReceta: vi.fn(), cuentasDeQuien: vi.fn(async () => []) }));
 vi.mock("../_bot/menu.js", () => ({ motor: vi.fn() }));
 vi.mock("../_bot/ajustes.js", () => ({ sembrarCasa: vi.fn() }));
-vi.mock("../_bot/enlace.js", () => ({ enlazarChat: vi.fn(async () => ({ ok: true })), crearCodigo: vi.fn(), gastarCodigo: vi.fn(), baseDe: () => "https://x", confirmarEnlace: vi.fn(async () => ({})), casaPropia: vi.fn(), idDePersona: (f) => (f?.id ? String(f.id) : null), codigoDeGrupo: vi.fn(), esCodigoDeGrupo: () => false }));
+vi.mock("../_bot/enlace.js", () => ({ enlazarChat: vi.fn(async () => ({ ok: true })), apuntarEnlace: vi.fn(async () => {}), crearCodigo: vi.fn(), gastarCodigo: vi.fn(), baseDe: () => "https://x", confirmarEnlace: vi.fn(async () => ({})), casaPropia: vi.fn(), idDePersona: (f) => (f?.id ? String(f.id) : null), codigoDeGrupo: vi.fn(), esCodigoDeGrupo: () => t.deGrupo }));
 vi.mock("../_bot/invitacion.js", () => ({ unirsePorInvitacion: vi.fn(), ES_INVITACION: /^inv_([0-9a-f]{32})$/ }));
 vi.mock("../_bot/traducir.js", () => ({ traducir: vi.fn(async (xs) => xs) }));
 vi.mock("../_bot/casa.js", () => ({ hoyISO: () => "2026-10-06", cargarCasa: vi.fn() }));
@@ -48,7 +48,7 @@ vi.mock("../_bot/borrar.js", () => ({ puedeBorrar: () => false, borrarCuenta: vi
 vi.mock("../_bot/cuentas.js", () => ({ enviarAcceso: vi.fn(), verificarCodigoEmail: vi.fn(), crearCuentaTelegram: vi.fn(), cuentaNacidaAqui: vi.fn() }));
 
 const { default: handler } = await import("./telegram.js");
-const { enlazarChat } = await import("../_bot/enlace.js");
+const { enlazarChat, apuntarEnlace } = await import("../_bot/enlace.js");
 const { resolverInvitacion } = await import("../_bot/compartir.js");
 
 async function escribe(texto, { chat = 7, from = 7 } = {}) {
@@ -67,7 +67,7 @@ const codigoValido = (token) => ({
 });
 
 beforeEach(() => {
-  t.tablas = {}; t.enviados.length = 0; t.trabajo.length = 0;
+  t.tablas = {}; t.deGrupo = false; t.enviados.length = 0; t.trabajo.length = 0;
   vi.clearAllMocks();
 });
 
@@ -94,4 +94,43 @@ describe("/start: los enlaces de compartir de verdad siguen llegando a recibirCo
       expect(enlazarChat).not.toHaveBeenCalled();
     });
   }
+});
+
+// Los rechazos del enlace desde la app también se apuntan en bot_enlaces (#1238). Callado (un botón de la app con algo
+// pedido), un código gastado no se apunta: el chat ya estaba enlazado.
+describe("/start: los rechazos del enlace se apuntan (#1238)", () => {
+  const CODIGO = "a".repeat(22);
+  const conCodigo = (fila, { miembro = true } = {}) => {
+    const t0 = codigoValido(CODIGO);
+    t.tablas = { bot_link_tokens: [{ ...t0.bot_link_tokens[0], ...fila }], household_members: miembro ? t0.household_members : [] };
+  };
+  const apuntados = () => apuntarEnlace.mock.calls.map(([a]) => `${a.camino}:${a.resultado}`);
+
+  it("un código caducado: app, caducado", async () => {
+    conCodigo({ expires_at: "2000-01-01T00:00:00Z" });
+    await escribe(`/start ${CODIGO}`);
+    expect(apuntados()).toEqual(["app:caducado"]);
+  });
+
+  it("un código de grupo usado en un privado: grupo, codigo_de_grupo", async () => {
+    t.deGrupo = true;
+    conCodigo({});
+    await escribe(`/start ${CODIGO}`);
+    expect(apuntados()).toEqual(["grupo:codigo_de_grupo"]);
+  });
+
+  it("quien lo firmó ya no es de la casa: app, no_miembro", async () => {
+    conCodigo({}, { miembro: false });
+    await escribe(`/start ${CODIGO}`);
+    expect(apuntados()).toEqual(["app:no_miembro"]);
+  });
+
+  it("callado, con algo pedido, un código gastado no se apunta; un no miembro, sí", async () => {
+    conCodigo({ used_at: "2026-11-01T00:00:00Z" });
+    await escribe(`/start ${CODIGO}-g`);
+    expect(apuntados()).toEqual([]);
+    conCodigo({}, { miembro: false });
+    await escribe(`/start ${CODIGO}-g`);
+    expect(apuntados()).toEqual(["app:no_miembro"]);
+  });
 });
