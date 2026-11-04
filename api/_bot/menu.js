@@ -28,7 +28,7 @@ import { senalesDeCambio } from "../../src/lib/senales.js";
 import { resultado as resultadoDeEscritura, NO_GUARDADO } from "./resultado.js";
 import { cargaMedida } from "./medidaTurno.js";
 import { IDS_COMIDAS, COMIDAS_PRINCIPALES, COMIDAS, comidaDe } from "../../src/lib/comidas.js";
-import { PICANTE_PEDIDO } from "../../src/data/recipeSchema.js";
+import { PICANTE_PEDIDO, PROTEIN_GROUP_BY_MAIN_PROTEIN } from "../../src/data/recipeSchema.js";
 import { DIAS, DIA_LARGO_MINUSCULAS as DIA_LARGO, diaDeISO, hoyDeCasa } from "../../src/lib/dias.js";
 import { diaDe, fechaDelMenu, fechasDeLista, sumarDias, lunesDe, lunesDeSemana, buscarPersona, personasDe, grupoDePersonas, esPareja, normal, escapar, fechaCorta } from "./interprete.js";
 import { RASTRO, MOTIVO_CAMBIO, idBase } from "../../src/lib/rastro.js";
@@ -692,7 +692,7 @@ const POOL_PARA_APROXIMAR = 400;
  *   `dia` tal cual lo dicen («hoy», «jueves»); `parecidoA`, un plato que
  *   piden por su nombre: las opciones salen ordenadas por parecido.
  */
-export async function proponerPlatos(householdId, { plato = null, dia: diaDicho = null, semana, franja: franjaDicha = null, grupo: grupoDicho = null, para = null, cual = "principal", n = 3, parecidoA = null, estilo = null, rasgos = null, ejes = null, perfil = null, deFuera = null, tipo = null }, fotos = null, out = null) {
+export async function proponerPlatos(householdId, { plato = null, dia: diaDicho = null, semana, franja: franjaDicha = null, grupo: grupoDicho = null, para = null, cual = "principal", n = 3, parecidoA = null, estilo = null, rasgos = null, ejes = null, perfil = null, deFuera = null, tipo = null, repetirVecinos = false, anterior = null }, fotos = null, out = null) {
   const cargada = await cargarCasa(householdId);
   // Lo que no pueden comer los invitados: lo filtra el motor (api/_bot/deFuera.js).
   const rf = restriccionesDeFuera(deFuera);
@@ -703,7 +703,7 @@ export async function proponerPlatos(householdId, { plato = null, dia: diaDicho 
     const mp = await prepararRecetas(cargada);
     const h = huecoDelPlato(cargada, (id) => mp.RECIPES_BY_ID[id] ?? mp.RECIPES_BY_ID[idBase(id)], plato, hoyISO());
     if (!h) return `No encuentro «${plato}» en el menú de hoy en adelante. ${rangosDelMenu(cargada)} Pregunta qué día es o míralo con ver_menu.`;
-    return proponerPlatos(householdId, { dia: h.fecha, franja: h.franja, cual: h.cual, grupo: grupoDicho ?? h.grupo, para, n, parecidoA, estilo, rasgos, ejes, perfil, deFuera, tipo }, fotos, out);
+    return proponerPlatos(householdId, { dia: h.fecha, franja: h.franja, cual: h.cual, grupo: grupoDicho ?? h.grupo, para, n, parecidoA, estilo, rasgos, ejes, perfil, deFuera, tipo, repetirVecinos, anterior }, fotos, out);
   }
   // Nada obligatorio: sin día ni comida, la próxima que toca; «para los
   // mayores» → su grupo (el de la casa o el del plan, que pueden no coincidir).
@@ -722,37 +722,56 @@ export async function proponerPlatos(householdId, { plato = null, dia: diaDicho 
   const h = huecoDe(casa, { dia, franja, grupo, cual });
   if (h.error) return ideasSinMenu(cargada, { diaPedido, franja, grupo: grupoDicho, para, cual, n, estilo, rasgos, ejes, perfil, tipo }, fotos, out);
   const m = await prepararRecetas(casa);
-  const res = m.pickCatalogReplacement(conQuienViene(datosDelMotor(casa), [h.g.id], rf), casa.semana.plan, {
-    hoy: hoyISO(), groupId: h.g.id, day: dia, meal: franja, course: h.course, candidatos: parecidoA || pideTipo(tipo ?? {}) ? POOL_PARA_APROXIMAR : POOL_PARA_VARIAR, pedido: !!parecidoA,
-  });
   // Rasgos, ejes y perfil filtran ANTES de ordenar y variar: variadas() elige
   // entre lo que ya cumple, no al revés.
   const actual = m.RECIPES_BY_ID[h.course === "first" ? h.hueco.firstRecipeId : h.hueco.recipeId];
   const nut = await prepararNutricion();
-  // El tipo pedido («prefiero pasta») filtra primero, sobre el pool grande: si
-  // no queda ninguna, no hay opciones y la vía rápida pasa a Lola (#930).
-  const filtro = filtrarCandidatas(delTipo(res?.candidatos ?? [], tipo ?? {}), { rasgos, ejes, perfil, cual: h.course === "first" ? "primero" : "principal" }, baseDelHueco(m, h.hueco, h.course, nut), nut);
-  const aviso = filtro.aviso;
-  let lista = parecidoA ? res?.candidatos ?? [] : variadas(ordenParaVariar(filtro.lista, { ordenado: filtro.ordenado, estilo, n }), n);
-  if (parecidoA) {
-    // Las más parecidas primero; si ninguna se parece, las de siempre.
-    const ordenadas = [];
-    let resto = lista;
-    while (ordenadas.length < n) {
-      const r = masParecida(resto, parecidoA);
-      if (!r) break;
-      ordenadas.push(r);
-      resto = resto.filter((x) => x !== r);
+  // Una tanda de opciones: `repetir` suelta el filtro de los días de al lado; `sin`, las ya dadas.
+  const elegir = (repetir, sin = new Set()) => {
+    const res = m.pickCatalogReplacement(conQuienViene(datosDelMotor(casa), [h.g.id], rf), casa.semana.plan, {
+      hoy: hoyISO(), groupId: h.g.id, day: dia, meal: franja, course: h.course, candidatos: poolPara({ parecidoA, tipo, rasgos, ejes, perfil }), pedido: !!parecidoA, repetirVecinos: repetir,
+    });
+    const candidatas = (res?.candidatos ?? []).filter((r) => !sin.has(r.id));
+    // El tipo pedido («prefiero pasta») filtra primero, sobre el pool grande: si
+    // no queda ninguna, no hay opciones y la vía rápida pasa a Lola (#930).
+    const filtro = filtrarCandidatas(delTipo(candidatas, tipo ?? {}), { rasgos, ejes, perfil, cual: h.course === "first" ? "primero" : "principal" }, baseDelHueco(m, h.hueco, h.course, nut), nut);
+    let lista = parecidoA ? candidatas : variadas(ordenParaVariar(filtro.lista, { ordenado: filtro.ordenado, estilo, n }), n);
+    if (parecidoA) {
+      // Las más parecidas primero; si ninguna se parece, las de siempre.
+      const ordenadas = [];
+      let resto = lista;
+      while (ordenadas.length < n) {
+        const r = masParecida(resto, parecidoA);
+        if (!r) break;
+        ordenadas.push(r);
+        resto = resto.filter((x) => x !== r);
+      }
+      lista = ordenadas.length ? ordenadas : lista.slice(0, n);
     }
-    lista = ordenadas.length ? ordenadas : lista.slice(0, n);
+    return { lista, aviso: filtro.aviso, descartes: res?.descartes ?? [] };
+  };
+  let tanda = elegir(repetirVecinos);
+  // Lo mismo que acaba de enseñar, otra vez: se cambia de estrategia y se dice (nunca la misma lista callada).
+  let repetida = null;
+  const dichas = parecidoA ? [] : yaDichas(tanda.lista, anterior);
+  if (dichas.length * 2 > tanda.lista.length) {
+    const sin = new Set(dichas.map((r) => r.id));
+    const otras = elegir(repetirVecinos, sin);
+    const abiertas = otras.lista.length || repetirVecinos || !tanda.descartes.some((d) => d.motivo === m.DESCARTE.VECINOS) ? null : elegir(true, sin);
+    if (otras.lista.length) [tanda, repetida] = [otras, REPETIDA.OTRAS];
+    else if (abiertas?.lista.length) [tanda, repetida] = [abiertas, REPETIDA.CON_VECINOS];
+    else repetida = REPETIDA.SIN_OTRAS;
   }
+  const { lista, aviso, descartes } = tanda;
   if (!lista.length) {
     if (out) Object.assign(out, { conMenu: true, bloques: [], fecha, dia, franja });
     return `No hay otras recetas que encajen en ese hueco con vuestras alergias, gustos y tiempo.${filtradoPara}`;
   }
+  const porQue = fraseDeDescartes(descartes, m.DESCARTE_EN_PALABRAS);
+  const soltable = descartes.some((d) => d.motivo === m.DESCARTE.VECINOS);
   if (out) {
     Object.assign(out, {
-      conMenu: true, fecha, dia, franja, cual: h.course === "first" ? "primero" : "principal",
+      conMenu: true, fecha, dia, franja, cual: h.course === "first" ? "primero" : "principal", porQue, soltable,
       // `grupo` es el interno (para volver a encontrar el hueco); `quienes`, para enseñar.
       grupo: h.gs.length > 1 ? h.g.label : null, quienes: h.gs.length > 1 ? quienesDe(h.g, casa.state?.data?.members ?? []) : null,
       actual: actual?.name ?? null, estilo, aviso,
@@ -765,9 +784,51 @@ export async function proponerPlatos(householdId, { plato = null, dia: diaDicho 
   return [
     `Opciones para el ${fechaCorta(fecha)}, ${franja.toLowerCase()}${h.course === "first" ? " (primero)" : ""}${h.gs.length > 1 ? `, para ${quienesDe(h.g, casa.state?.data?.members ?? [])}` : ""}. Ahora mismo: ${ahora ?? "nada"}.${queEs(actual) ? ` Qué es (si lo preguntan, contéstalo antes de nada): ${queEs(actual)}` : ""}${parecidoA ? ` Ordenadas por parecido a «${parecidoA}» (ninguna es exactamente eso salvo que se llame igual).` : ""}${estilo ? ` Las más ${estilo === "ligero" ? "ligeras" : "rápidas"} que encajan, variadas.` : ""}${aviso ? ` ${aviso}` : ""}${filtradoPara}`,
     ...lista.map((r, i) => `${i + 1}. ${r.name}${detalle(r) ? ` (${detalle(r)})` : ""}`),
+    ...(porQue ? [`EXCLUIDO (dilo en una frase, con estas palabras, sin inventar otro motivo): ${porQue}${soltable ? ` Ofrece el botón [[${BOTON_REPETIR_VECINOS}]]: proponer_platos con repetir_vecinos.` : ""}`] : []),
+    ...(repetirVecinos ? ["Con repetir_vecinos: entran también las proteínas de los días de al lado."] : []),
+    ...(repetida ? [`REPETIDA: ${repetida}`] : []),
     "Nada está cambiado aún: para poner una, cambiar_plato con receta = su nombre.",
   ].join("\n");
 }
+
+/** El botón que suelta el filtro de los días de al lado. Lo entiende Lola (proponer_platos con repetir_vecinos), no el código. */
+export const BOTON_REPETIR_VECINOS = "Repetir con los días de al lado";
+
+/** Qué se hizo al pedir otra vez lo mismo (vocabulario cerrado): la línea REPETIDA del resultado. */
+export const REPETIDA = Object.freeze({
+  OTRAS: "casi todas eran las de tu último mensaje: estas son otras, sin las ya dadas. Dilo.",
+  CON_VECINOS: "casi todas eran las de tu último mensaje y no quedaban otras sin repetir lo de los días de al lado: ahora entra. Dilo.",
+  SIN_OTRAS: "son casi las mismas de tu último mensaje: no hay otras que encajen. Dilo así, sin darlas por nuevas.",
+});
+
+/**
+ * Las de `lista` que ya están en lo último que dijo Lola, por el nombre, sin tildes ni mayúsculas. Si son
+ * más de la mitad, la lista es la misma otra vez (con «más variado» salieron tres de cuatro iguales). Pura.
+ */
+export function yaDichas(lista, anterior) {
+  const dicho = normal(String(anterior ?? ""));
+  return dicho ? lista.filter((r) => r?.name && dicho.includes(normal(r.name))) : [];
+}
+
+const yLista = (xs) => (xs.length < 2 ? xs.join("") : `${xs.slice(0, -1).join(", ")} y ${xs.at(-1)}`);
+
+/**
+ * Lo que el motor dejó fuera (sus `descartes`, DESCARTE de aiPlanner.js) en una frase por motivo, con el
+ * día y lo que hay: «No repito lo de los días de al lado: el viernes hay pescado blanco y cerdo, y el
+ * domingo pollo.» Sale del motor, no del modelo: el porqué no se inventa. Pura.
+ */
+export function fraseDeDescartes(descartes, palabras) {
+  return (descartes ?? []).map(({ motivo, dias }) => {
+    const donde = dias.map((x, i) => `el ${DIA_LARGO[x.dia] ?? x.dia}${i === 0 ? " hay" : ""} ${yLista(x.proteinas.map((p) => p.replace(/_/g, " ")))}`);
+    return `No repito ${palabras[motivo]}: ${donde.join(", y ")}.`;
+  }).join(" ");
+}
+
+// Con algo que filtra (tipo, rasgos, ejes, perfil) o un plato pedido, el pool grande: el filtro no puede
+// quedarse con las 40 primeras (con «más hidratos» solo quedaban huevos, 4 nov 2026).
+const hayAlgo = (x) => (Array.isArray(x) ? x.length > 0 : x && typeof x === "object" ? Object.keys(x).length > 0 : Boolean(x));
+export const poolPara = ({ parecidoA = null, tipo = null, rasgos = null, ejes = null, perfil = null } = {}) =>
+  (parecidoA || pideTipo(tipo ?? {}) || [rasgos, ejes, perfil].some(hayAlgo) ? POOL_PARA_APROXIMAR : POOL_PARA_VARIAR);
 
 // Cuántas candidatas se piden para escoger `n` variadas.
 const POOL_PARA_VARIAR = 40;
@@ -1101,11 +1162,14 @@ export function variadas(lista, n) {
   const elegidas = [];
   const usadas = new Set();
   const claveDe = (r) => `${r.mainProtein ?? "?"}|${r.category ?? "?"}`;
+  // Ningún grupo de proteína más de MAX_POR_PROTEINA veces: mejor menos opciones que cuatro de huevo.
+  const grupoDe = (r) => PROTEIN_GROUP_BY_MAIN_PROTEIN[r.mainProtein] ?? r.mainProtein ?? "?";
+  const cabe = (r) => elegidas.filter((x) => grupoDe(x) === grupoDe(r)).length < MAX_POR_PROTEINA;
   for (const r of lista) {
     if (elegidas.length >= n) break;
     const prot = `p:${r.mainProtein ?? "?"}`;
     const cat = `c:${r.category ?? "?"}`;
-    if (usadas.has(prot) || usadas.has(cat)) continue;
+    if (usadas.has(prot) || usadas.has(cat) || !cabe(r)) continue;
     elegidas.push(r);
     usadas.add(prot);
     usadas.add(cat);
@@ -1114,16 +1178,19 @@ export function variadas(lista, n) {
   const combos = new Set(elegidas.map(claveDe));
   for (const r of lista) {
     if (elegidas.length >= n) break;
-    if (elegidas.includes(r) || combos.has(claveDe(r))) continue;
+    if (elegidas.includes(r) || combos.has(claveDe(r)) || !cabe(r)) continue;
     elegidas.push(r);
     combos.add(claveDe(r));
   }
   for (const r of lista) {
     if (elegidas.length >= n) break;
-    if (!elegidas.includes(r)) elegidas.push(r);
+    if (!elegidas.includes(r) && cabe(r)) elegidas.push(r);
   }
   return elegidas;
 }
+
+/** Las opciones de un mismo grupo de proteína (huevos, carne, pescado…) que caben en una lista. */
+export const MAX_POR_PROTEINA = 2;
 
 /**
  * Ideas para una comida cuando no hay menú en ese día. Se monta en memoria un
@@ -1154,7 +1221,7 @@ export async function ideasSinMenu(casa, { diaPedido, franja, grupo, para = null
   let num = 0;
   for (const g of elegidos) {
     const plan = { [g.id]: { [clave]: { recipeId: null, firstRecipeId: conPrimero(g) ? "_" : null, eaters: m.membersOfGroup(g, data.members ?? []).length || 2 } } };
-    const res = m.pickCatalogReplacement(conQuienViene(data, [g.id], deFuera), plan, { hoy: hoyISO(), groupId: g.id, day: dia, meal: franja, course: cual === "primero" ? "first" : "main", candidatos: pideTipo(tipo ?? {}) ? POOL_PARA_APROXIMAR : POOL_PARA_VARIAR });
+    const res = m.pickCatalogReplacement(conQuienViene(data, [g.id], deFuera), plan, { hoy: hoyISO(), groupId: g.id, day: dia, meal: franja, course: cual === "primero" ? "first" : "main", candidatos: poolPara({ tipo, rasgos, ejes, perfil }) });
     const nut = await prepararNutricion();
     const filtro = filtrarCandidatas(delTipo(res?.candidatos ?? [], tipo ?? {}), { rasgos, ejes, perfil, cual }, null, nut);
     if (filtro.aviso) bloques.push(filtro.aviso);
