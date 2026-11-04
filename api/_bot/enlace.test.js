@@ -4,26 +4,34 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 let filas;
 vi.mock("./db.js", () => ({
   eq: (v) => `eq.${v}`,
-  update: vi.fn(),
+  // Solo lo usa apuntarPrueba (0129): cambia las filas de bot_identities de ese Telegram y esa cuenta.
+  update: vi.fn(async (tabla, filtro, cambios) => {
+    const [, ext, user] = filtro.match(/external_id=eq\.([^&]+)&user_id=eq\.([^&]+)/) ?? [];
+    for (const f of filas[tabla] ?? []) if (f.external_id === ext && f.user_id === user) Object.assign(f, cambios);
+    return [];
+  }),
   select: vi.fn(async (tabla, filtro) => {
     const id = filtro.match(/(?:chat_id|external_id)=eq\.([^&]+)/)?.[1];
     const t = filas[tabla] ?? [];
     return t.filter((f) => String(f.chat_id ?? f.external_id) === id);
   }),
+  // Upsert como el de db.js (merge-duplicates): las columnas que no lleva la fila nueva se quedan como estaban.
   insert: vi.fn(async (tabla, nuevas) => {
     filas[tabla] = filas[tabla] ?? [];
     // El registro de enlaces es de solo añadir.
     if (tabla === "bot_enlaces") { filas[tabla].push(...nuevas); return; }
     for (const n of nuevas) {
       const clave = n.chat_id ?? n.external_id;
-      filas[tabla] = filas[tabla].filter((f) => (f.chat_id ?? f.external_id) !== clave).concat(n);
+      const antes = filas[tabla].find((f) => (f.chat_id ?? f.external_id) === clave);
+      filas[tabla] = filas[tabla].filter((f) => f !== antes).concat({ ...antes, ...n });
     }
   }),
 }));
 vi.mock("./telegram.js", () => ({ enviar: vi.fn(), escaparHtml: (s) => s, TECLADO: {} }));
 vi.mock("./embudo.js", () => ({ registrar: vi.fn(), EMBUDO: {} }));
 
-const { enlazarChat, idDePersona, codigoDeGrupo, codigoNuevo, esCodigoDeGrupo, apuntarEnlace, resultadoDeEnlace, pideCambioDeCuenta, preguntaDeCambio, CAMBIO } = await import("./enlace.js");
+const { enlazarChat, idDePersona, codigoDeGrupo, codigoNuevo, esCodigoDeGrupo, apuntarEnlace, resultadoDeEnlace, pideCambioDeCuenta, preguntaDeCambio, CAMBIO, escribePrueba } = await import("./enlace.js");
+const { update } = await import("./db.js");
 const { CAMINO_ENLACE, RESULTADO_ENLACE } = await import("../../src/lib/vocabularios.js");
 const { readFileSync, readdirSync } = await import("node:fs");
 const { join, resolve } = await import("node:path");
@@ -109,6 +117,56 @@ describe("códigos de /grupo", () => {
       }
     }
     expect(malos).toEqual([]);
+  });
+});
+
+// La prueba de cada identidad (bot_identities.prueba_identidad, 0129; trozo 3 de specs/auth.md §7): de ella sale si
+// «Entrar con Telegram» abre una cuenta que no nació en Telegram (cuentaConectadaDesdeLaApp, cuentas.js).
+describe("la prueba con la que se apuntó cada Telegram (prueba_identidad)", () => {
+  const pruebaDe = (tg) => filas.bot_identities?.find((f) => f.external_id === String(tg))?.prueba_identidad ?? null;
+  const privado = (identidad, userId = TITULAR) => enlazar({ chatId: "555", kind: "private", userId, externalId: "555", identidad });
+
+  it("«Conectar Telegram» desde la app, en privado: ajustes", async () => {
+    await privado("ajustes");
+    expect(pruebaDe("555")).toBe("ajustes");
+  });
+
+  it("el código del email: email (no abre sesión)", async () => {
+    await privado("email");
+    expect(pruebaDe("555")).toBe("email");
+  });
+
+  it("el código del email no le quita a la fila el «se conectó desde la app»", async () => {
+    await privado("ajustes");
+    await privado("email");
+    expect(pruebaDe("555")).toBe("ajustes");
+  });
+
+  it("conectarlo desde la app sube una fila del email a ajustes", async () => {
+    await privado("email");
+    await privado("ajustes");
+    expect(pruebaDe("555")).toBe("ajustes");
+  });
+
+  it("el cambio confirmado deja la fila en la cuenta nueva, con cambio", async () => {
+    filas.bot_identities = [{ channel: "telegram", external_id: "555", user_id: ASISTENTA, prueba_identidad: "ajustes" }];
+    await privado(CAMBIO);
+    expect(identidadDe("555")).toBe(TITULAR);
+    expect(pruebaDe("555")).toBe("cambio");
+  });
+
+  it("sin la 0129 (el update falla), el enlace sigue y la fila queda sin prueba", async () => {
+    update.mockRejectedValueOnce(new Error("column bot_identities.prueba_identidad does not exist"));
+    const r = await privado("ajustes");
+    expect(r).toEqual({ ok: true, identidad: "nueva" });
+    expect(identidadDe("555")).toBe(TITULAR);
+    expect(pruebaDe("555")).toBe(null);
+  });
+
+  it("en la misma cuenta, solo se escribe una prueba que abre sesión", () => {
+    expect(escribePrueba({ identidad: "email", estado: "igual" })).toBe(false);
+    expect(escribePrueba({ identidad: "ajustes", estado: "igual" })).toBe(true);
+    expect(escribePrueba({ identidad: "email", estado: "nueva" })).toBe(true);
   });
 });
 

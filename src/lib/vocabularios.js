@@ -83,6 +83,20 @@ export const RESULTADO_ENLACE = porNombre(RESULTADOS_ENLACE);
 /** Los que dejan el chat enlazado (los demás son rechazos). */
 export const ENLAZADOS = Object.freeze(new Set([RESULTADO_ENLACE.NUEVO, RESULTADO_ENLACE.YA_ESTABA, RESULTADO_ENLACE.CASA_CAMBIADA, RESULTADO_ENLACE.IDENTIDAD_DE_OTRA]));
 
+/**
+ * Con qué prueba se apuntó que un Telegram ES una cuenta (bot_identities.prueba_identidad, 0129; #1238): nacida (la
+ * cuenta se creó en ese Telegram), email (el código del correo de la cuenta, escrito en el chat), ajustes (el enlace de
+ * «Conectar Telegram» que sacó una sesión de la cuenta, pulsado en el privado de ese Telegram) y cambio (el mismo
+ * enlace, cuando ese Telegram era de otra cuenta y la persona lo confirmó en su privado).
+ */
+export const PRUEBAS_IDENTIDAD = ["nacida", "email", "ajustes", "cambio"];
+export const PRUEBA_IDENTIDAD = porNombre(PRUEBAS_IDENTIDAD);
+/**
+ * Las que abren sesión con «Entrar con Telegram» en una cuenta que no nació en Telegram (specs/auth.md §7, trozo 3):
+ * solo las que salen de una sesión de esa cuenta. El código del email no: prueba el correo, no la sesión.
+ */
+export const ABREN_SESION = Object.freeze(new Set([PRUEBA_IDENTIDAD.AJUSTES, PRUEBA_IDENTIDAD.CAMBIO]));
+
 // ── Los de la ficha de la casa (auditoría de tipos de menuplan-1e, 7 oct 2026).
 // Tal como se guardan hoy en producción: pasar a una forma canónica (minúscula,
 // sin tildes) es un paso aparte, con alias, nunca reescribiendo lo guardado.
@@ -532,6 +546,7 @@ export const VOCABULARIOS = Object.freeze({
   canales: CANALES,
   caminos_enlace: CAMINOS_ENLACE,
   resultados_enlace: RESULTADOS_ENLACE,
+  pruebas_identidad: PRUEBAS_IDENTIDAD,
   idiomas: IDIOMAS,
   comidas: COMIDAS,
   estructura_platos: ESTRUCTURA_PLATOS,

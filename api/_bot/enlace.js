@@ -10,7 +10,7 @@ import * as ids from "../../src/lib/ids.js";
 import { select, insert, update, eq } from "./db.js";
 import { enviar, escaparHtml, TECLADO } from "./telegram.js";
 import { registrar, EMBUDO } from "./embudo.js";
-import { CANAL, paraEscribir, RESULTADO_ENLACE } from "../../src/lib/vocabularios.js";
+import { CANAL, paraEscribir, RESULTADO_ENLACE, ABREN_SESION } from "../../src/lib/vocabularios.js";
 import { seguirCon } from "./avisar.js";
 
 // Ids de Telegram que no son una persona: el admin anónimo de un grupo
@@ -155,7 +155,32 @@ async function apuntarIdentidad({ channel, kind, userId, externalId, nombre, ide
     user_id: userId,
     display_name: nombre ?? null,
   }], { upsert: true });
-  return ya?.user_id === userId ? "igual" : "nueva";
+  const estado = ya?.user_id === userId ? "igual" : "nueva";
+  await apuntarPrueba({ channel, externalId, userId, identidad, estado });
+  return estado;
+}
+
+/**
+ * Pura. ¿Se escribe la prueba de esta identidad (bot_identities.prueba_identidad, 0129)? Siempre que la fila nace o
+ * cambia de cuenta; en la misma cuenta, solo si la nueva abre sesión (ABREN_SESION): un código del email no le quita
+ * a la fila el «se conectó desde la app» que ya tenía.
+ */
+export const escribePrueba = ({ identidad, estado }) => estado === "nueva" || ABREN_SESION.has(identidad);
+
+/**
+ * Apunta con qué prueba se dijo que este Telegram es la cuenta (#1238, trozo 3 de specs/auth.md §7). Va aparte del
+ * upsert, filtrado también por la cuenta: sin la 0129 falla, se avisa (`enlace_prueba`) y el enlace sigue; la fila
+ * queda sin prueba, que no abre nada. Si falla en una fila que cambia de cuenta (solo pasa con `nacida` o `cambio`,
+ * CORRIGEN_IDENTIDAD), se queda con la prueba de antes: `cambio` abre la cuenta nueva igual, y la nacida la abre su
+ * email sintético (cuentaNacidaAqui), así que nunca abre más de lo probado.
+ */
+async function apuntarPrueba({ channel, externalId, userId, identidad, estado }) {
+  if (!escribePrueba({ identidad, estado })) return;
+  await update(
+    "bot_identities",
+    `channel=${eq(channel)}&external_id=${eq(String(externalId))}&user_id=${eq(userId)}`,
+    { prueba_identidad: paraEscribir("pruebas_identidad", identidad) },
+  ).catch(seguirCon("enlace_prueba"));
 }
 
 /**
