@@ -1,9 +1,9 @@
 import { FRONTAL_BOT } from "../lib/frontalBot.js";
-import { seOfreceApple } from "../lib/apiUrl.js";
+import { seOfreceApple, enTelegram } from "../lib/apiUrl.js";
 import { useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { BookOpen, Calendar, ChevronDown, ClipboardList, CookingPot, Home, Send, ShoppingCart, Sparkles, UserCircle, Users, X } from "./icons.jsx";
-import { color as tono } from "../design/tokens.js";
+import { color as tono, tipografia } from "../design/tokens.js";
 import { urlEntrarConTelegram } from "../lib/cuentaTelegram.js";
 import { initialsOf, memberAvatarColor, memberAvatarThumbSrc } from "../lib/stages.js";
 import { formatWeekRangeLabel, getWeekDates } from "../lib/weekCalendar.js";
@@ -937,13 +937,29 @@ export function SignInOptions({
   variant = "light",
   conApple = seOfreceApple(),
   urlTelegram = typeof window === "undefined" ? null : urlEntrarConTelegram(window.location),
+  dentroDeTelegram = enTelegram(),
 }) {
   const dark = variant === "dark";
   return (
     <div style={{ display: "grid", gap: 10 }}>
       {urlTelegram && <TelegramButton url={urlTelegram} variant={variant} />}
-      {conApple && <AppleButton onClick={onApple} variant={variant} />}
-      <GoogleButton onClick={onGoogle} variant={variant} />
+      {/* Dentro de Telegram, Google y Apple no dejan entrar (trozo 5 de specs/auth.md §7): solo se dice dónde sí. */}
+      {dentroDeTelegram ? (
+        <p style={{
+          margin: 0,
+          textAlign: "center",
+          fontSize: tipografia["paso-12"],
+          fontWeight: tipografia["peso-700"],
+          color: dark ? tono.superficie : tono["tinta-suave"],
+        }}>
+          ¿Con Google o Apple? Ábrelo en el navegador.
+        </p>
+      ) : (
+        <>
+          {conApple && <AppleButton onClick={onApple} variant={variant} />}
+          <GoogleButton onClick={onGoogle} variant={variant} />
+        </>
+      )}
       {/* La aceptación de los términos vive aquí y no en cada pantalla porque
           aquí es donde nace la cuenta, y porque App Store exige, en apps con
           contenido de usuarios, que el usuario acepte unas condiciones con
