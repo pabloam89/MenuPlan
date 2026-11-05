@@ -69,6 +69,7 @@
   "bot_tareas": [
     "api/_bot/caducidades.js",
     "api/_bot/chats.js",
+    "api/_bot/pedidoMenu.js",
     "api/_bot/recordatorios.js",
     "api/_bot/tareas.js"
   ],
