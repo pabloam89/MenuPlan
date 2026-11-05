@@ -64,6 +64,7 @@ function leerDato(d, ficha, ahora = new Date()) {
     valor: d.valor ?? null,
     origen,
     bloqueado: d.bloqueado === true,
+    confirmadoEl: d.confirmado_el ?? null,
   };
 }
 
