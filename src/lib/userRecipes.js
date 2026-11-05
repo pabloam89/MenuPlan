@@ -398,7 +398,7 @@ export function buildUserRecipeId() {
  * Builds a "combo" user recipe from a catalog dish + a garnish, so a user can
  * save a MenuPlan catalog recipe paired with the side they like into "Mis
  * recetas". From there it joins the pool like any other own recipe and is
- * favored/excluded by the general recipeMode setting (preferir/solo mías).
+ * favored like the rest of them.
  *
  * Macros are per-ración: the garnish JSON stores them per its own baseServings,
  * so we normalize before adding. Ingredients are re-scaled to the dish's
