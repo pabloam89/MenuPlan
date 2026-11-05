@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { BookOpen, Heart, NotebookPen, Plus, Sparkles } from "../components/icons.jsx";
-import { BottomNav, bottomNavSpacer, safeTop, SegmentedTabBar, SegmentedTabButton } from "../components/ui.jsx";
+import { BotonFranja, BottomNav, bottomNavSpacer, safeTop, SegmentedTabBar, SegmentedTabButton } from "../components/ui.jsx";
 import { CatalogBrowserSheet } from "./CatalogBrowserSheet.jsx";
 import { filterMyLibraryRecipes, isCatalogGarnishCombo } from "../lib/userRecipes.js";
 import { favoriteRecipeIds } from "../lib/recipeVotes.js";
@@ -83,29 +83,16 @@ export function RecipesScreen({
               Recetas
             </h1>
           </div>
-          <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
-            {onOpenRecipePlanner && !readOnly && (
-              <button
-                type="button"
-                onClick={onOpenRecipePlanner}
-                style={{
-                  display: "flex", alignItems: "center", gap: 6,
-                  padding: "8px 13px", borderRadius: 12, border: "none",
-                  background: GREEN, color: "#fff",
-                  fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
-                }}
-              >
-                <Plus size={14} strokeWidth={2.8} /> Crear
-              </button>
-            )}
-          </div>
         </div>
-        <div style={{ padding: "0 18px 12px", maxWidth: 420, margin: "0 auto", width: "100%", boxSizing: "border-box" }}>
-          <SegmentedTabBar>
+        <div style={{ padding: "0 18px 12px", maxWidth: 420, margin: "0 auto", width: "100%", boxSizing: "border-box", display: "flex", gap: 8 }}>
+          <SegmentedTabBar style={{ flex: 1, minWidth: 0 }}>
             <SegmentedTabButton selected={pestana === "parati"} onClick={() => setPestana("parati")} label="Para ti" Icon={Sparkles} fontSize={12} />
             <SegmentedTabButton selected={pestana === "mias"} onClick={() => setPestana("mias")} label="Mis recetas" Icon={NotebookPen} fontSize={12} />
             <SegmentedTabButton selected={pestana === "favoritos"} onClick={() => setPestana("favoritos")} label="Favoritos" Icon={Heart} accent="#c0485f" fontSize={12} />
           </SegmentedTabBar>
+          {onOpenRecipePlanner && !readOnly && (
+            <BotonFranja Icon={Plus} label="Crear" ariaLabel="Crear receta" onClick={onOpenRecipePlanner} />
+          )}
         </div>
       </div>
 
