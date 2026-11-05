@@ -24,6 +24,7 @@
 process.env.TZ = "Europe/Madrid";
 
 import { fallaCon } from "./avisar.js";
+import { conEstructuraDelMenu } from "../../src/lib/estructuraPlatos.js";
 import { select, insert, borrar, eq } from "./db.js";
 import { cargarCasa, conCasa } from "./casa.js";
 import { datosDelMotor } from "../../src/lib/recetasDeLaCasa.js";
@@ -314,7 +315,7 @@ const modeloElegido = (casa) => {
 };
 
 // `out` se rellena siempre (ok, motivo y lo generado): de ahí sale el resultado.
-export async function generarMenu(householdId, cual = "esta", fijos = [], out = null, { desde = null, rehacer = false } = {}) {
+export async function generarMenu(householdId, cual = "esta", fijos = [], out = null, { desde = null, rehacer = false, soloEste = {} } = {}) {
   out ??= {};
   // Una salida sin generar: el motivo para el recibo y el texto para Lola.
   const noGenerado = (motivo, texto, extra = {}) => { Object.assign(out, { ok: false, motivo, ...extra }); return texto; };
@@ -332,7 +333,8 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   if (fijos.length) await prepararRecetas(casa).catch(fallaCon("generar_recetas_propias"));
 
   // Las propias de user_recipes, no las del JSON: la app las quita de ahí.
-  const base = m.resolveModeData({ ...datosDelMotor(casa), userRecipes: propiasDe(casa) });
+  // `soloEste`: lo dicho para este menú (pedidoMenu.js). Va al motor y no se guarda en la casa.
+  const base = conEstructuraDelMenu(m.resolveModeData({ ...datosDelMotor(casa), userRecipes: propiasDe(casa) }), soloEste);
   const pedidos = platosPedidos(m, casa, fijos);
   const working = pedidos.length ? { ...base, fixedDishes: [...(base.fixedDishes ?? []), ...pedidos.map((p) => p.fijo)] } : base;
   const miembros = working.members ?? [];

@@ -1,6 +1,7 @@
 /**
  * El pedido de menú en curso (trozo 66 de #1037, tramo 10): una tarea abierta por casa con lo que no sale de la ficha,
- * el camino elegido, desde cuándo, si dijeron «sigue tú» y si ya se hicieron las preguntas del camino. Así sobrevive a que la charla cambie de tema, y dos adultos
+ * el camino elegido, desde cuándo, si dijeron «sigue tú», si ya se hicieron las preguntas del camino y los platos por
+ * comida dichos solo para este menú, que no pisan la ficha. Así sobrevive a que la charla cambie de tema, y dos adultos
  * comparten el mismo: lo garantiza el índice único (casa, clave) entre las abiertas.
  * Lo que falta no se guarda aquí: se calcula en cada turno (src/lib/pedidoMenu.js).
  */
@@ -9,14 +10,14 @@ import { esDuplicado } from "./entradas.js";
 import { CADUCA, COSAS_QUE_CADUCAN, vigente } from "./caducidades.js";
 import { IDS_CAMINO, caminoDelBoton, esBotonSalir } from "./caminoMenu.js";
 import { estadosDeLaFicha, leerFichaCasa } from "./fichaRpc.js";
-import { ejesDeCasa } from "../../src/lib/ejesDeCasa.js";
+import { ESTADO_EJE, ejesDeCasa } from "../../src/lib/ejesDeCasa.js";
 import { hasBabyMember } from "../../src/lib/groups.js";
 import { CAMINOS } from "../../src/lib/caminos.js";
-import { CANAL, ESTADO_TAREA, OBJETIVO_TAREA, TIPO_TAREA, paraEscribir } from "../../src/lib/vocabularios.js";
+import { CANAL, ESTADO_TAREA, ESTRUCTURA_PLATOS, OBJETIVO_TAREA, TIPO_TAREA, paraEscribir } from "../../src/lib/vocabularios.js";
 
 const CLAVE = "pedido_menu";
 const TEXTO = "Pedido de menú en curso";
-const VACIO = { camino: null, desde: null, forzado: false, preguntado: false };
+const VACIO = { camino: null, desde: null, forzado: false, preguntado: false, estructura: null, estructuraCena: null };
 const FECHA = /^\d{4}-\d{2}-\d{2}$/;
 
 const delPedido = (householdId) => `household_id=${eq(householdId)}&clave=${eq(CLAVE)}&status=eq.${ESTADO_TAREA.ABIERTA}`;
@@ -30,6 +31,8 @@ export function pedidoDeFila(fila) {
     desde: FECHA.test(String(p?.desde ?? "")) ? p.desde : null,
     forzado: p?.forzado === true,
     preguntado: p?.preguntado === true,
+    estructura: ESTRUCTURA_PLATOS.includes(p?.estructura) ? p.estructura : null,
+    estructuraCena: ESTRUCTURA_PLATOS.includes(p?.estructuraCena) ? p.estructuraCena : null,
   };
 }
 
@@ -83,7 +86,7 @@ export async function guardarPedido({ householdId, channel = CANAL.TELEGRAM, cha
  * Pura. El pedido de este turno: lo que traiga la llamada, el botón pulsado y lo que ya había. Cambiar de camino
  * deja sus preguntas por hacer.
  */
-export function pedidoDelTurno(abierto, { camino = null, desde = null, forzado = false, texto = "" } = {}) {
+export function pedidoDelTurno(abierto, { camino = null, desde = null, forzado = false, texto = "", estructura = null, estructuraCena = null } = {}) {
   const antes = abierto ?? VACIO;
   const elegido = camino ?? caminoDelBoton(texto) ?? antes.camino;
   return {
@@ -91,7 +94,16 @@ export function pedidoDelTurno(abierto, { camino = null, desde = null, forzado =
     desde: desde ?? antes.desde,
     forzado: forzado === true || esBotonSalir(texto) || antes.forzado,
     preguntado: antes.preguntado && elegido === antes.camino,
+    estructura: estructura ?? antes.estructura,
+    estructuraCena: estructuraCena ?? antes.estructuraCena,
   };
+}
+
+/** Pura. Lo dicho para este menú ya está contestado: no se pregunta ni se da por supuesto. */
+export function ejesConElPedido(ejes, pedido) {
+  if (!ejes) return ejes;
+  const sabido = { estado: ESTADO_EJE.SABIDO, origen: null, fecha: null };
+  return { ...ejes, ...(pedido.estructura ? { mealStructure: sabido } : {}), ...(pedido.estructuraCena ? { mealStructureCena: sabido } : {}) };
 }
 
 /** Pura. Lo que Lola ve de un pedido en curso, delante del mensaje. Sin pedido, nada. */

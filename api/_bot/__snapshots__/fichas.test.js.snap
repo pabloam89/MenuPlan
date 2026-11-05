@@ -964,6 +964,13 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
       "1_plato"
      ]
     },
+    "estructuraCena": {
+     "type": "string",
+     "enum": [
+      "primero_segundo",
+      "1_plato"
+     ]
+    },
     "esfuerzo": {
      "type": "string",
      "enum": [
@@ -1653,6 +1660,22 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
     "desde": {
      "type": "string",
      "description": "AAAA-MM-DD: para cuándo, lo que hayan contestado (manda sobre semana). Se pregunta siempre."
+    },
+    "estructura": {
+     "type": "string",
+     "enum": [
+      "primero_segundo",
+      "1_plato"
+     ],
+     "description": "Platos por comida solo para este menú («esta semana, un plato»). Si es para siempre, ajustar_cocina."
+    },
+    "estructuraCena": {
+     "type": "string",
+     "enum": [
+      "primero_segundo",
+      "1_plato"
+     ],
+     "description": "Platos en la cena solo para este menú. Si es para siempre, ajustar_cocina."
     },
     "forzado": {
      "type": "boolean",
