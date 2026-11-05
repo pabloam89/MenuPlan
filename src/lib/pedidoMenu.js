@@ -5,7 +5,7 @@
 import { NIVEL_EJE, TEMAS, temasDelCamino } from "./caminos.js";
 import { ESTADO_EJE } from "./ejesDeCasa.js";
 
-const falta = (ejes, e) => ejes?.[e.dato] === ESTADO_EJE.FALTA;
+const falta = (ejes, e) => ejes?.[e.dato]?.estado === ESTADO_EJE.FALTA;
 const conFalta = (ejes, t) => t.ejes.some((e) => falta(ejes, e));
 
 /** Pura. La semana que ya tiene menú en esta fecha, o null. */
@@ -26,7 +26,7 @@ export function faltaDelPedido({ camino, desde = null, forzado = false, ejes = n
   const aplicables = TEMAS.filter((t) => hayNinos || !t.soloNinos);
   const bloquea = aplicables.flatMap((t) => t.ejes).filter((e) => e.nivel === NIVEL_EJE.BLOQUEA && falta(ejes, e)).map((e) => e.dato);
   const temas = forzado ? [] : delCamino.filter((t) => conFalta(ejes, t)).map((t) => t.id);
-  const supuestos = [...new Set(delCamino.flatMap((t) => t.ejes).filter((e) => ejes?.[e.dato] === ESTADO_EJE.SUPUESTO).map((e) => e.dato))];
+  const supuestos = [...new Set(delCamino.flatMap((t) => t.ejes).filter((e) => ejes?.[e.dato]?.estado === ESTADO_EJE.SUPUESTO).map((e) => e.dato))];
   const faltaFecha = !desde && !forzado;
   return { bloquea: [...new Set(bloquea)], temas, supuestos, faltaFecha, pisa: menuEnFecha(semanas, desde), listo: !bloquea.length && !temas.length && !faltaFecha };
 }
