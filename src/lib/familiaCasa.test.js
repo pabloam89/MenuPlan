@@ -6,7 +6,7 @@ import { describe, it, expect, vi } from "vitest";
 
 vi.mock("./supabase.js", () => ({ supabase: null }));
 
-const { leerFamiliaDeCasa, conFamiliaLeida, sinFamilia, enviarFamilia, contarSenales, familiaDeCasa, conVersionDeFamilia, cargaSinSeguir, guardarFamiliaYDocumento, MODO_FAMILIA, REF_FAMILIA } = await import("./familiaCasa.js");
+const { queNoCargo, PIEZA_DE_CASA, leerFamiliaDeCasa, conFamiliaLeida, sinFamilia, enviarFamilia, contarSenales, familiaDeCasa, conVersionDeFamilia, cargaSinSeguir, guardarFamiliaYDocumento, MODO_FAMILIA, REF_FAMILIA } = await import("./familiaCasa.js");
 const { guardarConVersion } = await import("./versionCasa.js");
 const { FALLO_DATO } = await import("./vocabularios.js");
 const { RPC_FAMILIA } = await import("./personas.js");
@@ -235,9 +235,9 @@ describe("App.jsx carga y guarda por aquí", async () => {
   const { readFileSync } = await import("node:fs");
   const app = readFileSync(new URL("../App.jsx", import.meta.url), "utf8");
 
-  it("la carga lee la familia y se para con cargaSinSeguir; los dos guardados, con guardarFamiliaYDocumento y sin la familia en el documento", () => {
+  it("la carga lee la familia y se para con queNoCargo; los dos guardados, con guardarFamiliaYDocumento y sin la familia en el documento", () => {
     expect(app.slice(app.indexOf("const [remoteState, cargaFamilia"), app.indexOf("loadRecipeVotes(user.id)"))).toContain("leerFamiliaDeCasa(householdId)");
-    expect(app).toContain("if (cargaSinSeguir({ soloNube, remoteState, cargaFamilia, cargaCasa, cargaLibreta })) {");
+    expect(app).toContain("const piezasSinLeer = queNoCargo({ soloNube, remoteState, cargaFamilia, cargaCasa, cargaLibreta });");
     expect(app.match(/guardarFamiliaYDocumento\(\{/g)).toHaveLength(2);
     expect(app.match(/snapshotDeCasa\(\{[^}]*\}, familia\?\.modo, casaDatos\?\.carga, libreta\?\.carga\)/g)).toHaveLength(2);
   });
@@ -275,5 +275,17 @@ describe("las señales de la app (trozo 15) van a api/operacion.js", () => {
     expect(dentro("const handleReplaceSlot", "}, [")).toContain("motivo: MOTIVO_CAMBIO.OTRO }));");
     expect(dentro("const handleChooseRecipeForSlot", "}, [")).toContain("motivo: MOTIVO_CAMBIO.MANUAL }));");
     expect(app.match(/contarSenales\(/g)).toHaveLength(4);
+  });
+});
+
+describe("queNoCargo: qué pieza de la casa falló (#1302)", () => {
+  it("nombra cada pieza que no se leyó, y sin fallos no da ninguna", () => {
+    expect(queNoCargo({ soloNube: false, remoteState: {}, cargaFamilia: {}, cargaCasa: {}, cargaLibreta: {} })).toEqual([]);
+    expect(queNoCargo({ soloNube: true, remoteState: { error: true }, cargaFamilia: { error: true }, cargaCasa: { error: true }, cargaLibreta: { error: true } }))
+      .toEqual([PIEZA_DE_CASA.DOCUMENTO, PIEZA_DE_CASA.FAMILIA, PIEZA_DE_CASA.DATOS, PIEZA_DE_CASA.LIBRETA]);
+  });
+
+  it("el documento solo cuenta sin copia local (soloNube)", () => {
+    expect(queNoCargo({ soloNube: false, remoteState: { error: true } })).toEqual([]);
   });
 });
