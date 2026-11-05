@@ -10,6 +10,8 @@ vi.mock("./db.js", () => ({ ...db, eq: (v) => `eq.${encodeURIComponent(v)}` }));
 const casa = vi.hoisted(() => ({ cargarCasa: vi.fn() }));
 vi.mock("./casa.js", () => casa);
 // Lo que apunta cada cierre (embudo.js) no se mira aquí.
+const despensaNoche = vi.hoisted(() => ({ barrerDespensa: vi.fn(async () => ({ casas: 0 })) }));
+vi.mock("./barridoDespensa.js", () => despensaNoche);
 vi.mock("./embudo.js", () => ({ registrar: vi.fn(async () => {}), EVENTO: new Proxy({}, { get: (_, k) => String(k) }) }));
 
 const {
@@ -348,5 +350,19 @@ describe("referencias rotas: lo obvio se corrige solo y lo dudoso se pregunta (P
     expect(t).toMatch(/«raro»/);
     expect(t).toContain(eje.nombre);
     expect(t).toMatch(/de Ana/);
+  });
+});
+
+describe("el día del menú en la pasada del cron", () => {
+  it("se barre una vez al día, con la primera pasada tras las 00:00 UTC, que en Madrid ya es el día siguiente", async () => {
+    db.select.mockResolvedValue([]);
+    despensaNoche.barrerDespensa.mockClear();
+    const noche = await barrer({ ahoraMs: Date.UTC(2026, 10, 6, 0, 1) });
+    expect(despensaNoche.barrerDespensa).toHaveBeenCalledWith({ hoy: "2026-11-06" });
+    expect(noche[CADUCA.DIA_DEL_MENU]).toEqual({ casas: 0 });
+    despensaNoche.barrerDespensa.mockClear();
+    await barrer({ ahoraMs: Date.UTC(2026, 10, 6, 0, 6) });
+    await barrer({ ahoraMs: Date.UTC(2026, 10, 6, 12, 0) });
+    expect(despensaNoche.barrerDespensa).not.toHaveBeenCalled();
   });
 });
