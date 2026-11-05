@@ -24,8 +24,8 @@ export const menuEnFecha = (semanas, fecha) => (fecha
 export function faltaDelPedido({ camino, desde = null, forzado = false, ejes = null, hayNinos = false, semanas = [] }) {
   if (!ejes) throw new Error("faltaDelPedido: sin ejes no se sabe qué falta");
   const delCamino = temasDelCamino(camino, { hayNinos }).map((id) => TEMAS.find((t) => t.id === id));
-  const aplicables = TEMAS.filter((t) => hayNinos || !t.soloNinos);
-  const bloquea = aplicables.flatMap((t) => t.ejes).filter((e) => e.nivel === NIVEL_EJE.BLOQUEA && falta(ejes, e)).map((e) => e.dato);
+  // En todos los temas: una casa con solo un bebé no tiene «niños» y la etapa del bebé bloquea igual (sin bebé, `no_aplica`).
+  const bloquea = TEMAS.flatMap((t) => t.ejes).filter((e) => e.nivel === NIVEL_EJE.BLOQUEA && falta(ejes, e)).map((e) => e.dato);
   const temas = forzado ? [] : delCamino.filter((t) => conFalta(ejes, t)).map((t) => t.id);
   const supuestos = [...new Set(delCamino.flatMap((t) => t.ejes).filter((e) => ejes[e.dato]?.estado === ESTADO_EJE.SUPUESTO).map((e) => e.dato))];
   const faltaFecha = !desde && !forzado;

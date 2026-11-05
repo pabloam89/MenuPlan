@@ -1654,6 +1654,10 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
      "type": "string",
      "description": "AAAA-MM-DD: para cuándo, lo que hayan contestado (manda sobre semana). Se pregunta siempre."
     },
+    "forzado": {
+     "type": "boolean",
+     "description": "true si dicen que sigas sin preguntar más («sigue tú», «da igual», «me he cansado»): genera con lo que haya, salvo lo de seguridad."
+    },
     "rehacer": {
      "type": "boolean",
      "description": "true si piden rehacer una semana que ya tiene menú, o al pulsar [[Rehacer la del …]]: entonces desde = ese lunes y rehacer: true, los dos."

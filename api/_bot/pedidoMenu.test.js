@@ -19,7 +19,7 @@ vi.mock("./db.js", () => ({
   }),
 }));
 
-const { cerrarPedido, guardarPedido, pedidoDeFila, pedidoEnCurso } = await import("./pedidoMenu.js");
+const { bloqueDePedido, cerrarPedido, guardarPedido, pedidoDeFila, pedidoDelTurno, pedidoEnCurso } = await import("./pedidoMenu.js");
 const { insert, update } = await import("./db.js");
 const { COSAS_QUE_CADUCAN, CADUCA } = await import("./caducidades.js");
 const VIDA = COSAS_QUE_CADUCAN[CADUCA.PEDIDO_MENU].vidaMs;
@@ -29,6 +29,32 @@ beforeEach(() => {
   db.filas = [];
   db.antesDeInsertar = null;
   insert.mockClear();
+});
+
+describe("el pedido de cada turno (trozo 67)", () => {
+  const ABIERTO = { camino: "medio", desde: "2026-11-09", forzado: false, preguntado: true };
+
+  it("lo ya dicho sigue aunque la llamada no lo traiga", () => {
+    expect(pedidoDelTurno(ABIERTO, {})).toEqual(ABIERTO);
+  });
+
+  it("el botón pulsado elige el camino", () => {
+    expect(pedidoDelTurno(null, { texto: "Solo los días" }).camino).toBe("basico");
+  });
+
+  it("cambiar de camino deja sus preguntas por hacer", () => {
+    expect(pedidoDelTurno(ABIERTO, { camino: "avanzado" })).toMatchObject({ camino: "avanzado", preguntado: false });
+  });
+
+  it("«Ya está, genéralo» fuerza, y forzado sigue forzado", () => {
+    expect(pedidoDelTurno(null, { texto: "Ya está, genéralo" }).forzado).toBe(true);
+    expect(pedidoDelTurno({ ...ABIERTO, forzado: true }, {}).forzado).toBe(true);
+  });
+
+  it("Lola ve lo que hay del pedido, y nada si no hay", () => {
+    expect(bloqueDePedido(null)).toBe("");
+    expect(bloqueDePedido({ camino: "basico", desde: null })).toMatch(/camino «Solo los días», aún sin fecha/);
+  });
 });
 
 describe("pedido de menú en curso (trozo 66)", () => {
@@ -42,7 +68,7 @@ describe("pedido de menú en curso (trozo 66)", () => {
   it("lo siguiente se suma al mismo pedido, sin abrir otro", async () => {
     await guardarPedido(CTX, { camino: "basico" }, AHORA);
     const r = await guardarPedido(CTX, { desde: "2026-11-09" }, AHORA);
-    expect(r).toEqual({ camino: "basico", desde: "2026-11-09", forzado: false });
+    expect(r).toEqual({ camino: "basico", desde: "2026-11-09", forzado: false, preguntado: false });
     expect(db.filas).toHaveLength(1);
     expect(await pedidoEnCurso("casa", AHORA)).toEqual(r);
   });
@@ -52,7 +78,7 @@ describe("pedido de menú en curso (trozo 66)", () => {
       db.filas.push({ id: "t2", status: "abierta", updated_at: AHORA.toISOString(), pedido: JSON.stringify({ camino: "medio" }) });
     };
     const r = await guardarPedido(CTX, { desde: "2026-11-09" }, AHORA);
-    expect(r).toEqual({ camino: "medio", desde: "2026-11-09", forzado: false });
+    expect(r).toEqual({ camino: "medio", desde: "2026-11-09", forzado: false, preguntado: false });
     expect(db.filas).toHaveLength(1);
   });
 
@@ -65,7 +91,7 @@ describe("pedido de menú en curso (trozo 66)", () => {
     await guardarPedido(CTX, { camino: "basico" }, AHORA);
     const luego = new Date(AHORA.getTime() + VIDA + 1000);
     expect(await pedidoEnCurso("casa", luego)).toBeNull();
-    expect(await guardarPedido(CTX, { desde: "2026-11-16" }, luego)).toEqual({ camino: null, desde: "2026-11-16", forzado: false });
+    expect(await guardarPedido(CTX, { desde: "2026-11-16" }, luego)).toEqual({ camino: null, desde: "2026-11-16", forzado: false, preguntado: false });
     expect(db.filas).toHaveLength(1);
   });
 
@@ -77,7 +103,7 @@ describe("pedido de menú en curso (trozo 66)", () => {
   });
 
   it("no da por bueno lo que no sea del vocabulario", () => {
-    expect(pedidoDeFila({ pedido: JSON.stringify({ camino: "otro", desde: "mañana", forzado: "si" }) })).toEqual({ camino: null, desde: null, forzado: false });
+    expect(pedidoDeFila({ pedido: JSON.stringify({ camino: "otro", desde: "mañana", forzado: "si" }) })).toEqual({ camino: null, desde: null, forzado: false, preguntado: false });
   });
 
   it("un pedido ilegible lanza: no se pisa con uno vacío", async () => {
