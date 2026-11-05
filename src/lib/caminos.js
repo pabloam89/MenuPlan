@@ -62,6 +62,8 @@ export const CAMINO = Object.freeze({ BASICO: "basico", MEDIO: "medio", AVANZADO
  * app simplifica algunos pasos (ver ScopePickerScreen). `minutos`: lo que se
  * tarda, que es como se presentan («por tiempo y no por nivel»). `ejemplo`: lo que
  * alguien contestaría en ese camino, para que se entienda qué se le va a pedir.
+ * `enChat`: el resumen corto de Lola, una línea de móvil detrás del botón (el
+ * `resumen` es el subtítulo de la pantalla de la app; trozo 60 de #1037).
  * El `titulo` es el botón: dice qué pasa al elegirlo, no un nivel abstracto (en
  * Telegram «Lo básico / A tu gusto / Al detalle» no se entendía, 4 nov 2026).
  *
@@ -75,6 +77,7 @@ export const CAMINOS = Object.freeze([
     minutos: 1,
     resumen: "Me dices qué días coméis en casa y del resto me encargo yo.",
     ejemplo: "de lunes a viernes, solo cenas",
+    enChat: "me dices cuándo coméis en casa",
     temas: [TEMA.COLE, TEMA.SEMANA, TEMA.HORARIO],
     experto: false,
   },
@@ -84,6 +87,7 @@ export const CAMINOS = Object.freeze([
     minutos: 3,
     resumen: "Los días y, además, cómo os gusta comer y cómo cocináis.",
     ejemplo: "menos fritos, y tengo airfryer",
+    enChat: "además, gustos y cómo cocináis",
     temas: [TEMA.SEMANA, TEMA.HORARIO, TEMA.NINOS, TEMA.COLE, TEMA.ESTILO, TEMA.COCINA, TEMA.ELECTROS],
     experto: true,
   },
@@ -93,6 +97,7 @@ export const CAMINOS = Object.freeze([
     minutos: 5,
     resumen: "Repasamos todo: el cole, el presupuesto, los tiempos y los aparatos.",
     ejemplo: "60 € a la semana, y cocino en tandas el domingo",
+    enChat: "también presupuesto, cole y tiempos",
     temas: TEMAS.map((t) => t.id),
     experto: true,
   },

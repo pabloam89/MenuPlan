@@ -180,8 +180,20 @@ export const conVersionDeFamilia = (guardar) => async (rev) => {
  * documento o en su sobre. Sin poder leer la libreta (libretaCasa.js), tampoco: un guardado la vaciaría. Sin poder
  * leer el documento, solo si lo que hay en memoria no vale (`soloNube`).
  */
-export const cargaSinSeguir = ({ soloNube, remoteState, cargaFamilia, cargaCasa = null, cargaLibreta = null }) =>
-  Boolean((soloNube && remoteState?.error) || cargaFamilia?.error || cargaCasa?.error || cargaLibreta?.error);
+export const cargaSinSeguir = (cargas) => queNoCargo(cargas).length > 0;
+
+/** Las piezas de la casa que no se han podido leer, cada una con su nombre: lo que lleva el rastro RASTRO.CASA_SIN_CARGAR. */
+export const PIEZA_DE_CASA = Object.freeze({ DOCUMENTO: "documento", FAMILIA: "familia", DATOS: "datos", LIBRETA: "libreta" });
+
+/** Pura. Qué piezas fallaron en la carga de la casa (PIEZA_DE_CASA); vacía, la carga sigue. */
+export function queNoCargo({ soloNube, remoteState, cargaFamilia, cargaCasa = null, cargaLibreta = null }) {
+  return [
+    soloNube && remoteState?.error && PIEZA_DE_CASA.DOCUMENTO,
+    cargaFamilia?.error && PIEZA_DE_CASA.FAMILIA,
+    cargaCasa?.error && PIEZA_DE_CASA.DATOS,
+    cargaLibreta?.error && PIEZA_DE_CASA.LIBRETA,
+  ].filter(Boolean);
+}
 
 /**
  * Los dos guardados de la casa, en su cola (`guardarConVersion`, versionCasa.js): primero la familia, que con
