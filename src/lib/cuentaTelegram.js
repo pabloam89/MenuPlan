@@ -59,11 +59,11 @@ export function formasDeEntrar(user, { conApple }) {
   const conTelegram = esCuentaDeTelegram(user);
   const google = tieneProveedor(user, FORMA_DE_ENTRAR.GOOGLE);
   const apple = tieneProveedor(user, FORMA_DE_ENTRAR.APPLE);
-  const otra = (propia) => [conTelegram, google, apple].filter(Boolean).length > (propia ? 1 : 0);
+  const hayOtra = [conTelegram, google, apple].filter(Boolean).length > 1;
   const formas = [];
   if (conTelegram) formas.push({ forma: FORMA_DE_ENTRAR.TELEGRAM, tiene: true, apagable: false });
-  formas.push({ forma: FORMA_DE_ENTRAR.GOOGLE, tiene: google, apagable: google && otra(true) });
-  if (conApple || apple) formas.push({ forma: FORMA_DE_ENTRAR.APPLE, tiene: apple, apagable: apple && otra(true) });
+  formas.push({ forma: FORMA_DE_ENTRAR.GOOGLE, tiene: google, apagable: google && hayOtra });
+  if (conApple || apple) formas.push({ forma: FORMA_DE_ENTRAR.APPLE, tiene: apple, apagable: apple && hayOtra });
   return formas;
 }
 

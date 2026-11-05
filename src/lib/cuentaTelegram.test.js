@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { emailSintetico, esCuentaDeTelegram, tieneProveedor, formasDeEntrar, FORMA_DE_ENTRAR, avisoAlVolver, AVISOS_AL_VOLVER, NO_SE_PUDO_GOOGLE, urlEntrarConTelegram, DOMINIO_LOGIN_TELEGRAM, BOT_ID } from "./cuentaTelegram.js";
+import { resumenDeFormas, emailSintetico, esCuentaDeTelegram, tieneProveedor, formasDeEntrar, FORMA_DE_ENTRAR, avisoAlVolver, AVISOS_AL_VOLVER, NO_SE_PUDO_GOOGLE, urlEntrarConTelegram, DOMINIO_LOGIN_TELEGRAM, BOT_ID } from "./cuentaTelegram.js";
 import { emailSintetico as delBot } from "../../api/_bot/cuentas.js";
 
 // Las cuentas nacidas en Telegram y «Entrar también con Google» (#1238).
@@ -26,27 +26,40 @@ describe("formas de entrar de la cuenta", () => {
 
   it("nacida en Telegram, sin más: Telegram ✓ primero, y Google por añadir", () => {
     expect(formasDeEntrar(deTelegram, { conApple: false })).toEqual([
-      { forma: TELEGRAM, tiene: true },
-      { forma: GOOGLE, tiene: false },
+      { forma: TELEGRAM, tiene: true, apagable: false },
+      { forma: GOOGLE, tiene: false, apagable: false },
     ]);
   });
 
   it("con Google ya añadido, Google ✓ (lo dice la cuenta, no la pantalla)", () => {
     const conGoogle = { ...deTelegram, identities: [...deTelegram.identities, { provider: "google" }] };
     expect(tieneProveedor(conGoogle, "google")).toBe(true);
-    expect(formasDeEntrar(conGoogle, { conApple: false })).toContainEqual({ forma: GOOGLE, tiene: true });
+    expect(formasDeEntrar(conGoogle, { conApple: false })).toContainEqual({ forma: GOOGLE, tiene: true, apagable: true });
   });
 
-  it("Apple solo donde se ofrece, con su estado", () => {
+  it("Apple donde se ofrece, o si la cuenta ya entra con él", () => {
     const conApple = { ...deTelegram, identities: [...deTelegram.identities, { provider: "apple" }] };
-    expect(formasDeEntrar(conApple, { conApple: true })).toContainEqual({ forma: APPLE, tiene: true });
-    expect(formasDeEntrar(deTelegram, { conApple: true })).toContainEqual({ forma: APPLE, tiene: false });
-    expect(formasDeEntrar(conApple, { conApple: false }).map((f) => f.forma)).not.toContain(APPLE);
+    expect(formasDeEntrar(conApple, { conApple: true })).toContainEqual({ forma: APPLE, tiene: true, apagable: true });
+    expect(formasDeEntrar(deTelegram, { conApple: true })).toContainEqual({ forma: APPLE, tiene: false, apagable: false });
+    expect(formasDeEntrar(conApple, { conApple: false }).map((f) => f.forma)).toContain(APPLE);
+    expect(formasDeEntrar(deTelegram, { conApple: false }).map((f) => f.forma)).not.toContain(APPLE);
   });
 
   it("una cuenta de Google no enseña Telegram: Telegram no la abre (trozo 3)", () => {
     const deGoogle = { email: "ana@gmail.com", identities: [{ provider: "google" }] };
-    expect(formasDeEntrar(deGoogle, { conApple: false })).toEqual([{ forma: GOOGLE, tiene: true }]);
+    expect(formasDeEntrar(deGoogle, { conApple: false })).toEqual([{ forma: GOOGLE, tiene: true, apagable: false }]);
+  });
+
+  it("la última forma de entrar no se apaga: la cuenta se quedaría sin llave", () => {
+    const dos = { email: "ana@gmail.com", identities: [{ provider: "google" }, { provider: "apple" }] };
+    expect(formasDeEntrar(dos, { conApple: true }).every((f) => f.apagable)).toBe(true);
+    const una = { email: "ana@gmail.com", identities: [{ provider: "apple" }] };
+    expect(formasDeEntrar(una, { conApple: true }).find((f) => f.forma === APPLE).apagable).toBe(false);
+  });
+
+  it("la fila dice con qué se entra", () => {
+    expect(resumenDeFormas([{ forma: GOOGLE, tiene: true }, { forma: APPLE, tiene: false }])).toBe("Entras con Google");
+    expect(resumenDeFormas([{ forma: TELEGRAM, tiene: true }, { forma: GOOGLE, tiene: true }, { forma: APPLE, tiene: true }])).toBe("Entras con Telegram, Google y Apple");
   });
 });
 
