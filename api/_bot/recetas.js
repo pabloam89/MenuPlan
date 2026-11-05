@@ -27,7 +27,7 @@ import { deLaCharla } from "./chats.js";
 import { cargarCasa, olvidarCasa } from "./casa.js";
 import { motor, normal, prepararRecetas } from "./menu.js";
 import { propiasDe, marcarFavorita, borrarRecetaDeCasa } from "./propias.js";
-import { duenoDe, rastro, registrar } from "./embudo.js";
+import { duenoDe, duenoDeEstricto, rastro, registrar } from "./embudo.js";
 import { RASTRO, ORIGEN_RECETA } from "../../src/lib/rastro.js";
 import { SYSTEM_PROMPTS } from "../_prompts.js";
 import { buscarHibrido, pasaRasgos } from "./buscador.js";
@@ -412,13 +412,19 @@ export const ACCION_RECETA = Object.freeze(Object.fromEntries(ACCIONES_RECETA.ma
  * @param {{ userId?: string|null }} quien
  */
 export async function cambiarRecetaPropia(householdId, { accion, receta: nombre, confirmado = false }, quien = {}, deps = {}) {
-  const { buscar = recetaPorNombre, favorita = marcarFavorita, borrarDeCasa = borrarRecetaDeCasa, dueno = duenoDe } = deps;
+  const { buscar = recetaPorNombre, favorita = marcarFavorita, borrarDeCasa = borrarRecetaDeCasa, dueno = duenoDeEstricto } = deps;
   const receta = await buscar(householdId, nombre);
   if (!receta) return resultado({ accion: "recetas", sinHacer: [{ que: nombre, motivo: "no encuentro esa receta ni en las vuestras ni en el catálogo" }] });
   if (accion === ACCION_RECETA.BORRAR) {
     if (receta.source !== "user") return resultado({ accion: "recetas", sinHacer: [{ que: receta.name, motivo: "es del catálogo de HoMenu, no vuestra: no se puede borrar" }] });
     if (confirmado !== true || !seVeEn(nombre, receta.name)) return `Antes de borrarla, pregunta si seguro que quieren borrar «${receta.name}» de sus recetas (no se puede deshacer), y bórrala solo con su «sí», llamando con ese nombre.`;
-    const hecho = await borrarDeCasa(householdId, await dueno(householdId), receta.id);
+    // Comprobar que es de la casa es el freno: si la base falla, se dice que no se pudo, no «no es de esta casa».
+    const sinComprobar = resultado({ accion: "recetas", sinHacer: [{ que: receta.name, motivo: "no he podido comprobar en la base que sea vuestra, así que no he borrado nada: prueba en un rato" }] });
+    const suyo = await dueno(householdId).catch(fallaCon("recetas_borrar_propia", SIN_LEER));
+    if (suyo === SIN_LEER) return sinComprobar;
+    if (!suyo) return resultado({ accion: "recetas", sinHacer: [{ que: receta.name, motivo: "no encuentro de quién es esta casa" }] });
+    const hecho = await borrarDeCasa(householdId, suyo, receta.id).catch(fallaCon("recetas_borrar_propia", SIN_LEER));
+    if (hecho === SIN_LEER) return sinComprobar;
     if (hecho) olvidarCasa(householdId);
     return hecho
       ? resultado({ accion: "recetas", hecho: [`«${receta.name}» borrada`] })

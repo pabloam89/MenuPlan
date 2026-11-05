@@ -106,9 +106,11 @@ export async function marcarFavorita(userId, recetaId, favorita) {
 /**
  * Borra una receta propia de la casa, la de quien la creó (cualquiera de los que llevan la casa): como
  * quitarRecetaGuardada, primero la lápida y luego la fila. Devuelve false si no es una receta propia de esta casa.
+ * Si no puede leer quién lleva la casa, lanza: es el freno del borrado, y sin la lista una receta de la cotitular
+ * saldría «no es de esta casa» (no como autoresDeCasa, que sigue con las del dueño).
  */
 export async function borrarRecetaDeCasa(householdId, dueno, recetaId) {
-  const autores = await autoresDeCasa(householdId, dueno);
+  const autores = [...new Set([dueno, ...(await quienesLlevanLaCasa(householdId))].filter(Boolean))];
   if (!autores.length) return false;
   const [fila] = await select("user_recipes", `id=${eq(recetaId)}&owner_id=in.(${autores.map((u) => encodeURIComponent(u)).join(",")})`, "id,owner_id");
   if (!fila) return false;

@@ -78,6 +78,22 @@ describe("receta_propia", () => {
     expect(escrito).toEqual([]);
   });
 
+  it("borrar con la base caída: dice que no pudo comprobarlo y no borra, en vez de «no es de esta casa»", async () => {
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      for (const caida of ["dueno", "borrarDeCasa"]) {
+        const { escrito, deps } = conDeps(PROPIA);
+        deps[caida] = async () => { throw new Error("base caída"); };
+        const r = await cambiarRecetaPropia("casa", { accion: ACCION_RECETA.BORRAR, receta: "Lentejas de la abuela", confirmado: true }, {}, deps);
+        expect(escrito, caida).toEqual([]);
+        expect(r.sinHacer[0].motivo, caida).toMatch(/no he podido comprobar/);
+      }
+      expect(err).toHaveBeenCalledTimes(2);
+    } finally {
+      err.mockRestore();
+    }
+  });
+
   it("una del catálogo no se borra, aunque digan que sí", async () => {
     const { escrito, deps } = conDeps(DEL_CATALOGO);
     const r = await cambiarRecetaPropia("casa", { accion: ACCION_RECETA.BORRAR, receta: "Lentejas estofadas", confirmado: true }, {}, deps);
