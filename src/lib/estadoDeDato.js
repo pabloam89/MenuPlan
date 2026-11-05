@@ -128,20 +128,28 @@ export const datosConSobre = (estados) => CAMPOS_CASA_CON_SOBRE.map((campo) => l
   .map((l) => (l.valor == null && DATOS_CASA[l.campo]?.tipo === "lista_enum" ? { ...l, valor: [] } : l));
 
 /**
+ * Pura. La base de los datos por persona con ámbito (schedule) en una casa sin nadie: ficha_casa los da una vez por
+ * persona, así que sin personas no llegan. Solo si la ficha dice que no hay nadie (`personas` vacío): si hay gente y
+ * falta el dato, leidosConSobre sigue lanzando.
+ * @param {{ personas: object[] }} ficha
+ */
+export const basesSinPersonas = (ficha) => (ficha.personas.length > 0 ? [] : CAMPOS_CON_AMBITO_CON_SOBRE
+  .filter((campo) => DATOS_CASA[campo].entidad === "persona")
+  .map((campo) => ({ campo, sujeto: { tipo: "casa", id: null }, ambito: null, estado: "vacio", valor: null, origen: null })));
+
+/**
  * Pura. Lo que la app y Lola leen de los sobres de la casa, de los elementos de ficha_casa v2 (los de
  * FICHAS_CASA_CON_SOBRE): `{ [campo]: { valor, conSobre } }`. Los de CAMPOS_CASA_CON_SOBRE, por datosConSobre; los
  * de CAMPOS_CON_AMBITO_CON_SOBRE, su mapa de `data` con lo dicho en cada hueco (rutinaDeFichas, rutina.js), y
  * `conSobre` si algún hueco está dicho. Con la 0112 a la 0116 aplicadas (2 nov 2026), la ficha trae todos: si falta
- * alguno (salvo los de persona, que en una casa sin nadie no llegan), lanza (registro_campo y el registro no dicen lo mismo), en vez de leerlo del documento. Lanza también si no
+ * alguno, lanza (registro_campo y el registro no dicen lo mismo), en vez de leerlo del documento. Lanza también si no
  * cuadra (estadosDeFichas, rutinaDeFichas).
  */
 export function leidosConSobre(elementos) {
   const simples = datosConSobre(estadosDeFichas({ casa: elementos })).map((l) => [l.campo, { valor: l.valor, conSobre: l.conSobre }]);
   const mapas = Object.entries(rutinaDeFichas(elementos)).filter(([campo]) => CAMPOS_CON_AMBITO_CON_SOBRE.includes(campo))
     .map(([campo, mapa]) => [campo, { valor: mapa, conSobre: Object.keys(mapa).length > 0 }]);
-  // Un dato por persona llega una vez por cada una: en una casa sin nadie no llega, y es un mapa vacío, no un fallo.
-  const sinNadie = CAMPOS_CON_AMBITO_CON_SOBRE.filter((c) => DATOS_CASA[c].entidad === "persona").map((c) => [c, { valor: {}, conSobre: false }]);
-  const leidos = Object.fromEntries([...sinNadie, ...simples, ...mapas]);
+  const leidos = Object.fromEntries([...simples, ...mapas]);
   const faltan = [...CAMPOS_CASA_CON_SOBRE, ...CAMPOS_CON_AMBITO_CON_SOBRE].filter((c) => !Object.hasOwn(leidos, c));
   if (faltan.length) throw new Error(`ficha_casa no trae ${faltan.join(", ")}: registro_campo no tiene lo que dice el registro`);
   return leidos;

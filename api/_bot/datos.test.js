@@ -338,7 +338,7 @@ describe("api/operacion.js: un cambio de la libreta (trozo 14) va a escribir_pre
 
 describe("api/operacion.js: la app lee los datos de la ficha Casa (trozo 12)", () => {
   const DATO_CASA = { campo: "wantsPriceEstimates", sujeto: { tipo: "casa", id: null }, estado: "dicho", valor: true, origen: "dicho" };
-  const COMUN = { casa: { id: CASA, rev: 3 }, personas: [], faltan: [], tareas: [], callados: [] };
+  const COMUN = { casa: { id: CASA, rev: 3 }, personas: [{ id: "p1" }], faltan: [], tareas: [], callados: [] };
   const ALERGIAS = { campo: "alergias", sujeto: { tipo: "persona", id: "p1" }, estado: "vacio", valor: null, origen: null };
   const FICHA_V2 = { v: 2, ...COMUN, fichas: { casa: [DATO_CASA], persona: [ALERGIAS] } };
   async function leerGet({ token = "tok", casa = CASA } = {}) {
