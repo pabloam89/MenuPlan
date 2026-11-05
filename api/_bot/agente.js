@@ -143,12 +143,16 @@ const CONOCIMIENTO = fs.readFileSync(new URL("./conocimiento.md", import.meta.ur
 // conocimiento.md, con lo que manda arriba (una sola fuente, sin contradicciones).
 // Con sus marcas rellenas desde las fichas y el mapa de capacidades (manual.js, trozo 43): qué sabe hacer, qué
 // solo se hace en la app y qué no se deshace. Se arma la primera vez que hace falta y se guarda: el mapa
-// (src/lib/capacidades.js) importa este fichero, y a la carga sería un ciclo.
-let sistemaArmado = null;
+// (src/lib/capacidades.js) importa este fichero, y a la carga sería un ciclo. Uno por canal: la forma de los
+// mensajes es la de su canal (trozo 58), y un canal sin la suya lanza al armarlo.
+const sistemasArmados = new Map();
 // Las partes que solo entran cuando hacen falta (manual.js, trozo 44): el alta y lo de fotos y voz.
 const PARTES = Object.fromEntries(Object.keys(PARTES_MANUAL).map((p) => [p, fs.readFileSync(new URL(`./manual/${p}.md`, import.meta.url), "utf8")]));
-export const sistema = () => (sistemaArmado ??= import("../../src/lib/capacidades.js")
-  .then(({ CAPACIDADES }) => armarManual(CONOCIMIENTO, { capacidades: CAPACIDADES, fichas: FICHAS })));
+export const sistema = (canal) => {
+  if (!sistemasArmados.has(canal)) sistemasArmados.set(canal, import("../../src/lib/capacidades.js")
+    .then(({ CAPACIDADES }) => armarManual(CONOCIMIENTO, { capacidades: CAPACIDADES, fichas: FICHAS, canal })));
+  return sistemasArmados.get(canal);
+};
 
 let cliente = null;
 const anthropic = () => (cliente ??= new Anthropic());
@@ -340,7 +344,8 @@ export async function herramientas(chat) {
       try {
         // `escribio`: si llegó a la base alguna escritura (db.js), no solo si se
         // intentó. Una herramienta que contesta «no he podido guardarlo» no
-        // cuenta como guardado, ni lleva botón a la app.
+        // cuenta como guardado, ni lleva botón a la app. `nadaQueVer`: la herramienta sabe
+        // que esa pantalla sale vacía; sin botón, lea o escriba.
         chat.nadaQueVer = false;
         const { r, escribio } = await contandoEscrituras(() => t.run(args, llamada));
         // Un RESULTADO (resultado.js, #958): lo hecho y lo que no, con forma
@@ -363,7 +368,7 @@ export async function herramientas(chat) {
         }
         if (t.name === "generar_menu") tocado.semanas.add(args.semana ?? "esta");
         if (t.name === "cambiar_plato" && args.dia) tocado.dias.add(diaDe(args.dia) ?? String(args.dia).toLowerCase());
-        const ir = (SOLO_LECTURA.has(t.name) && !chat.nadaQueVer) || escribio ? pantallaDe(t.name, args) : null;
+        const ir = !chat.nadaQueVer && (SOLO_LECTURA.has(t.name) || escribio) ? pantallaDe(t.name, args) : null;
         if (ir) chat.ir = ir;
         // Lo que la escritura no guardó tal cual (la familia, casa.js): Lola lo dice, no se calla.
         const avisos = op ? tomarAvisos() : [];
@@ -1090,6 +1095,8 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
       run: async ({ de_nuevo, ...args }) => {
         const r = await apuntarAusencia(householdId, { ...args, deNuevo: de_nuevo === true, autor: quien.autor, userId: quien.userId, papel: quien.papel });
         if (r.pintar) pintarTambien(chat, r.pintar);
+        // Apuntada para cuando se genere: aún no hay semana que ver en la app.
+        if (!r.error && !r.hayMenu) chat.nadaQueVer = true;
         return resultadoDeAusencia(r);
       },
     }),
@@ -1424,7 +1431,7 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
     adelanto.usar(leido);
     if (leido) medidaPista = { ...medidaPista, modo: d.modo, confianza: d.confianza, adelanto: leido.nombre, reinicio };
     return ejecutar({
-      historia, entrada: entradaModelo, tools: conAdelanto, adjunto, signal: sig, ficha, progreso,
+      historia, entrada: entradaModelo, tools: conAdelanto, adjunto, signal: sig, ficha, progreso, canalDelTurno: canal,
       alPedir: (nombres) => chat.pedidas.push(...nombres),
       guardados: () => chat.guardados ?? 0,
       pista: leido ? textoPista(d, leido) : null,
@@ -1658,7 +1665,7 @@ const AVISO_SIN_GUARDAR = "[Aviso del sistema, no lo ha escrito la persona] En t
  *   en el turno (responder lo saca de db.js). Sin él (pruebas con herramientas
  *   de mentira) vale lo intentado.
  */
-export async function ejecutar({ historia = [], entrada, tools, adjunto = null, alEscribir = null, signal = null, modelos = [MODELO, MODELO_RESERVA], alReintentar = null, ficha = null, vuelta = unaVuelta, pista = null, progreso = null, guardados = null, alPedir = null, ahora = null }) {
+export async function ejecutar({ historia = [], entrada, tools, adjunto = null, alEscribir = null, signal = null, modelos = [MODELO, MODELO_RESERVA], alReintentar = null, ficha = null, vuelta = unaVuelta, pista = null, progreso = null, guardados = null, alPedir = null, ahora = null, canalDelTurno = CANAL.TELEGRAM }) {
   // Si ha INTENTADO escribir en la casa este turno y el modelo se cae después,
   // no se repite con el de reserva: lo haría dos veces. Cuenta el intento, no
   // el éxito: una escritura que falló a medias puede haber guardado algo.
@@ -1710,7 +1717,7 @@ export async function ejecutar({ historia = [], entrada, tools, adjunto = null, 
     try {
       if (i > 0) alReintentar?.();
       const comun = {
-        tools: vigiladas, alEscribir: escribir, modelo, ficha, progreso, alPedir, ahora,
+        tools: vigiladas, alEscribir: escribir, modelo, ficha, progreso, alPedir, ahora, canalDelTurno,
         signal: signal ? AbortSignal.any([signal, plazo]) : plazo,
         // El principal sin reintentos: si falla, reintentar ES el de reserva.
         maxRetries: i === 0 && modelos.length > 1 ? 0 : 1,
@@ -1799,7 +1806,7 @@ export function esCaida(err) {
 // los puntos de 1 h vayan antes que los de 5 min.
 const CACHE_FIJA = { type: "ephemeral", ttl: "1h" };
 
-async function unaVuelta({ historia, entrada, tools, adjunto, alEscribir, signal, modelo, maxRetries, ficha = null, pista = null, progreso = null, alPedir = null, ahora = null, maxIteraciones = MAX_LLAMADAS_VUELTA }) {
+async function unaVuelta({ historia, entrada, tools, adjunto, alEscribir, signal, modelo, maxRetries, ficha = null, pista = null, progreso = null, alPedir = null, ahora = null, canalDelTurno, maxIteraciones = MAX_LLAMADAS_VUELTA }) {
   // Con cache_control en el último bloque: la segunda vuelta del turno (tras
   // una herramienta) y las siguientes leen de caché todo lo anterior —
   // instrucciones, historia y el mensaje— en vez de volver a procesarlo.
@@ -1818,7 +1825,7 @@ async function unaVuelta({ historia, entrada, tools, adjunto, alEscribir, signal
     // Haiku no tiene «effort» (si se pone de reserva con BOT_MODELO_RESERVA): va sin él.
     ...(/haiku/.test(modelo) ? {} : { output_config: { effort: EFFORT } }),
     system: [
-      { type: "text", text: await sistema(), cache_control: CACHE_FIJA },
+      { type: "text", text: await sistema(canalDelTurno), cache_control: CACHE_FIJA },
       // La ficha, en dos bloques con su caché: el estable casi no cambia y el
       // del día cambia una vez al día (o al cambiar el menú). Son 3 de los 4
       // puntos de caché que deja la API; el cuarto, el mensaje.

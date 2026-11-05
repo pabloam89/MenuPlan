@@ -5,6 +5,7 @@
  */
 import { describe, it, expect, vi } from "vitest";
 import { readFileSync } from "node:fs";
+import { CANAL } from "../../src/lib/vocabularios.js";
 
 process.env.VITE_SUPABASE_URL ||= "https://sin-base.invalid";
 process.env.SUPABASE_SERVICE_ROLE_KEY ||= "sin-clave";
@@ -90,7 +91,7 @@ describe("unaVuelta: progreso y pista", () => {
   it("las instrucciones son el manual armado (manual.js, trozo 43), sin marcas", async () => {
     guion.mensajes = [msg("Vale.")];
     await ejecutar({ entrada: "hola", tools: [], modelos: ["claude-sonnet-5"], alEscribir: () => {} });
-    expect(guion.params.system[0].text).toBe(await sistema());
+    expect(guion.params.system[0].text).toBe(await sistema(CANAL.TELEGRAM));
     expect(guion.params.system[0].text).not.toMatch(/{{[A-Z_]+}}/);
   });
 
