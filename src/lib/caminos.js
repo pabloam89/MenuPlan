@@ -88,7 +88,7 @@ export const CAMINOS = Object.freeze([
     resumen: "Los días y, además, cómo os gusta comer y cómo cocináis.",
     ejemplo: "menos fritos, y tengo airfryer",
     enChat: "además, gustos y cómo cocináis",
-    temas: [TEMA.SEMANA, TEMA.HORARIO, TEMA.NINOS, TEMA.COLE, TEMA.ESTILO, TEMA.COCINA, TEMA.ELECTROS],
+    temas: [TEMA.SEMANA, TEMA.HORARIO, TEMA.NINOS, TEMA.COLE, TEMA.ESTILO, TEMA.ESTRUCTURA, TEMA.COCINA, TEMA.ELECTROS],
     experto: true,
   },
   {
