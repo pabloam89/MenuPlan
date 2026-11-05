@@ -111,7 +111,7 @@ export async function ejesDelPedido({ householdId, userId = null, channel = CANA
 }
 
 /** Cierra el pedido: `hecha` al generar, `descartada` si lo dejan. Un generar fallido no lo cierra. */
-export function cerrarPedido(householdId, estado = ESTADO_TAREA.HECHA, ahora = new Date()) {
+export async function cerrarPedido(householdId, estado = ESTADO_TAREA.HECHA, ahora = new Date()) {
   const cuando = ahora.toISOString();
   return update("bot_tareas", delPedido(householdId), { status: estado, closed_at: cuando, updated_at: cuando });
 }

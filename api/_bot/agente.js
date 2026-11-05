@@ -60,13 +60,13 @@ import { fichaRpc, leerFichaCasa, tareasDeFicha, calladasDeFicha, conLaFicha, ol
 import { lineaDeAfinar } from "../../src/lib/siguientePregunta.js";
 import { montarMemoria, ORDEN as ORDEN_MEMORIA } from "./memoria.js";
 import { tramitar, bloqueDe, vigentesSegun } from "./pendientes.js";
-import { tareasAbiertas, clavesCalladas, anotarTarea, cerrarTarea, editarTarea, bloqueDeTareas, separarPorEstado, cerrarResueltas, promoverPreguntas } from "./tareas.js";
+import { tipoDe, tareasAbiertas, clavesCalladas, anotarTarea, cerrarTarea, editarTarea, bloqueDeTareas, separarPorEstado, cerrarResueltas, promoverPreguntas } from "./tareas.js";
 import { claveDePregunta, estadoDeClave } from "./estadoCasa.js";
 import { pintarMenuEntero, filtrosTrasGenerar, filtrosTrasCambiar, sinEtiquetas } from "./pintar.js";
 import { fechasDe, CUANDOS } from "./cuando.js";
 import { IDS_COMIDAS, COMIDAS_PRINCIPALES, IDS_PLATOS } from "../../src/lib/comidas.js";
 import { KITCHEN_TOOL_IDS, APARATOS_EN_ORDEN } from "../../src/lib/electrodomesticos.js";
-import { RITMO_COCINA, ETAPA_BEBE, CANAL, paraEscribir, RIESGOS_HERRAMIENTA, RIESGO_HERRAMIENTA, FORMAS_DE_DESHACER, DESHACE } from "../../src/lib/vocabularios.js";
+import { RITMO_COCINA, TIPO_TAREA, ETAPA_BEBE, CANAL, paraEscribir, RIESGOS_HERRAMIENTA, RIESGO_HERRAMIENTA, FORMAS_DE_DESHACER, DESHACE } from "../../src/lib/vocabularios.js";
 import { esquemaDato, DEL_REGISTRO } from "../../src/lib/esquemaHerramienta.js";
 import { ETAPA_BEBE_INFO } from "../../src/lib/babyStage.js";
 // Los aparatos, en el orden de la app: la lista vive en electrodomesticos.js y la
@@ -1400,7 +1400,8 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
   const abiertas = vigentesSegun(guardadas, estaResuelta).filter((p) => !p.clave || !enTabla.has(p.clave));
   // Las tareas abiertas van delante de lo que dice la persona, solo para el modelo: no se guardan en su mensaje.
   const bloque = bloqueDe(abiertas);
-  const pedidoAbierto = await pedidoEnCurso(householdId).catch(seguirCon("agente_pedido", null));
+  // Solo se lee si hay una espera abierta: lo normal es no tener pedido y no gastar otra ida a la base.
+  const pedidoAbierto = tareasVivas.some((t) => tipoDe(t) === TIPO_TAREA.ESPERA) ? await pedidoEnCurso(householdId).catch(seguirCon("agente_pedido", null)) : null;
   const entradaModelo = [bloqueDeTareas(tareasVivas, { data, chatId }), bloqueDePedido(pedidoAbierto), bloque, entrada].filter(Boolean).join("\n\n");
   // Lo último que dijo Lola: un «sí» contesta a eso (supervisor.js).
   chat.anterior = historia.findLast((m) => m.role === "assistant")?.content ?? "";
