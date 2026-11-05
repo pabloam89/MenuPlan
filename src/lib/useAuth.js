@@ -4,8 +4,8 @@ import { upsertUserProfile } from "./analytics.js";
 import { clearState, congelarCopia } from "./storage.js";
 import { traeLlaveDeLola } from "./llaveLola.js";
 import { rememberAppleRefreshToken } from "./appleTokens.js";
-import { isNativeApp } from "./apiUrl.js";
-import { avisoAlVolver } from "./cuentaTelegram.js";
+import { isNativeApp, apiUrl } from "./apiUrl.js";
+import { avisoAlVolver, esAltaNueva, urlEntrarConTelegram, PREGUNTA_ALTA, proveedorDeAlta, tieneProveedor } from "./cuentaTelegram.js";
 
 // De quién es la copia de la casa que guarda este navegador (storage.js). Si
 // esa cuenta deja de existir (/borrarme en Telegram, o borrada en otro
@@ -17,6 +17,23 @@ const MARCA = "homenu:cuenta";
 const leerMarca = () => { try { return localStorage.getItem(MARCA); } catch { return null; } };
 const ponerMarca = (id) => { try { localStorage.setItem(MARCA, id); } catch { /* noop */ } };
 const quitarMarca = () => { try { localStorage.removeItem(MARCA); } catch { /* noop */ } };
+
+// «¿Ya hablas con Lola?» (trozo 4 de specs/auth.md §7). La respuesta «No, crear cuenta», por cuenta, para no volver a
+// preguntar al recargar; y tras «Sí», qué proveedor ofrecer añadir cuando vuelva de Telegram (en la misma pestaña).
+const RESPONDIDA = "homenu:alta-respondida";
+const OFERTA = "homenu:ofrecer-anadir";
+const leerRespondida = () => { try { return localStorage.getItem(RESPONDIDA); } catch { return null; } };
+const apuntarRespuesta = (id) => { try { localStorage.setItem(RESPONDIDA, id); } catch { /* noop */ } };
+const leerOferta = () => { try { return sessionStorage.getItem(OFERTA); } catch { return null; } };
+const apuntarOferta = (forma) => { try { if (forma) sessionStorage.setItem(OFERTA, forma); } catch { /* noop */ } };
+const olvidarOferta = () => { try { sessionStorage.removeItem(OFERTA); } catch { /* noop */ } };
+
+/**
+ * ¿Se pregunta «¿Ya hablas con Lola?» a esta cuenta? Si acaba de nacer en Google o Apple, no ha contestado, y aquí se
+ * puede entrar con Telegram (fuera del dominio del bot no hay a qué alternativa mandarla, y se crea como siempre).
+ */
+const preguntaAlta = (user) => esAltaNueva(user, Date.now()) && leerRespondida() !== user.id
+  && typeof window !== "undefined" && Boolean(urlEntrarConTelegram(window.location));
 
 /** La cuenta de la copia local, aunque su sesión ya se haya perdido (BotEnlace). */
 export const cuentaDeLaCopia = leerMarca;
@@ -104,7 +121,8 @@ export function useAuth() {
       // de aquí quita antes la marca): la cuenta ya no está.
       if (event === "SIGNED_OUT" && !CON_LLAVE && leerMarca()) return recargarLimpio();
       setSession(next);
-      if (event === "SIGNED_IN" && next?.user && next.user.id !== lastUpsertedUserId) {
+      // Una cuenta recién nacida en Google o Apple no escribe nada hasta contestar «¿Ya hablas con Lola?» (trozo 4).
+      if (event === "SIGNED_IN" && next?.user && next.user.id !== lastUpsertedUserId && !preguntaAlta(next.user)) {
         lastUpsertedUserId = next.user.id;
         upsertUserProfile(next.user);
       }
@@ -181,6 +199,59 @@ export function useAuth() {
   }, []);
   const signInWithApple = useCallback(() => signInWith("apple", "Apple"), [signInWith]);
 
+  // «¿Ya hablas con Lola?» (trozo 4 de specs/auth.md §7): mientras no conteste, la cuenta nueva no se da a la app
+  // (`user` null): ni perfil, ni casa. `respondida` solo sirve para repintar al contestar; lo que manda es la marca.
+  const [, setRespondida] = useState(null);
+  // Si se pregunta se decide una sola vez por cuenta, al recibirla: con la pregunta abierta, pasar la ventana de
+  // VENTANA_ALTA_NUEVA_MS no la contesta sola (daría la cuenta a la app, y su casa, sin que nadie dijera «No»).
+  const usuario = session?.user ?? null;
+  const [decidida, setDecidida] = useState({ id: null, pregunta: false });
+  const pregunta = usuario ? (decidida.id === usuario.id ? decidida.pregunta : preguntaAlta(usuario)) : false;
+  useEffect(() => {
+    if (usuario && decidida.id !== usuario.id) setDecidida({ id: usuario.id, pregunta });
+  }, [usuario, decidida.id, pregunta]);
+  const altaPendiente = Boolean(usuario && pregunta && leerRespondida() !== usuario.id);
+
+  // «No, crear cuenta»: se apunta la respuesta y sigue como cualquier alta (perfil, y la casa en useHousehold).
+  const crearCuentaNueva = useCallback(() => {
+    const u = session?.user;
+    if (!u) return;
+    apuntarRespuesta(u.id);
+    setRespondida(u.id);
+    if (u.id !== lastUpsertedUserId) { lastUpsertedUserId = u.id; upsertUserProfile(u); }
+  }, [session]);
+
+  // «Sí, entrar con Telegram»: la cuenta vacía se borra (el mismo borrado de Mi perfil), se cierra su sesión y se va
+  // al login de Telegram. Ya dentro, la app ofrece añadir este Google (OFERTA_ANADIR). Si el borrado falla, no se
+  // cierra nada: la pregunta sigue y dice que no se pudo.
+  const entrarConTelegramEnVez = useCallback(async () => {
+    const u = session?.user;
+    const url = urlEntrarConTelegram(window.location);
+    if (!u || !session?.access_token || !url) return { error: new Error(PREGUNTA_ALTA.noSePudo) };
+    const r = await fetch(apiUrl("/api/delete-account"), { method: "POST", headers: { Authorization: `Bearer ${session.access_token}` } })
+      .catch((e) => ({ ok: false, status: 0, e }));
+    if (!r.ok) {
+      console.error("[auth] borrar la cuenta vacía del alta", r.status, r.e);
+      return { error: new Error(PREGUNTA_ALTA.noSePudo) };
+    }
+    apuntarOferta(proveedorDeAlta(u));
+    quitarMarca();
+    // La cuenta ya no existe: la sesión se quita solo aquí (scope local), sin preguntar al servidor.
+    await supabase.auth.signOut({ scope: "local" }).catch((e) => console.error("[auth] cerrar la sesión borrada", e));
+    window.location.href = url;
+    return { error: null };
+  }, [session]);
+
+  // Tras entrar con Telegram desde la pregunta: «¿Añades este Google a tu cuenta?», si la cuenta aún no lo tiene.
+  const [oferta, setOferta] = useState(leerOferta);
+  const ofertaAnadir = session?.user && oferta && !tieneProveedor(session.user, oferta) && !altaPendiente ? oferta : null;
+  const responderOferta = useCallback(async (acepta) => {
+    const forma = oferta;
+    olvidarOferta();
+    setOferta(null);
+    return acepta && forma ? anadirFormaDeEntrar(forma) : { error: null };
+  }, [oferta, anadirFormaDeEntrar]);
+
   const signOut = useCallback(async () => {
     if (!supabase) return { error: null };
     quitarMarca();
@@ -201,8 +272,13 @@ export function useAuth() {
   }, []);
 
   return {
-    session,
-    user: session?.user ?? null,
+    session: altaPendiente ? null : session,
+    user: altaPendiente ? null : session?.user ?? null,
+    altaPendiente,
+    crearCuentaNueva,
+    entrarConTelegramEnVez,
+    ofertaAnadir,
+    responderOferta,
     loading,
     signInWithGoogle,
     signInWithApple,

@@ -16,9 +16,9 @@
  * cada una con la caché caliente) y la referencia.
  */
 
-import { cargarEnv, leerFichero } from "./lib/env.mjs";
+import { cargarEnv, direcciones } from "./lib/env.mjs";
 
-cargarEnv(Object.keys(leerFichero()));
+cargarEnv(Object.keys(direcciones()));
 process.env.VITE_SUPABASE_URL ||= "https://sin-base.invalid";
 
 const args = process.argv.slice(2);

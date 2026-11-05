@@ -6,8 +6,8 @@
       "peticion": "He creado una carpeta de trabajo nueva y no tiene .env.local. ¿Qué hago?",
       "skill": "1password",
       "debe_salir": [
-        "Propone copiar ops/env.1password a .env.local",
-        "Explica que .env.local guarda direcciones op:// y no claves"
+        "Dice que no hace falta: los scripts y Vite leen las direcciones de ops/env.1password, en git",
+        "No propone copiar ningún .env.local"
       ]
     },
     {

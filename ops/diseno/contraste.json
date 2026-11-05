@@ -22,6 +22,7 @@
         {"id": "tinta-tenue-sobre-superficie", "texto": "tinta-tenue", "fondo": "superficie", "uso": "texto", "donde": "metadatos"},
         {"id": "tinta-palida-sobre-superficie", "texto": "tinta-palida", "fondo": "superficie", "uso": "texto", "donde": "placeholder (D14)"},
         {"id": "superficie-sobre-marca", "texto": "superficie", "fondo": "marca", "uso": "texto", "donde": "texto del botón primario"},
+        {"id": "superficie-sobre-telegram", "texto": "superficie", "fondo": "telegram", "uso": "texto", "donde": "«Entrar con Telegram»"},
         {"id": "marca-sobre-marca-fondo", "texto": "marca", "fondo": "marca-fondo", "uso": "texto", "donde": "badge, nav activo, éxito"},
         {"id": "seleccionado-sobre-seleccionado-fondo", "texto": "seleccionado", "fondo": "seleccionado-fondo", "uso": "texto", "donde": "lo elegido en lista, tesela u hoja"},
         {"id": "peligro-sobre-superficie", "texto": "peligro", "fondo": "superficie", "uso": "texto", "donde": "acción destructiva"},

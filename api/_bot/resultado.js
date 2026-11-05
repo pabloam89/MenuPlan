@@ -42,6 +42,7 @@ export const ACCIONES = Object.freeze({
   cole: "Menú del cole guardado",
   tarea: "Tarea cambiada",
   receta: "Receta guardada",
+  recetas: "Tus recetas",
   gustos: "Gustos apuntados",
   plato: "Plato cambiado",
   compra_anadir: "Añadido a la compra",
