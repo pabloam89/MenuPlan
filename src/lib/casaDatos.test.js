@@ -14,6 +14,9 @@ const { REGISTRO_CAMPOS } = await import("./registroCampos.js");
 const { fichaDePrueba } = await import("../../api/_bot/familiaDePrueba.js");
 const { PREGUNTAS_POR_ID } = await import("./wizardRegistry.js");
 const { conInterruptor } = await import("./presupuestoCasa.js");
+const { EXTRAS, CAMPOS_FRANJAS, franjasDeExtras, extrasDeFranjas, extrasConFranjas, franjasParaGuardar, FranjasSinVista } = await import("./extras.js");
+const { DIAS, REPITES_DESAYUNO, POSTRES_EN } = await import("./vocabularios.js");
+const { CON_PLAN_B } = await import("./estadoDeDato.js");
 
 const CASA = "00000000-0000-4000-8000-0000000000ca";
 const sobre = (campo, valor, origen = "dicho") => ({
@@ -293,5 +296,74 @@ describe("la Rutina con ámbito en la app", () => {
 
   it("el documento no lleva el mapa que vive en sus sobres", () => {
     expect(sinCasa({ schedule: { "p1|Lun|Cena": "fuera" }, reglas: [] }, { valores: { schedule: {} } })).toEqual({ reglas: [] });
+  });
+});
+
+describe("las franjas de fuera del menú en la app (trozo 19, 0132)", () => {
+  const FRANJAS = { desayunoDias: {}, desayunoRepite: "variado", meriendaDias: {}, postreDias: {} };
+  const colaFalsa = () => ({ escribir: vi.fn(async () => ({ guardado: true, pendiente: false, rev: 5 })) });
+
+  it("al leer, extraMeals es la vista de los sobres de cada día; lo del documento de las franjas no se lee", () => {
+    const leida = conCasaLeida({ extraMeals: { desayuno: "igual", postreTipo: "horno" } }, { valores: { ...FRANJAS, postreDias: { Lun: "cena", Mar: "cena", "Mié": "cena", Jue: "cena", Vie: "cena", "Sáb": "cena", Dom: "cena" } } });
+    expect(leida.extraMeals).toEqual({ desayuno: "off", merienda: "off", postre: "cena", postreTipo: "horno" });
+  });
+
+  it("el desayuno que se enciende en el asistente va a la cola un dato por día; el documento no lleva la vista", async () => {
+    const cola = colaFalsa();
+    const casa = casaDeCasa({ casa: CASA, valores: FRANJAS, cola });
+    const data = { ...FRANJAS, extraMeals: { desayuno: "findes", merienda: "off", postre: "off", postreTipo: "inmediato", postreInmediato: "mix" } };
+    await casa.guardar(data, 4);
+    expect(cola.escribir.mock.calls.map(([op]) => op.datos ?? [op.dato])).toEqual([
+      ["Dom", "Jue", "Lun", "Mar", "Mié", "Sáb", "Vie"].map((dia) => ({ campo: "desayunoDias", persona_id: null, dia, valor: true, origen: "dicho" })),
+      [{ campo: "desayunoRepite", valor: "findes", origen: "dicho" }],
+    ]);
+    expect(sinCasa(data, { valores: FRANJAS })).toEqual({ extraMeals: { postreTipo: "inmediato", postreInmediato: "mix" } });
+  });
+
+  it("sin tocar extraMeals no se escribe nada aunque el documento traiga franjas viejas", async () => {
+    const cola = colaFalsa();
+    const valores = { ...FRANJAS, meriendaDias: { Lun: true, Mar: true, "Mié": true, Jue: true, Vie: true } };
+    const leida = conCasaLeida({ extraMeals: { merienda: "semana", postre: "cena" } }, { valores });
+    expect(await casaDeCasa({ casa: CASA, valores, cola }).guardar({ ...leida, reglas: [] }, 4)).toEqual({ ok: true, enviado: false });
+  });
+});
+
+const cada = (dias, v) => Object.fromEntries(dias.map((d) => [d, v]));
+
+describe("las franjas de fuera del menú y su vista en extraMeals (extras.js)", () => {
+  it("son datos de la Rutina con fila en registro_campo: tres por día y cómo se repite el desayuno, con su lista", () => {
+    expect(CAMPOS_FRANJAS.map((c) => [c, REGISTRO_CAMPOS[c].ficha, REGISTRO_CAMPOS[c].ambito])).toEqual([
+      ["desayunoDias", "rutina", ["dia"]], ["desayunoRepite", "rutina", []], ["meriendaDias", "rutina", ["dia"]], ["postreDias", "rutina", ["dia"]],
+    ]);
+    expect(CON_PLAN_B["0132"]).toBe(CAMPOS_FRANJAS);
+    // Una sola lista: lo que se elige en el asistente y en Lola es «off» más los valores del sobre.
+    expect(EXTRAS.desayuno).toEqual(["off", ...REPITES_DESAYUNO]);
+    expect(EXTRAS.postre).toEqual(["off", ...POSTRES_EN]);
+  });
+
+  it("de ida y vuelta: cada valor que se puede elegir sale igual de sus franjas", () => {
+    for (const desayuno of EXTRAS.desayuno) for (const merienda of EXTRAS.merienda) for (const postre of EXTRAS.postre) {
+      const f = franjasDeExtras({ desayuno, merienda, postre }, { desayunoRepite: "variado" });
+      expect(extrasDeFranjas(f), `${desayuno} ${merienda} ${postre}`).toEqual({ desayuno, merienda, postre });
+    }
+  });
+
+  it("la merienda de diario son cinco sobres; el desayuno apagado conserva cómo se repetía", () => {
+    expect(franjasDeExtras({ merienda: "laborables", desayuno: "off" }, { desayunoRepite: "igual" })).toEqual({
+      desayunoDias: {}, desayunoRepite: "igual", meriendaDias: cada(DIAS.slice(0, 5), true), postreDias: {},
+    });
+  });
+
+  it("unos días que extraMeals no sabe decir no se adivinan: FranjasSinVista", () => {
+    const sinNada = { desayunoDias: {}, desayunoRepite: null, meriendaDias: {}, postreDias: {} };
+    expect(() => extrasDeFranjas({ ...sinNada, postreDias: { "Sáb": "comida", Dom: "comida" } })).toThrow(FranjasSinVista);
+    expect(() => extrasDeFranjas({ ...sinNada, meriendaDias: { Lun: true } })).toThrow(FranjasSinVista);
+    expect(() => extrasDeFranjas({ ...sinNada, postreDias: { ...cada(DIAS, "cena"), Lun: "comida" } })).toThrow(FranjasSinVista);
+  });
+
+  it("sin las franjas en la casa (sin la 0132), extraMeals se queda como está y va entero al documento", () => {
+    const data = { extraMeals: { desayuno: "igual", postre: "cena" } };
+    expect(extrasConFranjas(data)).toBe(data);
+    expect(franjasParaGuardar(data)).toBe(data);
   });
 });

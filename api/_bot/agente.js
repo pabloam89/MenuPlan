@@ -42,7 +42,7 @@ import {
   descartarSupuesto, pedirTanda, ajustarCompra, PRESUPUESTO, ajustarExtras, ajustarSemana, VARIEDADES,
   NO_REPETIR, ajustarModoDespensa,
 } from "./ajustes.js";
-import { EXTRAS } from "../../src/lib/extras.js";
+import { EXTRAS, CAMPOS_FRANJAS } from "../../src/lib/extras.js";
 import { CLAVES_DE_LA_LIBRETA } from "../../src/lib/libretaEnData.js";
 import { MODOS_DESPENSA_TEXTO } from "../../src/lib/modoDespensa.js";
 import {
@@ -710,7 +710,7 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
         });
       },
     }),
-    herramienta({ capacidades: ["extras"], lee: ["extraMeals", "members"], escribe: ["extraMeals"], lector: false, riesgo: RIESGO_HERRAMIENTA.ESCRIBE_REVERSIBLE, deshace: DESHACE.FOTO, pantalla: null }, {
+    herramienta({ capacidades: ["extras"], lee: ["extraMeals", "members"], escribe: ["extraMeals", ...CAMPOS_FRANJAS], lector: false, riesgo: RIESGO_HERRAMIENTA.ESCRIBE_REVERSIBLE, deshace: DESHACE.FOTO, pantalla: null }, {
       name: "ajustar_extras",
       description: "Desayuno, merienda y postre, que van aparte de comida y cena. desayuno: off (sin desayuno), variado (uno distinto cada día), findes (el mismo entre semana y otro el finde), igual (siempre el mismo). merienda (solo para los niños): off, semana (los 7 días), laborables (de lunes a viernes). postre: off, comida, cena, ambas; postreTipo: inmediato (sin cocinar), cazo (cremas), horno (horneados); postreInmediato, si es sin cocinar: fruta, yogur, mix (alterna). Pasa solo lo que cambien.",
       inputSchema: obj({

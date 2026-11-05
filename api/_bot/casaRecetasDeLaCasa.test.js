@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { conLibretaDeFilas } from "../../src/lib/libretaEnData.js";
 import { leidosConSobre } from "../../src/lib/estadoDeDato.js";
+import { extrasConFranjas } from "../../src/lib/extras.js";
 import { familiaDeFilas, RPC_FAMILIA, RPC_FICHA, fichaDePrueba, RPC_PREFERENCIAS_DE_CASA, preferenciasDeFilas } from "./familiaDePrueba.js";
 
 // Las favoritas y los «No me gusta» de la casa viven en sus tablas, no en
@@ -52,9 +53,9 @@ describe("la casa de Lola trae sus favoritas y descartes", () => {
     const casa = await cargarCasa("h1", { fresca: true });
     expect(casa.deLaCasa).toBeNull();
     // members y groups vienen siempre de sus filas (personas_de_casa), aunque estén vacías; la libreta, de las de
-    // preferencia (0109), vacía también; y los datos con sobre, de la ficha (aquí, sin decir).
+    // preferencia (0109), vacía también; y los datos con sobre, de la ficha (aquí, sin decir), con extraMeals como vista de sus franjas.
     const sinDecir = Object.fromEntries(Object.entries(leidosConSobre(Object.values(fichaDePrueba().fichas).flat())).map(([c, l]) => [c, l.valor]));
     // Las recetas propias, de su tabla (trozo 21), no de la copia del documento.
-    expect(datosDelMotor(casa)).toEqual({ ...conLibretaDeFilas({ members: [], groups: [], ...sinDecir }, []), userRecipes: casa.recetasPropias });
+    expect(datosDelMotor(casa)).toEqual({ ...conLibretaDeFilas(extrasConFranjas({ members: [], groups: [], ...sinDecir }), []), userRecipes: casa.recetasPropias });
   });
 });
