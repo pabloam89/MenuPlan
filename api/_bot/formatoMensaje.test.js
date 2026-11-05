@@ -6,6 +6,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { FALTAS_FORMATO, REGLAS_FORMATO, faltasDeFormato, formatoParaElManual } from "./formatoMensaje.js";
 import { armarManual } from "./manual.js";
+import { CANAL } from "../../src/lib/vocabularios.js";
 import { medida } from "../bot/telegram.js";
 
 // El mensaje que vio Pablo en Telegram el 4 nov 2026, tal como lo escribió Lola (antes de sacar los botones).
@@ -83,7 +84,7 @@ describe("la lista cerrada de reglas de forma", () => {
 
 describe("el manual dice la forma desde la misma lista", () => {
   const MANUAL = readFileSync(new URL("./conocimiento.md", import.meta.url), "utf8");
-  const armado = armarManual(MANUAL, { capacidades: [], fichas: new Map() });
+  const armado = armarManual(MANUAL, { capacidades: [], fichas: new Map(), canal: CANAL.TELEGRAM });
 
   it("con la marca {{FORMATO}}, una línea por regla", () => {
     expect(MANUAL).toContain("{{FORMATO}}");

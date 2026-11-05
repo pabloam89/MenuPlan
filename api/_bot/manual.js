@@ -7,9 +7,44 @@
  * agente.js y al revés sería un ciclo. Con las mismas fichas y el mismo mapa sale el mismo texto en cada
  * turno, así que la caché del prompt no se rompe.
  */
-import { DESHACE } from "../../src/lib/vocabularios.js";
+import { DESHACE, CANAL } from "../../src/lib/vocabularios.js";
 import { CAMINOS } from "../../src/lib/caminos.js";
 import { formatoParaElManual } from "./formatoMensaje.js";
+
+/**
+ * El orden fijo del manual (trozo 58 del plan de fichas): primero quién es y lo que manda, los límites arriba (lo
+ * que va al principio pesa más), luego la ficha, las situaciones, los ejemplos, la forma de su canal y, al final,
+ * un recordatorio corto de lo crítico. Los bloques, en ese orden.
+ */
+export const BLOQUES_MANUAL = Object.freeze(["identidad", "principios", "limites", "ficha", "situaciones", "ejemplos", "forma", "recordatorio"]);
+
+/**
+ * Los apartados «# » del manual, en su orden, con su bloque. La forma va por canal: entra la del canal del turno
+ * (armarManual). manualEstructura.test.js falla si los títulos de conocimiento.md no siguen esta lista.
+ */
+export const ORDEN_MANUAL = Object.freeze([
+  { titulo: "Quién eres", bloque: "identidad" },
+  { titulo: "Cómo trabajas (esto manda sobre todo lo demás)", bloque: "principios" },
+  { titulo: "Seguridad: alergias e intolerancias", bloque: "limites" },
+  { titulo: "Lo que no haces", bloque: "limites" },
+  { titulo: "La ficha de la casa", bloque: "ficha" },
+  { titulo: "El menú", bloque: "situaciones" },
+  { titulo: "Después del primer menú", bloque: "situaciones" },
+  { titulo: "Configurar la casa hablando", bloque: "situaciones" },
+  { titulo: "Recetas", bloque: "situaciones" },
+  { titulo: "Fotos y voz", bloque: "situaciones" },
+  { titulo: "Recordatorios", bloque: "situaciones" },
+  { titulo: "Cocina y nutrición: contesta, y bien", bloque: "situaciones" },
+  { titulo: "Charla nueva, grupos y versión gratis", bloque: "situaciones" },
+  { titulo: "Qué sabes hacer", bloque: "situaciones" },
+  { titulo: "Preguntas frecuentes de HoMenu", bloque: "situaciones" },
+  { titulo: "Cómo se habla de verdad", bloque: "ejemplos" },
+  { titulo: "Forma en Telegram", bloque: "forma", canal: CANAL.TELEGRAM },
+  { titulo: "Antes de mandar", bloque: "recordatorio" },
+]);
+
+/** Los títulos «# » de un manual, en el orden en que salen. */
+export const titulosDelManual = (manual) => [...manual.matchAll(/^# (.+)$/gm)].map((m) => m[1]);
 
 /** Las marcas del manual y de dónde sale cada una. */
 export const MARCAS_MANUAL = Object.freeze({
@@ -66,12 +101,15 @@ export function rellenos({ capacidades, fichas }) {
 }
 
 /**
- * El manual con sus marcas rellenas. Lanza si queda una marca que no existe o si una marca no está en el
- * manual: un texto a medias no se le da al modelo.
+ * El manual con sus marcas rellenas, para el canal del turno. Lanza si queda una marca que no existe, si una marca
+ * no está en el manual o si el canal no tiene su apartado de forma: un texto a medias no se le da al modelo (con
+ * WhatsApp, Lola no escribiría con la forma de Telegram sin que nadie se entere).
  * @param {string} manual
- * @param {{ capacidades: readonly object[], fichas: Map<string, object> }} o
+ * @param {{ capacidades: readonly object[], fichas: Map<string, object>, canal: string }} o
  */
 export function armarManual(manual, o) {
+  const forma = ORDEN_MANUAL.find((a) => a.bloque === "forma" && a.canal === o.canal);
+  if (!forma || !titulosDelManual(manual).includes(forma.titulo)) throw new Error(`manual: sin forma para el canal ${o.canal}`);
   const r = rellenos(o);
   const vistas = new Set([...manual.matchAll(MARCA)].map((m) => m[1]));
   const desconocidas = [...vistas].filter((m) => !(m in MARCAS_MANUAL));
