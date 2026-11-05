@@ -3,7 +3,7 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import { createRoot } from "react-dom/client";
 import { act } from "react";
 import { HomeProfileScreen } from "./HomeProfileScreen.jsx";
-import { tono } from "../design/tokens.js";
+import { color as tono } from "../design/tokens.js";
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
