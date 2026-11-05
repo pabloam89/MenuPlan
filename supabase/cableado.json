@@ -120,9 +120,11 @@
     "api/_bot/caducidades.js"
   ],
   "recipe_collections": [
+    "api/_bot/propias.js",
     "src/lib/recipeCollections.js"
   ],
   "recipe_folders": [
+    "api/_bot/propias.js",
     "src/lib/recipeCollections.js"
   ],
   "recipe_share_links": [

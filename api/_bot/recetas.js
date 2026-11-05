@@ -26,7 +26,7 @@ import { select, insert, eq, config } from "./db.js";
 import { deLaCharla } from "./chats.js";
 import { cargarCasa, olvidarCasa } from "./casa.js";
 import { motor, normal, prepararRecetas } from "./menu.js";
-import { propiasDe, marcarFavorita, borrarRecetaDeCasa } from "./propias.js";
+import { propiasDe, marcarFavorita, borrarRecetaDeCasa, carpetasDe, crearCarpeta, borrarCarpeta, enCarpeta } from "./propias.js";
 import { duenoDe, duenoDeEstricto, rastro, registrar } from "./embudo.js";
 import { RASTRO, ORIGEN_RECETA } from "../../src/lib/rastro.js";
 import { SYSTEM_PROMPTS } from "../_prompts.js";
@@ -402,17 +402,57 @@ export async function recetaPorNombre(householdId, texto) {
 }
 
 /** Lo que hace receta_propia (agente.js, trozo 48): su `accion`, lista cerrada. */
-export const ACCIONES_RECETA = Object.freeze(["favorita", "no_favorita", "borrar"]);
+export const ACCIONES_RECETA = Object.freeze(["favorita", "no_favorita", "borrar", "nueva_carpeta", "borrar_carpeta", "a_carpeta", "sacar_de_carpeta"]);
 export const ACCION_RECETA = Object.freeze(Object.fromEntries(ACCIONES_RECETA.map((a) => [a.toUpperCase(), a])));
 
 /**
- * Favoritas y borrar una receta propia desde Lola, como en la app (trozo 48, parte 1). Borrar no se deshace: pide
+ * La carpeta que nombran, entre las de la cuenta: la de nombre igual y, si no, la única en la que se ve lo dicho
+ * (seVeEn). Con dos o más parecidas, ninguna: mejor preguntar que meter la receta en otra.
+ */
+export function carpetaPorNombre(carpetas, dicho) {
+  const q = normal(dicho ?? "");
+  const igual = carpetas.find((c) => normal(c.nombre) === q);
+  if (igual) return igual;
+  const parecidas = carpetas.filter((c) => seVeEn(dicho ?? "", c.nombre));
+  return parecidas.length === 1 ? parecidas[0] : null;
+}
+
+const sinCarpeta = (que, motivo) => resultado({ accion: "recetas", sinHacer: [{ que, motivo }] });
+
+/** Crear o borrar una carpeta de la cuenta de quien escribe (trozo 48, parte 2). Borrar pide su «sí» con el nombre. */
+async function cambiarCarpeta({ accion, carpeta: dicho, confirmado }, userId, d) {
+  if (!dicho) return sinCarpeta("carpeta", "falta el nombre de la carpeta");
+  const carpetas = await d.carpetas(userId).catch(fallaCon("recetas_carpetas", SIN_LEER));
+  if (carpetas === SIN_LEER) return sinCarpeta(dicho, "no he podido leer tus carpetas en la base: prueba en un rato");
+  if (accion === ACCION_RECETA.NUEVA_CARPETA) {
+    const ya = carpetas.find((c) => normal(c.nombre) === normal(dicho));
+    if (ya) return sinCarpeta(dicho, `ya tienes una carpeta «${ya.nombre}»`);
+    await d.crear(userId, dicho.trim());
+    return resultado({ accion: "recetas", hecho: [`carpeta «${dicho.trim()}» creada`] });
+  }
+  const c = carpetaPorNombre(carpetas, dicho);
+  if (!c) return sinCarpeta(dicho, "no encuentro esa carpeta entre las tuyas");
+  if (c.fija) return sinCarpeta(c.nombre, "es una de las cuatro carpetas fijas: no se borra");
+  if (confirmado !== true || !seVeEn(dicho, c.nombre)) return `Antes de borrarla, pregunta si seguro que quieren borrar la carpeta «${c.nombre}» (las recetas no se borran, solo salen de ella; no se puede deshacer), y bórrala solo con su «sí», llamando con ese nombre.`;
+  await d.borrarLaCarpeta(userId, c.id);
+  return resultado({ accion: "recetas", hecho: [`carpeta «${c.nombre}» borrada`] });
+}
+
+/**
+ * Favoritas, carpetas y borrar una receta propia desde Lola, como en la app (trozo 48). Borrar no se deshace: pide
  * `confirmado` y que la receta encontrada sea la que se nombró; sin eso, contesta cuál ha encontrado para preguntar.
- * @param {{ accion: string, receta: string, confirmado?: boolean }} args
+ * Favoritas y carpetas son de cada cuenta, como en la app: sin saber la de quien escribe, no se tocan.
+ * @param {{ accion: string, receta?: string, carpeta?: string, confirmado?: boolean }} args
  * @param {{ userId?: string|null }} quien
  */
-export async function cambiarRecetaPropia(householdId, { accion, receta: nombre, confirmado = false }, quien = {}, deps = {}) {
+export async function cambiarRecetaPropia(householdId, { accion, receta: nombre, carpeta, confirmado = false }, quien = {}, deps = {}) {
   const { buscar = recetaPorNombre, favorita = marcarFavorita, borrarDeCasa = borrarRecetaDeCasa, dueno = duenoDeEstricto } = deps;
+  const d = { carpetas: carpetasDe, crear: crearCarpeta, borrarLaCarpeta: borrarCarpeta, meter: enCarpeta, ...deps };
+  const sinCuenta = (que) => sinCarpeta(que, "las favoritas y las carpetas son de cada cuenta y no sé cuál es la tuya: hazlo desde la app");
+  if (accion === ACCION_RECETA.NUEVA_CARPETA || accion === ACCION_RECETA.BORRAR_CARPETA) {
+    return quien.userId ? cambiarCarpeta({ accion, carpeta, confirmado }, quien.userId, d) : sinCuenta(carpeta ?? "carpeta");
+  }
+  if (!nombre) return sinCarpeta("receta", "falta el nombre de la receta");
   const receta = await buscar(householdId, nombre);
   if (!receta) return resultado({ accion: "recetas", sinHacer: [{ que: nombre, motivo: "no encuentro esa receta ni en las vuestras ni en el catálogo" }] });
   if (accion === ACCION_RECETA.BORRAR) {
@@ -430,7 +470,17 @@ export async function cambiarRecetaPropia(householdId, { accion, receta: nombre,
       ? resultado({ accion: "recetas", hecho: [`«${receta.name}» borrada`] })
       : resultado({ accion: "recetas", sinHacer: [{ que: receta.name, motivo: "no es una receta de esta casa" }] });
   }
-  if (!quien.userId) return resultado({ accion: "recetas", sinHacer: [{ que: receta.name, motivo: "las favoritas son de cada cuenta y no sé cuál es la tuya: márcala desde la app" }] });
+  if (!quien.userId) return sinCuenta(receta.name);
+  if (accion === ACCION_RECETA.A_CARPETA || accion === ACCION_RECETA.SACAR_DE_CARPETA) {
+    if (!carpeta) return sinCarpeta(receta.name, "falta el nombre de la carpeta");
+    const carpetas = await d.carpetas(quien.userId).catch(fallaCon("recetas_carpetas", SIN_LEER));
+    if (carpetas === SIN_LEER) return sinCarpeta(receta.name, "no he podido leer tus carpetas en la base: prueba en un rato");
+    const c = carpetaPorNombre(carpetas, carpeta);
+    if (!c) return sinCarpeta(receta.name, `no tienes ninguna carpeta «${carpeta}»: tus carpetas son ${carpetas.map((x) => `«${x.nombre}»`).join(", ")}; si quieren una nueva, créala antes`);
+    const meter = accion === ACCION_RECETA.A_CARPETA;
+    await d.meter(quien.userId, receta.id, c.id, meter);
+    return resultado({ accion: "recetas", hecho: [meter ? `«${receta.name}» en la carpeta «${c.nombre}»` : `«${receta.name}» fuera de la carpeta «${c.nombre}»`] });
+  }
   const marcar = accion === ACCION_RECETA.FAVORITA;
   await favorita(quien.userId, receta.id, marcar);
   return resultado({ accion: "recetas", hecho: [marcar ? `«${receta.name}» en favoritas` : `«${receta.name}» fuera de favoritas`] });
