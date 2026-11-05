@@ -26,7 +26,7 @@ import { select, insert, eq, config } from "./db.js";
 import { deLaCharla } from "./chats.js";
 import { cargarCasa, olvidarCasa } from "./casa.js";
 import { motor, normal, prepararRecetas } from "./menu.js";
-import { propiasDe, marcarFavorita, borrarRecetaDeCasa, carpetasDe, crearCarpeta, borrarCarpeta, enCarpeta } from "./propias.js";
+import { propiasDe, marcarFavorita, borrarRecetaDeCasa, carpetasDe, crearCarpeta, borrarCarpeta, enCarpeta, recuperarDescartada } from "./propias.js";
 import { duenoDe, duenoDeEstricto, rastro, registrar } from "./embudo.js";
 import { RASTRO, ORIGEN_RECETA } from "../../src/lib/rastro.js";
 import { SYSTEM_PROMPTS } from "../_prompts.js";
@@ -402,7 +402,7 @@ export async function recetaPorNombre(householdId, texto) {
 }
 
 /** Lo que hace receta_propia (agente.js, trozo 48): su `accion`, lista cerrada. */
-export const ACCIONES_RECETA = Object.freeze(["favorita", "no_favorita", "borrar", "nueva_carpeta", "borrar_carpeta", "a_carpeta", "sacar_de_carpeta"]);
+export const ACCIONES_RECETA = Object.freeze(["favorita", "no_favorita", "borrar", "nueva_carpeta", "borrar_carpeta", "a_carpeta", "sacar_de_carpeta", "recuperar"]);
 export const ACCION_RECETA = Object.freeze(Object.fromEntries(ACCIONES_RECETA.map((a) => [a.toUpperCase(), a])));
 
 /**
@@ -447,7 +447,7 @@ async function cambiarCarpeta({ accion, carpeta: dicho, confirmado }, userId, d)
  */
 export async function cambiarRecetaPropia(householdId, { accion, receta: nombre, carpeta, confirmado = false }, quien = {}, deps = {}) {
   const { buscar = recetaPorNombre, favorita = marcarFavorita, borrarDeCasa = borrarRecetaDeCasa, dueno = duenoDeEstricto } = deps;
-  const d = { carpetas: carpetasDe, crear: crearCarpeta, borrarLaCarpeta: borrarCarpeta, meter: enCarpeta, ...deps };
+  const d = { carpetas: carpetasDe, crear: crearCarpeta, borrarLaCarpeta: borrarCarpeta, meter: enCarpeta, recuperar: recuperarDescartada, ...deps };
   const sinCuenta = (que) => sinCarpeta(que, "las favoritas y las carpetas son de cada cuenta y no sé cuál es la tuya: hazlo desde la app");
   if (accion === ACCION_RECETA.NUEVA_CARPETA || accion === ACCION_RECETA.BORRAR_CARPETA) {
     return quien.userId ? cambiarCarpeta({ accion, carpeta, confirmado }, quien.userId, d) : sinCuenta(carpeta ?? "carpeta");
@@ -455,6 +455,14 @@ export async function cambiarRecetaPropia(householdId, { accion, receta: nombre,
   if (!nombre) return sinCarpeta("receta", "falta el nombre de la receta");
   const receta = await buscar(householdId, nombre);
   if (!receta) return resultado({ accion: "recetas", sinHacer: [{ que: nombre, motivo: "no encuentro esa receta ni en las vuestras ni en el catálogo" }] });
+  if (accion === ACCION_RECETA.RECUPERAR) {
+    // Los descartes son de la casa, no de una cuenta (household_recipe_discards).
+    const hecho = await d.recuperar(householdId, receta.id).catch(fallaCon("recetas_descartes", SIN_LEER));
+    if (hecho === SIN_LEER) return sinCarpeta(receta.name, "no he podido leer los descartes en la base: prueba en un rato");
+    if (!hecho) return sinCarpeta(receta.name, "no está entre vuestras descartadas");
+    olvidarCasa(householdId);
+    return resultado({ accion: "recetas", hecho: [`«${receta.name}» fuera de descartadas: ya puede volver a salir en los menús`] });
+  }
   if (accion === ACCION_RECETA.BORRAR) {
     if (receta.source !== "user") return resultado({ accion: "recetas", sinHacer: [{ que: receta.name, motivo: "es del catálogo de HoMenu, no vuestra: no se puede borrar" }] });
     if (confirmado !== true || !seVeEn(nombre, receta.name)) return `Antes de borrarla, pregunta si seguro que quieren borrar «${receta.name}» de sus recetas (no se puede deshacer), y bórrala solo con su «sí», llamando con ese nombre.`;

@@ -146,6 +146,19 @@ export async function enCarpeta(userId, recetaId, carpetaId, meter) {
 }
 
 /**
+ * Saca una receta de «Descartados» (la carpeta que la app pinta con los descartes de la casa): quita su fila de
+ * `household_recipe_discards`, como deleteHouseholdDiscard de la app, y el motor vuelve a poder ponerla. Devuelve
+ * false si la casa no la tenía descartada. Lanza si la base falla.
+ */
+export async function recuperarDescartada(householdId, recetaId) {
+  const filtro = `household_id=${eq(householdId)}&recipe_id=${eq(recetaId)}`;
+  const [fila] = await select("household_recipe_discards", filtro, "recipe_id");
+  if (!fila) return false;
+  await borrar("household_recipe_discards", filtro);
+  return true;
+}
+
+/**
  * Borra una receta propia de la casa, la de quien la creó (cualquiera de los que llevan la casa): como
  * quitarRecetaGuardada, primero la lápida y luego la fila. Devuelve false si no es una receta propia de esta casa.
  * Si no puede leer quién lleva la casa, lanza: es el freno del borrado, y sin la lista una receta de la cotitular

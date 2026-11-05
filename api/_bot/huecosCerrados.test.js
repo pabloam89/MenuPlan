@@ -13,7 +13,7 @@ const { CAPACIDADES, estadoDe } = await import("../../src/lib/capacidades.js");
 const { cambiarRecetaPropia, ACCION_RECETA } = await import("./recetas.js");
 const { RIESGO_HERRAMIENTA, DESHACE } = await import("../../src/lib/vocabularios.js");
 
-const CERRADOS = ["favorita", "borrar_receta", "carpetas", "en_carpeta"];
+const CERRADOS = ["favorita", "borrar_receta", "carpetas", "en_carpeta", "recuperar_descartada"];
 const PROPIA = { id: "user_abc", name: "Lentejas de la abuela", source: "user" };
 const DEL_CATALOGO = { id: "lentejas-estofadas", name: "Lentejas estofadas" };
 
@@ -29,6 +29,7 @@ function conDeps(receta) {
     crear: async (userId, nombre) => { escrito.push(["crear", userId, nombre]); return "fld_nueva"; },
     borrarLaCarpeta: async (userId, id) => { escrito.push(["borrar_carpeta", userId, id]); },
     meter: async (userId, recetaId, carpetaId, meter) => { escrito.push(["carpeta", userId, recetaId, carpetaId, meter]); },
+    recuperar: async (casa, id) => { escrito.push(["recuperar", casa, id]); return id === DEL_CATALOGO.id; },
   };
   return { escrito, deps };
 }
@@ -170,6 +171,29 @@ describe("receta_propia: carpetas", () => {
       const r = await llamar({ accion: ACCION_RECETA.A_CARPETA, receta: "lentejas", carpeta: "Navidad" }, deps);
       expect(escrito).toEqual([]);
       expect(r.sinHacer[0].motivo).toMatch(/no he podido leer tus carpetas/);
+    } finally {
+      err.mockRestore();
+    }
+  });
+});
+
+describe("receta_propia: recuperar una descartada", () => {
+  it("la saca de los descartes de la casa, también sin saber la cuenta (los descartes son de la casa)", async () => {
+    const { escrito, deps } = conDeps(DEL_CATALOGO);
+    const r = await cambiarRecetaPropia("casa", { accion: ACCION_RECETA.RECUPERAR, receta: "lentejas" }, {}, deps);
+    expect(escrito).toEqual([["recuperar", "casa", DEL_CATALOGO.id]]);
+    expect(r.hecho[0]).toMatch(/fuera de descartadas/);
+  });
+
+  it("una que no estaba descartada lo dice, y con la base caída dice que no pudo", async () => {
+    const { deps } = conDeps(PROPIA);
+    const r = await cambiarRecetaPropia("casa", { accion: ACCION_RECETA.RECUPERAR, receta: "lentejas" }, {}, deps);
+    expect(r.sinHacer[0].motivo).toMatch(/no está entre vuestras descartadas/);
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      deps.recuperar = async () => { throw new Error("base caída"); };
+      const caida = await cambiarRecetaPropia("casa", { accion: ACCION_RECETA.RECUPERAR, receta: "lentejas" }, {}, deps);
+      expect(caida.sinHacer[0].motivo).toMatch(/no he podido leer los descartes/);
     } finally {
       err.mockRestore();
     }
