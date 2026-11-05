@@ -3,6 +3,7 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import { createRoot } from "react-dom/client";
 import { act } from "react";
 import { HomeProfileScreen } from "./HomeProfileScreen.jsx";
+import { color as tono } from "../design/tokens.js";
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -99,7 +100,9 @@ describe("perfil: la cabecera", () => {
   it("es una franja propia, con «Atrás» al final y sin el papel en la casa", async () => {
     const caja = await pintar({ onBack: () => {}, activeHousehold: { id: "c1", name: "Casa", role: "owner" } });
     const banda = caja.querySelector("header");
-    expect(banda.style.background).not.toBe("");
+    const muestra = document.createElement("div");
+    muestra.style.background = tono["marca-fondo"];
+    expect(banda.style.background).toBe(muestra.style.background);
     expect(banda.querySelector("button:last-child").textContent).toBe("Atrás");
     expect(banda.textContent).toBe("Mi perfilAtrás");
   });

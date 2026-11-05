@@ -16,7 +16,6 @@ import { findAccountMember,
 import { esTitular } from "../lib/householdsSync.js";
 import { fileToAvatarDataUrl } from "../lib/avatarImage.js";
 import { FORMA_DE_ENTRAR, NOMBRE_FORMA, resumenDeFormas } from "../lib/cuentaTelegram.js";
-import { useStatusBarSobreFondo } from "../lib/statusBar.js";
 import { color as tono, tipografia, espaciado, radio, tamano } from "../design/tokens.js";
 
 const GREEN = "#2d5a3d";
@@ -314,8 +313,6 @@ export function HomeProfileScreen({
   activeHousehold,
   householdReadOnly = false,
 }) {
-  // La franja de arriba es verde oscuro: el reloj, en claro.
-  useStatusBarSobreFondo("oscuro");
   const g = googleInfo(user);
   const fileInputRef = useRef(null);
   const members = data.members ?? [];
@@ -357,7 +354,7 @@ export function HomeProfileScreen({
 
       {/* ── Cabecera ─────────────────────────────────── */}
       {/* Ya no es una pestaña de la barra (BottomNav, ui.jsx): se llega desde un icono de Inicio y necesita su Atrás. */}
-      <header style={{ background: tono.marca, paddingTop: safeTop(espaciado["esp-16"]) }}>
+      <header style={{ background: tono["marca-fondo"], paddingTop: safeTop(espaciado["esp-16"]) }}>
         <div style={{
           display: "flex", alignItems: "center", gap: espaciado["esp-12"],
           padding: `0 18px ${espaciado["esp-16"]}px`,
@@ -369,7 +366,7 @@ export function HomeProfileScreen({
           }}>
             <User size={tamano["tam-icono-18"]} color={tono.marca} />
           </div>
-          <h1 style={{ margin: 0, fontSize: tipografia["paso-20"], fontWeight: tipografia["peso-900"], color: tono.superficie, letterSpacing: "-.3px" }}>
+          <h1 style={{ margin: 0, fontSize: tipografia["paso-20"], fontWeight: tipografia["peso-900"], color: tono.tinta, letterSpacing: "-.3px" }}>
             Mi perfil
           </h1>
           {onBack && (
