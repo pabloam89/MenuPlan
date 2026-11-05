@@ -9,6 +9,7 @@
  */
 import { DESHACE } from "../../src/lib/vocabularios.js";
 import { CAMINOS } from "../../src/lib/caminos.js";
+import { formatoParaElManual } from "./formatoMensaje.js";
 
 /** Las marcas del manual y de dónde sale cada una. */
 export const MARCAS_MANUAL = Object.freeze({
@@ -16,6 +17,7 @@ export const MARCAS_MANUAL = Object.freeze({
   SOLO_EN_LA_APP: "lo que la app hace y tú no (las capacidades sin nada en Lola y con la app encendida)",
   QUE_SE_DESHACE: "lo que «deshaz» no vuelve atrás (las capacidades cuyas herramientas no se deshacen)",
   CAMINOS: "los tres caminos de antes de cada menú, con su botón, qué pasa y un ejemplo (src/lib/caminos.js)",
+  FORMATO: "las reglas de forma de un mensaje (REGLAS_FORMATO, formatoMensaje.js): las mismas que mide el revisor",
   USAN_UN_HUECO: "las herramientas que trabajan sobre un hueco del menú, tras las que un ver_menu no se pinta (USAN_UN_HUECO)",
 });
 
@@ -52,6 +54,7 @@ export function rellenos({ capacidades, fichas }) {
     SOLO_EN_LA_APP: lista(capacidades.filter((c) => c.lola.length === 0 && enApp(c))),
     QUE_SE_DESHACE: lista(sinDeshacer),
     CAMINOS: CAMINOS.map(lineaDeCamino).join("\n"),
+    FORMATO: formatoParaElManual(),
     USAN_UN_HUECO: oNombres(USAN_UN_HUECO),
   };
 }
