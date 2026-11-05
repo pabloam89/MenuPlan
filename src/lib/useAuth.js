@@ -197,6 +197,21 @@ export function useAuth() {
     if (error) console.error(`[auth] añadir ${proveedor}`, error);
     return { error: error ?? null };
   }, []);
+  // Quitar una forma de entrar (el interruptor de Mi perfil). La guarda de la última es de `formasDeEntrar`; Supabase
+  // tampoco deja quitar la única identidad. La sesión se renueva para que `user.identities` diga ya lo nuevo.
+  const quitarFormaDeEntrar = useCallback(async (proveedor) => {
+    if (!supabase) return { error: new Error("No disponible en este entorno.") };
+    const { data, error: fallo } = await supabase.auth.getUserIdentities();
+    const identidad = data?.identities?.find((i) => i.provider === proveedor);
+    const { error } = fallo ? { error: fallo } : identidad ? await supabase.auth.unlinkIdentity(identidad) : { error: new Error(`Sin identidad ${proveedor}`) };
+    if (error) {
+      console.error(`[auth] quitar ${proveedor}`, error);
+      return { error };
+    }
+    const { error: alRenovar } = await supabase.auth.refreshSession();
+    if (alRenovar) console.error("[auth] renovar tras quitar una forma de entrar", alRenovar);
+    return { error: null };
+  }, []);
   const signInWithApple = useCallback(() => signInWith("apple", "Apple"), [signInWith]);
 
   // «¿Ya hablas con Lola?» (trozo 4 de specs/auth.md §7): mientras no conteste, la cuenta nueva no se da a la app
@@ -283,6 +298,7 @@ export function useAuth() {
     signInWithGoogle,
     signInWithApple,
     anadirFormaDeEntrar,
+    quitarFormaDeEntrar,
     avisoAlEntrar,
     olvidarAvisoAlEntrar,
     signOut,

@@ -200,6 +200,10 @@ Done:
 git grep -q "TelegramWebviewProxy" -- src/lib/apiUrl.clase.test.js && git grep -q "Ábrelo en el navegador" -- src/components/SignInOptions.test.jsx && npx vitest run src/lib/apiUrl.clase.test.js src/components/SignInOptions.test.jsx
 ```
 
+### Interruptores (5 nov 2026)
+
+«Formas de entrar» es una fila más de Mi perfil; dentro, cada forma con su logo y un interruptor. Encender añade, apagar quita (`unlinkIdentity`). La última que queda no se puede apagar (`apagable`, `src/lib/cuentaTelegram.js`). Telegram no se apaga desde aquí. Apple sale en la app de iOS o si la cuenta ya entra con él.
+
 ### No hecho
 
 - **App de iOS.** La guía 4.8 de Apple pide, con un login de terceros, «also offer as an equivalent option another login
