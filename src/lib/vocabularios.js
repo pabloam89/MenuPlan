@@ -418,7 +418,7 @@ export const SITIOS_FALLO = [
   "eleccion_via_rapida", "entregar_casa", "entregar_pintar", "escribiendo", "fallo_dueno", "fallo_tras_escribir",
   "grupo_casa", "grupo_nombre_del_bot", "idioma", "invitacion",
   "invitacion_cuentas", "lola", "lola_cancelada", "limite", "papel", "reconocer", "relevo", "relevo_llamar", "ruta",
-  "reporte_charla", "reporte_ruta", "ruta_dueno", "ultima_de_lola", "uso", "vivo_borrar_aviso", "vivo_borrar_cortado", "vivo_editar", "vivo_enviar",
+  "reporte_charla", "reporte_espera", "reporte_ruta", "ruta_dueno", "ultima_de_lola", "uso", "vivo_borrar_aviso", "vivo_borrar_cortado", "vivo_editar", "vivo_enviar",
   // api/bot/entrar.js
   "bot_entrar",
   // el resto de api/_bot/
