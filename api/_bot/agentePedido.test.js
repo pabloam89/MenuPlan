@@ -29,8 +29,8 @@ const { herramientas } = await import("./agente.js");
 const { generarMenu } = await import("./generar.js");
 const { cerrarPedido, guardarPedido } = await import("./pedidoMenu.js");
 
-const llamar = async (texto, args) => {
-  const chat = { householdId: "casa", chatId: "1", channel: "telegram", fotos: [], papel: "owner", esGrupo: false, texto };
+const llamar = async (texto, args, trato = null) => {
+  const chat = { householdId: "casa", chatId: "1", channel: "telegram", fotos: [], papel: "owner", esGrupo: false, texto, trato };
   const generar = (await herramientas(chat)).find((t) => t.name === "generar_menu");
   return generar.run({ semana: "siguiente", ...args }, { toolUse: { id: `t-${Math.random()}` } });
 };
@@ -77,6 +77,11 @@ describe("generar_menu con el pedido en curso (trozo 67)", () => {
 
   it("forzado genera sin camino ni fecha", async () => {
     await llamar("sigue tú", { forzado: true });
+    expect(generarMenu).toHaveBeenCalledTimes(1);
+  });
+
+  it("ritmo directo en el trato es un pedido forzado (trozo 68)", async () => {
+    await llamar("hazme el menú", {}, { ritmo: "directo" });
     expect(generarMenu).toHaveBeenCalledTimes(1);
   });
 
