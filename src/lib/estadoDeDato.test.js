@@ -190,6 +190,11 @@ describe("los datos con ámbito con sobre", () => {
     expect(Object.keys(leidos).sort()).toEqual([...CAMPOS_CASA_CON_SOBRE, ...CAMPOS_CON_AMBITO_CON_SOBRE].sort());
   });
 
+  it("leidosConSobre: en una casa sin personas, un dato por persona no llega y es un mapa vacío, no un fallo", () => {
+    const sinNadie = Object.values(fichaDePrueba().fichas).flat().filter((e) => e.sujeto?.tipo !== "persona" && e.campo !== "schedule");
+    expect(leidosConSobre(sinNadie).schedule).toEqual({ valor: {}, conSobre: false });
+  });
+
   it("leidosConSobre: si a la ficha le falta un dato con sobre, o un hueco llega sin ámbito, lanza (la 0112 a la 0116, aplicadas)", () => {
     expect(() => leidosConSobre([])).toThrow(/ficha_casa no trae menuModel/);
     const sinUno = Object.values(fichaDePrueba().fichas).flat().filter((d) => d.campo !== "menuWeekDays");
