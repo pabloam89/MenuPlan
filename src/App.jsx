@@ -246,7 +246,7 @@ import { toCanonicalStockQty } from "./lib/kitchenUnits.js";
 import { normalizePantryInput } from "./utils/normalizePantryInput.js";
 import { basesDeReceta } from "./lib/bases.js";
 import { findMatchingPantryItem } from "./lib/shoppingBuilder.js";
-import { applyConsumption, consumeFromPantry, restoreToPantry, pantryConsumeMode } from "./lib/cookPantry.js";
+import { applyConsumption, consumeFromPantry, restoreToPantry } from "./lib/cookPantry.js";
 import { modoDespensaAlGenerar, modoDespensaAlCargar, usaDespensa, sinUseHomeStock } from "./lib/modoDespensa.js";
 import { useStatusBarSobreFondo } from "./lib/statusBar.js";
 import {
@@ -254,6 +254,7 @@ import {
   makeDeltaBucket,
   bucketDeltas,
   collectMenuPantryDeltas,
+  estrenoFinDelDia,
   reconcileMenusRemoval,
 } from "./lib/pantryDeltas.js";
 import demoState from "./dev/demoState.json";
@@ -407,23 +408,15 @@ const INITIAL_DATA = {
   // ocultamos los controles avanzados. true = modo avanzado: el usuario ve y
   // controla todo. La elección se pide una vez, tras el spotlight de Inicio.
   expertMode: false,
-  // Preferencia de despensa: la ÚNICA que el usuario elige (cuándo se da por
-  // gastado lo de casa que usa el menú). Ver el mini-cuestionario en «En casa».
-  //   consume: "onGenerate" (descuenta el menú de golpe al generar)
-  //          | "onCook"     (descuenta al marcar el plato como cocinado)
-  //          | "endOfDay"   (barrido diferido: da por comido lo de cada día ya
-  //                          pasado la próxima vez que abres la app)
-  // multiWeek/lifecycle ya NO se preguntan: en multisemana la despensa va a la
-  // semana más cercana y el ciclo interno se resetea solo (defaults internos).
-  // Default "onCook" (2026-08-26, era "onGenerate"): no descuenta comida que
-  // aún no has cocinado de verdad — el más honesto de los tres sin preguntar.
-  pantryPrefs: { consume: "onCook" },
+  // Lo de casa que usa el menú se da por gastado al final del día (barrido
+  // diferido: lo de cada día ya pasado, la próxima vez que se abre la app).
+  pantryPrefs: {},
   // Si el cuestionario ya salió solo una vez no es de la casa sino de este
   // móvil: lo recuerda marcasLocales.js (trozo 12 de #1037).
   // Deltas reversibles de la bajada "al generar el menú" (decisión D), por
   // semana — ver migración arriba para la explicación completa.
   pantryGenDeltas: {},
-  // Deltas del barrido "al final del día" (consume === "endOfDay"), por fecha
+  // Deltas del barrido "al final del día", por fecha
   // (clave = ISO del día ya consumido). Solo contabilidad interna.
   pantryDayDeltas: {},
   // Fecha (ISO local) desde la que aplica "al final del día". Se pone al
@@ -774,11 +767,10 @@ function migrate(state) {
   d.kidDinnerConfig = normalizeKidDinnerConfig(d.kidDinnerConfig);
   if (!["off", "week", "weekdays", "weekend"].includes(d.garnishRepeat)) d.garnishRepeat = "off";
   if (!d.pantryPrefs || typeof d.pantryPrefs !== "object") d.pantryPrefs = {};
-  // Una sola preferencia real. Los valores antiguos "none" (y cualquier campo
-  // apply/multiWeek/lifecycle heredado) se colapsan al default seguro.
-  d.pantryPrefs = {
-    consume: ["endOfDay", "onGenerate", "onCook"].includes(d.pantryPrefs.consume) ? d.pantryPrefs.consume : "onCook",
-  };
+  // Lo de casa se da por gastado al final del día. Solo se conserva un modo
+  // antiguo, para pasar la casa una vez (estrenoFinDelDia); lo demás que
+  // trajera ("none", apply, multiWeek, lifecycle) se olvida.
+  d.pantryPrefs = ["endOfDay", "onGenerate", "onCook"].includes(d.pantryPrefs.consume) ? { consume: d.pantryPrefs.consume } : {};
   // Deltas reversibles de la última bajada "al generar el menú", por semana
   // (clave = startISO). Permiten deshacer al regenerar la misma semana sin
   // descontar dos veces. Nunca se muestran en UI, es solo contabilidad interna.
@@ -786,7 +778,7 @@ function migrate(state) {
   // al borrar/reemplazar el menú (ver lib/pantryDeltas.js). normalizeDeltaBucketMap
   // convierte los buckets legacy (array pelado, sin menú) a la nueva forma.
   d.pantryGenDeltas = normalizeDeltaBucketMap(d.pantryGenDeltas);
-  // Deltas del barrido "al final del día" (consume === "endOfDay"), por fecha
+  // Deltas del barrido "al final del día", por fecha
   // (clave = ISO yyyy-mm-dd del día ya consumido). Evita restar dos veces el
   // mismo día y permite prunear días viejos. Solo contabilidad interna.
   d.pantryDayDeltas = normalizeDeltaBucketMap(d.pantryDayDeltas);
@@ -889,7 +881,7 @@ function migrate(state) {
   return { ...state, data: sinUseHomeStock({ ...INITIAL_DATA, ...d }) };
 }
 
-// ── Barrido "al final del día" (consume === "endOfDay") ─────────────────────
+// ── Barrido "al final del día" ─────────────────────────────────────────────
 // Sin backend que corra a medianoche, el consumo diario se resuelve de forma
 // perezosa la próxima vez que abres la app: para cada día del menú activo que
 // YA pasó y no se haya contabilizado, se da por comido lo que ese día planificó
@@ -2064,32 +2056,7 @@ export default function App() {
     };
   }, [user?.id, syncHouseholdId]);
 
-  // Reconcilia el modo de consumo saliente cuando el usuario lo cambia con un
-  // menú ya activo. Ejemplo: modo "onGenerate" → "endOfDay". El stock se
-  // descontó al generar; sin esta reconciliación el barrido diario lo volvería
-  // a descontar. Restauramos exactamente lo que el modo saliente aplicó y lo
-  // borramos de los buckets para que el nuevo modo arranque con stock limpio.
-  const prevConsumeRef = useRef(pantryConsumeMode(data));
-  useEffect(() => {
-    const prev = prevConsumeRef.current;
-    const next = pantryConsumeMode(data);
-    prevConsumeRef.current = next;
-    if (prev === next) return; // sin cambio real en el modo efectivo
-    const menuId = data.activeMenuId;
-    if (!menuId) return; // sin menú activo, no hay nada que reconciliar
-    const recon = collectMenuPantryDeltas(data, menuId);
-    if (!recon.deltas.length) return; // el modo saliente no dejó nada aplicado
-    setData((d) => ({
-      ...d,
-      pantryGenDeltas: recon.genOut,
-      pantryDayDeltas: recon.dayOut,
-      cookedDeltas: recon.cookedOut,
-    }));
-    restoreToPantry(recon.deltas, { user }).then(() => setPantryEpoch((n) => n + 1));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data.pantryPrefs?.consume]);
-
-  // Barrido "al final del día" (consume === "endOfDay"): al montar / cambiar de
+  // Barrido "al final del día": al montar / cambiar de
   // menú, resta de la despensa lo que el menú activo planificó para cada día ya
   // pasado y aún no contabilizado. Perezoso (no hay backend a medianoche) y en
   // serie recargando stock entre días para que la resta encadene sin duplicar.
@@ -2098,16 +2065,16 @@ export default function App() {
   const endOfDaySweepRef = useRef(false);
   useEffect(() => {
     if (user?.id && !cloudReadyRef.current) return; // esperar hidratación cloud
-    const isEndOfDay = pantryConsumeMode(data) === "endOfDay";
-    // Al desactivar el modo se olvida la fecha, así que si se vuelve a activar
-    // más adelante empieza a contar de nuevo desde ese momento.
-    if (!isEndOfDay) {
-      if (data.pantryEndOfDaySince) {
-        setData((d) => (d.pantryEndOfDaySince ? { ...d, pantryEndOfDaySince: null } : d));
-      }
+    // Una casa con un modo antiguo se pasa una vez antes de barrer.
+    if (data.pantryPrefs?.consume) {
+      const manana = new Date();
+      manana.setDate(manana.getDate() + 1);
+      const estreno = estrenoFinDelDia(data, isoLocalDate(manana));
+      setData((d) => ({ ...d, ...estreno.patch }));
+      if (estreno.deltas.length) restoreToPantry(estreno.deltas, { user }).then(() => setPantryEpoch((n) => n + 1));
       return;
     }
-    // Primera vez que se activa el modo: se marca desde HOY (solo con menú activado).
+    // Primera vez: se marca desde HOY (solo con menú activado).
     if (!data.pantryEndOfDaySince) {
       const activeMenuEntry = data.menus?.[data.activeMenuId];
       if (!activeMenuEntry?.activatedAt) return;
@@ -2436,11 +2403,6 @@ export default function App() {
       const pantryMultiWeek = ["nearest", "all", "spread"].includes(working.pantryPrefs?.multiWeek)
         ? working.pantryPrefs.multiWeek
         : "nearest";
-      // Consumo: cuándo se baja el stock real. "onGenerate" se resuelve aquí
-      // mismo (bloque tras la generación); "onCook" lo gestiona DishDetail/
-      // "Marcar cocinado"; "endOfDay" lo hace el barrido diario. `working` ya
-      // viene por resolveModeData, así que el modo básico queda respetado.
-      const consumeMode = pantryConsumeMode(working);
       const varietyPref = ["strict", "moderate", "relaxed"].includes(working.menuVarietyPref)
         ? working.menuVarietyPref
         : "strict";
@@ -2507,8 +2469,7 @@ export default function App() {
         if (pantryMultiWeek === "spread" && pantryMode !== "off") {
           // Proyección en memoria únicamente (nunca escribe en BD): lo que esta
           // semana cubrió con despensa deja de estar disponible para la
-          // siguiente. La resta real en BD (si consumeMode === "onGenerate")
-          // se hace más abajo, después de que todas las semanas terminen.
+          // siguiente. La resta real la hace el barrido diario.
           spreadPantry = applyConsumption(
             sh.pantryItems.map((it) => ({ name: it.name, qty: it.qty, unit: it.unit })),
             spreadPantry
@@ -2533,17 +2494,6 @@ export default function App() {
       // Id del menú nuevo, creado ya aquí para poder etiquetar sus deltas de
       // consumo (F1) antes de construir el objeto menú más abajo.
       const newMenuId = createMenuId();
-      const genDeltasPatch = {};
-      // Logged-in users activate explicitly from Tu menú (see activateActiveMenu).
-      if (consumeMode === "onGenerate" && !user) {
-        for (const res of weekResults) {
-          const used = (res.pantryItems ?? []).map((it) => ({ name: it.name, qty: it.qty, unit: it.unit }));
-          if (!used.length) continue;
-          const freshStock = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
-          const { deltas } = await consumeFromPantry(used, freshStock, { user });
-          if (deltas.length) genDeltasPatch[res.startISO] = makeDeltaBucket(newMenuId, deltas);
-        }
-      }
       // Decisión C (ciclo de vida): en "weekly" no arrastramos indefinidamente
       // el historial de deshacer de semanas ya terminadas — solo afecta a esta
       // contabilidad interna, nunca borra ni toca el stock real.
@@ -2553,7 +2503,6 @@ export default function App() {
       const nextGenDeltas = { ...(working.pantryGenDeltas ?? {}) };
       for (const key of restoreKeys) delete nextGenDeltas[key];
       for (const m of weekMeta) delete nextGenDeltas[m.startISO];
-      Object.assign(nextGenDeltas, genDeltasPatch);
       if (lifecycleMode === "weekly") {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -3498,12 +3447,6 @@ export default function App() {
     }
   }, [data.activeMenuId, data.menus, data.menuWeek?.offset, menuPlan, user, showToast, syncHouseholdId, versionDeCasa]);
 
-  const ACTIVATE_MENU_TOAST = {
-    onGenerate: "Menú activo · En casa actualizado",
-    onCook: "Menú activo · En casa bajará al cocinar",
-    endOfDay: "Menú activo · En casa se ajusta al fin del día",
-  };
-
   const activateActiveMenu = useCallback(async ({ silencioso = false } = {}) => {
     if (householdReadOnly) return;
     const menuId = data.activeMenuId;
@@ -3519,29 +3462,6 @@ export default function App() {
       await restoreToPantry(recon.deltas, { user });
     }
 
-    const consumeMode = pantryConsumeMode(data);
-    const groups = gruposVigentes(data);
-    const genDeltasPatch = {};
-    if (consumeMode === "onGenerate") {
-      const weekEntries = Object.values(menu.weeks ?? {}).sort((a, b) =>
-        String(a.startISO ?? "").localeCompare(String(b.startISO ?? "")),
-      );
-      for (const week of weekEntries) {
-        if (!week?.plan || !week.startISO) continue;
-        const weekData = {
-          ...data,
-          schedule: week.schedule ?? data.schedule,
-          menuWeek: { offset: week.offset ?? 0, startDayIdx: week.startDayIdx ?? 0, days: week.days ?? null },
-        };
-        const freshStock = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
-        const sh = buildShoppingList(week.plan, groups, getDayMeals(weekData), freshStock);
-        const used = (sh.pantryItems ?? []).map((it) => ({ name: it.name, qty: it.qty, unit: it.unit }));
-        if (!used.length) continue;
-        const { deltas } = await consumeFromPantry(used, freshStock, { user });
-        if (deltas.length) genDeltasPatch[week.startISO] = makeDeltaBucket(menuId, deltas);
-      }
-    }
-
     const activatedAt = Date.now();
     setData((d) => ({
       ...d,
@@ -3549,15 +3469,13 @@ export default function App() {
         ...d.menus,
         [menuId]: { ...d.menus[menuId], activatedAt },
       },
-      pantryGenDeltas: { ...recon.genOut, ...genDeltasPatch },
+      pantryGenDeltas: recon.genOut,
       pantryDayDeltas: recon.dayOut,
       cookedDeltas: recon.cookedOut,
-      ...(consumeMode === "endOfDay" && !d.pantryEndOfDaySince
-        ? { pantryEndOfDaySince: isoLocalDate(new Date()) }
-        : null),
+      ...(d.pantryEndOfDaySince ? null : { pantryEndOfDaySince: isoLocalDate(new Date()) }),
     }));
     setPantryEpoch((n) => n + 1);
-    if (!silencioso) showToast(ACTIVATE_MENU_TOAST[consumeMode] ?? "Menú activado");
+    if (!silencioso) showToast("Menú activo · En casa se ajusta al fin del día");
   }, [data, householdReadOnly, user, showToast]);
 
   // El menú de la semana se activa solo, sin el rayo (ver lib/activarSolo.js).

@@ -129,7 +129,7 @@ import { BASES_UI } from "../lib/basesUI.js";
 import { mealTimeColor, mealTimeBg } from "../lib/mealTimes.js";
 import { kitchenHint, pantryPieceCountLabel } from "../lib/kitchenUnits.js";
 import { findMatchingPantryItem } from "../lib/shoppingBuilder.js";
-import { consumeFromPantry, restoreToPantry, pantryConsumeMode } from "../lib/cookPantry.js";
+import { restoreToPantry } from "../lib/cookPantry.js";
 import { addPantryItems, addLocalPantryItems, adjustCookedDishPortions, adjustLocalCookedDishPortions, loadPantry, loadLocalPantry } from "../lib/pantry.js";
 import { normalizePantryInput } from "../utils/normalizePantryInput.js";
 import { membersOfGroup, isBabyMenuGroup, adhocReasonLabel, opcionesDeMenu } from "../lib/groups.js";
@@ -7305,13 +7305,6 @@ export function DishDetail({
   // (catálogo curado) usan nombres de campo distintos; se comprueban los dos.
   const usedAppliance = recipe.requiredAppliances?.[0] ?? recipe.requiredAppliance ?? null;
   const UsedApplianceIcon = usedAppliance ? (REQUIRED_APPLIANCE_ICONS[usedAppliance] ?? UtensilsCrossed) : null;
-  const cookIngredients = () =>
-    ingredients.map((ing) => ({
-      name: ing.name,
-      qty: ing.qtyScaled,
-      unit: ing.unit,
-      adapted: ing.adapted,
-    }));
 
   // ── Congelador (parte que depende del stock real) ──────────────────────────
   // Lo de arriba lee el reparto que YA trae el slot; esto mira qué hay ahora en
@@ -7462,12 +7455,8 @@ export function DishDetail({
       else addLocalPantryItems([revived]);
     }
   };
-  // Cuándo se descuenta: "Marcar cocinado" solo resta de la despensa real si el
-  // usuario eligió "Al marcarlo cocinado". Si eligió "Al crear el menú" o "Al
-  // final del día", esa resta ya ocurrió (o la hará el barrido diario) y marcar
-  // cocinado aquí es solo un tick informativo. Vía pantryConsumeMode para
-  // respetar el modo básico, que fuerza "onGenerate".
-  const shouldConsumeOnCook = pantryConsumeMode(data) === "onCook";
+  // Los ingredientes los descuenta el barrido del final del día: marcar cocinado
+  // solo apunta el plato y saca lo que venga del congelador o la nevera.
   const handleMarkCooked = async () => {
     if (!cookable || isCooked || cookBusy) return;
     setCookBusy(true);
@@ -7485,24 +7474,16 @@ export function DishDetail({
       const preparedDelta = slotFromPrepared
         ? await consumePreparedPortions()
         : null;
-      const consumeIngredients = shouldConsumeOnCook && ingredients.length > 0;
-      const { deltas, decremented } = consumeIngredients
-        ? await consumeFromPantry(cookIngredients(), pantryStock, { user })
-        : { deltas: [], decremented: 0 };
-      setData((d) => ({
-        ...d,
-        cookedDeltas: { ...(d?.cookedDeltas ?? {}), [cookedKey]: deltas },
-        ...(preparedDelta
-          ? { cookedFreezerDeltas: { ...(d?.cookedFreezerDeltas ?? {}), [cookedKey]: preparedDelta } }
-          : {}),
-      }));
-      if (consumeIngredients || preparedDelta) await reloadCookStock();
+      if (preparedDelta) {
+        setData((d) => ({ ...d, cookedFreezerDeltas: { ...(d?.cookedFreezerDeltas ?? {}), [cookedKey]: preparedDelta } }));
+        await reloadCookStock();
+      }
       // Lo cocinado, en un registro que no se borra con el menú (src/lib/rastro.js).
       trackEvent(user, RASTRO.COCINADO, "menu", { canal: "app", recipeId: idBase(recipe.id), day, meal, semana: cookWeekKey ?? null });
       if (preparedDelta) {
         onToast?.(`¡Listo! ${portionsLabel(preparedDelta.portions)} ${preparedDelta.fromFridge ? "de la nevera" : "del congelador"}`);
       } else {
-        onToast?.(decremented ? `¡Cocinado! Stock en casa actualizado (${decremented})` : "¡Cocinado!");
+        onToast?.("¡Cocinado!");
       }
     } finally {
       setCookBusy(false);

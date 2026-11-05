@@ -9017,12 +9017,7 @@ export function OnboardingMode({ data, setData, onNext, onBack, onFinish, onRese
 // una respuesta — y la de la mayoría la primera vez.
 //
 // Es la pantalla "En casa" de siempre (pestañas Añadir/Inventario,
-// foto/ticket/a mano), no una versión apilada/simplificada. "¿Cuándo se da
-// por gastado?" vivió aquí al lado un día (2026-08-25) como paso condicional
-// — se quitó del wizard al día siguiente: esa pregunta se entiende mejor
-// mirando la despensa real que a mitad del asistente, así que ahora es un
-// sheet contextual en Compra → En casa (ver PantryPrefsSheet en
-// components/ModeSheets.jsx), no un paso de este flujo.
+// foto/ticket/a mano), no una versión apilada/simplificada.
 export function OnboardingPantryInventory({
   onNext, onBack, onFinish, onReset, nextLabel,
   user, pantryHouseholdId, priceObs, pantryEpoch, onToast, data, setData, onHayEnCasa, shopping, setShopping,
