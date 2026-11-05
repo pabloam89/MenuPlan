@@ -24,7 +24,7 @@ import { bloqueDePedido, cerrarPedido, ejesConElPedido, ejesDelPedido, guardarPe
 import { faltaDelPedido } from "../../src/lib/pedidoMenu.js";
 import {
   describirCasa, describirReceta, describirCompra,
-  marcarCompra, anadirCompra, quitarCompra, cambiarPlato, proponerPlatos, franjaDe, porQuePlato, BOTON_REPETIR_VECINOS,
+  marcarCompra, anadirCompra, quitarCompra, compraVacia, cambiarPlato, proponerPlatos, franjaDe, porQuePlato, BOTON_REPETIR_VECINOS,
   rangosDelMenu, resultadoDeCambio, resultadoDeAnadir, SIN_CAMBIAR,
   apuntarAusencia, resultadoDeAusencia,
   resolverHuecos,
@@ -1017,7 +1017,10 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
       name: "ver_compra",
       description: "La lista de la compra de la semana activa: lo que falta por comprar, por secciones.",
       inputSchema: { type: "object", properties: {}, additionalProperties: false },
-      run: () => conCasa((casa) => describirCompra(casa)),
+      run: () => conCasa((casa) => {
+        chat.nadaQueVer = compraVacia(casa);
+        return describirCompra(casa);
+      }),
     }),
     herramienta({ capacidades: ["marcar_compra"], lee: [], escribe: [], lector: true, riesgo: RIESGO_HERRAMIENTA.ESCRIBE_REVERSIBLE, deshace: DESHACE.FOTO, pantalla: "compra" }, {
       name: "marcar_compra",
@@ -1060,7 +1063,12 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
         },
         additionalProperties: false,
       },
-      run: ({ productos, manuales }) => quitarCompra(householdId, { productos: productos ?? [], manuales: manuales === true }),
+      run: async ({ productos, manuales }) => {
+        const out = {};
+        const texto = await quitarCompra(householdId, { productos: productos ?? [], manuales: manuales === true }, out);
+        if (out.vacia) chat.nadaQueVer = true;
+        return texto;
+      },
     }),
     herramienta({ capacidades: ["elegir_plato"], lee: ["menus", "members", "members.allergies", "notepad"], escribe: [], lector: true, riesgo: RIESGO_HERRAMIENTA.LEE, deshace: DESHACE.NO, pantalla: null }, {
       name: "proponer_platos",
