@@ -7,7 +7,7 @@
 import { select, eq } from "./db.js";
 import { crearCuentaTelegram, cuentaNacidaAqui } from "./cuentas.js";
 import { enlazarChat, casaPropia } from "./enlace.js";
-import { CAMINO_ENLACE } from "../../src/lib/vocabularios.js";
+import { CAMINO_ENLACE, PRUEBA_IDENTIDAD } from "../../src/lib/vocabularios.js";
 import { sembrarCasa } from "./ajustes.js";
 
 /**
@@ -34,7 +34,7 @@ export async function cuentaYChat({ telegramId, chatId, nombre = null, lang = nu
     externalId: String(telegramId),
     nombre,
     lang,
-    identidad: "nacida",
+    identidad: PRUEBA_IDENTIDAD.NACIDA,
   });
   await sembrarCasa(cuenta.householdId);
   return cuenta;

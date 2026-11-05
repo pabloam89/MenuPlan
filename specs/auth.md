@@ -144,15 +144,60 @@ Done:
 git grep -q "formasDeEntrar" -- src/lib/cuentaTelegram.test.js && git grep -q "Formas de entrar" -- src/screens/HomeProfileScreen.descargar.test.jsx && npx vitest run src/lib/cuentaTelegram.test.js src/screens/HomeProfileScreen.descargar.test.jsx src/lib/useAuth.google.test.jsx
 ```
 
-#### 3. Telegram abre también la cuenta a la que se conectó desde la app
-Files: `api/bot/entrar.js`, `api/bot/entrar.test.js`, `api/_bot/cuentas.js`, `src/lib/cuentaTelegram.js`, `src/screens/HomeProfileScreen.jsx`
-Depends on: 2
-Blocked by: A
-Existing: `cuentaNacidaAqui` (`api/_bot/cuentas.js:106`) solo da cuentas de email sintético, y `api/bot/entrar.js:46` contesta 403 a un Telegram de otra cuenta.
-Not done: WhatsApp (vendrá por canal, con la misma función que da la cuenta de una identidad de chat). Cambia una regla de seguridad: revisión de seguridad antes del PR.
+#### 3. Telegram abre la cuenta a la que se conectó desde dentro de esa cuenta
+Decisión de Pablo (4 nov 2026, «una persona, una cuenta, varias llaves»; responde a la A de «Para Pablo»): «Entrar con
+Telegram» abre una cuenta de Google o Apple solo si ese Telegram se conectó a Lola desde dentro de esa cuenta, es decir,
+con el enlace de «Conectar Telegram» que sacó una sesión de esa cuenta (`api/bot/link.js`) y que se pulsó en el privado
+de ese Telegram (prueba `ajustes`, o `cambio` si antes era de otra cuenta y la persona lo confirmó allí). Un Telegram
+atado por el código del email, por un grupo o por una invitación no la abre, y una identidad de antes de este trozo
+tampoco: no se sabe con qué prueba se apuntó. Para que la abra, se conecta otra vez desde la app.
+Files: `supabase/migrations/0129_prueba_de_identidad.sql`, `src/lib/vocabularios.js`, `scripts/lib/columnasVocabulario.mjs`, `api/_bot/enlace.js`, `api/_bot/enlace.test.js`, `api/_bot/cuentas.js`, `api/_bot/cuentas.test.js`, `api/bot/entrar.js`, `api/bot/entrar.test.js`
+Depends on: none
+Blocked by: la migración del trozo, que aplica Pablo. Sin ella, nada cambia: no hay prueba que leer y la respuesta sigue siendo el 403 de hoy.
+Existing: `git grep -n "prueba_identidad" -- api src supabase` → sin salida: bot_identities no guarda con qué prueba se apuntó (`supabase/migrations/0057_bot_cimientos.sql:173`). La prueba solo vive al escribir, en el parámetro `identidad` de `enlazarChat` (`api/_bot/enlace.js:46`; «Conectar Telegram» la pasa en `api/bot/telegram.js:1904`), y un enlace del mismo Telegram a la misma cuenta reescribe la fila sin mirarla (`api/_bot/enlace.js:158`). `api/bot/entrar.js:66` contesta 403 a todo Telegram que ya es de otra cuenta.
+Not done: «Formas de entrar» sigue sin enseñar Telegram en las cuentas de Google que ahora abre (la app no lee las tablas del bot; irá por el GET de `api/bot/link.js`, en otro trozo). WhatsApp. No rellena las identidades que ya existen.
 Done:
 ```sh
-git grep -q "la cuenta a la que se conectó desde la app" -- api/bot/entrar.test.js && npx vitest run api/bot/entrar.test.js src/lib/cuentaTelegram.test.js
+git grep -q "la cuenta a la que se conectó desde la app" -- api/bot/entrar.test.js && git grep -q "prueba_identidad" -- api/_bot/enlace.test.js && npx vitest run api/bot/entrar.test.js api/_bot/enlace.test.js api/_bot/cuentas.test.js src/lib/vocabularios.test.js
+```
+
+#### 4. Entrar con Google por primera vez pregunta antes: «¿Ya hablas con Lola?»
+Una persona, una cuenta: quien ya habla con Lola y entra con Google por primera vez acabaría con dos cuentas (#1254).
+Antes de crear la casa de una cuenta nueva de Google o Apple, la app pregunta «¿Ya hablas con Lola?» con dos salidas:
+«Entrar con Telegram» (y, ya dentro, «¿Añades este Google a tu cuenta?», con el «Añadir» de «Formas de entrar») o «No,
+crear cuenta». Supabase crea el usuario al volver de Google, antes de que la app pueda preguntar; la pregunta va justo
+después y, hasta que se contesta, no se escribe nada (ni perfil, ni casa). Si elige Telegram, la cuenta vacía se borra
+con el mismo borrado de Mi perfil (`api/delete-account`) y se cierra su sesión.
+Files: `src/lib/cuentaTelegram.js`, `src/lib/cuentaTelegram.test.js`, `src/lib/useAuth.js`, `src/lib/useAuth.google.test.jsx`, `src/components/ui.jsx`, `src/components/SignInOptions.test.jsx`, `src/App.jsx`
+Depends on: 2
+Blocked by: none
+Existing: `git grep -n "Ya hablas con Lola" -- src` → sin salida. Toda sesión nueva escribe el perfil al entrar (`src/lib/useAuth.js:109`) y crea la casa en cuanto hay usuario (`src/lib/useHousehold.js:109`).
+Not done: el Google que ya es otra cuenta con casa sigue en #1254 (unir dos cuentas). No pregunta a quien entra con Telegram (esa cuenta la crea Lola, `cuentaYChat`).
+Done:
+```sh
+git grep -q "Ya hablas con Lola" -- src/components/SignInOptions.test.jsx && git grep -q "esAltaNueva" -- src/lib/cuentaTelegram.test.js && npx vitest run src/lib/cuentaTelegram.test.js src/components/SignInOptions.test.jsx src/lib/useAuth.google.test.jsx
+```
+
+#### 5. Dentro de Telegram, solo «Entrar con Telegram»
+Google bloquea su login en los navegadores metidos en otras apps: «All embedded webviews will be blocked starting on
+September 30, 2021», con el error `disallowed_useragent`
+(https://developers.googleblog.com/en/upcoming-security-changes-to-googles-oauth-20-authorization-endpoint-in-embedded-webviews/).
+Dentro del navegador de Telegram, la pantalla de entrada enseña solo «Entrar con Telegram» y, debajo, en pequeño,
+«¿Con Google o Apple? Ábrelo en el navegador». Fuera de Telegram, igual que hoy. Cómo se sabe que es Telegram: Telegram
+mete en la página `window.TelegramWebviewProxy` (iOS; su propio `telegram-web-app.js` lo mira así:
+`curl -s https://telegram.org/js/telegram-web-app.js | grep -n "TelegramWebviewProxy !== undefined"` →
+`137:    if (window.TelegramWebviewProxy !== undefined) {`) o `window.TelegramWebview` (Android), y en Android firma el
+navegador con `Telegram-Android/{app_version} (…)` (https://core.telegram.org/bots/webapps, «User-Agent details»).
+Los tres objetos son los que mira `inapp-spy` (`src/detectTelegram.ts`: `"TelegramWebview" in window || // Android`,
+`"TelegramWebviewProxy" in window || // iPhone`, `"TelegramWebviewProxyProto" in window`).
+Files: `src/lib/apiUrl.js`, `src/lib/apiUrl.clase.test.js`, `src/components/ui.jsx`, `src/components/SignInOptions.test.jsx`
+Depends on: 1
+Blocked by: none
+Existing: `git grep -n "TelegramWebview" -- src` → sin salida; `disallowed_useragent` solo sale para la app nativa (`src/lib/nativeAuth.js:7`).
+Not done: un botón que salte solo al navegador del sistema (en iOS no hay una forma fiable): es una indicación. Otros navegadores dentro de apps (Instagram, WhatsApp) siguen como hoy.
+Done:
+```sh
+git grep -q "TelegramWebviewProxy" -- src/lib/apiUrl.clase.test.js && git grep -q "Ábrelo en el navegador" -- src/components/SignInOptions.test.jsx && npx vitest run src/lib/apiUrl.clase.test.js src/components/SignInOptions.test.jsx
 ```
 
 ### No hecho
@@ -170,13 +215,18 @@ git grep -q "la cuenta a la que se conectó desde la app" -- api/bot/entrar.test
 - principio 1 | eligió: el botón sale solo donde Telegram acepta el login (el dominio de @BotFather) | descartó: enseñarlo en local y en previews, donde siempre acaba en «Bot domain invalid»: un botón que promete lo que no hace | motivo: decidido
 - principio 4 | eligió: el login en la misma pestaña, cuya vuelta lee `llaveLola.js` como la llave de Lola | descartó: la ventana aparte del widget, que devuelve los datos por otro camino (postMessage) y pediría un segundo lector de la firma | motivo: decidido
 - principio 4 | eligió: el dominio del bot en una sola constante que leen la app y el bot | descartó: mantener `BOT_LOGIN_DOMINIO` en el servidor, una segunda copia que nadie compara | motivo: decidido
+- principio 2 | eligió: la prueba con la que se apuntó un Telegram, en su fila de bot_identities (`prueba_identidad`, lista cerrada) | descartó: deducirla de bot_enlaces, dar por probado lo que no se guardó: que no guarda qué Telegram se enlazó y daría por buena la prueba de otro Telegram de la misma cuenta | motivo: decidido
+- principio 3 | eligió: una identidad sin prueba guardada (las de antes, o sin la migración) no abre la cuenta | descartó: suponer `ajustes` para las de antes, abrir sesión sin prueba | motivo: decidido
+- principio 4 | eligió: si se elige Telegram, la cuenta vacía recién creada se borra | descartó: dejarla, la misma persona en dos cuentas (una segunda cuenta de la misma persona que además ata ese Google y hace fallar luego «Añadir Google») | motivo: decidido
+- principio 6 | eligió: el código del email no abre la cuenta (Pablo, 4 nov 2026: solo «desde dentro de esa cuenta») | descartó: la opción 1 de la pregunta A, que también lo contaba, sin preguntárselo | motivo: decidido
+- principio 2 | eligió: saber que es el navegador de Telegram por los objetos que mete en la página (`TelegramWebviewProxy`, `TelegramWebview`), los mismos que mira su propio `telegram-web-app.js` (trozo 5) | descartó: el User-Agent, que solo la documentación de Android describe y nada prueba en iPhone: el botón de Google saldría donde falla | motivo: decidido
 
 ### Para Pablo
 
-A. ¿Telegram abre también una cuenta de Google a la que se conectó desde la app?
-   1. **Sí, si ese Telegram se conectó desde la app con la sesión de esa cuenta o con el código del email** (recomendada: es «tu chat es tu llave»; pide revisión de seguridad).
-   2. No: solo las cuentas nacidas en Telegram, como hoy.
-   3. Sí, pero solo tras entrar una vez con Google en ese móvil.
+A. Contestada el 4 nov 2026: sí, pero solo si ese Telegram se conectó desde dentro de esa cuenta (trozo 3); el código
+   del email no basta.
+B. Aplicar la migración del trozo 3 (ensayo y `--si`, `scripts/apply-migration.mjs`); hasta entonces, el trozo 3 no
+   abre nada nuevo.
 
 Pasos fuera del repo (Pablo):
 - Staging: ninguno. @BotFather ya tiene `homenu-staging.vercel.app` (`/setdomain`, 7 oct 2026).
@@ -185,4 +235,5 @@ Pasos fuera del repo (Pablo):
 ### Not verified
 
 - Que `oauth.telegram.org/auth`, abierto en la misma pestaña, vuelve a `return_to` con `#tgAuthResult=`: se lee en el código del widget (`telegram-widget.js?22`, `haveTgAuthResult`), sin probar con una cuenta de Telegram real.
-- Dentro del navegador de Telegram: sin probar.
+- Dentro del navegador de Telegram: sin probar, ni que el login de Telegram funcione ahí ni cuál de los tres objetos mete cada versión (trozo 5, con un móvil real).
+- Cuántas identidades de cuentas de Google o Apple hay hoy (las que tendrían que conectarse otra vez desde la app para que el trozo 3 las abra): `npm run consulta` necesita 1Password, sin lecturas hasta el 5 nov.
