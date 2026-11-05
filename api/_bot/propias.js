@@ -21,7 +21,7 @@
  * fuera de `state`: así no se escribe de vuelta en household_state.
  */
 
-import { select, insert, borrar, eq } from "./db.js";
+import { select, insert, update, borrar, eq } from "./db.js";
 import { quienesLlevanLaCasa } from "./papel.js";
 import { rowToRecipe } from "../../src/lib/userRecipesFila.js";
 import { recetaPropia } from "../../src/lib/ids.js";
@@ -87,6 +87,36 @@ async function lapidasDe(quienes, ids) {
 
 /** Las recetas propias de una casa ya cargada (sin consultas): las de su tabla (trozo 21). */
 export const propiasDe = (casa) => casa?.recetasPropias ?? [];
+
+// ── Lo que la app hace con las recetas y Lola no hacía (trozo 48, parte 1): favoritas y borrar una propia ──
+
+/**
+ * Marca o desmarca una receta (del catálogo o propia) como favorita de quien escribe, en `recipe_votes`, la misma
+ * fila que escribe la app (saveRecipeVote, src/lib/recipeVotes.js): por (user_id, recipe_id), sin tocar su voto. Sin
+ * ámbito (`scope` null): favorita para todos, como el corazón de la app sin elegir grupo.
+ */
+export async function marcarFavorita(userId, recetaId, favorita) {
+  if (favorita) {
+    await insert("recipe_votes?on_conflict=user_id,recipe_id", [{ user_id: userId, recipe_id: recetaId, is_favorite: true, scope: null }], { upsert: true });
+  } else {
+    await update("recipe_votes", `user_id=${eq(userId)}&recipe_id=${eq(recetaId)}`, { is_favorite: false, scope: null });
+  }
+}
+
+/**
+ * Borra una receta propia de la casa, la de quien la creó (cualquiera de los que llevan la casa): como
+ * quitarRecetaGuardada, primero la lápida y luego la fila. Devuelve false si no es una receta propia de esta casa.
+ * Si no puede leer quién lleva la casa, lanza: es el freno del borrado, y sin la lista una receta de la cotitular
+ * saldría «no es de esta casa» (no como autoresDeCasa, que sigue con las del dueño).
+ */
+export async function borrarRecetaDeCasa(householdId, dueno, recetaId) {
+  const autores = [...new Set([dueno, ...(await quienesLlevanLaCasa(householdId))].filter(Boolean))];
+  if (!autores.length) return false;
+  const [fila] = await select("user_recipes", `id=${eq(recetaId)}&owner_id=in.(${autores.map((u) => encodeURIComponent(u)).join(",")})`, "id,owner_id");
+  if (!fila) return false;
+  await quitarRecetaGuardada(fila.id, fila.owner_id);
+  return true;
+}
 
 /** Quién lleva la casa: el dueño y los de papel owner/editor (la cotitular). */
 async function autoresDeCasa(householdId, dueno) {

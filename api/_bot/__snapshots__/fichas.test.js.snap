@@ -2324,6 +2324,37 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
    "additionalProperties": false
   },
   "description": "Guarda la última receta preparada con preparar_receta en esta charla (la herramienta la tiene apartada: no hace falta volver a pedir ningún dato), en el recetario de la casa, y el motor ya puede ponerla en menús. Llámala en cuanto digan «Guardar» o «sí» al resumen, con confirmado = true y el nombre de la receta que han aprobado (si no es la última preparada, no se guarda)."
+ },
+ {
+  "type": "custom",
+  "name": "receta_propia",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "accion": {
+     "type": "string",
+     "enum": [
+      "favorita",
+      "no_favorita",
+      "borrar"
+     ]
+    },
+    "receta": {
+     "type": "string",
+     "description": "El nombre de la receta, como lo dicen."
+    },
+    "confirmado": {
+     "type": "boolean",
+     "description": "Solo para borrar, tras su «sí»."
+    }
+   },
+   "required": [
+    "accion",
+    "receta"
+   ],
+   "additionalProperties": false
+  },
+  "description": "Con una receta que nombran: favorita (la marca como favorita de quien escribe, del catálogo o vuestra), no_favorita (se la quita), o borrar (solo las vuestras, no las del catálogo). Borrar no se deshace: llámala primero sin confirmado, pregunta con el nombre que te devuelva y vuelve a llamarla con confirmado = true y ese nombre solo con su «sí»."
  }
 ]"
 `;
