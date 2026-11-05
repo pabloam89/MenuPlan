@@ -762,6 +762,18 @@
       }
     },
     {
+      "id": "pedido-como-la-ultima-vez",
+      "tipo": "herramienta",
+      "dominio": "menu",
+      "origen": "escrito",
+      "dependeDeFecha": true,
+      "nombre": "al pulsar «Como la última vez», llama a generar_menu",
+      "entrada": "Como la última vez",
+      "llama": [
+        "generar_menu"
+      ]
+    },
+    {
       "id": "alta-primer-menu-con-temas",
       "tipo": "multiturno",
       "dominio": "alta",

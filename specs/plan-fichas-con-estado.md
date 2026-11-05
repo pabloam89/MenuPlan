@@ -932,8 +932,8 @@ npx vitest run api/_bot/caminoMenu.test.js
 Files: `src/lib/pedidoMenu.js`, `src/lib/pedidoMenu.test.js`, `api/_bot/generar.js`, `api/_bot/conocimiento.md`
 Depends on: 71
 Blocked by: none
-Existing: `conservarDiasPrevios` y `rehacer` existen; el trozo 61 apunta el motivo al descartar.
-Not done: antes de pisar una semana, Lola dice qué días se quedan, qué platos cambiados a mano se pierden y qué pasa con la compra. Se coordina con el motivo del trozo 61.
+Existing: `conservarDiasPrevios` y `rehacer` existen; el motivo al descartar es del trozo 61, aún sin hacer.
+Not done: antes de pisar una semana, Lola dice qué días se quedan, qué se pierde y qué pasa con la compra. Los platos cambiados a mano no llevan marca: se dice por días. El motivo se coordina al hacer el trozo 61.
 Done:
 ```sh
 npx vitest run src/lib/pedidoMenu.test.js api/_bot/generar.test.js
@@ -1033,9 +1033,15 @@ Por qué te lo pregunto: el 8 oct decidiste lo contrario (#107: se genera esquiv
 - principio 4 | eligió: lo que falta se calcula en cada turno de la ficha, `preferencia` y el documento (trozos 64-65) | descartó: copiar los ejes en una ficha del pedido: dos verdades | motivo: decidido
 - principio 4 | eligió: `donde_come`, una herramienta con `plazo` (trozo 45) | descartó: dos herramientas para lo mismo con distinto alcance | motivo: decidido
 - principio 3 | eligió: con el plazo mal rellenado, «NO GUARDADO» y el motivo (trozo 45) | descartó: valores por defecto, que guardarían un horario que nadie dijo | motivo: decidido
+- principio 1 | eligió: al rehacer, decir por días que lo cambiado se pierde (trozo 72) | descartó: nombrar los platos cambiados a mano, que afirmaría algo que los datos no guardan: no llevan marca | motivo: decidido
+- principio 4 | eligió: el aviso de rehacer en `avisoDeRehacer`, un solo sitio (trozo 72) | descartó: repetir el texto en la parada y en «YA HAY MENÚ» | motivo: decidido
+- principio 4 | eligió: la parada de rehacer en `generar_menu` de agente.js, donde está el pedido (trozo 72) | descartó: ponerla en `generarMenu` de generar.js, que no conoce el pedido y necesitaría una copia | motivo: decidido
+- principio 3 | eligió: con «sigue tú» se rehace sin parar y lo que se pierde se dice en el resumen (trozo 72) | descartó: callarlo, que perdería platos sin decirlo; y parar, que le pregunta a quien pidió que no preguntaran | motivo: decidido
 - principio 4 | eligió: `menu_generado` guarda `menu_id` y `week_start`, que señalan la fila de `user_menu_weeks` (trozo 70) | descartó: las columnas `desde` y `hasta`, que copiarían lo que esa fila ya dice | motivo: decidido
 - principio 1 | eligió: no guardar `forzado` en `menu_generado` (trozo 70) | descartó: una columna sin lector, que afirmaría un dato que nada usa ni comprueba | motivo: decidido
 - principio 3 | eligió: si no se puede apuntar el menú, se avisa y el menú sigue hecho (trozo 70) | descartó: dejar que caiga el turno, que diría que falló un menú ya guardado | motivo: decidido
+- principio 4 | eligió: los días se leen de `user_menu_weeks` por casa, menú y semana, y van al motor por `soloEste` (trozo 71) | descartó: copiar los días en `menu_generado`, una segunda verdad | motivo: decidido
+- principio 3 | eligió: si no se puede leer la última vez, se pregunta como siempre y queda en el log (trozo 71) | descartó: dejar que falle todo el pedido por un botón de más | motivo: decidido
 
 ## Not verified
 

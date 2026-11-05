@@ -181,6 +181,7 @@
   "user_menu_weeks": [
     "api/_bot/casa.js",
     "api/_bot/generar.js",
+    "api/_bot/menusGenerados.js",
     "src/lib/menusSync.js"
   ],
   "user_menus": [
