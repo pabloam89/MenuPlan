@@ -8,16 +8,17 @@
 import { select, insert, update, eq } from "./db.js";
 import { esDuplicado } from "./entradas.js";
 import { CADUCA, COSAS_QUE_CADUCAN, vigente } from "./caducidades.js";
-import { IDS_CAMINO, caminoDelBoton, esBotonSalir } from "./caminoMenu.js";
+import { IDS_CAMINO, caminoDelBoton, esBotonSalir, esBotonUltimaVez, semanaPropuesta } from "./caminoMenu.js";
 import { estadosDeLaFicha, leerFichaCasa } from "./fichaRpc.js";
 import { ESTADO_EJE, ejesDeCasa } from "../../src/lib/ejesDeCasa.js";
 import { hasBabyMember } from "../../src/lib/groups.js";
 import { CAMINOS } from "../../src/lib/caminos.js";
+import { DIAS } from "../../src/lib/dias.js";
 import { CANAL, ESTADO_TAREA, ESTRUCTURA_PLATOS, OBJETIVO_TAREA, TIPO_TAREA, paraEscribir } from "../../src/lib/vocabularios.js";
 
 const CLAVE = "pedido_menu";
 const TEXTO = "Pedido de menú en curso";
-const VACIO = { camino: null, desde: null, forzado: false, preguntado: false, estructura: null, estructuraCena: null, avisado: false };
+const VACIO = { camino: null, desde: null, forzado: false, preguntado: false, estructura: null, estructuraCena: null, dias: null, avisado: false };
 const FECHA = /^\d{4}-\d{2}-\d{2}$/;
 
 const delPedido = (householdId) => `household_id=${eq(householdId)}&clave=${eq(CLAVE)}&status=eq.${ESTADO_TAREA.ABIERTA}`;
@@ -33,6 +34,7 @@ export function pedidoDeFila(fila) {
     preguntado: p?.preguntado === true,
     estructura: ESTRUCTURA_PLATOS.includes(p?.estructura) ? p.estructura : null,
     estructuraCena: ESTRUCTURA_PLATOS.includes(p?.estructuraCena) ? p.estructuraCena : null,
+    dias: Array.isArray(p?.dias) && p.dias.length && p.dias.every((d) => DIAS.includes(d)) ? p.dias : null,
     avisado: p?.avisado === true,
   };
 }
@@ -97,8 +99,18 @@ export function pedidoDelTurno(abierto, { camino = null, desde = null, forzado =
     preguntado: antes.preguntado && elegido === antes.camino,
     estructura: estructura ?? antes.estructura,
     estructuraCena: estructuraCena ?? antes.estructuraCena,
+    dias: elegido === antes.camino ? antes.dias ?? null : null,
     avisado: antes.avisado === true,
   };
+}
+
+/**
+ * Pura. Pulsado «Como la última vez»: su camino y sus días, desde la semana libre si no dijeron otra, y sin las
+ * preguntas del camino. Sin última vez, el pedido tal cual: se pregunta el camino.
+ */
+export function conUltimaVez(pedido, ultima, { texto = "", hoy, semanas = [] }) {
+  if (!ultima || !esBotonUltimaVez(texto)) return pedido;
+  return { ...pedido, camino: ultima.camino, dias: ultima.dias, desde: pedido.desde ?? semanaPropuesta({ hoy, semanas })?.desde ?? null, preguntado: true };
 }
 
 /** Pura. Lo dicho para este menú ya está contestado: no se pregunta ni se da por supuesto. */

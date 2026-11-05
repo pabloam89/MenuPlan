@@ -12,6 +12,7 @@
  */
 
 import { seguirCon, fallaCon, SIN_LEER, caidaDelModelo } from "./avisar.js";
+import { ultimaVez } from "./menusGenerados.js";
 import { noPude } from "./noPude.js";
 import fs from "node:fs";
 import Anthropic from "@anthropic-ai/sdk";
@@ -19,8 +20,8 @@ import { betaTool } from "@anthropic-ai/sdk/helpers/beta/json-schema";
 import { select, insert, eq, contandoEscrituras } from "./db.js";
 import { deLaCharla } from "./chats.js";
 import { cargarCasa, deshacer, hoyISO, apuntarOperacion } from "./casa.js";
-import { IDS_CAMINO, LEYENDA_CAMINOS, faltaParaGenerar, hayNinosEn, notaDeSupuestos } from "./caminoMenu.js";
-import { bloqueDePedido, cerrarPedido, ejesConElPedido, ejesDelPedido, guardarPedido, pedidoDelTurno, pedidoEnCurso } from "./pedidoMenu.js";
+import { IDS_CAMINO, LEYENDA_CAMINOS, esBotonUltimaVez, faltaParaGenerar, hayNinosEn, notaDeSupuestos } from "./caminoMenu.js";
+import { bloqueDePedido, cerrarPedido, conUltimaVez, ejesConElPedido, ejesDelPedido, guardarPedido, pedidoDelTurno, pedidoEnCurso } from "./pedidoMenu.js";
 import { avisoDeRehacer, faltaDelPedido } from "../../src/lib/pedidoMenu.js";
 import {
   describirCasa, describirReceta, describirCompra,
@@ -861,11 +862,15 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
         // leer la casa lanza, no pregunta de menos.
         const quien = { householdId, channel: chat.channel, chatId: chat.chatId, userId: chat.userId };
         // Quien pidió ritmo directo en su trato no quiere preguntas: su pedido va forzado (lo de seguridad se pregunta igual).
-        const pedido = pedidoDelTurno(await pedidoEnCurso(householdId), { camino, desde, forzado: forzado || chat.trato?.ritmo === RITMO_TRATO.DIRECTO, texto: chat.texto, estructura, estructuraCena });
+        const delTurno = pedidoDelTurno(await pedidoEnCurso(householdId), { camino, desde, forzado: forzado || chat.trato?.ritmo === RITMO_TRATO.DIRECTO, texto: chat.texto, estructura, estructuraCena });
         const casa = await cargarCasa(householdId);
+        const semanas = casa?.menu ? casa.semanas : [];
+        // La última vez solo hace falta para ofrecerla o repetirla. Si no se lee, se pregunta como siempre.
+        const ultima = !delTurno.camino || esBotonUltimaVez(chat.texto) ? await ultimaVez(householdId).catch(seguirCon("agente_pedido", null)) : null;
+        const pedido = conUltimaVez(delTurno, ultima, { texto: chat.texto, hoy: hoyISO(), semanas });
         const ejes = ejesConElPedido(await ejesDelPedido(quien, casa), pedido);
         const hayNinos = hayNinosEn(casa);
-        const falta = faltaParaGenerar({ ...pedido, texto: chat.texto, hoy: hoyISO(), hayNinos, semanas: casa?.menu ? casa.semanas : [], ejes });
+        const falta = faltaParaGenerar({ ...pedido, texto: chat.texto, hoy: hoyISO(), hayNinos, semanas, ejes, ultima });
         if (falta) {
           await guardarPedido(quien, { ...pedido, preguntado: pedido.preguntado || IDS_CAMINO.includes(pedido.camino) });
           return resultadoDeGenerar({ ok: false, motivo: SIN_GENERAR.PREGUNTAR }, falta);
@@ -885,7 +890,7 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
         const out = {};
         // Pulsado «Rehacer la del 26 oct», esa semana y rehacer, diga lo que diga el modelo (#907).
         const delBoton = esBotonRehacer(chat.texto) ? desdeDelBoton(chat.texto, isoDeCasa()) : null;
-        const texto = await generarMenu(householdId, semana, fijos ?? [], out, { desde: delBoton ?? pedido.desde, rehacer: Boolean(rehacer) || Boolean(delBoton), soloEste: { estructura: pedido.estructura, estructuraCena: pedido.estructuraCena }, comoSePidio: pedido });
+        const texto = await generarMenu(householdId, semana, fijos ?? [], out, { desde: delBoton ?? pedido.desde, rehacer: Boolean(rehacer) || Boolean(delBoton), soloEste: { estructura: pedido.estructura, estructuraCena: pedido.estructuraCena, dias: pedido.dias }, comoSePidio: pedido });
         if (out.ok) pintarTambien(chat, filtrosTrasGenerar(out));
         // Generar fallido deja el pedido abierto: lo dicho no se pierde.
         await (out.ok ? cerrarPedido(householdId) : guardarPedido(quien, { ...pedido, avisado: pedido.avisado || pisa })).catch(seguirCon("agente_pedido", null));

@@ -369,7 +369,7 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   // «Esta semana» empieza hoy (no tiene sentido planificar el lunes pasado),
   // o mañana si se rehace; las demás, desde su lunes y enteras.
   const { offset, startDayIdx } = pedida;
-  const days = diasQueQuedan(m.explicitDaysForOffset(working, offset), offset, startDayIdx);
+  const days = diasQueQuedan(soloEste.dias ?? m.explicitDaysForOffset(working, offset), offset, startDayIdx);
   const { startISO: inicioGenerado, endISO, activeDays } = m.computeWeekRange(offset, startDayIdx, days);
   // Rehaciendo la semana en curso, se guarda entera desde donde empezaba: lo
   // de hoy y lo pasado vuelve del plan viejo (conservarDiasPrevios, abajo).
