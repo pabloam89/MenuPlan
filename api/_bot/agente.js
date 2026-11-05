@@ -73,7 +73,7 @@ const TRASTOS = [...APARATOS_EN_ORDEN];
 import { ESQUEMA_DE_FUERA } from "./deFuera.js";
 import { verDespensa, anadirDespensa, MAX_POR_VEZ as MAX_DESPENSA } from "./despensa.js";
 import { guardarMenuCole, verMenuCole, DIAS_MINIMOS_COLE, MAX_SEMANAS_COLE } from "./cole.js";
-import { buscarRecetas, prepararReceta, guardarReceta, apartarFotoPlato, recetaPorNombre, CATEGORIAS } from "./recetas.js";
+import { buscarRecetas, prepararReceta, guardarReceta, apartarFotoPlato, recetaPorNombre, CATEGORIAS, cambiarRecetaPropia, ACCIONES_RECETA } from "./recetas.js";
 import { conPista, textoPista, datosDePlantilla } from "./pista.js";
 import { verReceta, calorias as caloriasDePlato, queFalta } from "./plato.js";
 import { papelDeQuien, idiomaDe } from "./papel.js";
@@ -449,6 +449,17 @@ function herramientasDeRecetas(chat) {
       description: "Guarda la última receta preparada con preparar_receta en esta charla (la herramienta la tiene apartada: no hace falta volver a pedir ningún dato), en el recetario de la casa, y el motor ya puede ponerla en menús. Llámala en cuanto digan «Guardar» o «sí» al resumen, con confirmado = true y el nombre de la receta que han aprobado (si no es la última preparada, no se guarda).",
       inputSchema: obj({ confirmado: { type: "boolean" }, nombre: { type: "string" } }, ["confirmado", "nombre"]),
       run: ({ confirmado, nombre }) => guardarReceta(householdId, { confirmado, nombre }, chat),
+    }),
+    // Lo que la app ya hacía con las recetas y Lola no (trozo 48, parte 1). Borrar no se deshace: su riesgo lo dice.
+    herramienta({ capacidades: ["favorita", "borrar_receta"], lee: ["userRecipes", "recipeVotes"], escribe: ["userRecipes", "recipeVotes"], lector: false, riesgo: RIESGO_HERRAMIENTA.ESCRIBE_IRREVERSIBLE, deshace: DESHACE.NO, pantalla: "recetas:mias" }, {
+      name: "receta_propia",
+      description: "Con una receta que nombran: favorita (la marca como favorita de quien escribe, del catálogo o vuestra), no_favorita (se la quita), o borrar (solo las vuestras, no las del catálogo). Borrar no se deshace: llámala primero sin confirmado, pregunta con el nombre que te devuelva y vuelve a llamarla con confirmado = true y ese nombre solo con su «sí».",
+      inputSchema: obj({
+        accion: { type: "string", enum: [...ACCIONES_RECETA] },
+        receta: { type: "string", description: "El nombre de la receta, como lo dicen." },
+        confirmado: { type: "boolean", description: "Solo para borrar, tras su «sí»." },
+      }, ["accion", "receta"]),
+      run: (args) => cambiarRecetaPropia(householdId, args, { userId: chat.userId ?? null }),
     }),
   ];
 }
