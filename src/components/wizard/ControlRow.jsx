@@ -80,7 +80,7 @@ const TEAL = "#0f766e";
  */
 export function BaldosaAccion({
   Icono, etiqueta, color = VERDE, tinte = "#fff",
-  marcado = false, onClick, title, ariaPressed,
+  marcado = false, onClick, title, ariaPressed, ancho = 76, ...rest
 }) {
   return (
     <button
@@ -89,8 +89,9 @@ export function BaldosaAccion({
       title={title}
       aria-label={title ?? etiqueta}
       aria-pressed={ariaPressed}
+      {...rest}
       style={{
-        flexShrink: 0, width: 76,
+        flexShrink: 0, width: ancho, minWidth: 0,
         display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
         background: "none", border: "none", padding: 0,
         cursor: "pointer", fontFamily: "inherit",
