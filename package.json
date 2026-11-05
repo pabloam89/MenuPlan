@@ -40,6 +40,7 @@
     "bot:panel": "node scripts/bot-panel.mjs",
     "fallos": "node scripts/bot-fallos.mjs",
     "fallos:lola": "node scripts/bot-reportes.mjs",
+    "pedidos": "node scripts/pedidos-menu.mjs",
     "hora": "node scripts/hora.mjs",
     "consulta": "node scripts/consulta.mjs",
     "pr:cuerpo": "node scripts/pr-cuerpo.mjs",
