@@ -907,10 +907,10 @@ export function TelegramButton({ url, variant = "light" }) {
       label="Entrar con Telegram"
       variant={variant}
       glyph={<Send size={18} />}
-      background={tono.marca}
+      background={tono.telegram}
       color={tono.superficie}
-      border={`1.5px solid ${tono.marca}`}
-      spinnerTrack={tono["marca-viva"]}
+      border={`1.5px solid ${tono.telegram}`}
+      spinnerTrack={tono["linea-fuerte"]}
       spinnerArc={tono.superficie}
       failMessage="No se pudo abrir Telegram."
     />

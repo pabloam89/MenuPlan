@@ -14,7 +14,7 @@ describe('tokens.css', () => {
     expect(versionado).toBe(generarCss())
   })
 
-  it('define una variable por cada uno de los 77 valores', () => {
+  it('define una variable por cada uno de los 78 valores', () => {
     for (const v of valoresPlanos()) expect(versionado, v.variable).toContain(`${v.variable}: ${v.css};`)
   })
 

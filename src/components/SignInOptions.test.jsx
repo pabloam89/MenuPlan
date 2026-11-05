@@ -38,6 +38,15 @@ afterEach(() => {
 });
 
 describe("SignInOptions", () => {
+  it("«Entrar con Telegram» lleva el azul de Telegram, no el verde de la marca", async () => {
+    await montar(false, { urlTelegram: "https://oauth.telegram.org/auth" });
+    const boton = [...container.querySelectorAll("button")].find((b) => b.textContent.includes("Telegram"));
+    const { color } = await import("../design/tokens.js");
+    const probe = document.createElement("div");
+    probe.style.background = color.telegram;
+    expect(boton.style.background).toBe(probe.style.background);
+  });
+
   it("en la web solo ofrece Google", async () => {
     vi.stubEnv("VITE_APPLE_WEB", "");
     const texto = await montar(false);
