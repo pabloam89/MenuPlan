@@ -910,7 +910,7 @@ export function TelegramButton({ url, variant = "light" }) {
       background={tono.telegram}
       color={tono.superficie}
       border={`1.5px solid ${tono.telegram}`}
-      spinnerTrack={tono.telegram}
+      spinnerTrack={tono["linea-fuerte"]}
       spinnerArc={tono.superficie}
       failMessage="No se pudo abrir Telegram."
     />
