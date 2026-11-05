@@ -6,7 +6,7 @@
  * Lo comprueba el código, no solo el manual: generar_menu no genera sin camino ni fecha, y tampoco en el mismo turno
  * en que se acaba de elegir el camino (entonces toca hacer sus preguntas). Puro: sin base.
  */
-import { CAMINOS, TEMAS, temasDelCamino } from "../../src/lib/caminos.js";
+import { CAMINO, CAMINOS, TEMAS, temasDelCamino } from "../../src/lib/caminos.js";
 import { faltaDelPedido } from "../../src/lib/pedidoMenu.js";
 import { hasChildMember } from "../../src/lib/groups.js";
 import { diaYNumero, esBotonRehacer, lunesDe, rangoDeFechas, resolverSemana, sumarDias } from "./semanaPedida.js";
@@ -33,6 +33,16 @@ const tituloDeTema = (id) => TEMAS.find((t) => t.id === id).titulo;
 export function caminoDelBoton(texto) {
   const t = String(texto ?? "").trim().toLowerCase();
   return CAMINOS.find((c) => c.titulo.toLowerCase() === t)?.id ?? null;
+}
+
+/** El botón para dejar de preguntar y generar con lo que haya (lo enseña el manual de Lola). */
+export const BOTON_SALIR = "Ya está, genéralo";
+export const esBotonSalir = (texto) => String(texto ?? "").trim().toLowerCase() === BOTON_SALIR.toLowerCase();
+
+/** Pura. Lo que Lola da por supuesto, para decirlo en el resumen del menú. Sin supuestos, nada. */
+export function notaDeSupuestos(supuestos = []) {
+  const titulos = TEMAS.filter((t) => t.ejes.some((e) => supuestos.includes(e.dato))).map((t) => t.titulo);
+  return titulos.length ? `Has dado por supuesto lo de: ${titulos.join(" ")} Dilo en una línea del resumen y ofrece cambiarlo.` : "";
 }
 
 /** Pura. ¿Hay niños en la casa? (para no preguntar lo que solo aplica con niños) */
@@ -73,14 +83,21 @@ export function preguntaDeCamino({ hoy, semanas = [] }) {
 
 /**
  * Pura. Si no se puede generar todavía, el «NO GENERADO» con lo que Lola tiene que preguntar; si se puede, null.
- * @param {{ camino?: string|null, desde?: string|null, texto?: string, hayNinos?: boolean, hoy?: string, semanas?: object[] }} p
+ * @param {{ camino?: string|null, desde?: string|null, texto?: string, hayNinos?: boolean, hoy?: string, semanas?: object[], ejes?: object|null, forzado?: boolean, preguntado?: boolean }} p
  *   `texto`: el mensaje de este turno. Si es el botón «Rehacer la del…», ya trae su semana y no se pregunta.
  *   `hoy` y `semanas`: para proponer desde cuándo, cuando falta el camino.
  *   `ejes`: lo que la casa ya sabe (ejesDeCasa.js); sin ellos, se preguntan todos los temas del camino.
+ *   `forzado`: dijeron «sigue tú»: ni camino, ni preguntas, ni fecha, salvo lo que bloquea. `preguntado`: ya se hicieron las del camino.
  */
-export function faltaParaGenerar({ camino = null, desde = null, texto = "", hayNinos = false, hoy = null, semanas = [], ejes = null }) {
+export function faltaParaGenerar({ camino = null, desde = null, texto = "", hayNinos = false, hoy = null, semanas = [], ejes = null, forzado = false, preguntado = false }) {
   if (esBotonRehacer(texto)) return null;
-  if (!IDS_CAMINO.includes(camino)) {
+  const hayCamino = IDS_CAMINO.includes(camino);
+  if (ejes) {
+    const { bloquea } = faltaDelPedido({ camino: hayCamino ? camino : CAMINO.BASICO, desde, forzado, ejes, hayNinos });
+    if (bloquea.length) return `NO GENERADO: sin esto no se genera, aunque digan que sigas: ${bloquea.join(", ")}. Pregúntalo, con el aviso de «Seguridad», y luego generar_menu.`;
+  }
+  if (forzado) return null;
+  if (!hayCamino) {
     if (!hoy) throw new Error("faltaParaGenerar: sin camino hace falta hoy para proponer la semana");
     const s = semanaPropuesta({ hoy, semanas });
     const luego = s ? ` Cuando elijan, generar_menu con ese camino y desde ${s.desde} (o la fecha que digan).` : " Cuando elijan, generar_menu con ese camino y la fecha que digan.";
@@ -88,8 +105,8 @@ export function faltaParaGenerar({ camino = null, desde = null, texto = "", hayN
   }
   const preguntas = preguntasDelCamino(camino, { hayNinos, ejes }).join(" ");
   const titulo = CAMINOS.find((c) => c.id === camino).titulo;
-  if (caminoDelBoton(texto) === camino && preguntas) {
-    return `NO GENERADO: acaban de elegir «${titulo}». Ahora pregúntale, en un mensaje y con la invitación a contestar en un audio, lo de ese camino (lo que ya sepas de la ficha, no lo vuelvas a preguntar): ${preguntas} Con lo que conteste, generar_menu con camino «${camino}» y desde.`;
+  if (preguntas && (caminoDelBoton(texto) === camino || (ejes && !preguntado))) {
+    return `NO GENERADO: acaban de elegir «${titulo}». Ahora pregúntale, en un mensaje y con la invitación a contestar en un audio, lo de ese camino (lo que ya sepas de la ficha, no lo vuelvas a preguntar)${desde ? "" : " y para cuándo lo quiere"}: ${preguntas} Con lo que conteste, generar_menu con camino «${camino}» y desde.`;
   }
   if (!desde) {
     return `NO GENERADO: falta para cuándo. Pregúntalo siempre, aunque parezca obvio (camino «${titulo}»: ${preguntas}). Luego generar_menu con camino y desde (AAAA-MM-DD).`;

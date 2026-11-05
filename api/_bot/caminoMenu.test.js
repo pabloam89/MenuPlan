@@ -151,6 +151,6 @@ describe("faltaParaGenerar: no se genera sin preguntar", () => {
   });
 
   it("si al elegir camino no falta nada, no pregunta: con fecha, se genera (trozo 65)", () => {
-    expect(faltaParaGenerar({ camino: CAMINO.BASICO, desde: "2026-11-02", texto: "Solo los días", ejes: { schedule: { estado: "sabido" } } })).toBeNull();
+    expect(faltaParaGenerar({ camino: CAMINO.BASICO, desde: "2026-11-02", texto: "Solo los días", ejes: { schedule: { estado: "sabido" } }, preguntado: true })).toBeNull();
   });
 });

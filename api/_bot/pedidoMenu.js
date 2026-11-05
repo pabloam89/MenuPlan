@@ -1,18 +1,22 @@
 /**
  * El pedido de menú en curso (trozo 66 de #1037, tramo 10): una tarea abierta por casa con lo que no sale de la ficha,
- * el camino elegido, desde cuándo y si dijeron «sigue tú». Así sobrevive a que la charla cambie de tema, y dos adultos
+ * el camino elegido, desde cuándo, si dijeron «sigue tú» y si ya se hicieron las preguntas del camino. Así sobrevive a que la charla cambie de tema, y dos adultos
  * comparten el mismo: lo garantiza el índice único (casa, clave) entre las abiertas.
  * Lo que falta no se guarda aquí: se calcula en cada turno (src/lib/pedidoMenu.js).
  */
 import { select, insert, update, eq } from "./db.js";
 import { esDuplicado } from "./entradas.js";
 import { CADUCA, COSAS_QUE_CADUCAN, vigente } from "./caducidades.js";
-import { IDS_CAMINO } from "./caminoMenu.js";
+import { IDS_CAMINO, caminoDelBoton, esBotonSalir } from "./caminoMenu.js";
+import { estadosDeLaFicha, leerFichaCasa } from "./fichaRpc.js";
+import { ejesDeCasa } from "../../src/lib/ejesDeCasa.js";
+import { hasBabyMember } from "../../src/lib/groups.js";
+import { CAMINOS } from "../../src/lib/caminos.js";
 import { CANAL, ESTADO_TAREA, OBJETIVO_TAREA, TIPO_TAREA, paraEscribir } from "../../src/lib/vocabularios.js";
 
 const CLAVE = "pedido_menu";
 const TEXTO = "Pedido de menú en curso";
-const VACIO = { camino: null, desde: null, forzado: false };
+const VACIO = { camino: null, desde: null, forzado: false, preguntado: false };
 const FECHA = /^\d{4}-\d{2}-\d{2}$/;
 
 const delPedido = (householdId) => `household_id=${eq(householdId)}&clave=${eq(CLAVE)}&status=eq.${ESTADO_TAREA.ABIERTA}`;
@@ -25,6 +29,7 @@ export function pedidoDeFila(fila) {
     camino: IDS_CAMINO.includes(p?.camino) ? p.camino : null,
     desde: FECHA.test(String(p?.desde ?? "")) ? p.desde : null,
     forzado: p?.forzado === true,
+    preguntado: p?.preguntado === true,
   };
 }
 
@@ -72,6 +77,37 @@ export async function guardarPedido({ householdId, channel = CANAL.TELEGRAM, cha
   const juntos = juntar(delOtro, cambios, ahora);
   await reescribir(delOtro, juntos, ahora);
   return juntos;
+}
+
+/**
+ * Pura. El pedido de este turno: lo que traiga la llamada, el botón pulsado y lo que ya había. Cambiar de camino
+ * deja sus preguntas por hacer.
+ */
+export function pedidoDelTurno(abierto, { camino = null, desde = null, forzado = false, texto = "" } = {}) {
+  const antes = abierto ?? VACIO;
+  const elegido = camino ?? caminoDelBoton(texto) ?? antes.camino;
+  return {
+    camino: elegido,
+    desde: desde ?? antes.desde,
+    forzado: forzado === true || esBotonSalir(texto) || antes.forzado,
+    preguntado: antes.preguntado && elegido === antes.camino,
+  };
+}
+
+/** Pura. Lo que Lola ve de un pedido en curso, delante del mensaje. Sin pedido, nada. */
+export function bloqueDePedido(pedido) {
+  if (!pedido) return "";
+  const camino = CAMINOS.find((c) => c.id === pedido.camino)?.titulo;
+  const hay = [camino ? `camino «${camino}»` : "aún sin camino", pedido.desde ? `desde ${pedido.desde}` : "aún sin fecha"];
+  return `[Pedido de menú en curso: ${hay.join(", ")}. No lo ha escrito la persona. Si lo que dicen contesta a esto, sigue con generar_menu. Si hablan de otra cosa, atiende eso y no insistas.]`;
+}
+
+/** Los ejes de esta casa (src/lib/ejesDeCasa.js), o null si no hay ficha con estados que leer. */
+export async function ejesDelPedido({ householdId, userId = null, channel = CANAL.TELEGRAM }, casa) {
+  const estados = estadosDeLaFicha(await leerFichaCasa({ householdId, userId, canal: channel }));
+  const data = casa?.state?.data ?? {};
+  const miembros = data.members ?? [];
+  return ejesDeCasa({ estados, data, personas: miembros.map((m) => String(m.id ?? m.name)), hayBebe: hasBabyMember(miembros) });
 }
 
 /** Cierra el pedido: `hecha` al generar, `descartada` si lo dejan. Un generar fallido no lo cierra. */

@@ -19,7 +19,9 @@ import { betaTool } from "@anthropic-ai/sdk/helpers/beta/json-schema";
 import { select, insert, eq, contandoEscrituras } from "./db.js";
 import { deLaCharla } from "./chats.js";
 import { cargarCasa, deshacer, hoyISO, apuntarOperacion } from "./casa.js";
-import { IDS_CAMINO, LEYENDA_CAMINOS, faltaParaGenerar, hayNinosEn } from "./caminoMenu.js";
+import { IDS_CAMINO, LEYENDA_CAMINOS, faltaParaGenerar, hayNinosEn, notaDeSupuestos } from "./caminoMenu.js";
+import { bloqueDePedido, cerrarPedido, ejesDelPedido, guardarPedido, pedidoDelTurno, pedidoEnCurso } from "./pedidoMenu.js";
+import { faltaDelPedido } from "../../src/lib/pedidoMenu.js";
 import {
   describirCasa, describirReceta, describirCompra,
   marcarCompra, anadirCompra, quitarCompra, cambiarPlato, proponerPlatos, franjaDe, porQuePlato, BOTON_REPETIR_VECINOS,
@@ -841,6 +843,7 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
         camino: { type: "string", enum: IDS_CAMINO, description: `El que eligieron con los botones (${LEYENDA_CAMINOS}). Sin él no se genera: pregúntalo siempre.` },
         semana: { type: "string", enum: ["esta", "siguiente"] },
         desde: { type: "string", description: "AAAA-MM-DD: para cuándo, lo que hayan contestado (manda sobre semana). Se pregunta siempre." },
+        forzado: { type: "boolean", description: "true si dicen que sigas sin preguntar más («sigue tú», «da igual», «me he cansado»): genera con lo que haya, salvo lo de seguridad." },
         rehacer: { type: "boolean", description: "true si piden rehacer una semana que ya tiene menú, o al pulsar [[Rehacer la del …]]: entonces desde = ese lunes y rehacer: true, los dos." },
         fijos: {
           type: "array", maxItems: 7,
@@ -850,14 +853,18 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
           }, ["nombre"]),
         },
       }, ["semana"]),
-      run: async ({ camino, semana, fijos, desde, rehacer }) => {
+      run: async ({ camino, semana, fijos, desde, rehacer, forzado }) => {
         // Antes de generar, para cuándo y el camino (caminoMenu.js, #1210): si falta, qué preguntar, y nada se genera.
-        // La casa solo se lee si hay que preguntar (sus temas de niños y sus semanas, para proponer desde cuándo);
-        // un fallo al leerla lanza, no pregunta de menos.
-        const pedido = { camino, desde, texto: chat.texto, hoy: hoyISO() };
-        if (faltaParaGenerar(pedido)) {
-          const casa = await cargarCasa(householdId);
-          const falta = faltaParaGenerar({ ...pedido, hayNinos: hayNinosEn(casa), semanas: casa?.menu ? casa.semanas : [] });
+        // Lo ya dicho sigue en el pedido en curso (pedidoMenu.js), aunque la charla haya cambiado de tema. Un fallo al
+        // leer la casa lanza, no pregunta de menos.
+        const quien = { householdId, channel: chat.channel, chatId: chat.chatId, userId: chat.userId };
+        const pedido = pedidoDelTurno(await pedidoEnCurso(householdId), { camino, desde, forzado, texto: chat.texto });
+        const casa = await cargarCasa(householdId);
+        const ejes = await ejesDelPedido(quien, casa);
+        const hayNinos = hayNinosEn(casa);
+        const falta = faltaParaGenerar({ ...pedido, texto: chat.texto, hoy: hoyISO(), hayNinos, semanas: casa?.menu ? casa.semanas : [], ejes });
+        if (falta) {
+          await guardarPedido(quien, { ...pedido, preguntado: pedido.preguntado || IDS_CAMINO.includes(pedido.camino) });
           return resultadoDeGenerar({ ok: false, motivo: SIN_GENERAR.PREGUNTAR }, falta);
         }
         // La semana generada sale pintada debajo del mensaje de Lola (entregar()).
@@ -867,8 +874,12 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
         const out = {};
         // Pulsado «Rehacer la del 26 oct», esa semana y rehacer, diga lo que diga el modelo (#907).
         const delBoton = esBotonRehacer(chat.texto) ? desdeDelBoton(chat.texto, isoDeCasa()) : null;
-        const texto = await generarMenu(householdId, semana, fijos ?? [], out, { desde: delBoton ?? desde ?? null, rehacer: Boolean(rehacer) || Boolean(delBoton) });
+        const texto = await generarMenu(householdId, semana, fijos ?? [], out, { desde: delBoton ?? pedido.desde, rehacer: Boolean(rehacer) || Boolean(delBoton) });
         if (out.ok) pintarTambien(chat, filtrosTrasGenerar(out));
+        // Generar fallido deja el pedido abierto: lo dicho no se pierde.
+        await (out.ok ? cerrarPedido(householdId) : guardarPedido(quien, pedido)).catch(seguirCon("agente_pedido", null));
+        const { supuestos = [] } = ejes && out.ok && pedido.camino ? faltaDelPedido({ ...pedido, ejes, hayNinos }) : {};
+        if (supuestos.length) return resultadoDeGenerar(out, `${texto}\n${notaDeSupuestos(supuestos)}`);
         if (out.recordarSilencio) chat.recordarSilencio = true;
         return resultadoDeGenerar(out, out.recordarSilencio ? `${texto}\n${NOTA_RECORDATORIO}` : texto);
       },
@@ -1389,7 +1400,8 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
   const abiertas = vigentesSegun(guardadas, estaResuelta).filter((p) => !p.clave || !enTabla.has(p.clave));
   // Las tareas abiertas van delante de lo que dice la persona, solo para el modelo: no se guardan en su mensaje.
   const bloque = bloqueDe(abiertas);
-  const entradaModelo = [bloqueDeTareas(tareasVivas, { data, chatId }), bloque, entrada].filter(Boolean).join("\n\n");
+  const pedidoAbierto = await pedidoEnCurso(householdId).catch(seguirCon("agente_pedido", null));
+  const entradaModelo = [bloqueDeTareas(tareasVivas, { data, chatId }), bloqueDePedido(pedidoAbierto), bloque, entrada].filter(Boolean).join("\n\n");
   // Lo último que dijo Lola: un «sí» contesta a eso (supervisor.js).
   chat.anterior = historia.findLast((m) => m.role === "assistant")?.content ?? "";
   chat.anteriorAt = mem.ultimaDeLolaAt ?? null;
