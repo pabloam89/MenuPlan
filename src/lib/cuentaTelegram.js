@@ -48,6 +48,10 @@ export const tieneProveedor = (user, proveedor) => (user?.identities ?? []).some
 /** Las formas de entrar, en el orden en que se enseñan (Telegram primero). Google y Apple son proveedores de Supabase. */
 export const FORMA_DE_ENTRAR = Object.freeze({ TELEGRAM: "telegram", GOOGLE: "google", APPLE: "apple" });
 
+/** ¿Solo se entra a esta cuenta con su Telegram? Nació allí y no tiene otra llave: si Telegram se va, nadie puede abrirla. */
+export const soloEntraConTelegram = (user) =>
+  esCuentaDeTelegram(user) && !tieneProveedor(user, FORMA_DE_ENTRAR.GOOGLE) && !tieneProveedor(user, FORMA_DE_ENTRAR.APPLE);
+
 /**
  * «Formas de entrar» de Mi perfil (specs/auth.md §7, trozo 2): con qué entra la cuenta (`tiene`) y qué se le puede
  * añadir. Telegram sale solo en las cuentas nacidas en Telegram, que son las que abre (trozo 3 para las demás), y

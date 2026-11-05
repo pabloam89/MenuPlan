@@ -92,6 +92,7 @@
     "api/_bot/invitacion.js"
   ],
   "household_members": [
+    "api/_bot/enlace.js",
     "api/_bot/papel.js",
     "api/bot/link.js",
     "api/bot/telegram.js"
