@@ -1431,7 +1431,7 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
     adelanto.usar(leido);
     if (leido) medidaPista = { ...medidaPista, modo: d.modo, confianza: d.confianza, adelanto: leido.nombre, reinicio };
     return ejecutar({
-      historia, entrada: entradaModelo, tools: conAdelanto, adjunto, signal: sig, ficha, progreso, canal,
+      historia, entrada: entradaModelo, tools: conAdelanto, adjunto, signal: sig, ficha, progreso, canalDelTurno: canal,
       alPedir: (nombres) => chat.pedidas.push(...nombres),
       guardados: () => chat.guardados ?? 0,
       pista: leido ? textoPista(d, leido) : null,
@@ -1665,7 +1665,7 @@ const AVISO_SIN_GUARDAR = "[Aviso del sistema, no lo ha escrito la persona] En t
  *   en el turno (responder lo saca de db.js). Sin él (pruebas con herramientas
  *   de mentira) vale lo intentado.
  */
-export async function ejecutar({ historia = [], entrada, tools, adjunto = null, alEscribir = null, signal = null, modelos = [MODELO, MODELO_RESERVA], alReintentar = null, ficha = null, vuelta = unaVuelta, pista = null, progreso = null, guardados = null, alPedir = null, ahora = null, canal = CANAL.TELEGRAM }) {
+export async function ejecutar({ historia = [], entrada, tools, adjunto = null, alEscribir = null, signal = null, modelos = [MODELO, MODELO_RESERVA], alReintentar = null, ficha = null, vuelta = unaVuelta, pista = null, progreso = null, guardados = null, alPedir = null, ahora = null, canalDelTurno = CANAL.TELEGRAM }) {
   // Si ha INTENTADO escribir en la casa este turno y el modelo se cae después,
   // no se repite con el de reserva: lo haría dos veces. Cuenta el intento, no
   // el éxito: una escritura que falló a medias puede haber guardado algo.
@@ -1717,7 +1717,7 @@ export async function ejecutar({ historia = [], entrada, tools, adjunto = null, 
     try {
       if (i > 0) alReintentar?.();
       const comun = {
-        tools: vigiladas, alEscribir: escribir, modelo, ficha, progreso, alPedir, ahora, canal,
+        tools: vigiladas, alEscribir: escribir, modelo, ficha, progreso, alPedir, ahora, canalDelTurno,
         signal: signal ? AbortSignal.any([signal, plazo]) : plazo,
         // El principal sin reintentos: si falla, reintentar ES el de reserva.
         maxRetries: i === 0 && modelos.length > 1 ? 0 : 1,
@@ -1806,7 +1806,7 @@ export function esCaida(err) {
 // los puntos de 1 h vayan antes que los de 5 min.
 const CACHE_FIJA = { type: "ephemeral", ttl: "1h" };
 
-async function unaVuelta({ historia, entrada, tools, adjunto, alEscribir, signal, modelo, maxRetries, ficha = null, pista = null, progreso = null, alPedir = null, ahora = null, canal, maxIteraciones = MAX_LLAMADAS_VUELTA }) {
+async function unaVuelta({ historia, entrada, tools, adjunto, alEscribir, signal, modelo, maxRetries, ficha = null, pista = null, progreso = null, alPedir = null, ahora = null, canalDelTurno, maxIteraciones = MAX_LLAMADAS_VUELTA }) {
   // Con cache_control en el último bloque: la segunda vuelta del turno (tras
   // una herramienta) y las siguientes leen de caché todo lo anterior —
   // instrucciones, historia y el mensaje— en vez de volver a procesarlo.
@@ -1825,7 +1825,7 @@ async function unaVuelta({ historia, entrada, tools, adjunto, alEscribir, signal
     // Haiku no tiene «effort» (si se pone de reserva con BOT_MODELO_RESERVA): va sin él.
     ...(/haiku/.test(modelo) ? {} : { output_config: { effort: EFFORT } }),
     system: [
-      { type: "text", text: await sistema(canal), cache_control: CACHE_FIJA },
+      { type: "text", text: await sistema(canalDelTurno), cache_control: CACHE_FIJA },
       // La ficha, en dos bloques con su caché: el estable casi no cambia y el
       // del día cambia una vez al día (o al cambiar el menú). Son 3 de los 4
       // puntos de caché que deja la API; el cuarto, el mensaje.
