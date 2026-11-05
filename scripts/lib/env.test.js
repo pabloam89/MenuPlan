@@ -29,7 +29,7 @@ vi.mock("node:child_process", () => ({
   },
 }));
 
-const { cargarEnv, direcciones, enOtraBoveda, esReferencia, leerEnv, leerFichero, opPorLaApp, MOTIVOS_AVISO, VAR_OP_PABLO } = await import("./env.mjs");
+const { BOVEDA_SESIONES, cargarEnv, direcciones, enOtraBoveda, esReferencia, leerEnv, leerFichero, opPorLaApp, MOTIVOS_AVISO, VAR_OP_PABLO } = await import("./env.mjs");
 
 const NOMBRES = ["PRUEBA_A", "PRUEBA_B", "PRUEBA_C", "PRUEBA_LLANA", "PRUEBA_D", "PRUEBA_E", "PRUEBA_F", "PRUEBA_G"];
 beforeEach(() => {
@@ -105,7 +105,7 @@ describe("direcciones: la plantilla de git manda, .env.local solo añade lo de c
     const d = direcciones({ local: join(tmpdir(), "no-existe", ".env.local"), entorno: {} });
     const refs = Object.values(d).filter(esReferencia);
     expect(refs.length).toBeGreaterThan(0);
-    expect(refs.filter((r) => !r.startsWith("op://HoMenu-sesiones/"))).toEqual([]);
+    expect(refs.filter((r) => !r.startsWith(`op://${BOVEDA_SESIONES}/`))).toEqual([]);
   });
 });
 

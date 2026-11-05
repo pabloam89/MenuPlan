@@ -8,9 +8,9 @@
  */
 import { existsSync, readdirSync } from "node:fs";
 import { basename, dirname, join } from "node:path";
-import { PLANTILLA, RAIZ, direcciones, esReferencia, leerFichero } from "./lib/env.mjs";
+import { BOVEDA_SESIONES, PLANTILLA, RAIZ, direcciones, esReferencia, leerFichero } from "./lib/env.mjs";
 
-const SESIONES = "op://HoMenu-sesiones/";
+const SESIONES = `op://${BOVEDA_SESIONES}/`;
 const claves = Object.keys(leerFichero(PLANTILLA));
 const fuera = (env) => claves.some((k) => esReferencia(env[k]) && !env[k].startsWith(SESIONES));
 
