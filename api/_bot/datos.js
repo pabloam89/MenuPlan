@@ -18,7 +18,7 @@ import { borradasDe } from "../../src/lib/borrarPersona.js";
 import { operar, operarPersonas, operarPreferencias, deshacer, RPC_LEER_PREFERENCIAS } from "../../src/lib/operaciones/tuberia.js";
 import { membersDeFilas, FamiliaSinLeer, RPC_FAMILIA } from "../../src/lib/personas.js";
 import { FALLO_DATO, MOTIVO_FALLO, CANAL_DATO } from "../../src/lib/vocabularios.js";
-import { FICHA_CON_ESTADO, fichaSinContrato, leidosConSobre, FICHAS_CASA_CON_SOBRE } from "../../src/lib/estadoDeDato.js";
+import { FICHA_CON_ESTADO, fichaSinContrato, leidosConSobre, basesSinPersonas, FICHAS_CASA_CON_SOBRE } from "../../src/lib/estadoDeDato.js";
 
 /**
  * El fallo de dato (FALLOS_DATO) de cada motivo de avisar.js (MOTIVOS_FALLO).
@@ -130,7 +130,7 @@ export async function leerDatosDeCasa(householdId, userId, { canal = CANAL_DATO.
   const mal = fichaSinContrato(ficha);
   if (mal) throw new Error(`ficha_casa: forma que no se conoce (${mal})`);
   if (ficha.v !== FICHA_CON_ESTADO) throw new Error(`ficha_casa: la v${ficha.v}, y los datos con sobre vienen en la v${FICHA_CON_ESTADO}`);
-  return { v: ficha.v, datos: FICHAS_CASA_CON_SOBRE.flatMap((f) => ficha.fichas[f] ?? []) };
+  return { v: ficha.v, datos: [...FICHAS_CASA_CON_SOBRE.flatMap((f) => ficha.fichas[f] ?? []), ...basesSinPersonas(ficha)] };
 }
 
 /**
