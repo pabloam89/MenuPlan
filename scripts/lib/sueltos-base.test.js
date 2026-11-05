@@ -19,7 +19,7 @@ import { RUTA_BASE, claveSuelto, compararSueltos, leerMensaje, totalDe } from '.
 // Medido el 9 oct 2026 con la regla local/no-valor-suelto (ver ESTADO.md).
 // 12.768 → 12.793 el mismo día: la regla empezó a mirar los trozos literales
 // de las plantillas con expresiones (`${n}px 13px`); es detección, no deriva.
-const TOPE_VALORES_SUELTOS = 12793
+const TOPE_VALORES_SUELTOS = 12703
 const TOPE_ESLINT_DISABLE = 0
 
 const siempre = () => true
