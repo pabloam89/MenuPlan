@@ -450,15 +450,16 @@ function herramientasDeRecetas(chat) {
       inputSchema: obj({ confirmado: { type: "boolean" }, nombre: { type: "string" } }, ["confirmado", "nombre"]),
       run: ({ confirmado, nombre }) => guardarReceta(householdId, { confirmado, nombre }, chat),
     }),
-    // Lo que la app ya hacía con las recetas y Lola no (trozo 48, parte 1). Borrar no se deshace: su riesgo lo dice.
-    herramienta({ capacidades: ["favorita", "borrar_receta"], lee: ["userRecipes", "recipeVotes"], escribe: ["userRecipes", "recipeVotes"], lector: false, riesgo: RIESGO_HERRAMIENTA.ESCRIBE_IRREVERSIBLE, deshace: DESHACE.NO, pantalla: "recetas:mias" }, {
+    // Lo que la app ya hacía con las recetas y Lola no (trozo 48). Borrar no se deshace: su riesgo lo dice.
+    herramienta({ capacidades: ["favorita", "borrar_receta", "carpetas", "en_carpeta", "recuperar_descartada"], lee: ["userRecipes", "recipeVotes", "recipeFolders", "recipeCollections", "discards"], escribe: ["userRecipes", "recipeVotes", "recipeFolders", "recipeCollections", "discards"], lector: false, riesgo: RIESGO_HERRAMIENTA.ESCRIBE_IRREVERSIBLE, deshace: DESHACE.NO, pantalla: "recetas:mias" }, {
       name: "receta_propia",
-      description: "Con una receta que nombran: favorita (la marca como favorita de quien escribe, del catálogo o vuestra), no_favorita (se la quita), o borrar (solo las vuestras, no las del catálogo). Borrar no se deshace: llámala primero sin confirmado, pregunta con el nombre que te devuelva y vuelve a llamarla con confirmado = true y ese nombre solo con su «sí».",
+      description: "Las recetas y las carpetas de quien escribe, como en «Mis recetas» de la app. Con una receta que nombran: favorita (la marca como favorita, del catálogo o vuestra), no_favorita (se la quita), borrar (solo las vuestras, no las del catálogo), a_carpeta o sacar_de_carpeta (con la carpeta), o recuperar (la saca de «Descartados», las que la casa descartó, y vuelve a poder salir en los menús). Con una carpeta: nueva_carpeta o borrar_carpeta (las cuatro fijas no se borran; las recetas de dentro no se borran). Borrar no se deshace: llámala primero sin confirmado, pregunta con el nombre que te devuelva y vuelve a llamarla con confirmado = true y ese nombre solo con su «sí».",
       inputSchema: obj({
         accion: { type: "string", enum: [...ACCIONES_RECETA] },
-        receta: { type: "string", description: "El nombre de la receta, como lo dicen." },
-        confirmado: { type: "boolean", description: "Solo para borrar, tras su «sí»." },
-      }, ["accion", "receta"]),
+        receta: { type: "string", description: "El nombre de la receta, como lo dicen. Todas menos nueva_carpeta y borrar_carpeta." },
+        carpeta: { type: "string", description: "El nombre de la carpeta: para nueva_carpeta, borrar_carpeta, a_carpeta y sacar_de_carpeta." },
+        confirmado: { type: "boolean", description: "Solo para borrar y borrar_carpeta, tras su «sí»." },
+      }, ["accion"]),
       run: (args) => cambiarRecetaPropia(householdId, args, { userId: chat.userId ?? null }),
     }),
   ];
