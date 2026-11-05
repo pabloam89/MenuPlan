@@ -4,7 +4,7 @@ Auditoría del 9 oct 2026 (issue #239) sobre la rama `ux/239-auditoria-ui`.
 Lo mantiene el agente `diseno`: cuando una cifra cambie, se actualiza aquí
 con su fecha. `DESIGN_SYSTEM.md` describe criterio y voz; este fichero dice
 qué falta y en qué orden. **Desde el PR del encargo #258 (9 oct 2026) existen
-`src/design/tokens.js` (los 77 valores, fuente única), `src/design/tokens.css`
+`src/design/tokens.js` (los 78 valores, fuente única), `src/design/tokens.css`
 (generado, `npm run tokens:css`), la regla `local/no-valor-suelto` en aviso y
 `lint-tokens-base.json`; ninguna pantalla está migrada todavía.** Los valores
 de «Tokens propuestos» son los que quedaron en el módulo; los marcados
@@ -163,9 +163,9 @@ tokens de `ui.md`.
 5. **Lean.** Sin bibliotecas nuevas. Un token sin uso se borra. Entra al sistema
    solo lo que usan ≥ 3 sitios.
 
-## Tokens propuestos (77 valores)
+## Tokens propuestos (78 valores)
 
-Los 77 valores y su reparto por familia los fija `src/design/tokens.test.js` (el
+Los 78 valores y su reparto por familia los fija `src/design/tokens.test.js` (el
 reparto no se copia aquí). Los alias (`acento`, `exito`) y los roles de texto no
 cuentan: no añaden valor. Los alias (`acento`, `exito`) y los roles de
 texto no cuentan: no añaden valor.

@@ -2,7 +2,7 @@ import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import { configDefaults } from 'vitest/config'
-import { cargarEnv, esReferencia, leerFichero } from './scripts/lib/env.mjs'
+import { cargarEnv, direcciones, esReferencia } from './scripts/lib/env.mjs'
 import { bajarPrioridad } from './scripts/lib/prioridad.mjs'
 import { banderas } from './scripts/lib/banderas.mjs'
 import { color } from './src/design/tokens.js'
@@ -140,12 +140,12 @@ export default defineConfig(({ mode, command }) => {
   // Vercel; tampoco en `npm run dev`, que no es un trabajo pesado.
   if (command === 'build' || process.env.VITEST) bajarPrioridad()
 
-  // .env.local puede guardar direcciones de 1Password (op://…) en vez de claves:
+  // Las direcciones de 1Password (op://…) de ops/env.1password, con .env.local encima:
   // se resuelven aquí, antes de loadEnv, porque Vite deja que process.env pise
   // al fichero. En los tests no: corren sin claves, como en el CI. Tolerante:
   // una clave que la sesión no puede leer (las de administración, #299) queda
   // vacía con un aviso y no para el arranque.
-  const refs = Object.entries(leerFichero()).filter(([, v]) => esReferencia(v)).map(([k]) => k)
+  const refs = Object.entries(direcciones()).filter(([, v]) => esReferencia(v)).map(([k]) => k)
   if (process.env.VITEST) for (const k of refs) process.env[k] ||= ''
   else cargarEnv(refs, { tolerante: true })
   const env = loadEnv(mode, process.cwd(), '')
