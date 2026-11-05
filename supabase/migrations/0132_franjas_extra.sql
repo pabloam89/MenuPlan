@@ -1,43 +1,33 @@
 -- Las franjas de fuera del menú en el registro (plan fichas con estado, trozo 19, primera parte; #1037): desayuno,
--- merienda y postre dejan el objeto data.extraMeals del documento de la casa y pasan a un dato por franja con ámbito
--- día (un sobre por día que la tiene), como el trozo 13 hizo con el horario. Ganan su fila en registro_campo, con
--- por = 'casa' y ficha 'rutina': desayunoDias, meriendaDias y postreDias (ámbito {dia}) y desayunoRepite (sin
--- ámbito). Sin fila, sobre.campo (FK a registro_campo) no admite ninguno y ficha_casa no los devuelve.
+-- merienda y postre dejan data.extraMeals del documento de la casa y pasan a un dato por franja con ámbito día (un
+-- sobre por día que la tiene), como el trozo 13 con el horario. Ganan su fila en registro_campo (por = 'casa', ficha
+-- 'rutina'): desayunoDias, meriendaDias y postreDias (ámbito {dia}) y desayunoRepite (sin ámbito).
+-- AUDITADA: auditor-datos 2026-11-05 OK
+--   (un agente que no la escribió: las 30 filas de antes, iguales; encaja con los CHECK, sobre_valor_valido,
+--   aplicar_operacion y ficha_casa sin tocarlas; SQL válido en PG17; plan B real; sin datos de familias, RLS ni permisos)
 --
 --   · Solo filas: registro_campo se regenera entera desde REGISTRO_CAMPOS (src/lib/registroCampos.js), como en la
---     0105, la 0112, la 0113, la 0114 y la 0119: las 30 filas de hoy quedan igual y entran 4. El INSERT de aquí lo
---     compara registroCampos.test.js. No hace falta columna, CHECK ni función nueva: sobre (0114) ya tiene `dia`
---     con el CHECK de DIAS, sobre_valor_valido exige el ámbito de cada campo y su tipo (bool, o texto en un enum),
---     y aplicar_operacion (0115) y ficha_casa (0116) leen el ámbito del registro.
---   · Los vocabularios viven en src/lib/vocabularios.js (registro_campo.vocabulario guarda su nombre, sin FK ni
---     CHECK de valores; escribirDato.js pasa cada valor por su lista): repite_desayuno (variado, findes, igual) y
---     postre_en (comida, cena, ambas). «off» no es valor: un día sin la franja es un día sin sobre.
---   · desayunoDias y meriendaDias (bool, {dia}): true el día que hay desayuno o merienda. postreDias (enum
---     postre_en, {dia}): a qué comida va el postre ese día. Sin defecto: sin sobres, ninguna franja (lo de una casa
---     nueva, EXTRAS_POR_DEFECTO). desayunoRepite (enum, sin ámbito): cómo se repite el desayuno; defecto variado.
---   · politica 'nunca' en las 4: ninguna tarea las pregunta (bot_tareas.campo, 0080, no cambia).
---   · postreTipo y postreInmediato, los otros dos valores de extraMeals, no entran: son preferencias sobre los ejes
---     esfuerzoPostre y tipoPostre (src/data/axisRegistry.js) y van a la tabla preferencia, no a registro_campo.
+--     0119: las 30 de hoy igual y entran 4 (registroCampos.test.js lo compara). Ni columna, ni CHECK, ni función:
+--     sobre (0114) ya tiene `dia`, sobre_valor_valido exige el ámbito y el tipo, y la 0115 y la 0116 leen el ámbito.
+--   · Vocabularios en src/lib/vocabularios.js (registro_campo.vocabulario guarda su nombre): repite_desayuno
+--     (variado, findes, igual) y postre_en (comida, cena, ambas). «off» no es valor: un día sin franja, sin sobre.
+--   · desayunoDias y meriendaDias (bool): true el día que la hay. postreDias: a qué comida va ese día. Sin defecto
+--     (sin sobres, ninguna franja). desayunoRepite: cómo se repite el desayuno; defecto variado. Política 'nunca'.
+--   · postreTipo y postreInmediato no entran: son preferencias sobre los ejes esfuerzoPostre y tipoPostre
+--     (src/data/axisRegistry.js) y van a la tabla preferencia.
 --
--- NO hace: no toca sobre, household_state ni ningún dato de familias (sin repoblar: con la rama desplegada y esta
--- aplicada, las casas estrenan las franjas vacías, «sin convivencia» del plan); no cambia columnas, CHECK,
--- funciones, RLS ni permisos. Sin CONTRAE.
+-- NO hace: no toca sobre, household_state ni datos de familias (sin repoblar: las casas estrenan las franjas
+-- vacías, «sin convivencia» del plan); ni columnas, CHECK, funciones, RLS ni permisos. Sin CONTRAE.
 --
--- Plan B (regla migraciones): la rama se despliega antes. Sin esta, ficha_casa no trae las cuatro y la app y Lola
--- siguen leyendo y guardando desayuno, merienda y postre en data.extraMeals (CON_PLAN_B, src/lib/estadoDeDato.js).
--- Va tras la 0119 (las filas del trato), que comprueba abajo: si no, la 0132 metería también esas 4.
+-- Plan B: la rama se despliega antes. Sin esta, ficha_casa no trae ninguna de las cuatro y la app y Lola siguen con
+-- data.extraMeals en el documento (CON_PLAN_B, src/lib/estadoDeDato.js). Va tras la 0119, que comprueba abajo.
 --
--- Lectores (principio «ningún campo sin lector»): ficha_casa v2 (0116) devuelve todo campo por = 'casa' con su
--- base y un elemento por sobre vigente, agrupado en su ficha («rutina»); aplicar_operacion (0115) los valida al
--- escribir; en el código, leidosConSobre (src/lib/estadoDeDato.js) para la app (casaDatos.js) y Lola
--- (api/_bot/casa.js), y src/lib/extras.js, que los vuelve la vista data.extraMeals que leen el motor, la pizarra y
--- el asistente.
+-- Lectores: ficha_casa v2 (0116); aplicar_operacion (0115) al escribir; leidosConSobre (estadoDeDato.js) para la
+-- app (casaDatos.js) y Lola (api/_bot/casa.js), y extras.js, que monta la vista data.extraMeals que lee el motor.
 --
--- Consulta previa (debe dar 30 y 0):
+-- Consulta previa (debe dar 30 y 0); después, 34 y 4. Sin objeto testigo (solo filas):
 --   select (select count(*) from public.registro_campo),
 --          (select count(*) from public.registro_campo where id in ('desayunoDias','desayunoRepite','meriendaDias','postreDias'));
--- Consulta después (debe dar 34 y 4). Sin objeto testigo (solo filas): verificar-estado no la ve; se mira con la
--- consulta de después.
 set lock_timeout = '5s';
 
 do $$

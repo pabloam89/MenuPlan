@@ -322,8 +322,9 @@ describe("las franjas de fuera del menú en la app (trozo 19, 0132)", () => {
 
   it("sin tocar extraMeals no se escribe nada aunque el documento traiga franjas viejas", async () => {
     const cola = colaFalsa();
-    const leida = conCasaLeida({ extraMeals: { merienda: "semana" } }, { valores: FRANJAS });
-    expect(await casaDeCasa({ casa: CASA, valores: FRANJAS, cola }).guardar(leida, 4)).toEqual({ ok: true, enviado: false });
+    const valores = { ...FRANJAS, meriendaDias: { Lun: true, Mar: true, "Mié": true, Jue: true, Vie: true } };
+    const leida = conCasaLeida({ extraMeals: { merienda: "semana", postre: "cena" } }, { valores });
+    expect(await casaDeCasa({ casa: CASA, valores, cola }).guardar({ ...leida, reglas: [] }, 4)).toEqual({ ok: true, enviado: false });
   });
 });
 
