@@ -83,3 +83,12 @@ describe("el uso de un turno de Lola, una vez y siempre (#958)", () => {
     expect(t.contados).toEqual([]);
   });
 });
+
+describe("la forma de lo que escribe Lola, medida en cada turno (trozo 54)", () => {
+  it("las faltas van en la medida del turno (bot_route lola.formato); sin faltas, una lista vacía", async () => {
+    t.guiones = [{ entrada: 10, texto: "¿Para cuándo?\n\nDesde 2026-11-09.\n\n[[Solo los días]]: me dices los días" }];
+    expect((await turno()).medida.formato).toEqual(["pregunta_enterrada", "fecha_iso", "puntuacion_huerfana", "boton_en_linea"]);
+    t.guiones = [{ entrada: 10, texto: "Hoy, lentejas." }];
+    expect((await turno()).medida.formato).toEqual([]);
+  });
+});
