@@ -1,8 +1,7 @@
 import { useMemo, useState } from "react";
-import { BookOpen, Heart, NotebookPen, Plus, Settings, Sparkles } from "../components/icons.jsx";
+import { BookOpen, Heart, NotebookPen, Plus, Sparkles } from "../components/icons.jsx";
 import { BottomNav, bottomNavSpacer, safeTop, SegmentedTabBar, SegmentedTabButton } from "../components/ui.jsx";
 import { CatalogBrowserSheet } from "./CatalogBrowserSheet.jsx";
-import { RecipesCoachTour, CoachHelpButton } from "../components/HomeCoachTour.jsx";
 import { filterMyLibraryRecipes, isCatalogGarnishCombo } from "../lib/userRecipes.js";
 import { favoriteRecipeIds } from "../lib/recipeVotes.js";
 
@@ -35,7 +34,6 @@ export function RecipesScreen({
   onChangeRecipeVisibility,
   onDeleteRecipe,
   onEditRecipe,
-  onOpenRecipePrefs,
   readOnly = false,
   readOnlyLabel = null,
   // Con qué carpeta abre (un enlace del bot: «recetas de sólidos de bebé» →
@@ -43,7 +41,6 @@ export function RecipesScreen({
   initialCategory = null,
   initialMine = false,
 }) {
-  const [showIconCoach, setShowIconCoach] = useState(false);
   // Pestañas (review de UX, lámina 27): Para ti (el catálogo), Mis recetas
   // (lo que has creado, con tus carpetas) y Favoritos (lo que marcaste con ♥).
   // Hasta el 7 oct 2026 «Mis recetas» era una teja más del catálogo y las
@@ -85,28 +82,8 @@ export function RecipesScreen({
             <h1 style={{ margin: 0, fontSize: 20, fontWeight: 900, color: INK, letterSpacing: "-.3px" }}>
               Recetas
             </h1>
-            <CoachHelpButton active={showIconCoach} onClick={() => setShowIconCoach((v) => !v)} />
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
-            {onOpenRecipePrefs && !readOnly && (
-              <button
-                type="button"
-                onClick={onOpenRecipePrefs}
-                title="Preferencias del menú"
-                aria-label="Preferencias del menú"
-                style={{
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  width: 36, height: 36, borderRadius: 12,
-                  border: "1.5px solid #d5e6da", background: "#fff",
-                  color: GREEN, cursor: "pointer",
-                }}
-              >
-                {/* Engranaje y no barritas: esto decide qué recetas entran en
-                    tus próximos menús, no filtra la lista (eso es «Filtros»),
-                    y con el mismo icono parecían lo mismo (review de UX). */}
-                <Settings size={16} strokeWidth={2.3} />
-              </button>
-            )}
             {onOpenRecipePlanner && !readOnly && (
               <button
                 type="button"
@@ -180,7 +157,6 @@ export function RecipesScreen({
         />
       </div>
 
-      {showIconCoach && <RecipesCoachTour onClose={() => setShowIconCoach(false)} />}
 
       <BottomNav active="recipes" onNav={onNav} />
     </div>
