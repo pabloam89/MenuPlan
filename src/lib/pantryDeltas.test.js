@@ -7,6 +7,7 @@ import {
   cookedKeyMenuId,
   collectMenuPantryDeltas,
   reconcileMenusRemoval,
+  estrenoFinDelDia,
 } from "./pantryDeltas.js";
 
 const d = (name, qty) => ({ name, normalized: name, qty, unit: "u" });
@@ -121,5 +122,40 @@ describe("reconcileMenusRemoval", () => {
     const r = reconcileMenusRemoval(data, []);
     expect(r.deltas).toEqual([]);
     expect(r.genOut).toEqual(data.pantryGenDeltas);
+  });
+});
+
+describe("estrenoFinDelDia: una casa con un modo antiguo pasa sin descontar dos veces", () => {
+  const MANANA = "2026-11-06";
+  const base = {
+    activeMenuId: "menu_a",
+    pantryGenDeltas: { "2026-11-02": makeDeltaBucket("menu_a", [d("arroz", 2)], 1), "2026-10-26": makeDeltaBucket("menu_b", [d("sal", 1)], 1) },
+    pantryDayDeltas: {},
+    cookedDeltas: {},
+  };
+
+  it("sin modo guardado no hay nada que pasar", () => {
+    expect(estrenoFinDelDia({ ...base, pantryPrefs: {} }, MANANA)).toBe(null);
+    expect(estrenoFinDelDia({ ...base }, MANANA)).toBe(null);
+  });
+
+  it("«al generar» devuelve solo lo del menú activo y deja el campo olvidado", () => {
+    const { deltas, patch } = estrenoFinDelDia({ ...base, pantryPrefs: { consume: "onGenerate" } }, MANANA);
+    expect(deltas).toEqual([d("arroz", 2)]);
+    expect(Object.keys(patch.pantryGenDeltas)).toEqual(["2026-10-26"]);
+    expect(patch.pantryPrefs).toEqual({});
+  });
+
+  it("«al cocinar» no devuelve nada y el barrido empieza mañana", () => {
+    const cookedDeltas = { "menu_a::2026-11-02|0|comida": [d("pollo", 1)] };
+    const { deltas, patch } = estrenoFinDelDia({ ...base, cookedDeltas, pantryPrefs: { consume: "onCook" } }, MANANA);
+    expect(deltas).toEqual([]);
+    expect(patch).toEqual({ pantryPrefs: {}, pantryEndOfDaySince: MANANA });
+  });
+
+  it("«al final del día» ya iba así: solo se olvida el campo y se conserva su fecha", () => {
+    const { deltas, patch } = estrenoFinDelDia({ ...base, pantryEndOfDaySince: "2026-10-01", pantryPrefs: { consume: "endOfDay" } }, MANANA);
+    expect(deltas).toEqual([]);
+    expect(patch).toEqual({ pantryPrefs: {} });
   });
 });
