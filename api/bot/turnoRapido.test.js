@@ -81,6 +81,8 @@ describe("turno por la vía rápida", () => {
     expect(ruta.contexto_ms).toBeGreaterThanOrEqual(0);
     expect(ruta.lola_cancelada).toBe(true);
     expect(ruta).toMatchObject({ esGrupo: false, variosAutores: false, chat: "1" });
+    // La plantilla de la vía rápida también deja su mensaje, para /fallo.
+    expect(ruta.msg_lola).toBe(1);
   });
 
   it("en un grupo, el turno se apunta como de grupo", async () => {

@@ -64,6 +64,18 @@ describe("/fallo en el webhook", () => {
     expect(enTurno.mock.calls[0][1].texto).toBe("/fallo quería pasta");
   });
 
+  it("lo que esperaba, justo después del tipo, tampoco llega a Lola", async () => {
+    // El reloj, fijo: un minuto después de elegir el tipo (CADUCA.REPORTE da un cuarto de hora), y el /fallo, veinte
+    // minutos antes de elegirlo: el plazo cuenta desde el tipo (espera_desde), no desde la fila.
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-11-04T18:42:00Z"));
+    t.tablas.user_events = [{ id: 100, created_at: "2026-11-04T18:21:00Z", metadata: { telegram_id: "7", chat: "7", paso: "espera", tipo: "dato_mal", espera_desde: "2026-11-04T18:41:00Z" } }];
+    await escribe(7, "quería la pasta del martes").finally(() => vi.useRealTimers());
+    expect(update.mock.calls[0][2].metadata).toMatchObject({ texto: "quería la pasta del martes", paso: "hecho" });
+    expect(t.enviados.at(-1).texto).toBe("Apuntado 👍");
+    expect(enTurno).not.toHaveBeenCalled();
+  });
+
   it("el botón del tipo no llega a Lola", async () => {
     t.tablas.user_events = [{ id: 100, created_at: "2026-11-04T18:41:00Z", metadata: { telegram_id: "7", chat: "7", paso: "tipo" } }];
     await llega({ callback_query: { id: "cq", data: "fallo:dato_mal:100", from: { id: 7 }, message: { message_id: 901, chat: { id: 7, type: "private" } } } });

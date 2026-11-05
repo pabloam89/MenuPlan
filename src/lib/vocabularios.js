@@ -83,6 +83,20 @@ export const RESULTADO_ENLACE = porNombre(RESULTADOS_ENLACE);
 /** Los que dejan el chat enlazado (los demás son rechazos). */
 export const ENLAZADOS = Object.freeze(new Set([RESULTADO_ENLACE.NUEVO, RESULTADO_ENLACE.YA_ESTABA, RESULTADO_ENLACE.CASA_CAMBIADA, RESULTADO_ENLACE.IDENTIDAD_DE_OTRA]));
 
+/**
+ * Con qué prueba se apuntó que un Telegram ES una cuenta (bot_identities.prueba_identidad, 0129; #1238): nacida (la
+ * cuenta se creó en ese Telegram), codigo_email (el código del correo de la cuenta, escrito en el chat), ajustes (el enlace de
+ * «Conectar Telegram» que sacó una sesión de la cuenta, pulsado en el privado de ese Telegram) y cambio (el mismo
+ * enlace, cuando ese Telegram era de otra cuenta y la persona lo confirmó en su privado).
+ */
+export const PRUEBAS_IDENTIDAD = ["nacida", "codigo_email", "ajustes", "cambio"];
+export const PRUEBA_IDENTIDAD = porNombre(PRUEBAS_IDENTIDAD);
+/**
+ * Las que abren sesión con «Entrar con Telegram» en una cuenta que no nació en Telegram (specs/auth.md §7, trozo 3):
+ * solo las que salen de una sesión de esa cuenta. El código del email no: prueba el correo, no la sesión.
+ */
+export const ABREN_SESION = Object.freeze(new Set([PRUEBA_IDENTIDAD.AJUSTES, PRUEBA_IDENTIDAD.CAMBIO]));
+
 // ── Los de la ficha de la casa (auditoría de tipos de menuplan-1e, 7 oct 2026).
 // Tal como se guardan hoy en producción: pasar a una forma canónica (minúscula,
 // sin tildes) es un paso aparte, con alias, nunca reescribiendo lo guardado.
@@ -418,11 +432,11 @@ export const SITIOS_FALLO = [
   "eleccion_via_rapida", "entregar_casa", "entregar_pintar", "escribiendo", "fallo_dueno", "fallo_tras_escribir",
   "grupo_casa", "grupo_nombre_del_bot", "idioma", "invitacion",
   "invitacion_cuentas", "lola", "lola_cancelada", "limite", "papel", "reconocer", "relevo", "relevo_llamar", "ruta",
-  "reporte_charla", "reporte_ruta", "ruta_dueno", "ultima_de_lola", "uso", "vivo_borrar_aviso", "vivo_borrar_cortado", "vivo_editar", "vivo_enviar",
+  "reporte_charla", "reporte_espera", "reporte_ruta", "ruta_dueno", "ultima_de_lola", "uso", "vivo_borrar_aviso", "vivo_borrar_cortado", "vivo_editar", "vivo_enviar",
   // api/bot/entrar.js
   "bot_entrar",
   // el resto de api/_bot/
-  "borrar_tanda", "cambio_de_cuenta", "casa_deshacer", "casa_del_turno", "compartir_llave", "cuentas_hogar", "cuentas_json", "cuentas_nacida_aqui",
+  "borrar_tanda", "cambio_de_cuenta", "casa_deshacer", "casa_del_turno", "compartir_llave", "cuentas_hogar", "cuentas_conectada_app", "cuentas_json", "cuentas_nacida_aqui",
   "caducidades_personas_ilegibles",
   // api/_bot/borrarPersona.js
   "borrar_persona_fotos",
@@ -431,7 +445,7 @@ export const SITIOS_FALLO = [
   "generar_describir", "generar_despensa", "generar_recetas_propias", "generar_semanas_anteriores",
   "idempotencia_guardar_resultado", "idempotencia_soltar_la_llave", "invitacion_unirse", "invitacion_vigente",
   "menu_describir", "menu_foto_de_la_receta", "menu_senales", "pintar_huecos", "pintar_recetas", "pista_adelanto",
-  "enlace_apuntar", "receta_ya_estaba", "recetas_busqueda", "recetas_subir_foto", "recordatorios_reclamar", "recordatorios_soltar", "silencio_apuntar", "silencio_cerrar", "telegram_json",
+  "enlace_apuntar", "enlace_prueba", "receta_ya_estaba", "recetas_busqueda", "recetas_subir_foto", "recordatorios_reclamar", "recordatorios_soltar", "silencio_apuntar", "silencio_cerrar", "telegram_json",
   "traducir_memoria", "turno_casa", "turno_tras_escribir", "turnos_mirar_cola", "turnos_soltar_candado", "uso_limite", "vispera_casa", "vispera_huecos",
   "voz_json",
 ];
@@ -542,6 +556,7 @@ export const VOCABULARIOS = Object.freeze({
   canales: CANALES,
   caminos_enlace: CAMINOS_ENLACE,
   resultados_enlace: RESULTADOS_ENLACE,
+  pruebas_identidad: PRUEBAS_IDENTIDAD,
   idiomas: IDIOMAS,
   comidas: COMIDAS,
   estructura_platos: ESTRUCTURA_PLATOS,
