@@ -30,7 +30,7 @@ vi.mock("./db.js", () => ({
 vi.mock("./telegram.js", () => ({ enviar: vi.fn(), escaparHtml: (s) => s, TECLADO: {} }));
 vi.mock("./embudo.js", () => ({ registrar: vi.fn(), EMBUDO: {} }));
 
-const { enlazarChat, idDePersona, codigoDeGrupo, codigoNuevo, esCodigoDeGrupo, apuntarEnlace, resultadoDeEnlace, pideCambioDeCuenta, preguntaDeCambio, CAMBIO, escribePrueba } = await import("./enlace.js");
+const { enlazarChat, idDePersona, codigoDeGrupo, codigoNuevo, esCodigoDeGrupo, apuntarEnlace, resultadoDeEnlace, pideCambioDeCuenta, preguntaDeCambio, personasDeCasa, CAMBIO, escribePrueba } = await import("./enlace.js");
 const { update } = await import("./db.js");
 const { CAMINO_ENLACE, RESULTADO_ENLACE, PRUEBA_IDENTIDAD } = await import("../../src/lib/vocabularios.js");
 const { readFileSync, readdirSync } = await import("node:fs");
@@ -207,6 +207,25 @@ describe("cambiar de cuenta con confirmación (#1238)", () => {
     expect(pideCambioDeCuenta({ esGrupo: false, deAntes: APP, userId: APP })).toBe(false);
     expect(pideCambioDeCuenta({ esGrupo: false, deAntes: null, userId: APP })).toBe(false);
     expect(pideCambioDeCuenta({ esGrupo: true, deAntes: ANTES, userId: APP })).toBe(false);
+  });
+
+  it("la pregunta dice cuántas personas tiene cada casa: dos «Mi casa» no se distinguen por el nombre (#1302)", () => {
+    const p = preguntaDeCambio({ casaAntes: "Mi casa", casaApp: "Mi casa", personasAntes: 4, personasApp: 0 });
+    expect(p).toContain("<b>Mi casa</b>, con 4 personas");
+    expect(p).toContain("<b>Mi casa</b>, sin nadie");
+    expect(preguntaDeCambio({ casaAntes: "A", casaApp: "B", personasAntes: 1, personasApp: 2 })).toContain("<b>A</b>, con 1 persona");
+  });
+
+  it("personasDeCasa: una casa sin leer o sin saber no cuenta como vacía", () => {
+    const filas = [{ household_id: "a" }, { household_id: "a" }];
+    expect(personasDeCasa(filas, "a")).toBe(2);
+    expect(personasDeCasa(filas, "b")).toBe(0);
+    expect(personasDeCasa(filas, null)).toBeNull();
+    expect(personasDeCasa(null, "a")).toBeNull();
+  });
+
+  it("sin saber cuántas, no dice que no hay nadie", () => {
+    expect(preguntaDeCambio({ casaAntes: "A", casaApp: "B" })).not.toContain("sin nadie");
   });
 
   it("la pregunta nombra las dos casas y dice que lo de la otra cuenta no se pasa", () => {
