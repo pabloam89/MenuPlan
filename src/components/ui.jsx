@@ -1,5 +1,5 @@
 import { FRONTAL_BOT } from "../lib/frontalBot.js";
-import { isNativeApp } from "../lib/apiUrl.js";
+import { seOfreceApple } from "../lib/apiUrl.js";
 import { useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { BookOpen, Calendar, ChevronDown, ClipboardList, CookingPot, Home, Send, ShoppingCart, Sparkles, UserCircle, Users, X } from "./icons.jsx";
@@ -935,7 +935,7 @@ export function SignInOptions({
   onGoogle,
   onApple,
   variant = "light",
-  conApple = isNativeApp || import.meta.env.VITE_APPLE_WEB === "on",
+  conApple = seOfreceApple(),
   urlTelegram = typeof window === "undefined" ? null : urlEntrarConTelegram(window.location),
 }) {
   const dark = variant === "dark";

@@ -38,22 +38,34 @@ describe("perfil: descargar mis datos (trozo 36)", () => {
   });
 });
 
-// Cuenta nacida en Telegram (#1238): «Entrar también con Google».
-describe("perfil: entrar también con Google", () => {
+// «Formas de entrar» (#1238, specs/auth.md §7): cada una con su estado real, en lugar del botón suelto de Google.
+describe("perfil: formas de entrar", () => {
   afterEach(() => {
     act(() => raices.forEach((r) => r.unmount()));
     raices = [];
   });
-  const google = (caja) => [...caja.querySelectorAll("button")].find((b) => b.textContent.includes("Entrar también con Google"));
+  const formas = [{ forma: "telegram", tiene: true }, { forma: "google", tiene: false }, { forma: "apple", tiene: true }];
+  const seccion = (caja) => caja.querySelector('section[aria-label="Formas de entrar"]');
 
-  it("si se ofrece, sale la fila, y pulsarla añade Google", async () => {
-    const onEntrarConGoogle = vi.fn();
-    const caja = await pintar({ onEntrarConGoogle });
-    await act(async () => { google(caja).click(); });
-    expect(onEntrarConGoogle).toHaveBeenCalledTimes(1);
+  it("enseña lo que tiene con ✓ y lo que no con «Añadir», que lo añade", async () => {
+    const onAnadirFormaDeEntrar = vi.fn();
+    const caja = await pintar({ formasDeEntrar: formas, onAnadirFormaDeEntrar });
+    const s = seccion(caja);
+    expect([...s.querySelectorAll('[role="img"]')].map((e) => e.getAttribute("aria-label"))).toEqual(["Ya entras con Telegram", "Ya entras con Apple"]);
+    const anadir = [...s.querySelectorAll("button")];
+    expect(anadir.map((b) => b.getAttribute("aria-label"))).toEqual(["Añadir Google"]);
+    await act(async () => { anadir[0].click(); });
+    expect(onAnadirFormaDeEntrar).toHaveBeenCalledWith("google");
   });
 
-  it("si no se ofrece, no sale", async () => {
-    expect(google(await pintar({}))).toBeUndefined();
+  it("dice para qué sirve cuando la cuenta entra con Telegram", async () => {
+    expect(seccion(await pintar({ formasDeEntrar: formas })).textContent).toContain("Por si un día no tienes Telegram a mano.");
+    expect(seccion(await pintar({ formasDeEntrar: [{ forma: "google", tiene: true }] })).textContent).not.toContain("Telegram");
+  });
+
+  it("sin sesión no sale, y el botón suelto de antes ya no está", async () => {
+    const caja = await pintar({ formasDeEntrar: null });
+    expect(seccion(caja)).toBeNull();
+    expect(caja.textContent).not.toContain("Entrar también con Google");
   });
 });
