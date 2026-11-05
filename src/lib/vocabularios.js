@@ -388,6 +388,7 @@ export const RESULTADOS_TAREA = ["aceptada", "mantenida"];
 
 /** Para qué es una tarea de objetivo (bot_tareas.objetivo, 0080). */
 export const OBJETIVOS_TAREA = ["ideas_plato", "calorias", "generar_menu"];
+export const OBJETIVO_TAREA = porNombre(OBJETIVOS_TAREA);
 
 /** De qué va una pregunta en anotar_tarea (`sobre`); registroTareas.js SOBRE_A_CAMPO dice su campo de la ficha. */
 export const SOBRES_TAREA = ["alergias", "etapa_bebe", "otra"];

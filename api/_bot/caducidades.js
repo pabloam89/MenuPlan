@@ -55,6 +55,8 @@ export const CADUCA = {
   REFERENCIA_ROTA: "referencia_rota",
   /** Un /fallo esperando la línea o el audio con lo que se esperaba (reporte.js). */
   REPORTE: "reporte",
+  /** El pedido de menú en curso de una casa (pedidoMenu.js). */
+  PEDIDO_MENU: "pedido_menu",
 };
 
 /**
@@ -75,6 +77,8 @@ export const COSAS_QUE_CADUCAN = {
   [CADUCA.REFERENCIA_ROTA]: { quien: "barrido", efecto: "corregir", que: "una tarea o una preferencia que apunta a una persona, un campo o un valor que ya no existe" },
   // Un cuarto de hora: lo que se esperaba se dice justo después de elegir el tipo; más tarde, el mensaje ya es para Lola.
   [CADUCA.REPORTE]: { quien: "lectura", efecto: "ignorar", vidaMs: 15 * MIN, que: "un /fallo que espera lo que esperaba quien lo reporta" },
+  // Tres días desde lo último que se dijo: da para contestar mañana; más tarde, lo pedido ya es otra semana.
+  [CADUCA.PEDIDO_MENU]: { quien: "lectura", efecto: "ignorar", vidaMs: 3 * DIA, que: "un pedido de menú a medias" },
 };
 
 /**
