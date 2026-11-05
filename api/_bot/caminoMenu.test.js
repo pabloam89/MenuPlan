@@ -140,4 +140,17 @@ describe("faltaParaGenerar: no se genera sin preguntar", () => {
   it("el botón «Rehacer la del …» ya trae su semana: no pregunta", () => {
     expect(faltaParaGenerar({ texto: "Rehacer la del 26 oct" })).toBe(null);
   });
+
+  it("con lo que la casa ya sabe, no repite esos temas (trozo 65)", () => {
+    const ejes = { mealStructure: { estado: "falta" }, cookLevel: { estado: "sabido" } };
+    const preguntas = preguntasDelCamino(CAMINO.MEDIO, { ejes });
+    expect(preguntas).toEqual(["¿Cuántos platos por comida?"]);
+    const r = faltaParaGenerar({ camino: CAMINO.MEDIO, desde: "2026-11-02", texto: "Unas preguntas", ejes });
+    expect(r).toContain("¿Cuántos platos por comida?");
+    expect(r).not.toContain("¿Cuánto os gusta cocinar?");
+  });
+
+  it("si al elegir camino no falta nada, no pregunta: con fecha, se genera (trozo 65)", () => {
+    expect(faltaParaGenerar({ camino: CAMINO.BASICO, desde: "2026-11-02", texto: "Solo los días", ejes: { schedule: { estado: "sabido" } } })).toBeNull();
+  });
 });
