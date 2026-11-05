@@ -53,7 +53,7 @@ export const CAMPOS_DE_AFINAR = Object.freeze(Object.entries(REGISTRO_CAMPOS)
  * ¿Falta este dato? Sin leer, vacío, por defecto o caducado; lo dicho, supuesto o aprendido ya no se pregunta. «Por
  * defecto» cuenta como vacío: el valor lo puso el registro, nadie de la casa (ESTADO_DE_ORIGEN, vocabularios.js).
  */
-function falta(leido) {
+export function falta(leido) {
   if (!leido) return true;
   if (leido.bloqueado) return false;
   return leido.caducado || leido.estado === ESTADO_DATO.VACIO || leido.estado === ESTADO_DATO.POR_DEFECTO;
