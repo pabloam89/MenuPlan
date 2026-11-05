@@ -932,8 +932,8 @@ npx vitest run api/_bot/caminoMenu.test.js
 Files: `src/lib/pedidoMenu.js`, `src/lib/pedidoMenu.test.js`, `api/_bot/generar.js`, `api/_bot/conocimiento.md`
 Depends on: 71
 Blocked by: none
-Existing: `conservarDiasPrevios` y `rehacer` existen; el trozo 61 apunta el motivo al descartar.
-Not done: antes de pisar una semana, Lola dice qué días se quedan, qué platos cambiados a mano se pierden y qué pasa con la compra. Se coordina con el motivo del trozo 61.
+Existing: `conservarDiasPrevios` y `rehacer` existen; el motivo al descartar es del trozo 61, aún sin hacer.
+Not done: antes de pisar una semana, Lola dice qué días se quedan, qué se pierde y qué pasa con la compra. Los platos cambiados a mano no llevan marca: se dice por días. El motivo se coordina al hacer el trozo 61.
 Done:
 ```sh
 npx vitest run src/lib/pedidoMenu.test.js api/_bot/generar.test.js

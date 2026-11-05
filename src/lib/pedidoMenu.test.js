@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CAMINO, TEMA, TEMAS, temasDelCamino } from "./caminos.js";
 import { ESTADO_EJE } from "./ejesDeCasa.js";
-import { faltaDelPedido, menuEnFecha } from "./pedidoMenu.js";
+import { avisoDeRehacer, faltaDelPedido, menuEnFecha } from "./pedidoMenu.js";
 
 const { SABIDO, SUPUESTO, FALTA, NO_APLICA } = ESTADO_EJE;
 const todos = (estado) => Object.fromEntries(TEMAS.flatMap((t) => t.ejes).map((e) => [e.dato, estado]));
@@ -10,6 +10,22 @@ const SABE_TODO = { ...todos(SABIDO), etapaBebe: NO_APLICA };
 const conEstado = (ejes) => ejes && Object.fromEntries(Object.entries(ejes).map(([k, estado]) => [k, { estado, origen: null, fecha: null }]));
 const pedido = (a) => faltaDelPedido({ ...a, ejes: conEstado(a.ejes) });
 const DESDE = "2026-11-05";
+
+describe("avisoDeRehacer (trozo 72)", () => {
+  const plan = { g1: { "Lun-comida": {}, "Mar-comida": {}, "Mié-cena": {} }, _meta: { "Dom-comida": {} } };
+
+  it("dice qué se queda, qué se rehace, lo que se pierde y la compra", () => {
+    const t = avisoDeRehacer({ existente: { plan }, startDayIdx: 2 });
+    expect(t).toMatch(/^Se quedan Lun, Mar\. Se rehacen Mié:/);
+    expect(t).toContain("se pierde");
+    expect(t).toContain("La compra");
+  });
+
+  it("una semana entera no dice que se quede nada; sin plan, la semana entera", () => {
+    expect(avisoDeRehacer({ existente: { plan }, startDayIdx: 0 })).toMatch(/^Se rehacen Lun, Mar, Mié:/);
+    expect(avisoDeRehacer({ existente: {}, startDayIdx: 0 })).toMatch(/^Se rehacen Lun, Mar, Mié, Jue, Vie, Sáb, Dom:/);
+  });
+});
 
 describe("faltaDelPedido (trozo 65)", () => {
   it("si la casa lo sabe todo y hay fecha, se genera sin preguntar", () => {

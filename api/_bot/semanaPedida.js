@@ -13,6 +13,7 @@
  */
 
 import { DIA_LARGO_MINUSCULAS, diaDeISO, indiceDeISO, isoDeCasa, MESES_CORTOS } from "../../src/lib/dias.js";
+import { avisoDeRehacer } from "../../src/lib/pedidoMenu.js";
 import { leerBotonRehacer, textoRehacer } from "./botones.js";
 import { RE_FECHA_ISO } from "./formatoMensaje.js";
 
@@ -78,7 +79,8 @@ export function resolverSemana({ cual = "esta", desde = null, rehacer = false, s
   if (existente && !rehacer) {
     const libre = resolverSemana({ cual: "siguiente", semanas, hoy });
     const otra = libre.aviso ? "" : ` o generar la del ${fechaCorta(sumarDias(lunesHoy, 7 * libre.offset))}`;
-    return { aviso: `YA HAY MENÚ del ${existente.weekStart} al ${existente.weekEnd}: NO lo he rehecho ni he cambiado nada. Pregunta si quieren rehacer esa (generar_menu con rehacer: true)${otra}.` };
+    const seRehace = resolverSemana({ cual, desde, rehacer: true, semanas, hoy });
+    return { aviso: `YA HAY MENÚ del ${existente.weekStart} al ${existente.weekEnd}: NO lo he rehecho ni he cambiado nada. Pregunta si quieren rehacer esa (generar_menu con rehacer: true)${otra}.${seRehace.aviso ? "" : ` Si la rehacen: ${avisoDeRehacer({ existente, startDayIdx: seRehace.startDayIdx })}`}` };
   }
   if (offset > 0) return { offset, startDayIdx: 0, existente };
   // La semana en curso: si se rehace, desde mañana; hoy y lo pasado no se tocan.

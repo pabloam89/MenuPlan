@@ -4,6 +4,7 @@
  */
 import { NIVEL_EJE, TEMAS, temasDelCamino } from "./caminos.js";
 import { ESTADO_EJE } from "./ejesDeCasa.js";
+import { DIAS } from "./dias.js";
 
 const falta = (ejes, e) => ejes[e.dato]?.estado === ESTADO_EJE.FALTA;
 const conFalta = (ejes, t) => t.ejes.some((e) => falta(ejes, e));
@@ -30,4 +31,23 @@ export function faltaDelPedido({ camino, desde = null, forzado = false, ejes = n
   const supuestos = [...new Set(delCamino.flatMap((t) => t.ejes).filter((e) => ejes[e.dato]?.estado === ESTADO_EJE.SUPUESTO).map((e) => e.dato))];
   const faltaFecha = !desde && !forzado;
   return { bloquea: [...new Set(bloquea)], temas, supuestos, faltaFecha, pisa: menuEnFecha(semanas, desde), listo: !bloquea.length && !temas.length && !faltaFecha };
+}
+
+/** Pura. Los días con plato en un plan, en orden; sin plan, la semana entera. */
+function diasDelPlan(plan) {
+  const con = new Set(Object.entries(plan ?? {}).filter(([g]) => !g.startsWith("_")).flatMap(([, huecos]) => Object.keys(huecos ?? {}).map((k) => k.split("-")[0])));
+  return con.size ? DIAS.filter((d) => con.has(d)) : DIAS;
+}
+
+/**
+ * Pura. Lo que Lola dice antes de pisar una semana con menú (trozo 72): qué días se quedan, qué se pierde y qué pasa
+ * con la compra. Los platos cambiados a mano no llevan marca, así que se dice por días y no plato a plato.
+ * `startDayIdx`: desde qué día se rehace (resolverSemana, api/_bot/semanaPedida.js).
+ */
+export function avisoDeRehacer({ existente, startDayIdx = 0 }) {
+  const dias = diasDelPlan(existente?.plan);
+  const seQuedan = dias.filter((d) => DIAS.indexOf(d) < startDayIdx);
+  const cambian = dias.filter((d) => DIAS.indexOf(d) >= startDayIdx);
+  const quedan = seQuedan.length ? `Se quedan ${seQuedan.join(", ")}. ` : "";
+  return `${quedan}Se rehacen ${cambian.join(", ")}: si cambiasteis algún plato de esos días, se pierde. La compra sale del menú nuevo; lo añadido a mano se queda.`;
 }
