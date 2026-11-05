@@ -12,6 +12,7 @@ const estado = vi.hoisted(() => ({ abierto: null, ejes: null, ok: true }));
 
 vi.mock("./db.js", async (original) => ({ ...(await original()), insert: vi.fn(), update: vi.fn(), rpc: vi.fn(), select: vi.fn(async () => []) }));
 vi.mock("./ajustes.js", async (original) => ({ ...(await original()), dominiosDeGustos: async () => "DOMINIOS" }));
+vi.mock("./casa.js", async (original) => { const real = await original(); return { ...real, cargarCasa: vi.fn(real.cargarCasa) }; });
 vi.mock("./silencio.js", async (original) => ({ ...(await original()), apuntarSilencio: vi.fn(async () => null) }));
 vi.mock("./generar.js", async (original) => ({
   ...(await original()),
@@ -28,6 +29,7 @@ vi.mock("./pedidoMenu.js", async (original) => ({
 const { herramientas } = await import("./agente.js");
 const { generarMenu } = await import("./generar.js");
 const { select } = await import("./db.js");
+const { cargarCasa } = await import("./casa.js");
 const { cerrarPedido, guardarPedido } = await import("./pedidoMenu.js");
 
 const llamar = async (texto, args, trato = null) => {
@@ -79,6 +81,30 @@ describe("«Como la última vez» (trozo 71)", () => {
     expect(r).toContain("[[A fondo]]");
     expect(r).not.toContain("Como la última vez");
     aviso.mockRestore();
+  });
+});
+
+describe("rehacer sin sustos (trozo 72)", () => {
+  const semana = { id: "menu" };
+  const conMenu = () => cargarCasa.mockImplementation(async () => ({ householdId: "casa", state: { data: {} }, menu: semana, semanas: [{ weekStart: "2026-10-19", weekEnd: "2026-10-25", plan: { g1: { "Lun-comida": {}, "Dom-comida": {} } } }] }));
+  afterEach(() => cargarCasa.mockReset());
+
+  it("avisa una vez antes de pisar, y a la segunda rehace", async () => {
+    conMenu();
+    const r = await llamar("rehazla", { semana: "esta", camino: "basico", desde: "2026-10-19", rehacer: true, forzado: false });
+    expect(generarMenu).not.toHaveBeenCalled();
+    expect(r).toContain("se pierde");
+    expect(guardarPedido.mock.calls.at(-1)[1].avisado).toBe(true);
+    estado.abierto = { ...guardarPedido.mock.calls.at(-1)[1] };
+    await llamar("sí", { semana: "esta", desde: "2026-10-19", rehacer: true });
+    expect(generarMenu).toHaveBeenCalledTimes(1);
+  });
+
+  it("con «sigue tú» no para, pero lo dice al acabar", async () => {
+    conMenu();
+    const r = await llamar("sigue tú", { semana: "esta", camino: "basico", desde: "2026-10-19", rehacer: true, forzado: true });
+    expect(generarMenu).toHaveBeenCalledTimes(1);
+    expect(r).toContain("se pierde");
   });
 });
 
