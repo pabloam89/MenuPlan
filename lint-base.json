@@ -9,7 +9,6 @@
   "src/components/FavoriteScopeModal.jsx | no-unused-vars | 'recipeName' is defined but never used. Allowed unused args must match /^[A-Z_]|^_/u.": 1,
   "src/components/HomeCoachTour.jsx | react-refresh/only-export-components | Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.": 7,
   "src/components/InstallPwaBanner.jsx | react-hooks/set-state-in-effect | Error: Calling setState synchronously within an effect can trigger cascading renders": 1,
-  "src/components/ModeSheets.jsx | react-refresh/only-export-components | Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.": 1,
   "src/components/PanelCoach.jsx | react-hooks/set-state-in-effect | Error: Calling setState synchronously within an effect can trigger cascading renders": 1,
   "src/components/PantryInput.jsx | react-hooks/set-state-in-effect | Error: Calling setState synchronously within an effect can trigger cascading renders": 1,
   "src/components/PersonSheet.jsx | react-hooks/set-state-in-effect | Error: Calling setState synchronously within an effect can trigger cascading renders": 1,
