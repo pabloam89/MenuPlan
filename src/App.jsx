@@ -7559,7 +7559,7 @@ function FlipCaseLetter({ upper, lower, active, activeColor, inactiveColor, dela
 function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle, onApple, abriendoCasa = false }) {
   const handleEnter = () => (hasSaved ? onResume() : onNext());
 
-  // La foto de bienvenida ocupa casi toda la pantalla sobre negro verdoso, y el
+  // La foto de bienvenida ocupa toda la pantalla sobre negro verdoso, y el
   // reloj cae encima: en oscuro desapareceria.
   useStatusBarSobreFondo("oscuro");
 
@@ -7619,7 +7619,7 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle, onApple,
         .portada-letras { font-size: clamp(58px, 17vw, 84px); margin: 0 0 10px; }
         .portada-lema { font-size: 20px; }
         /* Móvil con las barras del navegador: el título encoge para que las
-           cuatro caras quepan entre él y los botones. */
+           caras quepan entre él y los botones. */
         @media (max-height: 800px) {
           .portada-titulo { padding-top: 28px; }
           .portada-logo { width: 52px; height: 52px; }
@@ -7667,40 +7667,19 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle, onApple,
         }}
       />
 
-      {/* Foto fija (Pexels, Vanessa Loring). Debajo, la misma foto difuminada llena la
-          pantalla: la nítida se funde en ella y no se ve dónde acaba. */}
+      {/* La familia en la cocina (Gemini, 5 nov 2026): vertical, llena la pantalla. Arriba hay techo para
+          el logo y abajo encimera para los botones. */}
       <img
-        src="/portada.jpg"
+        src="/portada-familia.jpg"
         alt=""
         aria-hidden="true"
         style={{
           position: "absolute",
-          inset: -40,
-          width: "calc(100% + 80px)",
-          height: "calc(100% + 80px)",
-          objectFit: "cover",
-          objectPosition: "37% 40%",
-          filter: "blur(36px) saturate(.8) brightness(.85)",
-          zIndex: 1,
-          pointerEvents: "none",
-          animation: "fadeIn 1.2s ease-out",
-        }}
-      />
-      <img
-        src="/portada.jpg"
-        alt=""
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          top: "20%",
-          left: 0,
+          inset: 0,
           width: "100%",
-          // Las caras quedan entre el título y los botones.
-          height: "60%",
+          height: "100%",
           objectFit: "cover",
-          objectPosition: "37% 40%",
-          WebkitMaskImage: "linear-gradient(180deg, transparent 0%, #000 22%, #000 78%, transparent 100%)",
-          maskImage: "linear-gradient(180deg, transparent 0%, #000 22%, #000 78%, transparent 100%)",
+          objectPosition: "50% 45%",
           zIndex: 1,
           pointerEvents: "none",
           animation: "fadeIn 1.2s ease-out",
@@ -7714,7 +7693,7 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle, onApple,
           inset: 0,
           zIndex: 1,
           pointerEvents: "none",
-          background: `linear-gradient(180deg, ${veloFoto(.62)} 0%, ${veloFoto(.12)} 42%, ${veloFoto(.12)} 58%, ${veloFoto(.72)} 100%)`,
+          background: `linear-gradient(180deg, ${veloFoto(.68)} 0%, ${veloFoto(.45)} 27%, ${veloFoto(.08)} 44%, ${veloFoto(.08)} 58%, ${veloFoto(.72)} 100%)`,
         }}
       />
 
