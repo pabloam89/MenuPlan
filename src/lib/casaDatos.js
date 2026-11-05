@@ -13,6 +13,7 @@
 import { crearColaDeDatos, enviarAlServidor, jsonDeTexto } from "./escribirDato.js";
 import { leidosConSobre, FICHA_CON_ESTADO, CAMPOS_CON_AMBITO_CON_SOBRE } from "./estadoDeDato.js";
 import { datosDeCambio, familiaDeData } from "./rutina.js";
+import { extrasConFranjas, franjasParaGuardar } from "./extras.js";
 import { tokenDeSesion, urlOperacion } from "./familiaCasa.js";
 import { revSiguiente } from "./personas.js";
 import { guardarConVersion } from "./versionCasa.js";
@@ -70,17 +71,20 @@ export async function leerDatosDeCasa(casa, { token = tokenDeSesion, fetcher = f
   return carga;
 }
 
-/** Pura. Los datos de la casa con los leídos de su sobre en vez de los del documento. Sin cambio si no hay. */
+/**
+ * Pura. Los datos de la casa con los leídos de su sobre en vez de los del documento, y extraMeals como vista de sus
+ * franjas (extras.js). Sin cambio si no hay.
+ */
 export function conCasaLeida(data, carga) {
   if (!data || !carga?.valores) return data;
-  return { ...data, ...carga.valores };
+  return extrasConFranjas({ ...data, ...carga.valores });
 }
 
-/** Pura. Lo que va al documento: sin los datos que viven en su sobre. */
+/** Pura. Lo que va al documento: sin los datos que viven en su sobre (ni la vista de las franjas en extraMeals). */
 export function sinCasa(datos, carga) {
   const fuera = Object.keys(carga?.valores ?? {});
   if (!fuera.length) return datos;
-  return Object.fromEntries(Object.entries(datos).filter(([k]) => !fuera.includes(k)));
+  return Object.fromEntries(Object.entries(franjasParaGuardar(datos)).filter(([k]) => !fuera.includes(k)));
 }
 
 let colaApp = null;
@@ -105,7 +109,9 @@ export function colaDeLaApp() {
  */
 export function casaDeCasa({ casa, valores, cola = colaDeLaApp() }) {
   const conocidos = { ...valores };
-  const guardar = async (datos, rev) => {
+  const guardar = async (todos, rev) => {
+    // Las franjas, de la vista de extraMeals si alguien la tocó (extras.js).
+    const datos = franjasParaGuardar(todos);
     let ok = true;
     let enviado = false;
     let actual = rev;

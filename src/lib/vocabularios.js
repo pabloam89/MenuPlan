@@ -117,6 +117,14 @@ export const DONDE_COME = ["casa", "tupper", "fuera", "cole", "off"];
 export const TIPOS_HUECO = ["normal", "unico", "rapida"];
 
 /**
+ * Las franjas de fuera del menú (trozo 19; extras.js): cómo se repite el desayuno los días que lo hay (variado: uno
+ * distinto cada día; findes: el mismo entre semana y otro el finde; igual: siempre el mismo), y a qué comida va el
+ * postre un día que lo hay. «off» no es un valor: un día sin la franja es un día sin sobre.
+ */
+export const REPITES_DESAYUNO = ["variado", "findes", "igual"];
+export const POSTRES_EN = ["comida", "cena", "ambas"];
+
+/**
  * Las dimensiones del ámbito de un sobre (trozo 55), en este orden: grupo, semana (su lunes), día (DIAS) y comida
  * (COMIDAS). registro_campo.ambito dice las de cada campo (CHECK, 0114) y el sobre tiene una columna por cada una.
  */
@@ -562,6 +570,8 @@ export const VOCABULARIOS = Object.freeze({
   estructura_platos: ESTRUCTURA_PLATOS,
   donde_come: DONDE_COME,
   tipo_hueco: TIPOS_HUECO,
+  repite_desayuno: REPITES_DESAYUNO,
+  postre_en: POSTRES_EN,
   dimensiones_ambito: DIMENSIONES_AMBITO,
   ritmo_cocina: RITMO_COCINA,
   nivel_cocina: NIVEL_COCINA,

@@ -18,6 +18,7 @@ import { ESTADOS_DATO, ESTADO_DE_ORIGEN } from "./vocabularios.js";
 import { ESTADOS as ESTADOS_LIBRETA } from "./notepad.js";
 import { DATOS_CASA, DATOS_PERSONA } from "./registroFicha.js";
 import { rutinaDeFichas } from "./rutina.js";
+import { CAMPOS_FRANJAS } from "./extras.js";
 
 /** La versión de ficha_casa que trae «fichas», el estado de cada dato (0107); la 1 no lo trae. */
 export const FICHA_CON_ESTADO = 2;
@@ -138,11 +139,20 @@ export const basesSinPersonas = (ficha) => (ficha.personas.length > 0 ? [] : CAM
   .map((campo) => ({ campo, sujeto: { tipo: "casa", id: null }, ambito: null, estado: "vacio", valor: null, origen: null })));
 
 /**
+ * Los datos con sobre cuya migración puede no estar aplicada aún, por migración (plan B, regla migraciones: la rama
+ * se despliega antes). Si la ficha no trae ninguno de los de una migración, siguen en el documento; si trae unos y
+ * otros no, no cuadra. Una migración sale de aquí en cuanto Pablo la aplica (como hizo #1150 con la 0112 a la 0116).
+ *   0132: las franjas de fuera del menú (trozo 19); sin ella, siguen en data.extraMeals (extras.js).
+ */
+export const CON_PLAN_B = Object.freeze({ "0132": CAMPOS_FRANJAS });
+
+/**
  * Pura. Lo que la app y Lola leen de los sobres de la casa, de los elementos de ficha_casa v2 (los de
  * FICHAS_CASA_CON_SOBRE): `{ [campo]: { valor, conSobre } }`. Los de CAMPOS_CASA_CON_SOBRE, por datosConSobre; los
  * de CAMPOS_CON_AMBITO_CON_SOBRE, su mapa de `data` con lo dicho en cada hueco (rutinaDeFichas, rutina.js), y
  * `conSobre` si algún hueco está dicho. Con la 0112 a la 0116 aplicadas (2 nov 2026), la ficha trae todos: si falta
- * alguno, lanza (registro_campo y el registro no dicen lo mismo), en vez de leerlo del documento. Lanza también si no
+ * alguno, lanza (registro_campo y el registro no dicen lo mismo), en vez de leerlo del documento; salvo los de una
+ * migración de CON_PLAN_B de la que no trae ninguno, que no salen (siguen en el documento). Lanza también si no
  * cuadra (estadosDeFichas, rutinaDeFichas).
  */
 export function leidosConSobre(elementos) {
@@ -150,7 +160,8 @@ export function leidosConSobre(elementos) {
   const mapas = Object.entries(rutinaDeFichas(elementos)).filter(([campo]) => CAMPOS_CON_AMBITO_CON_SOBRE.includes(campo))
     .map(([campo, mapa]) => [campo, { valor: mapa, conSobre: Object.keys(mapa).length > 0 }]);
   const leidos = Object.fromEntries([...simples, ...mapas]);
-  const faltan = [...CAMPOS_CASA_CON_SOBRE, ...CAMPOS_CON_AMBITO_CON_SOBRE].filter((c) => !Object.hasOwn(leidos, c));
+  const sinAplicar = Object.values(CON_PLAN_B).filter((campos) => campos.every((c) => !Object.hasOwn(leidos, c))).flat();
+  const faltan = [...CAMPOS_CASA_CON_SOBRE, ...CAMPOS_CON_AMBITO_CON_SOBRE].filter((c) => !Object.hasOwn(leidos, c) && !sinAplicar.includes(c));
   if (faltan.length) throw new Error(`ficha_casa no trae ${faltan.join(", ")}: registro_campo no tiene lo que dice el registro`);
   return leidos;
 }

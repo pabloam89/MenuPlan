@@ -47,8 +47,10 @@ const DUPLICADOS_HEREDADOS = new Set(["0003", "0006", "0051"]);
  *     migración») la daba al trozo 34; la numeración siguió (la 0108, la 0109 y la 0111 a la 0121
  *     llegaron antes) y el trozo 34 fue a la 0122 (0122_recordatorios_en_tareas). No se usará:
  *     queda aquí para que el hueco esté explicado.
+ *   0130: el trozo 61 del mismo plan («Qué hace cada migración»: `descarte_menu`), en otra rama.
+ *   0131: el trozo 70 del mismo plan, en otra rama (la 0132, las franjas del trozo 19, llegó antes).
  */
-const RESERVADOS = new Set(["0093", "0110"]);
+const RESERVADOS = new Set(["0093", "0110", "0130", "0131"]);
 
 describe("las migraciones se pueden nombrar sin ambigüedad", () => {
   it("ningún número nuevo repetido", () => {

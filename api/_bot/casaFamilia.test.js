@@ -475,6 +475,49 @@ describe("la Rutina con ámbito con sobre (trozo 13)", () => {
   });
 });
 
+describe("las franjas de fuera del menú con sobre por día (trozo 19, 0132)", () => {
+  const base = (campo) => ({ ...porDefecto(campo, null), estado: "vacio", ambito: null });
+  const dia = (campo, d, valor) => ({ ...dicho(campo, valor), ambito: { dia: d } });
+  const docCon = (data) => responde(/household_state/, { status: 200, cuerpo: [{ state: { data: { ...DOCUMENTO.data, ...data } }, bot_rev: 7, updated_at: "2026-11-01T10:00:00Z" }] });
+  const cambiar = (cambios) => conCasa(CASA, async (casa) => ({ state: { ...casa.state, data: { ...casa.state.data, ...cambios(casa.state.data) } } }));
+  const ops = () => escrituras().filter((l) => RUTA_OPERACION.test(l.ruta)).map((l) => l.cuerpo.p_operacion.datos);
+  const LABORABLES = ["Lun", "Mar", "Mié", "Jue", "Vie"];
+
+  it("con la 0132, extraMeals sale de los sobres de cada día, no del documento; postreTipo sigue en el documento", async () => {
+    docCon({ extraMeals: { desayuno: "variado", merienda: "off", postre: "cena", postreTipo: "horno" } });
+    responde(RUTA_FICHA, { status: 200, cuerpo: fichaV2(base("meriendaDias"), ...LABORABLES.map((d) => dia("meriendaDias", d, true))) });
+    const casa = await cargarCasa(CASA);
+    expect(casa.state.data.extraMeals).toEqual({ desayuno: "off", merienda: "laborables", postre: "off", postreTipo: "horno" });
+  });
+
+  it("lo que Lola cambia (ajustar_extras) va a escribirDato, un dato por día, y el documento solo lleva postreTipo", async () => {
+    const { r } = await enTurno(() => cambiar((d) => ({ extraMeals: { ...d.extraMeals, postre: "comida", postreTipo: "cazo" } })));
+    const dias = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"].sort(); // datosDeCambio va en el orden de sus claves
+    expect(ops()).toEqual([dias.map((d) => ({ campo: "postreDias", persona_id: null, dia: d, valor: "comida", origen: "dicho" }))]);
+    expect(escrituras()[0].cuerpo.p_state.data.extraMeals).toEqual({ postreTipo: "cazo" });
+    expect(r).toMatchObject({ ok: true });
+  });
+
+  it("sin la 0132 (la ficha no trae ninguna franja), extraMeals se lee y se guarda en el documento, como antes", async () => {
+    const sinFranjas = (f) => ({ ...f, fichas: { ...f.fichas, rutina: f.fichas.rutina.filter((e) => !/Dias$|Repite$/.test(e.campo)) } });
+    docCon({ extraMeals: { desayuno: "igual", merienda: "off", postre: "off" } });
+    responde(RUTA_FICHA, { status: 200, cuerpo: sinFranjas(fichaV2()) });
+    const { r } = await enTurno(() => cambiar((d) => ({ extraMeals: { ...d.extraMeals, postre: "cena" } })));
+    expect(ops()).toEqual([]);
+    expect(escrituras()[0].cuerpo.p_state.data.extraMeals).toEqual({ desayuno: "igual", merienda: "off", postre: "cena" });
+    expect(r).toMatchObject({ ok: true });
+  });
+
+  it("una ficha con unas franjas y sin otras no cuadra: la casa no se lee", async () => {
+    const f = fichaV2();
+    responde(RUTA_FICHA, { status: 200, cuerpo: { ...f, fichas: { ...f.fichas, rutina: f.fichas.rutina.filter((e) => e.campo !== "postreDias") } } });
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    await expect(cargarCasa(CASA)).rejects.toThrow(/ficha_casa no trae postreDias/);
+    expect(escrituras()).toEqual([]);
+    log.mockRestore();
+  });
+});
+
 describe("la libreta en filas de preferencia (trozo 14)", () => {
   const RUTA_PREFS = new RegExp(`rpc/${RPC_PREFERENCIAS_DE_CASA}`);
   const RUTA_ESCRIBIR = new RegExp(`rpc/${RPC_PREFERENCIAS}`);

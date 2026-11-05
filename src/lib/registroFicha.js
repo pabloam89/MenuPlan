@@ -268,7 +268,12 @@ export const DATOS_CASA = Object.freeze({
 
   // ── Horario: qué comidas, cuándo y dónde ──
   meals: dato({ tema: "horario", tipo: "lista_enum", vocabulario: "comidas", defecto: ["Comida", "Cena"], peso_menu: 85, ...deLaRutina("meals") }),
-  extraMeals: dato({ tema: "horario", tipo: "objeto", motivo: "desayuno, merienda y postre fuera del menú" }),
+  extraMeals: dato({ tema: "horario", tipo: "objeto", motivo: "en el documento, solo postreTipo y postreInmediato (preferencias de los ejes esfuerzoPostre y tipoPostre, al pasar a preferencia); desayuno, merienda y postre son la vista de sus franjas (extras.js)" }),
+  // Las franjas de fuera del menú (trozo 19): un sobre por día con la franja; un día sin sobre, sin ella.
+  desayunoDias: dato({ tema: "horario", tipo: "bool", ...enElRegistro("desayunoDias", ["dia"]), motivo: "los días con desayuno (true)" }),
+  desayunoRepite: dato({ tema: "horario", tipo: "enum", vocabulario: "repite_desayuno", defecto: "variado", ...deLaRutina("desayunoRepite"), motivo: "cómo se repite el desayuno los días que lo hay" }),
+  meriendaDias: dato({ tema: "horario", tipo: "bool", ...enElRegistro("meriendaDias", ["dia"]), motivo: "los días con merienda (true; solo la de los niños)" }),
+  postreDias: dato({ tema: "horario", tipo: "enum", vocabulario: "postre_en", ...enElRegistro("postreDias", ["dia"]), motivo: "los días con postre, y a qué comida va" }),
   schedule: dato({ entidad: "persona", tema: "horario", tipo: "enum", vocabulario: "donde_come", defecto: "casa", ...enElRegistro("schedule", ["dia", "comida"]), motivo: "quién come dónde cada día y comida: un sobre por persona, día y comida" }),
   slotType: dato({ tema: "horario", tipo: "enum", vocabulario: "tipo_hueco", ...enElRegistro("slotType", ["dia", "comida"]), motivo: "cómo es cada hueco: un sobre por día y comida" }),
   manualSlotType: dato({ tema: "horario", tipo: "mapa", ...marca("slotType"), motivo: "los huecos que el usuario tocó a mano; el motor la lee (prepararGeneracion.js) para no simplificarlos" }),

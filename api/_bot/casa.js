@@ -24,6 +24,7 @@ import { cambiosDePersonas, conOrdenDeTodos, textosDeAvisos, revSiguiente } from
 import { CANAL_DATO, REF_OPERACION } from "../../src/lib/vocabularios.js";
 import { CAMPOS_CON_AMBITO_CON_SOBRE } from "../../src/lib/estadoDeDato.js";
 import { datosDeCambio, familiaDeData } from "../../src/lib/rutina.js";
+import { extrasConFranjas, franjasParaGuardar } from "../../src/lib/extras.js";
 import { recetasPropiasDeCasa, quitarRecetaGuardada } from "./propias.js";
 import { menuActivoDe } from "../../src/lib/menuActivo.js";
 import { isoDeCasa } from "../../src/lib/dias.js";
@@ -211,10 +212,13 @@ function separarPreferencias(state, casa) {
   return { documento: { ...state, data: sinLibreta(state.data) }, preferencias };
 }
 
-/** Pura. El documento con los datos con sobre leídos en `data` (lo que el documento aún guarde de ellos, fuera). */
+/**
+ * Pura. El documento con los datos con sobre leídos en `data` (lo que el documento aún guarde de ellos, fuera), y
+ * extraMeals como vista de sus franjas (extras.js).
+ */
 function conDatosConSobre(state, conSobre) {
   const valores = Object.fromEntries(Object.entries(conSobre).map(([campo, l]) => [campo, l.valor]));
-  return { ...state, data: { ...(state?.data ?? {}), ...valores } };
+  return { ...state, data: extrasConFranjas({ ...(state?.data ?? {}), ...valores }) };
 }
 
 /**
@@ -228,7 +232,8 @@ function separarConSobre(state, conSobre, familia) {
   if (!state?.data) return { documento: state, cambios: [] };
   // cargarCasa los lee siempre (o la casa no se lee): una casa sin ellos guardaría en el documento lo que va al sobre.
   if (!conSobre) throw new Error("guardarCasa: la casa no trae sus datos con sobre (cargarCasa)");
-  const data = { ...state.data };
+  // Las franjas, de la vista de extraMeals si alguien la tocó; la vista no va al documento (extras.js).
+  const data = franjasParaGuardar({ ...state.data });
   const cambios = [];
   for (const [campo, leido] of Object.entries(conSobre)) {
     const valor = data[campo];
