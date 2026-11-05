@@ -124,8 +124,13 @@ describe("la pasada de la noche", () => {
 
   it("sin poder leer la despensa no se marca ningún día", async () => {
     menuBot.leerDespensa.mockResolvedValue(null);
-    conPlan({ pantryEndOfDaySince: "2026-11-02" });
+    let cambios;
+    casaBot.conCasa.mockImplementation(async (_id, cambiar) => {
+      cambios = await cambiar(casaCon({ pantryEndOfDaySince: "2026-11-02" }));
+      return { ok: true, sinCambios: true };
+    });
     expect(await barrerDespensa({ hoy: HOY })).toEqual({ casas: 1, filas: 0, sinBajar: 0, fallos: 0 });
+    expect(cambios).toBeNull();
     expect(db.update).not.toHaveBeenCalled();
   });
 
