@@ -20,7 +20,7 @@ vi.mock("./db.js", () => ({
 }));
 
 const { cerrarPedido, guardarPedido, pedidoDeFila, pedidoEnCurso } = await import("./pedidoMenu.js");
-const { insert } = await import("./db.js");
+const { insert, update } = await import("./db.js");
 const { COSAS_QUE_CADUCAN, CADUCA } = await import("./caducidades.js");
 const VIDA = COSAS_QUE_CADUCAN[CADUCA.PEDIDO_MENU].vidaMs;
 const CTX = { householdId: "casa", chatId: 7, userId: "u" };
@@ -76,11 +76,19 @@ describe("pedido de menú en curso (trozo 66)", () => {
     expect(await pedidoEnCurso("casa", AHORA)).toBeNull();
   });
 
-  it("no da por bueno lo que no sea del vocabulario ni lo ilegible", () => {
-    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+  it("no da por bueno lo que no sea del vocabulario", () => {
     expect(pedidoDeFila({ pedido: JSON.stringify({ camino: "otro", desde: "mañana", forzado: "si" }) })).toEqual({ camino: null, desde: null, forzado: false });
-    expect(pedidoDeFila({ id: "t", pedido: "{roto" })).toEqual({ camino: null, desde: null, forzado: false });
-    expect(spy).toHaveBeenCalledOnce();
-    spy.mockRestore();
+  });
+
+  it("un pedido ilegible lanza: no se pisa con uno vacío", async () => {
+    db.filas = [{ id: "t", status: "abierta", updated_at: AHORA.toISOString(), pedido: "{roto" }];
+    await expect(guardarPedido(CTX, { desde: "2026-11-09" }, AHORA)).rejects.toThrow();
+    expect(db.filas[0].pedido).toBe("{roto");
+  });
+
+  it("si se cierra mientras se guarda, lo dice: no da por guardado lo que no se escribió", async () => {
+    await guardarPedido(CTX, { camino: "basico" }, AHORA);
+    update.mockResolvedValueOnce([]);
+    await expect(guardarPedido(CTX, { desde: "2026-11-09" }, AHORA)).rejects.toThrow("se cerró");
   });
 });

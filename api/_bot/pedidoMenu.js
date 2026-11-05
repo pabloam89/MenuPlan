@@ -18,15 +18,9 @@ const FECHA = /^\d{4}-\d{2}-\d{2}$/;
 const delPedido = (householdId) => `household_id=${eq(householdId)}&clave=${eq(CLAVE)}&status=eq.${ESTADO_TAREA.ABIERTA}`;
 const caducaAt = (ahora) => new Date(ahora.getTime() + COSAS_QUE_CADUCAN[CADUCA.PEDIDO_MENU].vidaMs).toISOString();
 
-/** Pura. Lo guardado en `bot_tareas.pedido`, sin dar por bueno lo que no sea del vocabulario. */
+/** Pura. Lo guardado en `bot_tareas.pedido`, sin dar por bueno lo que no sea del vocabulario. Si es ilegible, lanza. */
 export function pedidoDeFila(fila) {
-  let p;
-  try {
-    p = JSON.parse(fila.pedido);
-  } catch {
-    console.error("[pedido] ilegible", String(fila.id ?? "").slice(0, 8));
-    return { ...VACIO };
-  }
+  const p = JSON.parse(fila.pedido);
   return {
     camino: IDS_CAMINO.includes(p?.camino) ? p.camino : null,
     desde: FECHA.test(String(p?.desde ?? "")) ? p.desde : null,
@@ -46,9 +40,12 @@ export async function pedidoEnCurso(householdId, ahora = new Date()) {
 /** Lo que había, si sigue vivo, con lo nuevo encima. */
 const juntar = (fila, cambios, ahora) => ({ ...(fila && vivo(fila, ahora) ? pedidoDeFila(fila) : VACIO), ...cambios });
 
-const reescribir = (fila, pedido, ahora) => update("bot_tareas", `id=${eq(fila.id)}&status=eq.${ESTADO_TAREA.ABIERTA}`, {
-  pedido: JSON.stringify(pedido), caduca_at: caducaAt(ahora), updated_at: ahora.toISOString(),
-});
+async function reescribir(fila, pedido, ahora) {
+  const filas = await update("bot_tareas", `id=${eq(fila.id)}&status=eq.${ESTADO_TAREA.ABIERTA}`, {
+    pedido: JSON.stringify(pedido), caduca_at: caducaAt(ahora), updated_at: ahora.toISOString(),
+  });
+  if (!filas?.length) throw new Error("guardarPedido: el pedido se cerró mientras se guardaba");
+}
 
 /**
  * Abre el pedido o suma `cambios` al que haya. Si otro adulto lo abre a la vez, gana el índice único y se suma al suyo.
