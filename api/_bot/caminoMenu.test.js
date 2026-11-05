@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { lineaDeCamino, rellenos } from "./manual.js";
 import { CAMINO, CAMINOS } from "../../src/lib/caminos.js";
-import { BOTONES_CAMINO, BOTONES_CAMINO_TELEGRAM, IDS_CAMINO, PREGUNTA_DE_CAMINO, LEYENDA_CAMINOS, caminoDelBoton, faltaParaGenerar, hayNinosEn, preguntaDeCamino, preguntasDelCamino } from "./caminoMenu.js";
+import { BOTON_SALIR, BOTONES_CAMINO, BOTONES_CAMINO_TELEGRAM, IDS_CAMINO, PREGUNTA_DE_CAMINO, LEYENDA_CAMINOS, caminoDelBoton, faltaParaGenerar, hayNinosEn, preguntaDeCamino, preguntasDelCamino } from "./caminoMenu.js";
 import { faltasDeFormato } from "./formatoMensaje.js";
 
 describe("los caminos de Lola son los de la app", () => {
@@ -104,6 +104,14 @@ describe("la línea de cada camino (trozo 60)", () => {
   it("quita el punto final, y solo el punto: una frase sin punto conserva su última letra", () => {
     expect(lineaDeCamino({ titulo: "A", enChat: "uno, dos.", minutos: 5 })).toBe("<b>A</b>: uno, dos (5 min)");
     expect(lineaDeCamino({ titulo: "A", enChat: "cole y tiempos", minutos: 5 })).toBe("<b>A</b>: cole y tiempos (5 min)");
+  });
+});
+
+describe("el botón de salir (trozo 67)", () => {
+  it("el manual enseña el mismo texto que el código reconoce", () => {
+    const manual = readFileSync(new URL("./conocimiento.md", import.meta.url), "utf8");
+    expect(manual.match(/\[\[Ya está[^\]]*\]\]/g).every((b) => b === `[[${BOTON_SALIR}]]`)).toBe(true);
+    expect(manual).toContain(`[[${BOTON_SALIR}]]`);
   });
 });
 

@@ -95,6 +95,14 @@ describe("generar_menu con el pedido en curso (trozo 67)", () => {
     expect(r).toMatch(/Has dado por supuesto lo de: ¿Cuántos platos por comida\?/);
   });
 
+  it("lo que se quedó sin contestar también se dice, aunque dijeran «sigue tú»", async () => {
+    estado.abierto = { camino: "medio", desde: "2026-11-02", forzado: true, preguntado: true };
+    estado.ejes = sabe({ mealStructure: { estado: "falta" } });
+    const r = await llamar("dale", {});
+    expect(generarMenu).toHaveBeenCalledTimes(1);
+    expect(r).toMatch(/Has dado por supuesto lo de: ¿Cuántos platos por comida\?/);
+  });
+
   it("un generar fallido deja el pedido abierto, con lo dicho", async () => {
     estado.ok = false;
     await llamar("dale", { camino: "basico", desde: "2026-11-02" });

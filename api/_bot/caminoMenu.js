@@ -39,9 +39,9 @@ export function caminoDelBoton(texto) {
 export const BOTON_SALIR = "Ya está, genéralo";
 export const esBotonSalir = (texto) => String(texto ?? "").trim().toLowerCase() === BOTON_SALIR.toLowerCase();
 
-/** Pura. Lo que Lola da por supuesto, para decirlo en el resumen del menú. Sin supuestos, nada. */
-export function notaDeSupuestos(supuestos = []) {
-  const titulos = TEMAS.filter((t) => t.ejes.some((e) => supuestos.includes(e.dato))).map((t) => t.titulo);
+/** Pura. Lo que Lola da por supuesto y lo que se quedó sin contestar, para decirlo en el resumen del menú. Sin nada, nada. */
+export function notaDeSupuestos(supuestos = [], temas = []) {
+  const titulos = TEMAS.filter((t) => temas.includes(t.id) || t.ejes.some((e) => supuestos.includes(e.dato))).map((t) => t.titulo);
   return titulos.length ? `Has dado por supuesto lo de: ${titulos.join(" ")} Dilo en una línea del resumen y ofrece cambiarlo.` : "";
 }
 

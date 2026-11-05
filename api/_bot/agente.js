@@ -878,8 +878,10 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
         if (out.ok) pintarTambien(chat, filtrosTrasGenerar(out));
         // Generar fallido deja el pedido abierto: lo dicho no se pierde.
         await (out.ok ? cerrarPedido(householdId) : guardarPedido(quien, pedido)).catch(seguirCon("agente_pedido", null));
-        const { supuestos = [] } = ejes && out.ok && pedido.camino ? faltaDelPedido({ ...pedido, ejes, hayNinos }) : {};
-        if (supuestos.length) return resultadoDeGenerar(out, `${texto}\n${notaDeSupuestos(supuestos)}`);
+        // Lo que se quedó sin contestar se dice igual, también si dijeron «sigue tú»: no se presenta como sabido.
+        const { supuestos = [], temas = [] } = ejes && out.ok && pedido.camino ? faltaDelPedido({ ...pedido, forzado: false, ejes, hayNinos }) : {};
+        const nota = notaDeSupuestos(supuestos, temas);
+        if (nota) return resultadoDeGenerar(out, `${texto}\n${nota}`);
         if (out.recordarSilencio) chat.recordarSilencio = true;
         return resultadoDeGenerar(out, out.recordarSilencio ? `${texto}\n${NOTA_RECORDATORIO}` : texto);
       },
