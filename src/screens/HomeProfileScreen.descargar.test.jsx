@@ -39,34 +39,54 @@ describe("perfil: descargar mis datos (trozo 36)", () => {
   });
 });
 
-// «Formas de entrar» (#1238, specs/auth.md §7): cada una con su estado real, en lugar del botón suelto de Google.
+// «Formas de entrar» (#1238, specs/auth.md §7): una fila como las demás; dentro, cada forma con su interruptor.
 describe("perfil: formas de entrar", () => {
   afterEach(() => {
     act(() => raices.forEach((r) => r.unmount()));
     raices = [];
   });
-  const formas = [{ forma: "telegram", tiene: true }, { forma: "google", tiene: false }, { forma: "apple", tiene: true }];
-  const seccion = (caja) => caja.querySelector('section[aria-label="Formas de entrar"]');
+  const formas = [
+    { forma: "telegram", tiene: true, apagable: false },
+    { forma: "google", tiene: false, apagable: false },
+    { forma: "apple", tiene: true, apagable: true },
+  ];
+  const fila = (caja) => [...caja.querySelectorAll("button")].find((b) => b.textContent.includes("Formas de entrar"));
+  const interruptor = (nombre) => document.querySelector(`[role="switch"][aria-label="${nombre}"]`);
+  const abrir = async (props) => {
+    const caja = await pintar(props);
+    await act(async () => { fila(caja).click(); });
+    return caja;
+  };
 
-  it("enseña lo que tiene con ✓ y lo que no con «Añadir», que lo añade", async () => {
-    const onAnadirFormaDeEntrar = vi.fn();
-    const caja = await pintar({ formasDeEntrar: formas, onAnadirFormaDeEntrar });
-    const s = seccion(caja);
-    expect([...s.querySelectorAll('[role="img"]')].map((e) => e.getAttribute("aria-label"))).toEqual(["Ya entras con Telegram", "Ya entras con Apple"]);
-    const anadir = [...s.querySelectorAll("button")];
-    expect(anadir.map((b) => b.getAttribute("aria-label"))).toEqual(["Añadir Google"]);
-    await act(async () => { anadir[0].click(); });
-    expect(onAnadirFormaDeEntrar).toHaveBeenCalledWith("google");
+  it("la fila dice con qué entras y no enseña la lista hasta tocarla", async () => {
+    const caja = await pintar({ formasDeEntrar: formas });
+    expect(fila(caja).textContent).toContain("Entras con Telegram y Apple");
+    expect(interruptor("Google")).toBeNull();
   });
 
-  it("dice para qué sirve cuando la cuenta entra con Telegram", async () => {
-    expect(seccion(await pintar({ formasDeEntrar: formas })).textContent).toContain("Por si un día no tienes Telegram a mano.");
-    expect(seccion(await pintar({ formasDeEntrar: [{ forma: "google", tiene: true }] })).textContent).not.toContain("Telegram");
+  it("encender añade, apagar quita", async () => {
+    const onAnadirFormaDeEntrar = vi.fn();
+    const onQuitarFormaDeEntrar = vi.fn();
+    await abrir({ formasDeEntrar: formas, onAnadirFormaDeEntrar, onQuitarFormaDeEntrar });
+    await act(async () => { interruptor("Google").click(); });
+    expect(onAnadirFormaDeEntrar).toHaveBeenCalledWith("google");
+    await act(async () => { interruptor("Apple").click(); });
+    expect(onQuitarFormaDeEntrar).toHaveBeenCalledWith("apple");
+  });
+
+  it("lo que no se puede apagar sale encendido y no responde", async () => {
+    const onQuitarFormaDeEntrar = vi.fn();
+    await abrir({ formasDeEntrar: formas, onQuitarFormaDeEntrar });
+    const telegram = interruptor("Telegram");
+    expect(telegram.getAttribute("aria-checked")).toBe("true");
+    expect(telegram.disabled).toBe(true);
+    await act(async () => { telegram.click(); });
+    expect(onQuitarFormaDeEntrar).not.toHaveBeenCalled();
   });
 
   it("sin sesión no sale, y el botón suelto de antes ya no está", async () => {
     const caja = await pintar({ formasDeEntrar: null });
-    expect(seccion(caja)).toBeNull();
+    expect(fila(caja)).toBeUndefined();
     expect(caja.textContent).not.toContain("Entrar también con Google");
   });
 });

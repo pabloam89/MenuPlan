@@ -5,18 +5,17 @@ import {
   User,
   Users,
   Camera,
-  Check,
   Info,
   ShieldCheck,
   Download,
 } from "../components/icons.jsx";
-import { Avatar, BottomNav, bottomNavSpacer, safeTop, SignInOptions } from "../components/ui.jsx";
+import { Avatar, AppleGlyph, BottomNav, bottomNavSpacer, GoogleGlyph, safeTop, SignInOptions, TelegramGlyph, ToggleSwitch, WizardSheet } from "../components/ui.jsx";
 import { googleInfo } from "./Settings.jsx";
 import { findAccountMember,
   resolveAccountMember, miembroDeCuentaId, conMiembroDeCuenta, memberAvatarColor, memberAvatarThumbSrc, migrateHomeRole, resolveMemberAge, userAvatarSrc } from "../lib/stages.js";
 import { esTitular } from "../lib/householdsSync.js";
 import { fileToAvatarDataUrl } from "../lib/avatarImage.js";
-import { FORMA_DE_ENTRAR } from "../lib/cuentaTelegram.js";
+import { FORMA_DE_ENTRAR, NOMBRE_FORMA, resumenDeFormas } from "../lib/cuentaTelegram.js";
 import { color as tono, tipografia, espaciado, radio, tamano } from "../design/tokens.js";
 
 const GREEN = "#2d5a3d";
@@ -242,56 +241,53 @@ function FieldLabel({ children }) {
 
 // ── Formas de entrar (#1238, specs/auth.md §7) ──────────────────────────────
 
-const NOMBRE_FORMA = { [FORMA_DE_ENTRAR.TELEGRAM]: "Telegram", [FORMA_DE_ENTRAR.GOOGLE]: "Google", [FORMA_DE_ENTRAR.APPLE]: "Apple" };
+const LOGO_FORMA = { [FORMA_DE_ENTRAR.TELEGRAM]: TelegramGlyph, [FORMA_DE_ENTRAR.GOOGLE]: GoogleGlyph, [FORMA_DE_ENTRAR.APPLE]: AppleGlyph };
 
-// Con qué entra la cuenta (✓) y qué se le puede añadir. Sirve para recuperarla: por eso la línea de arriba.
-function FormasDeEntrar({ formas, onAnadir }) {
-  const conTelegram = formas.some((f) => f.forma === FORMA_DE_ENTRAR.TELEGRAM);
+// Una fila como las demás, y dentro cada forma con su logo y su interruptor: encendido entra, apagado no.
+function FormasDeEntrar({ formas, onAnadir, onQuitar }) {
+  const [abierta, setAbierta] = useState(false);
   return (
-    <section aria-label="Formas de entrar" style={{ marginBottom: espaciado["esp-12"] }}>
-      <FieldLabel>Formas de entrar</FieldLabel>
-      {conTelegram && (
-        <p style={{ margin: `0 0 ${espaciado["esp-8"]}px`, fontSize: tipografia["paso-12"], color: tono["tinta-tenue"] }}>
-          Por si un día no tienes Telegram a mano.
-        </p>
+    <>
+      <ProfileOptionRow
+        img="/avatares/cards/formas_de_entrar.jpg"
+        title="Formas de entrar"
+        subtitle={resumenDeFormas(formas)}
+        onClick={() => setAbierta(true)}
+      />
+      {abierta && (
+        <WizardSheet title="Formas de entrar" onClose={() => setAbierta(false)}>
+          <Card>
+            {formas.map(({ forma, tiene, apagable }, i) => {
+              const Logo = LOGO_FORMA[forma];
+              return (
+                <div
+                  key={forma}
+                  style={{
+                    display: "flex", alignItems: "center", gap: espaciado["esp-12"],
+                    minHeight: tamano["tam-tactil"],
+                    padding: `${espaciado["esp-12"]}px ${espaciado["esp-16"]}px`,
+                    borderTop: i === 0 ? "none" : `1px solid ${tono["linea-suave"]}`,
+                  }}
+                >
+                  {forma === FORMA_DE_ENTRAR.APPLE
+                    ? <Logo size={tamano["tam-icono-24"]} color={tono.tinta} />
+                    : <Logo size={tamano["tam-icono-24"]} />}
+                  <span style={{ flex: 1, fontSize: tipografia["paso-14"], fontWeight: tipografia["peso-800"], color: tono.tinta }}>
+                    {NOMBRE_FORMA[forma]}
+                  </span>
+                  <ToggleSwitch
+                    checked={tiene}
+                    disabled={tiene && !apagable}
+                    ariaLabel={NOMBRE_FORMA[forma]}
+                    onChange={(encender) => (encender ? onAnadir(forma) : onQuitar(forma))}
+                  />
+                </div>
+              );
+            })}
+          </Card>
+        </WizardSheet>
       )}
-      <Card>
-        {formas.map(({ forma, tiene }, i) => (
-          <div
-            key={forma}
-            style={{
-              display: "flex", alignItems: "center", justifyContent: "space-between", gap: espaciado["esp-12"],
-              minHeight: tamano["tam-tactil"],
-              padding: `${espaciado["esp-8"]}px ${espaciado["esp-16"]}px`,
-              borderTop: i === 0 ? "none" : `1px solid ${tono["linea-suave"]}`,
-            }}
-          >
-            <span style={{ fontSize: tipografia["paso-14"], fontWeight: tipografia["peso-800"], color: tono.tinta }}>
-              {NOMBRE_FORMA[forma]}
-            </span>
-            {tiene ? (
-              <span role="img" aria-label={`Ya entras con ${NOMBRE_FORMA[forma]}`}>
-                <Check size={tamano["tam-icono-18"]} color={tono.marca} />
-              </span>
-            ) : (
-              <button
-                type="button"
-                onClick={() => onAnadir(forma)}
-                aria-label={`Añadir ${NOMBRE_FORMA[forma]}`}
-                style={{
-                  minHeight: tamano["tam-tactil"], padding: `0 ${espaciado["esp-16"]}px`,
-                  borderRadius: radio["radio-pildora"], border: `1.5px solid ${tono.linea}`, background: tono.superficie,
-                  color: tono.marca, fontSize: tipografia["paso-13"], fontWeight: tipografia["peso-800"],
-                  fontFamily: "inherit", cursor: "pointer",
-                }}
-              >
-                Añadir
-              </button>
-            )}
-          </div>
-        ))}
-      </Card>
-    </section>
+    </>
   );
 }
 
@@ -310,6 +306,7 @@ export function HomeProfileScreen({
   onExportData = null,
   formasDeEntrar = null,
   onAnadirFormaDeEntrar,
+  onQuitarFormaDeEntrar,
   onEditMembers,
   onEditPreferences,
   onOpenHouseholds,
@@ -520,7 +517,7 @@ export function HomeProfileScreen({
 
         {/* ── Cuenta y datos ─────────────────────── */}
         {/* Formas de entrar (#1238): en lugar del botón suelto «Entrar también con Google». */}
-        {formasDeEntrar && <FormasDeEntrar formas={formasDeEntrar} onAnadir={onAnadirFormaDeEntrar} />}
+        {formasDeEntrar && <FormasDeEntrar formas={formasDeEntrar} onAnadir={onAnadirFormaDeEntrar} onQuitar={onQuitarFormaDeEntrar} />}
         {/* Solo tiene sentido con sesión activa — sin este guard se mostraba
             también en el estado deslogueado (junto a la tarjeta "Continuar
             con Google" de arriba), y pulsarlo no hacía nada porque no había
