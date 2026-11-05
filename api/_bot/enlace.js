@@ -75,16 +75,24 @@ export async function cuentaDeTelegram(externalId, channel = CANAL.TELEGRAM) {
 export const pideCambioDeCuenta = ({ esGrupo, deAntes, userId }) => Boolean(!esGrupo && deAntes && deAntes !== userId);
 
 /**
- * Pura. La pregunta del cambio de cuenta, con los nombres de las dos casas si se saben. `conPedido`: venía de un botón
+ * Pura. La pregunta del cambio de cuenta, con el nombre de las dos casas y cuántas personas tiene cada una, si se saben:
+ * casi todas se llaman «Mi casa», y el nombre solo no deja elegir (#1302). `conPedido`: venía de un botón
  * de la app con algo pedido, que no se hace (sería en la otra casa) ni se guarda: se dice que hay que pedirlo otra vez.
  */
-export function preguntaDeCambio({ casaAntes, casaApp, conPedido = false }) {
-  const nombre = (n, si) => (n ? `<b>${escaparHtml(n)}</b>` : si);
-  return `Este Telegram ya está conectado a otra cuenta de HoMenu (la de ${nombre(casaAntes, "otra casa")}). `
-    + `¿Lo pasas a la cuenta con la que has entrado en la app (${nombre(casaApp, "tu casa")})?\n\n`
+export function preguntaDeCambio({ casaAntes, casaApp, personasAntes = null, personasApp = null, conPedido = false }) {
+  const cuantas = (n) => (n == null ? "" : n === 0 ? ", sin nadie" : n === 1 ? ", con 1 persona" : `, con ${n} personas`);
+  const nombre = (n, si, personas) => `${n ? `<b>${escaparHtml(n)}</b>` : si}${cuantas(personas)}`;
+  return `Este Telegram ya está conectado a otra cuenta de HoMenu (la de ${nombre(casaAntes, "otra casa", personasAntes)}). `
+    + `¿Lo pasas a la cuenta con la que has entrado en la app (${nombre(casaApp, "tu casa", personasApp)})?\n\n`
     + "Lo de la otra cuenta se queda en ella: no se pasa a esta."
     + (conPedido ? "\n\nLo que me has pedido desde la app no lo he hecho: cuando contestes, pídemelo otra vez." : "");
 }
+
+/** Las filas de persona de estas casas, para contarlas con personasDeCasa. Un fallo de la base, lanza. */
+export const personasDeCasas = (casas) => select("persona", `household_id=in.(${casas.map(encodeURIComponent).join(",")})`, "household_id");
+
+/** Pura. Cuántas personas de `filas` son de esta casa. Sin saber la casa o sin filas, null: no se sabe, no es que no haya nadie. */
+export const personasDeCasa = (filas, casa) => (casa && filas ? filas.filter((p) => p.household_id === casa).length : null);
 
 /** Por qué no se pasa este Telegram a otra cuenta: es la única llave de una casa con gente dentro (#1302). */
 export const NO_SE_PASA_LA_LLAVE = "No paso este Telegram a esa cuenta: es la única forma de entrar en tu casa y te quedarías fuera.\n\n"

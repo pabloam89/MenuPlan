@@ -1,13 +1,14 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { rellenos } from "./manual.js";
+import { lineaDeCamino, rellenos } from "./manual.js";
 import { CAMINO, CAMINOS } from "../../src/lib/caminos.js";
-import { BOTONES_CAMINO, BOTONES_CAMINO_TELEGRAM, IDS_CAMINO, PREGUNTA_DE_CAMINO, LEYENDA_CAMINOS, caminoDelBoton, faltaParaGenerar, hayNinosEn, preguntasDelCamino } from "./caminoMenu.js";
+import { BOTONES_CAMINO, BOTONES_CAMINO_TELEGRAM, IDS_CAMINO, PREGUNTA_DE_CAMINO, LEYENDA_CAMINOS, caminoDelBoton, faltaParaGenerar, hayNinosEn, preguntaDeCamino, preguntasDelCamino } from "./caminoMenu.js";
+import { faltasDeFormato } from "./formatoMensaje.js";
 
 describe("los caminos de Lola son los de la app", () => {
   it("los ids y los botones salen de src/lib/caminos.js, sin copiarlos", () => {
     expect(IDS_CAMINO).toEqual(Object.values(CAMINO));
-    expect(BOTONES_CAMINO).toBe("[[Solo los días]] [[Unas preguntas]] [[A fondo]]");
+    expect(BOTONES_CAMINO).toBe("[[Solo los días]]\n[[Unas preguntas]]\n[[A fondo]]");
   });
 
   it("los botones de Telegram vuelven con el título, que caminoDelBoton reconoce; la pregunta es la del manual", () => {
@@ -20,15 +21,17 @@ describe("los caminos de Lola son los de la app", () => {
     expect(LEYENDA_CAMINOS).toBe("basico = Solo los días, medio = Unas preguntas, avanzado = A fondo");
   });
 
-  it("el manual enseña los caminos desde CAMINOS (marca {{CAMINOS}}): cada botón con qué pasa y su ejemplo, y caminoDelBoton lo reconoce", () => {
+  it("el manual enseña los caminos desde CAMINOS (marca {{CAMINOS}}): cada uno con su botón en negrita, y los ejemplos aparte", () => {
     const manual = readFileSync(new URL("./conocimiento.md", import.meta.url), "utf8");
     expect(manual).toContain("{{CAMINOS}}");
     const lineas = rellenos({ capacidades: [], fichas: new Map() }).CAMINOS.split("\n");
-    expect(lineas).toHaveLength(CAMINOS.length);
+    expect(lineas).toHaveLength(CAMINOS.length + 1);
     for (const [i, c] of CAMINOS.entries()) {
       expect(c.ejemplo, c.id).toMatch(/\S/);
-      expect(lineas[i]).toContain(`[[${c.titulo}]]`);
-      expect(lineas[i]).toContain(c.ejemplo);
+      expect(lineas[i].startsWith(`<b>${c.titulo}</b>: ${c.enChat}`), c.id).toBe(true);
+      // El botón de verdad no va dentro de la línea: el chat se lo lleva y deja «:» (4 nov 2026).
+      expect(lineas[i]).not.toContain("[[");
+      expect(lineas.at(-1)).toContain(c.ejemplo);
       expect(caminoDelBoton(c.titulo)).toBe(c.id);
     }
   });
@@ -55,16 +58,69 @@ describe("los caminos de Lola son los de la app", () => {
   });
 });
 
+// El caso de Pablo (4 nov 2026, miércoles): esta semana ya tiene menú, la que viene no.
+const HOY = "2026-11-04";
+const ESTA = [{ weekStart: "2026-11-02", weekEnd: "2026-11-08" }];
+
+describe("la pregunta del camino, en corto (trozo 60)", () => {
+  it("el caso de Pablo: la semana sin menú y su lunes en humano, una línea por camino y los botones al final", () => {
+    expect(preguntaDeCamino({ hoy: HOY, semanas: ESTA })).toBe([
+      "Del 9 al 15 de noviembre no tenéis menú. ¿Te lo preparo desde el <b>lunes 9</b>?",
+      "",
+      "<b>Solo los días</b>: me dices cuándo coméis en casa (1 min)",
+      "<b>Unas preguntas</b>: además, gustos y cómo cocináis (3 min)",
+      "<b>A fondo</b>: también presupuesto, cole y tiempos (5 min)",
+      "",
+      "O cuéntamelo con tus palabras o en un audio.",
+      "",
+      "[[Solo los días]]",
+      "[[Unas preguntas]]",
+      "[[A fondo]]",
+    ].join("\n"));
+  });
+
+  it("sin menú esta semana, desde hoy; sin semana libre, la pregunta abierta", () => {
+    expect(preguntaDeCamino({ hoy: HOY, semanas: [] })).toMatch(/^Del 4 al 8 de noviembre no tenéis menú\. ¿Te lo preparo desde el <b>miércoles 4<\/b>\?/);
+    const llenas = Array.from({ length: 10 }, (_, i) => ({
+      weekStart: new Date(Date.UTC(2026, 10, 2 + 7 * i)).toISOString().slice(0, 10),
+      weekEnd: new Date(Date.UTC(2026, 10, 8 + 7 * i)).toISOString().slice(0, 10),
+    }));
+    expect(preguntaDeCamino({ hoy: HOY, semanas: llenas }).split("\n")[0]).toBe(PREGUNTA_DE_CAMINO);
+  });
+
+  it("pasa todas las reglas de forma, con semana y sin ella", () => {
+    expect(faltasDeFormato(preguntaDeCamino({ hoy: HOY, semanas: ESTA }))).toEqual([]);
+    expect(faltasDeFormato(preguntaDeCamino({ hoy: HOY, semanas: [] }))).toEqual([]);
+  });
+});
+
+describe("la línea de cada camino (trozo 60)", () => {
+  it("el botón en negrita, qué pasa y cuánto, sin el botón de verdad dentro de la frase", () => {
+    const linea = lineaDeCamino({ titulo: "Solo los días", enChat: "me dices cuándo coméis en casa", minutos: 1 });
+    expect(linea).toBe("<b>Solo los días</b>: me dices cuándo coméis en casa (1 min)");
+    expect(faltasDeFormato(`${linea}\n\n[[Solo los días]]`)).toEqual([]);
+  });
+
+  it("quita el punto final, y solo el punto: una frase sin punto conserva su última letra", () => {
+    expect(lineaDeCamino({ titulo: "A", enChat: "uno, dos.", minutos: 5 })).toBe("<b>A</b>: uno, dos (5 min)");
+    expect(lineaDeCamino({ titulo: "A", enChat: "cole y tiempos", minutos: 5 })).toBe("<b>A</b>: cole y tiempos (5 min)");
+  });
+});
+
 describe("faltaParaGenerar: no se genera sin preguntar", () => {
-  it("sin camino, pide preguntar para cuándo y cómo de a fondo, con los tres botones", () => {
-    const r = faltaParaGenerar({ desde: "2026-11-02", texto: "hazme el menú" });
+  it("sin camino, trae la pregunta corta entera para mandarla tal cual, y el lunes para generar", () => {
+    const r = faltaParaGenerar({ desde: "2026-11-02", texto: "hazme el menú", hoy: HOY, semanas: ESTA });
     expect(r).toMatch(/^NO GENERADO: antes de generar, pregunta SIEMPRE para cuándo/);
-    expect(r).toContain(BOTONES_CAMINO);
-    for (const c of CAMINOS) expect(r).toContain(c.resumen);
+    expect(r).toContain(preguntaDeCamino({ hoy: HOY, semanas: ESTA }));
+    expect(r).toContain("desde 2026-11-09");
+  });
+
+  it("sin camino y sin saber qué día es hoy, lanza: no se propone una semana a ciegas", () => {
+    expect(() => faltaParaGenerar({ texto: "hazme el menú" })).toThrow(/hace falta hoy/);
   });
 
   it("un camino que no existe cuenta como sin camino", () => {
-    expect(faltaParaGenerar({ camino: "rapido", desde: "2026-11-02" })).toMatch(/pregunta SIEMPRE/);
+    expect(faltaParaGenerar({ camino: "rapido", desde: "2026-11-02", hoy: HOY })).toMatch(/pregunta SIEMPRE/);
   });
 
   it("recién pulsado el camino, toca hacer sus preguntas, aunque el modelo traiga fecha", () => {
