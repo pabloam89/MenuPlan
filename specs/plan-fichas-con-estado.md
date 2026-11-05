@@ -97,7 +97,7 @@ Todo dato de una ficha lleva el mismo **sobre**: `valor`, `origen` (es el estado
 - **Mínimos para generar** (decisión B): quién come, alergias dichas (o por silencio con aviso, #229) y días. Sin ellos, no se genera: se pregunta.
 - **La app se entera al momento** con Realtime de Supabase sobre `household_state.bot_rev` y `sobre` (trozo 20), y deja el sondeo de 20 s.
 - **Sin convivencia con lo viejo** (Pablo, 30 oct 2026: «no quiero migrar nada; si tienen que empezar de cero, es lo que hay»): cuando una ficha pasa a sus filas, el documento deja de leerse y de escribirse para esa ficha en el mismo trozo. Ni doble escritura, ni repoblado de datos viejos, ni leer la clave antigua «por si acaso». Las casas que ya existen estrenan cada ficha vacía: la app y Lola preguntan como a una casa nueva. Lo que ya está en tablas (semanas, compra, recetas propias, despensa) se queda. Nunca quedan dos sitios vivos para el mismo dato (hoy hay 10 copias por haberlo hecho a medias).
-- **Qué hace cada migración** (el único sitio que lo dice; la tabla de tramos solo dice si el tramo trae migración y cada trozo la construye): la 0105 da al sobre y al registro sus columnas y crea la tabla `operacion` (trozo 7); la 0106 crea `aplicar_operacion` y `escribir_dato` (trozo 39); la 0107 crea `ficha_casa` v2 y retira `sobre.ref` (trozo 40); la 0108 crea `escribir_persona` (definer: la única vía de escritura a `persona` y `persona_*`, porque ningún usuario puede tocarlas) y retira el trigger 0089 con sus funciones (trozo 10); la 0109 crea de una vez `preferencia`, `plan_preferencias`, señal e historiales (trozo 14), que usan los trozos 15, 22 y 31 sin migración propia; la 0110 amplía `bot_tareas` y retira `bot_reminders` (trozo 34); la 0111 deja a `aplicar_operacion` deshacer una operación con su inversa en la misma transacción (trozo 41); la 0114 da ámbito (grupo, semana, día, comida) al sobre y al registro (trozo 55), la 0115 escribe y deshace con él (trozo 56) y la 0116 lo lee en `ficha_casa` (trozo 57); la 0130 crea `descarte_menu` (un menú tirado, con su motivo) y añade a `receta_descartes` la columna `descarte_menu_id` (trozo 61). Las tablas de salud por persona ya existen (0079). Si un trozo posterior necesita una columna más, es una migración pequeña aparte.
+- **Qué hace cada migración** (el único sitio que lo dice; la tabla de tramos solo dice si el tramo trae migración y cada trozo la construye): la 0105 da al sobre y al registro sus columnas y crea la tabla `operacion` (trozo 7); la 0106 crea `aplicar_operacion` y `escribir_dato` (trozo 39); la 0107 crea `ficha_casa` v2 y retira `sobre.ref` (trozo 40); la 0108 crea `escribir_persona` (definer: la única vía de escritura a `persona` y `persona_*`, porque ningún usuario puede tocarlas) y retira el trigger 0089 con sus funciones (trozo 10); la 0109 crea de una vez `preferencia`, `plan_preferencias`, señal e historiales (trozo 14), que usan los trozos 15, 22 y 31 sin migración propia; la 0110 amplía `bot_tareas` y retira `bot_reminders` (trozo 34); la 0111 deja a `aplicar_operacion` deshacer una operación con su inversa en la misma transacción (trozo 41); la 0114 da ámbito (grupo, semana, día, comida) al sobre y al registro (trozo 55), la 0115 escribe y deshace con él (trozo 56) y la 0116 lo lee en `ficha_casa` (trozo 57); la 0131 crea `descarte_menu` (un menú tirado, con su motivo) y añade a `receta_descartes` la columna `descarte_menu_id` (trozo 61). Las tablas de salud por persona ya existen (0079). Si un trozo posterior necesita una columna más, es una migración pequeña aparte.
 
 ## Entidades y campos nuevos, frente a los que ya hay
 
@@ -808,7 +808,7 @@ npx vitest run api/_bot/caminoMenu.test.js api/_bot/semanaPedida.test.js && node
 ```
 
 ### 61. Descartar un menú entero con su motivo: Lola lo apunta con un motivo de lista cerrada, y lo que se deduce va a la ficha como preferencia
-Files: `supabase/migrations/0130_descarte_de_menu.sql`, `supabase/ESTADO.md`, `src/lib/vocabularios.js`, `scripts/lib/columnasVocabulario.mjs`, `src/lib/senales.js`, `src/lib/senales.test.js`, `api/_bot/descarteMenu.js`, `api/_bot/descarteMenu.test.js`, `api/_bot/agente.js`, `api/_bot/conocimiento.md`, `scripts/bot-evals.json`
+Files: `supabase/migrations/0131_descarte_de_menu.sql`, `supabase/ESTADO.md`, `src/lib/vocabularios.js`, `scripts/lib/columnasVocabulario.mjs`, `src/lib/senales.js`, `src/lib/senales.test.js`, `api/_bot/descarteMenu.js`, `api/_bot/descarteMenu.test.js`, `api/_bot/agente.js`, `api/_bot/conocimiento.md`, `scripts/bot-evals.json`
 Depends on: 15, 53, 57
 Blocked by: none
 Existing: la tabla ya acepta descartes de menú entero, pero sin motivo y solo desde la app: `receta_descartes` (0102) lleva `alcance` con CHECK `('plato', 'dia', 'menu')` y no tiene columna de motivo. La escribe solo `src/lib/descartes.js` (`registrarDescartes`, desde `src/App.jsx:4940` y `:5057`, plato y día); `src/App.jsx:2733` dice que los de menú entero «ya no se apuntan […] eso lo hacía este botón, y Lola aún no». `git grep -n "receta_descartes" -- api/_bot` → sin salida: Lola no apunta nada al rehacer. En la base (solo lectura, 5 nov 2026), `npm run consulta -- "select alcance, count(*), max(created_at)::date from receta_descartes group by 1"` → `plato 2`, `menu 22`, el último del 1 nov: los 22 de menú son una fila por plato del menú tirado, sin el porqué. Lola rehace menús: de 20 turnos de `bot_route` con `generar_menu` en 30 días, 3 llevan «rehac» (`npm run consulta` con `metadata::text like '%generar_menu%'` y `ilike '%rehac%'`; cuenta por texto, aproximada). Lo que la casa hace ya alimenta señales que olvidan (`src/lib/senales.js`, trozo 15: `senalesDePlato`, `UMBRAL_APRENDIDO = 3`, preferencia `visto` al pasar el umbral), pero un descarte de menú no entra.
@@ -906,12 +906,12 @@ Done:
 npx vitest run api/_bot/pedidoMenu.test.js src/lib/preferencias.test.js
 ```
 
-### 70. Migración 0131: cada menú sabe cómo se pidió
-Files: `supabase/migrations/0131_menu_generado_pedido.sql`, `supabase/ESTADO.md`, `api/_bot/menusGenerados.js`, `api/_bot/menusGenerados.test.js`, `api/_bot/generar.js`
+### 70. Migración 0130: cada menú sabe cómo se pidió
+Files: `supabase/migrations/0130_menu_generado_pedido.sql`, `supabase/ESTADO.md`, `api/_bot/menusGenerados.js`, `api/_bot/menusGenerados.test.js`, `api/_bot/generar.js`
 Depends on: 69
 Blocked by: Pablo aplica la migración
 Existing: `menu_generado` (0125) guarda `household_id` y `created_at`.
-Not done: gana `menu_id`, `camino`, `desde`, `hasta` y `forzado`, con CHECK contra `CAMINOS`. Plan B: sin las columnas, se apunta como hoy. El número se confirma contra `origin/staging` al escribirla.
+Not done: gana `menu_id`, `week_start` y `camino`, con CHECK contra `CAMINOS`; `menu_id` y `week_start`, dentro de la casa, señalan la fila de `user_menu_weeks`, y el fin y los días se leen de ahí, sin copiarlos. Plan B: sin las columnas, se apunta como hoy. El número se confirma contra `origin/staging` al escribirla.
 Done:
 ```sh
 npx vitest run api/_bot/menusGenerados.test.js supabase/cableado.test.js
@@ -922,7 +922,7 @@ Files: `api/_bot/caminoMenu.js`, `api/_bot/caminoMenu.test.js`, `api/_bot/conoci
 Depends on: 70
 Blocked by: none
 Existing: `preguntaDeCamino` ofrece los tres caminos en cada pedido, y se quedan (Pablo, 5 nov 2026: cada uno elige, con sus ejemplos, y siempre hay un mínimo).
-Not done: con un menú anterior, junto a los tres caminos, un botón más que repite su camino y sus días. Nunca los sustituye.
+Not done: con un menú anterior, junto a los tres caminos, un botón más que repite su camino y sus días, leídos de `user_menu_weeks` por casa, `menu_id` y `week_start`. Nunca los sustituye.
 Done:
 ```sh
 npx vitest run api/_bot/caminoMenu.test.js

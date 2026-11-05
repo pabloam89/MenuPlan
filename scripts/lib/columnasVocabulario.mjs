@@ -51,6 +51,8 @@ export const COLUMNAS_VOCABULARIO = Object.freeze({
   "sobre.origen": { lista: "origen_dato", comun: true },
   "sobre.canal": { lista: "canales_dato", comun: true },
   "receta_descartes.alcance": { lista: "alcances_descarte" },
+  // Cómo se pidió cada menú (0130, trozo 70). Común: «camino» es también clave de objetos que no son filas.
+  "menu_generado.camino": { lista: "caminos_menu", comun: true },
   // Las columnas del eje de registro_campo (0105): listas del producto que registroFicha.js usa en cada dato.
   // Comunes: «ficha», «clase», «escribe» y «choque» son también claves de objetos que no son filas.
   "registro_campo.ficha": { lista: "fichas", comun: true },

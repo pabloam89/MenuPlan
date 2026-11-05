@@ -413,6 +413,10 @@
       "class": "identifier",
       "reason": "Id de una receta (del catálogo en git o de la persona)"
     },
+    "menu_generado.menu_id": {
+      "class": "identifier",
+      "reason": "Id de un menú guardado o compartido"
+    },
     "user_menu_weeks.menu_id": {
       "class": "identifier",
       "reason": "Id de un menú guardado o compartido"
