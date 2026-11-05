@@ -1038,6 +1038,8 @@ Por qué te lo pregunto: el 8 oct decidiste lo contrario (#107: se genera esquiv
 - principio 4 | eligió: `menu_generado` guarda `menu_id` y `week_start`, que señalan la fila de `user_menu_weeks` (trozo 70) | descartó: las columnas `desde` y `hasta`, que copiarían lo que esa fila ya dice | motivo: decidido
 - principio 1 | eligió: no guardar `forzado` en `menu_generado` (trozo 70) | descartó: una columna sin lector, que afirmaría un dato que nada usa ni comprueba | motivo: decidido
 - principio 3 | eligió: si no se puede apuntar el menú, se avisa y el menú sigue hecho (trozo 70) | descartó: dejar que caiga el turno, que diría que falló un menú ya guardado | motivo: decidido
+- principio 4 | eligió: los días se leen de `user_menu_weeks` por casa, menú y semana, y van al motor por `soloEste` (trozo 71) | descartó: copiar los días en `menu_generado`, una segunda verdad | motivo: decidido
+- principio 3 | eligió: si no se puede leer la última vez, se pregunta como siempre y queda en el log (trozo 71) | descartó: dejar que falle todo el pedido por un botón de más | motivo: decidido
 
 ## Not verified
 

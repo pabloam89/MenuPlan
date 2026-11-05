@@ -28,6 +28,7 @@ vi.mock("./pedidoMenu.js", async (original) => ({
 
 const { herramientas } = await import("./agente.js");
 const { generarMenu } = await import("./generar.js");
+const { select } = await import("./db.js");
 const { cargarCasa } = await import("./casa.js");
 const { cerrarPedido, guardarPedido } = await import("./pedidoMenu.js");
 
@@ -47,6 +48,41 @@ beforeEach(() => {
   vi.setSystemTime(new Date("2026-10-24T10:00:00Z")); // sábado
 });
 afterEach(() => vi.useRealTimers());
+
+describe("«Como la última vez» (trozo 71)", () => {
+  const conUltimaVez = (fallaLeer = false) => select.mockImplementation(async (tabla) => {
+    if (fallaLeer && tabla === "menu_generado") throw new Error("500");
+    if (tabla === "menu_generado") return [{ menu_id: "m1", week_start: "2026-10-19", camino: "medio" }];
+    if (tabla === "user_menu_weeks") return [{ active_days: ["Lun", "Mar"] }];
+    return [];
+  });
+  afterEach(() => select.mockImplementation(async () => []));
+
+  it("sin camino lo ofrece junto a los tres", async () => {
+    conUltimaVez();
+    const r = await llamar("hazme el menú", {});
+    expect(generarMenu).not.toHaveBeenCalled();
+    expect(r).toContain("[[Como la última vez]]");
+    expect(r).toContain("[[A fondo]]");
+  });
+
+  it("al pulsarlo genera con su camino y sus días, sin preguntar", async () => {
+    conUltimaVez();
+    await llamar("Como la última vez", {});
+    expect(generarMenu).toHaveBeenCalledTimes(1);
+    expect(generarMenu.mock.calls[0][4].soloEste.dias).toEqual(["Lun", "Mar"]);
+    expect(generarMenu.mock.calls[0][4].comoSePidio.camino).toBe("medio");
+  });
+
+  it("si no se puede leer, se pregunta como siempre", async () => {
+    conUltimaVez(true);
+    const aviso = vi.spyOn(console, "error").mockImplementation(() => {});
+    const r = await llamar("hazme el menú", {});
+    expect(r).toContain("[[A fondo]]");
+    expect(r).not.toContain("Como la última vez");
+    aviso.mockRestore();
+  });
+});
 
 describe("rehacer sin sustos (trozo 72)", () => {
   const semana = { id: "menu" };
@@ -139,7 +175,7 @@ describe("generar_menu con el pedido en curso (trozo 67)", () => {
     estado.ejes = sabe({ mealStructure: { estado: "falta" }, mealStructureCena: { estado: "sabido" } });
     const r = await llamar("esta semana, un plato", { estructura: "1_plato" });
     expect(generarMenu).toHaveBeenCalledTimes(1);
-    expect(generarMenu.mock.calls[0][4].soloEste).toEqual({ estructura: "1_plato", estructuraCena: null });
+    expect(generarMenu.mock.calls[0][4].soloEste).toEqual({ estructura: "1_plato", estructuraCena: null, dias: null });
     expect(r).not.toMatch(/Has dado por supuesto/);
   });
 

@@ -29,6 +29,17 @@ export async function ultimoPedido(casa) {
 }
 
 /**
+ * La última vez, para repetirla (trozo 71): `{ camino, dias }`, con los días de su fila de `user_menu_weeks`.
+ * Null si no hay pedido o esa semana ya no está: sin días que repetir no se ofrece.
+ */
+export async function ultimaVez(casa) {
+  const pedido = await ultimoPedido(casa);
+  if (!pedido?.menu_id || !pedido.week_start) return null;
+  const [semana] = await select("user_menu_weeks", `household_id=${eq(casa)}&menu_id=${eq(pedido.menu_id)}&week_start=${eq(pedido.week_start)}`, "active_days");
+  return semana?.active_days?.length ? { camino: pedido.camino, dias: semana.active_days } : null;
+}
+
+/**
  * Apunta un menú generado ahora. Lo que falle, lanza.
  * `comoSePidio`: `{ menu_id, week_start, camino }` del pedido de Lola. Sin la 0130 se apunta sin eso.
  */

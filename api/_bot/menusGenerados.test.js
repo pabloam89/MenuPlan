@@ -14,7 +14,7 @@ vi.mock("./db.js", () => ({
   }),
 }));
 
-const { apuntarMenuGenerado, ultimoPedido } = await import("./menusGenerados.js");
+const { apuntarMenuGenerado, ultimaVez, ultimoPedido } = await import("./menusGenerados.js");
 const { select } = await import("./db.js");
 const COMO = { menu_id: "m1", week_start: "2026-11-09", camino: "medio" };
 const error = (codigo, message) => Object.assign(new Error(message), { codigo });
@@ -38,6 +38,22 @@ describe("ultimoPedido (trozo 70)", () => {
     expect(await ultimoPedido("casa")).toBeNull();
     select.mockRejectedValueOnce(error("57014", "tiempo"));
     await expect(ultimoPedido("casa")).rejects.toThrow("tiempo");
+  });
+});
+
+describe("ultimaVez (trozo 71)", () => {
+  const DIAS = ["Lun", "Mar"];
+  it("su camino y los días de esa semana de esa casa", async () => {
+    select.mockResolvedValueOnce([COMO]).mockResolvedValueOnce([{ active_days: DIAS }]);
+    expect(await ultimaVez("casa")).toEqual({ camino: "medio", dias: DIAS });
+    expect(select.mock.calls.at(-1)).toEqual(["user_menu_weeks", "household_id=eq.casa&menu_id=eq.m1&week_start=eq.2026-11-09", "active_days"]);
+  });
+
+  it("sin pedido, o sin esa semana, null", async () => {
+    select.mockResolvedValueOnce([]);
+    expect(await ultimaVez("casa")).toBeNull();
+    select.mockResolvedValueOnce([COMO]).mockResolvedValueOnce([]);
+    expect(await ultimaVez("casa")).toBeNull();
   });
 });
 
