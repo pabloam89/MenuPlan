@@ -44,6 +44,7 @@ vi.mock("../_bot/ajustes.js", () => ({ sembrarCasa: vi.fn() }));
 vi.mock("../_bot/enlace.js", async (original) => ({
   ...(({ pideCambioDeCuenta, preguntaDeCambio, personasDeCasa, CAMBIO }) => ({ pideCambioDeCuenta, preguntaDeCambio, personasDeCasa, CAMBIO }))(await original()),
   cuentaDeTelegram: vi.fn(async () => t.deAntes),
+  personasDeCasas: vi.fn(async () => []),
   enlazarChat: vi.fn(async () => ({ ok: true })), apuntarEnlace: vi.fn(async () => {}), crearCodigo: vi.fn(), gastarCodigo: vi.fn(), baseDe: () => "https://x", confirmarEnlace: vi.fn(async () => ({})), casaPropia: vi.fn(), idDePersona: (f) => (f?.id ? String(f.id) : null), codigoDeGrupo: vi.fn(), esCodigoDeGrupo: () => t.deGrupo }));
 vi.mock("../_bot/invitacion.js", () => ({ unirsePorInvitacion: vi.fn(), ES_INVITACION: /^inv_([0-9a-f]{32})$/ }));
 vi.mock("../_bot/traducir.js", () => ({ traducir: vi.fn(async (xs) => xs) }));
