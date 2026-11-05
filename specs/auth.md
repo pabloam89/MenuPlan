@@ -216,9 +216,11 @@ git grep -q "TelegramWebviewProxy" -- src/lib/apiUrl.clase.test.js && git grep -
 - principio 1 | eligió: el botón sale solo donde Telegram acepta el login (el dominio de @BotFather) | descartó: enseñarlo en local y en previews, donde siempre acaba en «Bot domain invalid»: un botón que promete lo que no hace | motivo: decidido
 - principio 4 | eligió: el login en la misma pestaña, cuya vuelta lee `llaveLola.js` como la llave de Lola | descartó: la ventana aparte del widget, que devuelve los datos por otro camino (postMessage) y pediría un segundo lector de la firma | motivo: decidido
 - principio 4 | eligió: el dominio del bot en una sola constante que leen la app y el bot | descartó: mantener `BOT_LOGIN_DOMINIO` en el servidor, una segunda copia que nadie compara | motivo: decidido
-- principio 1 | eligió: la prueba con la que se apuntó un Telegram, en su fila de bot_identities (`prueba_identidad`, lista cerrada) | descartó: deducirla de bot_enlaces, que no guarda qué Telegram se enlazó y daría por buena la prueba de otro Telegram de la misma cuenta | motivo: decidido
+- principio 2 | eligió: la prueba con la que se apuntó un Telegram, en su fila de bot_identities (`prueba_identidad`, lista cerrada) | descartó: deducirla de bot_enlaces, dar por probado lo que no se guardó: que no guarda qué Telegram se enlazó y daría por buena la prueba de otro Telegram de la misma cuenta | motivo: decidido
 - principio 3 | eligió: una identidad sin prueba guardada (las de antes, o sin la migración) no abre la cuenta | descartó: suponer `ajustes` para las de antes, abrir sesión sin prueba | motivo: decidido
-- principio 1 | eligió: si se elige Telegram, la cuenta vacía recién creada se borra | descartó: dejarla, una segunda cuenta de la misma persona que además ata ese Google y hace fallar luego «Añadir Google» | motivo: decidido
+- principio 4 | eligió: si se elige Telegram, la cuenta vacía recién creada se borra | descartó: dejarla, la misma persona en dos cuentas (una segunda cuenta de la misma persona que además ata ese Google y hace fallar luego «Añadir Google») | motivo: decidido
+- principio 6 | eligió: el código del email no abre la cuenta (Pablo, 4 nov 2026: solo «desde dentro de esa cuenta») | descartó: la opción 1 de la pregunta A, que también lo contaba, sin preguntárselo | motivo: decidido
+- principio 2 | eligió: saber que es el navegador de Telegram por los objetos que mete en la página (`TelegramWebviewProxy`, `TelegramWebview`), los mismos que mira su propio `telegram-web-app.js` (trozo 5) | descartó: el User-Agent, que solo la documentación de Android describe y nada prueba en iPhone: el botón de Google saldría donde falla | motivo: decidido
 
 ### Para Pablo
 
