@@ -1031,6 +1031,8 @@ Por qué te lo pregunto: el 8 oct decidiste lo contrario (#107: se genera esquiv
 
 - principio 4 | eligió: el pedido en curso como tarea de `bot_tareas` (trozo 66) | descartó: guardarlo en la `propuesta` del mensaje, que se pierde si la charla cambia de tema; y una tabla nueva, cuando la tarea ya es por casa y caduca | motivo: decidido
 - principio 4 | eligió: lo que falta se calcula en cada turno de la ficha, `preferencia` y el documento (trozos 64-65) | descartó: copiar los ejes en una ficha del pedido: dos verdades | motivo: decidido
+- principio 1 | eligió: al rehacer, decir por días que lo cambiado se pierde (trozo 72) | descartó: nombrar los platos cambiados a mano, que afirmaría algo que los datos no guardan: no llevan marca | motivo: decidido
+- principio 4 | eligió: el aviso de rehacer en `avisoDeRehacer`, un solo sitio (trozo 72) | descartó: repetir el texto en la parada y en «YA HAY MENÚ» | motivo: decidido
 
 ## Not verified
 
