@@ -433,8 +433,6 @@ export function buildGroupContext(data, group, tiempo = tiempoDeCocina(data)) {
       // the bundled catalog, so they go through the exact same filters and
       // can be scheduled/scaled/hydrated like any other recipe.
       extraRecipes: data.userRecipes ?? [],
-      // "preferred" (default) | "only" (solo mías) | "catalog" (solo catálogo).
-      recipeMode: data.recipeMode ?? "preferred",
       // Favorites that apply to THIS group (scope "all" or this group's label).
       favoriteIds: favoriteIdsForGroup(data.recipeVotes, group),
       // Cocinas extranjeras pedidas desde la fila de mandos del menú. Vista

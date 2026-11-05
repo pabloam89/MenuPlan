@@ -421,7 +421,7 @@ export function compactCatalogTable(catalog) {
 // `format`: "json" (task "planner") or "compact" (task "planner-compact").
 const DIA_LARGO_TANDA = DIA_LARGO_MINUSCULAS;
 
-export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay, fixedDishes = [], pantryNames = [], pantryMode = "prefer", frozenDishes = [], recipeMode = "preferred", fridgeDishes = [], cocinas = null, format = "json", bases = null) {
+export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay, fixedDishes = [], pantryNames = [], pantryMode = "prefer", frozenDishes = [], fridgeDishes = [], cocinas = null, format = "json", bases = null) {
   const catalog = decisionCatalog(filteredRecipes);
   // How a boolean catalog flag reads in each format, for the instructions below.
   const flagText = (field) => (format === "compact" ? `${field} = 1` : `"${field}": true`);
@@ -547,11 +547,9 @@ INSTRUCCIÓN ADICIONAL (PRIORIDAD ALTA): GASTA esta lista. Coloca platos que use
   }
 
   const ownRecipes = catalog.filter((r) => r.own);
-  if (ownRecipes.length > 0 && recipeMode !== "catalog") {
+  if (ownRecipes.length > 0) {
     parts.push(
-      recipeMode === "only"
-        ? `\nRECETAS PROPIAS DEL USUARIO: las marcadas con ${flagText("own")}. El menú DEBE usar EXCLUSIVAMENTE estas recetas (${ownRecipes.length} disponibles). Repite las que hagan falta para cubrir todos los huecos, respetando tipo de plato, tiempo, variedad y todas las demás reglas.`
-        : `\nRECETAS PROPIAS DEL USUARIO: las marcadas con ${flagText("own")} en el catálogo. Cuando encajen en un hueco (respetando tipo de plato, tiempo, variedad y todas las demás reglas), PRIORÍZALAS sobre las del catálogo. Es una preferencia fuerte: incluye al menos una receta propia en la semana si alguna encaja, y no las ignores sistemáticamente a favor del catálogo.`,
+      `\nRECETAS PROPIAS DEL USUARIO: las marcadas con ${flagText("own")} en el catálogo. Cuando encajen en un hueco (respetando tipo de plato, tiempo, variedad y todas las demás reglas), PRIORÍZALAS sobre las del catálogo. Es una preferencia fuerte: incluye al menos una receta propia en la semana si alguna encaja, y no las ignores sistemáticamente a favor del catálogo.`,
     );
   }
 
@@ -1204,7 +1202,6 @@ export async function generateGroupMenu(dataOEntrada, group, signal, pantryIngre
       .map((p) => p.ingredientName),
     pantryMode,
     frozenDishes,
-    ctx.filterOpts.recipeMode ?? "preferred",
     fridgeDishes,
     ctx.filterOpts.cocinas,
     format,

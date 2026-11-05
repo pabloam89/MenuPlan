@@ -269,18 +269,12 @@ export function filterRecipes({
   pantryIngredients = [],
   pantryIngredientIds = [],
   extraRecipes = [],
-  // "preferred" (default) | "only" (only the user's recipes) | "catalog"
-  // (only the bundled catalog). Set from data.recipeMode.
-  recipeMode = "preferred",
   // Cuántos platos de cada cocina extranjera quiere la casa esta semana
   // ({ peruana: 1, india: 0, ... }). `null` = nadie lo ha tocado, y entonces
   // esto no filtra nada: es el comportamiento de siempre.
   cocinas = null,
   // Set<string> of recipe ids the user favorited for this group. Soft ranking
-  // signal (annotates `isFavorite`, never excludes) EXCEPT con recipeMode
-  // "only", donde ademas hacen de salvoconducto: una favorita del catalogo
-  // cuenta como "mia" porque la pantalla ya la mete en "Mis recetas". Ver
-  // el paso 0.
+  // signal: annotates `isFavorite`, never excludes.
   favoriteIds = null,
 } = {}) {
   const activeIntolerances = Array.from(new Set(intolerances));
@@ -293,32 +287,6 @@ export function filterRecipes({
   let pool = extraRecipes.length > 0
     ? [...recipeCatalog, ...extraRecipes.map(ensureHealthFlags)]
     : recipeCatalog;
-
-  // 0. Recipe-source mode (never applies to baby groups, which have their own
-  // curated catalog). "only" = just the user's recipes; "catalog" = drop them.
-  //
-  // ── Qué cuenta como "mía" ────────────────────────────────────────────────
-  // Lo mismo que cuenta en la pantalla, y esa es toda la regla. "Mis recetas"
-  // del navegador de catálogo (ver mineRecipes en CatalogBrowserSheet) son las
-  // que has CREADO más las del catálogo que has marcado con corazón. Aquí se
-  // filtraba solo por `source === "user"`, así que las favoritas del catálogo
-  // se caían: las veías dentro de la carpeta "Mis recetas" y luego "Solo mis
-  // recetas" las excluía del menú. Dos pantallas con dos definiciones de la
-  // misma palabra.
-  //
-  // Y de las dos señales, la del corazón es la MÁS específica: `recipeMode` es
-  // una política general y el corazón es una decisión sobre una receta
-  // concreta. Que la política borre la decisión concreta va al revés de como
-  // funciona cualquier sistema de preferencias.
-  //
-  // Se usa `favoriteIds` (el del GRUPO, ver favoriteIdsForGroup) y no todas las
-  // favoritas: si marcaste algo para el menú de los niños, no tiene por qué
-  // entrar en el de los adultos. El corazón ya trae su alcance.
-  if (!isBabyGroup && recipeMode === "only") {
-    pool = pool.filter((r) => r.source === "user" || favoriteIds?.has(r.id));
-  } else if (!isBabyGroup && recipeMode === "catalog") {
-    pool = pool.filter((r) => r.source !== "user");
-  }
 
   // 0a. User-discarded recipes ("no me gusta" forever + live weekly/cooldown
   // rejections). Compared against the base catalog id, matching how the caller
@@ -488,8 +456,8 @@ export function filterRecipes({
   // el caso que sí debe seguir bloqueando: la UNIÓN de varias restricciones de
   // distintos miembros (ver "pool exhaustion from MULTIPLE members" en
   // aiPlanner.test.js), que cae a ~10.
-  const minRecipes = isBabyGroup ? 10 : recipeMode === "only" ? 1 : 15;
-  const minCategories = isBabyGroup ? 1 : recipeMode === "only" ? 1 : 4;
+  const minRecipes = isBabyGroup ? 10 : 15;
+  const minCategories = isBabyGroup ? 1 : 4;
 
   // 9. Recetario Estrella, sin plan B: el fondo de armario (catálogo antiguo,
   // sin foto propia) nunca entra para un grupo normal, ni siquiera cuando las
