@@ -20,6 +20,7 @@
  */
 import { POSTRE_TIPOS, POSTRE_INMEDIATO_KINDS } from "./postres.js";
 import { DIAS, REPITES_DESAYUNO, POSTRES_EN } from "./vocabularios.js";
+import { DIAS_LABORABLES as LABORABLES } from "./dias.js";
 
 const OFF = "off";
 
@@ -45,7 +46,6 @@ export function conExtras(extraMeals, cambios = {}) {
 export const CAMPOS_FRANJAS = Object.freeze(["desayunoDias", "desayunoRepite", "meriendaDias", "postreDias"]);
 /** Las tres de extraMeals que son la vista de las franjas; las otras dos siguen en el documento. */
 const DE_LAS_FRANJAS = Object.freeze(["desayuno", "merienda", "postre"]);
-const LABORABLES = DIAS.slice(0, 5);
 
 /** Una vista que las franjas dicen y extraMeals no sabe decir (unos días sueltos): no se adivina, se dice. */
 export class FranjasSinVista extends Error {
