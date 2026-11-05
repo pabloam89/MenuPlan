@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { resumenDeFormas, emailSintetico, esCuentaDeTelegram, tieneProveedor, formasDeEntrar, FORMA_DE_ENTRAR, avisoAlVolver, AVISOS_AL_VOLVER, NO_SE_PUDO_GOOGLE, urlEntrarConTelegram, DOMINIO_LOGIN_TELEGRAM, BOT_ID } from "./cuentaTelegram.js";
+import { resumenDeFormas, emailSintetico, esCuentaDeTelegram, tieneProveedor, formasDeEntrar, FORMA_DE_ENTRAR, avisoAlVolver, AVISOS_AL_VOLVER, NO_SE_PUDO_GOOGLE, urlEntrarConTelegram, DOMINIO_LOGIN_TELEGRAM, BOT_ID, esAltaNueva, VENTANA_ALTA_NUEVA_MS, proveedorDeAlta, OFERTA_ANADIR } from "./cuentaTelegram.js";
 import { emailSintetico as delBot } from "../../api/_bot/cuentas.js";
 
 // Las cuentas nacidas en Telegram y «Entrar también con Google» (#1238).
@@ -98,5 +98,38 @@ describe("adónde lleva «Entrar con Telegram»", () => {
     expect(urlEntrarConTelegram(en("localhost:5176"))).toBeNull();
     expect(urlEntrarConTelegram(en("homenu-git-rama.vercel.app"))).toBeNull();
     expect(urlEntrarConTelegram({ host: "localhost", origin: "capacitor://localhost", pathname: "/", search: "" })).toBeNull();
+  });
+});
+
+// «¿Ya hablas con Lola?» (trozo 4 de specs/auth.md §7): a quién se pregunta antes de crear la cuenta.
+describe("esAltaNueva: la cuenta de Google o Apple que acaba de nacer", () => {
+  const AHORA = Date.parse("2026-11-04T20:00:00Z");
+  const cuenta = (proveedores, haceMs = 0, extra = {}) => ({
+    id: "u", email: "ana@gmail.com", created_at: new Date(AHORA - haceMs).toISOString(),
+    identities: proveedores.map((provider) => ({ provider })), ...extra,
+  });
+
+  it("recién nacida en Google o en Apple: sí", () => {
+    expect(esAltaNueva(cuenta(["google"]), AHORA)).toBe(true);
+    expect(esAltaNueva(cuenta(["apple"], VENTANA_ALTA_NUEVA_MS - 1000), AHORA)).toBe(true);
+  });
+
+  it("pasada la ventana, ya es una cuenta que se usa: no", () => {
+    expect(esAltaNueva(cuenta(["google"], VENTANA_ALTA_NUEVA_MS + 1000), AHORA)).toBe(false);
+  });
+
+  it("nacida en Telegram, o con otra forma de entrar además de Google: no", () => {
+    expect(esAltaNueva(cuenta(["email"], 0, { email: emailSintetico(7) }), AHORA)).toBe(false);
+    expect(esAltaNueva(cuenta(["google", "email"]), AHORA)).toBe(false);
+  });
+
+  it("sin sesión o sin fecha: no", () => {
+    expect(esAltaNueva(null, AHORA)).toBe(false);
+    expect(esAltaNueva({ identities: [{ provider: "google" }] }, AHORA)).toBe(false);
+  });
+
+  it("lo que se ofrece añadir tras entrar con Telegram es el proveedor con el que nació", () => {
+    expect(proveedorDeAlta(cuenta(["apple"]))).toBe("apple");
+    expect(OFERTA_ANADIR.titulo("google")).toBe("¿Añades este Google a tu cuenta?");
   });
 });

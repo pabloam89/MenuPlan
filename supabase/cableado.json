@@ -129,6 +129,7 @@
     "api/_bot/compartir.js"
   ],
   "recipe_votes": [
+    "api/_bot/propias.js",
     "src/lib/recipeVotes.js"
   ],
   "senal": [

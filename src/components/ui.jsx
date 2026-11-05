@@ -3,8 +3,8 @@ import { seOfreceApple } from "../lib/apiUrl.js";
 import { useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { BookOpen, Calendar, ChevronDown, ClipboardList, CookingPot, Home, Send, ShoppingCart, Sparkles, UserCircle, Users, X } from "./icons.jsx";
-import { color as tono } from "../design/tokens.js";
-import { urlEntrarConTelegram } from "../lib/cuentaTelegram.js";
+import { color as tono, tipografia, espaciado, radio, sombra, capa } from "../design/tokens.js";
+import { urlEntrarConTelegram, PREGUNTA_ALTA } from "../lib/cuentaTelegram.js";
 import { initialsOf, memberAvatarColor, memberAvatarThumbSrc } from "../lib/stages.js";
 import { formatWeekRangeLabel, getWeekDates } from "../lib/weekCalendar.js";
 import { adhocReasonLabel } from "../lib/groups.js";
@@ -979,6 +979,53 @@ export function SignInOptions({
         <a href="/privacidad.html" target="_blank" rel="noopener noreferrer"
            style={{ color: "inherit", fontWeight: 800 }}>política de privacidad</a>.
       </p>
+    </div>
+  );
+}
+
+/**
+ * Una pregunta de cuenta, encima de todo, con dos salidas (specs/auth.md §7, trozo 4): «¿Ya hablas con Lola?» al
+ * nacer una cuenta de Google o Apple, y «¿Añades este Google a tu cuenta?» al volver de Telegram. `onPrincipal`
+ * devuelve `{ error }` como los botones de entrar: si falla, el botón lo dice y la pregunta sigue.
+ */
+export function PreguntaDeCuenta({ titulo, principal, onPrincipal, conTelegram = false, secundario, onSecundario }) {
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={titulo}
+      style={{
+        position: "fixed", inset: 0, zIndex: capa["capa-emergente"],
+        background: tono.scrim,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: `0 ${espaciado["esp-24"]}px`,
+      }}
+    >
+      <div style={{
+        width: "100%", maxWidth: 360,
+        background: tono.superficie,
+        borderRadius: radio["radio-modal"],
+        boxShadow: sombra["sombra-3"],
+        padding: espaciado["esp-24"],
+        display: "grid", gap: espaciado["esp-12"],
+      }}>
+        <h2 style={{ margin: 0, textAlign: "center", color: tono.tinta, fontSize: tipografia["paso-20"], fontWeight: tipografia["peso-900"] }}>
+          {titulo}
+        </h2>
+        <OAuthButton
+          onClick={onPrincipal}
+          label={principal}
+          variant="light"
+          glyph={conTelegram ? <Send size={18} /> : null}
+          background={tono.marca}
+          color={tono.superficie}
+          border={`1.5px solid ${tono.marca}`}
+          spinnerTrack={tono["marca-viva"]}
+          spinnerArc={tono.superficie}
+          failMessage={PREGUNTA_ALTA.noSePudo}
+        />
+        <GhostPillButton onClick={onSecundario} tone="borde">{secundario}</GhostPillButton>
+      </div>
     </div>
   );
 }

@@ -15,9 +15,9 @@ import { findAccountMember,
   resolveAccountMember, miembroDeCuentaId, conMiembroDeCuenta, memberAvatarColor, memberAvatarThumbSrc, migrateHomeRole, resolveMemberAge, userAvatarSrc } from "../lib/stages.js";
 import { esTitular } from "../lib/householdsSync.js";
 import { fileToAvatarDataUrl } from "../lib/avatarImage.js";
-import { NOMBRE_PAPEL, papelDe } from "../lib/papeles.js";
 import { FORMA_DE_ENTRAR, NOMBRE_FORMA, resumenDeFormas } from "../lib/cuentaTelegram.js";
-import { color as tono, tipografia, espaciado, tamano } from "../design/tokens.js";
+import { useStatusBarSobreFondo } from "../lib/statusBar.js";
+import { color as tono, tipografia, espaciado, radio, tamano } from "../design/tokens.js";
 
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
@@ -314,6 +314,8 @@ export function HomeProfileScreen({
   activeHousehold,
   householdReadOnly = false,
 }) {
+  // La franja de arriba es verde oscuro: el reloj, en claro.
+  useStatusBarSobreFondo("oscuro");
   const g = googleInfo(user);
   const fileInputRef = useRef(null);
   const members = data.members ?? [];
@@ -353,49 +355,44 @@ export function HomeProfileScreen({
       {/* hidden file input */}
       <input ref={fileInputRef} type="file" accept="image/*" onChange={onPhotoSelected} style={{ display: "none" }} />
 
-      <div style={{
-        padding: `20px 18px calc(${bottomNavSpacer()} + 18px)`,
-        paddingTop: safeTop(20),
-        maxWidth: 420, margin: "0 auto", width: "100%", boxSizing: "border-box",
-      }}>
-
-        {/* ── Header ─────────────────────────────────── */}
-        {/* No longer a bottom-nav tab (see BottomNav in ui.jsx) — reached as a
-            header icon from "Inicio", so it needs its own explicit way back. */}
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
+      {/* ── Cabecera ─────────────────────────────────── */}
+      {/* Ya no es una pestaña de la barra (BottomNav, ui.jsx): se llega desde un icono de Inicio y necesita su Atrás. */}
+      <header style={{ background: tono.marca, paddingTop: safeTop(espaciado["esp-16"]) }}>
+        <div style={{
+          display: "flex", alignItems: "center", gap: espaciado["esp-12"],
+          padding: `0 18px ${espaciado["esp-16"]}px`,
+          maxWidth: tamano["tam-columna"], margin: "0 auto", width: "100%", boxSizing: "border-box",
+        }}>
+          <div style={{
+            width: 38, height: 38, borderRadius: radio["radio-control"], background: tono.superficie,
+            display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+          }}>
+            <User size={tamano["tam-icono-18"]} color={tono.marca} />
+          </div>
+          <h1 style={{ margin: 0, fontSize: tipografia["paso-20"], fontWeight: tipografia["peso-900"], color: tono.superficie, letterSpacing: "-.3px" }}>
+            Mi perfil
+          </h1>
           {onBack && (
             <button
               type="button"
               onClick={onBack}
               style={{
-                border: "1px solid #e0eae3", background: "#fff", color: GREEN,
-                borderRadius: 10, padding: "7px 12px", fontSize: 13, fontWeight: 700,
+                marginLeft: "auto", minHeight: tamano["tam-tactil"], padding: `0 ${espaciado["esp-12"]}px`,
+                border: "none", background: tono.superficie, color: tono.marca,
+                borderRadius: radio["radio-control"], fontSize: tipografia["paso-13"], fontWeight: tipografia["peso-700"],
                 cursor: "pointer", fontFamily: "inherit", flexShrink: 0,
               }}
             >
               Atrás
             </button>
           )}
-          <div style={{
-            width: 38, height: 38, borderRadius: 12, background: "#e6f3ea",
-            display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-          }}>
-            <User size={18} color={GREEN} />
-          </div>
-          <h1 style={{ margin: 0, fontSize: 20, fontWeight: 900, color: INK, letterSpacing: "-.3px" }}>
-            Mi perfil
-          </h1>
-          {activeHousehold && (
-            <span style={{
-              marginLeft: "auto", padding: "4px 10px", borderRadius: 999,
-              fontSize: 10.5, fontWeight: 800, flexShrink: 0,
-              background: householdReadOnly ? "#fff7e6" : "rgba(45,90,61,.1)",
-              color: householdReadOnly ? "#9a6b00" : GREEN,
-            }}>
-              {NOMBRE_PAPEL.es[papelDe(activeHousehold.role)]}
-            </span>
-          )}
         </div>
+      </header>
+
+      <div style={{
+        padding: `${espaciado["esp-16"]}px 18px calc(${bottomNavSpacer()} + 18px)`,
+        maxWidth: tamano["tam-columna"], margin: "0 auto", width: "100%", boxSizing: "border-box",
+      }}>
 
         {activeHousehold && (
           <p style={{ margin: "0 0 16px", fontSize: 13, fontWeight: 700, color: "#7a9485" }}>

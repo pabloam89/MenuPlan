@@ -89,3 +89,18 @@ describe("perfil: formas de entrar", () => {
     expect(caja.textContent).not.toContain("Entrar también con Google");
   });
 });
+
+describe("perfil: la cabecera", () => {
+  afterEach(() => {
+    act(() => raices.forEach((r) => r.unmount()));
+    raices = [];
+  });
+
+  it("es una franja propia, con «Atrás» al final y sin el papel en la casa", async () => {
+    const caja = await pintar({ onBack: () => {}, activeHousehold: { id: "c1", name: "Casa", role: "owner" } });
+    const banda = caja.querySelector("header");
+    expect(banda.style.background).not.toBe("");
+    expect(banda.querySelector("button:last-child").textContent).toBe("Atrás");
+    expect(banda.textContent).toBe("Mi perfilAtrás");
+  });
+});

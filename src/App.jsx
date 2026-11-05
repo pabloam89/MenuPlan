@@ -3,7 +3,7 @@ import { pedidoMenu } from "./lib/pedidoLola.js";
 import { cerrarAlta, MOTIVO } from "./lib/altaGuardada.js";
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { LogOut, RotateCcw, AlertTriangle, Trash2, Check, Play, Eraser, X } from "./components/icons.jsx";
-import { BottomNav, APP_SHELL_MAX_WIDTH, SignInOptions, GhostPillButton } from "./components/ui.jsx";
+import { BottomNav, APP_SHELL_MAX_WIDTH, SignInOptions, GhostPillButton, PreguntaDeCuenta } from "./components/ui.jsx";
 import {
   OnboardingMembers,
   OnboardingRestrictions,
@@ -227,7 +227,7 @@ import { suggestHomeRole, migrateHomeRole, resolveAccountMember, miembroDeCuenta
 import { migrateCookTime, COOK_TIME_DEFAULTS } from "./lib/cookTime.js";
 import { navDirection } from "./lib/motion.js";
 import { useAuth } from "./lib/useAuth.js";
-import { formasDeEntrar, NO_SE_PUDO_ANADIR, NO_SE_PUDO_QUITAR, urlEntrarConTelegram } from "./lib/cuentaTelegram.js";
+import { formasDeEntrar, NO_SE_PUDO_ANADIR, NO_SE_PUDO_QUITAR, urlEntrarConTelegram, PREGUNTA_ALTA, OFERTA_ANADIR } from "./lib/cuentaTelegram.js";
 import { FeedbackFAB } from "./components/FeedbackFAB.jsx";
 import { HomeCoachTour, RecipesCoachTour, MenuCoachTour, FeedCoachTour } from "./components/HomeCoachTour.jsx";
 import { RecipePrefsWizard } from "./components/ModeSheets.jsx";
@@ -1292,7 +1292,7 @@ export default function App() {
     [gruposCompra, comidasCompra],
   );
 
-  const { user, session, loading: authLoading, signInWithGoogle, signInWithApple, anadirFormaDeEntrar, quitarFormaDeEntrar, avisoAlEntrar, olvidarAvisoAlEntrar, signOut } = useAuth();
+  const { user, session, loading: authLoading, signInWithGoogle, signInWithApple, anadirFormaDeEntrar, quitarFormaDeEntrar, avisoAlEntrar, olvidarAvisoAlEntrar, signOut, altaPendiente, crearCuentaNueva, entrarConTelegramEnVez, ofertaAnadir, responderOferta } = useAuth();
   const {
     households,
     activeHousehold,
@@ -7190,6 +7190,27 @@ export default function App() {
           sugerencias={sugerenciasDelHueco}
           contextoHueco={contextoDelHueco}
           onPickSugerencia={(id) => { if (id) handleChooseRecipeForSlot(id); }}
+        />
+      )}
+
+      {/* Una persona, una cuenta (specs/auth.md §7, trozo 4): antes de crear la de Google o Apple, y al volver de Telegram. */}
+      {altaPendiente && (
+        <PreguntaDeCuenta
+          titulo={PREGUNTA_ALTA.titulo}
+          principal={PREGUNTA_ALTA.telegram}
+          onPrincipal={entrarConTelegramEnVez}
+          conTelegram
+          secundario={PREGUNTA_ALTA.crear}
+          onSecundario={crearCuentaNueva}
+        />
+      )}
+      {ofertaAnadir && (
+        <PreguntaDeCuenta
+          titulo={OFERTA_ANADIR.titulo(ofertaAnadir)}
+          principal={OFERTA_ANADIR.si(ofertaAnadir)}
+          onPrincipal={() => responderOferta(true)}
+          secundario={OFERTA_ANADIR.no}
+          onSecundario={() => responderOferta(false)}
         />
       )}
 

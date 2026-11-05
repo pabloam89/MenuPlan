@@ -24,8 +24,9 @@ alimentos en JSON en git (`src/data/`). Escriben **Pablo** (`pabloam89`) y **Ál
   ```
   git -C C:/dev/MenuPlan fetch origin
   git -C C:/dev/MenuPlan worktree add -b bot/mi-tema C:/dev/MenuPlan-mi-tema origin/staging
-  cp C:/dev/MenuPlan/.env.local C:/dev/MenuPlan-mi-tema/ && cd C:/dev/MenuPlan-mi-tema && npm ci
+  cd C:/dev/MenuPlan-mi-tema && npm ci
   ```
+  Sin copiar `.env.local`: las direcciones de las claves salen de `ops/env.1password`, en git (skill `1password`).
   Primer push: `git push -u origin <rama>`. Un hook personal de Pablo borra solas las carpetas ya fusionadas y limpias. La app en local: `npm run dev -- --port 5176` (el login con Google solo vuelve a ese puerto).
 - Antes del PR, y de cada push de arreglo, `git fetch origin && git merge origin/staging` y resuelve (el ruleset exigirá estar al día). Añade los ficheros por nombre (nada de `git add .`) y nada de `git stash`: es común a todas las carpetas.
 - Tests: en local, los de lo que tocas (`npx vitest run <ficheros>`); la suite entera la corre el CI.
