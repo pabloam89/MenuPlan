@@ -71,7 +71,7 @@ import { cuentaYChat as cuentaYChatDe } from "../_bot/altaTelegram.js";
 import { DOMINIO_LOGIN_TELEGRAM } from "../../src/lib/cuentaTelegram.js";
 import { primeraVez } from "../_bot/entradas.js";
 import { preguntoConAviso } from "../_bot/silencio.js";
-import { CANAL, CAMINO_ENLACE, RESULTADO_ENLACE } from "../../src/lib/vocabularios.js";
+import { CANAL, CAMINO_ENLACE, RESULTADO_ENLACE, PRUEBA_IDENTIDAD } from "../../src/lib/vocabularios.js";
 import { conOperacion, operacion } from "../_bot/operacion.js";
 import { RE_BOTON } from "../_bot/formatoMensaje.js";
 import { esProbador, comandoFallo, abrirReporte, completarReporte, esBotonReporte, pulsarReporte, EVENTO_RUTA } from "../_bot/reporte.js";
@@ -1747,7 +1747,7 @@ async function comprobarCodigo(msg, chatId, token) {
     externalId: idDePersona(msg.from),
     nombre: nombreDe(msg.from),
     lang: msg.from?.language_code,
-    identidad: "email",
+    identidad: PRUEBA_IDENTIDAD.CODIGO_EMAIL,
   });
   if (r.ocupado) return enviar(chatId, "Este chat ya está conectado a otra casa. Solo quien lo conectó puede cambiarlo.");
   return confirmarEnlace(chatId, hogar.id);
@@ -1901,7 +1901,7 @@ async function enlazarDesdeAjustes(msg, chatId, esGrupo, token, { callado = fals
     lang: msg.from?.language_code,
     // Solo en privado (enlazarChat lo vuelve a mirar): en un grupo, quien
     // pulsa no tiene por qué ser quien sacó el enlace.
-    identidad: esGrupo ? null : cambiar ? CAMBIO : "ajustes",
+    identidad: esGrupo ? null : cambiar ? CAMBIO : PRUEBA_IDENTIDAD.AJUSTES,
   });
   if (r.ocupado) {
     await enviar(chatId, "Este chat ya está conectado a otra casa. Solo quien lo conectó puede cambiarlo.");
