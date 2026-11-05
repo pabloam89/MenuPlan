@@ -79,6 +79,11 @@ describe("los días por barrer", () => {
     expect(diasPorBarrer({ semanas: [{ plan }, { startISO: "2026-11-02" }], ya: {}, desde: "2026-11-02", hoy: HOY })).toEqual([]);
   });
 
+  it("una semana con fecha imposible no cuenta, y con fin imposible son siete días", () => {
+    expect(diasPorBarrer({ semanas: [{ startISO: "2026-13-45", endISO: "2026-11-08", plan }], ya: {}, desde: "2026-11-02", hoy: HOY })).toEqual([]);
+    expect(diasPorBarrer({ semanas: [{ startISO: "2026-10-01", endISO: "2026-13-45", plan }], ya: {}, desde: "2026-10-01", hoy: HOY })).toHaveLength(7);
+  });
+
   it("la ventana del barrido y la de las marcas son la misma: lo barrible conserva su marca", () => {
     const primero = sumarDiasISO(HOY, -VENTANA_BARRIDO_DIAS);
     const antes = sumarDiasISO(primero, -1);
