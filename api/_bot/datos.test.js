@@ -338,7 +338,7 @@ describe("api/operacion.js: un cambio de la libreta (trozo 14) va a escribir_pre
 
 describe("api/operacion.js: la app lee los datos de la ficha Casa (trozo 12)", () => {
   const DATO_CASA = { campo: "wantsPriceEstimates", sujeto: { tipo: "casa", id: null }, estado: "dicho", valor: true, origen: "dicho" };
-  const COMUN = { casa: { id: CASA, rev: 3 }, personas: [], faltan: [], tareas: [], callados: [] };
+  const COMUN = { casa: { id: CASA, rev: 3 }, personas: [{ id: "p1" }], faltan: [], tareas: [], callados: [] };
   const ALERGIAS = { campo: "alergias", sujeto: { tipo: "persona", id: "p1" }, estado: "vacio", valor: null, origen: null };
   const FICHA_V2 = { v: 2, ...COMUN, fichas: { casa: [DATO_CASA], persona: [ALERGIAS] } };
   async function leerGet({ token = "tok", casa = CASA } = {}) {
@@ -348,6 +348,16 @@ describe("api/operacion.js: la app lee los datos de la ficha Casa (trozo 12)", (
   }
   beforeEach(() => {
     responde(/^\/auth\/v1\/user/, { status: 200, cuerpo: { id: "u1" } });
+  });
+
+  it("en una casa sin personas la app recibe la base de los datos por persona, y la carga sigue", async () => {
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "owner" }] });
+    responde(/rpc\/ficha_casa/, { status: 200, cuerpo: { ...FICHA_V2, personas: [] } });
+    const res = await leerGet();
+    expect(res.codigo).toBe(200);
+    expect(res.body.datos.filter((d) => d.campo === "schedule")).toEqual([
+      { campo: "schedule", sujeto: { tipo: "casa", id: null }, ambito: null, estado: "vacio", valor: null, origen: null },
+    ]);
   });
 
   it("quien es de la casa (también un lector) recibe solo la ficha Casa de ficha_casa v2", async () => {

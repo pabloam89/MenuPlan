@@ -63,6 +63,43 @@ export function formasDeEntrar(user, { conApple }) {
 }
 
 /**
+ * Cuánto tiempo, desde que nace, una cuenta de Google o Apple cuenta como recién creada para preguntar «¿Ya hablas con
+ * Lola?» (trozo 4 de specs/auth.md §7). Supabase la crea al volver de Google, antes de que la app pueda preguntar: es
+ * el margen para volver de Google y cargar la app, sin preguntar nunca a una cuenta que ya se usa.
+ */
+export const VENTANA_ALTA_NUEVA_MS = 10 * 60 * 1000;
+const PROVEEDORES_DE_ALTA = new Set([FORMA_DE_ENTRAR.GOOGLE, FORMA_DE_ENTRAR.APPLE]);
+
+/**
+ * Pura. ¿Es una cuenta de Google o Apple que acaba de nacer? Solo esas se preguntan antes de crear nada: una nacida en
+ * Telegram la crea Lola, y una con otra forma de entrar (email, Telegram añadido) ya es de alguien.
+ */
+export function esAltaNueva(user, ahoraMs) {
+  if (!user?.created_at || esCuentaDeTelegram(user)) return false;
+  const ids = user.identities ?? [];
+  if (!ids.length || !ids.every((i) => PROVEEDORES_DE_ALTA.has(i.provider))) return false;
+  // En valor absoluto: el reloj del móvil puede ir algo por detrás del de Supabase.
+  return Math.abs(ahoraMs - Date.parse(user.created_at)) < VENTANA_ALTA_NUEVA_MS;
+}
+
+/** Los textos de la pregunta del alta (trozo 4) y de la oferta de añadir Google tras entrar con Telegram. */
+export const PREGUNTA_ALTA = Object.freeze({
+  titulo: "¿Ya hablas con Lola?",
+  telegram: "Sí, entrar con Telegram",
+  crear: "No, crear cuenta",
+  noSePudo: "No se pudo. Inténtalo de nuevo.",
+});
+const NOMBRE_DE = { [FORMA_DE_ENTRAR.GOOGLE]: "Google", [FORMA_DE_ENTRAR.APPLE]: "Apple" };
+export const OFERTA_ANADIR = Object.freeze({
+  titulo: (forma) => `¿Añades este ${NOMBRE_DE[forma]} a tu cuenta?`,
+  si: (forma) => `Añadir ${NOMBRE_DE[forma]}`,
+  no: "Ahora no",
+});
+
+/** El proveedor con el que nació una cuenta de alta nueva (el que se ofrece añadir tras entrar con Telegram). */
+export const proveedorDeAlta = (user) => (user?.identities ?? []).map((i) => i.provider).find((p) => PROVEEDORES_DE_ALTA.has(p)) ?? null;
+
+/**
  * Lo que vuelve de Supabase cuando añadir Google sale mal, con lo que la persona tiene que hacer. Un error que no
  * está aquí (cancelar en Google, un fallo del servidor) se dice igual, con NO_SE_PUDO_GOOGLE: nunca se calla.
  */
