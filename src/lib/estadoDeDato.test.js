@@ -3,7 +3,7 @@
  * sitio para Lola y el asistente de la app (plan fichas con estado, trozo 9).
  */
 import { describe, it, expect } from "vitest";
-import { estadosDeFichas, leidoDe, estadoParaLibreta, marcasDeLola, leidosConSobre, CAMPOS_CASA_CON_SOBRE, CAMPOS_CON_AMBITO_CON_SOBRE } from "./estadoDeDato.js";
+import { estadosDeFichas, leidoDe, estadoParaLibreta, marcasDeLola, leidosConSobre, basesSinPersonas, CAMPOS_CASA_CON_SOBRE, CAMPOS_CON_AMBITO_CON_SOBRE } from "./estadoDeDato.js";
 import { CAMPOS_CON_AMBITO } from "./rutina.js";
 import { ESTADOS_DATO, ESTADO_DE_ORIGEN, ORIGEN_DATO } from "./vocabularios.js";
 import { ESTADOS as ESTADOS_LIBRETA } from "./notepad.js";
@@ -188,6 +188,13 @@ describe("los datos con ámbito con sobre", () => {
       menuWeekDays: { valor: {}, conSobre: false },
     });
     expect(Object.keys(leidos).sort()).toEqual([...CAMPOS_CASA_CON_SOBRE, ...CAMPOS_CON_AMBITO_CON_SOBRE].sort());
+  });
+
+  it("en una casa sin personas, un dato por persona es un mapa vacío; con personas, si falta, lanza", () => {
+    const sinNadie = Object.values(fichaDePrueba().fichas).flat().filter((e) => e.sujeto?.tipo !== "persona" && e.campo !== "schedule");
+    expect(leidosConSobre([...sinNadie, ...basesSinPersonas({ personas: [] })]).schedule).toEqual({ valor: {}, conSobre: false });
+    const conGente = [...sinNadie, ...basesSinPersonas({ personas: [{ id: "p1" }] })];
+    expect(() => leidosConSobre(conGente)).toThrow(/ficha_casa no trae schedule/);
   });
 
   it("leidosConSobre: si a la ficha le falta un dato con sobre, o un hueco llega sin ámbito, lanza (la 0112 a la 0116, aplicadas)", () => {
