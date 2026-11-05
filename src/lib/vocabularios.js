@@ -436,7 +436,7 @@ export const SITIOS_FALLO = [
   // api/bot/entrar.js
   "bot_entrar",
   // el resto de api/_bot/
-  "borrar_tanda", "cambio_de_cuenta", "casa_deshacer", "casa_del_turno", "compartir_llave", "cuentas_hogar", "cuentas_json", "cuentas_nacida_aqui",
+  "borrar_tanda", "cambio_de_cuenta", "casa_deshacer", "casa_del_turno", "compartir_llave", "cuentas_hogar", "cuentas_conectada_app", "cuentas_json", "cuentas_nacida_aqui",
   "caducidades_personas_ilegibles",
   // api/_bot/borrarPersona.js
   "borrar_persona_fotos",
@@ -445,7 +445,7 @@ export const SITIOS_FALLO = [
   "generar_describir", "generar_despensa", "generar_recetas_propias", "generar_semanas_anteriores",
   "idempotencia_guardar_resultado", "idempotencia_soltar_la_llave", "invitacion_unirse", "invitacion_vigente",
   "menu_describir", "menu_foto_de_la_receta", "menu_senales", "pintar_huecos", "pintar_recetas", "pista_adelanto",
-  "enlace_apuntar", "receta_ya_estaba", "recetas_busqueda", "recetas_subir_foto", "recordatorios_reclamar", "recordatorios_soltar", "silencio_apuntar", "silencio_cerrar", "telegram_json",
+  "enlace_apuntar", "enlace_prueba", "receta_ya_estaba", "recetas_busqueda", "recetas_subir_foto", "recordatorios_reclamar", "recordatorios_soltar", "silencio_apuntar", "silencio_cerrar", "telegram_json",
   "traducir_memoria", "turno_casa", "turno_tras_escribir", "turnos_mirar_cola", "turnos_soltar_candado", "uso_limite", "vispera_casa", "vispera_huecos",
   "voz_json",
 ];
