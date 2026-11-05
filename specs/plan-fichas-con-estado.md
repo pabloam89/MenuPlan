@@ -932,8 +932,8 @@ npx vitest run api/_bot/caminoMenu.test.js
 Files: `src/lib/pedidoMenu.js`, `src/lib/pedidoMenu.test.js`, `api/_bot/generar.js`, `api/_bot/conocimiento.md`
 Depends on: 71
 Blocked by: none
-Existing: `conservarDiasPrevios` y `rehacer` existen; el trozo 61 apunta el motivo al descartar.
-Not done: antes de pisar una semana, Lola dice qué días se quedan, qué platos cambiados a mano se pierden y qué pasa con la compra. Se coordina con el motivo del trozo 61.
+Existing: `conservarDiasPrevios` y `rehacer` existen; el motivo al descartar es del trozo 61, aún sin hacer.
+Not done: antes de pisar una semana, Lola dice qué días se quedan, qué se pierde y qué pasa con la compra. Los platos cambiados a mano no llevan marca: se dice por días. El motivo se coordina al hacer el trozo 61.
 Done:
 ```sh
 npx vitest run src/lib/pedidoMenu.test.js api/_bot/generar.test.js
@@ -1031,6 +1031,10 @@ Por qué te lo pregunto: el 8 oct decidiste lo contrario (#107: se genera esquiv
 
 - principio 4 | eligió: el pedido en curso como tarea de `bot_tareas` (trozo 66) | descartó: guardarlo en la `propuesta` del mensaje, que se pierde si la charla cambia de tema; y una tabla nueva, cuando la tarea ya es por casa y caduca | motivo: decidido
 - principio 4 | eligió: lo que falta se calcula en cada turno de la ficha, `preferencia` y el documento (trozos 64-65) | descartó: copiar los ejes en una ficha del pedido: dos verdades | motivo: decidido
+- principio 1 | eligió: al rehacer, decir por días que lo cambiado se pierde (trozo 72) | descartó: nombrar los platos cambiados a mano, que afirmaría algo que los datos no guardan: no llevan marca | motivo: decidido
+- principio 4 | eligió: el aviso de rehacer en `avisoDeRehacer`, un solo sitio (trozo 72) | descartó: repetir el texto en la parada y en «YA HAY MENÚ» | motivo: decidido
+- principio 4 | eligió: la parada de rehacer en `generar_menu` de agente.js, donde está el pedido (trozo 72) | descartó: ponerla en `generarMenu` de generar.js, que no conoce el pedido y necesitaría una copia | motivo: decidido
+- principio 3 | eligió: con «sigue tú» se rehace sin parar y lo que se pierde se dice en el resumen (trozo 72) | descartó: callarlo, que perdería platos sin decirlo; y parar, que le pregunta a quien pidió que no preguntaran | motivo: decidido
 - principio 4 | eligió: `menu_generado` guarda `menu_id` y `week_start`, que señalan la fila de `user_menu_weeks` (trozo 70) | descartó: las columnas `desde` y `hasta`, que copiarían lo que esa fila ya dice | motivo: decidido
 - principio 1 | eligió: no guardar `forzado` en `menu_generado` (trozo 70) | descartó: una columna sin lector, que afirmaría un dato que nada usa ni comprueba | motivo: decidido
 - principio 3 | eligió: si no se puede apuntar el menú, se avisa y el menú sigue hecho (trozo 70) | descartó: dejar que caiga el turno, que diría que falló un menú ya guardado | motivo: decidido

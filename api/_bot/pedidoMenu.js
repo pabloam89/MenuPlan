@@ -17,7 +17,7 @@ import { CANAL, ESTADO_TAREA, ESTRUCTURA_PLATOS, OBJETIVO_TAREA, TIPO_TAREA, par
 
 const CLAVE = "pedido_menu";
 const TEXTO = "Pedido de menú en curso";
-const VACIO = { camino: null, desde: null, forzado: false, preguntado: false, estructura: null, estructuraCena: null };
+const VACIO = { camino: null, desde: null, forzado: false, preguntado: false, estructura: null, estructuraCena: null, avisado: false };
 const FECHA = /^\d{4}-\d{2}-\d{2}$/;
 
 const delPedido = (householdId) => `household_id=${eq(householdId)}&clave=${eq(CLAVE)}&status=eq.${ESTADO_TAREA.ABIERTA}`;
@@ -33,6 +33,7 @@ export function pedidoDeFila(fila) {
     preguntado: p?.preguntado === true,
     estructura: ESTRUCTURA_PLATOS.includes(p?.estructura) ? p.estructura : null,
     estructuraCena: ESTRUCTURA_PLATOS.includes(p?.estructuraCena) ? p.estructuraCena : null,
+    avisado: p?.avisado === true,
   };
 }
 
@@ -96,6 +97,7 @@ export function pedidoDelTurno(abierto, { camino = null, desde = null, forzado =
     preguntado: antes.preguntado && elegido === antes.camino,
     estructura: estructura ?? antes.estructura,
     estructuraCena: estructuraCena ?? antes.estructuraCena,
+    avisado: antes.avisado === true,
   };
 }
 

@@ -93,3 +93,10 @@ describe("las fechas de lo que lee Lola, en humano (trozo 60)", () => {
     expect(fechasParaLola(null)).toBe(null);
   });
 });
+
+describe("YA HAY MENÚ dice qué se perdería (trozo 72)", () => {
+  it("con el día desde el que se rehace", () => {
+    const semanas = [{ weekStart: "2026-11-02", weekEnd: "2026-11-08", plan: { g1: { "Lun-comida": {}, "Mié-comida": {}, "Vie-comida": {} } } }];
+    expect(resolverSemana({ semanas, hoy: "2026-11-04" }).aviso).toContain("Si la rehacen: Se quedan Lun, Mié. Se rehacen Vie:");
+  });
+});

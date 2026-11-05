@@ -21,7 +21,7 @@ import { deLaCharla } from "./chats.js";
 import { cargarCasa, deshacer, hoyISO, apuntarOperacion } from "./casa.js";
 import { IDS_CAMINO, LEYENDA_CAMINOS, faltaParaGenerar, hayNinosEn, notaDeSupuestos } from "./caminoMenu.js";
 import { bloqueDePedido, cerrarPedido, ejesConElPedido, ejesDelPedido, guardarPedido, pedidoDelTurno, pedidoEnCurso } from "./pedidoMenu.js";
-import { faltaDelPedido } from "../../src/lib/pedidoMenu.js";
+import { avisoDeRehacer, faltaDelPedido } from "../../src/lib/pedidoMenu.js";
 import {
   describirCasa, describirReceta, describirCompra,
   marcarCompra, anadirCompra, quitarCompra, compraVacia, cambiarPlato, proponerPlatos, franjaDe, porQuePlato, BOTON_REPETIR_VECINOS,
@@ -31,7 +31,7 @@ import {
 } from "./menu.js";
 import { ESQUEMA_RASGOS, ESQUEMA_EJES, ESQUEMA_PERFIL } from "./esquemas.js";
 import { generarMenu, resultadoDeGenerar, SIN_GENERAR } from "./generar.js";
-import { esBotonRehacer, desdeDelBoton, fechasParaLola } from "./semanaPedida.js";
+import { esBotonRehacer, desdeDelBoton, fechasParaLola, resolverSemana } from "./semanaPedida.js";
 import { faltasDeFormato } from "./formatoMensaje.js";
 import { diaDe } from "./interprete.js";
 import { isoDeCasa, diaDeISO } from "../../src/lib/dias.js";
@@ -870,6 +870,14 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
           await guardarPedido(quien, { ...pedido, preguntado: pedido.preguntado || IDS_CAMINO.includes(pedido.camino) });
           return resultadoDeGenerar({ ok: false, motivo: SIN_GENERAR.PREGUNTAR }, falta);
         }
+        // Antes de pisar una semana con menú, lo que se queda y lo que se pierde, una vez (trozo 72). El botón «Rehacer la
+        // del…» viene de ese mismo aviso; quien dijo «sigue tú» no quiere más preguntas: se le dice al acabar.
+        const seRehace = esBotonRehacer(chat.texto) ? null : resolverSemana({ cual: semana, desde: pedido.desde, rehacer: true, semanas: casa?.menu ? casa.semanas : [], hoy: hoyISO() });
+        const pisa = Boolean(seRehace?.existente);
+        if (pisa && rehacer && !pedido.avisado && !pedido.forzado) {
+          await guardarPedido(quien, { ...pedido, avisado: true });
+          return resultadoDeGenerar({ ok: false, motivo: SIN_GENERAR.PREGUNTAR }, `NO GENERADO: antes de rehacer, dilo en una línea y pregunta si siguen: ${avisoDeRehacer(seRehace)} Si dicen que sí, generar_menu con rehacer: true.`);
+        }
         // La semana generada sale pintada debajo del mensaje de Lola (entregar()).
         // Alergias por silencio (#229): antes de generar, para que el menú de
         // este mismo turno ya salga con todo el catálogo.
@@ -880,10 +888,11 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
         const texto = await generarMenu(householdId, semana, fijos ?? [], out, { desde: delBoton ?? pedido.desde, rehacer: Boolean(rehacer) || Boolean(delBoton), soloEste: { estructura: pedido.estructura, estructuraCena: pedido.estructuraCena }, comoSePidio: pedido });
         if (out.ok) pintarTambien(chat, filtrosTrasGenerar(out));
         // Generar fallido deja el pedido abierto: lo dicho no se pierde.
-        await (out.ok ? cerrarPedido(householdId) : guardarPedido(quien, pedido)).catch(seguirCon("agente_pedido", null));
+        await (out.ok ? cerrarPedido(householdId) : guardarPedido(quien, { ...pedido, avisado: pedido.avisado || pisa })).catch(seguirCon("agente_pedido", null));
         // Lo que se quedó sin contestar se dice igual, también si dijeron «sigue tú»: no se presenta como sabido.
         const { supuestos = [], temas = [] } = ejes && out.ok && pedido.camino ? faltaDelPedido({ ...pedido, forzado: false, ejes, hayNinos }) : {};
-        const nota = notaDeSupuestos(supuestos, temas);
+        const pisada = pisa && rehacer && out.ok && !pedido.avisado ? `Dilo en una línea del resumen: ${avisoDeRehacer(seRehace)}` : "";
+        const nota = [notaDeSupuestos(supuestos, temas), pisada].filter(Boolean).join("\n");
         if (nota) return resultadoDeGenerar(out, `${texto}\n${nota}`);
         if (out.recordarSilencio) chat.recordarSilencio = true;
         return resultadoDeGenerar(out, out.recordarSilencio ? `${texto}\n${NOTA_RECORDATORIO}` : texto);
