@@ -25,6 +25,7 @@ import { select, insert, update, borrar, eq } from "./db.js";
 import { quienesLlevanLaCasa } from "./papel.js";
 import { rowToRecipe } from "../../src/lib/userRecipesFila.js";
 import { recetaPropia } from "../../src/lib/ids.js";
+import { BUILT_IN_COLLECTIONS, carpetaParaEscribir, isBuiltInCollection, newFolderId } from "../../src/lib/carpetas.js";
 
 /**
  * Quita una receta propia que acaba de guardar Lola, al deshacerlo (#958).
@@ -101,6 +102,60 @@ export async function marcarFavorita(userId, recetaId, favorita) {
   } else {
     await update("recipe_votes", `user_id=${eq(userId)}&recipe_id=${eq(recetaId)}`, { is_favorite: false, scope: null });
   }
+}
+
+// ── Carpetas de recetas (trozo 48, parte 2): las de cada cuenta, las mismas filas que la app (recipeCollections.js) ──
+
+/** Las carpetas de una cuenta: las 4 fijas y las suyas (`recipe_folders`), como `{ id, nombre, fija }`. Lanza si la base falla. */
+export async function carpetasDe(userId) {
+  const suyas = await select("recipe_folders", `user_id=${eq(userId)}`, "id,name");
+  return [
+    ...BUILT_IN_COLLECTIONS.map((c) => ({ id: c.id, nombre: c.label, fija: true })),
+    ...suyas.map((f) => ({ id: f.id, nombre: f.name, fija: false })),
+  ];
+}
+
+/** Una carpeta nueva de la cuenta, con el id de la app (`fld_…`). Devuelve su id. */
+export async function crearCarpeta(userId, nombre) {
+  const id = newFolderId();
+  await insert("recipe_folders", [{ user_id: userId, id, name: nombre }]);
+  return id;
+}
+
+/**
+ * Como deleteRecipeFolder de la app: primero lo que había dentro (collection_id no tiene FK, 0026: nada lo borra en
+ * cascada y volvería en la carga siguiente) y luego la carpeta. Las fijas no se borran.
+ */
+export async function borrarCarpeta(userId, carpetaId) {
+  if (isBuiltInCollection(carpetaId)) throw new Error("las carpetas fijas no se borran");
+  await borrar("recipe_collections", `user_id=${eq(userId)}&collection_id=${eq(carpetaId)}`);
+  await borrar("recipe_folders", `user_id=${eq(userId)}&id=${eq(carpetaId)}`);
+}
+
+/**
+ * Mete una receta en una carpeta, en `recipe_collections`, con el id que se escribe (carpetaParaEscribir: una fija
+ * retirada sin sucesor no se escribe y lanza), o la saca con el id con que está guardada.
+ */
+export async function enCarpeta(userId, recetaId, carpetaId, meter) {
+  if (!meter) {
+    await borrar("recipe_collections", `user_id=${eq(userId)}&recipe_id=${eq(recetaId)}&collection_id=${eq(carpetaId)}`);
+    return;
+  }
+  if (carpetaParaEscribir(carpetaId) == null) throw new Error(`la carpeta ${carpetaId} ya no se usa`);
+  await insert("recipe_collections?on_conflict=user_id,recipe_id,collection_id", [{ user_id: userId, recipe_id: recetaId, collection_id: carpetaParaEscribir(carpetaId) }], { upsert: true });
+}
+
+/**
+ * Saca una receta de «Descartados» (la carpeta que la app pinta con los descartes de la casa): quita su fila de
+ * `household_recipe_discards`, como deleteHouseholdDiscard de la app, y el motor vuelve a poder ponerla. Devuelve
+ * false si la casa no la tenía descartada. Lanza si la base falla.
+ */
+export async function recuperarDescartada(householdId, recetaId) {
+  const filtro = `household_id=${eq(householdId)}&recipe_id=${eq(recetaId)}`;
+  const [fila] = await select("household_recipe_discards", filtro, "recipe_id");
+  if (!fila) return false;
+  await borrar("household_recipe_discards", filtro);
+  return true;
 }
 
 /**
