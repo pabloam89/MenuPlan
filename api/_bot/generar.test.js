@@ -123,6 +123,14 @@ describe("generar menú: todo o nada", () => {
     expect(fila).toEqual({ household_id: "h1", menu_id: "menu-nuevo", week_start: out.desde, camino: "medio" });
   });
 
+  it("los días de la última vez mandan sobre los de la casa (trozo 71)", async () => {
+    conCasa.mockResolvedValue({ ok: true });
+    const pedidos = [];
+    motor.mockResolvedValue({ ...m, computeWeekRange: (...a) => { pedidos.push(a[2]); return m.computeWeekRange(...a); } });
+    await generarMenu("h1", "siguiente", [], {}, { soloEste: { dias: ["Lun", "Mar"] } });
+    expect(pedidos[0]).toEqual(["Lun", "Mar"]);
+  });
+
   it("si no se puede apuntar, el menú sigue hecho (trozo 70)", async () => {
     const aviso = vi.spyOn(console, "error").mockImplementation(() => {});
     conCasa.mockResolvedValue({ ok: true });

@@ -79,6 +79,13 @@ describe("la pregunta del camino, en corto (trozo 60)", () => {
     ].join("\n"));
   });
 
+  it("con última vez, un botón más y los tres caminos siguen (trozo 71)", () => {
+    const r = preguntaDeCamino({ hoy: HOY, semanas: ESTA, ultima: { camino: "medio", dias: ["Lun", "Mar", "Mié"] } });
+    expect(r).toContain("<b>Como la última vez</b>: Unas preguntas, 3 días");
+    expect(r.endsWith("[[Solo los días]]\n[[Unas preguntas]]\n[[A fondo]]\n[[Como la última vez]]")).toBe(true);
+    expect(faltaParaGenerar({ hoy: HOY, semanas: ESTA, ultima: { camino: "basico", dias: ["Lun"] } })).toContain("Solo los días, 1 día");
+  });
+
   it("sin menú esta semana, desde hoy; sin semana libre, la pregunta abierta", () => {
     expect(preguntaDeCamino({ hoy: HOY, semanas: [] })).toMatch(/^Del 4 al 8 de noviembre no tenéis menú\. ¿Te lo preparo desde el <b>miércoles 4<\/b>\?/);
     const llenas = Array.from({ length: 10 }, (_, i) => ({

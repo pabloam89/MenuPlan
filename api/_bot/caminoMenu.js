@@ -24,6 +24,16 @@ export const BOTONES_CAMINO = CAMINOS.map((c) => `[[${c.titulo}]]`).join("\n");
 /** Los mismos, como botones de Telegram que vuelven como si los escribieran (`t:`, sacarBotones en telegram.js). */
 export const BOTONES_CAMINO_TELEGRAM = CAMINOS.map((c) => ({ texto: c.titulo, dato: `t:${c.titulo}` }));
 
+/** El botón de repetir el último menú (trozo 71): va junto a los tres caminos, nunca en su lugar. */
+export const BOTON_ULTIMA_VEZ = "Como la última vez";
+export const esBotonUltimaVez = (texto) => String(texto ?? "").trim().toLowerCase() === BOTON_ULTIMA_VEZ.toLowerCase();
+
+/** Pura. Su línea en la pregunta: qué camino y cuántos días repite. */
+export function lineaDeUltimaVez({ camino, dias }) {
+  const n = dias.length;
+  return `<b>${BOTON_ULTIMA_VEZ}</b>: ${CAMINOS.find((c) => c.id === camino).titulo}, ${n} ${n === 1 ? "día" : "días"}`;
+}
+
 /** La pregunta de antes de cada menú: para cuándo y cómo de a fondo (la misma que enseña el manual de Lola). */
 export const PREGUNTA_DE_CAMINO = "¿Para cuándo quieres el menú, y cuánto lo afinamos?";
 
@@ -73,12 +83,15 @@ export function semanaPropuesta({ hoy, semanas = [] }) {
 /**
  * Pura. La pregunta de antes de cada menú, en corto (trozo 60 de #1037): qué días no tienen menú y desde cuándo,
  * en humano; una línea por camino con su botón en negrita; la otra vía (sus palabras o un audio); y los botones,
- * cada uno en su línea. Sin semana libre que proponer, la pregunta abierta de siempre.
+ * cada uno en su línea. Sin semana libre que proponer, la pregunta abierta de siempre. Con `ultima` (ultimaVez en
+ * menusGenerados.js), un botón más para repetirla.
  */
-export function preguntaDeCamino({ hoy, semanas = [] }) {
+export function preguntaDeCamino({ hoy, semanas = [], ultima = null }) {
   const s = semanaPropuesta({ hoy, semanas });
   const primera = s ? `Del ${rangoDeFechas(s.desde, s.domingo)} no tenéis menú. ¿Te lo preparo desde el <b>${diaYNumero(s.desde)}</b>?` : PREGUNTA_DE_CAMINO;
-  return [primera, CAMINOS.map(lineaDeCamino).join("\n"), "O cuéntamelo con tus palabras o en un audio.", BOTONES_CAMINO].join("\n\n");
+  const lineas = [...CAMINOS.map(lineaDeCamino), ...(ultima ? [lineaDeUltimaVez(ultima)] : [])];
+  const botones = ultima ? `${BOTONES_CAMINO}\n[[${BOTON_ULTIMA_VEZ}]]` : BOTONES_CAMINO;
+  return [primera, lineas.join("\n"), "O cuéntamelo con tus palabras o en un audio.", botones].join("\n\n");
 }
 
 /**
@@ -87,9 +100,10 @@ export function preguntaDeCamino({ hoy, semanas = [] }) {
  *   `texto`: el mensaje de este turno. Si es el botón «Rehacer la del…», ya trae su semana y no se pregunta.
  *   `hoy` y `semanas`: para proponer desde cuándo, cuando falta el camino.
  *   `ejes`: lo que la casa ya sabe (ejesDeCasa.js); sin ellos, se preguntan todos los temas del camino.
+ *   `ultima`: la última vez, para ofrecer repetirla en la pregunta.
  *   `forzado`: dijeron «sigue tú»: ni camino, ni preguntas, ni fecha, salvo lo que bloquea. `preguntado`: ya se hicieron las del camino.
  */
-export function faltaParaGenerar({ camino = null, desde = null, texto = "", hayNinos = false, hoy = null, semanas = [], ejes = null, forzado = false, preguntado = false }) {
+export function faltaParaGenerar({ camino = null, desde = null, texto = "", hayNinos = false, hoy = null, semanas = [], ejes = null, forzado = false, preguntado = false, ultima = null }) {
   if (esBotonRehacer(texto)) return null;
   const hayCamino = IDS_CAMINO.includes(camino);
   if (ejes) {
@@ -101,7 +115,7 @@ export function faltaParaGenerar({ camino = null, desde = null, texto = "", hayN
     if (!hoy) throw new Error("faltaParaGenerar: sin camino hace falta hoy para proponer la semana");
     const s = semanaPropuesta({ hoy, semanas });
     const luego = s ? ` Cuando elijan, generar_menu con ese camino y desde ${s.desde} (o la fecha que digan).` : " Cuando elijan, generar_menu con ese camino y la fecha que digan.";
-    return `NO GENERADO: antes de generar, pregunta SIEMPRE para cuándo y cómo de a fondo con este mensaje, tal cual (si ya te han dicho la fecha, cambia solo la primera línea).${luego} Después te da las preguntas de ese camino.\n\n${preguntaDeCamino({ hoy, semanas })}`;
+    return `NO GENERADO: antes de generar, pregunta SIEMPRE para cuándo y cómo de a fondo con este mensaje, tal cual (si ya te han dicho la fecha, cambia solo la primera línea).${luego} Después te da las preguntas de ese camino.\n\n${preguntaDeCamino({ hoy, semanas, ultima })}`;
   }
   const preguntas = preguntasDelCamino(camino, { hayNinos, ejes }).join(" ");
   const titulo = CAMINOS.find((c) => c.id === camino).titulo;
