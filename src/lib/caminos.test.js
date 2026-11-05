@@ -21,6 +21,8 @@ describe("los tres caminos, una sola lista para la app y Lola", () => {
       .map((id) => new Set(temasDelCamino(id, { hayNinos: true })));
     for (const t of basico) expect(medio.has(t)).toBe(true);
     for (const t of medio) expect(avanzado.has(t)).toBe(true);
+    // «1 o 2 platos» pesa más en el menú que el nivel de cocina (peso_menu 55 frente a 35): no puede ser solo de «A fondo».
+    expect(medio.has(TEMA.ESTRUCTURA)).toBe(true);
     expect(basico.size).toBeLessThan(medio.size);
     expect(medio.size).toBeLessThan(avanzado.size);
   });
