@@ -8,6 +8,9 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
 const auth = vi.hoisted(() => ({
   linkIdentity: vi.fn(async () => ({ data: { url: "https://google" }, error: null })),
+  getUserIdentities: vi.fn(async () => ({ data: { identities: [{ id: "i1", provider: "google" }, { id: "i2", provider: "apple" }] }, error: null })),
+  unlinkIdentity: vi.fn(async () => ({ data: {}, error: null })),
+  refreshSession: vi.fn(async () => ({ data: {}, error: null })),
   getSession: vi.fn(async () => ({ data: { session: null }, error: null })),
   getUser: vi.fn(async () => ({ data: {}, error: null })),
   signOut: vi.fn(async () => ({ error: null })),
@@ -38,6 +41,30 @@ describe("useAuth: añadir una forma de entrar", () => {
     await api.anadirFormaDeEntrar("apple");
     expect(auth.linkIdentity).toHaveBeenLastCalledWith({ provider: "apple", options: { redirectTo: window.location.origin } });
     act(() => raiz.unmount());
+  });
+
+  it("quitar una forma: suelta esa identidad y renueva la sesión para que la lista diga lo nuevo", async () => {
+    let hook;
+    function Sonda() { hook = useAuth(); return null; }
+    const raiz = createRoot(document.createElement("div"));
+    await act(async () => raiz.render(<Sonda />));
+    await expect(hook.quitarFormaDeEntrar("apple")).resolves.toEqual({ error: null });
+    expect(auth.unlinkIdentity).toHaveBeenCalledWith({ id: "i2", provider: "apple" });
+    expect(auth.refreshSession).toHaveBeenCalled();
+    raiz.unmount();
+  });
+
+  it("quitar una forma que no está, o que Supabase rechaza, da el error y no renueva", async () => {
+    let hook;
+    function Sonda() { hook = useAuth(); return null; }
+    const raiz = createRoot(document.createElement("div"));
+    await act(async () => raiz.render(<Sonda />));
+    auth.refreshSession.mockClear();
+    auth.unlinkIdentity.mockResolvedValueOnce({ data: null, error: new Error("single identity") });
+    expect((await hook.quitarFormaDeEntrar("google")).error?.message).toBe("single identity");
+    expect((await hook.quitarFormaDeEntrar("azure")).error?.message).toMatch(/Sin identidad/);
+    expect(auth.refreshSession).not.toHaveBeenCalled();
+    raiz.unmount();
   });
 
   it("si la vuelta de Google trae un error, lo da para avisar; olvidado, ya no", async () => {

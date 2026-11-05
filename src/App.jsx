@@ -227,7 +227,7 @@ import { suggestHomeRole, migrateHomeRole, resolveAccountMember, miembroDeCuenta
 import { migrateCookTime, COOK_TIME_DEFAULTS } from "./lib/cookTime.js";
 import { navDirection } from "./lib/motion.js";
 import { useAuth } from "./lib/useAuth.js";
-import { formasDeEntrar, NO_SE_PUDO_ANADIR, urlEntrarConTelegram, PREGUNTA_ALTA, OFERTA_ANADIR } from "./lib/cuentaTelegram.js";
+import { formasDeEntrar, NO_SE_PUDO_ANADIR, NO_SE_PUDO_QUITAR, urlEntrarConTelegram, PREGUNTA_ALTA, OFERTA_ANADIR } from "./lib/cuentaTelegram.js";
 import { FeedbackFAB } from "./components/FeedbackFAB.jsx";
 import { HomeCoachTour, RecipesCoachTour, MenuCoachTour, FeedCoachTour } from "./components/HomeCoachTour.jsx";
 import { RecipePrefsWizard } from "./components/ModeSheets.jsx";
@@ -1292,7 +1292,7 @@ export default function App() {
     [gruposCompra, comidasCompra],
   );
 
-  const { user, session, loading: authLoading, signInWithGoogle, signInWithApple, anadirFormaDeEntrar, avisoAlEntrar, olvidarAvisoAlEntrar, signOut, altaPendiente, crearCuentaNueva, entrarConTelegramEnVez, ofertaAnadir, responderOferta } = useAuth();
+  const { user, session, loading: authLoading, signInWithGoogle, signInWithApple, anadirFormaDeEntrar, quitarFormaDeEntrar, avisoAlEntrar, olvidarAvisoAlEntrar, signOut, altaPendiente, crearCuentaNueva, entrarConTelegramEnVez, ofertaAnadir, responderOferta } = useAuth();
   const {
     households,
     activeHousehold,
@@ -2227,6 +2227,10 @@ export default function App() {
     const { error } = await anadirFormaDeEntrar(forma);
     if (error) showToast(NO_SE_PUDO_ANADIR[forma]);
   }, [anadirFormaDeEntrar, showToast]);
+  const handleQuitarFormaDeEntrar = useCallback(async (forma) => {
+    const { error } = await quitarFormaDeEntrar(forma);
+    if (error) showToast(NO_SE_PUDO_QUITAR);
+  }, [quitarFormaDeEntrar, showToast]);
   // Los menús generados (la racha), de su tabla (menusGenerados.js, trozo 22); sin casa, del móvil. Sin leer no es
   // «ningún menú»: `leidos: false`, Ajustes no enseña la racha y no cuenta como primer menú.
   const [menusHechos, setMenusHechos] = useState(() => ({ casa: null, leidos: false, lista: [] }));
@@ -7016,6 +7020,7 @@ export default function App() {
                 onExportData={user && syncHouseholdId ? handleExportarCasa : null}
                 formasDeEntrar={user ? formasDeEntrar(user, { conApple: seOfreceApple() }) : null}
                 onAnadirFormaDeEntrar={handleAnadirFormaDeEntrar}
+                onQuitarFormaDeEntrar={handleQuitarFormaDeEntrar}
                 onEditMembers={() => fwd(() => setScreen("members"))}
                 onEditPreferences={() => openEditPreferences("profile")}
                 onOpenHouseholds={() => fwd(() => setScreen("households"))}
