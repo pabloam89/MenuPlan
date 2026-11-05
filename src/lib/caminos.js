@@ -32,26 +32,46 @@ export const TEMA = Object.freeze({
   BATCH: "batch",
 });
 
+/** Dónde vive el dato de un eje: su sobre, una fila de `preferencia` o, hasta que pase a filas, el documento de la casa. */
+export const VIVE_EJE = Object.freeze({ SOBRE: "sobre", PREFERENCIA: "preferencia", DOCUMENTO: "documento" });
+
 /**
- * Los temas. `campos`: los datos del registro que contesta; vacío cuando el tema
- * aún no tiene campo en el registro (se guarda por otro camino: preferencias,
- * menú del cole, presupuesto). `soloNinos`: solo aplica con niños en casa.
+ * Qué pasa si falta un eje al pedir un menú. `bloquea`: no se genera, ni aunque digan «sigue tú». `bloquea_salvo_forzar`:
+ * se pregunta; forzado, Lola propone lo razonable y lo dice. `del_camino`: se pregunta si el camino lo abre; forzado, se
+ * queda con la ficha o el valor por defecto.
+ */
+export const NIVEL_EJE = Object.freeze({ BLOQUEA: "bloquea", BLOQUEA_SALVO_FORZAR: "bloquea_salvo_forzar", DEL_CAMINO: "del_camino" });
+
+const { SOBRE, PREFERENCIA, DOCUMENTO } = VIVE_EJE;
+const { BLOQUEA, BLOQUEA_SALVO_FORZAR, DEL_CAMINO } = NIVEL_EJE;
+const eje = (dato, vive, nivel = DEL_CAMINO) => Object.freeze({ dato, vive, nivel });
+
+/**
+ * Los temas. `ejes`: los datos del registro de la ficha (registroFicha.js) que contesta, con dónde viven y su nivel.
+ * Todo dato con `peso_menu` está en un tema o en EJES_FUERA_DE_CAMINO: caminos.test.js falla si se queda sin sitio.
+ * `soloNinos`: solo aplica con niños en casa.
  */
 export const TEMAS = Object.freeze([
-  { id: TEMA.SEMANA, titulo: "¿Para qué días quieres el menú?", campos: ["menuWeekDays"] },
-  { id: TEMA.COMPRA, titulo: "¿Cuánto quieres gastarte en la compra?", campos: ["supermarkets", "wantsPriceEstimates"] },
-  { id: TEMA.HORARIO, titulo: "¿Qué días coméis en casa?", campos: ["schedule", "meals"] },
-  { id: TEMA.COLE, titulo: "¿Tienes el menú del cole de tus hijos?", campos: ["colegio"], soloNinos: true },
-  { id: TEMA.NINOS, titulo: "¿Comen tus hijos igual que vosotros?", campos: ["menuModel", "etapaBebe"], soloNinos: true },
-  { id: TEMA.ESTILO, titulo: "¿Qué estilo de comida preferís?", campos: [] },
-  { id: TEMA.ESTRUCTURA, titulo: "¿Cuántos platos por comida?", campos: ["mealStructure", "mealStructureCena"] },
-  { id: TEMA.EXTRAS, titulo: "¿Queréis desayunos?", campos: ["meals"] },
-  { id: TEMA.DESPENSA, titulo: "¿Queréis usar lo que hay en casa?", campos: ["pantryMode"] },
-  { id: TEMA.COCINA, titulo: "¿Cuánto os gusta cocinar?", campos: ["cookLevel"] },
-  { id: TEMA.ELECTROS, titulo: "¿Qué tenéis en la cocina?", campos: ["kitchenTools"] },
-  { id: TEMA.TIEMPOS, titulo: "¿Cuánto tiempo tenéis para cocinar?", campos: [] },
-  { id: TEMA.BATCH, titulo: "¿Cocináis en tandas?", campos: ["tandaMinutos", "diaTanda"] },
+  { id: TEMA.SEMANA, titulo: "¿Para qué días quieres el menú?", ejes: [eje("menuWeekDays", SOBRE, BLOQUEA_SALVO_FORZAR)] },
+  { id: TEMA.COMPRA, titulo: "¿Cuánto quieres gastarte en la compra?", ejes: [eje("supermarkets", SOBRE), eje("wantsPriceEstimates", SOBRE), eje("presupuesto", PREFERENCIA)] },
+  { id: TEMA.HORARIO, titulo: "¿Qué días coméis en casa?", ejes: [eje("schedule", SOBRE, BLOQUEA_SALVO_FORZAR), eje("meals", SOBRE, BLOQUEA_SALVO_FORZAR)] },
+  { id: TEMA.COLE, titulo: "¿Tienes el menú del cole de tus hijos?", ejes: [eje("colegio", SOBRE), eje("schoolMenus", DOCUMENTO)], soloNinos: true },
+  { id: TEMA.NINOS, titulo: "¿Comen tus hijos igual que vosotros?", ejes: [eje("menuModel", SOBRE), eje("etapaBebe", DOCUMENTO, BLOQUEA), eje("kidDinnerConfig", PREFERENCIA)], soloNinos: true },
+  { id: TEMA.ESTILO, titulo: "¿Qué estilo de comida preferís?", ejes: [eje("reparto", PREFERENCIA), eje("cocinas", PREFERENCIA), eje("sesgos", PREFERENCIA)] },
+  { id: TEMA.ESTRUCTURA, titulo: "¿Cuántos platos por comida?", ejes: [eje("mealStructure", SOBRE), eje("mealStructureCena", SOBRE)] },
+  { id: TEMA.EXTRAS, titulo: "¿Queréis desayunos?", ejes: [eje("meals", SOBRE, BLOQUEA_SALVO_FORZAR)] },
+  { id: TEMA.DESPENSA, titulo: "¿Queréis usar lo que hay en casa?", ejes: [eje("pantryMode", SOBRE)] },
+  { id: TEMA.COCINA, titulo: "¿Cuánto os gusta cocinar?", ejes: [eje("cookLevel", SOBRE)] },
+  { id: TEMA.ELECTROS, titulo: "¿Qué tenéis en la cocina?", ejes: [eje("kitchenTools", SOBRE)] },
+  { id: TEMA.TIEMPOS, titulo: "¿Cuánto tiempo tenéis para cocinar?", ejes: [eje("cookTime", DOCUMENTO)] },
+  { id: TEMA.BATCH, titulo: "¿Cocináis en tandas?", ejes: [eje("tandaMinutos", SOBRE), eje("diaTanda", SOBRE)] },
 ].map(Object.freeze));
+
+/** Lo que pesa en el menú y no se pregunta en un camino, con su motivo. */
+export const EJES_FUERA_DE_CAMINO = Object.freeze({
+  allergies: "seguridad: va por sus tareas «falta saber» y su mínimo para generar, en cualquier camino",
+  members: "quién come: se pide en el alta y generar.js no genera sin personas",
+});
 
 /** Ids de los caminos. */
 export const CAMINO = Object.freeze({ BASICO: "basico", MEDIO: "medio", AVANZADO: "avanzado" });
