@@ -117,6 +117,9 @@
   "menu_share_links": [
     "api/_bot/compartir.js"
   ],
+  "persona": [
+    "api/_bot/enlace.js"
+  ],
   "persona_estado": [
     "api/_bot/caducidades.js"
   ],
