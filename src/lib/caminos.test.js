@@ -1,13 +1,30 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { CAMINO, CAMINOS, TEMA, TEMAS, temasDelCamino } from "./caminos.js";
-import { REGISTRO_CAMPOS } from "./registroCampos.js";
+import { CAMINO, CAMINOS, EJES_FUERA_DE_CAMINO, NIVEL_EJE, TEMA, TEMAS, VIVE_EJE, temasDelCamino } from "./caminos.js";
+import { DATOS_CASA, DATOS_PERSONA } from "./registroFicha.js";
 import { SCOPE_TOPIC_STEPS } from "../screens/ScopePickerScreen.jsx";
 
 describe("los tres caminos, una sola lista para la app y Lola", () => {
-  it("cada dato que dice contestar un tema existe en el registro", () => {
-    const sinRegistro = TEMAS.flatMap((t) => t.campos.filter((c) => !REGISTRO_CAMPOS[c]).map((c) => `${t.id}:${c}`));
-    expect(sinRegistro).toEqual([]);
+  const DATOS = { ...DATOS_CASA, ...DATOS_PERSONA };
+  const EJES = TEMAS.flatMap((t) => t.ejes.map((e) => ({ ...e, tema: t.id })));
+
+  it("cada eje de un tema existe en el registro y vive donde dice", () => {
+    const viveEn = (d) => (d.ficha === "preferencia" ? VIVE_EJE.PREFERENCIA : d.vive?.startsWith("tabla:sobre") ? VIVE_EJE.SOBRE : VIVE_EJE.DOCUMENTO);
+    const malos = EJES.filter((e) => !DATOS[e.dato] || viveEn(DATOS[e.dato]) !== e.vive).map((e) => `${e.tema}:${e.dato}`);
+    expect(malos).toEqual([]);
+  });
+
+  it("todo dato que pesa en el menú está en un tema o dice por qué no: ninguno se pierde", () => {
+    const conTema = new Set(EJES.map((e) => e.dato));
+    const sinSitio = Object.keys(DATOS).filter((d) => DATOS[d].peso_menu != null && !conTema.has(d) && !EJES_FUERA_DE_CAMINO[d]);
+    expect(sinSitio).toEqual([]);
+  });
+
+  it("un dato tiene un solo nivel, de la lista cerrada, aunque salga en dos temas", () => {
+    const niveles = Object.values(NIVEL_EJE);
+    expect(EJES.filter((e) => !niveles.includes(e.nivel))).toEqual([]);
+    const dobles = EJES.filter((e) => EJES.some((o) => o.dato === e.dato && o.nivel !== e.nivel));
+    expect(dobles).toEqual([]);
   });
 
   it("cada camino abre solo temas que existen, y Al detalle los abre todos", () => {
