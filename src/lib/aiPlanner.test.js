@@ -91,7 +91,7 @@ describe("compact planner format", () => {
   it("buildUserMessage sends the table and words the flags for it", () => {
     const [catalogBlock, textBlock] = buildUserMessage(
       [{ id: "a", name: "A", category: "huevos", mealRole: ["cena"], isFavorite: true }],
-      SLOTS, CONFIG, {}, [], [], "prefer", [], "preferred", [], null, "compact",
+      SLOTS, CONFIG, {}, [], [], "prefer", [], [], null, "compact",
     );
     expect(catalogBlock.text).toBe("Catálogo:\nid|name|category|mealRole|favorite\na|A|huevos|cena|1");
     expect(catalogBlock.cache_control).toEqual({ type: "ephemeral" });

@@ -230,7 +230,6 @@ import { useAuth } from "./lib/useAuth.js";
 import { formasDeEntrar, NO_SE_PUDO_ANADIR, NO_SE_PUDO_QUITAR, urlEntrarConTelegram, PREGUNTA_ALTA, OFERTA_ANADIR } from "./lib/cuentaTelegram.js";
 import { FeedbackFAB } from "./components/FeedbackFAB.jsx";
 import { HomeCoachTour, RecipesCoachTour, MenuCoachTour, FeedCoachTour } from "./components/HomeCoachTour.jsx";
-import { RecipePrefsWizard } from "./components/ModeSheets.jsx";
 import { trackEvent, upsertUserProfile, APP_VERSION } from "./lib/analytics.js";
 import { EMBUDO, PANTALLA_EMBUDO } from "./lib/embudo.js";
 import { leerDestino, olvidarDestino } from "./lib/destinoBot.js";
@@ -2871,7 +2870,6 @@ export default function App() {
   const recipePlannerOriginRef = useRef("dashboard");
   // When set, the recipe planner opens in "edit" mode for this user recipe.
   const [editingRecipe, setEditingRecipe] = useState(null);
-  const [recipePrefsOpen, setRecipePrefsOpen] = useState(false);
   const [acceptingInvite, setAcceptingInvite] = useState(false);
   const pendingInviteNavRef = useRef(false);
   const fwd  = (fn) => { dirRef.current = "forward";  fn(); };
@@ -6818,7 +6816,6 @@ export default function App() {
                   if (user?.id) updateRecipeVisibility(user.id, recipeId, visibility);
                 }}
                 onDeleteRecipe={handleDeleteRecipe}
-                onOpenRecipePrefs={() => setRecipePrefsOpen(true)}
               />
             </Suspense>
           </div>
@@ -6871,18 +6868,6 @@ export default function App() {
 
         {screen === "feed" && (GUIAS_ACTIVAS || FORCE_TOUR) && !feedCoachSeen && (
           <FeedCoachTour onClose={markFeedCoachSeen} />
-        )}
-
-        {recipePrefsOpen && (
-          <RecipePrefsWizard
-            initial={data.recipeMode ?? "preferred"}
-            onComplete={(mode) => {
-              setData((d) => ({ ...d, recipeMode: mode }));
-              setRecipePrefsOpen(false);
-              showToast("Preferencias de recetas guardadas");
-            }}
-            onClose={() => setRecipePrefsOpen(false)}
-          />
         )}
 
         {screen === "households" && (
@@ -6995,7 +6980,6 @@ export default function App() {
                   if (!garnishId && !sauceId) return;
                   handleOpenCatalogRecipe(recipe, { garnishId, sauceId, initialCourse: "combinado" });
                 }}
-                onOpenRecipePrefs={() => setRecipePrefsOpen(true)}
               />
             </Suspense>
           </div>

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { BookOpen, Heart, NotebookPen, Plus, SlidersHorizontal } from "../components/icons.jsx";
+import { BookOpen, Heart, NotebookPen, Plus } from "../components/icons.jsx";
 import {
   BottomNav,
   bottomNavSpacer,
@@ -34,7 +34,6 @@ export function BibliotecaScreen({
   onDeleteRecipe,
   onEditRecipe,
   onBrowseGarnishCombo,
-  onOpenRecipePrefs,
 }) {
   const [tab, setTab] = useState("catalog");
 
@@ -116,27 +115,6 @@ export function BibliotecaScreen({
             </h1>
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
-            {onOpenRecipePrefs && (
-              <button
-                type="button"
-                onClick={onOpenRecipePrefs}
-                title="Preferencias de recetas"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: 36,
-                  height: 36,
-                  borderRadius: 12,
-                  border: "1.5px solid #d5e6da",
-                  background: "#fff",
-                  color: GREEN,
-                  cursor: "pointer",
-                }}
-              >
-                <SlidersHorizontal size={16} strokeWidth={2.3} />
-              </button>
-            )}
             {onOpenRecipePlanner && (
               <button
                 type="button"
