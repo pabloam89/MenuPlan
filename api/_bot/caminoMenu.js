@@ -7,6 +7,7 @@
  * en que se acaba de elegir el camino (entonces toca hacer sus preguntas). Puro: sin base.
  */
 import { CAMINOS, TEMAS, temasDelCamino } from "../../src/lib/caminos.js";
+import { faltaDelPedido } from "../../src/lib/pedidoMenu.js";
 import { hasChildMember } from "../../src/lib/groups.js";
 import { diaYNumero, esBotonRehacer, lunesDe, rangoDeFechas, resolverSemana, sumarDias } from "./semanaPedida.js";
 import { lineaDeCamino } from "./manual.js";
@@ -37,9 +38,13 @@ export function caminoDelBoton(texto) {
 /** Pura. ¿Hay niños en la casa? (para no preguntar lo que solo aplica con niños) */
 export const hayNinosEn = (casa) => hasChildMember(casa?.state?.data?.members ?? []);
 
-/** Pura. Lo que Lola pregunta en un camino: los títulos de sus temas, en orden. */
-export function preguntasDelCamino(camino, { hayNinos = false } = {}) {
-  return temasDelCamino(camino, { hayNinos }).map(tituloDeTema);
+/**
+ * Pura. Lo que Lola pregunta en un camino: los títulos de sus temas, en orden. Con `ejes` (ejesDeCasa.js), solo los
+ * temas en los que a esta casa le falta algo: lo que ya dijo no se repite.
+ */
+export function preguntasDelCamino(camino, { hayNinos = false, ejes = null } = {}) {
+  const temas = ejes ? faltaDelPedido({ camino, hayNinos, ejes }).temas : temasDelCamino(camino, { hayNinos });
+  return temas.map(tituloDeTema);
 }
 
 /**
@@ -71,8 +76,9 @@ export function preguntaDeCamino({ hoy, semanas = [] }) {
  * @param {{ camino?: string|null, desde?: string|null, texto?: string, hayNinos?: boolean, hoy?: string, semanas?: object[] }} p
  *   `texto`: el mensaje de este turno. Si es el botón «Rehacer la del…», ya trae su semana y no se pregunta.
  *   `hoy` y `semanas`: para proponer desde cuándo, cuando falta el camino.
+ *   `ejes`: lo que la casa ya sabe (ejesDeCasa.js); sin ellos, se preguntan todos los temas del camino.
  */
-export function faltaParaGenerar({ camino = null, desde = null, texto = "", hayNinos = false, hoy = null, semanas = [] }) {
+export function faltaParaGenerar({ camino = null, desde = null, texto = "", hayNinos = false, hoy = null, semanas = [], ejes = null }) {
   if (esBotonRehacer(texto)) return null;
   if (!IDS_CAMINO.includes(camino)) {
     if (!hoy) throw new Error("faltaParaGenerar: sin camino hace falta hoy para proponer la semana");
@@ -80,9 +86,9 @@ export function faltaParaGenerar({ camino = null, desde = null, texto = "", hayN
     const luego = s ? ` Cuando elijan, generar_menu con ese camino y desde ${s.desde} (o la fecha que digan).` : " Cuando elijan, generar_menu con ese camino y la fecha que digan.";
     return `NO GENERADO: antes de generar, pregunta SIEMPRE para cuándo y cómo de a fondo con este mensaje, tal cual (si ya te han dicho la fecha, cambia solo la primera línea).${luego} Después te da las preguntas de ese camino.\n\n${preguntaDeCamino({ hoy, semanas })}`;
   }
-  const preguntas = preguntasDelCamino(camino, { hayNinos }).join(" ");
+  const preguntas = preguntasDelCamino(camino, { hayNinos, ejes }).join(" ");
   const titulo = CAMINOS.find((c) => c.id === camino).titulo;
-  if (caminoDelBoton(texto) === camino) {
+  if (caminoDelBoton(texto) === camino && preguntas) {
     return `NO GENERADO: acaban de elegir «${titulo}». Ahora pregúntale, en un mensaje y con la invitación a contestar en un audio, lo de ese camino (lo que ya sepas de la ficha, no lo vuelvas a preguntar): ${preguntas} Con lo que conteste, generar_menu con camino «${camino}» y desde.`;
   }
   if (!desde) {
