@@ -190,7 +190,7 @@ import { guardandoCasa, guardadosDeCasa } from "./lib/versionCasa.js";
 import { sinRecetasDeTabla } from "./lib/recetasFuente.js";
 import { marcaLocal, ponerMarcaLocal, sinMarcasDePantalla } from "./lib/marcasLocales.js";
 import { vigilarCasa, EVENTO_SENAL } from "./lib/realtimeCasa.js";
-import { leerFamiliaDeCasa, conFamiliaLeida, sinFamilia, familiaDeCasa, cargaSinSeguir, guardarFamiliaYDocumento, MODO_FAMILIA, contarSenales } from "./lib/familiaCasa.js";
+import { leerFamiliaDeCasa, conFamiliaLeida, sinFamilia, familiaDeCasa, queNoCargo, guardarFamiliaYDocumento, MODO_FAMILIA, contarSenales } from "./lib/familiaCasa.js";
 import { senalesDeCambio, senalesDePlato } from "./lib/senales.js";
 import { leerDatosDeCasa, conCasaLeida, sinCasa, casaDeCasa, guardarCasaEnCola, colaDeLaApp } from "./lib/casaDatos.js";
 import { leerLibretaDeCasa, conLibretaLeida, sinLibretaLeida, libretaDeCasa, guardarLibretaEnCola } from "./lib/libretaCasa.js";
@@ -1595,9 +1595,11 @@ export default function App() {
       // enseñar ni que subir. Se queda sin marcar como cargada (no se guarda
       // nada) y se reintenta al volver a abrirla.
       // La familia sin leer no es una casa sin nadie: con ella a medias, un guardado borraría a quien no salió.
-      if (cargaSinSeguir({ soloNube, remoteState, cargaFamilia, cargaCasa, cargaLibreta })) {
+      const piezasSinLeer = queNoCargo({ soloNube, remoteState, cargaFamilia, cargaCasa, cargaLibreta });
+      if (piezasSinLeer.length) {
         hydratedUserRef.current = null;
         recargandoRef.current = false;
+        trackEvent(user, RASTRO.CASA_SIN_CARGAR, "app", { piezas: piezasSinLeer });
         showToast("No se pudo cargar la casa. Revisa la conexión y vuelve a abrirla.");
         return;
       }

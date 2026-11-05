@@ -277,3 +277,15 @@ describe("las señales de la app (trozo 15) van a api/operacion.js", () => {
     expect(app.match(/contarSenales\(/g)).toHaveLength(4);
   });
 });
+
+describe("queNoCargo: qué pieza de la casa falló (#1302)", () => {
+  it("nombra cada pieza que no se leyó, y sin fallos no da ninguna", () => {
+    expect(queNoCargo({ soloNube: false, remoteState: {}, cargaFamilia: {}, cargaCasa: {}, cargaLibreta: {} })).toEqual([]);
+    expect(queNoCargo({ soloNube: true, remoteState: { error: true }, cargaFamilia: { error: true }, cargaCasa: { error: true }, cargaLibreta: { error: true } }))
+      .toEqual([PIEZA_DE_CASA.DOCUMENTO, PIEZA_DE_CASA.FAMILIA, PIEZA_DE_CASA.DATOS, PIEZA_DE_CASA.LIBRETA]);
+  });
+
+  it("el documento solo cuenta sin copia local (soloNube)", () => {
+    expect(queNoCargo({ soloNube: false, remoteState: { error: true } })).toEqual([]);
+  });
+});
