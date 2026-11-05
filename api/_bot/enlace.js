@@ -7,7 +7,8 @@
  */
 
 import * as ids from "../../src/lib/ids.js";
-import { select, insert, update, eq } from "./db.js";
+import { config, select, insert, update, eq } from "./db.js";
+import { soloEntraConTelegram } from "../../src/lib/cuentaTelegram.js";
 import { enviar, escaparHtml, TECLADO } from "./telegram.js";
 import { registrar, EMBUDO } from "./embudo.js";
 import { CANAL, paraEscribir, RESULTADO_ENLACE, PRUEBA_IDENTIDAD, ABREN_SESION } from "../../src/lib/vocabularios.js";
@@ -88,6 +89,30 @@ export function preguntaDeCambio({ casaAntes, casaApp, conPedido = false }) {
 /** Por qué no se pasa este Telegram a otra cuenta: es la única llave de una casa con gente dentro (#1302). */
 export const NO_SE_PASA_LA_LLAVE = "No paso este Telegram a esa cuenta: es la única forma de entrar en tu casa y te quedarías fuera.\n\n"
   + "Entra en la app con Telegram y añade ahí tu Google, en Mi perfil → Formas de entrar. Si ese Google ya tiene una cuenta vacía, bórrala antes.";
+
+/**
+ * ¿Pasar el Telegram de esta cuenta a otra dejaría una casa con personas sin nadie que pueda entrar? (#1302). Lo es si
+ * la cuenta solo se abre con ese Telegram y es la única miembro de una casa con alguien dentro. Una cuenta con otra
+ * llave, con otro miembro en la casa o con casas sin personas no pierde nada. Un fallo de la base o de Auth, lanza: quien
+ * llama no mueve la llave sin saberlo.
+ * @returns {Promise<boolean>}
+ */
+export async function dejariaCasaSinEntrada(userId) {
+  const casas = (await select("households", `owner_user_id=${eq(userId)}`, "id")).map((h) => h.id);
+  if (!casas.length) return false;
+  const lista = `in.(${casas.map(encodeURIComponent).join(",")})`;
+  const [personas, miembros] = await Promise.all([
+    select("persona", `household_id=${lista}`, "household_id"),
+    select("household_members", `household_id=${lista}`, "household_id,user_id"),
+  ]);
+  const sola = casas.some((c) => personas.some((p) => p.household_id === c)
+    && !miembros.some((m) => m.household_id === c && m.user_id !== userId));
+  if (!sola) return false;
+  const { url, headers } = config();
+  const res = await fetch(`${url}/auth/v1/admin/users/${userId}`, { headers });
+  if (!res.ok) throw new Error(`auth admin/users → ${res.status}`);
+  return soloEntraConTelegram(await res.json());
+}
 
 export const chatOcupado = (actual, householdId, userId) =>
   Boolean(actual && actual.household_id !== householdId && actual.linked_by !== userId);

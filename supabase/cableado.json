@@ -92,6 +92,7 @@
     "api/_bot/invitacion.js"
   ],
   "household_members": [
+    "api/_bot/enlace.js",
     "api/_bot/papel.js",
     "api/bot/link.js",
     "api/bot/telegram.js"
@@ -115,6 +116,9 @@
   ],
   "menu_share_links": [
     "api/_bot/compartir.js"
+  ],
+  "persona": [
+    "api/_bot/enlace.js"
   ],
   "persona_estado": [
     "api/_bot/caducidades.js"

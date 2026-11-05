@@ -44,12 +44,13 @@ vi.mock("../_bot/ajustes.js", () => ({ sembrarCasa: vi.fn() }));
 vi.mock("../_bot/enlace.js", async (original) => ({
   ...(({ pideCambioDeCuenta, preguntaDeCambio, NO_SE_PASA_LA_LLAVE, CAMBIO }) => ({ pideCambioDeCuenta, preguntaDeCambio, NO_SE_PASA_LA_LLAVE, CAMBIO }))(await original()),
   cuentaDeTelegram: vi.fn(async () => t.deAntes),
+  dejariaCasaSinEntrada: vi.fn(async () => t.atrapa),
   enlazarChat: vi.fn(async () => ({ ok: true })), apuntarEnlace: vi.fn(async () => {}), crearCodigo: vi.fn(), gastarCodigo: vi.fn(), baseDe: () => "https://x", confirmarEnlace: vi.fn(async () => ({})), casaPropia: vi.fn(), idDePersona: (f) => (f?.id ? String(f.id) : null), codigoDeGrupo: vi.fn(), esCodigoDeGrupo: () => t.deGrupo }));
 vi.mock("../_bot/invitacion.js", () => ({ unirsePorInvitacion: vi.fn(), ES_INVITACION: /^inv_([0-9a-f]{32})$/ }));
 vi.mock("../_bot/traducir.js", () => ({ traducir: vi.fn(async (xs) => xs) }));
 vi.mock("../_bot/casa.js", () => ({ hoyISO: () => "2026-10-06", cargarCasa: vi.fn() }));
 vi.mock("../_bot/borrar.js", () => ({ puedeBorrar: () => false, borrarCuenta: vi.fn(), limpiarPantalla: vi.fn() }));
-vi.mock("../_bot/cuentas.js", () => ({ dejariaCasaSinEntrada: vi.fn(async () => t.atrapa), enviarAcceso: vi.fn(), verificarCodigoEmail: vi.fn(), crearCuentaTelegram: vi.fn(), cuentaNacidaAqui: vi.fn() }));
+vi.mock("../_bot/cuentas.js", () => ({ enviarAcceso: vi.fn(), verificarCodigoEmail: vi.fn(), crearCuentaTelegram: vi.fn(), cuentaNacidaAqui: vi.fn() }));
 
 const { default: handler } = await import("./telegram.js");
 const { enlazarChat, apuntarEnlace } = await import("../_bot/enlace.js");
@@ -165,7 +166,7 @@ describe("/start: cambiar de cuenta, con confirmación (#1238)", () => {
   it("sin poder comprobarlo, tampoco se mueve (#1302)", async () => {
     t.tablas = codigoValido(TOKEN);
     t.deAntes = "u-antes";
-    const { dejariaCasaSinEntrada } = await import("../_bot/cuentas.js");
+    const { dejariaCasaSinEntrada } = await import("../_bot/enlace.js");
     dejariaCasaSinEntrada.mockRejectedValueOnce(new Error("base caída"));
     await pulsa(`cc:${TOKEN}`);
     expect(enlazarChat).not.toHaveBeenCalled();

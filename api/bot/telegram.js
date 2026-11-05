@@ -56,7 +56,7 @@ import {
   recetaEnTexto, semanaEnTexto, copiarReceta, cuentasDeQuien,
 } from "../_bot/compartir.js";
 import { motor } from "../_bot/menu.js";
-import { enlazarChat, apuntarEnlace, crearCodigo, gastarCodigo, baseDe, confirmarEnlace, casaPropia, idDePersona, codigoDeGrupo, esCodigoDeGrupo, cuentaDeTelegram, pideCambioDeCuenta, preguntaDeCambio, NO_SE_PASA_LA_LLAVE, CAMBIO } from "../_bot/enlace.js";
+import { enlazarChat, apuntarEnlace, crearCodigo, gastarCodigo, baseDe, confirmarEnlace, casaPropia, idDePersona, codigoDeGrupo, esCodigoDeGrupo, cuentaDeTelegram, pideCambioDeCuenta, preguntaDeCambio, dejariaCasaSinEntrada, NO_SE_PASA_LA_LLAVE, CAMBIO } from "../_bot/enlace.js";
 import { papelDeQuien, casaActivaDe } from "../_bot/papel.js";
 import { unirsePorInvitacion, ES_INVITACION } from "../_bot/invitacion.js";
 import { traducir } from "../_bot/traducir.js";
@@ -66,7 +66,7 @@ import { hoyISO, cargarCasa } from "../_bot/casa.js";
 import { puedeBorrar, borrarCuenta, limpiarPantalla } from "../_bot/borrar.js";
 import { partirStart, fraseDePedido } from "../../src/lib/pedidoLola.js";
 import { payloadStart } from "../../src/lib/ids.js";
-import { enviarAcceso, verificarCodigoEmail, cuentaNacidaAqui, dejariaCasaSinEntrada } from "../_bot/cuentas.js";
+import { enviarAcceso, verificarCodigoEmail, cuentaNacidaAqui } from "../_bot/cuentas.js";
 import { cuentaYChat as cuentaYChatDe } from "../_bot/altaTelegram.js";
 import { DOMINIO_LOGIN_TELEGRAM } from "../../src/lib/cuentaTelegram.js";
 import { primeraVez } from "../_bot/entradas.js";

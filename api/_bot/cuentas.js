@@ -23,7 +23,7 @@ import { seguirCon, fallaCon } from "./avisar.js";
 import { config, select, eq } from "./db.js";
 import { CANAL, ABREN_SESION } from "../../src/lib/vocabularios.js";
 // El email sintético, de un solo sitio: la app lo usa para ofrecer «Entrar también con Google» (#1238).
-import { emailSintetico, soloEntraConTelegram } from "../../src/lib/cuentaTelegram.js";
+import { emailSintetico } from "../../src/lib/cuentaTelegram.js";
 
 export { emailSintetico };
 
@@ -126,30 +126,6 @@ export async function cuentaConectadaDesdeLaApp(telegramId) {
   const u = await fetch(`${url}/auth/v1/admin/users/${id.user_id}`, { headers }).then((r) => r.json()).catch(fallaCon("cuentas_conectada_app", null));
   // La sesión se abre por el email (tokenHashDe): sin él, o si la cuenta no es la de la fila, nada.
   return u?.id === id.user_id && u?.email ? { id: u.id, email: u.email } : null;
-}
-
-/**
- * ¿Pasar el Telegram de esta cuenta a otra dejaría una casa con personas sin nadie que pueda entrar? (#1302). Lo es si
- * la cuenta solo se abre con ese Telegram y es la única miembro de una casa con alguien dentro. Una cuenta con otra
- * llave, con otro miembro en la casa o con casas sin personas no pierde nada. Un fallo de la base o de Auth, lanza: quien
- * llama no mueve la llave sin saberlo.
- * @returns {Promise<boolean>}
- */
-export async function dejariaCasaSinEntrada(userId) {
-  const casas = (await select("households", `owner_user_id=${eq(userId)}`, "id")).map((h) => h.id);
-  if (!casas.length) return false;
-  const lista = `in.(${casas.map(encodeURIComponent).join(",")})`;
-  const [personas, miembros] = await Promise.all([
-    select("persona", `household_id=${lista}`, "household_id"),
-    select("household_members", `household_id=${lista}`, "household_id,user_id"),
-  ]);
-  const sola = casas.some((c) => personas.some((p) => p.household_id === c)
-    && !miembros.some((m) => m.household_id === c && m.user_id !== userId));
-  if (!sola) return false;
-  const { url, headers } = config();
-  const res = await fetch(`${url}/auth/v1/admin/users/${userId}`, { headers });
-  if (!res.ok) throw new Error(`auth admin/users → ${res.status}`);
-  return soloEntraConTelegram(await res.json());
 }
 
 const esperar = (ms) => new Promise((r) => setTimeout(r, ms));

@@ -2,7 +2,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 const t = vi.hoisted(() => ({ tablas: {} }));
+vi.mock("./telegram.js", () => ({ enviar: vi.fn(), escaparHtml: (x) => x, TECLADO: {} }));
+vi.mock("./embudo.js", () => ({ registrar: vi.fn(), EMBUDO: {} }));
 vi.mock("./db.js", () => ({
+  insert: vi.fn(),
+  update: vi.fn(),
   config: () => ({ url: "https://base", key: "k", headers: {} }),
   eq: (v) => `eq.${v}`,
   select: vi.fn(async (tabla) => {
@@ -11,7 +15,7 @@ vi.mock("./db.js", () => ({
   }),
 }));
 
-const { dejariaCasaSinEntrada } = await import("./cuentas.js");
+const { dejariaCasaSinEntrada } = await import("./enlace.js");
 
 const SINTETICA = { email: "tg7@usuarios.menuplanai.com", identities: [{ provider: "email" }] };
 const casaConGente = { households: [{ id: "c1" }], persona: [{ household_id: "c1" }], household_members: [{ household_id: "c1", user_id: "u1" }] };
