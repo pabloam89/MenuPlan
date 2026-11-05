@@ -53,6 +53,8 @@ export const CADUCA = {
   COLA: "cola",
   /** Una tarea o una preferencia que apunta a algo que ya no existe (src/lib/referenciasRotas.js, trozo 35). */
   REFERENCIA_ROTA: "referencia_rota",
+  /** Un /fallo esperando la línea o el audio con lo que se esperaba (reporte.js). */
+  REPORTE: "reporte",
 };
 
 /**
@@ -71,6 +73,8 @@ export const COSAS_QUE_CADUCAN = {
   [CADUCA.COLA]: { quien: "barrido", efecto: "avisar", vidaMs: 4 * DURACION_CANDADO_S * 1000, que: "un mensaje que se quedó sin contestar en la cola" },
   // Lo obvio se corrige solo y lo dudoso se pregunta (Pablo, 4 nov 2026): cada rota dice cuál (ACCION_DE_ROTA).
   [CADUCA.REFERENCIA_ROTA]: { quien: "barrido", efecto: "corregir", que: "una tarea o una preferencia que apunta a una persona, un campo o un valor que ya no existe" },
+  // Un cuarto de hora: lo que se esperaba se dice justo después de elegir el tipo; más tarde, el mensaje ya es para Lola.
+  [CADUCA.REPORTE]: { quien: "lectura", efecto: "ignorar", vidaMs: 15 * MIN, que: "un /fallo que espera lo que esperaba quien lo reporta" },
 };
 
 /**

@@ -1,7 +1,7 @@
 /**
  * /fallo (Pablo, 4 nov 2026): un probador responde a un mensaje malo de Lola con `/fallo` (y, si quiere, lo que
  * esperaba detrás); sin responder a nada, es el último de Lola en el chat. Lola pregunta el tipo con botones de
- * TIPOS_REPORTE y dice «Apuntado 👍». Código, sin modelo ni tokens, y fuera de la charla (bot_messages). Solo para
+ * TIPOS_REPORTE; si no dijo qué esperaba, se lo pregunta (una línea, un audio o «Nada más»), y dice «Apuntado 👍». Código, sin modelo ni tokens, y fuera de la charla (bot_messages). Solo para
  * BOT_PROBADORES (ids de Telegram; sin ella, BOT_ADMINS): para los demás, /fallo sigue a Lola como cualquier texto.
  *
  * Sin migración: una fila `bot_reporte` en user_events. Lo que dijo la gente va en `texto`, `ultima`, `anterior` y
@@ -11,6 +11,8 @@
 
 import { select, insert, update, eq } from "./db.js";
 import { enviar, editar, llamar } from "./telegram.js";
+import { transcribir } from "./voz.js";
+import { vigente, CADUCA } from "./caducidades.js";
 import { duenoDe } from "./embudo.js";
 import { seguirCon, fallaCon } from "./avisar.js";
 import { deLaCharla } from "./chats.js";
@@ -28,8 +30,8 @@ export const ETIQUETAS_REPORTE = Object.freeze({
   otro: "Otro",
 });
 
-/** En qué paso está un reporte (metadata.paso): falta el tipo, o cerrado. */
-export const PASO_REPORTE = Object.freeze({ TIPO: "tipo", HECHO: "hecho" });
+/** En qué paso está un reporte (metadata.paso): falta el tipo, espera lo que se esperaba, o cerrado. */
+export const PASO_REPORTE = Object.freeze({ TIPO: "tipo", ESPERA: "espera", HECHO: "hecho" });
 
 /** Cómo se encontró el turno del mensaje (metadata.ruta_enlace): por el id que apuntó (msg_lola), por la hora, o el último del chat. */
 export const ENLACE_REPORTE = Object.freeze({ MENSAJE: "mensaje", HORA: "hora", ULTIMO: "ultimo" });
@@ -46,6 +48,7 @@ export const APUNTADO = "Apuntado 👍";
 export const ADMIN_POR_DEFECTO = "491628449";
 
 const PREFIJO = "fallo:";
+const NADA = "nada";
 // Telegram da la fecha de un mensaje en segundos enteros.
 const HOLGURA_MS = 1000;
 // Hasta cuándo, tras el mensaje, puede acabar el turno que lo escribió.
@@ -68,12 +71,14 @@ export function comandoFallo(texto) {
 
 export const esBotonReporte = (dato) => String(dato ?? "").startsWith(PREFIJO);
 export const datoTipo = (tipo, id) => `${PREFIJO}${tipo}:${id}`;
+const datoNada = (id) => `${PREFIJO}${NADA}:${id}`;
 
-/** Lo que dice un botón de /fallo: `{ tipo, id }`, o `{ invalido: true }` si el tipo no es de TIPOS_REPORTE o el id no es un número. */
+/** Lo que dice un botón de /fallo: `{ tipo, id }`, `{ nada: true, id }`, o `{ invalido: true }` (tipo fuera de TIPOS_REPORTE, id no numérico). */
 export function leerBoton(dato) {
   if (!esBotonReporte(dato)) return null;
   const [, tipo, id, ...resto] = String(dato).split(":");
   if (resto.length || !/^\d+$/.test(id ?? "")) return { invalido: true };
+  if (tipo === NADA) return { nada: true, id };
   return TIPOS_REPORTE.includes(tipo) ? { tipo, id } : { invalido: true };
 }
 
@@ -103,7 +108,7 @@ export function turnoDelMensaje(filas, { id = null, fechaMs }) {
 }
 
 // Lo de fuera, para probarlo sin red; al llamar y no al cargar, que hay tests que mockean estos módulos a medias.
-const IO = () => ({ select, insert, update, enviar, editar, llamar, duenoDe });
+const IO = () => ({ select, insert, update, enviar, editar, llamar, transcribir, duenoDe });
 
 /** /fallo de un probador: apunta lo reportado (al que responde si es de un bot; si no, lo último de Lola) y pregunta el tipo. */
 export async function abrirReporte({ msg, chatId, householdId = null, texto = null }, io = IO()) {
@@ -158,7 +163,7 @@ export async function abrirReporte({ msg, chatId, householdId = null, texto = nu
 }
 
 /** Un botón de /fallo: solo el de quien lo abrió, y un tipo fuera de TIPOS_REPORTE no se apunta. @returns {Promise<{ apuntado: boolean, motivo?: string }>} */
-export async function pulsarReporte(cq, io = IO(), entorno = process.env) {
+export async function pulsarReporte(cq, io = IO(), entorno = process.env, ahoraMs = Date.now()) {
   const contestar = (text) => io.llamar("answerCallbackQuery", { callback_query_id: cq.id, ...(text ? { text } : {}) })
     .catch(seguirCon("boton_responder")); // a propósito: contestar al toque es adorno
   const b = leerBoton(cq.data);
@@ -170,7 +175,39 @@ export async function pulsarReporte(cq, io = IO(), entorno = process.env) {
     return { apuntado: false, motivo: "de_otro" };
   }
   await contestar();
-  await io.update("user_events", `id=eq.${fila.id}`, { metadata: { ...fila.metadata, tipo: b.tipo, paso: PASO_REPORTE.HECHO } });
-  await io.editar(cq.message.chat.id, cq.message.message_id, APUNTADO);
+  const [chat, mid] = [cq.message.chat.id, cq.message.message_id];
+  // Sin lo que esperaba (ni detrás de /fallo), se pregunta; «Nada más» cierra sin ello.
+  const paso = b.nada || fila.metadata?.texto ? PASO_REPORTE.HECHO : PASO_REPORTE.ESPERA;
+  // El plazo para decir qué esperaba (CADUCA.REPORTE) cuenta desde aquí, desde que se eligió el tipo, no desde el /fallo.
+  const espera = paso === PASO_REPORTE.ESPERA ? { espera_desde: new Date(ahoraMs).toISOString() } : {};
+  await io.update("user_events", `id=eq.${fila.id}`, { metadata: { ...fila.metadata, ...(b.tipo ? { tipo: b.tipo } : {}), paso, ...espera } });
+  if (paso === PASO_REPORTE.HECHO) await io.editar(chat, mid, APUNTADO);
+  else await io.editar(chat, mid, `${ETIQUETAS_REPORTE[b.tipo]}. ¿Qué esperabas? Una línea o un audio.`, { botones: [[{ texto: "Nada más", dato: datoNada(fila.id) }]] });
   return { apuntado: true };
+}
+
+/**
+ * El mensaje de un probador que tiene un reporte esperando en este chat (y sin caducar, CADUCA.REPORTE): es lo que
+ * esperaba, en texto o en audio (se transcribe como cualquier nota de voz). true si era eso y ya está contestado.
+ */
+export async function completarReporte({ msg, chatId, householdId = null }, io = IO(), ahoraMs = Date.now()) {
+  const chat = String(chatId);
+  const [fila] = await io.select("user_events", `event=eq.${EVENTO_REPORTE}&metadata->>telegram_id=${eq(String(msg.from.id))}&metadata->>chat=${eq(chat)}&metadata->>paso=eq.${PASO_REPORTE.ESPERA}&order=created_at.desc&limit=1`, "id,created_at,metadata")
+    .catch(fallaCon("reporte_espera", []));
+  if (!fila || !vigente(CADUCA.REPORTE, fila.metadata?.espera_desde ?? fila.created_at, ahoraMs)) return false;
+  let texto = String(msg.text ?? "").trim();
+  const audio = msg.voice ?? msg.audio;
+  if (!texto && audio) {
+    const t = await io.transcribir(audio, { householdId }).catch((e) => ({ error: e?.message })); // a propósito: el error se apunta abajo
+    if (t.error) {
+      console.error("[reporte] voz", t.error);
+      await io.enviar(chat, "No te he podido oír. ¿Me lo escribes?");
+      return true;
+    }
+    texto = t.texto;
+  }
+  if (!texto) return false;
+  await io.update("user_events", `id=eq.${fila.id}`, { metadata: { ...fila.metadata, texto: corto(texto, 500), paso: PASO_REPORTE.HECHO } });
+  await io.enviar(chat, APUNTADO);
+  return true;
 }
