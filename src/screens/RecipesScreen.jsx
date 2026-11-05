@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { BookOpen, Heart, NotebookPen, Plus, Sparkles } from "../components/icons.jsx";
-import { BotonFranja, BottomNav, bottomNavSpacer, safeTop, SegmentedTabBar, SegmentedTabButton } from "../components/ui.jsx";
+import { BottomNav, bottomNavSpacer, safeTop } from "../components/ui.jsx";
+import { BaldosaFranja, RayaBaldosas } from "../components/wizard/ControlRow.jsx";
+import { color } from "../design/tokens.js";
 import { CatalogBrowserSheet } from "./CatalogBrowserSheet.jsx";
 import { filterMyLibraryRecipes, isCatalogGarnishCombo } from "../lib/userRecipes.js";
 import { favoriteRecipeIds } from "../lib/recipeVotes.js";
@@ -84,14 +86,15 @@ export function RecipesScreen({
             </h1>
           </div>
         </div>
-        <div style={{ padding: "0 18px 12px", maxWidth: 420, margin: "0 auto", width: "100%", boxSizing: "border-box", display: "flex", gap: 8 }}>
-          <SegmentedTabBar style={{ flex: 1, minWidth: 0 }}>
-            <SegmentedTabButton selected={pestana === "parati"} onClick={() => setPestana("parati")} label="Para ti" Icon={Sparkles} fontSize={12} />
-            <SegmentedTabButton selected={pestana === "mias"} onClick={() => setPestana("mias")} label="Mis recetas" Icon={NotebookPen} fontSize={12} />
-            <SegmentedTabButton selected={pestana === "favoritos"} onClick={() => setPestana("favoritos")} label="Favoritos" Icon={Heart} accent="#c0485f" fontSize={12} />
-          </SegmentedTabBar>
+        <div style={{ padding: "0 18px 12px", maxWidth: 420, margin: "0 auto", width: "100%", boxSizing: "border-box", display: "flex", justifyContent: "space-between" }}>
+          <BaldosaFranja Icono={Sparkles} etiqueta="Para ti" color={color.aviso} marcado={pestana === "parati"} ariaPressed={pestana === "parati"} onClick={() => setPestana("parati")} />
+          <BaldosaFranja Icono={NotebookPen} etiqueta="Mis recetas" color={color.marca} marcado={pestana === "mias"} ariaPressed={pestana === "mias"} onClick={() => setPestana("mias")} />
+          <BaldosaFranja Icono={Heart} etiqueta="Favoritos" color={color.favorito} marcado={pestana === "favoritos"} ariaPressed={pestana === "favoritos"} onClick={() => setPestana("favoritos")} />
           {onOpenRecipePlanner && !readOnly && (
-            <BotonFranja Icon={Plus} label="Crear" ariaLabel="Crear receta" onClick={onOpenRecipePlanner} />
+            <>
+              <RayaBaldosas />
+              <BaldosaFranja Icono={Plus} etiqueta="Crear" color={color.marca} title="Crear receta" onClick={onOpenRecipePlanner} />
+            </>
           )}
         </div>
       </div>
