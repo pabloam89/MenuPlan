@@ -10,7 +10,7 @@ import * as ids from "../../src/lib/ids.js";
 import { select, insert, update, eq } from "./db.js";
 import { enviar, escaparHtml, TECLADO } from "./telegram.js";
 import { registrar, EMBUDO } from "./embudo.js";
-import { CANAL, paraEscribir, RESULTADO_ENLACE } from "../../src/lib/vocabularios.js";
+import { CANAL, paraEscribir, RESULTADO_ENLACE, PRUEBA_IDENTIDAD, ABREN_SESION } from "../../src/lib/vocabularios.js";
 import { seguirCon } from "./avisar.js";
 
 // Ids de Telegram que no son una persona: el admin anónimo de un grupo
@@ -32,7 +32,7 @@ export function idDePersona(from) {
  * specs/roles-de-la-casa-revision.md):
  *   · `nacida`: la cuenta se creó en este Telegram (email sintético de su id).
  *     Es la prueba más fuerte, y la única que corrige una identidad anterior.
- *   · `email`: escribió aquí el código que llegó al correo de la cuenta.
+ *   · `codigo_email`: escribió aquí el código que llegó al correo de la cuenta.
  *   · `ajustes`: el enlace de «Conectar Telegram» que el dueño sacó en su app,
  *     pulsado en un chat privado.
  *   · `cambio`: el mismo enlace, cuando este Telegram ya era de otra cuenta y
@@ -43,7 +43,7 @@ export function idDePersona(from) {
  * que pulsa «Añadir al grupo» no tiene por qué ser quien firmó el enlace.
  * Y una identidad que ya es de otra cuenta no se cambia por pulsar un enlace.
  *
- * @param {{ identidad?: "nacida" | "email" | "ajustes" | "cambio" | null }} args
+ * @param {{ identidad?: PRUEBAS_IDENTIDAD de vocabularios.js, o null }} args
  * @returns {Promise<{ ok: true, identidad: "nueva" | "igual" | "de-otra" | "sin" } | { ok: false, ocupado: true }>}
  */
 // `lang` (el idioma de la app de Telegram) se sigue aceptando pero ya no se
@@ -57,8 +57,8 @@ export function idDePersona(from) {
  * que la mira antes de unirse (invitacion.js, #958).
  */
 /** La prueba de un cambio de cuenta confirmado en el privado (#1238); con `nacida`, las únicas que corrigen una identidad. */
-export const CAMBIO = "cambio";
-const CORRIGEN_IDENTIDAD = new Set(["nacida", CAMBIO]);
+export const CAMBIO = PRUEBA_IDENTIDAD.CAMBIO;
+const CORRIGEN_IDENTIDAD = new Set([PRUEBA_IDENTIDAD.NACIDA, CAMBIO]);
 
 /** La cuenta de este Telegram (bot_identities), o null. Un fallo de la base, lanza. */
 export async function cuentaDeTelegram(externalId, channel = CANAL.TELEGRAM) {
@@ -155,7 +155,35 @@ async function apuntarIdentidad({ channel, kind, userId, externalId, nombre, ide
     user_id: userId,
     display_name: nombre ?? null,
   }], { upsert: true });
-  return ya?.user_id === userId ? "igual" : "nueva";
+  const estado = ya?.user_id === userId ? "igual" : "nueva";
+  await apuntarPrueba({ channel, externalId, userId, identidad, estado });
+  return estado;
+}
+
+/**
+ * Pura. ¿Se escribe la prueba de esta identidad (bot_identities.prueba_identidad, 0129)? Siempre que la fila nace o
+ * cambia de cuenta; en la misma cuenta, solo si la nueva abre sesión (ABREN_SESION): un código del email no le quita
+ * a la fila el «se conectó desde la app» que ya tenía.
+ */
+export const escribePrueba = ({ identidad, estado }) => estado === "nueva" || ABREN_SESION.has(identidad);
+
+/**
+ * Apunta con qué prueba se dijo que este Telegram es la cuenta (#1238, trozo 3 de specs/auth.md §7). Va aparte del
+ * upsert, filtrado también por la cuenta: sin la 0129 falla, se avisa (`enlace_prueba`) y el enlace sigue; la fila
+ * queda sin prueba, que no abre nada. Si falla en una fila que cambia de cuenta (solo pasa con `nacida` o `cambio`,
+ * CORRIGEN_IDENTIDAD), se queda con la prueba de antes: `cambio` abre la cuenta nueva igual, y la nacida la abre su
+ * email sintético (cuentaNacidaAqui), así que nunca abre más de lo probado.
+ */
+async function apuntarPrueba({ channel, externalId, userId, identidad, estado }) {
+  if (!escribePrueba({ identidad, estado })) return;
+  // Fuera del try: una prueba fuera de la lista es un fallo del código y tumba el enlace, no se apunta y sigue.
+  const prueba = paraEscribir("pruebas_identidad", identidad);
+  try {
+    await update("bot_identities", `channel=${eq(channel)}&external_id=${eq(String(externalId))}&user_id=${eq(userId)}`, { prueba_identidad: prueba });
+  } catch (e) {
+    // a propósito: sin la 0129 la fila queda sin prueba (no abre nada) y el enlace sigue; el fallo queda en el log.
+    seguirCon("enlace_prueba")(e);
+  }
 }
 
 /**
