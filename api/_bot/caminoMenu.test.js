@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { lineaDeCamino, rellenos } from "./manual.js";
 import { CAMINO, CAMINOS } from "../../src/lib/caminos.js";
-import { BOTONES_CAMINO, BOTONES_CAMINO_TELEGRAM, IDS_CAMINO, PREGUNTA_DE_CAMINO, LEYENDA_CAMINOS, caminoDelBoton, faltaParaGenerar, hayNinosEn, preguntaDeCamino, preguntasDelCamino } from "./caminoMenu.js";
+import { BOTON_SALIR, BOTONES_CAMINO, BOTONES_CAMINO_TELEGRAM, IDS_CAMINO, PREGUNTA_DE_CAMINO, LEYENDA_CAMINOS, caminoDelBoton, faltaParaGenerar, hayNinosEn, preguntaDeCamino, preguntasDelCamino } from "./caminoMenu.js";
 import { faltasDeFormato } from "./formatoMensaje.js";
 
 describe("los caminos de Lola son los de la app", () => {
@@ -107,6 +107,14 @@ describe("la línea de cada camino (trozo 60)", () => {
   });
 });
 
+describe("el botón de salir (trozo 67)", () => {
+  it("el manual enseña el mismo texto que el código reconoce", () => {
+    const manual = readFileSync(new URL("./conocimiento.md", import.meta.url), "utf8");
+    expect(manual.match(/\[\[Ya está[^\]]*\]\]/g).every((b) => b === `[[${BOTON_SALIR}]]`)).toBe(true);
+    expect(manual).toContain(`[[${BOTON_SALIR}]]`);
+  });
+});
+
 describe("faltaParaGenerar: no se genera sin preguntar", () => {
   it("sin camino, trae la pregunta corta entera para mandarla tal cual, y el lunes para generar", () => {
     const r = faltaParaGenerar({ desde: "2026-11-02", texto: "hazme el menú", hoy: HOY, semanas: ESTA });
@@ -151,6 +159,6 @@ describe("faltaParaGenerar: no se genera sin preguntar", () => {
   });
 
   it("si al elegir camino no falta nada, no pregunta: con fecha, se genera (trozo 65)", () => {
-    expect(faltaParaGenerar({ camino: CAMINO.BASICO, desde: "2026-11-02", texto: "Solo los días", ejes: { schedule: { estado: "sabido" } } })).toBeNull();
+    expect(faltaParaGenerar({ camino: CAMINO.BASICO, desde: "2026-11-02", texto: "Solo los días", ejes: { schedule: { estado: "sabido" } }, preguntado: true })).toBeNull();
   });
 });

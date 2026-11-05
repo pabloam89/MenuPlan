@@ -728,6 +728,40 @@
       }
     },
     {
+      "id": "pedido-contesta-con-dias",
+      "tipo": "herramienta",
+      "dominio": "menu",
+      "origen": "escrito",
+      "dependeDeFecha": true,
+      "nombre": "con un pedido en curso, contestar con los días cuenta como Solo los días",
+      "entrada": "[Pedido de menú en curso: aún sin camino, desde 2026-11-09. No lo ha escrito la persona. Si lo que dicen contesta a esto, sigue con generar_menu. Si hablan de otra cosa, atiende eso y no insistas.]\n\nel martes no comemos en casa, lo demás normal",
+      "llama": [
+        "generar_menu"
+      ],
+      "args": {
+        "generar_menu": {
+          "camino": "basico"
+        }
+      }
+    },
+    {
+      "id": "pedido-sigue-tu",
+      "tipo": "herramienta",
+      "dominio": "menu",
+      "origen": "escrito",
+      "dependeDeFecha": true,
+      "nombre": "con un pedido en curso, «sigue tú» genera forzado",
+      "entrada": "[Pedido de menú en curso: camino «A fondo», desde 2026-11-09. No lo ha escrito la persona. Si lo que dicen contesta a esto, sigue con generar_menu. Si hablan de otra cosa, atiende eso y no insistas.]\n\nme he cansado, sigue tú",
+      "llama": [
+        "generar_menu"
+      ],
+      "args": {
+        "generar_menu": {
+          "forzado": "true"
+        }
+      }
+    },
+    {
       "id": "alta-primer-menu-con-temas",
       "tipo": "multiturno",
       "dominio": "alta",

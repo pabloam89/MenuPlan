@@ -53,6 +53,11 @@ describe("faltaDelPedido (trozo 65)", () => {
     expect(() => pedido({ camino: CAMINO.BASICO, desde: DESDE, ejes: null, hayNinos: true })).toThrow("sin ejes");
   });
 
+  it("una casa con solo un bebé no tiene «niños», y su etapa bloquea igual", () => {
+    const r = pedido({ camino: CAMINO.BASICO, desde: DESDE, hayNinos: false, ejes: { ...SABE_TODO, etapaBebe: FALTA } });
+    expect(r).toMatchObject({ bloquea: ["etapaBebe"], listo: false });
+  });
+
   it("avisa si la fecha pisa un menú", () => {
     const semana = { weekStart: "2026-11-02", weekEnd: "2026-11-08", plan: {} };
     expect(pedido({ camino: CAMINO.BASICO, desde: DESDE, ejes: SABE_TODO, semanas: [semana] }).pisa).toBe(semana);
