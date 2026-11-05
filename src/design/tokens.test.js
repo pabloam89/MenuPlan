@@ -15,14 +15,14 @@ import {
 
 /**
  * Las reglas del sistema (ESTADO.md, «Arquitectura del sistema») hechas test:
- * 77 valores, un hex en un solo rol, sin primitivos huérfanos, espaciado en
+ * 78 valores, un hex en un solo rol, sin primitivos huérfanos, espaciado en
  * múltiplos de 4 salvo 2 y 6, el toast por encima de toda hoja.
  */
 describe('los tokens', () => {
-  it('son 77 valores, con el reparto del documento', () => {
+  it('son 78 valores, con el reparto del documento', () => {
     const cuenta = Object.fromEntries(Object.entries(familias).map(([f, t]) => [f, Object.keys(t).length]))
     expect(cuenta).toEqual({
-      color: 25,
+      color: 26,
       tipografia: 12,
       espaciado: 9,
       radio: 7,
@@ -31,7 +31,7 @@ describe('los tokens', () => {
       movimiento: 4,
       tamano: 8,
     })
-    expect(valoresPlanos()).toHaveLength(77)
+    expect(valoresPlanos()).toHaveLength(78)
   })
 
   it('no repiten nombre ni variable CSS', () => {

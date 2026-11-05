@@ -12,8 +12,8 @@
  *   · Los componentes usan solo ROLES (`marca`, `radio-control`…); los
  *     primitivos (valores crudos) no se importan fuera de aquí.
  *
- * Los 77 valores salen de `docs/diseno/ESTADO.md` («Tokens propuestos»), medidos
- * del código el 9 oct 2026: color 25 + tipografía 12 + espaciado 9 + radios 7 +
+ * Los 78 valores salen de `docs/diseno/ESTADO.md` («Tokens propuestos»), medidos
+ * del código el 9 oct 2026 (más `telegram`, 5 nov 2026): color 26 + tipografía 12 + espaciado 9 + radios 7 +
  * sombras 4 + capas 8 + movimiento 4 + tamaños 8. Los alias y los roles de
  * texto no suman: no añaden valor. Un token sin uso se borra; entra solo lo que
  * usan ≥ 3 sitios.
@@ -52,6 +52,8 @@ export const primitivos = {
   'ambar-700': '#b45309',
   'ambar-50': '#fff8e7',
   'azul-700': '#2f6d8a',
+  // El azul de Telegram (#229ED9) oscurecido hasta que el blanco se lea (4,5:1): con el suyo da 3:1.
+  'azul-telegram': '#1f7abf',
   // Derivado de `azul-700` con alfa .10: sin evidencia de un hex propio en el
   // código, no se inventa uno (ESTADO.md, «Color»).
   'azul-700-alfa10': 'rgba(47,109,138,.1)', // PROVISIONAL (info-fondo)
@@ -85,11 +87,12 @@ const rolesColor = {
   'aviso-fondo': 'ambar-50',
   info: 'azul-700',
   'info-fondo': 'azul-700-alfa10',
+  telegram: 'azul-telegram', // solo «Entrar con Telegram»: es su marca, como el blanco de Google y el negro de Apple
   scrim: 'negro-alfa45', // modal
   velo: 'blanco-alfa92', // cristal sobre imagen
 }
 
-/** Alias sin valor propio (no suman a los 77). */
+/** Alias sin valor propio (no suman a los 78). */
 export const alias = {
   // Zona social: el teal como acento (D11, opción A). Mismo primitivo.
   acento: 'seleccionado',
@@ -122,7 +125,7 @@ export const tipografia = {
 }
 
 /**
- * Roles de texto (no suman a los 77): combinan los valores anteriores.
+ * Roles de texto (no suman a los 78): combinan los valores anteriores.
  * PROVISIONAL el interlineado: elegido entre los más usados en el código
  * (`lineHeight` 1.45 ×38, 1 ×37, 1.25 ×35, 1.2 ×34, medido el 9 oct 2026); el
  * peso y el tamaño salen de `DESIGN_SYSTEM.md` §2.1. Se confirma al migrar.
@@ -242,7 +245,7 @@ const CSS = {
 }
 
 /**
- * Los 77 valores en plano: `{ familia, nombre, valor, variable, css }`.
+ * Los 78 valores en plano: `{ familia, nombre, valor, variable, css }`.
  * `valor` es el texto que lleva la tabla de DESIGN_SYSTEM.md.
  */
 export function valoresPlanos() {
@@ -263,7 +266,7 @@ export function valoresPlanos() {
 
 /**
  * Las variables de los roles de texto y de espaciado y los alias (no suman a
- * los 77): `[variable, css]`.
+ * los 78): `[variable, css]`.
  */
 export function variablesDeRoles() {
   const out = []
