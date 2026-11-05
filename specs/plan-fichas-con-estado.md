@@ -1033,6 +1033,8 @@ Por qué te lo pregunto: el 8 oct decidiste lo contrario (#107: se genera esquiv
 - principio 4 | eligió: lo que falta se calcula en cada turno de la ficha, `preferencia` y el documento (trozos 64-65) | descartó: copiar los ejes en una ficha del pedido: dos verdades | motivo: decidido
 - principio 1 | eligió: al rehacer, decir por días que lo cambiado se pierde (trozo 72) | descartó: nombrar los platos cambiados a mano, que afirmaría algo que los datos no guardan: no llevan marca | motivo: decidido
 - principio 4 | eligió: el aviso de rehacer en `avisoDeRehacer`, un solo sitio (trozo 72) | descartó: repetir el texto en la parada y en «YA HAY MENÚ» | motivo: decidido
+- principio 4 | eligió: la parada de rehacer en `generar_menu` de agente.js, donde está el pedido (trozo 72) | descartó: ponerla en `generarMenu` de generar.js, que no conoce el pedido y necesitaría una copia | motivo: decidido
+- principio 3 | eligió: con «sigue tú» se rehace sin parar y lo que se pierde se dice en el resumen (trozo 72) | descartó: callarlo, que perdería platos sin decirlo; y parar, que le pregunta a quien pidió que no preguntaran | motivo: decidido
 
 ## Not verified
 

@@ -64,10 +64,11 @@ describe("rehacer sin sustos (trozo 72)", () => {
     expect(generarMenu).toHaveBeenCalledTimes(1);
   });
 
-  it("con «sigue tú» no pregunta más", async () => {
+  it("con «sigue tú» no para, pero lo dice al acabar", async () => {
     conMenu();
-    await llamar("sigue tú", { semana: "esta", camino: "basico", desde: "2026-10-19", rehacer: true, forzado: true });
+    const r = await llamar("sigue tú", { semana: "esta", camino: "basico", desde: "2026-10-19", rehacer: true, forzado: true });
     expect(generarMenu).toHaveBeenCalledTimes(1);
+    expect(r).toContain("se pierde");
   });
 });
 
