@@ -21,7 +21,7 @@
 
 import { seguirCon, fallaCon } from "./avisar.js";
 import { config, select, eq } from "./db.js";
-import { CANAL } from "../../src/lib/vocabularios.js";
+import { CANAL, ABREN_SESION } from "../../src/lib/vocabularios.js";
 // El email sintético, de un solo sitio: la app lo usa para ofrecer «Entrar también con Google» (#1238).
 import { emailSintetico } from "../../src/lib/cuentaTelegram.js";
 
@@ -109,6 +109,23 @@ export async function cuentaNacidaAqui(telegramId) {
   const { url, headers } = config();
   const u = await fetch(`${url}/auth/v1/admin/users/${id.user_id}`, { headers }).then((r) => r.json()).catch(fallaCon("cuentas_nacida_aqui", null));
   return u?.email === emailSintetico(telegramId) ? { id: u.id, email: u.email } : null;
+}
+
+/**
+ * La cuenta (de Google, de Apple) a la que este Telegram se conectó DESDE DENTRO de ella, o null (#1238, trozo 3 de
+ * specs/auth.md §7): su fila de bot_identities se apuntó con una prueba que sale de una sesión de esa cuenta
+ * (ABREN_SESION: el enlace de «Conectar Telegram» pulsado en el privado de este Telegram). El código del email, una
+ * invitación o una fila de antes de la 0129 (sin prueba) no abren nada.
+ */
+export async function cuentaConectadaDesdeLaApp(telegramId) {
+  // `*` y no la columna: sin la 0129 la fila llega sin prueba_identidad y no abre nada, en vez de un 400 que tumbaría
+  // también la entrada de las cuentas nacidas en Telegram.
+  const [id] = await select("bot_identities", `channel=eq.telegram&external_id=${eq(String(telegramId))}`, "*");
+  if (!id || !ABREN_SESION.has(id.prueba_identidad)) return null;
+  const { url, headers } = config();
+  const u = await fetch(`${url}/auth/v1/admin/users/${id.user_id}`, { headers }).then((r) => r.json()).catch(fallaCon("cuentas_conectada_app", null));
+  // La sesión se abre por el email (tokenHashDe): sin él, o si la cuenta no es la de la fila, nada.
+  return u?.id === id.user_id && u?.email ? { id: u.id, email: u.email } : null;
 }
 
 const esperar = (ms) => new Promise((r) => setTimeout(r, ms));

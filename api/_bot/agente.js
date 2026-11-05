@@ -30,6 +30,7 @@ import {
 import { ESQUEMA_RASGOS, ESQUEMA_EJES, ESQUEMA_PERFIL } from "./esquemas.js";
 import { generarMenu, resultadoDeGenerar, SIN_GENERAR } from "./generar.js";
 import { esBotonRehacer, desdeDelBoton } from "./semanaPedida.js";
+import { faltasDeFormato } from "./formatoMensaje.js";
 import { diaDe } from "./interprete.js";
 import { isoDeCasa, diaDeISO } from "../../src/lib/dias.js";
 import { cuadre as cuadreDelTurno, medidaDelCuadre } from "./cuadre.js";
@@ -1516,6 +1517,8 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
   const cuadre = cuadreDelTurno(visible, chat.resultados, { confirma: diceQueGuardo, hoy: diaDeISO(hoyISO()), nombres: chat.nombresAntes ?? [] });
   // Para medirlo (bot_route, scripts/bot-dice-sin-hacer.mjs): el estado y, si no cuadra, sus clases de fallo.
   if (medida) medida.cuadre = medidaDelCuadre(cuadre);
+  // La forma de lo que ha escrito Lola contra REGLAS_FORMATO (trozo 54): solo se mide, para contarlo por día.
+  if (medida) medida.formato = faltasDeFormato(visible);
   const respuesta = conRecibo(conRecordatorio(visible, chat.recordarSilencio, chat.idioma ?? "es"), chat.resultados, { sinGuardar: sigueSinGuardar, cuadre }) + avisoDeLimite(householdId, llevados);
 
   // Guardar la charla no tiene por qué retrasar la respuesta: va en
