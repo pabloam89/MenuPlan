@@ -101,6 +101,8 @@ describe("cada tipo de turno de Lola deja su bot_route", () => {
     await manda({ photo: [{ file_id: "f" }] });
     expect(t.rutas).toHaveLength(1);
     expect(t.rutas[0]).toMatchObject({ sin_enrutador: "foto", modo: "lola", rapida: false, chat: "7", espera_candado_ms: 4321 });
+    // El mensaje de Lola que cerró el turno: /fallo lo enlaza por él (api/_bot/reporte.js).
+    expect(t.rutas[0].msg_lola).toBe(1);
     expect(t.rutas[0]).not.toHaveProperty("espera_cola_ms");
   });
 
