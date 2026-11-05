@@ -87,6 +87,16 @@ describe("useAuth: «¿Ya hablas con Lola?» antes de crear una cuenta de Google
     expect(upsertUserProfile).not.toHaveBeenCalled();
   });
 
+  it("con la pregunta abierta, pasar la ventana no la contesta sola: la cuenta sigue sin darse a la app (juez C5)", async () => {
+    await monta(sesion(deGoogle()));
+    expect(api.altaPendiente).toBe(true);
+    vi.setSystemTime(AHORA + 11 * 60 * 1000);
+    await act(async () => { auth.oyente("TOKEN_REFRESHED", sesion(deGoogle())); });
+    expect(api.altaPendiente).toBe(true);
+    expect(api.user).toBeNull();
+    expect(upsertUserProfile).not.toHaveBeenCalled();
+  });
+
   it("«No, crear cuenta»: sigue como cualquier alta, y al recargar no vuelve a preguntar", async () => {
     await monta(sesion(deGoogle()));
     await act(async () => { api.crearCuentaNueva(); });

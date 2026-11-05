@@ -202,7 +202,15 @@ export function useAuth() {
   // «¿Ya hablas con Lola?» (trozo 4 de specs/auth.md §7): mientras no conteste, la cuenta nueva no se da a la app
   // (`user` null): ni perfil, ni casa. `respondida` solo sirve para repintar al contestar; lo que manda es la marca.
   const [, setRespondida] = useState(null);
-  const altaPendiente = Boolean(session?.user && preguntaAlta(session.user));
+  // Si se pregunta se decide una sola vez por cuenta, al recibirla: con la pregunta abierta, pasar la ventana de
+  // VENTANA_ALTA_NUEVA_MS no la contesta sola (daría la cuenta a la app, y su casa, sin que nadie dijera «No»).
+  const usuario = session?.user ?? null;
+  const [decidida, setDecidida] = useState({ id: null, pregunta: false });
+  const pregunta = usuario ? (decidida.id === usuario.id ? decidida.pregunta : preguntaAlta(usuario)) : false;
+  useEffect(() => {
+    if (usuario && decidida.id !== usuario.id) setDecidida({ id: usuario.id, pregunta });
+  }, [usuario, decidida.id, pregunta]);
+  const altaPendiente = Boolean(usuario && pregunta && leerRespondida() !== usuario.id);
 
   // «No, crear cuenta»: se apunta la respuesta y sigue como cualquier alta (perfil, y la casa en useHousehold).
   const crearCuentaNueva = useCallback(() => {
