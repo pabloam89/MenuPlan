@@ -1029,7 +1029,6 @@ Por qué te lo pregunto: el 8 oct decidiste lo contrario (#107: se genera esquiv
 - principio 1 | eligió: los motivos sin eje dicho (repetido, complicado, caro, poco sano) solo restan señales, y la preferencia sale `visto` al pasar el umbral del trozo 15 (trozo 61) | descartó: escribir de un solo descarte una preferencia como si la familia la hubiera dicho, que la ficha enseñaría como confirmada sin que nadie la confirmara | motivo: decidido
 - principio 3 | eligió: si no se puede apuntar el descarte (la migración aún no está o falla), se avisa con `avisarFallo` y el menú se rehace igual (trozo 61) | descartó: rehacer sin decir que el descarte se perdió, o no rehacer por no poder apuntarlo | motivo: decidido
 
-- principio 4 | eligió: el trozo 67 antes de agrupar herramientas (45 depende del 73, y este del 67) | descartó: hacerlos a la vez: las mismas herramientas a medio mover en dos trozos | motivo: decidido
 - principio 4 | eligió: el pedido en curso como tarea de `bot_tareas` (trozo 66) | descartó: guardarlo en la `propuesta` del mensaje, que se pierde si la charla cambia de tema; y una tabla nueva, cuando la tarea ya es por casa y caduca | motivo: decidido
 - principio 4 | eligió: lo que falta se calcula en cada turno de la ficha, `preferencia` y el documento (trozos 64-65) | descartó: copiar los ejes en una ficha del pedido: dos verdades | motivo: decidido
 
