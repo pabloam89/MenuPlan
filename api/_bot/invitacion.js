@@ -16,7 +16,7 @@ import { crearCuentaTelegram } from "./cuentas.js";
 import { enlazarChat, idDePersona, chatOcupado, apuntarEnlace } from "./enlace.js";
 import { avisarFallo, contesto, SIN_LEER } from "./avisar.js";
 import { noPude } from "./noPude.js";
-import { IDIOMA, IDIOMAS, CAMINO_ENLACE, RESULTADO_ENLACE } from "../../src/lib/vocabularios.js";
+import { IDIOMA, IDIOMAS, CAMINO_ENLACE, RESULTADO_ENLACE, PRUEBA_IDENTIDAD } from "../../src/lib/vocabularios.js";
 
 export const ES_INVITACION = /^inv_([0-9a-f]{32})$/;
 
@@ -123,7 +123,7 @@ export async function unirsePorInvitacion({ from, chatId, token, nombre = null }
     nombre,
     lang: from?.language_code,
     // La cuenta nacida aquí sí apunta identidad; una que ya lo era, ya la tiene.
-    identidad: nacida ? "nacida" : null,
+    identidad: nacida ? PRUEBA_IDENTIDAD.NACIDA : null,
   });
   if (enlace.ocupado) return { texto: TEXTOS[lang].ocupado, householdId: r.householdId, lang };
 

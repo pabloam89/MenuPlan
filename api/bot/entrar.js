@@ -11,8 +11,11 @@
  *
  * Con `telegram` (los datos firmados de un login de Telegram: el botón de Lola
  * o «Entrar con Telegram» de la app, loginTelegram.js), no hay código: entra
- * quien firmó, en la cuenta nacida en ese Telegram. Si aún no la tiene, se le
- * crea como la crea Lola (specs/auth.md §7).
+ * quien firmó, en la cuenta nacida en ese Telegram, o en la de Google o Apple a
+ * la que ese Telegram se conectó desde dentro de ella (cuentaConectadaDesdeLaApp,
+ * trozo 3 de specs/auth.md §7). Si aún no tiene ninguna, se le crea como la
+ * crea Lola. Atado a otra cuenta por un camino más débil (el código del email,
+ * una fila de antes de la 0129): 403, sin sesión.
  *
  * Sin sesión a propósito (es justo lo que viene a conseguir): lo que protege es
  * el código, 128 bits, de un solo uso y caducidad corta, más el límite de ritmo.
@@ -22,12 +25,12 @@ import { seguirCon } from "../_bot/avisar.js";
 import { cors, rateLimit } from "../_guard.js";
 import { config, select, eq } from "../_bot/db.js";
 import { gastarCodigo } from "../_bot/enlace.js";
-import { tokenHashDe, emailSintetico, cuentaNacidaAqui } from "../_bot/cuentas.js";
+import { tokenHashDe, emailSintetico, cuentaNacidaAqui, cuentaConectadaDesdeLaApp } from "../_bot/cuentas.js";
 import { cuentaYChat, esDeOtraCuenta } from "../_bot/altaTelegram.js";
 import { verificarLogin } from "../_bot/loginTelegram.js";
 import { CANAL } from "../../src/lib/vocabularios.js";
 
-const DE_OTRA_CUENTA = "Tu Telegram ya está conectado a tu cuenta de HoMenu: entra con Google o con tu email.";
+const DE_OTRA_CUENTA = "Tu Telegram ya está conectado a tu cuenta de HoMenu: entra con Google o con tu email. Si lo conectas una vez desde la app, la próxima te bastará con Telegram.";
 
 /**
  * La cuenta nueva de una identidad de chat que aún no tiene (el alta de Lola y
@@ -61,6 +64,8 @@ export default async function handler(req, res) {
       }
       const nacida = await cuentaNacidaAqui(v.telegramId);
       if (nacida) return res.status(200).json({ token_hash: await tokenHashDe(nacida.email), user_id: nacida.id });
+      const conectada = await cuentaConectadaDesdeLaApp(v.telegramId);
+      if (conectada) return res.status(200).json({ token_hash: await tokenHashDe(conectada.email), user_id: conectada.id });
       // En Telegram, el chat privado con alguien tiene su mismo id.
       const nueva = await cuentaDeLaIdentidad({ canal: CANAL.TELEGRAM, externalId: v.telegramId, chatId: v.telegramId, nombre: req.body.telegram.first_name ?? null });
       if (!nueva) return res.status(403).json({ error: DE_OTRA_CUENTA });
