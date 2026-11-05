@@ -4,7 +4,7 @@ import { describe, it, expect } from "vitest";
 import {
   CONTROLES, TEMAS, PREGUNTAS, PREGUNTAS_POR_ID, registroOrdenado,
   estadoDelCampo, estadoDePregunta, dependenciasCumplidas, anulada,
-  preguntasVisibles, siguientePregunta, cuantasQuedan, coberturaDeTema,
+  preguntasVisibles, cuantasQuedan, coberturaDeTema,
   temasVisibles, valorDePregunta, controlesVisibles,
 } from "./wizardRegistry.js";
 import { libretaVacia, poner, delegar } from "./notepad.js";
@@ -337,13 +337,12 @@ describe("el cole va delante, y por eso no depende de nadie", () => {
   });
 
   it("en una casa vacía, la primera pregunta es el cole y no las alergias", () => {
-    expect(siguientePregunta(libretaVacia(), VACIA).id).toBe("cole");
+    expect(preguntasVisibles(libretaVacia(), VACIA)[0].id).toBe("cole");
   });
 
   it("«no aplica» es una respuesta, no un hueco", () => {
     const n = libretaVacia();
     expect(estadoDelCampo(PREGUNTAS_POR_ID.cole, n, { schoolChoice: "no_aplica" })).toBe("fijado");
-    expect(siguientePregunta(n, { schoolChoice: "no_aplica" }).id).toBe("members");
   });
 });
 
@@ -462,11 +461,6 @@ describe("los tres estados de una tarjeta", () => {
     const n = poner(libretaVacia(), "cocina.italiana", true, { origen: "texto" });
     expect(estadoDePregunta(PREGUNTAS_POR_ID.cocina, n, VACIA, ["cocina"])).toBe("aclaracion");
   });
-
-  it("y una aclaración se atiende antes que un hueco", () => {
-    const n = poner(libretaVacia(), "cocina.italiana", true, { origen: "texto" });
-    expect(siguientePregunta(n, CIMIENTOS, { dudas: ["cocina"] }).id).toBe("cocina");
-  });
 });
 
 describe("el wizard se acorta mientras hablas", () => {
@@ -520,7 +514,6 @@ describe("el wizard se acorta mientras hablas", () => {
       pantryMode: "prefer",
     };
     expect(cuantasQuedan(n, todo)).toBe(0);
-    expect(siguientePregunta(n, todo)).toBe(null);
   });
 });
 
@@ -706,7 +699,6 @@ describe("con el estado de la ficha v2, el asistente sabe de dónde sale cada da
     const estados = fichas(dato("a", "dicho"), dato("b", "supuesto"));
     expect(estadoDelCampo(alergias, libretaVacia(), DOS, estados)).toBe("inferido");
     expect(estadoDePregunta(alergias, libretaVacia(), DOS, [], estados)).toBe("aclaracion");
-    expect(siguientePregunta(libretaVacia(), { ...CIMIENTOS, ...DOS }, { estados }).id).toBe("alergias");
   });
 
   it("dichas por todos con sobre, contestada aunque el documento aún no lo sepa", () => {

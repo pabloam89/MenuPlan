@@ -56,8 +56,7 @@ import { supervisar, frenoDeshacer } from "./supervisor.js";
 import { armarManual, USAN_UN_HUECO, oNombres, partesDelTurno, PARTES_MANUAL, MARCAS_DEL_TURNO } from "./manual.js";
 import { montarFicha, extrasDeFicha } from "./ficha.js";
 import { planApuntaPlatos } from "../../src/lib/apuntaSuPlato.js";
-import { fichaRpc, leerFichaCasa, tareasDeFicha, calladasDeFicha, conLaFicha, olvidarFicha, estadosDeLaFicha } from "./fichaRpc.js";
-import { lineaDeAfinar } from "../../src/lib/siguientePregunta.js";
+import { fichaRpc, leerFichaCasa, tareasDeFicha, calladasDeFicha, conLaFicha, olvidarFicha } from "./fichaRpc.js";
 import { montarMemoria, ORDEN as ORDEN_MEMORIA } from "./memoria.js";
 import { tramitar, bloqueDe, vigentesSegun } from "./pendientes.js";
 import { tipoDe, tareasAbiertas, clavesCalladas, anotarTarea, cerrarTarea, editarTarea, bloqueDeTareas, separarPorEstado, cerrarResueltas, promoverPreguntas } from "./tareas.js";
@@ -66,7 +65,7 @@ import { pintarMenuEntero, filtrosTrasGenerar, filtrosTrasCambiar, sinEtiquetas 
 import { fechasDe, CUANDOS } from "./cuando.js";
 import { IDS_COMIDAS, COMIDAS_PRINCIPALES, IDS_PLATOS } from "../../src/lib/comidas.js";
 import { KITCHEN_TOOL_IDS, APARATOS_EN_ORDEN } from "../../src/lib/electrodomesticos.js";
-import { RITMO_COCINA, TIPO_TAREA, ETAPA_BEBE, CANAL, paraEscribir, RIESGOS_HERRAMIENTA, RIESGO_HERRAMIENTA, FORMAS_DE_DESHACER, DESHACE } from "../../src/lib/vocabularios.js";
+import { RITMO_COCINA, RITMO_TRATO, TIPO_TAREA, ETAPA_BEBE, CANAL, paraEscribir, RIESGOS_HERRAMIENTA, RIESGO_HERRAMIENTA, FORMAS_DE_DESHACER, DESHACE } from "../../src/lib/vocabularios.js";
 import { esquemaDato, DEL_REGISTRO } from "../../src/lib/esquemaHerramienta.js";
 import { ETAPA_BEBE_INFO } from "../../src/lib/babyStage.js";
 // Los aparatos, en el orden de la app: la lista vive en electrodomesticos.js y la
@@ -858,7 +857,8 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
         // Lo ya dicho sigue en el pedido en curso (pedidoMenu.js), aunque la charla haya cambiado de tema. Un fallo al
         // leer la casa lanza, no pregunta de menos.
         const quien = { householdId, channel: chat.channel, chatId: chat.chatId, userId: chat.userId };
-        const pedido = pedidoDelTurno(await pedidoEnCurso(householdId), { camino, desde, forzado, texto: chat.texto });
+        // Quien pidió ritmo directo en su trato no quiere preguntas: su pedido va forzado (lo de seguridad se pregunta igual).
+        const pedido = pedidoDelTurno(await pedidoEnCurso(householdId), { camino, desde, forzado: forzado || chat.trato?.ritmo === RITMO_TRATO.DIRECTO, texto: chat.texto });
         const casa = await cargarCasa(householdId);
         const ejes = await ejesDelPedido(quien, casa);
         const hayNinos = hayNinosEn(casa);
@@ -1418,8 +1418,6 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
     ? await resolverHuecos(casa).catch(fallaCon("agente_huecos", null)) : null;
   const fichaBase = casa ? conQuienEscribe(montarFicha(deLaFicha.casa, { ...extras, platoDe }), chat.papel, chat.idioma) : null;
   chat.trato = tratoDeFicha(tablas, personaDeLaCuenta(data, chat.userId, chat.papel));
-  // Si pidió afinar, la siguiente pregunta del catálogo (trozo 17, siguientePregunta.js); sin la ficha v2, ninguna.
-  const afinar = lineaDeAfinar(estadosDeLaFicha(tablas), chat.trato);
   // Quién de la casa escribe, por privado (quienEscribe.js): lo marcado en la app, o deducido por su nombre (y se
   // guarda), o nadie. En un grupo no: cada mensaje ya llega con su «[Nombre]:».
   const escribe = esDeFuera(chat.papel) || esGrupo ? null : personaQueEscribe(data, { userId: chat.userId, autor: nombre, papel: chat.papel });
@@ -1428,7 +1426,7 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
       .then((r) => { if (!r?.ok) console.error("[agente] unir cuenta", r?.error); })
       .catch(fallaCon("agente_unir_cuenta", null))
     : null;
-  const ficha = fichaBase && !esDeFuera(chat.papel) ? { ...fichaBase, delDia: [escribe && lineaDeQuienEscribe(escribe), lineaDelTrato(chat.trato), afinar, fichaBase.delDia].filter(Boolean).join("\n") } : fichaBase;
+  const ficha = fichaBase && !esDeFuera(chat.papel) ? { ...fichaBase, delDia: [escribe && lineaDeQuienEscribe(escribe), lineaDelTrato(chat.trato), fichaBase.delDia].filter(Boolean).join("\n") } : fichaBase;
   let dicho, uso, corregido, medida, promesa, sigueSinGuardar = false;
   const tLola = Date.now();
   // La pista del enrutador (api/_bot/pista.js). `progreso` lo rellena Lola
