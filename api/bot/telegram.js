@@ -74,7 +74,7 @@ import { preguntoConAviso } from "../_bot/silencio.js";
 import { CANAL, CAMINO_ENLACE, RESULTADO_ENLACE, PRUEBA_IDENTIDAD } from "../../src/lib/vocabularios.js";
 import { conOperacion, operacion } from "../_bot/operacion.js";
 import { RE_BOTON } from "../_bot/formatoMensaje.js";
-import { esProbador, comandoFallo, abrirReporte, completarReporte, esBotonReporte, pulsarReporte } from "../_bot/reporte.js";
+import { esProbador, comandoFallo, abrirReporte, completarReporte, esBotonReporte, pulsarReporte, EVENTO_RUTA } from "../_bot/reporte.js";
 
 const EMAIL_RE = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]{2,}$/;
 
@@ -595,7 +595,7 @@ const MODO_ROUTER_GRUPOS = () => (["off", "on"].includes(process.env.BOT_ROUTER_
 // sale en vivo antes), y en las ideas en grupo eso quita las fotos que hoy sí
 // salen. Lo decide Pablo (revisión del 1-2 oct 2026).
 const PISTA = () => process.env.BOT_PISTA === "on";
-const RUTA = "bot_route";
+const RUTA = EVENTO_RUTA;
 
 // Lo que gastó el enrutador en el turno, para contarlo con lo de Lola (#958).
 // a propósito: sin decisión no hay uso que sumar; el turno sigue igual
