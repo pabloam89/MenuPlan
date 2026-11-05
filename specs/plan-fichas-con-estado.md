@@ -921,7 +921,7 @@ npx vitest run api/_bot/menusGenerados.test.js supabase/cableado.test.js
 Files: `api/_bot/caminoMenu.js`, `api/_bot/caminoMenu.test.js`, `api/_bot/conocimiento.md`, `scripts/bot-evals.json`
 Depends on: 70
 Blocked by: none
-Existing: `preguntaDeCambio` no aplica; cada pedido ofrece los tres caminos.
+Existing: `preguntaDeCamino` ofrece los tres caminos en cada pedido.
 Not done: con un menú anterior, la primera pregunta propone su camino y sus días en un botón, y los tres caminos solo si dicen que no. Sigue preguntando, en un paso.
 Done:
 ```sh
