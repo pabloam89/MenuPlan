@@ -11,6 +11,7 @@ import { describe, it, expect, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import { CAPACIDADES } from "../../src/lib/capacidades.js";
 import { PARTES_MANUAL } from "./manual.js";
+import { CANAL } from "../../src/lib/vocabularios.js";
 
 process.env.VITE_SUPABASE_URL ||= "https://sin-base.invalid";
 process.env.SUPABASE_SERVICE_ROLE_KEY ||= "sin-clave";
@@ -19,7 +20,7 @@ vi.mock("./ajustes.js", async (original) => ({ ...(await original()), dominiosDe
 const { herramientas, FICHAS, sistema } = await import("./agente.js");
 // El manual tal como lo lee Lola, con sus listas rellenas (manual.js).
 // Con las partes que entran solo cuando hacen falta (manual.js, trozo 44): también son promesas.
-const CONOCIMIENTO = [await sistema(), ...Object.keys(PARTES_MANUAL).map((p) => readFileSync(new URL(`./manual/${p}.md`, import.meta.url), "utf8"))].join("\n");
+const CONOCIMIENTO = [await sistema(CANAL.TELEGRAM), ...Object.keys(PARTES_MANUAL).map((p) => readFileSync(new URL(`./manual/${p}.md`, import.meta.url), "utf8"))].join("\n");
 const tools = await herramientas({ householdId: "x", chatId: "1", channel: "telegram", fotos: [], papel: "owner" });
 const DESCRIPCIONES = tools.map((t) => `${t.description}\n${JSON.stringify(t.input_schema ?? t.inputSchema ?? {})}`).join("\n");
 

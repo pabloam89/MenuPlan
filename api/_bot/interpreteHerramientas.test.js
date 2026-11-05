@@ -49,7 +49,7 @@ vi.mock("./menu.js", async (original) => ({
 const { ajustarHorario, ajustarCocina, aplicarCompra, aplicarModoDespensa, ajustarPersona, anadirInvitado, listaAjustada } = await import("./ajustes.js");
 const { MODOS_DESPENSA_MOTOR, MODOS_DESPENSA_TEXTO } = await import("../../src/lib/modoDespensa.js");
 const { guardarMenuCole, diasSinClase } = await import("./cole.js");
-const { apuntarAusencia } = await import("./menu.js");
+const { apuntarAusencia, usarMotor } = await import("./menu.js");
 const datos = () => guardada?.state?.data ?? {};
 const limpio = (extra = null) => { guardada = null; base = extra; };
 
@@ -195,6 +195,17 @@ describe("fuera_de_casa (#958)", () => {
   it("un día que no se entiende es una pregunta", async () => {
     const r = await apuntarAusencia("h", { dias: ["cuando pueda"], comidas: ["Comida"] });
     expect(r.error).toBe("dia");
+  });
+  it("dice si hay menú en esos días: de eso sale el botón a la app", async () => {
+    const apuntar = () => apuntarAusencia("h", { dias: ["hoy"], comidas: ["Comida"] });
+    const conSemana = (weekStart, weekEnd) => { limpio(); guardada = { ...casa(), semanas: [{ weekStart, weekEnd, plan: {} }] }; };
+    usarMotor({ nuevaRegla: (x) => ({ ...x }), podarReglasVencidas: (reglas) => ({ reglas }) });
+    limpio();
+    expect((await apuntar()).hayMenu).toBe(false);
+    conSemana("2026-11-02", "2026-11-08");
+    expect((await apuntar()).hayMenu).toBe(false);
+    conSemana("2026-10-26", "2026-11-01");
+    expect((await apuntar()).hayMenu).toBe(true);
   });
 });
 

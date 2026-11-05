@@ -5,7 +5,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import { armarManual, rellenos, MARCAS_MANUAL } from "./manual.js";
-import { DESHACE } from "../../src/lib/vocabularios.js";
+import { DESHACE, CANAL } from "../../src/lib/vocabularios.js";
 
 process.env.VITE_SUPABASE_URL ||= "https://sin-base.invalid";
 process.env.SUPABASE_SERVICE_ROLE_KEY ||= "sin-clave";
@@ -14,19 +14,19 @@ vi.mock("./ajustes.js", async (original) => ({ ...(await original()), dominiosDe
 const { FICHAS, sistema } = await import("./agente.js");
 const { CAPACIDADES, estadoDe } = await import("../../src/lib/capacidades.js");
 const MANUAL = readFileSync(new URL("./conocimiento.md", import.meta.url), "utf8");
-const DE_VERDAD = { capacidades: CAPACIDADES, fichas: FICHAS };
+const DE_VERDAD = { capacidades: CAPACIDADES, fichas: FICHAS, canal: CANAL.TELEGRAM };
 const lineas = (texto) => texto.split("\n").filter((l) => l.startsWith("• ")).map((l) => l.slice(2));
 
 describe("el manual armado", () => {
   it("no le queda ninguna marca, y es el que usa Lola", async () => {
-    const armado = await sistema();
+    const armado = await sistema(CANAL.TELEGRAM);
     expect(armado).not.toMatch(/\{\{[A-Z_]+\}\}/);
     expect(armado).toBe(armarManual(MANUAL, DE_VERDAD));
   });
 
   it("sale igual cada vez: la caché del prompt no se rompe", async () => {
     expect(armarManual(MANUAL, DE_VERDAD)).toBe(armarManual(MANUAL, DE_VERDAD));
-    expect(await sistema()).toBe(await sistema());
+    expect(await sistema(CANAL.TELEGRAM)).toBe(await sistema(CANAL.TELEGRAM));
   });
 
   it("una marca sin poner o que no existe no se le da al modelo", () => {
