@@ -589,7 +589,7 @@ export async function conCasa(householdId, cambiar, intentos = 5) {
 }
 
 // Las escrituras de una misma casa, en fila dentro de este proceso. Lola llama
-// a varias herramientas a la vez («Nat no come el finde» → 5 donde_come):
+// a varias herramientas a la vez («Nat no come el finde» → 5 fuera_de_casa):
 // en paralelo chocaban, cada choque releía la casa entera, y con 3 intentos
 // las últimas se rendían («conflicto persistente») y se perdía lo dicho
 // (medido el 2 oct 2026: 2 de 5, y hasta 9 s por llamada). En fila no chocan.

@@ -1441,7 +1441,7 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
 
 /**
  * «Hoy cenamos fuera», «Nat no come el finde ni cena hoy»: ausencias de días
- * concretos, no un horario (donde_come es para lo que se repite cada
+ * concretos, no un horario (el horario de donde_come es para lo que se repite cada
  * semana). Varios días y comidas van en UNA llamada: con cinco llamadas en
  * paralelo, las escrituras chocaban sobre la misma casa y las últimas se
  * perdían («conflicto persistente», 2 oct 2026).

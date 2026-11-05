@@ -24,7 +24,7 @@ const apuntar = async (devuelve) => {
   const chat = { householdId: "casa", chatId: "1", channel: "telegram", fotos: [], papel: "owner", esGrupo: false, texto: "c", resultados: [] };
   apuntarAusencia.mockImplementationOnce(async () => devuelve);
   const t = (await herramientas(chat)).find((x) => x.name === "donde_come");
-  await t.run({ alcance: "dias", dias: ["hoy"], comidas: ["Cena"] }, { toolUse: { id: `t-${Math.random()}` } });
+  await t.run({ plazo: "dias", dias: ["hoy"], comidas: ["Cena"] }, { toolUse: { id: `t-${Math.random()}` } });
   return chat;
 };
 const GUARDADA = { texto: "Isa fuera hoy.", pintar: null, hecho: "Isa fuera hoy", valores: [], aMedias: false };

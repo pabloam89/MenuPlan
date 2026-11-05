@@ -173,7 +173,7 @@ const FALLO_SIN_GUARDAR = "bot_claimed_unsaved";
 // Lo que el resto del bot sabe de una herramienta va en su ficha, junto a su
 // definición, y las listas (SOLO_LECTURA, AVISO_LENTO, pantallaDe) salen de
 // ahí, al final del fichero. Antes eran listas sueltas por nombre que había
-// que acordarse de tocar: donde_come se quedó sin botón a la app por no
+// que acordarse de tocar: fuera_de_casa se quedó sin botón a la app por no
 // estar en una (2 oct 2026).
 //   · riesgo (obligatorio, RIESGO_HERRAMIENTA de src/lib/vocabularios.js):
 //     lee, escribe_reversible, escribe_irreversible o quita_proteccion. De él
@@ -291,7 +291,7 @@ export async function herramientas(chat) {
     return Boolean(dia && tocado.dias.has(dia));
   };
   // Las que ESCRIBEN van en fila dentro del turno. El modelo lanza herramientas
-  // en paralelo, y cinco «donde_come» a la vez sobre la misma casa chocaban
+  // en paralelo, y cinco «fuera_de_casa» a la vez sobre la misma casa chocaban
   // en conCasa hasta agotar los reintentos: las del domingo no se guardaban
   // (staging, 2 oct 2026). Las lecturas siguen en paralelo.
   const enFila = colaDeEscritura();
@@ -726,7 +726,7 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
     }),
     herramienta({ capacidades: ["semanas"], lee: ["menuWeekDays"], escribe: ["menuWeekDays", "menuWeekOffsets", "menuWeek", "menuVarietyPref"], lector: false, riesgo: RIESGO_HERRAMIENTA.ESCRIBE_REVERSIBLE, deshace: DESHACE.FOTO, pantalla: null }, {
       name: "ajustar_semana",
-      description: "Qué días entran en el menú de una semana concreta («esta semana solo hasta el jueves», «la que viene de lunes a viernes»), y cuánto se pueden repetir platos entre semanas: variedad strict (nada de ninguna semana anterior), moderate (nada de la semana anterior), relaxed (se pueden repetir). Para «nunca el finde» de siempre, donde_come con alcance siempre con donde = off. Después, generar_menu para esa semana si quieren el menú ya.",
+      description: "Qué días entran en el menú de una semana concreta («esta semana solo hasta el jueves», «la que viene de lunes a viernes»), y cuánto se pueden repetir platos entre semanas: variedad strict (nada de ninguna semana anterior), moderate (nada de la semana anterior), relaxed (se pueden repetir). Para «nunca el finde» de siempre, donde_come con plazo siempre con donde = off. Después, generar_menu para esa semana si quieren el menú ya.",
       inputSchema: obj({
         semana: { type: "string", enum: ["esta", "siguiente"] },
         dias: { type: "array", items: { type: "string" }, description: "lunes…domingo, «entre semana» o «finde»: los días que SÍ entran." },
@@ -1092,23 +1092,23 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
     }),
     herramienta({ capacidades: ["fuera_de_casa", "horario"], lee: ["members", "accountMemberIdByUser", "schedule", "reglas", "menus"], escribe: ["schedule", "reglas", "menus"], lector: false, riesgo: RIESGO_HERRAMIENTA.ESCRIBE_REVERSIBLE, deshace: DESHACE.FOTO, pantalla: "semana" }, {
       name: "donde_come",
-      description: "Quién come dónde, con su alcance. alcance dias: días concretos en que alguien (o toda la casa) no come en casa, o esa comida no se hace: «hoy cenamos fuera», «el viernes Leo come con los abuelos», «Nat no está el finde», «el jueves comida no, que no tengo tiempo», «el 15 no comemos». Una llamada apunta todos los días × todas las comidas que le pases: «no come el finde» es dias [finde] con comidas [Comida, Cena]. Si los días no llevan las mismas comidas («el finde entero y hoy solo la cena»), una llamada por cada combinación. Si en el menú ya hecho todo un grupo queda fuera, se quita ese plato y la compra se rehace (sale pintado debajo); si solo falta alguien, el plato se queda para los demás. alcance siempre: el horario FIJO, lo que se repite TODAS las semanas («los jueves comemos fuera», «los niños comen en el cole de lunes a jueves»), con donde y quienes obligatorios: dias lunes…domingo, «entre semana», «finde» o «de lunes a jueves» (vacío = todos); comidas vacío = Comida y Cena (con donde = cole, solo la Comida). Un día suelto («el jueves no comemos», «este viernes cenamos fuera») NUNCA es alcance siempre.",
+      description: "Quién come dónde, con su plazo. plazo dias: días concretos en que alguien (o toda la casa) no come en casa, o esa comida no se hace: «hoy cenamos fuera», «el viernes Leo come con los abuelos», «Nat no está el finde», «el jueves comida no, que no tengo tiempo», «el 15 no comemos». Una llamada apunta todos los días × todas las comidas que le pases: «no come el finde» es dias [finde] con comidas [Comida, Cena]. Si los días no llevan las mismas comidas («el finde entero y hoy solo la cena»), una llamada por cada combinación. Si en el menú ya hecho todo un grupo queda fuera, se quita ese plato y la compra se rehace (sale pintado debajo); si solo falta alguien, el plato se queda para los demás. plazo siempre: el horario FIJO, lo que se repite TODAS las semanas («los jueves comemos fuera», «los niños comen en el cole de lunes a jueves»), con donde y quienes obligatorios: dias lunes…domingo, «entre semana», «finde» o «de lunes a jueves» (vacío = todos); comidas vacío = Comida y Cena (con donde = cole, solo la Comida). Un día suelto («el jueves no comemos», «este viernes cenamos fuera») NUNCA es plazo siempre.",
       inputSchema: {
         type: "object",
         properties: {
-          alcance: { type: "string", enum: ["dias", "siempre"], description: "dias: solo esos días. siempre: todas las semanas." },
+          plazo: { type: "string", enum: ["dias", "siempre"], description: "dias: solo esos días. siempre: todas las semanas." },
           dias: { type: "array", items: { type: "string" }, description: "Como lo digan: hoy, mañana, pasado mañana, el jueves, el finde, el 15, 15 de noviembre, de lunes a miércoles o AAAA-MM-DD. Si dudas de qué día es, pregúntalo antes." },
-          semana: { type: "string", enum: ["esta", "siguiente"], description: "Con alcance dias, siguiente si dicen «de la semana que viene» («el viernes de la que viene»)." },
+          semana: { type: "string", enum: ["esta", "siguiente"], description: "Con plazo dias, siguiente si dicen «de la semana que viene» («el viernes de la que viene»)." },
           comidas: { type: "array", items: { type: "string", enum: IDS_COMIDAS } },
-          quienes: { type: "array", items: { type: "string" }, description: "Nombres de la casa, «yo» (quien escribe), «los niños», «adultos»; con alcance dias, vacío = toda la casa." },
+          quienes: { type: "array", items: { type: "string" }, description: "Nombres de la casa, «yo» (quien escribe), «los niños», «adultos»; con plazo dias, vacío = toda la casa." },
           donde: esquemaDato("schedule"),
           de_nuevo: { type: "boolean", description: "Solo si la herramienta te dijo que eso ya se guardó hace poco y la persona, AHORA, ha confirmado que lo quiere también para estos días." },
         },
-        required: ["alcance"],
+        required: ["plazo"],
         additionalProperties: false,
       },
-      run: async ({ alcance, de_nuevo, quienes, donde, ...args }) => {
-        if (alcance === "siempre") {
+      run: async ({ plazo, de_nuevo, quienes, donde, ...args }) => {
+        if (plazo === "siempre") {
           if (!quienes?.length || !donde) return "NO GUARDADO: para lo de siempre hacen falta quienes y donde.";
           // El horario fijo no se ve en una semana: sin botón.
           chat.nadaQueVer = true;
@@ -1750,7 +1750,7 @@ export async function ejecutar({ historia = [], entrada, tools, adjunto = null, 
       // el aviso de «dijo que guardó» (#958: el «Hecho.» de relleno de una
       // vuelta agotada disparaba otra vuelta entera, hasta ~32 llamadas).
       if (!r.dicho) r = { ...r, dicho: sinTextoDelModelo({ agotada: r.agotada, guardo: guardo() }), sinTexto: true };
-      // Lo que cuenta es lo GUARDADO: un donde_come que chocó y contestó
+      // Lo que cuenta es lo GUARDADO: un fuera_de_casa que chocó y contestó
       // «no he podido guardarlo» no es un guardado, y un «✅ Apuntado» detrás
       // tiene que pasar por el aviso igual que si no lo hubiera intentado.
       if (!r.sinTexto && !guardo() && diceQueGuardo(r.dicho)) {

@@ -60,7 +60,7 @@ describe("ejemplos del prompt contra las herramientas (#958)", () => {
 
   it("ningún ejemplo de un día suelto manda al horario fijo", () => {
     for (const linea of conocimiento.split("\n")) {
-      const r = linea.match(/«([^»]+)»[^«]*?→[^.]*?\b(alcance siempre)\b/);
+      const r = linea.match(/«([^»]+)»[^«]*?→[^.]*?\b(plazo siempre)\b/);
       if (r) expect(DIA_SUELTO.test(r[1]), linea).toBe(false);
     }
   });
@@ -75,9 +75,9 @@ describe("ejemplos del prompt contra las herramientas (#958)", () => {
     }
   });
 
-  it("la descripción: un día suelto nunca es alcance siempre", () => {
+  it("la descripción: un día suelto nunca es plazo siempre", () => {
     expect(descripcion("donde_come")).toMatch(/el jueves comida no/);
-    expect(descripcion("donde_come")).toMatch(/NUNCA es alcance siempre/);
+    expect(descripcion("donde_come")).toMatch(/NUNCA es plazo siempre/);
     expect(descripcion("donde_come")).toMatch(/con donde = cole, solo la Comida/);
   });
 

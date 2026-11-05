@@ -1,6 +1,6 @@
 /**
  * Herramientas de propósito claro y sin solapes (trozo 45 de #1037): dos herramientas que escriben no comparten
- * capacidad, y quién come dónde es una sola, con su alcance.
+ * capacidad, y quién come dónde es una sola, con su plazo.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -49,24 +49,24 @@ describe("sin solapes", () => {
   });
 });
 
-describe("donde_come, con su alcance", () => {
+describe("donde_come, con su plazo", () => {
   it("dias apunta la ausencia, y no el horario", async () => {
-    await correr({ alcance: "dias", dias: ["jueves"], comidas: ["Comida"], quienes: ["Leo"] });
+    await correr({ plazo: "dias", dias: ["jueves"], comidas: ["Comida"], quienes: ["Leo"] });
     expect(apuntarAusencia.mock.calls[0][1]).toMatchObject({ dias: ["jueves"], comidas: ["Comida"], quienes: ["Leo"], deNuevo: false });
     expect(ajustarHorario).not.toHaveBeenCalled();
   });
 
   it("siempre cambia el horario, y no apunta ausencias ni lleva botón", async () => {
-    const { r, chat } = await correr({ alcance: "siempre", quienes: ["Leo"], dias: ["lunes"], comidas: ["Comida"], donde: "cole" });
+    const { r, chat } = await correr({ plazo: "siempre", quienes: ["Leo"], dias: ["lunes"], comidas: ["Comida"], donde: "cole" });
     expect(r).toMatch(/^horario/);
     expect(ajustarHorario.mock.calls[0][1]).toEqual({ personas: ["Leo"], dias: ["lunes"], comidas: ["Comida"], donde: "cole" });
     expect(apuntarAusencia).not.toHaveBeenCalled();
     expect(chat.nadaQueVer).toBe(true);
   });
 
-  it("sin lo obligatorio de cada alcance, no guarda nada y lo dice", async () => {
-    expect((await correr({ alcance: "siempre", quienes: ["Leo"] })).r).toMatch(/^NO GUARDADO/);
-    expect((await correr({ alcance: "dias", dias: ["jueves"] })).r).toMatch(/^NO GUARDADO/);
+  it("sin lo obligatorio de cada plazo, no guarda nada y lo dice", async () => {
+    expect((await correr({ plazo: "siempre", quienes: ["Leo"] })).r).toMatch(/^NO GUARDADO/);
+    expect((await correr({ plazo: "dias", dias: ["jueves"] })).r).toMatch(/^NO GUARDADO/);
     expect(ajustarHorario).not.toHaveBeenCalled();
     expect(apuntarAusencia).not.toHaveBeenCalled();
   });

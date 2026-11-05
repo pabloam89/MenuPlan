@@ -1911,7 +1911,7 @@
       ],
       "args": {
         "donde_come": {
-          "alcance": "dias",
+          "plazo": "dias",
           "dias": "jueves",
           "comidas": "comida"
         }
@@ -1935,7 +1935,7 @@
       ],
       "args": {
         "donde_come": {
-          "alcance": "dias",
+          "plazo": "dias",
           "quienes": "leo"
         }
       },
@@ -1947,7 +1947,7 @@
       "dominio": "ficha",
       "origen": "escrito",
       "dependeDeFecha": true,
-      "nombre": "habla: «los jueves nunca comemos en casa» → es de cada semana: donde_come con alcance siempre",
+      "nombre": "habla: «los jueves nunca comemos en casa» → es de cada semana: donde_come con plazo siempre",
       "entrada": "los jueves nunca comemos en casa a mediodía",
       "llama": [
         "donde_come"
@@ -1957,7 +1957,7 @@
       ],
       "args": {
         "donde_come": {
-          "alcance": "siempre"
+          "plazo": "siempre"
         }
       }
     },
@@ -2212,7 +2212,7 @@
           "semana": "esta"
         },
         "donde_come": {
-          "alcance": "dias",
+          "plazo": "dias",
           "dias": "mañana"
         }
       },
@@ -3359,12 +3359,12 @@
       "dominio": "menu",
       "origen": "conversacion_real",
       "dependeDeFecha": true,
-      "nombre": "«este jueves no comemos en casa» es un día suelto (alcance dias), no el horario fijo (#958 C)",
+      "nombre": "«este jueves no comemos en casa» es un día suelto (plazo dias), no el horario fijo (#958 C)",
       "entrada": "este jueves no comemos en casa, nos vamos a comer con mis padres",
       "espera": {
         "accion": "donde_come",
         "parametros": {
-          "alcance": "dias",
+          "plazo": "dias",
           "dias": [
             "jueves"
           ],

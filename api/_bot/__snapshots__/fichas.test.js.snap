@@ -508,7 +508,7 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
   "input_schema": {
    "type": "object",
    "properties": {
-    "alcance": {
+    "plazo": {
      "type": "string",
      "enum": [
       "dias",
@@ -529,7 +529,7 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
       "esta",
       "siguiente"
      ],
-     "description": "Con alcance dias, siguiente si dicen «de la semana que viene» («el viernes de la que viene»)."
+     "description": "Con plazo dias, siguiente si dicen «de la semana que viene» («el viernes de la que viene»)."
     },
     "comidas": {
      "type": "array",
@@ -550,7 +550,7 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
      "items": {
       "type": "string"
      },
-     "description": "Nombres de la casa, «yo» (quien escribe), «los niños», «adultos»; con alcance dias, vacío = toda la casa."
+     "description": "Nombres de la casa, «yo» (quien escribe), «los niños», «adultos»; con plazo dias, vacío = toda la casa."
     },
     "donde": {
      "type": "string",
@@ -568,11 +568,11 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
     }
    },
    "required": [
-    "alcance"
+    "plazo"
    ],
    "additionalProperties": false
   },
-  "description": "Quién come dónde, con su alcance. alcance dias: días concretos en que alguien (o toda la casa) no come en casa, o esa comida no se hace: «hoy cenamos fuera», «el viernes Leo come con los abuelos», «Nat no está el finde», «el jueves comida no, que no tengo tiempo», «el 15 no comemos». Una llamada apunta todos los días × todas las comidas que le pases: «no come el finde» es dias [finde] con comidas [Comida, Cena]. Si los días no llevan las mismas comidas («el finde entero y hoy solo la cena»), una llamada por cada combinación. Si en el menú ya hecho todo un grupo queda fuera, se quita ese plato y la compra se rehace (sale pintado debajo); si solo falta alguien, el plato se queda para los demás. alcance siempre: el horario FIJO, lo que se repite TODAS las semanas («los jueves comemos fuera», «los niños comen en el cole de lunes a jueves»), con donde y quienes obligatorios: dias lunes…domingo, «entre semana», «finde» o «de lunes a jueves» (vacío = todos); comidas vacío = Comida y Cena (con donde = cole, solo la Comida). Un día suelto («el jueves no comemos», «este viernes cenamos fuera») NUNCA es alcance siempre."
+  "description": "Quién come dónde, con su plazo. plazo dias: días concretos en que alguien (o toda la casa) no come en casa, o esa comida no se hace: «hoy cenamos fuera», «el viernes Leo come con los abuelos», «Nat no está el finde», «el jueves comida no, que no tengo tiempo», «el 15 no comemos». Una llamada apunta todos los días × todas las comidas que le pases: «no come el finde» es dias [finde] con comidas [Comida, Cena]. Si los días no llevan las mismas comidas («el finde entero y hoy solo la cena»), una llamada por cada combinación. Si en el menú ya hecho todo un grupo queda fuera, se quita ese plato y la compra se rehace (sale pintado debajo); si solo falta alguien, el plato se queda para los demás. plazo siempre: el horario FIJO, lo que se repite TODAS las semanas («los jueves comemos fuera», «los niños comen en el cole de lunes a jueves»), con donde y quienes obligatorios: dias lunes…domingo, «entre semana», «finde» o «de lunes a jueves» (vacío = todos); comidas vacío = Comida y Cena (con donde = cole, solo la Comida). Un día suelto («el jueves no comemos», «este viernes cenamos fuera») NUNCA es plazo siempre."
  },
  {
   "type": "custom",
@@ -1264,7 +1264,7 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
    "required": [],
    "additionalProperties": false
   },
-  "description": "Qué días entran en el menú de una semana concreta («esta semana solo hasta el jueves», «la que viene de lunes a viernes»), y cuánto se pueden repetir platos entre semanas: variedad strict (nada de ninguna semana anterior), moderate (nada de la semana anterior), relaxed (se pueden repetir). Para «nunca el finde» de siempre, donde_come con alcance siempre con donde = off. Después, generar_menu para esa semana si quieren el menú ya."
+  "description": "Qué días entran en el menú de una semana concreta («esta semana solo hasta el jueves», «la que viene de lunes a viernes»), y cuánto se pueden repetir platos entre semanas: variedad strict (nada de ninguna semana anterior), moderate (nada de la semana anterior), relaxed (se pueden repetir). Para «nunca el finde» de siempre, donde_come con plazo siempre con donde = off. Después, generar_menu para esa semana si quieren el menú ya."
  },
  {
   "type": "custom",
