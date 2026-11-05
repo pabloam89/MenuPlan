@@ -2,7 +2,9 @@
  * env.mjs — un solo lector de claves para los scripts, Vite y los tests.
  *
  * Orden: primero el entorno del proceso (CI, `op run` o una variable puesta a
- * mano) y luego `.env.local`. Si el valor es una dirección de 1Password
+ * mano) y luego las direcciones (`direcciones()`): las de `ops/env.1password`,
+ * en git y las mismas para toda carpeta, con `.env.local` encima solo para lo
+ * de cada PC (un valor en claro de prueba, una clave que la plantilla no trae). Si el valor es una dirección de 1Password
  * (`op://HoMenu/Supabase/SUPABASE_DB_URL`), se pide a la bóveda: en el disco
  * solo queda la dirección. Ver .claude/skills/1password/SKILL.md.
  *
@@ -21,6 +23,7 @@ import { esCupo, esSinAcceso } from "./erroresOp.mjs";
 
 export const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const FICHERO = join(RAIZ, ".env.local");
+export const PLANTILLA = join(RAIZ, "ops", "env.1password");
 export const LLAVERO = { recurso: "MenuPlan 1Password", usuario: "service-account" };
 
 let fichero;
@@ -41,6 +44,33 @@ export function leerFichero(ruta = FICHERO) {
 }
 
 export const esReferencia = (v) => typeof v === "string" && v.startsWith("op://");
+
+/**
+ * Dónde está cada clave: la plantilla de git (`ops/env.1password`) y, encima,
+ * `.env.local`. Así una dirección se cambia una vez, en git, y vale para todas
+ * las carpetas. Antes cada carpeta copiaba el `.env.local` de la principal, y el
+ * 4 nov todas seguían nombrando la bóveda de Pablo tras el paso a
+ * HoMenu-sesiones (#328): tres lecturas del cupo por clave, hasta agotarlo. Lo
+ * cuenta `node scripts/direcciones-carpetas.mjs`.
+ *
+ * Una dirección op:// de `.env.local` para una clave que la plantilla ya trae,
+ * y distinta, se ignora con un aviso: es una copia vieja. Un valor en claro sí
+ * manda (una prueba a mano), y lo que la plantilla no trae se añade tal cual.
+ * En el CI y en Vercel no se usa la plantilla: allí las claves vienen del
+ * entorno y no hay `op`.
+ */
+export function direcciones({ plantilla = PLANTILLA, local = FICHERO, entorno = process.env } = {}) {
+  const base = entorno.CI || entorno.VERCEL ? {} : leerFichero(plantilla);
+  const viejas = [];
+  for (const [k, v] of Object.entries(leerFichero(local))) {
+    if (k in base && esReferencia(v) && v !== base[k]) viejas.push(k);
+    else base[k] = v;
+  }
+  if (viejas.length) {
+    console.error(`env-direcciones: .env.local nombra otra dirección para ${viejas.join(", ")}; uso la de ops/env.1password. Bórralas de .env.local`);
+  }
+  return base;
+}
 
 /**
  * Con esta variable a 1, `op` va sin la service account, por la app de
@@ -340,7 +370,7 @@ function resolverVarias(pares, { tolerante = false } = {}) {
 export function leerEnv(clave, { obligatoria = false } = {}) {
   let v = process.env[clave];
   if (!v) {
-    fichero ??= leerFichero();
+    fichero ??= direcciones();
     v = fichero[clave];
   }
   if (esReferencia(v)) {
@@ -362,7 +392,7 @@ export function leerEnv(clave, { obligatoria = false } = {}) {
  * nombra claves de administración de HoMenu (#299).
  */
 export function cargarEnv(claves, { tolerante = false } = {}) {
-  fichero ??= leerFichero();
+  fichero ??= direcciones();
   const refs = [];
   for (const k of claves) {
     const v = process.env[k] || fichero[k];
