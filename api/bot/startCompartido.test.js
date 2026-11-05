@@ -42,7 +42,7 @@ vi.mock("../_bot/menu.js", () => ({ motor: vi.fn() }));
 vi.mock("../_bot/ajustes.js", () => ({ sembrarCasa: vi.fn() }));
 // Las piezas puras del cambio de cuenta, las de verdad; la cuenta de este Telegram, la que diga t.deAntes.
 vi.mock("../_bot/enlace.js", async (original) => ({
-  ...(({ pideCambioDeCuenta, preguntaDeCambio, CAMBIO }) => ({ pideCambioDeCuenta, preguntaDeCambio, CAMBIO }))(await original()),
+  ...(({ pideCambioDeCuenta, preguntaDeCambio, personasDeCasa, CAMBIO }) => ({ pideCambioDeCuenta, preguntaDeCambio, personasDeCasa, CAMBIO }))(await original()),
   cuentaDeTelegram: vi.fn(async () => t.deAntes),
   enlazarChat: vi.fn(async () => ({ ok: true })), apuntarEnlace: vi.fn(async () => {}), crearCodigo: vi.fn(), gastarCodigo: vi.fn(), baseDe: () => "https://x", confirmarEnlace: vi.fn(async () => ({})), casaPropia: vi.fn(), idDePersona: (f) => (f?.id ? String(f.id) : null), codigoDeGrupo: vi.fn(), esCodigoDeGrupo: () => t.deGrupo }));
 vi.mock("../_bot/invitacion.js", () => ({ unirsePorInvitacion: vi.fn(), ES_INVITACION: /^inv_([0-9a-f]{32})$/ }));

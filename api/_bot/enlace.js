@@ -87,6 +87,9 @@ export function preguntaDeCambio({ casaAntes, casaApp, personasAntes = null, per
     + (conPedido ? "\n\nLo que me has pedido desde la app no lo he hecho: cuando contestes, pídemelo otra vez." : "");
 }
 
+/** Pura. Cuántas personas de `filas` son de esta casa. Sin saber la casa o sin filas, null: no se sabe, no es que no haya nadie. */
+export const personasDeCasa = (filas, casa) => (casa && filas ? filas.filter((p) => p.household_id === casa).length : null);
+
 export const chatOcupado = (actual, householdId, userId) =>
   Boolean(actual && actual.household_id !== householdId && actual.linked_by !== userId);
 

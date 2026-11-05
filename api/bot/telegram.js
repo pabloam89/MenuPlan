@@ -56,7 +56,7 @@ import {
   recetaEnTexto, semanaEnTexto, copiarReceta, cuentasDeQuien,
 } from "../_bot/compartir.js";
 import { motor } from "../_bot/menu.js";
-import { enlazarChat, apuntarEnlace, crearCodigo, gastarCodigo, baseDe, confirmarEnlace, casaPropia, idDePersona, codigoDeGrupo, esCodigoDeGrupo, cuentaDeTelegram, pideCambioDeCuenta, preguntaDeCambio, CAMBIO } from "../_bot/enlace.js";
+import { enlazarChat, apuntarEnlace, crearCodigo, gastarCodigo, baseDe, confirmarEnlace, casaPropia, idDePersona, codigoDeGrupo, esCodigoDeGrupo, cuentaDeTelegram, pideCambioDeCuenta, preguntaDeCambio, personasDeCasa, CAMBIO } from "../_bot/enlace.js";
 import { papelDeQuien, casaActivaDe } from "../_bot/papel.js";
 import { unirsePorInvitacion, ES_INVITACION } from "../_bot/invitacion.js";
 import { traducir } from "../_bot/traducir.js";
@@ -1919,8 +1919,7 @@ async function preguntarCambioDeCuenta(chatId, token, deAntes, casaApp, { conPed
   // Sin leerlas, null: la pregunta no dice cuántas, en vez de decir que no hay nadie.
   const personas = await select("persona", `household_id=in.(${casas.map(encodeURIComponent).join(",")})`, "household_id").catch(fallaCon("cambio_de_cuenta", null));
   const nombre = (h) => nombres.find((n) => n.id === h)?.name ?? null;
-  const cuantas = (h) => (personas ? personas.filter((p) => p.household_id === h).length : null);
-  return enviar(chatId, preguntaDeCambio({ casaAntes: nombre(casaAntes), casaApp: nombre(casaApp), personasAntes: cuantas(casaAntes), personasApp: cuantas(casaApp), conPedido }), {
+  return enviar(chatId, preguntaDeCambio({ casaAntes: nombre(casaAntes), casaApp: nombre(casaApp), personasAntes: personasDeCasa(personas, casaAntes), personasApp: personasDeCasa(personas, casaApp), conPedido }), {
     botones: [[{ texto: "Sí, pasarlo a esta cuenta", dato: `${CAMBIAR_CUENTA}${token}` }, { texto: "No", dato: `${CAMBIAR_CUENTA}no` }]],
   });
 }
