@@ -3,6 +3,7 @@
  * de la libreta (las filas de `preferencia`, ya proyectadas) o del documento. Puro: lo que se lee lo trae quien llama.
  * Mismo criterio que `falta` de siguientePregunta.js: lo dicho, supuesto o aprendido no se pregunta.
  */
+import { ETAPAS_BEBE } from "./babyStage.js";
 import { TEMAS, VIVE_EJE } from "./caminos.js";
 import { leidoDe } from "./estadoDeDato.js";
 import { matizDe } from "./notepad.js";
@@ -32,7 +33,7 @@ function delSobre(nombre, { estados, personas }) {
 function deLaLibreta(prefijo, data) {
   const apuntes = Object.entries(data.notepad?.campos ?? {}).filter(([ruta, c]) => ruta.startsWith(`${prefijo}.`) && c.valor !== undefined);
   if (!apuntes.length) return ESTADO_EJE.FALTA;
-  return apuntes.every(([, c]) => matizDe(c) === "supuesto") ? ESTADO_EJE.SUPUESTO : ESTADO_EJE.SABIDO;
+  return apuntes.some(([, c]) => matizDe(c) === "supuesto") ? ESTADO_EJE.SUPUESTO : ESTADO_EJE.SABIDO;
 }
 
 const tieneValor = (v) => v != null && (typeof v !== "object" || Object.keys(v).length > 0);
@@ -47,7 +48,7 @@ function estadoDeEje({ dato, vive }, { estados, data, personas, hayBebe }) {
   const d = datoDe(dato);
   if (d.aplica === "bebe") {
     if (!hayBebe) return ESTADO_EJE.NO_APLICA;
-    return (data.members ?? []).some((m) => m[dato]) ? ESTADO_EJE.SABIDO : ESTADO_EJE.FALTA;
+    return ETAPAS_BEBE.includes(data.etapaBebe) ? ESTADO_EJE.SABIDO : ESTADO_EJE.FALTA;
   }
   if (vive === VIVE_EJE.SOBRE) return delSobre(dato, { estados, personas });
   return d.libreta ? deLaLibreta(d.libreta, data) : delDocumento(dato, data);

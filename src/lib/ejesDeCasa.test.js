@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { ESTADO_EJE, ejesDeCasa } from "./ejesDeCasa.js";
 import { estadosDeFichas } from "./estadoDeDato.js";
 import { TEMAS } from "./caminos.js";
+import { ETAPAS_BEBE } from "./babyStage.js";
 
 const { SABIDO, SUPUESTO, FALTA, NO_APLICA } = ESTADO_EJE;
 const delaCasa = (campo, estado, extra = {}) => ({ campo, sujeto: { tipo: "casa", id: null }, ambito: null, estado, valor: null, origen: null, ...extra });
@@ -46,6 +47,12 @@ describe("ejesDeCasa (trozo 64)", () => {
     expect(r).toMatchObject({ cocinas: SABIDO, sesgos: SUPUESTO, reparto: FALTA });
   });
 
+  it("basta un supuesto para decirlo, venga del sobre o de la libreta", () => {
+    const dicho = { valor: 1, origen: "texto", fuente: "dicho" };
+    const supuesto = { valor: 1, origen: "default", fuente: "supuesto" };
+    expect(ejesDeCasa({ estados: ficha(), data: { notepad: { campos: { "cocina.a": dicho, "cocina.b": supuesto } } } }).cocinas).toBe(SUPUESTO);
+  });
+
   it("presupuesto: «sin presupuesto» es una respuesta; no decir nada, no", () => {
     expect(ejesDeCasa({ estados: ficha(), data: { presupuesto: null } }).presupuesto).toBe(SABIDO);
     expect(ejesDeCasa({ estados: ficha(), data: {} }).presupuesto).toBe(FALTA);
@@ -58,7 +65,8 @@ describe("ejesDeCasa (trozo 64)", () => {
 
   it("la etapa del bebé solo cuenta con bebé", () => {
     expect(ejesDeCasa({ estados: ficha(), hayBebe: false }).etapaBebe).toBe(NO_APLICA);
-    expect(ejesDeCasa({ estados: ficha(), hayBebe: true, data: { members: [{ id: "b" }] } }).etapaBebe).toBe(FALTA);
-    expect(ejesDeCasa({ estados: ficha(), hayBebe: true, data: { members: [{ id: "b", etapaBebe: "x" }] } }).etapaBebe).toBe(SABIDO);
+    expect(ejesDeCasa({ estados: ficha(), hayBebe: true, data: {} }).etapaBebe).toBe(FALTA);
+    expect(ejesDeCasa({ estados: ficha(), hayBebe: true, data: { etapaBebe: ETAPAS_BEBE[0] } }).etapaBebe).toBe(SABIDO);
+    expect(ejesDeCasa({ estados: ficha(), hayBebe: true, data: { etapaBebe: "no_es_una_etapa" } }).etapaBebe).toBe(FALTA);
   });
 });
