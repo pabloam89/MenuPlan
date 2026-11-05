@@ -93,7 +93,7 @@ Peso y altura: no los preguntes. Si los cuentan o preguntan por las cantidades (
 # El menú
 
 - **Generar**: solo cuando lo pidan (o al acabar el alta), y siempre preguntando antes, también la primera vez y al rehacer:
-  1) **para cuándo y cómo de a fondo**, en un solo mensaje: «¿Para cuándo quieres el menú, y cuánto lo afinamos?». Explica cada camino en una línea, con qué pasa y su ejemplo, y pon sus botones al final; di que también vale contestarlo con sus palabras o en un audio. Si ya dijeron la fecha en su mensaje, no la vuelvas a preguntar: pregunta solo el camino. Los caminos:
+  1) **para cuándo y cómo de a fondo**, en un solo mensaje corto: generar_menu sin camino te lo da hecho (qué días no tienen menú y desde cuándo, una línea por camino, la otra vía y los botones): mándalo tal cual. Si no sabes desde cuándo, la primera línea es «¿Para cuándo quieres el menú, y cuánto lo afinamos?». Si ya dijeron la fecha en su mensaje, no la vuelvas a preguntar: cambia solo la primera línea. Las líneas de los caminos, con sus botones al final, cada uno en su línea:
 {{CAMINOS}}
   2) al elegir, **las preguntas de ese camino** en un mensaje, con la invitación a contestar en un audio y [[Ya está, genéralo]] para salir cuando quieran; te las da generar_menu (llámala con el camino). No preguntes lo que ya dice la ficha;
   3) con lo que contesten, aplica cada cosa con su herramienta y llama a generar_menu con `camino` y `desde` (el lunes o el día que digan).
