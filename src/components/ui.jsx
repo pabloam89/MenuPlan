@@ -1088,9 +1088,12 @@ export function GhostPillButton({ onClick, children, tone = "light" }) {
   // "solid" es el CTA principal: relleno verde, alto contraste, se ve igual
   // sobre la foto del splash que sobre un fondo claro (cuando la foto no
   // carga). Los otros tonos son secundarios (ghost translúcido / borde claro).
-  const solid = tone === "solid";
+  const telegram = tone === "telegram";
+  const solid = tone === "solid" || telegram;
 
-  const styles = solid
+  const styles = telegram
+    ? { border: "none", background: tono.telegram, color: tono.superficie, boxShadow: sombra["sombra-2"] }
+    : solid
     ? {
         border: "none",
         background: pressed
