@@ -1600,7 +1600,7 @@ export async function apuntarAusencia(householdId, { dia, dias, semana = null, c
   const texto = `Apuntado: ${quien} fuera ${cuando}.${menu}${aMedias ? " En alguna semana del menú no he podido quitar el plato: míralo en la app." : ""}`;
   // Lo guardado, con sus valores por eje (resultado.js): Lola lo confirma y cuadre.js lo compara.
   const valores = { dia: [...new Set(huecos.map((h) => h.d))], comida: lasComidas, persona: fuera.map((p) => p.name) };
-  return { texto, pintar: vaciadas.size ? { dias: [...vaciadas].sort() } : null, hecho: `${quien} fuera ${cuando}`, valores, aMedias };
+  return { texto, pintar: vaciadas.size ? { dias: [...vaciadas].sort() } : null, hecho: `${quien} fuera ${cuando}`, valores, aMedias, hayMenu };
 }
 
 /** Por qué no se ha apuntado una ausencia, para el recibo: una frase corta por clase (`error` de apuntarAusencia). */
