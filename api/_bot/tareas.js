@@ -190,7 +190,9 @@ export function separarPorEstado(tareas = [], data = {}) {
 }
 
 /** Pura. El bloque para el modelo: referencia corta, tipo, para quién, quién, fecha y de qué chat. */
-export function bloqueDeTareas(tareas = [], { data = {}, chatId = null } = {}) {
+export function bloqueDeTareas(todas = [], { data = {}, chatId = null } = {}) {
+  // Una espera (el pedido de menú, pedidoMenu.js) no es algo que Lola cierre a mano: tiene su propia lectura.
+  const tareas = todas.filter((t) => tipoDe(t) !== TIPO_TAREA.ESPERA);
   if (!tareas.length) return "";
   const nombre = (id) => (data.members ?? []).find((m) => String(m.id ?? m.name) === String(id))?.name ?? null;
   const lineas = tareas.map((t) => {
