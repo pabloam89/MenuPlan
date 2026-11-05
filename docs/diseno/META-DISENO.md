@@ -47,7 +47,7 @@ que su N2 permite.
 ## 1. Cómo encaja con lo que ya hay
 
 - **HoMenu** (instancia): `DESIGN_SYSTEM.md` (criterio y voz), `src/design/tokens.js`
-  (77 valores, fuente única), `docs/diseno/ESTADO.md` (decisiones D1–D12 y cifras).
+  (78 valores, fuente única), `docs/diseno/ESTADO.md` (decisiones D1–D12 y cifras).
   Es un sistema ya hecho; este documento no lo sustituye, lo pone en un marco.
 - **Forja de skills** (`ops/forja/`, #458): el mismo patrón de tres capas (criterios
   base, por tipo, por ficha). La skill y el agente `diseno` leerían N1 como sus criterios.
