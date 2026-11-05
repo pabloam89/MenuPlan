@@ -340,7 +340,8 @@ export async function herramientas(chat) {
       try {
         // `escribio`: si llegó a la base alguna escritura (db.js), no solo si se
         // intentó. Una herramienta que contesta «no he podido guardarlo» no
-        // cuenta como guardado, ni lleva botón a la app.
+        // cuenta como guardado, ni lleva botón a la app. `nadaQueVer`: la herramienta sabe
+        // que esa pantalla sale vacía; sin botón, lea o escriba.
         chat.nadaQueVer = false;
         const { r, escribio } = await contandoEscrituras(() => t.run(args, llamada));
         // Un RESULTADO (resultado.js, #958): lo hecho y lo que no, con forma
@@ -363,7 +364,7 @@ export async function herramientas(chat) {
         }
         if (t.name === "generar_menu") tocado.semanas.add(args.semana ?? "esta");
         if (t.name === "cambiar_plato" && args.dia) tocado.dias.add(diaDe(args.dia) ?? String(args.dia).toLowerCase());
-        const ir = (SOLO_LECTURA.has(t.name) && !chat.nadaQueVer) || escribio ? pantallaDe(t.name, args) : null;
+        const ir = !chat.nadaQueVer && (SOLO_LECTURA.has(t.name) || escribio) ? pantallaDe(t.name, args) : null;
         if (ir) chat.ir = ir;
         // Lo que la escritura no guardó tal cual (la familia, casa.js): Lola lo dice, no se calla.
         const avisos = op ? tomarAvisos() : [];
@@ -1090,6 +1091,8 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
       run: async ({ de_nuevo, ...args }) => {
         const r = await apuntarAusencia(householdId, { ...args, deNuevo: de_nuevo === true, autor: quien.autor, userId: quien.userId, papel: quien.papel });
         if (r.pintar) pintarTambien(chat, r.pintar);
+        // Apuntada para cuando se genere: aún no hay semana que ver en la app.
+        if (!r.error && !r.hayMenu) chat.nadaQueVer = true;
         return resultadoDeAusencia(r);
       },
     }),
