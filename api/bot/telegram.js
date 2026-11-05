@@ -74,6 +74,7 @@ import { preguntoConAviso } from "../_bot/silencio.js";
 import { CANAL, CAMINO_ENLACE, RESULTADO_ENLACE, PRUEBA_IDENTIDAD } from "../../src/lib/vocabularios.js";
 import { conOperacion, operacion } from "../_bot/operacion.js";
 import { RE_BOTON } from "../_bot/formatoMensaje.js";
+import { BOTON_ELEGIDO, tecladoElegido } from "../_bot/botonElegido.js";
 import { esProbador, comandoFallo, abrirReporte, completarReporte, esBotonReporte, pulsarReporte, EVENTO_RUTA } from "../_bot/reporte.js";
 
 const EMAIL_RE = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]{2,}$/;
@@ -1559,6 +1560,12 @@ async function pulsado(cq, base, host = "") {
   const chatId = String(cq.message.chat.id);
   // Los botones de /fallo (api/_bot/reporte.js): ni Lola ni la cola.
   if (esBotonReporte(cq.data)) return void await pulsarReporte(cq);
+  // El «✓» de lo ya elegido (#1277) no hace nada: se contesta el toque y ya.
+  if (cq.data === BOTON_ELEGIDO) {
+    // a propósito: contestar al toque es adorno (y caduca a los 15 min)
+    await llamar("answerCallbackQuery", { callback_query_id: cq.id }).catch(seguirCon("boton_responder"));
+    return;
+  }
   // Conectar un grupo a su casa: solo quien lo pidió (grupoSinCasa).
   const conecta = cq.data?.startsWith("cg:") ? cq.data.slice(3) : null;
   if (conecta && String(cq.from?.id) !== conecta) {
@@ -1587,11 +1594,11 @@ async function pulsado(cq, base, host = "") {
   await llamar("answerCallbackQuery", { callback_query_id: cq.id }).catch(seguirCon("boton_responder"));
   // Un botón se usa una vez: se quitan los del mensaje pulsado para que no
   // se pulsen luego los viejos (en la primera prueba salieron cinco avisos
-  // seguidos de «ya está conectado»).
+  // seguidos de «ya está conectado»), y queda a la vista lo elegido (#1277).
   await llamar("editMessageReplyMarkup", {
     chat_id: cq.message.chat.id,
     message_id: cq.message.message_id,
-    reply_markup: { inline_keyboard: [] },
+    reply_markup: tecladoElegido(cq.message.reply_markup, cq.data),
   }).catch(seguirCon("boton_quitar")); // a propósito: si no se quitan, el botón viejo se puede pulsar otra vez y no rompe nada
   if (conecta) return conectarGrupo(cq, chatId);
   const casaTurno = await casaDelTurno(chatId);
