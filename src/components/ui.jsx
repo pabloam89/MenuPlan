@@ -157,6 +157,42 @@ export function SegmentedTabBar({ children, style }) {
   );
 }
 
+/**
+ * La acción que acompaña a las pestañas en su misma franja: apilada como ellas
+ * y de su mismo alto, pero fuera de la pista y en blanco, porque hace algo y no
+ * cambia de pestaña (Crear en Recetas, Compartir en Compra).
+ */
+export function BotonFranja({ Icon, label, ariaLabel, onClick, ...rest }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={ariaLabel}
+      title={ariaLabel}
+      style={{
+        flexShrink: 0,
+        width: 78,
+        padding: "5px 2px 6px",
+        borderRadius: 12,
+        border: "1.5px solid #d5e6da",
+        background: "#fff",
+        color: "#2d5a3d",
+        cursor: "pointer",
+        fontFamily: "inherit",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 3,
+      }}
+      {...rest}
+    >
+      <Icon size={18} strokeWidth={2.4} />
+      <span style={{ fontSize: 12, fontWeight: 800, lineHeight: 1.15 }}>{label}</span>
+    </button>
+  );
+}
+
 export function SegmentedTabButton({
   selected,
   onClick,
@@ -174,13 +210,13 @@ export function SegmentedTabButton({
   // acento dice ademas CUAL es, que es lo que se mira al volver a la pantalla.
   // Es el mismo trato que el Chip seleccionado del sistema (6.1) y la variante
   // `activeDark` del segmented (6.2).
-  const iconColor = selected ? "#fff" : "#9ab0a1";
+  const iconColor = selected ? "#fff" : "#67806f";
   const surface = selected
     ? { background: accent, color: "#fff", boxShadow: "none" }
-    : { background: "transparent", color: "#7a9485", boxShadow: "none" };
+    : { background: "transparent", color: "#4f655b", boxShadow: "none" };
   const badgeTone = selected
     ? { color: accent, background: "rgba(255,255,255,.92)" }
-    : { color: "#7a9485", background: "#dce8de" };
+    : { color: "#4f655b", background: "#dce8de" };
 
   if (Icon) {
     return (
