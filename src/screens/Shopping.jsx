@@ -1,5 +1,7 @@
 import { FRONTAL_BOT, GUIAS_ACTIVAS, abrirLola } from "../lib/frontalBot.js";
 import { pedidoMenu } from "../lib/pedidoLola.js";
+import { BaldosaFranja, RayaBaldosas } from "../components/wizard/ControlRow.jsx";
+import { color as tono } from "../design/tokens.js";
 import lolaFoto from "../assets/lola/lola-perfil.jpg";
 import { Suspense, lazy, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -52,9 +54,6 @@ import {
   BottomNav,
   EmptyIllustration,
   ProgressDots,
-  BotonFranja,
-  SegmentedTabBar,
-  SegmentedTabButton,
   WizardOptionCard,
   WizardSheet,
   WeekChips,
@@ -1289,12 +1288,15 @@ export function ShoppingScreen({
           —, pero se llega de un toque. Comprado
           muestra precio/envase (misma UI que Pendiente en modo €) cuando hay
           Mercadona activado; si no, la lista plana de siempre. */}
-      <div style={{ padding: "14px 16px 0", display: "flex", gap: 8 }}>
+      <div style={{ background: HEADER_BAND, padding: "0 16px 12px", display: "flex", justifyContent: "space-between" }}>
         <BuyTabs value={buyTab} onChange={setBuyTab} />
-        <BotonFranja
-          Icon={Share2}
-          label="Compartir"
-          ariaLabel="Compartir lista"
+        <RayaBaldosas />
+        <BaldosaFranja
+          Icono={Share2}
+          etiqueta="Compartir"
+          color={tono.info}
+          title="Compartir lista"
+         
           data-coach="shop-share"
           onClick={() => shareShoppingList(shopping).then((r) => {
             if (r.method === "clipboard") onToast?.("Lista copiada al portapapeles");
@@ -4004,21 +4006,19 @@ function ListSkeleton() {
   );
 }
 
-// Por comprar · Comprado · En casa. Las mismas pestañas que Recetas: icono
-// encima de la etiqueta, para que quepan al lado de Compartir a 375 px.
+// Por comprar · Comprado · En casa: las baldosas de la fila de Tu menú, con el
+// aro en la elegida, igual que en Recetas.
 const BUY_TABS = [
-  { id: "pending", label: "Por comprar", Icon: ShoppingBasket },
-  { id: "bought", label: "Comprado", Icon: CheckCircle2 },
-  { id: "home", label: "En casa", Icon: House },
+  { id: "pending", label: "Por comprar", Icon: ShoppingBasket, color: tono.aviso },
+  { id: "bought", label: "Comprado", Icon: CheckCircle2, color: tono.marca },
+  { id: "home", label: "En casa", Icon: House, color: tono.info },
 ];
 function BuyTabs({ value, onChange }) {
   return (
-    <div role="group" aria-label="Tu compra" style={{ flex: 1, minWidth: 0 }}>
-      <SegmentedTabBar>
-        {BUY_TABS.map(({ id, label, Icon }) => (
-          <SegmentedTabButton key={id} selected={value === id} onClick={() => onChange(id)} label={label} Icon={Icon} fontSize={12} aria-pressed={value === id} />
-        ))}
-      </SegmentedTabBar>
+    <div role="group" aria-label="Tu compra" style={{ display: "contents" }}>
+      {BUY_TABS.map(({ id, label, Icon, color }) => (
+        <BaldosaFranja key={id} Icono={Icon} etiqueta={label} color={color} marcado={value === id} ariaPressed={value === id} onClick={() => onChange(id)} />
+      ))}
     </div>
   );
 }
