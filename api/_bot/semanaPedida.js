@@ -12,8 +12,9 @@
  * Puro: sin base ni motor, para probarlo.
  */
 
-import { indiceDeISO, isoDeCasa, MESES_CORTOS } from "../../src/lib/dias.js";
+import { DIA_LARGO_MINUSCULAS, diaDeISO, indiceDeISO, isoDeCasa, MESES_CORTOS } from "../../src/lib/dias.js";
 import { leerBotonRehacer, textoRehacer } from "./botones.js";
+import { RE_FECHA_ISO } from "./formatoMensaje.js";
 
 export const TOPE_SEMANAS = 8;
 
@@ -29,6 +30,19 @@ const MESES_LARGOS = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "ju
 const diaYMes = (iso) => `${Number(iso.slice(8, 10))} de ${MESES_LARGOS[Number(iso.slice(5, 7)) - 1]}`;
 /** «1 al 4 de octubre», «28 de septiembre al 4 de octubre». Pura, para el test. */
 export const rangoDeFechas = (a, b) => (a.slice(0, 7) === b.slice(0, 7) ? `${Number(a.slice(8, 10))} al ${diaYMes(b)}` : `${diaYMes(a)} al ${diaYMes(b)}`);
+/** «lunes 9»: el día como se dice dentro de una semana que ya se ha nombrado. */
+export const diaYNumero = (iso) => `${DIA_LARGO_MINUSCULAS[diaDeISO(iso)]} ${Number(iso.slice(8, 10))}`;
+/** «lunes 9 de noviembre». */
+export const fechaHumana = (iso) => `${DIA_LARGO_MINUSCULAS[diaDeISO(iso)]} ${diaYMes(iso)}`;
+
+/**
+ * Pura. Lo que Lola lee de una herramienta, con cada fecha AAAA-MM-DD dicha como se dice y la de máquina al
+ * lado, marcada para los argumentos (trozo 60 de #1037): el modelo copia lo que ve, y Pablo recibió
+ * «Desde 2026-11-09». Un solo paso para todas las herramientas (agente.js), no texto a texto.
+ */
+export const fechasParaLola = (texto) => (typeof texto === "string"
+  ? texto.replace(RE_FECHA_ISO, (iso) => `${fechaHumana(iso)} (en herramientas: ${iso})`)
+  : texto);
 
 /** La semana del menú (de las que no han pasado) que cae entre ese lunes y su domingo. */
 export function semanaConMenu(semanas, lunes, hoy) {
