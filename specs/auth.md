@@ -9,7 +9,7 @@
 | Función | Input | Output | Efecto |
 |---|---|---|---|
 | `signInWithGoogle()` (`src/lib/useAuth.js:47`) | — | `{ error }` | Redirige a Google OAuth (`redirectTo: window.location.origin`) |
-| `signOut()` (`useAuth.js:69`) | — | `{ error }` | Cierra sesión Supabase; el estado local (localStorage) **no se borra** |
+| `signOut()` (`useAuth.js`) | — | `{ error }` | Cierra sesión Supabase, borra la copia local de la casa y recarga: el dispositivo vuelve a la portada (5 nov 2026) |
 | `doDeleteAccount` (`src/App.jsx`, wired a `handleDeleteAccount`) | — | — | Llama a `POST /api/delete-account` con el JWT del usuario, luego limpia estado local y hace `signOut()` |
 | `upsertUserProfile(user, extra)` (`src/lib/analytics.js:8`) | objeto `user` de Supabase Auth | — | Upsert en `user_profiles`, solo una vez por `user.id` por carga de página (`lastUpsertedUserId`, `useAuth.js:12`) |
 | `trackEvent(user, event, screen, metadata)` (`analytics.js`) | — | — | Encola evento; vacía cada 5s o cada 10 eventos, o vía `pagehide`/`visibilitychange` con `fetch(..., keepalive:true)` |
@@ -78,7 +78,6 @@ Las RLS de `user_pantry`, `user_menus`, `user_menu_weeks`, `user_menu_recipes` S
 2. **Política de privacidad inexacta**: `public/privacidad.html` promete login por "email/contraseña", que no existe en el código.
 3. **Feature completa sin usar**: sistema de hogares compartidos — coste de mantenimiento (14 funciones RPC, 8 políticas RLS extra) sin ningún beneficio de producto materializado.
 4. **Doble nombre de variable de entorno** para la clave de servicio (`SUPABASE_SERVICE_ROLE_KEY` vs `SUPABASE_SECRET_KEY`) por la coexistencia de una integración Vercel↔Supabase nativa y variables manuales — riesgo de que alguien la borre pensando que es redundante.
-5. **`signOut()` no limpia el estado local** (`storage.js` `menuplan.state.v1` persiste) — cerrar sesión dentro del mismo dispositivo no resetea el menú/familia visibles, aunque sí deja de sincronizar con la cuenta. [AMBIGUO: no está claro si esto es intencionado (mantener utilidad en modo anónimo tras cerrar sesión) o un descuido — el flujo de *borrado* de cuenta sí limpia el estado (`clearState()` en `doDeleteAccount`), lo que sugiere que el de *cierre* de sesión debería comportarse igual pero no lo hace.]
 
 ## 6. Entrar en la app desde Lola (6 oct 2026)
 
