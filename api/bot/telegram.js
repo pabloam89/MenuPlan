@@ -1916,8 +1916,11 @@ async function preguntarCambioDeCuenta(chatId, token, deAntes, casaApp, { conPed
   const casaAntes = await casaActivaDe(deAntes).catch(fallaCon("cambio_de_cuenta", null));
   const casas = [casaAntes, casaApp].filter(Boolean);
   const nombres = await select("households", `id=in.(${casas.map(encodeURIComponent).join(",")})`, "id,name").catch(fallaCon("cambio_de_cuenta", []));
+  // Sin leerlas, null: la pregunta no dice cuántas, en vez de decir que no hay nadie.
+  const personas = await select("persona", `household_id=in.(${casas.map(encodeURIComponent).join(",")})`, "household_id").catch(fallaCon("cambio_de_cuenta", null));
   const nombre = (h) => nombres.find((n) => n.id === h)?.name ?? null;
-  return enviar(chatId, preguntaDeCambio({ casaAntes: nombre(casaAntes), casaApp: nombre(casaApp), conPedido }), {
+  const cuantas = (h) => (personas ? personas.filter((p) => p.household_id === h).length : null);
+  return enviar(chatId, preguntaDeCambio({ casaAntes: nombre(casaAntes), casaApp: nombre(casaApp), personasAntes: cuantas(casaAntes), personasApp: cuantas(casaApp), conPedido }), {
     botones: [[{ texto: "Sí, pasarlo a esta cuenta", dato: `${CAMBIAR_CUENTA}${token}` }, { texto: "No", dato: `${CAMBIAR_CUENTA}no` }]],
   });
 }
