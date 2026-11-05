@@ -55,15 +55,29 @@ export const soloEntraConTelegram = (user) =>
 /**
  * «Formas de entrar» de Mi perfil (specs/auth.md §7, trozo 2): con qué entra la cuenta (`tiene`) y qué se le puede
  * añadir. Telegram sale solo en las cuentas nacidas en Telegram, que son las que abre (trozo 3 para las demás), y
- * no se añade desde aquí. Apple, solo donde se ofrece (`conApple`, el de SignInOptions).
- * @returns {{ forma: string, tiene: boolean }[]}
+ * ni se añade ni se quita desde aquí. Apple, donde se ofrece (`conApple`) o si la cuenta ya entra con él.
+ * `apagable`: se puede quitar, porque le queda otra forma de entrar. La última nunca, o la cuenta se quedaría sin llave.
+ * @returns {{ forma: string, tiene: boolean, apagable: boolean }[]}
  */
 export function formasDeEntrar(user, { conApple }) {
+  const conTelegram = esCuentaDeTelegram(user);
+  const google = tieneProveedor(user, FORMA_DE_ENTRAR.GOOGLE);
+  const apple = tieneProveedor(user, FORMA_DE_ENTRAR.APPLE);
+  const hayOtra = [conTelegram, google, apple].filter(Boolean).length > 1;
   const formas = [];
-  if (esCuentaDeTelegram(user)) formas.push({ forma: FORMA_DE_ENTRAR.TELEGRAM, tiene: true });
-  formas.push({ forma: FORMA_DE_ENTRAR.GOOGLE, tiene: tieneProveedor(user, FORMA_DE_ENTRAR.GOOGLE) });
-  if (conApple) formas.push({ forma: FORMA_DE_ENTRAR.APPLE, tiene: tieneProveedor(user, FORMA_DE_ENTRAR.APPLE) });
+  if (conTelegram) formas.push({ forma: FORMA_DE_ENTRAR.TELEGRAM, tiene: true, apagable: false });
+  formas.push({ forma: FORMA_DE_ENTRAR.GOOGLE, tiene: google, apagable: google && hayOtra });
+  if (conApple || apple) formas.push({ forma: FORMA_DE_ENTRAR.APPLE, tiene: apple, apagable: apple && hayOtra });
   return formas;
+}
+
+/** El nombre de cada forma de entrar, para la pantalla. */
+export const NOMBRE_FORMA = Object.freeze({ telegram: "Telegram", google: "Google", apple: "Apple" });
+
+/** La línea de la fila de Mi perfil: con qué entra hoy la cuenta. */
+export function resumenDeFormas(formas) {
+  const nombres = formas.filter((f) => f.tiene).map((f) => NOMBRE_FORMA[f.forma]);
+  return `Entras con ${nombres.length > 1 ? `${nombres.slice(0, -1).join(", ")} y ${nombres.at(-1)}` : nombres[0] ?? "tu cuenta"}`;
 }
 
 /**
@@ -120,6 +134,9 @@ export const NO_SE_PUDO_ANADIR = Object.freeze({
   [FORMA_DE_ENTRAR.GOOGLE]: NO_SE_PUDO_GOOGLE,
   [FORMA_DE_ENTRAR.APPLE]: "No se pudo abrir Apple. Inténtalo de nuevo.",
 });
+
+/** Cuando no se ha podido quitar una forma de entrar. */
+export const NO_SE_PUDO_QUITAR = "No se ha podido quitar. Inténtalo de nuevo.";
 
 /** El aviso de una URL de vuelta con error (en la query o en el hash), o null si no trae error. */
 export function avisoAlVolver(url) {
