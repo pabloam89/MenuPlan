@@ -45,6 +45,10 @@ export const esCuentaDeTelegram = (user) => typeof user?.email === "string" && u
 /** ¿La cuenta ya entra con ese proveedor (google, apple…)? */
 export const tieneProveedor = (user, proveedor) => (user?.identities ?? []).some((i) => i.provider === proveedor);
 
+/** ¿Solo se entra a esta cuenta con su Telegram? Nació allí y no tiene otra llave: si Telegram se va, nadie puede abrirla. */
+export const soloEntraConTelegram = (user) =>
+  esCuentaDeTelegram(user) && !tieneProveedor(user, "google") && !tieneProveedor(user, "apple");
+
 /** Las formas de entrar, en el orden en que se enseñan (Telegram primero). Google y Apple son proveedores de Supabase. */
 export const FORMA_DE_ENTRAR = Object.freeze({ TELEGRAM: "telegram", GOOGLE: "google", APPLE: "apple" });
 

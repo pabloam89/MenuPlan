@@ -56,7 +56,7 @@ import {
   recetaEnTexto, semanaEnTexto, copiarReceta, cuentasDeQuien,
 } from "../_bot/compartir.js";
 import { motor } from "../_bot/menu.js";
-import { enlazarChat, apuntarEnlace, crearCodigo, gastarCodigo, baseDe, confirmarEnlace, casaPropia, idDePersona, codigoDeGrupo, esCodigoDeGrupo, cuentaDeTelegram, pideCambioDeCuenta, preguntaDeCambio, CAMBIO } from "../_bot/enlace.js";
+import { enlazarChat, apuntarEnlace, crearCodigo, gastarCodigo, baseDe, confirmarEnlace, casaPropia, idDePersona, codigoDeGrupo, esCodigoDeGrupo, cuentaDeTelegram, pideCambioDeCuenta, preguntaDeCambio, NO_SE_PASA_LA_LLAVE, CAMBIO } from "../_bot/enlace.js";
 import { papelDeQuien, casaActivaDe } from "../_bot/papel.js";
 import { unirsePorInvitacion, ES_INVITACION } from "../_bot/invitacion.js";
 import { traducir } from "../_bot/traducir.js";
@@ -66,7 +66,7 @@ import { hoyISO, cargarCasa } from "../_bot/casa.js";
 import { puedeBorrar, borrarCuenta, limpiarPantalla } from "../_bot/borrar.js";
 import { partirStart, fraseDePedido } from "../../src/lib/pedidoLola.js";
 import { payloadStart } from "../../src/lib/ids.js";
-import { enviarAcceso, verificarCodigoEmail, cuentaNacidaAqui } from "../_bot/cuentas.js";
+import { enviarAcceso, verificarCodigoEmail, cuentaNacidaAqui, dejariaCasaSinEntrada } from "../_bot/cuentas.js";
 import { cuentaYChat as cuentaYChatDe } from "../_bot/altaTelegram.js";
 import { DOMINIO_LOGIN_TELEGRAM } from "../../src/lib/cuentaTelegram.js";
 import { primeraVez } from "../_bot/entradas.js";
@@ -1877,10 +1877,20 @@ async function enlazarDesdeAjustes(msg, chatId, esGrupo, token, { callado = fals
   // Este Telegram ya es otra cuenta (#1238, recorrido 4): antes de gastar el enlace, se pregunta. El «sí» trae el
   // mismo enlace y vuelve aquí con `cambiar`. Lo pedido desde la app (callado) no se hace, porque sería en la otra
   // casa, ni se guarda: el «sí» no lo lleva, y la pregunta dice que hay que pedirlo otra vez.
-  const deAntes = cambiar || esGrupo ? null : await cuentaDeTelegram(idDePersona(msg.from));
+  const deAntes = esGrupo ? null : await cuentaDeTelegram(idDePersona(msg.from));
   if (pideCambioDeCuenta({ esGrupo, deAntes, userId: fila.user_id })) {
-    await preguntarCambioDeCuenta(chatId, token, deAntes, fila.household_id, { conPedido: callado });
-    return callado ? { ocupado: true } : null;
+    // La llave no se mueve si deja una casa con gente sin entrada (#1302), tampoco con un «sí» de antes. Sin poder
+    // saberlo, tampoco: mover es lo que no se puede deshacer.
+    const atrapa = await dejariaCasaSinEntrada(deAntes).catch(fallaCon("cambio_de_cuenta", SIN_LEER));
+    if (atrapa) {
+      await rechazo(RESULTADO_ENLACE.OCUPADO);
+      await enviar(chatId, atrapa === SIN_LEER ? noPude("cuenta") : NO_SE_PASA_LA_LLAVE);
+      return callado ? { ocupado: true } : null;
+    }
+    if (!cambiar) {
+      await preguntarCambioDeCuenta(chatId, token, deAntes, fila.household_id, { conPedido: callado });
+      return callado ? { ocupado: true } : null;
+    }
   }
 
   // Marcarlo usado ANTES de enlazar: dos pulsaciones seguidas no enlazan dos veces.

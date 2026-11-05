@@ -85,6 +85,10 @@ export function preguntaDeCambio({ casaAntes, casaApp, conPedido = false }) {
     + (conPedido ? "\n\nLo que me has pedido desde la app no lo he hecho: cuando contestes, pídemelo otra vez." : "");
 }
 
+/** Por qué no se pasa este Telegram a otra cuenta: es la única llave de una casa con gente dentro (#1302). */
+export const NO_SE_PASA_LA_LLAVE = "No paso este Telegram a esa cuenta: es la única forma de entrar en tu casa y te quedarías fuera.\n\n"
+  + "Entra en la app con Telegram y añade ahí tu Google, en Mi perfil → Formas de entrar. Si ese Google ya tiene una cuenta vacía, bórrala antes.";
+
 export const chatOcupado = (actual, householdId, userId) =>
   Boolean(actual && actual.household_id !== householdId && actual.linked_by !== userId);
 

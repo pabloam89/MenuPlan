@@ -42,14 +42,14 @@ vi.mock("../_bot/menu.js", () => ({ motor: vi.fn() }));
 vi.mock("../_bot/ajustes.js", () => ({ sembrarCasa: vi.fn() }));
 // Las piezas puras del cambio de cuenta, las de verdad; la cuenta de este Telegram, la que diga t.deAntes.
 vi.mock("../_bot/enlace.js", async (original) => ({
-  ...(({ pideCambioDeCuenta, preguntaDeCambio, CAMBIO }) => ({ pideCambioDeCuenta, preguntaDeCambio, CAMBIO }))(await original()),
+  ...(({ pideCambioDeCuenta, preguntaDeCambio, NO_SE_PASA_LA_LLAVE, CAMBIO }) => ({ pideCambioDeCuenta, preguntaDeCambio, NO_SE_PASA_LA_LLAVE, CAMBIO }))(await original()),
   cuentaDeTelegram: vi.fn(async () => t.deAntes),
   enlazarChat: vi.fn(async () => ({ ok: true })), apuntarEnlace: vi.fn(async () => {}), crearCodigo: vi.fn(), gastarCodigo: vi.fn(), baseDe: () => "https://x", confirmarEnlace: vi.fn(async () => ({})), casaPropia: vi.fn(), idDePersona: (f) => (f?.id ? String(f.id) : null), codigoDeGrupo: vi.fn(), esCodigoDeGrupo: () => t.deGrupo }));
 vi.mock("../_bot/invitacion.js", () => ({ unirsePorInvitacion: vi.fn(), ES_INVITACION: /^inv_([0-9a-f]{32})$/ }));
 vi.mock("../_bot/traducir.js", () => ({ traducir: vi.fn(async (xs) => xs) }));
 vi.mock("../_bot/casa.js", () => ({ hoyISO: () => "2026-10-06", cargarCasa: vi.fn() }));
 vi.mock("../_bot/borrar.js", () => ({ puedeBorrar: () => false, borrarCuenta: vi.fn(), limpiarPantalla: vi.fn() }));
-vi.mock("../_bot/cuentas.js", () => ({ enviarAcceso: vi.fn(), verificarCodigoEmail: vi.fn(), crearCuentaTelegram: vi.fn(), cuentaNacidaAqui: vi.fn() }));
+vi.mock("../_bot/cuentas.js", () => ({ dejariaCasaSinEntrada: vi.fn(async () => t.atrapa), enviarAcceso: vi.fn(), verificarCodigoEmail: vi.fn(), crearCuentaTelegram: vi.fn(), cuentaNacidaAqui: vi.fn() }));
 
 const { default: handler } = await import("./telegram.js");
 const { enlazarChat, apuntarEnlace } = await import("../_bot/enlace.js");
@@ -73,7 +73,7 @@ const codigoValido = (token) => ({
 });
 
 beforeEach(() => {
-  t.tablas = {}; t.deAntes = null; t.deGrupo = false; t.enviados.length = 0; t.trabajo.length = 0;
+  t.tablas = {}; t.atrapa = false; t.deAntes = null; t.deGrupo = false; t.enviados.length = 0; t.trabajo.length = 0;
   vi.clearAllMocks();
 });
 
@@ -148,6 +148,28 @@ describe("/start: cambiar de cuenta, con confirmación (#1238)", () => {
     t.deAntes = "u-antes";
     await pulsa(`cc:${TOKEN}`);
     expect(enlazarChat).toHaveBeenCalledWith(expect.objectContaining({ userId: "u1", householdId: "h1", identidad: "cambio" }));
+  });
+
+  it("si dejaría una casa con gente sin entrada, no se pregunta ni se mueve, tampoco con un «sí» de antes (#1302)", async () => {
+    t.tablas = codigoValido(TOKEN);
+    t.deAntes = "u-antes";
+    t.atrapa = true;
+    await escribe(`/start ${TOKEN}`);
+    expect(t.enviados.at(-1).texto).toMatch(/es la única forma de entrar en tu casa/);
+    expect(t.enviados.at(-1).opciones?.botones).toBeUndefined();
+    await pulsa(`cc:${TOKEN}`);
+    expect(enlazarChat).not.toHaveBeenCalled();
+    expect(update).not.toHaveBeenCalled();
+  });
+
+  it("sin poder comprobarlo, tampoco se mueve (#1302)", async () => {
+    t.tablas = codigoValido(TOKEN);
+    t.deAntes = "u-antes";
+    const { dejariaCasaSinEntrada } = await import("../_bot/cuentas.js");
+    dejariaCasaSinEntrada.mockRejectedValueOnce(new Error("base caída"));
+    await pulsa(`cc:${TOKEN}`);
+    expect(enlazarChat).not.toHaveBeenCalled();
+    expect(t.enviados.at(-1).texto).toMatch(/No he podido comprobar/);
   });
 
   it("con el «no», nada", async () => {
