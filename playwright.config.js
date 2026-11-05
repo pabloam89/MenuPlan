@@ -10,7 +10,7 @@
 // package.json, que antes baja Chromium si no está), y el job `tests` llama a
 // `npm test`. A mano: `npm run e2e` o `npx playwright test e2e/recorrido.spec.js`.
 import { defineConfig, devices } from "@playwright/test";
-import { esReferencia, leerFichero } from "./scripts/lib/env.mjs";
+import { direcciones, esReferencia } from "./scripts/lib/env.mjs";
 import { RAMA_STAGING, banderas } from "./scripts/lib/banderas.mjs";
 
 // Puerto propio y `strictPort`: el 5176 es el de `npm run dev`, y reutilizar
@@ -27,13 +27,13 @@ const SIN_CLAVE = "e2e-sin-clave";
 // y al .env.local de quien la corre.
 const BANDERAS_STAGING = banderas(RAMA_STAGING);
 
-// vite.config.js lee el .env.local siempre, y una dirección op:// la resuelve
-// con 1Password: hay que anularlo aquí. Solo se leen los NOMBRES. Una op://
-// pasa a una clave que no sirve (vacía, cargarEnv volvería al fichero y la
-// resolvería); el resto, a vacío, que en loadEnv pisa al fichero. Sin
-// .env.local (el CI) no hay nada que anular.
+// vite.config.js lee las direcciones (ops/env.1password y .env.local) siempre,
+// y una op:// la resuelve con 1Password: hay que anularlo aquí. Solo se leen los
+// NOMBRES. Una op:// pasa a una clave que no sirve (vacía, cargarEnv volvería a
+// la dirección y la resolvería); el resto, a vacío, que en loadEnv pisa al
+// fichero. En el CI no hay direcciones: nada que anular.
 const sinEnvLocal = Object.fromEntries(
-  Object.entries(leerFichero()).map(([k, v]) => [k, esReferencia(v) ? SIN_CLAVE : ""]),
+  Object.entries(direcciones()).map(([k, v]) => [k, esReferencia(v) ? SIN_CLAVE : ""]),
 );
 
 export default defineConfig({
