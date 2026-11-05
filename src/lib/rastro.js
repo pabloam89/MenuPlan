@@ -12,6 +12,8 @@
  * Nada de texto de la persona aquí: ids de receta, días, comidas y motivos.
  */
 export const RASTRO = {
+  // La casa no se pudo cargar en la app: en el servidor puede verse como un 200 (#1302). metadata: piezas (PIEZA_DE_CASA).
+  CASA_SIN_CARGAR: "casa_sin_cargar",
   // Un plato quitado y otro puesto. metadata: day, meal, course, groupId,
   // oldRecipeId, newRecipeId, motivo (MOTIVO_CAMBIO).
   PLATO_CAMBIADO: "dish_replaced",
