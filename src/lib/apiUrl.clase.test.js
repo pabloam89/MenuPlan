@@ -78,3 +78,25 @@ describe("toda ruta /api/ de src/ pasa por apiUrl()", () => {
     expect(sueltas('/* "/api/a" */ const x = 1;')).toEqual([]);
   });
 });
+
+// Dentro del navegador de Telegram, Google no deja entrar (disallowed_useragent): la pantalla de entrada ofrece solo
+// Telegram (trozo 5 de specs/auth.md §7). Los objetos que mete Telegram y su firma en Android.
+const { enTelegram } = await import("./apiUrl.js");
+const navegador = (extra = {}, ua = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)") => ({ navigator: { userAgent: ua }, ...extra });
+
+describe("enTelegram: el navegador de dentro de Telegram", () => {
+  it("iOS: TelegramWebviewProxy (y su Proto)", () => {
+    expect(enTelegram(navegador({ TelegramWebviewProxy: {} }))).toBe(true);
+    expect(enTelegram(navegador({ TelegramWebviewProxyProto: {} }))).toBe(true);
+  });
+
+  it("Android: TelegramWebview, o la firma Telegram-Android/ del navegador", () => {
+    expect(enTelegram(navegador({ TelegramWebview: {} }))).toBe(true);
+    expect(enTelegram(navegador({}, "Mozilla/5.0 (Linux; Android 14) Telegram-Android/11.3.3 (Google Pixel; Android 14; SDK 34; HIGH)"))).toBe(true);
+  });
+
+  it("un navegador cualquiera, o sin ventana: no", () => {
+    expect(enTelegram(navegador())).toBe(false);
+    expect(enTelegram(null)).toBe(false);
+  });
+});

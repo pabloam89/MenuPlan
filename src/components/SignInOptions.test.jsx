@@ -92,6 +92,27 @@ describe("SignInOptions", () => {
   });
 });
 
+// Dentro de Telegram, Google y Apple no dejan entrar (trozo 5 de specs/auth.md §7): solo «Entrar con Telegram» y
+// dónde entrar con los otros.
+describe("SignInOptions dentro de Telegram", () => {
+  const URL_TG = "https://oauth.telegram.org/auth?bot_id=1";
+  const botones = () => [...container.querySelectorAll("button")].map((b) => b.textContent);
+
+  it("solo «Entrar con Telegram», y «Ábrelo en el navegador» para Google y Apple", async () => {
+    vi.stubEnv("VITE_APPLE_WEB", "on");
+    const texto = await montar(false, { urlTelegram: URL_TG, dentroDeTelegram: true });
+    expect(botones()).toEqual(["Entrar con Telegram"]);
+    expect(texto).toContain("Ábrelo en el navegador");
+  });
+
+  it("fuera de Telegram, igual que siempre", async () => {
+    vi.stubEnv("VITE_APPLE_WEB", "on");
+    const texto = await montar(false, { urlTelegram: URL_TG, dentroDeTelegram: false });
+    expect(botones()).toEqual(["Entrar con Telegram", "Continuar con Apple", "Continuar con Google"]);
+    expect(texto).not.toContain("Ábrelo en el navegador");
+  });
+});
+
 // «¿Ya hablas con Lola?» (trozo 4 de specs/auth.md §7): la pregunta antes de crear una cuenta de Google o Apple.
 describe("PreguntaDeCuenta: «¿Ya hablas con Lola?»", () => {
   async function pregunta(props) {
