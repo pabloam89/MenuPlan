@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { lineaDeCamino, rellenos } from "./manual.js";
 import { CAMINO, CAMINOS } from "../../src/lib/caminos.js";
-import { BOTON_SALIR, BOTONES_CAMINO, BOTONES_CAMINO_TELEGRAM, IDS_CAMINO, PREGUNTA_DE_CAMINO, LEYENDA_CAMINOS, caminoDelBoton, faltaParaGenerar, hayNinosEn, preguntaDeCamino, preguntasDelCamino } from "./caminoMenu.js";
+import { BOTON_SALIR, BOTON_ULTIMA_VEZ, BOTONES_CAMINO, BOTONES_CAMINO_TELEGRAM, IDS_CAMINO, PREGUNTA_DE_CAMINO, LEYENDA_CAMINOS, caminoDelBoton, faltaParaGenerar, hayNinosEn, preguntaDeCamino, preguntasDelCamino } from "./caminoMenu.js";
 import { faltasDeFormato } from "./formatoMensaje.js";
 
 describe("los caminos de Lola son los de la app", () => {
@@ -119,6 +119,7 @@ describe("el botón de salir (trozo 67)", () => {
     const manual = readFileSync(new URL("./conocimiento.md", import.meta.url), "utf8");
     expect(manual.match(/\[\[Ya está[^\]]*\]\]/g).every((b) => b === `[[${BOTON_SALIR}]]`)).toBe(true);
     expect(manual).toContain(`[[${BOTON_SALIR}]]`);
+    expect(manual).toContain(`[[${BOTON_ULTIMA_VEZ}]]`);
   });
 });
 
