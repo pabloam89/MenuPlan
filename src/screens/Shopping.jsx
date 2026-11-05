@@ -17,6 +17,7 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  CheckCircle2,
   CircleHelp,
   Coffee,
   Croissant,
@@ -24,6 +25,7 @@ import {
   Egg,
   Fish,
   Hash,
+  House,
   Refrigerator,
   Leaf,
   Loader2,
@@ -52,7 +54,9 @@ import {
   BottomNav,
   EmptyIllustration,
   ProgressDots,
-  SegmentedControl,
+  BotonFranja,
+  SegmentedTabBar,
+  SegmentedTabButton,
   WizardOptionCard,
   WizardSheet,
   WeekChips,
@@ -1295,19 +1299,6 @@ export function ShoppingScreen({
             )}
           </div>
           <div style={{ display: "flex", gap: 8 }}>
-            <button
-              type="button"
-              data-coach="shop-share"
-              onClick={() => shareShoppingList(shopping).then((r) => {
-                if (r.method === "clipboard") onToast?.("Lista copiada al portapapeles");
-                else if (r.method === "download") onToast?.("Lista descargada");
-              })}
-              style={iconBtnStyle}
-              aria-label="Compartir lista"
-              title="Compartir lista"
-            >
-              <Share2 size={17} strokeWidth={2.2} />
-            </button>
             {buyTab === "home" && canEditPantryPrefs && (
               <button
                 type="button"
@@ -1329,8 +1320,18 @@ export function ShoppingScreen({
           (pantryPrefs.consume) —, pero se llega de un toque. Comprado
           muestra precio/envase (misma UI que Pendiente en modo €) cuando hay
           Mercadona activado; si no, la lista plana de siempre. */}
-      <div style={{ padding: "14px 16px 0" }}>
+      <div style={{ padding: "14px 16px 0", display: "flex", gap: 8 }}>
         <BuyTabs value={buyTab} onChange={setBuyTab} />
+        <BotonFranja
+          Icon={Share2}
+          label="Compartir"
+          ariaLabel="Compartir lista"
+          data-coach="shop-share"
+          onClick={() => shareShoppingList(shopping).then((r) => {
+            if (r.method === "clipboard") onToast?.("Lista copiada al portapapeles");
+            else if (r.method === "download") onToast?.("Lista descargada");
+          })}
+        />
       </div>
 
       {buyTab === "home" ? (
@@ -4053,17 +4054,23 @@ function ListSkeleton() {
   );
 }
 
-// Por comprar · Comprado · En casa. SegmentedControl (ui.jsx) no deja pasar
-// roles ni aria a sus botones, así que se le ponen desde fuera al montarlo; el
-// alto de 44 sale de estirar el contenedor (los botones llenan su alto).
+// Por comprar · Comprado · En casa. Las mismas pestañas que Recetas: icono
+// encima de la etiqueta, para que quepan al lado de Compartir a 375 px.
 const BUY_TABS = [
-  { id: "pending", label: "Por comprar" },
-  { id: "bought", label: "Comprado" },
-  { id: "home", label: "En casa" },
+  { id: "pending", label: "Por comprar", Icon: ShoppingBasket },
+  { id: "bought", label: "Comprado", Icon: CheckCircle2 },
+  { id: "home", label: "En casa", Icon: House },
 ];
-// 44 px de toque: el control mide 50 con 3 px de relleno por lado.
 function BuyTabs({ value, onChange }) {
-  return <SegmentedControl options={BUY_TABS} value={value} onChange={onChange} ariaLabel="Tu compra" style={{ minHeight: 50 }} />;
+  return (
+    <div role="group" aria-label="Tu compra" style={{ flex: 1, minWidth: 0 }}>
+      <SegmentedTabBar>
+        {BUY_TABS.map(({ id, label, Icon }) => (
+          <SegmentedTabButton key={id} selected={value === id} onClick={() => onChange(id)} label={label} Icon={Icon} fontSize={12} aria-pressed={value === id} />
+        ))}
+      </SegmentedTabBar>
+    </div>
+  );
 }
 
 const titleStyle = {
