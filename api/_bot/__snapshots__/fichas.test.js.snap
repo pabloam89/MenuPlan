@@ -2324,6 +2324,45 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
    "additionalProperties": false
   },
   "description": "Guarda la última receta preparada con preparar_receta en esta charla (la herramienta la tiene apartada: no hace falta volver a pedir ningún dato), en el recetario de la casa, y el motor ya puede ponerla en menús. Llámala en cuanto digan «Guardar» o «sí» al resumen, con confirmado = true y el nombre de la receta que han aprobado (si no es la última preparada, no se guarda)."
+ },
+ {
+  "type": "custom",
+  "name": "receta_propia",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "accion": {
+     "type": "string",
+     "enum": [
+      "favorita",
+      "no_favorita",
+      "borrar",
+      "nueva_carpeta",
+      "borrar_carpeta",
+      "a_carpeta",
+      "sacar_de_carpeta",
+      "recuperar"
+     ]
+    },
+    "receta": {
+     "type": "string",
+     "description": "El nombre de la receta, como lo dicen. Todas menos nueva_carpeta y borrar_carpeta."
+    },
+    "carpeta": {
+     "type": "string",
+     "description": "El nombre de la carpeta: para nueva_carpeta, borrar_carpeta, a_carpeta y sacar_de_carpeta."
+    },
+    "confirmado": {
+     "type": "boolean",
+     "description": "Solo para borrar y borrar_carpeta, tras su «sí»."
+    }
+   },
+   "required": [
+    "accion"
+   ],
+   "additionalProperties": false
+  },
+  "description": "Las recetas y las carpetas de quien escribe, como en «Mis recetas» de la app. Con una receta que nombran: favorita (la marca como favorita, del catálogo o vuestra), no_favorita (se la quita), borrar (solo las vuestras, no las del catálogo), a_carpeta o sacar_de_carpeta (con la carpeta), o recuperar (la saca de «Descartados», las que la casa descartó, y vuelve a poder salir en los menús). Con una carpeta: nueva_carpeta o borrar_carpeta (las cuatro fijas no se borran; las recetas de dentro no se borran). Borrar no se deshace: llámala primero sin confirmado, pregunta con el nombre que te devuelva y vuelve a llamarla con confirmado = true y ese nombre solo con su «sí»."
  }
 ]"
 `;

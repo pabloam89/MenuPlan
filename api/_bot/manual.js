@@ -16,7 +16,7 @@ export const MARCAS_MANUAL = Object.freeze({
   QUE_SABES_HACER: "lo que se hace con tus herramientas (las capacidades con algo en Lola)",
   SOLO_EN_LA_APP: "lo que la app hace y tú no (las capacidades sin nada en Lola y con la app encendida)",
   QUE_SE_DESHACE: "lo que «deshaz» no vuelve atrás (las capacidades cuyas herramientas no se deshacen)",
-  CAMINOS: "los tres caminos de antes de cada menú, con su botón, qué pasa y un ejemplo (src/lib/caminos.js)",
+  CAMINOS: "los tres caminos de antes de cada menú: una línea por camino con su botón en negrita, y un ejemplo de cada uno (src/lib/caminos.js)",
   FORMATO: "las reglas de forma de un mensaje (REGLAS_FORMATO, formatoMensaje.js): las mismas que mide el revisor",
   USAN_UN_HUECO: "las herramientas que trabajan sobre un hueco del menú, tras las que un ver_menu no se pinta (USAN_UN_HUECO)",
 });
@@ -31,8 +31,14 @@ export const oNombres = (nombres) => {
   return xs.length < 2 ? xs.join("") : `${xs.slice(0, -1).join(", ")} o ${xs.at(-1)}`;
 };
 
-/** Un camino como lo enseña Lola: el botón, qué pasa, cuánto se tarda y un ejemplo de respuesta. */
-const lineaDeCamino = (c) => `[[${c.titulo}]]: ${c.resumen.replace(/.$/, "")} (${c.minutos} min). Ej.: «${c.ejemplo}».`;
+/**
+ * Un camino como lo enseña Lola: su botón en negrita, qué pasa y cuánto se tarda. El botón de verdad ([[…]]) va
+ * aparte, solo en su línea: dentro de la frase el chat se lo lleva y la línea se queda en «:» (trozo 60 de #1037).
+ */
+export const lineaDeCamino = (c) => `<b>${c.titulo}</b>: ${c.enChat.replace(/\.$/, "")} (${c.minutos} min)`;
+
+/** Un ejemplo de respuesta por camino, para cuando preguntan qué es cada uno. */
+const ejemplosDeCaminos = () => `Si preguntan qué es cada uno, un ejemplo de respuesta: ${CAMINOS.map((c) => `${c.titulo}, «${c.ejemplo}»`).join("; ")}.`;
 
 const MARCA = /\{\{([A-Z_]+)\}\}/g;
 const lista = (caps) => caps.map((c) => `• ${c.accion}`).join("\n");
@@ -53,7 +59,7 @@ export function rellenos({ capacidades, fichas }) {
     QUE_SABES_HACER: lista(deLola),
     SOLO_EN_LA_APP: lista(capacidades.filter((c) => c.lola.length === 0 && enApp(c))),
     QUE_SE_DESHACE: lista(sinDeshacer),
-    CAMINOS: CAMINOS.map(lineaDeCamino).join("\n"),
+    CAMINOS: [...CAMINOS.map(lineaDeCamino), ejemplosDeCaminos()].join("\n"),
     FORMATO: formatoParaElManual(),
     USAN_UN_HUECO: oNombres(USAN_UN_HUECO),
   };

@@ -1,5 +1,5 @@
 import { FRONTAL_BOT } from "../lib/frontalBot.js";
-import { seOfreceApple } from "../lib/apiUrl.js";
+import { seOfreceApple, enTelegram } from "../lib/apiUrl.js";
 import { useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { BookOpen, Calendar, ChevronDown, ClipboardList, CookingPot, Home, Send, ShoppingCart, Sparkles, UserCircle, Users, X } from "./icons.jsx";
@@ -411,7 +411,7 @@ export function EmptyIllustration({
 // size="sm" is an opt-in compact variant (e.g. inline next to a segmented
 // control where there's no room for the full-size 48×28 switch) — default
 // stays exactly as before for every existing caller.
-export function ToggleSwitch({ checked, onChange, label, size = "md" }) {
+export function ToggleSwitch({ checked, onChange, label, size = "md", disabled = false, ariaLabel }) {
   const sm = size === "sm";
   const trackW = sm ? 34 : 48;
   const trackH = sm ? 20 : 28;
@@ -434,6 +434,8 @@ export function ToggleSwitch({ checked, onChange, label, size = "md" }) {
         type="button"
         role="switch"
         aria-checked={checked}
+        aria-label={ariaLabel}
+        disabled={disabled}
         onClick={() => onChange(!checked)}
         style={{
           width: trackW,
@@ -442,7 +444,8 @@ export function ToggleSwitch({ checked, onChange, label, size = "md" }) {
           border: "none",
           padding: 2,
           background: checked ? "#2d5a3d" : "#d4e0d8",
-          cursor: "pointer",
+          cursor: disabled ? "default" : "pointer",
+          opacity: disabled ? 0.5 : 1,
           flexShrink: 0,
           transition: "background .2s",
         }}
@@ -713,7 +716,7 @@ export function SliderInput({ label, value, min, max, step, suffix, valueLabel, 
   );
 }
 
-function GoogleGlyph({ size = 18 }) {
+export function GoogleGlyph({ size = 18 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 48 48" aria-hidden="true" style={{ flexShrink: 0 }}>
       <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
@@ -724,7 +727,18 @@ function GoogleGlyph({ size = 18 }) {
   );
 }
 
-function AppleGlyph({ size = 18, color = "#fff" }) {
+export function TelegramGlyph({ size = 18, color = tono.telegram }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" style={{ flexShrink: 0 }}>
+      <path
+        fill={color}
+        d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"
+      />
+    </svg>
+  );
+}
+
+export function AppleGlyph({ size = 18, color = "#fff" }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" style={{ flexShrink: 0 }}>
       <path
@@ -937,13 +951,29 @@ export function SignInOptions({
   variant = "light",
   conApple = seOfreceApple(),
   urlTelegram = typeof window === "undefined" ? null : urlEntrarConTelegram(window.location),
+  dentroDeTelegram = enTelegram(),
 }) {
   const dark = variant === "dark";
   return (
     <div style={{ display: "grid", gap: 10 }}>
       {urlTelegram && <TelegramButton url={urlTelegram} variant={variant} />}
-      {conApple && <AppleButton onClick={onApple} variant={variant} />}
-      <GoogleButton onClick={onGoogle} variant={variant} />
+      {/* Dentro de Telegram, Google y Apple no dejan entrar (trozo 5 de specs/auth.md §7): solo se dice dónde sí. */}
+      {dentroDeTelegram ? (
+        <p style={{
+          margin: 0,
+          textAlign: "center",
+          fontSize: tipografia["paso-12"],
+          fontWeight: tipografia["peso-700"],
+          color: dark ? tono.superficie : tono["tinta-suave"],
+        }}>
+          ¿Con Google o Apple? Ábrelo en el navegador.
+        </p>
+      ) : (
+        <>
+          {conApple && <AppleButton onClick={onApple} variant={variant} />}
+          <GoogleButton onClick={onGoogle} variant={variant} />
+        </>
+      )}
       {/* La aceptación de los términos vive aquí y no en cada pantalla porque
           aquí es donde nace la cuenta, y porque App Store exige, en apps con
           contenido de usuarios, que el usuario acepte unas condiciones con
