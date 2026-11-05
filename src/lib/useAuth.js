@@ -11,7 +11,8 @@ import { avisoAlVolver, esAltaNueva, urlEntrarConTelegram, PREGUNTA_ALTA, provee
 // esa cuenta deja de existir (/borrarme en Telegram, o borrada en otro
 // dispositivo), la copia no puede quedarse: la app la enseñaba como invitado
 // —el «menú raro»— y la subía a la siguiente cuenta que entrara. Al cerrar
-// sesión a mano se quita la marca y la copia se queda, como siempre.
+// sesión a mano pasa igual: la casa vive en la cuenta, y este dispositivo
+// vuelve a la portada, sin enseñársela al siguiente que lo coja.
 const MARCA = "homenu:cuenta";
 const leerMarca = () => { try { return localStorage.getItem(MARCA); } catch { return null; } };
 const ponerMarca = (id) => { try { localStorage.setItem(MARCA, id); } catch { /* noop */ } };
@@ -258,6 +259,7 @@ export function useAuth() {
       }
       setSession(null);
     }
+    recargarLimpio();
     return { error };
   }, []);
 

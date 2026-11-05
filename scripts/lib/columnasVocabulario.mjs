@@ -37,6 +37,8 @@ export const COLUMNAS_VOCABULARIO = Object.freeze({
   // El registro de intentos de enlace (0126, #1238).
   "bot_enlaces.camino_enlace": { lista: "caminos_enlace" },
   "bot_enlaces.resultado_enlace": { lista: "resultados_enlace" },
+  // La prueba de cada identidad (0129, #1238): qué Telegram abre una cuenta que no nació en él.
+  "bot_identities.prueba_identidad": { lista: "pruebas_identidad" },
   "bot_codigos.channel": { lista: "canales", comun: true },
   "bot_messages.channel": { lista: "canales", comun: true },
   "bot_tareas.channel": { lista: "canales", comun: true },
