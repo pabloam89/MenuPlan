@@ -130,7 +130,7 @@ export function guardarMenuCole(householdId, { semanas: pedidas, para }, vista =
     const nombres = (lista) => [...new Set(lista)].map((d) => DIA_LARGO_MINUSCULAS[d]).join(", ");
     const avisoSin = [
       liberados.length ? ` Los ${nombres(liberados)} no hay cole: en el horario, ese día comen en casa.` : "",
-      aVeces.length ? ` Algún ${nombres(aVeces)} no hay clase (¿festivo?): pregunta qué día exacto, y si comen fuera o en casa, apúntalo con fuera_de_casa o déjalo.` : "",
+      aVeces.length ? ` Algún ${nombres(aVeces)} no hay clase (¿festivo?): pregunta qué día exacto, y si comen fuera o en casa, apúntalo con donde_come o déjalo.` : "",
     ].join("");
     const texto = `Menú del cole guardado${kidId ? ` para ${para}` : " para todos los que comen en el cole"}: ${weeksEntries.length} semana(s), ${platos} platos. Al generar, las cenas no repetirán lo del cole.${avisoSin}`;
     return {
