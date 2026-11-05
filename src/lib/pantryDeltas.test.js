@@ -146,6 +146,12 @@ describe("estrenoFinDelDia: una casa con un modo antiguo pasa sin descontar dos 
     expect(patch.pantryPrefs).toEqual({});
   });
 
+  it("«al generar» barre desde el primer día del menú: lo ya comido no se queda en el stock", () => {
+    const menus = { menu_a: { weeks: { b: { startISO: "2026-11-09" }, a: { startISO: "2026-11-02" } } } };
+    const { patch } = estrenoFinDelDia({ ...base, menus, pantryPrefs: { consume: "onGenerate" } }, MANANA);
+    expect(patch.pantryEndOfDaySince).toBe("2026-11-02");
+  });
+
   it("«al cocinar» no devuelve nada y el barrido empieza mañana", () => {
     const cookedDeltas = { "menu_a::2026-11-02|0|comida": [d("pollo", 1)] };
     const { deltas, patch } = estrenoFinDelDia({ ...base, cookedDeltas, pantryPrefs: { consume: "onCook" } }, MANANA);

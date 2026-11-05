@@ -104,7 +104,8 @@ export function collectMenuPantryDeltas(data, menuId) {
  * antes otro momento, y hay que pasarla una vez sin descontar dos veces lo que su modo ya descontó:
  *  - "endOfDay": ya iba así, basta con olvidar el campo.
  *  - "onCook": lo cocinado ya bajó y se queda. El barrido empieza mañana (`mananaISO`), porque hoy pudo cocinarse algo.
- *  - "onGenerate": el menú activo bajó entero al crearlo, así que se devuelve y el barrido lo irá descontando.
+ *  - "onGenerate": el menú activo bajó entero al crearlo, así que se devuelve y el barrido empieza en su primer día:
+ *    lo ya comido vuelve a bajar en la primera pasada y el resto, día a día.
  *
  * Devuelve { deltas, patch } (lo que hay que devolver a la despensa y el cambio de `data`), o null si no hay nada que
  * pasar.
@@ -114,7 +115,18 @@ export function estrenoFinDelDia(data, mananaISO) {
   if (!consume) return null;
   if (consume === "onGenerate") {
     const { deltas, genOut, dayOut, cookedOut } = collectMenuPantryDeltas(data, data.activeMenuId);
-    return { deltas, patch: { pantryPrefs, pantryGenDeltas: genOut, pantryDayDeltas: dayOut, cookedDeltas: cookedOut } };
+    const semanas = Object.values(data.menus?.[data.activeMenuId]?.weeks ?? {});
+    const [primerDia] = semanas.map((s) => s?.startISO).filter(Boolean).sort();
+    return {
+      deltas,
+      patch: {
+        pantryPrefs,
+        pantryGenDeltas: genOut,
+        pantryDayDeltas: dayOut,
+        cookedDeltas: cookedOut,
+        ...(primerDia ? { pantryEndOfDaySince: primerDia } : null),
+      },
+    };
   }
   if (consume === "onCook") return { deltas: [], patch: { pantryPrefs, pantryEndOfDaySince: mananaISO } };
   return { deltas: [], patch: { pantryPrefs } };
