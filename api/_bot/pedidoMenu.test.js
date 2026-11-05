@@ -32,6 +32,21 @@ beforeEach(() => {
 });
 
 describe("el pedido de cada turno (trozo 67)", () => {
+  it("«Como la última vez»: su camino y sus días, la semana libre y sin preguntas; sin última vez, nada (trozo 71)", () => {
+    const ultima = { camino: "medio", dias: ["Lun", "Mar"] };
+    const base = pedidoDelTurno(null, { texto: "Como la última vez" });
+    expect(conUltimaVez(base, ultima, { texto: "Como la última vez", hoy: "2026-11-04", semanas: [] })).toMatchObject({ camino: "medio", dias: ["Lun", "Mar"], desde: "2026-11-04", preguntado: true });
+    expect(conUltimaVez(base, null, { texto: "Como la última vez", hoy: "2026-11-04" })).toBe(base);
+    expect(conUltimaVez(base, ultima, { texto: "otra cosa", hoy: "2026-11-04" })).toBe(base);
+  });
+
+  it("los días de la última vez siguen en el pedido, y se van si cambia el camino (trozo 71)", () => {
+    const abierto = { camino: "medio", dias: ["Lun"] };
+    expect(pedidoDelTurno(abierto, {}).dias).toEqual(["Lun"]);
+    expect(pedidoDelTurno(abierto, { camino: "avanzado" }).dias).toBeNull();
+    expect(pedidoDeFila({ pedido: JSON.stringify({ dias: ["Lun", "luna"] }) }).dias).toBeNull();
+  });
+
   it("el aviso de rehacer sigue guardado en la fila (trozo 72)", () => {
     expect(pedidoDeFila({ pedido: JSON.stringify({ avisado: true }) }).avisado).toBe(true);
   });
