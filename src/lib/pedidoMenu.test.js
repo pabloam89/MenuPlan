@@ -49,8 +49,8 @@ describe("faltaDelPedido (trozo 65)", () => {
     expect(pedido({ camino: CAMINO.MEDIO, desde: DESDE, ejes }).supuestos).toEqual(["cookLevel"]);
   });
 
-  it("sin ficha no pregunta lo que quizá ya se dijo", () => {
-    expect(pedido({ camino: CAMINO.AVANZADO, desde: DESDE, ejes: null })).toMatchObject({ temas: [], listo: true });
+  it("sin ficha lanza: un fallo de lectura no es «la casa lo sabe todo»", () => {
+    expect(() => pedido({ camino: CAMINO.BASICO, desde: DESDE, ejes: null, hayNinos: true })).toThrow("sin ejes");
   });
 
   it("avisa si la fecha pisa un menú", () => {
