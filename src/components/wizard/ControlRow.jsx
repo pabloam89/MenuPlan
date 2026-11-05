@@ -6,6 +6,7 @@ import {
 import { controlesVisibles, valorDePregunta } from "../../lib/wizardRegistry.js";
 import { BarraRehacer } from "./BarraRehacer.jsx";
 import { ControlSheet } from "./ControlSheet.jsx";
+import { color as tono } from "../../design/tokens.js";
 
 /**
  * La fila de mandos que vive sobre el menú.
@@ -124,6 +125,11 @@ export function BaldosaAccion({
       </span>
     </button>
   );
+}
+
+/** La raya fina que aparta una acción de las baldosas que cambian de vista (Crear en Recetas, Compartir en Compra). */
+export function RayaBaldosas() {
+  return <span aria-hidden style={{ width: 1, alignSelf: "stretch", margin: "6px 0 18px", background: tono.linea, flexShrink: 0 }} />;
 }
 
 function Baldosa({ pregunta, tocado, onClick }) {

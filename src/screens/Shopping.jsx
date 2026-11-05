@@ -1,6 +1,7 @@
 import { FRONTAL_BOT, GUIAS_ACTIVAS, abrirLola } from "../lib/frontalBot.js";
 import { pedidoMenu } from "../lib/pedidoLola.js";
-import { BaldosaAccion } from "../components/wizard/ControlRow.jsx";
+import { BaldosaAccion, RayaBaldosas } from "../components/wizard/ControlRow.jsx";
+import { color as tono } from "../design/tokens.js";
 import lolaFoto from "../assets/lola/lola-perfil.jpg";
 import { Suspense, lazy, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -1289,12 +1290,11 @@ export function ShoppingScreen({
           Mercadona activado; si no, la lista plana de siempre. */}
       <div style={{ background: HEADER_BAND, padding: "0 16px 12px", display: "flex", justifyContent: "space-between" }}>
         <BuyTabs value={buyTab} onChange={setBuyTab} />
-        <span aria-hidden style={{ width: 1, alignSelf: "stretch", margin: "6px 0 18px", background: "#d5e6da", flexShrink: 0 }} />
+        <RayaBaldosas />
         <BaldosaAccion
           Icono={Share2}
           etiqueta="Compartir"
-          color="#2f7f93"
-          tinte="#fff"
+          color={tono.info}
           title="Compartir lista"
           ancho="23%"
           data-coach="shop-share"
@@ -4009,9 +4009,9 @@ function ListSkeleton() {
 // Por comprar · Comprado · En casa: las baldosas de la fila de Tu menú, con el
 // aro en la elegida, igual que en Recetas.
 const BUY_TABS = [
-  { id: "pending", label: "Por comprar", Icon: ShoppingBasket, color: "#b7791f" },
-  { id: "bought", label: "Comprado", Icon: CheckCircle2, color: "#2d5a3d" },
-  { id: "home", label: "En casa", Icon: House, color: "#2f6d8a" },
+  { id: "pending", label: "Por comprar", Icon: ShoppingBasket, color: tono.aviso },
+  { id: "bought", label: "Comprado", Icon: CheckCircle2, color: tono.marca },
+  { id: "home", label: "En casa", Icon: House, color: tono.info },
 ];
 function BuyTabs({ value, onChange }) {
   return (
