@@ -2157,7 +2157,7 @@
         "fuera_de_casa",
         "ajustar_horario"
       ],
-      "texto": "^(?=[^]*(no (he podido|pude|se ha|se han|ha quedado)))(?=[^]*(Reinténtalo|reintent|otra vez|de nuevo))",
+      "texto": "^(?=[^]*(no (lo |la |los |las )?(he podido|pude|se ha|se han|ha quedado)))(?=[^]*(Reinténtalo|reintent|otra vez|de nuevo))",
       "sinTexto": "(porque|ya que|debido a|parece que|seguramente|probablemente)"
     },
     {
