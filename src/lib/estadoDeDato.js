@@ -128,6 +128,16 @@ export const datosConSobre = (estados) => CAMPOS_CASA_CON_SOBRE.map((campo) => l
   .map((l) => (l.valor == null && DATOS_CASA[l.campo]?.tipo === "lista_enum" ? { ...l, valor: [] } : l));
 
 /**
+ * Pura. La base de los datos por persona con ámbito (schedule) en una casa sin nadie: ficha_casa los da una vez por
+ * persona, así que sin personas no llegan. Solo si la ficha dice que no hay nadie (`personas` vacío): si hay gente y
+ * falta el dato, leidosConSobre sigue lanzando.
+ * @param {{ personas: object[] }} ficha
+ */
+export const basesSinPersonas = (ficha) => (ficha.personas.length > 0 ? [] : CAMPOS_CON_AMBITO_CON_SOBRE
+  .filter((campo) => DATOS_CASA[campo].entidad === "persona")
+  .map((campo) => ({ campo, sujeto: { tipo: "casa", id: null }, ambito: null, estado: "vacio", valor: null, origen: null })));
+
+/**
  * Pura. Lo que la app y Lola leen de los sobres de la casa, de los elementos de ficha_casa v2 (los de
  * FICHAS_CASA_CON_SOBRE): `{ [campo]: { valor, conSobre } }`. Los de CAMPOS_CASA_CON_SOBRE, por datosConSobre; los
  * de CAMPOS_CON_AMBITO_CON_SOBRE, su mapa de `data` con lo dicho en cada hueco (rutinaDeFichas, rutina.js), y
