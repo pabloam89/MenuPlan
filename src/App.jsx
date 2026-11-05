@@ -66,7 +66,7 @@ import { activeDiscardIds } from "./lib/entradaMotor.js";
 import { sugerenciasDeHueco } from "./lib/sugerenciasDeHueco.js";
 import { minimosQueFaltan } from "./lib/minimosParaGenerar.js";
 import { resolvePlannerModel, resolvePlannerFormat } from "./lib/aiModels.js";
-import { apiUrl, isNativeApp } from "./lib/apiUrl.js";
+import { apiUrl, seOfreceApple } from "./lib/apiUrl.js";
 import { pedirExportacion, nombreDelFichero } from "./lib/descargarCasa.js";
 import { findMenuRestrictionConflicts } from "./utils/menuConflicts.js";
 import { GeneratingScreen } from "./screens/GeneratingScreen.jsx";
@@ -7016,7 +7016,7 @@ export default function App() {
                 onSignOut={signOut}
                 onDeleteAccount={handleDeleteAccount}
                 onExportData={user && syncHouseholdId ? handleExportarCasa : null}
-                formasDeEntrar={user ? formasDeEntrar(user, { conApple: isNativeApp }) : null}
+                formasDeEntrar={user ? formasDeEntrar(user, { conApple: seOfreceApple() }) : null}
                 onAnadirFormaDeEntrar={handleAnadirFormaDeEntrar}
                 onQuitarFormaDeEntrar={handleQuitarFormaDeEntrar}
                 onEditMembers={() => fwd(() => setScreen("members"))}
