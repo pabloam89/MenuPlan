@@ -24,6 +24,7 @@
 process.env.TZ = "Europe/Madrid";
 
 import { fallaCon } from "./avisar.js";
+import { apuntarMenuGenerado } from "./menusGenerados.js";
 import { conEstructuraDelMenu } from "../../src/lib/estructuraPlatos.js";
 import { select, insert, borrar, eq } from "./db.js";
 import { cargarCasa, conCasa } from "./casa.js";
@@ -315,7 +316,7 @@ const modeloElegido = (casa) => {
 };
 
 // `out` se rellena siempre (ok, motivo y lo generado): de ahí sale el resultado.
-export async function generarMenu(householdId, cual = "esta", fijos = [], out = null, { desde = null, rehacer = false, soloEste = {} } = {}) {
+export async function generarMenu(householdId, cual = "esta", fijos = [], out = null, { desde = null, rehacer = false, soloEste = {}, comoSePidio = null } = {}) {
   out ??= {};
   // Una salida sin generar: el motivo para el recibo y el texto para Lola.
   const noGenerado = (motivo, texto, extra = {}) => { Object.assign(out, { ok: false, motivo, ...extra }); return texto; };
@@ -549,6 +550,8 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   // menú con salmón un día» tardaba casi un minuto en seis vueltas.
   const semana = await describirMenu({ ...casa, menu: null, semanas: null, semana: { plan, weekStart: startISO, weekEnd: endISO, activeDays, startDayIdx, shopping } }).catch(fallaCon("generar_describir", ""));
   // Para la vía rápida del enrutador (api/_bot/turno.js): lo generado, en datos.
+  // Un menú ya hecho no falla por no apuntarlo: se avisa y sigue (racha y «como la última vez» lo notan).
+  await apuntarMenuGenerado(householdId, { menu_id: menu.id, week_start: startISO, camino: comoSePidio?.camino ?? null }).catch(fallaCon("generar_apuntar", null));
   Object.assign(out, {
     ok: true, desde: startISO, hasta: endISO, platos, avisos, conservadas, recordarSilencio, presupuesto, quitados, incumplidas,
     pedidos: pedidos.length ? dondeQuedaron(pedidos, plan, activeDays) : [],

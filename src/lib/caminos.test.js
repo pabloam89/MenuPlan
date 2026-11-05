@@ -1,8 +1,15 @@
 import { describe, it, expect } from "vitest";
+import { CAMINOS_MENU } from "./vocabularios.js";
 import { readFileSync } from "node:fs";
 import { CAMINO, CAMINOS, EJES_FUERA_DE_CAMINO, NIVEL_EJE, TEMA, TEMAS, VIVE_EJE, temasDelCamino } from "./caminos.js";
 import { DATOS_CASA, DATOS_PERSONA } from "./registroFicha.js";
 import { SCOPE_TOPIC_STEPS } from "../screens/ScopePickerScreen.jsx";
+
+describe("el vocabulario de la base (0130)", () => {
+  it("menu_generado.camino admite justo los caminos", () => {
+    expect(CAMINOS.map((c) => c.id).sort()).toEqual([...CAMINOS_MENU].sort());
+  });
+});
 
 describe("los tres caminos, una sola lista para la app y Lola", () => {
   const DATOS = { ...DATOS_CASA, ...DATOS_PERSONA };

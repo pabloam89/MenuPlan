@@ -386,6 +386,8 @@ export const ESTADO_TAREA = porNombre(ESTADOS_TAREA);
 /** Qué pasó con lo que la tarea proponía (bot_tareas.resultado, 0080). */
 export const RESULTADOS_TAREA = ["aceptada", "mantenida"];
 
+/** Cómo de a fondo se pidió un menú (menu_generado.camino, 0130): los ids de CAMINOS, src/lib/caminos.js. */
+export const CAMINOS_MENU = ["basico", "medio", "avanzado"];
 /** Para qué es una tarea de objetivo (bot_tareas.objetivo, 0080). */
 export const OBJETIVOS_TAREA = ["ideas_plato", "calorias", "generar_menu"];
 export const OBJETIVO_TAREA = porNombre(OBJETIVOS_TAREA);
@@ -425,7 +427,7 @@ export const MOTIVO_FALLO = porNombre(MOTIVOS_FALLO);
  */
 export const SITIOS_FALLO = [
   // api/_bot/agente.js
-  "agente_casa", "agente_dueno", "agente_huecos", "agente_idioma", "agente_papel", "agente_pedido", "agente_segunda_semana", "agente_unir_cuenta", "apuntar_operacion", "uso_enrutador",
+  "agente_casa", "agente_dueno", "agente_huecos", "agente_idioma", "agente_papel", "agente_pedido", "generar_apuntar", "agente_segunda_semana", "agente_unir_cuenta", "apuntar_operacion", "uso_enrutador",
   // api/bot/telegram.js
   "aclarar_via_rapida", "alta_adjunto", "apuntar_falta_via_rapida", "aviso_de_espera",
   "aviso_del_enrutador", "aviso_del_modo", "borrarcuenta_identidad", "borrarcuenta_nacida_aqui",
@@ -622,6 +624,7 @@ export const VOCABULARIOS = Object.freeze({
   repites_recordatorio: REPITES_RECORDATORIO,
   avisos_recordatorio: AVISOS_RECORDATORIO,
   tipos_reporte: TIPOS_REPORTE,
+  caminos_menu: CAMINOS_MENU,
 });
 
 /** La lista de un vocabulario por su nombre, o null si no existe. */

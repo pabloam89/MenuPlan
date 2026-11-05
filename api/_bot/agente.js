@@ -885,7 +885,7 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
         const out = {};
         // Pulsado «Rehacer la del 26 oct», esa semana y rehacer, diga lo que diga el modelo (#907).
         const delBoton = esBotonRehacer(chat.texto) ? desdeDelBoton(chat.texto, isoDeCasa()) : null;
-        const texto = await generarMenu(householdId, semana, fijos ?? [], out, { desde: delBoton ?? pedido.desde, rehacer: Boolean(rehacer) || Boolean(delBoton), soloEste: { estructura: pedido.estructura, estructuraCena: pedido.estructuraCena } });
+        const texto = await generarMenu(householdId, semana, fijos ?? [], out, { desde: delBoton ?? pedido.desde, rehacer: Boolean(rehacer) || Boolean(delBoton), soloEste: { estructura: pedido.estructura, estructuraCena: pedido.estructuraCena }, comoSePidio: pedido });
         if (out.ok) pintarTambien(chat, filtrosTrasGenerar(out));
         // Generar fallido deja el pedido abierto: lo dicho no se pierde.
         await (out.ok ? cerrarPedido(householdId) : guardarPedido(quien, { ...pedido, avisado: pedido.avisado || pisa })).catch(seguirCon("agente_pedido", null));
