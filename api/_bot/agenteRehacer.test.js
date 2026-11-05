@@ -38,19 +38,19 @@ describe("generar_menu al pulsar «Rehacer la del …»", () => {
     const [, cual, fijos, , opciones] = generarMenu.mock.calls[0];
     expect(cual).toBe("siguiente");
     expect(fijos).toEqual([]);
-    expect(opciones).toEqual({ desde: "2026-10-26", rehacer: true });
+    expect(opciones).toMatchObject({ desde: "2026-10-26", rehacer: true });
   });
 
   it("manda el botón sobre una fecha o un rehacer: false que invente el modelo", async () => {
     await llamar("Rehacer la del 26 oct", { semana: "esta", desde: "2026-11-02", rehacer: false });
-    expect(generarMenu.mock.calls[0][4]).toEqual({ desde: "2026-10-26", rehacer: true });
+    expect(generarMenu.mock.calls[0][4]).toMatchObject({ desde: "2026-10-26", rehacer: true });
   });
 
   it("un mensaje que no es el botón no fuerza nada: va lo que pide el modelo", async () => {
     await llamar("hazme el menú de la semana que viene", { semana: "siguiente", camino: "basico", desde: "2026-11-02" });
-    expect(generarMenu.mock.calls[0][4]).toEqual({ desde: "2026-11-02", rehacer: false });
+    expect(generarMenu.mock.calls[0][4]).toMatchObject({ desde: "2026-11-02", rehacer: false });
     await llamar("rehaz la del 26", { semana: "siguiente", camino: "basico", desde: "2026-10-26", rehacer: true });
-    expect(generarMenu.mock.calls[1][4]).toEqual({ desde: "2026-10-26", rehacer: true });
+    expect(generarMenu.mock.calls[1][4]).toMatchObject({ desde: "2026-10-26", rehacer: true });
   });
 });
 

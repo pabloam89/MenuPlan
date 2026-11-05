@@ -34,7 +34,7 @@ import { conPresupuesto } from "../../src/lib/presupuestoCasa.js";
 import { EXTRAS, conExtras } from "../../src/lib/extras.js";
 import { quitarPersona } from "../../src/lib/quitarPersona.js";
 import { aplicarDiasDeSemana, diasDeSemana } from "../../src/lib/semanaDias.js";
-import { estructuraEfectiva } from "../../src/lib/estructuraPlatos.js";
+import { conEstructuraCena, estructuraEfectiva } from "../../src/lib/estructuraPlatos.js";
 import { resultado, NO_GUARDADO } from "./resultado.js";
 
 const hoyISO = () => isoDeCasa();
@@ -343,7 +343,7 @@ function listaConOtroAjustada(leer, notaGuardada, { mas, menos, otro } = {}, deL
   return { lista, nota: lista.includes(OTRO) && nota.length ? nota.join(", ") : null };
 }
 
-export async function ajustarCocina(householdId, { estructura, esfuerzo, tiempo, tanda, trastosMas, trastosMenos, trastoOtro, comidas, etapaBebe }) {
+export async function ajustarCocina(householdId, { estructura, estructuraCena, esfuerzo, tiempo, tanda, trastosMas, trastosMenos, trastoOtro, comidas, etapaBebe }) {
   return conData(householdId, (data, m) => {
     const R = m.PREGUNTAS_POR_ID;
     let d = data;
@@ -355,6 +355,7 @@ export async function ajustarCocina(householdId, { estructura, esfuerzo, tiempo,
       if (meals.length) { d = { ...d, meals }; hechos.push(`comidas: ${meals.join(" y ")}`); }
     }
     if (estructura) { d = R.estructura.escribe(d, estructura); hechos.push(`estructura: ${estructura}`); }
+    if (estructuraCena) { d = conEstructuraCena(d, estructuraCena); hechos.push(`estructura de la cena: ${estructuraCena}`); }
     if (esfuerzo) { d = R.esfuerzo.escribe(d, esfuerzo); hechos.push(`nivel: ${esfuerzo}`); }
     if (tiempo || tanda) { d = R.tiempo.escribe(d, { ...(tiempo ? { nivel: tiempo } : {}), ...(tanda ? { tanda } : {}) }); hechos.push(`tiempo: ${[tiempo, tanda].filter(Boolean).join(", ")}`); }
     const nuevos = listaConOtroAjustada(() => R.trastos.lee(d), d.kitchenToolsNota, { mas: trastosMas, menos: trastosMenos, otro: trastoOtro });
