@@ -163,7 +163,7 @@ export async function abrirReporte({ msg, chatId, householdId = null, texto = nu
 }
 
 /** Un botón de /fallo: solo el de quien lo abrió, y un tipo fuera de TIPOS_REPORTE no se apunta. @returns {Promise<{ apuntado: boolean, motivo?: string }>} */
-export async function pulsarReporte(cq, io = IO(), entorno = process.env) {
+export async function pulsarReporte(cq, io = IO(), entorno = process.env, ahoraMs = Date.now()) {
   const contestar = (text) => io.llamar("answerCallbackQuery", { callback_query_id: cq.id, ...(text ? { text } : {}) })
     .catch(seguirCon("boton_responder")); // a propósito: contestar al toque es adorno
   const b = leerBoton(cq.data);
@@ -179,7 +179,7 @@ export async function pulsarReporte(cq, io = IO(), entorno = process.env) {
   // Sin lo que esperaba (ni detrás de /fallo), se pregunta; «Nada más» cierra sin ello.
   const paso = b.nada || fila.metadata?.texto ? PASO_REPORTE.HECHO : PASO_REPORTE.ESPERA;
   // El plazo para decir qué esperaba (CADUCA.REPORTE) cuenta desde aquí, desde que se eligió el tipo, no desde el /fallo.
-  const espera = paso === PASO_REPORTE.ESPERA ? { espera_desde: new Date().toISOString() } : {};
+  const espera = paso === PASO_REPORTE.ESPERA ? { espera_desde: new Date(ahoraMs).toISOString() } : {};
   await io.update("user_events", `id=eq.${fila.id}`, { metadata: { ...fila.metadata, ...(b.tipo ? { tipo: b.tipo } : {}), paso, ...espera } });
   if (paso === PASO_REPORTE.HECHO) await io.editar(chat, mid, APUNTADO);
   else await io.editar(chat, mid, `${ETIQUETAS_REPORTE[b.tipo]}. ¿Qué esperabas? Una línea o un audio.`, { botones: [[{ texto: "Nada más", dato: datoNada(fila.id) }]] });

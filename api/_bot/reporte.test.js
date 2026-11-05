@@ -143,12 +143,15 @@ describe("pulsarReporte", () => {
 
   it("con el tipo y sin lo que esperaba, lo pregunta; con ello, «Apuntado»", async () => {
     const x = io({ reporte });
-    expect(await pulsarReporte(cq(datoTipo("dato_mal", 77)), x, ENTORNO)).toEqual({ apuntado: true });
-    expect(x.hecho.cambios[0].metadata).toMatchObject({ tipo: "dato_mal", paso: PASO_REPORTE.ESPERA, telegram_id: "222" });
+    const pulsado = Date.parse("2026-11-04T18:41:00Z");
+    expect(await pulsarReporte(cq(datoTipo("dato_mal", 77)), x, ENTORNO, pulsado)).toEqual({ apuntado: true });
+    // El plazo para contestar cuenta desde que se pulsa el tipo, no desde el /fallo: la fila lo apunta.
+    expect(x.hecho.cambios[0].metadata).toMatchObject({ tipo: "dato_mal", paso: PASO_REPORTE.ESPERA, telegram_id: "222", espera_desde: "2026-11-04T18:41:00.000Z" });
     expect(x.hecho.editados[0].texto).toMatch(/¿Qué esperabas\?/);
     const y = io({ reporte: { ...reporte, metadata: { ...reporte.metadata, texto: "quería pasta" } } });
     await pulsarReporte(cq(datoTipo("lento", 77)), y, ENTORNO);
     expect(y.hecho.cambios[0].metadata).toMatchObject({ tipo: "lento", paso: PASO_REPORTE.HECHO });
+    expect(y.hecho.cambios[0].metadata.espera_desde).toBeUndefined();
     expect(y.hecho.editados.map((e) => e.texto)).toEqual([APUNTADO]);
   });
 
