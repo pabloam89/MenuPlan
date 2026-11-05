@@ -171,7 +171,7 @@ con el mismo borrado de Mi perfil (`api/delete-account`) y se cierra su sesión.
 Files: `src/lib/cuentaTelegram.js`, `src/lib/cuentaTelegram.test.js`, `src/lib/useAuth.js`, `src/lib/useAuth.google.test.jsx`, `src/components/ui.jsx`, `src/components/SignInOptions.test.jsx`, `src/App.jsx`
 Depends on: 2
 Blocked by: none
-Existing: `git grep -n "Ya hablas con Lola" -- src` → sin salida. Toda sesión nueva escribe el perfil al entrar (`src/lib/useAuth.js:108`) y crea la casa en cuanto hay usuario (`src/lib/useHousehold.js:109`).
+Existing: `git grep -n "Ya hablas con Lola" -- src` → sin salida. Toda sesión nueva escribe el perfil al entrar (`src/lib/useAuth.js:109`) y crea la casa en cuanto hay usuario (`src/lib/useHousehold.js:109`).
 Not done: el Google que ya es otra cuenta con casa sigue en #1254 (unir dos cuentas). No pregunta a quien entra con Telegram (esa cuenta la crea Lola, `cuentaYChat`).
 Done:
 ```sh
