@@ -13,7 +13,7 @@
  * titular y cotitular: meter a Lola en el grupo es cosa de quien gestiona.
  */
 
-import { codigoBot } from "../../src/lib/ids.js";
+import { codigoBot, codigoGrupo } from "../../src/lib/ids.js";
 import { cors } from "../_guard.js";
 import { select, insert, usuarioDeToken, eq } from "../_bot/db.js";
 import { nombreDelBot, enviar } from "../_bot/telegram.js";
@@ -73,18 +73,23 @@ export default async function handler(req, res) {
 
     // 16 bytes en base64url: cabe en el límite de 64 caracteres de /start, y
     // nunca empieza como un enlace de compartir (rc_, ru_, m_…): src/lib/ids.js.
+    // El del grupo, con su propio código de grupo (la «g» delante, codigoGrupo): el enlace de «añadir al grupo» se
+    // reenvía, y con el mismo código cualquiera que lo recibiera lo abriría en su privado y su Telegram pasaría a ser
+    // esta cuenta (specs/auth.md §7, trozo 3). Un código de grupo, en un privado, se rechaza (enlazarDesdeAjustes).
     const token = codigoBot.nuevo();
-    await insert("bot_link_tokens", [{
-      token,
+    const tokenGrupo = puede(miembro.role, "enlazar_grupo") ? codigoGrupo.nuevo() : null;
+    const caduca = new Date(Date.now() + VALIDEZ_MS).toISOString();
+    await insert("bot_link_tokens", [token, tokenGrupo].filter(Boolean).map((t) => ({
+      token: t,
       user_id: user.id,
       household_id: householdId,
-      expires_at: new Date(Date.now() + VALIDEZ_MS).toISOString(),
-    }]);
+      expires_at: caduca,
+    })));
 
     const bot = await nombreDelBot();
     return res.status(200).json({
       privado: `https://t.me/${bot}?start=${token}`,
-      grupo: puede(miembro.role, "enlazar_grupo") ? `https://t.me/${bot}?startgroup=${token}` : null,
+      grupo: tokenGrupo ? `https://t.me/${bot}?startgroup=${tokenGrupo}` : null,
       caduca: VALIDEZ_MS / 60000,
     });
   } catch (err) {
