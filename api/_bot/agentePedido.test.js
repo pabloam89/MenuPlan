@@ -108,6 +108,15 @@ describe("generar_menu con el pedido en curso (trozo 67)", () => {
     expect(r).toMatch(/Has dado por supuesto lo de: ¿Cuántos platos por comida\?/);
   });
 
+  it("lo dicho para este menú va al motor, no a la ficha, y no se pregunta (trozo 69)", async () => {
+    estado.abierto = { camino: "medio", desde: "2026-11-02", forzado: false, preguntado: false, estructura: null, estructuraCena: null };
+    estado.ejes = sabe({ mealStructure: { estado: "falta" }, mealStructureCena: { estado: "sabido" } });
+    const r = await llamar("esta semana, un plato", { estructura: "1_plato" });
+    expect(generarMenu).toHaveBeenCalledTimes(1);
+    expect(generarMenu.mock.calls[0][4].soloEste).toEqual({ estructura: "1_plato", estructuraCena: null });
+    expect(r).not.toMatch(/Has dado por supuesto/);
+  });
+
   it("un generar fallido deja el pedido abierto, con lo dicho", async () => {
     estado.ok = false;
     await llamar("dale", { camino: "basico", desde: "2026-11-02" });

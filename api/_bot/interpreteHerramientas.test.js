@@ -78,6 +78,13 @@ describe("ajustar_horario", () => {
 });
 
 describe("trastos y súper: sumar y quitar, no sustituir (#958)", () => {
+  it("la estructura de la cena se guarda aparte de la de la comida (trozo 69)", async () => {
+    limpio();
+    await ajustarCocina("h", { estructuraCena: "primero_segundo" });
+    expect(datos().mealStructureCena).toBe("primero_segundo");
+    expect(datos().mealStructure).toBeUndefined();
+  });
+
   it("«tenemos airfryer» no borra el horno ni la Thermomix", async () => {
     limpio();
     await ajustarCocina("h", { trastosMas: ["Airfryer"] });

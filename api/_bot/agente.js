@@ -20,7 +20,7 @@ import { select, insert, eq, contandoEscrituras } from "./db.js";
 import { deLaCharla } from "./chats.js";
 import { cargarCasa, deshacer, hoyISO, apuntarOperacion } from "./casa.js";
 import { IDS_CAMINO, LEYENDA_CAMINOS, faltaParaGenerar, hayNinosEn, notaDeSupuestos } from "./caminoMenu.js";
-import { bloqueDePedido, cerrarPedido, ejesDelPedido, guardarPedido, pedidoDelTurno, pedidoEnCurso } from "./pedidoMenu.js";
+import { bloqueDePedido, cerrarPedido, ejesConElPedido, ejesDelPedido, guardarPedido, pedidoDelTurno, pedidoEnCurso } from "./pedidoMenu.js";
 import { faltaDelPedido } from "../../src/lib/pedidoMenu.js";
 import {
   describirCasa, describirReceta, describirCompra,
@@ -667,11 +667,12 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
       }, ["campo", "valor"]),
       run: (args) => descartarSupuesto(householdId, args),
     }),
-    herramienta({ capacidades: ["primero_segundo", "nivel_cocina", "aparatos", "aparato_otro"], lee: ["kitchenTools", "kitchenToolsNota", "cookTime"], escribe: ["meals", "mealStructure", "mealStructureByGroup", "cookLevel", "cookTime", "kitchenTools", "kitchenToolsNota", "etapaBebe"], lector: false, riesgo: RIESGO_HERRAMIENTA.ESCRIBE_REVERSIBLE, deshace: DESHACE.FOTO, pantalla: null }, {
+    herramienta({ capacidades: ["primero_segundo", "nivel_cocina", "aparatos", "aparato_otro"], lee: ["kitchenTools", "kitchenToolsNota", "cookTime"], escribe: ["mealStructureCena", "meals", "mealStructure", "mealStructureByGroup", "cookLevel", "cookTime", "kitchenTools", "kitchenToolsNota", "etapaBebe"], lector: false, riesgo: RIESGO_HERRAMIENTA.ESCRIBE_REVERSIBLE, deshace: DESHACE.FOTO, pantalla: null }, {
       name: "ajustar_cocina",
       description: `Cómo se cocina en casa: estructura de la comida (primero_segundo = primero y segundo; 1_plato = plato único), esfuerzo (basic/normal/pro), tiempo por día (con_prisa/normal/con_tiempo/depende) y aparatos (${TRASTOS.join(", ")}). «Tenemos airfryer» es trastosMas [Airfryer]; «ya no tenemos horno», trastosMenos [Horno]: los demás se quedan. Uno que no está en la lista («tenemos plancha»), trastoOtro. Cocinar en tanda va por pedir_tanda.`,
       inputSchema: obj({
         estructura: esquemaDato("mealStructure"),
+        estructuraCena: esquemaDato("mealStructureCena"),
         esfuerzo: esquemaDato("cookLevel"),
         tiempo: { type: "string", enum: RITMO_COCINA },
         trastosMas: esquemaDato("kitchenTools", { descripcion: "Aparatos que se añaden." }),
@@ -835,13 +836,15 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
       inputSchema: obj({}),
       run: () => deshacer(householdId, { freno: (ahora, antes) => frenoDeshacer(ahora, antes, chat.texto, chat.anterior) }),
     }),
-    herramienta({ capacidades: ["generar_menu", "regenerar_dia"], lee: ["members", "menuWeekDays", "meals", "menus"], escribe: ["menus", "activeMenuId", "menuModel", "groups"], lector: false, riesgo: RIESGO_HERRAMIENTA.ESCRIBE_REVERSIBLE, deshace: DESHACE.FOTO, pantalla: "semana", avisoLento: "Voy, te preparo el menú, dame unos segundos" }, {
+    herramienta({ capacidades: ["generar_menu", "regenerar_dia"], lee: ["members", "menuWeekDays", "meals", "menus", "mealStructure", "mealStructureCena"], escribe: ["menus", "activeMenuId", "menuModel", "groups"], lector: false, riesgo: RIESGO_HERRAMIENTA.ESCRIBE_REVERSIBLE, deshace: DESHACE.FOTO, pantalla: "semana", avisoLento: "Voy, te preparo el menú, dame unos segundos" }, {
       name: "generar_menu",
       description: "Genera un menú NUEVO con el motor de HoMenu (respeta toda la configuración) y lo deja activo: «esta» semana desde hoy, la «siguiente» (la primera semana SIN menú a partir del lunes que viene) o, con desde, la semana de esa fecha («a partir del 2 de noviembre» → desde 2026-11-02). Una semana que ya tiene menú NO se rehace sin rehacer: true, que solo va cuando piden rehacer esa semana («rehaz», «cambia el menú de…», el botón «Rehacer la del…»); si no, la herramienta avisa sin tocar nada y tú preguntas. Rehacer la semana en curso empieza mañana: hoy y lo pasado no cambian. Tarda unos segundos. fijos: los platos que piden por su nombre para esa semana («un día salmón al horno», «otro pollo con patatas»); se ponen al generar, una vez cada uno, con la receta exacta o la más parecida. Con fijos NO hace falta cambiar_plato después. Solo si piden generar o rehacer, o si no hay menú: una pregunta sobre lo ya generado («¿y las recetas?», «¿y la compra?», «¿y el domingo?») se contesta con ver_receta, ver_compra o ver_menu y NUNCA regenera, porque rehacerlo cambia los platos que ya han visto.",
       inputSchema: obj({
         camino: { type: "string", enum: IDS_CAMINO, description: `El que eligieron con los botones (${LEYENDA_CAMINOS}). Sin él no se genera: pregúntalo siempre.` },
         semana: { type: "string", enum: ["esta", "siguiente"] },
         desde: { type: "string", description: "AAAA-MM-DD: para cuándo, lo que hayan contestado (manda sobre semana). Se pregunta siempre." },
+        estructura: esquemaDato("mealStructure", { descripcion: "Platos por comida solo para este menú («esta semana, un plato»). Si es para siempre, ajustar_cocina." }),
+        estructuraCena: esquemaDato("mealStructureCena", { descripcion: "Platos en la cena solo para este menú. Si es para siempre, ajustar_cocina." }),
         forzado: { type: "boolean", description: "true si dicen que sigas sin preguntar más («sigue tú», «da igual», «me he cansado»): genera con lo que haya, salvo lo de seguridad." },
         rehacer: { type: "boolean", description: "true si piden rehacer una semana que ya tiene menú, o al pulsar [[Rehacer la del …]]: entonces desde = ese lunes y rehacer: true, los dos." },
         fijos: {
@@ -852,15 +855,15 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
           }, ["nombre"]),
         },
       }, ["semana"]),
-      run: async ({ camino, semana, fijos, desde, rehacer, forzado }) => {
+      run: async ({ camino, semana, fijos, desde, rehacer, forzado, estructura, estructuraCena }) => {
         // Antes de generar, para cuándo y el camino (caminoMenu.js, #1210): si falta, qué preguntar, y nada se genera.
         // Lo ya dicho sigue en el pedido en curso (pedidoMenu.js), aunque la charla haya cambiado de tema. Un fallo al
         // leer la casa lanza, no pregunta de menos.
         const quien = { householdId, channel: chat.channel, chatId: chat.chatId, userId: chat.userId };
         // Quien pidió ritmo directo en su trato no quiere preguntas: su pedido va forzado (lo de seguridad se pregunta igual).
-        const pedido = pedidoDelTurno(await pedidoEnCurso(householdId), { camino, desde, forzado: forzado || chat.trato?.ritmo === RITMO_TRATO.DIRECTO, texto: chat.texto });
+        const pedido = pedidoDelTurno(await pedidoEnCurso(householdId), { camino, desde, forzado: forzado || chat.trato?.ritmo === RITMO_TRATO.DIRECTO, texto: chat.texto, estructura, estructuraCena });
         const casa = await cargarCasa(householdId);
-        const ejes = await ejesDelPedido(quien, casa);
+        const ejes = ejesConElPedido(await ejesDelPedido(quien, casa), pedido);
         const hayNinos = hayNinosEn(casa);
         const falta = faltaParaGenerar({ ...pedido, texto: chat.texto, hoy: hoyISO(), hayNinos, semanas: casa?.menu ? casa.semanas : [], ejes });
         if (falta) {
@@ -874,7 +877,7 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
         const out = {};
         // Pulsado «Rehacer la del 26 oct», esa semana y rehacer, diga lo que diga el modelo (#907).
         const delBoton = esBotonRehacer(chat.texto) ? desdeDelBoton(chat.texto, isoDeCasa()) : null;
-        const texto = await generarMenu(householdId, semana, fijos ?? [], out, { desde: delBoton ?? pedido.desde, rehacer: Boolean(rehacer) || Boolean(delBoton) });
+        const texto = await generarMenu(householdId, semana, fijos ?? [], out, { desde: delBoton ?? pedido.desde, rehacer: Boolean(rehacer) || Boolean(delBoton), soloEste: { estructura: pedido.estructura, estructuraCena: pedido.estructuraCena } });
         if (out.ok) pintarTambien(chat, filtrosTrasGenerar(out));
         // Generar fallido deja el pedido abierto: lo dicho no se pierde.
         await (out.ok ? cerrarPedido(householdId) : guardarPedido(quien, pedido)).catch(seguirCon("agente_pedido", null));
