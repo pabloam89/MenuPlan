@@ -32,7 +32,11 @@ beforeEach(() => {
 });
 
 describe("el pedido de cada turno (trozo 67)", () => {
-  const ABIERTO = { camino: "medio", desde: "2026-11-09", forzado: false, preguntado: true, estructura: null, estructuraCena: null };
+  it("el aviso de rehacer sigue guardado en la fila (trozo 72)", () => {
+    expect(pedidoDeFila({ pedido: JSON.stringify({ avisado: true }) }).avisado).toBe(true);
+  });
+
+  const ABIERTO = { camino: "medio", desde: "2026-11-09", forzado: false, preguntado: true, estructura: null, estructuraCena: null, avisado: false };
 
   it("lo ya dicho sigue aunque la llamada no lo traiga", () => {
     expect(pedidoDelTurno(ABIERTO, {})).toEqual(ABIERTO);
@@ -79,7 +83,7 @@ describe("pedido de menú en curso (trozo 66)", () => {
   it("lo siguiente se suma al mismo pedido, sin abrir otro", async () => {
     await guardarPedido(CTX, { camino: "basico" }, AHORA);
     const r = await guardarPedido(CTX, { desde: "2026-11-09" }, AHORA);
-    expect(r).toEqual({ camino: "basico", desde: "2026-11-09", forzado: false, preguntado: false, estructura: null, estructuraCena: null });
+    expect(r).toEqual({ camino: "basico", desde: "2026-11-09", forzado: false, preguntado: false, estructura: null, estructuraCena: null, avisado: false });
     expect(db.filas).toHaveLength(1);
     expect(await pedidoEnCurso("casa", AHORA)).toEqual(r);
   });
@@ -89,7 +93,7 @@ describe("pedido de menú en curso (trozo 66)", () => {
       db.filas.push({ id: "t2", status: "abierta", updated_at: AHORA.toISOString(), pedido: JSON.stringify({ camino: "medio" }) });
     };
     const r = await guardarPedido(CTX, { desde: "2026-11-09" }, AHORA);
-    expect(r).toEqual({ camino: "medio", desde: "2026-11-09", forzado: false, preguntado: false, estructura: null, estructuraCena: null });
+    expect(r).toEqual({ camino: "medio", desde: "2026-11-09", forzado: false, preguntado: false, estructura: null, estructuraCena: null, avisado: false });
     expect(db.filas).toHaveLength(1);
   });
 
@@ -102,7 +106,7 @@ describe("pedido de menú en curso (trozo 66)", () => {
     await guardarPedido(CTX, { camino: "basico" }, AHORA);
     const luego = new Date(AHORA.getTime() + VIDA + 1000);
     expect(await pedidoEnCurso("casa", luego)).toBeNull();
-    expect(await guardarPedido(CTX, { desde: "2026-11-16" }, luego)).toEqual({ camino: null, desde: "2026-11-16", forzado: false, preguntado: false, estructura: null, estructuraCena: null });
+    expect(await guardarPedido(CTX, { desde: "2026-11-16" }, luego)).toEqual({ camino: null, desde: "2026-11-16", forzado: false, preguntado: false, estructura: null, estructuraCena: null, avisado: false });
     expect(db.filas).toHaveLength(1);
   });
 
@@ -114,7 +118,7 @@ describe("pedido de menú en curso (trozo 66)", () => {
   });
 
   it("no da por bueno lo que no sea del vocabulario", () => {
-    expect(pedidoDeFila({ pedido: JSON.stringify({ camino: "otro", desde: "mañana", forzado: "si" }) })).toEqual({ camino: null, desde: null, forzado: false, preguntado: false, estructura: null, estructuraCena: null });
+    expect(pedidoDeFila({ pedido: JSON.stringify({ camino: "otro", desde: "mañana", forzado: "si" }) })).toEqual({ camino: null, desde: null, forzado: false, preguntado: false, estructura: null, estructuraCena: null, avisado: false });
   });
 
   it("un pedido ilegible lanza: no se pisa con uno vacío", async () => {
