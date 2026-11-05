@@ -351,10 +351,11 @@ describe("api/operacion.js: la app lee los datos de la ficha Casa (trozo 12)", (
   });
 
   it("en una casa sin personas la app recibe la base de los datos por persona, y la carga sigue", async () => {
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "owner" }] });
     responde(/rpc\/ficha_casa/, { status: 200, cuerpo: { ...FICHA_V2, personas: [] } });
     const res = await leerGet();
-    expect(res.statusCode).toBe(200);
-    expect(res.cuerpo.datos.filter((d) => d.campo === "schedule")).toEqual([
+    expect(res.codigo).toBe(200);
+    expect(res.body.datos.filter((d) => d.campo === "schedule")).toEqual([
       { campo: "schedule", sujeto: { tipo: "casa", id: null }, ambito: null, estado: "vacio", valor: null, origen: null },
     ]);
   });
