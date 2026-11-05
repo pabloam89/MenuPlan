@@ -87,7 +87,7 @@ const rolesColor = {
   'aviso-fondo': 'ambar-50',
   info: 'azul-700',
   'info-fondo': 'azul-700-alfa10',
-  telegram: 'azul-telegram', // solo «Entrar con Telegram»: es su marca, como el blanco de Google y el negro de Apple
+  telegram: 'azul-telegram', // solo los botones de Telegram: es su marca, como el blanco de Google y el negro de Apple
   scrim: 'negro-alfa45', // modal
   velo: 'blanco-alfa92', // cristal sobre imagen
 }

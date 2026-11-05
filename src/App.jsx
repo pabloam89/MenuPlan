@@ -7805,7 +7805,7 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle, onApple,
           <>
             {/* Donde se entra con Telegram (SignInOptions, primero), sobra otro botón de Telegram. */}
             {FRONTAL_BOT && !urlEntrarConTelegram(window.location) && (
-              <GhostPillButton onClick={abrirLola} tone="solid">
+              <GhostPillButton onClick={abrirLola} tone="telegram">
                 Habla con Lola en Telegram
               </GhostPillButton>
             )}
