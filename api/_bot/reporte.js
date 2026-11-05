@@ -17,6 +17,8 @@ import { deLaCharla } from "./chats.js";
 import { TIPOS_REPORTE, CANAL } from "../../src/lib/vocabularios.js";
 
 export const EVENTO_REPORTE = "bot_reporte";
+/** El evento de user_events de cada turno de Lola (lo escribe api/bot/telegram.js; lo leen /fallo y `npm run fallos:lola`). */
+export const EVENTO_RUTA = "bot_route";
 
 /** Las etiquetas de los botones (el test exige las mismas claves que TIPOS_REPORTE). */
 export const ETIQUETAS_REPORTE = Object.freeze({
@@ -110,7 +112,7 @@ export async function abrirReporte({ msg, chatId, householdId = null, texto = nu
   const chat = String(chatId);
   const resp = msg.reply_to_message?.from?.is_bot ? msg.reply_to_message : null;
   const mensaje = resp ? { id: resp.message_id, fechaMs: resp.date * 1000 } : null;
-  const ruta = `event=eq.bot_route&metadata->>sombra=is.null&metadata->>chat=${eq(chat)}`;
+  const ruta = `event=eq.${EVENTO_RUTA}&metadata->>sombra=is.null&metadata->>chat=${eq(chat)}`;
   // La pregunta y la respuesta de un turno se guardan juntas al acabarlo
   // (memoria.js): las de ese mensaje son el primer par desde él; sin mensaje, el último par.
   const [rutasLeidas, charlaLeida] = await Promise.all([

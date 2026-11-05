@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { resumir, pintar, leerDias, DIAS_POR_DEFECTO, SIN_TIPO } from "./bot-reportes.mjs";
+import { resumir, pintar, leerDias, DIAS_POR_DEFECTO, SIN_TIPO, FALTA_TURNO } from "./bot-reportes.mjs";
+import { SIN_LEER_REPORTE } from "../api/_bot/reporte.js";
 import { TIPOS_REPORTE } from "../src/lib/vocabularios.js";
 
 const reporte = (id, created_at, metadata) => ({ id, created_at, metadata });
@@ -27,6 +28,19 @@ describe("bot-reportes: los /fallo de los probadores", () => {
     expect(manu).toMatchObject({ antes: "pon pasta el martes", herramientas: ["ver_menu", "cambiar_plato"], turno: "mensaje" });
     expect(pablo).toMatchObject({ antes: "¿qué comemos esta semana?", herramientas: [] });
     expect(alvaro.herramientas).toBe(null);
+  });
+
+  it("lo que falta por un fallo se dice, no se pinta como «sin turno» (juez C5)", () => {
+    const fallados = [
+      reporte(5, "2026-11-04T19:00:00Z", { quien: "Manu", tipo: "otro", sin_leer: [SIN_LEER_REPORTE.RUTA, SIN_LEER_REPORTE.CHARLA] }),
+      reporte(6, "2026-11-04T19:05:00Z", { quien: "Pablo", tipo: "otro", ruta_id: 9999, ruta_enlace: "hora" }),
+    ];
+    const r = resumir([...FIJOS, ...fallados], RUTAS);
+    expect(r.lineas.map((l) => l.faltan)).toEqual([[], [], [], [SIN_LEER_REPORTE.RUTA, SIN_LEER_REPORTE.CHARLA], [FALTA_TURNO]]);
+    const texto = pintar(r, 7);
+    expect(texto).toContain("Falta: no se pudo leer el turno al apuntarlo; no se pudo leer la charla al apuntarlo");
+    expect(texto).toContain("Falta: su turno ya no está en la base");
+    expect(texto.match(/Falta:/g)).toHaveLength(2);
   });
 
   it("un tipo fuera de la lista es un error, no una cuenta aparte", () => {

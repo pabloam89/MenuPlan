@@ -19,7 +19,7 @@ import { leerEnv } from "./lib/env.mjs";
 import { conexionDeConsulta, motivoUsuarioIncorrecto } from "./lib/rolLectura.mjs";
 import { leerDias as leerDiasDe } from "./bot-enlaces.mjs";
 import { TIPOS_REPORTE } from "../src/lib/vocabularios.js";
-import { EVENTO_REPORTE, ETIQUETAS_REPORTE } from "../api/_bot/reporte.js";
+import { EVENTO_REPORTE, EVENTO_RUTA, ETIQUETAS_REPORTE, SIN_LEER_REPORTE } from "../api/_bot/reporte.js";
 
 /** Los días sin --dias. */
 export const DIAS_POR_DEFECTO = 7;
@@ -48,6 +48,8 @@ export function resumir(reportes, rutas = []) {
     if (!(tipo in porTipo)) throw new Error(`tipo fuera de la lista en el reporte ${f.id}: «${tipo}»`);
     porTipo[tipo]++;
     const ruta = m.ruta_id != null ? rutaDe.get(String(m.ruta_id)) ?? null : null;
+    // Lo que falta por un fallo se dice: lo que /fallo no pudo leer (sin_leer) y el turno enlazado que ya no vuelve.
+    const faltan = [...(m.sin_leer ?? []), ...(m.ruta_id != null && !ruta ? [FALTA_TURNO] : [])];
     return {
       cuando: hora(f.created_at),
       quien: m.quien ?? m.telegram_id ?? "?",
@@ -57,10 +59,15 @@ export function resumir(reportes, rutas = []) {
       antes: m.anterior ?? ruta?.texto ?? null,
       herramientas: ruta?.lola?.herramientas?.map((h) => (Array.isArray(h) ? h[0] : h)) ?? null,
       turno: ruta ? m.ruta_enlace : null,
+      faltan,
     };
   });
   return { lineas, porTipo };
 }
+
+/** Un reporte con ruta_id cuya fila bot_route no ha vuelto (purgada o borrada): no es «sin turno». */
+export const FALTA_TURNO = "turno_no_encontrado";
+const POR_QUE_FALTA = { [SIN_LEER_REPORTE.RUTA]: "no se pudo leer el turno al apuntarlo", [SIN_LEER_REPORTE.CHARLA]: "no se pudo leer la charla al apuntarlo", [FALTA_TURNO]: "su turno ya no está en la base" };
 
 /** El texto para la terminal. */
 export function pintar({ lineas, porTipo }, dias) {
@@ -71,6 +78,7 @@ export function pintar({ lineas, porTipo }, dias) {
     out.push(`  Lola: ${una(l.lola, 400) ? `«${una(l.lola, 400)}»` : "— (ya borrado o sin leer)"}`);
     out.push(`  Antes: ${una(l.antes) ? `«${una(l.antes)}»` : "—"}`);
     out.push(`  Herramientas: ${l.herramientas == null ? "— (sin turno enlazado)" : l.herramientas.join(", ") || "ninguna"}${l.turno ? ` [turno por ${l.turno}]` : ""}`);
+    if (l.faltan.length) out.push(`  Falta: ${l.faltan.map((f) => POR_QUE_FALTA[f] ?? f).join("; ")}`);
   }
   out.push("", `Por tipo: ${Object.entries(porTipo).map(([t, n]) => `${t} ${n}`).join(", ")}.`);
   return out.join("\n");
@@ -95,7 +103,7 @@ async function main() {
     });
     const ids = reportes.map((r) => r.metadata?.ruta_id).filter((x) => x != null).map(String);
     const { rows: rutas } = ids.length
-      ? await client.query({ text: "select id, metadata from user_events where event = 'bot_route' and id = any($1::bigint[])", values: [ids] })
+      ? await client.query({ text: "select id, metadata from user_events where event = $1 and id = any($2::bigint[])", values: [EVENTO_RUTA, ids] })
       : { rows: [] };
     console.log(pintar(resumir(reportes, rutas), dias));
   } finally {
