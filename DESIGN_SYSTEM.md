@@ -54,6 +54,7 @@ Los componentes usan **roles**, nunca el hex. Un hex pertenece a un solo rol. Lo
 | `aviso-fondo` | `#fff8e7` | Tinte de aviso |
 | `info` | `#2f6d8a` | Información |
 | `info-fondo` | `rgba(47,109,138,.1)` | Tinte de info (derivado de `info`, alfa .10; provisional) |
+| `telegram` | `#1f7abf` | Solo «Entrar con Telegram» (marca ajena, oscurecida para que el blanco se lea) |
 | `scrim` | `rgba(0,0,0,.45)` | Fondo de modal |
 | `velo` | `rgba(255,255,255,.92)` | Cristal sobre imagen |
 
