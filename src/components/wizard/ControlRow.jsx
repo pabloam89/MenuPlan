@@ -127,6 +127,11 @@ export function BaldosaAccion({
   );
 }
 
+/** Una baldosa de la franja de Recetas y Compra: cuatro por fila, ocupando el ancho sin que el móvil estrecho se salga. */
+export function BaldosaFranja(props) {
+  return <BaldosaAccion ancho="23%" {...props} />;
+}
+
 /** La raya fina que aparta una acción de las baldosas que cambian de vista (Crear en Recetas, Compartir en Compra). */
 export function RayaBaldosas() {
   return <span aria-hidden style={{ width: 1, alignSelf: "stretch", margin: "6px 0 18px", background: tono.linea, flexShrink: 0 }} />;

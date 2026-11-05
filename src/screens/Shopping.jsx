@@ -1,6 +1,6 @@
 import { FRONTAL_BOT, GUIAS_ACTIVAS, abrirLola } from "../lib/frontalBot.js";
 import { pedidoMenu } from "../lib/pedidoLola.js";
-import { BaldosaAccion, RayaBaldosas } from "../components/wizard/ControlRow.jsx";
+import { BaldosaFranja, RayaBaldosas } from "../components/wizard/ControlRow.jsx";
 import { color as tono } from "../design/tokens.js";
 import lolaFoto from "../assets/lola/lola-perfil.jpg";
 import { Suspense, lazy, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
@@ -1291,12 +1291,12 @@ export function ShoppingScreen({
       <div style={{ background: HEADER_BAND, padding: "0 16px 12px", display: "flex", justifyContent: "space-between" }}>
         <BuyTabs value={buyTab} onChange={setBuyTab} />
         <RayaBaldosas />
-        <BaldosaAccion
+        <BaldosaFranja
           Icono={Share2}
           etiqueta="Compartir"
           color={tono.info}
           title="Compartir lista"
-          ancho="23%"
+         
           data-coach="shop-share"
           onClick={() => shareShoppingList(shopping).then((r) => {
             if (r.method === "clipboard") onToast?.("Lista copiada al portapapeles");
@@ -4017,7 +4017,7 @@ function BuyTabs({ value, onChange }) {
   return (
     <div role="group" aria-label="Tu compra" style={{ display: "contents" }}>
       {BUY_TABS.map(({ id, label, Icon, color }) => (
-        <BaldosaAccion key={id} Icono={Icon} etiqueta={label} color={color} marcado={value === id} ariaPressed={value === id} ancho="23%" onClick={() => onChange(id)} />
+        <BaldosaFranja key={id} Icono={Icon} etiqueta={label} color={color} marcado={value === id} ariaPressed={value === id} onClick={() => onChange(id)} />
       ))}
     </div>
   );

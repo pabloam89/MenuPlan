@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { BookOpen, Heart, NotebookPen, Plus, Sparkles } from "../components/icons.jsx";
 import { BottomNav, bottomNavSpacer, safeTop } from "../components/ui.jsx";
-import { BaldosaAccion, RayaBaldosas } from "../components/wizard/ControlRow.jsx";
+import { BaldosaFranja, RayaBaldosas } from "../components/wizard/ControlRow.jsx";
 import { color } from "../design/tokens.js";
 import { CatalogBrowserSheet } from "./CatalogBrowserSheet.jsx";
 import { filterMyLibraryRecipes, isCatalogGarnishCombo } from "../lib/userRecipes.js";
@@ -87,13 +87,13 @@ export function RecipesScreen({
           </div>
         </div>
         <div style={{ padding: "0 18px 12px", maxWidth: 420, margin: "0 auto", width: "100%", boxSizing: "border-box", display: "flex", justifyContent: "space-between" }}>
-          <BaldosaAccion Icono={Sparkles} etiqueta="Para ti" color={color.aviso} marcado={pestana === "parati"} ariaPressed={pestana === "parati"} ancho="23%" onClick={() => setPestana("parati")} />
-          <BaldosaAccion Icono={NotebookPen} etiqueta="Mis recetas" color={color.marca} marcado={pestana === "mias"} ariaPressed={pestana === "mias"} ancho="23%" onClick={() => setPestana("mias")} />
-          <BaldosaAccion Icono={Heart} etiqueta="Favoritos" color={color.favorito} marcado={pestana === "favoritos"} ariaPressed={pestana === "favoritos"} ancho="23%" onClick={() => setPestana("favoritos")} />
+          <BaldosaFranja Icono={Sparkles} etiqueta="Para ti" color={color.aviso} marcado={pestana === "parati"} ariaPressed={pestana === "parati"} onClick={() => setPestana("parati")} />
+          <BaldosaFranja Icono={NotebookPen} etiqueta="Mis recetas" color={color.marca} marcado={pestana === "mias"} ariaPressed={pestana === "mias"} onClick={() => setPestana("mias")} />
+          <BaldosaFranja Icono={Heart} etiqueta="Favoritos" color={color.favorito} marcado={pestana === "favoritos"} ariaPressed={pestana === "favoritos"} onClick={() => setPestana("favoritos")} />
           {onOpenRecipePlanner && !readOnly && (
             <>
               <RayaBaldosas />
-              <BaldosaAccion Icono={Plus} etiqueta="Crear" color={color.marca} title="Crear receta" ancho="23%" onClick={onOpenRecipePlanner} />
+              <BaldosaFranja Icono={Plus} etiqueta="Crear" color={color.marca} title="Crear receta" onClick={onOpenRecipePlanner} />
             </>
           )}
         </div>
