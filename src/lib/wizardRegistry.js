@@ -823,21 +823,6 @@ export function preguntasVisibles(notepad, data, registro = PREGUNTAS, estados =
 }
 
 /**
- * La siguiente que hay que hacerse, o null si no queda ninguna.
- *
- * Primero lo que necesita aclaración —es lo único que puede permitirse gritar—
- * y después lo que está por tocar, en el orden del registro.
- */
-export function siguientePregunta(notepad, data, { registro = PREGUNTAS, dudas = [], estados = null } = {}) {
-  const visibles = preguntasVisibles(notepad, data, registro, estados);
-  return (
-    visibles.find((p) => estadoDePregunta(p, notepad, data, dudas, estados) === "aclaracion") ??
-    visibles.find((p) => estadoDePregunta(p, notepad, data, dudas, estados) === "por-tocar") ??
-    null
-  );
-}
-
-/**
  * Cuántas quedan. La barra de progreso no dice "paso 3 de 15" —que es una
  * amenaza y además miente, porque el total cambia— sino "quedan 4 cosas",
  * bajando. Un wizard que se acorta mientras hablas se siente lo contrario de
