@@ -98,6 +98,7 @@
   ],
   "household_recipe_discards": [
     "api/_bot/casa.js",
+    "api/_bot/propias.js",
     "src/lib/householdDiscardsSync.js"
   ],
   "household_state": [
@@ -120,15 +121,18 @@
     "api/_bot/caducidades.js"
   ],
   "recipe_collections": [
+    "api/_bot/propias.js",
     "src/lib/recipeCollections.js"
   ],
   "recipe_folders": [
+    "api/_bot/propias.js",
     "src/lib/recipeCollections.js"
   ],
   "recipe_share_links": [
     "api/_bot/compartir.js"
   ],
   "recipe_votes": [
+    "api/_bot/propias.js",
     "src/lib/recipeVotes.js"
   ],
   "senal": [
