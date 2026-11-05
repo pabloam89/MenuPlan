@@ -180,7 +180,6 @@ const MAPA = [
   c("ver_despensa", "ver lo que hay en casa", "despensa", "ver", "despensa", { app: app("en_casa") }),
   c("anadir_despensa", "apuntar comida en casa (a mano, por foto o por ticket)", "despensa", "anadir", "despensa", { app: app("en_casa", { apagada: EN_CASA_LECTURA }), aProposito: DESPENSA_DESDE_COMPRA }),
   c("cambiar_despensa", "cambiar la cantidad o el sitio de algo en casa", "despensa", "cambiar", "despensa", { app: app("en_casa", { apagada: EN_CASA_LECTURA }), aProposito: DESPENSA_DESDE_COMPRA }),
-  c("cuando_gastado", "decidir cuándo se da algo por gastado", "despensa", "cambiar", "despensa", { app: app("compra", { escribe: ["pantryPrefs"] }) }),
   c("aprovechar_casa", "decir si el menú aprovecha lo que hay en casa", "despensa", "cambiar", "despensa", { app: app("asistente", { escribe: ["pantryMode"], apagada: ASISTENTE }) }),
 
   // ── La charla con Lola ──

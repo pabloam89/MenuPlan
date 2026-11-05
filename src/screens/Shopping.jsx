@@ -1,7 +1,6 @@
 import { FRONTAL_BOT, GUIAS_ACTIVAS, abrirLola } from "../lib/frontalBot.js";
 import { pedidoMenu } from "../lib/pedidoLola.js";
 import { BaldosaAccion } from "../components/wizard/ControlRow.jsx";
-import { abrirPrefsDespensaSola, apuntarMarcaLocal } from "../lib/marcasLocales.js";
 import lolaFoto from "../assets/lola/lola-perfil.jpg";
 import { Suspense, lazy, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -37,7 +36,6 @@ import {
   Receipt,
   Scale,
   Send,
-  Settings,
   Share2,
   ShoppingBasket,
   ShoppingCart,
@@ -110,7 +108,6 @@ import { shareShoppingList } from "../lib/menuExport.js";
 import { priceShoppingList } from "../lib/listPricing.js";
 import { listaFrenteAPresupuesto } from "../lib/presupuesto.js";
 import { isMercadonaStore } from "../lib/storeCatalog.js";
-import { PantryPrefsSheet } from "../components/ModeSheets.jsx";
 
 // Lazy (not a top-level import): Pantry.jsx already imports SwipePurchaseShell
 // from this very file, so a plain top-level import here would be circular.
@@ -419,21 +416,6 @@ export function ShoppingScreen({
       onInitialTabHandled?.();
     }
   }, [initialTab, onInitialTabHandled]);
-
-  // "¿Cuándo se da por gastado?" (2026-08-26): ya no es un paso del wizard —
-  // aparece sola la primera vez que entras en "En casa" con un menú activo
-  // (antes de eso la pregunta es abstracta, no hay nada que descontar), y el
-  // icono de ajustes de esa pestaña la reabre cuando quieras. Editable solo
-  // si hay setData (no en hogares de solo lectura). Que ya salió lo recuerda
-  // este móvil (marcasLocales.js), no la casa.
-  const canEditPantryPrefs = Boolean(setData);
-  const [showPantryPrefs, setShowPantryPrefs] = useState(false);
-  useEffect(() => {
-    if (abrirPrefsDespensaSola({ pestana: buyTab, puedeEditar: canEditPantryPrefs, menuActivo: data?.activeMenuId, casa: pantryHouseholdId })) {
-      setShowPantryPrefs(true);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [buyTab]);
 
   const menuMode = Array.isArray(menuWeeks) && menuWeeks.length > 0;
 
@@ -1296,26 +1278,13 @@ export function ShoppingScreen({
               </button>
             )}
           </div>
-          <div style={{ display: "flex", gap: 8 }}>
-            {buyTab === "home" && canEditPantryPrefs && (
-              <button
-                type="button"
-                onClick={() => setShowPantryPrefs(true)}
-                aria-label="Ajustes de En casa: cuándo se da por gastado"
-                title="Ajustes de En casa"
-                style={iconBtnStyle}
-              >
-                <Settings size={17} strokeWidth={2.2} />
-              </button>
-            )}
-          </div>
         </div>
       </div>
       {/* «En casa» vuelve al selector (30 sep 2026): escondido tras un icono
           de la cabecera no lo encontraba nadie. Sigue siendo otra cosa —
           Comprado es un registro fijo de ESTA compra (un recibo), En casa el
           stock vivo que se descuenta con el consumo del menú
-          (pantryPrefs.consume) —, pero se llega de un toque. Comprado
+          —, pero se llega de un toque. Comprado
           muestra precio/envase (misma UI que Pendiente en modo €) cuando hay
           Mercadona activado; si no, la lista plana de siempre. */}
       <div style={{ background: HEADER_BAND, padding: "0 16px 12px", display: "flex", justifyContent: "space-between" }}>
@@ -1536,25 +1505,6 @@ export function ShoppingScreen({
           onManual={() => {
             setShowCapture(false);
             setShowManualSpend(true);
-          }}
-        />
-      )}
-
-      {showPantryPrefs && canEditPantryPrefs && (
-        <PantryPrefsSheet
-          initial={data?.pantryPrefs?.consume}
-          onComplete={(consume) => {
-            setData((d) => ({
-              ...d,
-              pantryPrefs: { ...(d.pantryPrefs ?? {}), consume },
-            }));
-            setShowPantryPrefs(false);
-            apuntarMarcaLocal("pantryPrefsSeen", pantryHouseholdId);
-            onToast?.("Preferencia guardada");
-          }}
-          onClose={() => {
-            setShowPantryPrefs(false);
-            apuntarMarcaLocal("pantryPrefsSeen", pantryHouseholdId);
           }}
         />
       )}

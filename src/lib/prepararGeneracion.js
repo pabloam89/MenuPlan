@@ -80,9 +80,6 @@ export function resolveModeData(data) {
     mealStructureCenaByGroup: {},
     // Tiempo de cocina igual para comida y cena.
     cookTime: { mode: "shared", weekday: syncBlock(ct.weekday), weekend: syncBlock(ct.weekend) },
-    // pantryPrefs NO se fuerza: "cuándo damos por gastado lo de casa" se
-    // pregunta también en sencillo, así que forzarlo aquí sería preguntar y
-    // luego ignorar la respuesta.
   };
 }
 
