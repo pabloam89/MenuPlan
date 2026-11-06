@@ -727,7 +727,7 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
     }),
     herramienta({ capacidades: ["semanas"], lee: ["menuWeekDays"], escribe: ["menuWeekDays", "menuWeekOffsets", "menuWeek", "menuVarietyPref"], lector: false, riesgo: RIESGO_HERRAMIENTA.ESCRIBE_REVERSIBLE, deshace: DESHACE.FOTO, pantalla: null }, {
       name: "ajustar_semana",
-      description: "Qué días entran en el menú de una semana concreta («esta semana solo hasta el jueves», «la que viene de lunes a viernes»), y cuánto se pueden repetir platos entre semanas: variedad strict (nada de ninguna semana anterior), moderate (nada de la semana anterior), relaxed (se pueden repetir). Para «nunca el finde» de siempre, ajustar_horario con donde = off. Después, generar_menu para esa semana si quieren el menú ya.",
+      description: "Qué días entran en el menú de una semana concreta («esta semana solo hasta el jueves», «la que viene de lunes a viernes»), y cuánto se pueden repetir platos entre semanas: variedad strict (nada de ninguna semana anterior), moderate (nada de la semana anterior), relaxed (se pueden repetir). Para «nunca el finde» de siempre, donde_come con plazo siempre con donde = off. Después, generar_menu para esa semana si quieren el menú ya.",
       inputSchema: obj({
         semana: { type: "string", enum: ["esta", "siguiente"] },
         dias: { type: "array", items: { type: "string" }, description: "lunes…domingo, «entre semana» o «finde»: los días que SÍ entran." },
@@ -752,17 +752,6 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
         ninguna: { type: "boolean" },
       }),
       run: (args) => pedirTanda(householdId, args),
-    }),
-    herramienta({ capacidades: ["horario"], lee: ["members", "accountMemberIdByUser"], escribe: ["schedule"], lector: false, riesgo: RIESGO_HERRAMIENTA.ESCRIBE_REVERSIBLE, deshace: DESHACE.FOTO, pantalla: null }, {
-      name: "ajustar_horario",
-      description: "El horario FIJO, lo que se repite TODAS las semanas: quién come dónde. personas: nombres, «yo», «todos», «niños», «los peques», «adultos». dias: lunes…domingo, «entre semana», «finde» o «de lunes a jueves» (vacío = todos). comidas: Desayuno/Comida/Merienda/Cena/Postre (vacío = Comida y Cena; con donde = cole, vacío = solo la Comida). donde: casa | tupper (se lleva comida de casa) | fuera | cole | off (esa comida no se hace). Un día suelto («el jueves no comemos», «este viernes cenamos fuera») NO es esto: es fuera_de_casa.",
-      inputSchema: obj({
-        personas: { type: "array", items: { type: "string" }, minItems: 1 },
-        dias: { type: "array", items: { type: "string" } },
-        comidas: { type: "array", items: { type: "string" } },
-        donde: esquemaDato("schedule"),
-      }, ["personas", "donde"]),
-      run: (args) => ajustarHorario(householdId, args, quien),
     }),
     herramienta({ capacidades: ["invitados"], lee: ["reglas"], escribe: ["reglas"], lector: false, riesgo: RIESGO_HERRAMIENTA.ESCRIBE_REVERSIBLE, deshace: DESHACE.FOTO, pantalla: null }, {
       name: "anadir_invitado",
@@ -1115,23 +1104,32 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
         return proponerPlatos(householdId, { plato: plato || null, dia: dia || null, semana: cual_semana, franja: f, grupo, para: para || null, cual, n: n ?? 3, parecidoA: parecido_a || null, estilo: estilo || null, rasgos: rasgos || null, ejes: ejes ?? null, perfil: perfil || null, deFuera: de_fuera || null, repetirVecinos: repetir_vecinos === true, anterior: chat.anterior ?? null }, fotos);
       },
     }),
-    herramienta({ capacidades: ["fuera_de_casa"], lee: ["members", "schedule", "reglas", "menus"], escribe: ["reglas", "menus"], lector: false, riesgo: RIESGO_HERRAMIENTA.ESCRIBE_REVERSIBLE, deshace: DESHACE.FOTO, pantalla: "semana" }, {
-      name: "fuera_de_casa",
-      description: "Días concretos en que alguien (o toda la casa) no come en casa, o esa comida no se hace: «hoy cenamos fuera», «el viernes Leo come con los abuelos», «Nat no está el finde», «el jueves comida no, que no tengo tiempo», «el 15 no comemos». Solo esos días; lo que se repite cada semana («los jueves comemos fuera») es ajustar_horario. Una llamada apunta todos los días × todas las comidas que le pases: «no come el finde» es dias [finde] con comidas [Comida, Cena]. Si los días no llevan las mismas comidas («el finde entero y hoy solo la cena»), una llamada por cada combinación. Si en el menú ya hecho todo un grupo queda fuera, se quita ese plato y la compra se rehace (sale pintado debajo); si solo falta alguien, el plato se queda para los demás. quienes: nombres de la casa (vacío = toda la casa).",
+    herramienta({ capacidades: ["fuera_de_casa", "horario"], lee: ["members", "accountMemberIdByUser", "schedule", "reglas", "menus"], escribe: ["schedule", "reglas", "menus"], lector: false, riesgo: RIESGO_HERRAMIENTA.ESCRIBE_REVERSIBLE, deshace: DESHACE.FOTO, pantalla: "semana" }, {
+      name: "donde_come",
+      description: "Quién come dónde, con su plazo. plazo dias: días concretos en que alguien (o toda la casa) no come en casa, o esa comida no se hace: «hoy cenamos fuera», «el viernes Leo come con los abuelos», «Nat no está el finde», «el jueves comida no, que no tengo tiempo», «el 15 no comemos». Una llamada apunta todos los días × todas las comidas que le pases: «no come el finde» es dias [finde] con comidas [Comida, Cena]. Si los días no llevan las mismas comidas («el finde entero y hoy solo la cena»), una llamada por cada combinación. Si en el menú ya hecho todo un grupo queda fuera, se quita ese plato y la compra se rehace (sale pintado debajo); si solo falta alguien, el plato se queda para los demás. plazo siempre: el horario FIJO, lo que se repite TODAS las semanas («los jueves comemos fuera», «los niños comen en el cole de lunes a jueves»), con donde y quienes obligatorios: dias lunes…domingo, «entre semana», «finde» o «de lunes a jueves» (vacío = todos); comidas vacío = Comida y Cena (con donde = cole, solo la Comida). Un día suelto («el jueves no comemos», «este viernes cenamos fuera») NUNCA es plazo siempre.",
       inputSchema: {
         type: "object",
         properties: {
-          dias: { type: "array", items: { type: "string" }, minItems: 1, description: "Como lo digan: hoy, mañana, pasado mañana, el jueves, el finde, el 15, 15 de noviembre, de lunes a miércoles o AAAA-MM-DD. Si dudas de qué día es, pregúntalo antes." },
-          semana: { type: "string", enum: ["esta", "siguiente"], description: "siguiente si dicen «de la semana que viene» («el viernes de la que viene»)." },
-          comidas: { type: "array", items: { type: "string", enum: IDS_COMIDAS }, minItems: 1 },
-          quienes: { type: "array", items: { type: "string" }, description: "Nombres de la casa, «yo» (quien escribe), «los niños»; vacío = toda la casa." },
+          plazo: { type: "string", enum: ["dias", "siempre"], description: "dias: solo esos días. siempre: todas las semanas." },
+          dias: { type: "array", items: { type: "string" }, description: "Como lo digan: hoy, mañana, pasado mañana, el jueves, el finde, el 15, 15 de noviembre, de lunes a miércoles o AAAA-MM-DD. Si dudas de qué día es, pregúntalo antes." },
+          semana: { type: "string", enum: ["esta", "siguiente"], description: "Con plazo dias, siguiente si dicen «de la semana que viene» («el viernes de la que viene»)." },
+          comidas: { type: "array", items: { type: "string", enum: IDS_COMIDAS } },
+          quienes: { type: "array", items: { type: "string" }, description: "Nombres de la casa, «yo» (quien escribe), «los niños», «adultos»; con plazo dias, vacío = toda la casa." },
+          donde: esquemaDato("schedule"),
           de_nuevo: { type: "boolean", description: "Solo si la herramienta te dijo que eso ya se guardó hace poco y la persona, AHORA, ha confirmado que lo quiere también para estos días." },
         },
-        required: ["dias", "comidas"],
+        required: ["plazo"],
         additionalProperties: false,
       },
-      run: async ({ de_nuevo, ...args }) => {
-        const r = await apuntarAusencia(householdId, { ...args, deNuevo: de_nuevo === true, autor: quien.autor, userId: quien.userId, papel: quien.papel });
+      run: async ({ plazo, de_nuevo, quienes, donde, ...args }) => {
+        if (plazo === "siempre") {
+          if (!quienes?.length || !donde) return "NO GUARDADO: para lo de siempre hacen falta quienes y donde.";
+          // El horario fijo no se ve en una semana: sin botón.
+          chat.nadaQueVer = true;
+          return ajustarHorario(householdId, { personas: quienes, dias: args.dias, comidas: args.comidas, donde }, quien);
+        }
+        if (!args.dias?.length || !args.comidas?.length) return "NO GUARDADO: para unos días concretos hacen falta dias y comidas.";
+        const r = await apuntarAusencia(householdId, { ...args, quienes, deNuevo: de_nuevo === true, autor: quien.autor, userId: quien.userId, papel: quien.papel });
         if (r.pintar) pintarTambien(chat, r.pintar);
         // Apuntada para cuando se genere: aún no hay semana que ver en la app.
         if (!r.error && !r.hayMenu) chat.nadaQueVer = true;

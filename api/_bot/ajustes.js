@@ -406,7 +406,7 @@ const DICHA_VARIEDAD = { strict: "sin repetir platos de ninguna semana anterior"
  * Qué días entran en el menú de una semana y cuánto se repiten los platos
  * entre semanas, como el paso «para cuándo» del asistente. Los días van por
  * semana (semanaDias.js: `menuWeekDays` y sus dos derivados); para «nunca el
- * finde» de siempre está ajustar_horario. Pura, para el test.
+ * finde» de siempre está donde_come. Pura, para el test.
  */
 export function aplicarSemana(data, { semana = "esta", dias, variedad } = {}, { hoyIdx } = {}) {
   let d = data ?? {};
@@ -518,11 +518,11 @@ export function personasDeEdad(miembros, cuales) {
 /** Por qué no se ha cambiado el horario de alguien, para el recibo (⚠️). */
 export const SIN_HORARIO = Object.freeze({ NO_ESTA: "no está en la casa" });
 
-/** La acción del resultado de ajustar_horario: su etiqueta del recibo está en ACCIONES (resultado.js). */
+/** La acción del resultado de donde_come: su etiqueta del recibo está en ACCIONES (resultado.js). */
 const ACCION_HORARIO = "horario";
 
 /**
- * El RESULTADO de ajustar_horario (trozo 27 de #1037): lo cambiado, en una
+ * El RESULTADO de donde_come (trozo 27 de #1037): lo cambiado, en una
  * línea; quien no está en la casa, sin hacer y por qué; y lo que falta saber
  * (qué día, cuál de dos personas) o el aviso del cole, en la nota, sin línea
  * en el recibo: Lola lo pregunta. Sin `valores`: el horario guarda también

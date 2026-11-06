@@ -24,17 +24,17 @@ const NOMBRES = tools.map((t) => t.name);
 const descripcion = (n) => tools.find((t) => t.name === n)?.description ?? "";
 
 // Qué herramienta hace cada modo del enrutador cuando va a Lola.
-const HERRAMIENTA_DE_MODO = { ausencia: "fuera_de_casa", cambiar: "cambiar_plato", generar: "generar_menu", compra_anadir: "anadir_compra" };
+const HERRAMIENTA_DE_MODO = { ausencia: "donde_come", cambiar: "cambiar_plato", generar: "generar_menu", compra_anadir: "anadir_compra" };
 
 // La tabla: frase → herramienta. Si una frase sale en el prompt, en el
 // enrutador o en una descripción, tiene que mandar a esta.
 const PARES = [
-  ["q el jueves comida no xq no tengo tiempo", "fuera_de_casa"],
-  ["hoy cenamos fuera", "fuera_de_casa"],
-  ["el jueves no como en casa", "fuera_de_casa"],
-  ["mañana no comemos", "fuera_de_casa"],
-  ["los jueves comemos fuera", "ajustar_horario"],
-  ["los niños comen en el cole de lunes a jueves", "ajustar_horario"],
+  ["q el jueves comida no xq no tengo tiempo", "donde_come"],
+  ["hoy cenamos fuera", "donde_come"],
+  ["el jueves no como en casa", "donde_come"],
+  ["mañana no comemos", "donde_come"],
+  ["los jueves comemos fuera", "donde_come"],
+  ["los niños comen en el cole de lunes a jueves", "donde_come"],
   ["tenemos airfryer", "ajustar_cocina"],
   ["quita la lechuga del viernes", "cambiar_plato"],
 ];
@@ -60,7 +60,7 @@ describe("ejemplos del prompt contra las herramientas (#958)", () => {
 
   it("ningún ejemplo de un día suelto manda al horario fijo", () => {
     for (const linea of conocimiento.split("\n")) {
-      const r = linea.match(/«([^»]+)»[^«]*?→[^.]*?\b(ajustar_horario)\b/);
+      const r = linea.match(/«([^»]+)»[^«]*?→[^.]*?\b(plazo siempre)\b/);
       if (r) expect(DIA_SUELTO.test(r[1]), linea).toBe(false);
     }
   });
@@ -75,10 +75,10 @@ describe("ejemplos del prompt contra las herramientas (#958)", () => {
     }
   });
 
-  it("las descripciones: fuera_de_casa es lo de un día, ajustar_horario lo de siempre", () => {
-    expect(descripcion("fuera_de_casa")).toMatch(/el jueves comida no/);
-    expect(descripcion("ajustar_horario")).toMatch(/NO es esto: es fuera_de_casa/);
-    expect(descripcion("ajustar_horario")).toMatch(/cole, vacío = solo la Comida/);
+  it("la descripción: un día suelto nunca es plazo siempre", () => {
+    expect(descripcion("donde_come")).toMatch(/el jueves comida no/);
+    expect(descripcion("donde_come")).toMatch(/NUNCA es plazo siempre/);
+    expect(descripcion("donde_come")).toMatch(/con donde = cole, solo la Comida/);
   });
 
   it("compra_anadir no trae nada que el enrutador dice que no es comida (#958)", () => {
