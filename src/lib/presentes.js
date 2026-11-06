@@ -52,3 +52,28 @@ export function fueraEn(data, fecha, dia, comida) {
   }
   return fuera;
 }
+
+/**
+ * Las comidas que una persona pasa fuera, por día: `{ Lun: ["Cena"] }`. Solo los días con alguna.
+ * @param {object} data
+ * @param {string} memberId
+ * @param {Record<string, string>} fechas  día → fecha ISO
+ * @param {string[]} comidas
+ */
+export function comidasFuera(data, memberId, fechas, comidas) {
+  const fuera = {};
+  for (const [dia, fecha] of Object.entries(fechas)) {
+    const suyas = comidas.filter((c) => fueraEn(data, fecha, dia, c).has(memberId));
+    if (suyas.length) fuera[dia] = suyas;
+  }
+  return fuera;
+}
+
+/** El plan (`{ grupo: { "Lun-Cena": hueco } }`) sin esas comidas: lo que se enseña de quien no las come. */
+export function planSinComidas(plan, fuera) {
+  const huecos = new Set(Object.entries(fuera).flatMap(([dia, comidas]) => comidas.map((c) => `${dia}-${c}`)));
+  return Object.fromEntries(Object.entries(plan ?? {}).map(([grupo, semana]) => [
+    grupo,
+    Object.fromEntries(Object.entries(semana ?? {}).filter(([clave]) => !huecos.has(clave))),
+  ]));
+}

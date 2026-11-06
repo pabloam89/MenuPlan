@@ -96,7 +96,7 @@ export const ENTIDADES = Object.freeze({
   grupo: {
     id: "group", name: "Grupo de comensales", scope: "vertical", term: "grupo",
     source_of_truth: "src/lib/registroFicha.js",
-    readers: ["src/lib/groups.js", "api/_bot/presentes.js"],
+    readers: ["src/lib/groups.js", "src/lib/presentes.js"],
     nota: "Vive en las tablas grupo y grupo_persona (desde la 0108); se lee como data.groups con membersDeFilas (personas.js).",
   },
   regla: {
