@@ -36,6 +36,8 @@ const NOMBRE_SOSPECHOSO = /persona|grupo|group|member|miembro|comensal|eater|rec
  * apariciones en todas).
  */
 export const NO_LLEVAN = new Map([
+  ["mercadona_encargo.lista", "los códigos y cantidades de Mercadona de una lista; sin ids de la casa"],
+  ["mercadona_encargo.faltan", "códigos de Mercadona que no entraron; sin ids de la casa"],
   ["app_feedback.metadata", "pantalla, versión y contexto del comentario; sin ids de la casa"],
   ["bot_cola.item", "el mensaje entrante mientras espera turno (texto de la persona); dura segundos"],
   ["bot_idempotencia.resultado", "la respuesta ya dada a un turno repetido; caduca sola"],

@@ -624,6 +624,18 @@
     "ticket.despensa_ids": {
       "class": "identifier",
       "reason": "Ids de lo que el ticket creó en la despensa (pantryIds): borrarlo los quita"
+    },
+    "mercadona_cuenta.sesion_cifrada": {
+      "class": "excluded",
+      "reason": "La sesión sellada de Mercadona: un secreto opaco, ni vocabulario ni texto de nadie"
+    },
+    "mercadona_encargo.chat_id": {
+      "class": "identifier",
+      "reason": "Id de chat del canal de mensajería, lo da Telegram o WhatsApp"
+    },
+    "mercadona_encargo.lista_xid": {
+      "class": "identifier",
+      "reason": "Id de la lista en Mercadona, lo da su web"
     }
   }
 }
