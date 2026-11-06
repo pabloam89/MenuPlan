@@ -43,7 +43,7 @@ pública: se usa la misma llamada que su propia web.
 |---|---|---|
 | Entrar (a mano, una vez) | `node scripts/mercadona-navegador.mjs --entrar` | `resultado: sesion_guardada`; con correo y contraseña, **no** con Google |
 | Ensayo, sin escribir | `node scripts/mercadona-navegador.mjs` | `resultado: ensayo_ok` |
-| Crear la lista | `node scripts/mercadona-navegador.mjs --si` | `resultado: creada_completa` y `entraron N de N` |
+| Crear la lista | `node scripts/mercadona-navegador.mjs --si` | `resultado: productos_completos` y `entraron N de N` |
 | Otra lista | añadir `--lista fichero.json` | `{ name, products: [{ merca_code, quantity }] }` |
 | Exportar la sesión | `--exportar fichero` | `resultado: sesion_exportada` |
 | Usar esa sesión en un servidor | `--estado fichero`, en un contenedor desechable | igual que en el PC |
@@ -89,6 +89,8 @@ Sin asesoría legal: no es una opinión de abogado.
 Comprobado el 2026-11-06 con la cuenta de Pablo: login a mano en Chrome
 automatizado; lista de 3 productos desde su PC (3 de 3, vista en la app); misma
 lista desde el servidor de Hetzner, con la sesión exportada (3 de 3).
+
+La respuesta de su lista no trae cantidades: `products_quantity` cuenta productos distintos. La cantidad sí se guarda: una lista con cantidad 3 sale en su web como «Añadir 3 uds. al carro» (visto el 6 nov). El script solo comprueba productos.
 
 Sin comprobar: pasar la lista al carrito, una compra de ~30 productos, cuánto dura
 la sesión, varias familias a la vez, y qué hace Mercadona con un uso repetido. Dos

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { compararLista, erroresDeLista, lineasGuardadas, MOTIVO_LINEA } from "./mercadonaLista.mjs";
+import { compararLista, erroresDeLista, leerGuardada } from "./mercadonaLista.mjs";
 
 describe("erroresDeLista", () => {
   it("acepta una lista normal, también con código con punto", () => {
@@ -21,38 +21,23 @@ describe("erroresDeLista", () => {
 });
 
 describe("compararLista", () => {
-  const enviados = [
-    { merca_code: "1", quantity: 1 },
-    { merca_code: "2", quantity: 3 },
-    { merca_code: "3", quantity: 1 },
-  ];
+  const enviados = [{ merca_code: "1" }, { merca_code: "2.5" }];
 
-  it("cuenta lo que entró y dice por qué falló el resto", () => {
-    const r = compararLista(enviados, [
-      { merca_code: "1", quantity: 1 },
-      { merca_code: "2", quantity: 2 },
-    ]);
-    expect(r.entraron).toBe(1);
-    expect(r.problemas).toEqual([
-      { merca_code: "2", motivo: MOTIVO_LINEA.CANTIDAD_DISTINTA },
-      { merca_code: "3", motivo: MOTIVO_LINEA.NO_ENTRO },
-    ]);
+  it("todo dentro: no falta nada", () => {
+    expect(compararLista(enviados, ["1", "2.5"])).toEqual({ entraron: 2, faltan: [] });
   });
 
-  it("sin cantidad en la respuesta, no inventa un fallo", () => {
-    expect(compararLista([{ merca_code: "1", quantity: 2 }], [{ merca_code: "1", quantity: null }])).toEqual({
-      entraron: 1,
-      problemas: [],
-    });
+  it("dice qué producto no entró", () => {
+    expect(compararLista(enviados, ["1"])).toEqual({ entraron: 1, faltan: ["2.5"] });
   });
 });
 
-describe("lineasGuardadas", () => {
-  it("lee el código tanto suelto como dentro de product", () => {
-    expect(lineasGuardadas({ products: [{ product: { id: 7 }, quantity: 2 }] })).toEqual([
-      { merca_code: "7", quantity: 2 },
-    ]);
-    expect(lineasGuardadas({ items: [{ merca_code: "8" }] })).toEqual([{ merca_code: "8", quantity: null }]);
-    expect(lineasGuardadas(null)).toEqual([]);
+describe("leerGuardada", () => {
+  it("lee los códigos como texto", () => {
+    expect(leerGuardada({ products: [{ id: "7" }, { id: 8 }] })).toEqual(["7", "8"]);
+  });
+
+  it.each([[null], [{}], [{ products: [{}] }]])("otra forma lanza: %j", (r) => {
+    expect(() => leerGuardada(r)).toThrow("forma esperada");
   });
 });

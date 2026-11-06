@@ -3,9 +3,6 @@
  * valida lo que se va a mandar y compara lo mandado con lo que quedó guardado.
  */
 
-/** Motivos por los que una línea no quedó como se pidió: vocabulario cerrado. */
-export const MOTIVO_LINEA = { NO_ENTRO: "no_entro", CANTIDAD_DISTINTA: "cantidad_distinta" };
-
 /** Tope de líneas del prototipo: una compra grande de una familia cabe de sobra. */
 const MAX_LINEAS = 80;
 
@@ -32,35 +29,26 @@ export function erroresDeLista(lista) {
 }
 
 /**
- * Las líneas de la lista guardada, en forma común. La forma exacta de su
- * respuesta no está documentada: se aceptan las variantes más probables.
+ * Los productos de la lista guardada. Su respuesta no trae la cantidad de cada
+ * uno (`products_quantity` cuenta productos distintos), así que aquí no se
+ * comprueba. Otra forma lanza: no es «lista vacía».
+ * @returns {string[]} códigos
  */
-export function lineasGuardadas(respuesta) {
-  const crudas = respuesta?.products ?? respuesta?.items ?? respuesta?.results ?? [];
-  return crudas.map((l) => ({
-    merca_code: String(l.merca_code ?? l.product?.id ?? l.product_id ?? l.id ?? ""),
-    quantity: l.quantity ?? l.recommended_quantity ?? null,
-  }));
+export function leerGuardada(respuesta) {
+  const productos = respuesta?.products;
+  if (!Array.isArray(productos) || productos.some((p) => p?.id == null)) {
+    throw new Error("la lista guardada no tiene la forma esperada");
+  }
+  return productos.map((p) => String(p.id));
 }
 
 /**
- * @param {{ merca_code: string, quantity: number }[]} enviados
- * @param {{ merca_code: string, quantity: number|null }[]} guardados
- * @returns {{ entraron: number, problemas: { merca_code: string, motivo: string }[] }}
+ * @param {{ merca_code: string }[]} enviados
+ * @param {string[]} codigos los de la lista guardada
+ * @returns {{ entraron: number, faltan: string[] }}
  */
-export function compararLista(enviados, guardados) {
-  const porCodigo = new Map(guardados.map((g) => [String(g.merca_code), g]));
-  const problemas = [];
-  let entraron = 0;
-  for (const e of enviados) {
-    const g = porCodigo.get(String(e.merca_code));
-    if (!g) {
-      problemas.push({ merca_code: e.merca_code, motivo: MOTIVO_LINEA.NO_ENTRO });
-    } else if (g.quantity != null && Number(g.quantity) !== e.quantity) {
-      problemas.push({ merca_code: e.merca_code, motivo: MOTIVO_LINEA.CANTIDAD_DISTINTA });
-    } else {
-      entraron += 1;
-    }
-  }
-  return { entraron, problemas };
+export function compararLista(enviados, codigos) {
+  const guardados = new Set(codigos);
+  const faltan = enviados.map((e) => String(e.merca_code)).filter((c) => !guardados.has(c));
+  return { entraron: enviados.length - faltan.length, faltan };
 }

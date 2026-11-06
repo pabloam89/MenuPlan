@@ -20,7 +20,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { chromium } from "@playwright/test";
-import { compararLista, erroresDeLista, lineasGuardadas } from "./lib/mercadonaLista.mjs";
+import { compararLista, erroresDeLista, leerGuardada } from "./lib/mercadonaLista.mjs";
 
 const TIENDA = "https://tienda.mercadona.es/";
 const ESPERA_LOGIN_MS = 5 * 60 * 1000;
@@ -124,13 +124,13 @@ async function main() {
     }
     console.log(`lista creada: ${TIENDA}shopping-lists/${r.id}`);
     if (!r.guardada) {
-      console.log(`resultado: creada_sin_comprobar (HTTP ${r.status})`);
+      console.log(`resultado: lista_sin_releer (HTTP ${r.status})`);
       return;
     }
-    const { entraron, problemas } = compararLista(lista.products, lineasGuardadas(r.guardada));
-    console.log(`entraron ${entraron} de ${lista.products.length}`);
-    for (const p of problemas) console.log(`  ${p.merca_code}: ${p.motivo}`);
-    console.log(problemas.length ? "resultado: creada_con_diferencias" : "resultado: creada_completa");
+    const { entraron, faltan } = compararLista(lista.products, leerGuardada(r.guardada));
+    console.log(`entraron ${entraron} de ${lista.products.length} productos (las cantidades no se releen)`);
+    for (const c of faltan) console.log(`  falta: ${c}`);
+    console.log(faltan.length ? "resultado: faltan_productos" : "resultado: productos_completos");
   } finally {
     await contexto.close();
     await navegador?.close();
