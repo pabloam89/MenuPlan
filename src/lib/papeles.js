@@ -41,7 +41,9 @@ export function puede(papel, accion) {
 // "privado" (solo en su chat privado: recordatorios, su memoria) o false.
 // «ajeno» es alguien del grupo sin cuenta enlazada: solo consulta el menú,
 // las recetas y la compra; ni tacha ni ve la familia (salud, alergias: M-4).
-const PARA_AJENOS = new Set(["ver_menu", "ver_receta", "ver_compra", "ver_menu_cole", "proponer_platos", "buscar_recetas"]);
+const PARA_AJENOS = new Set(["ver_menu", "ver_receta", "consultar", "proponer_platos", "buscar_recetas"]);
+// `consultar` es una herramienta con varias consultas: la lista de lo que ve un ajeno va por consulta.
+const CONSULTAS_DE_AJENOS = new Set(["compra", "cole"]);
 
 /**
  * @param {'owner'|'editor'|'viewer'|'ajeno'|undefined} papel  sin papel: ajeno (falla cerrado)
@@ -52,6 +54,18 @@ export function herramientaPermitida(papel, { name, lector }, esGrupo) {
   if (papel === "owner" || papel === "editor") return true;
   if (papel === "viewer") return lector === true || (lector === "privado" && !esGrupo);
   return lector === true && PARA_AJENOS.has(name);
+}
+
+/**
+ * Si este papel puede hacer esta consulta de `consultar` (agente.js).
+ * @param {'owner'|'editor'|'viewer'|'ajeno'|undefined} papel  sin papel: ajeno (falla cerrado)
+ * @param {string} que
+ * @param {boolean|'privado'} lector
+ * @param {boolean} esGrupo
+ */
+export function consultaPermitida(papel, que, lector, esGrupo) {
+  if (papel === "owner" || papel === "editor" || papel === "viewer") return herramientaPermitida(papel, { name: "consultar", lector }, esGrupo);
+  return lector === true && CONSULTAS_DE_AJENOS.has(que);
 }
 
 export const NOMBRE_PAPEL = {

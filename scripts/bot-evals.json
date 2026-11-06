@@ -1277,11 +1277,10 @@
       "tipo": "herramienta",
       "dominio": "ficha",
       "origen": "escrito",
-      "nombre": "ficha: quién come en casa sin llamar a ver_casa",
+      "nombre": "ficha: quién come en casa sin llamar a consultar",
       "entrada": "¿quiénes estamos apuntados en casa?",
       "noLlama": [
-        "ver_casa",
-        "ver_ajustes"
+        "consultar"
       ],
       "texto": "Leo"
     },
@@ -2185,7 +2184,7 @@
       },
       "noLlama": [
         "ver_receta",
-        "ver_despensa"
+        "consultar"
       ],
       "maxLlamadas": 1
     },
@@ -3172,7 +3171,7 @@
         }
       },
       "noLlama": [
-        "ver_despensa",
+        "consultar",
         "anadir_compra"
       ]
     },

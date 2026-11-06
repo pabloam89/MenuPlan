@@ -39,14 +39,14 @@ const irTras = async (nombre, args = {}) => {
 const casaCon = (items) => ({ householdId: "casa", state: { data: {}, shopping: { items } }, menu: null, semanas: [], semana: null });
 
 describe("la compra y el botón a la app (trozo 73)", () => {
-  it("ver_compra con la lista vacía no lleva botón", async () => {
+  it("consultar la compra con la lista vacía no lleva botón", async () => {
     cargarCasa.mockResolvedValueOnce(casaCon([]));
-    expect(await irTras("ver_compra")).toBeNull();
+    expect(await irTras("consultar", { que: "compra" })).toBeNull();
   });
 
-  it("ver_compra con algo, aunque esté todo comprado, lleva a la compra", async () => {
+  it("consultar la compra con algo, aunque esté todo comprado, lleva a la compra", async () => {
     cargarCasa.mockResolvedValueOnce(casaCon([{ name: "pan", have: true }]));
-    expect(await irTras("ver_compra")).toBe("compra");
+    expect(await irTras("consultar", { que: "compra" })).toBe("compra");
   });
 
   it("quitar lo último no lleva a una lista vacía; si queda algo, sí", async () => {

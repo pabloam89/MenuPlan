@@ -28,7 +28,7 @@ describe("planDeAdelanto: qué se puede leer antes", () => {
     expect(planDeAdelanto(dec("consulta", { que: "menu", cuando: "hoy" }))).toBeNull();
     expect(planDeAdelanto(dec("consulta", { que: "menu", cuando: "dia", dia: "mañana" }))).toBeNull();
     expect(planDeAdelanto(dec("consulta", { que: "menu", cuando: "dia" }))).toBeNull();
-    expect(planDeAdelanto(dec("consulta", { que: "compra" })).herramienta).toBe("ver_compra");
+    expect(planDeAdelanto(dec("consulta", { que: "compra" }))).toEqual({ herramienta: "consultar", args: { que: "compra" } });
   });
 
   it("varias cosas: solo si la lectura sirve para lo demás («qué me falta… y apúntalo»)", () => {
