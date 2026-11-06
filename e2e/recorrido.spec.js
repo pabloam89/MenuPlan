@@ -35,8 +35,8 @@ const CATEGORIA_COMPRA = /^\p{Lu}[\p{L} ]+ \d+$/u;
 // sale con la pizarra encendida.
 const ENTRADA_PIZARRA = "Empieza en blanco";
 const TITULO_COMPRA = "Tu compra";
-const PIE_COMPRA = "Comprar ·";
 // El botón de comprar lleva el total de lo que queda por comprar.
+const ANCHOS_MOVIL = [360, 375, 420];
 const BOTON_COMPRAR = /^Comprar · .*€$/;
 // La tira de sugerencias del selector de platos (src/screens/CatalogBrowserSheet.jsx).
 const SUGERENCIAS_HUECO = "Para este hueco";
@@ -146,9 +146,9 @@ async function leerCompra(page) {
   await expect(boton(page, "Por comprar")).toBeVisible();
   const categorias = page.getByRole("button", { name: CATEGORIA_COMPRA });
   await expect(categorias.first()).toBeVisible();
-  await expect(page.getByText(PIE_COMPRA)).toBeVisible();
+  await expect(page.getByRole("button", { name: BOTON_COMPRAR })).toBeVisible();
   const texto = await page.locator("body").innerText();
-  return texto.slice(texto.indexOf(TITULO_COMPRA), texto.indexOf(PIE_COMPRA));
+  return texto.slice(texto.indexOf(TITULO_COMPRA), texto.lastIndexOf("Comprar"));
 }
 
 test("alta, menú de la semana, cambiar un plato y ver la compra", async ({ page }) => {
@@ -179,16 +179,31 @@ test("el botón de comprar sigue a la lista", async ({ page }) => {
   await leerCompra(page);
   const comprar = page.getByRole("button", { name: BOTON_COMPRAR });
   await expect(comprar).toBeVisible();
-  const antes = await comprar.innerText();
+  const antes = await comprar.getAttribute("aria-label");
   await page.getByRole("button", { name: CATEGORIA_COMPRA }).first().click();
   await page.getByRole("checkbox", { name: /: comprado$/ }).first().click();
-  await expect(comprar).not.toHaveText(antes);
-  if (process.env.CAPTURAS) {
-    for (const width of [375, 420]) {
-      await page.setViewportSize({ width, height: 800 });
-      await page.screenshot({ path: `${process.env.CAPTURAS}/lista-${width}.png` });
-    }
+  await expect(comprar).not.toHaveAttribute("aria-label", antes);
+  for (const width of ANCHOS_MOVIL) {
+    await page.setViewportSize({ width, height: 800 });
+    // Las tres pastillas de cada fila, en una línea; nada se sale de la pantalla.
+    const descuadradas = await page.$$eval(".fila-compra-pastillas", (filas) =>
+      filas.filter((fila) => {
+        const centros = [...fila.children].map((c) => c.getBoundingClientRect()).map((r) => r.top + r.height / 2);
+        return Math.max(...centros) - Math.min(...centros) > 4;
+      }).length);
+    expect(descuadradas).toBe(0);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+    if (process.env.CAPTURAS) await page.screenshot({ path: `${process.env.CAPTURAS}/lista-${width}.png` });
   }
+  // Al final de la lista, la barra no tapa la última fila.
+  await page.getByRole("checkbox", { name: /: comprado$/ }).last().scrollIntoViewIfNeeded();
+  await page.mouse.wheel(0, 100000);
+  const ultima = page.getByRole("checkbox", { name: /: comprado$/ }).last();
+  await expect(async () => {
+    const fila = await ultima.boundingBox();
+    const barra = await comprar.boundingBox();
+    expect(fila.y + fila.height).toBeLessThanOrEqual(barra.y);
+  }).toPass();
   await comprar.click();
   await expect(page.getByRole("link", { name: /€/ }).first()).toHaveAttribute("href", /tienda\.mercadona\.es\/product\//);
   if (process.env.CAPTURAS) await page.screenshot({ path: `${process.env.CAPTURAS}/hoja-420.png` });
