@@ -6,6 +6,9 @@
 // qué gastar, y marcarlo como barrido (como se hacía con la despensa «vacía»
 // que devolvía la carga fallida) lo dejaba sin descontar para siempre. Se
 // reintenta en el siguiente barrido.
+//
+// Un solo dueño por casa: la de la nube la barre el servidor cada noche
+// (api/_bot/barridoDespensa.js) y la app solo barre lo que vive en el móvil.
 
 import { esFechaIso } from "../data/model.js";
 import { diaDeISO, sumarDiasISO } from "./dias.js";

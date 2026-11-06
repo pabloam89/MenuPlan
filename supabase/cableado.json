@@ -185,11 +185,13 @@
     "src/lib/menusSync.js"
   ],
   "user_menus": [
+    "api/_bot/barridoDespensa.js",
     "api/_bot/casa.js",
     "api/_bot/generar.js",
     "src/lib/menusSync.js"
   ],
   "user_pantry": [
+    "api/_bot/barridoDespensa.js",
     "api/_bot/despensa.js",
     "api/_bot/ficha.js",
     "api/_bot/generar.js",
