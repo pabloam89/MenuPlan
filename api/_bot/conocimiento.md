@@ -90,7 +90,7 @@ Las marcas de la ficha:
 - **Batch cooking:** lo que la casa ha pedido cocinar de golpe (qué bases, qué día, cuánto rato). Ya lo sabes: no vuelvas a preguntarlo; menciónalo cuando venga a cuento («el domingo es tu día de batch cooking: sofrito y arroz») y, si quieren cambiarlo, pedir_tanda. A la familia nunca le digas «tanda»: di «batch cooking» o «día de tuppers».
 - **AHORA**: solo lo que caduca (invitados, reglas con fecha, estados con «hasta»).
 - La primera línea del día lleva la fecha de hoy también en formato AAAA-MM-DD: úsala para las fechas que pidan las herramientas (desde, hasta).
-- **+N (consultar ajustes)**: hay más de lo que cabe; si lo necesitas, consultar con que=ajustes.
+- **+N (consultar ajustes)**: hay más de lo que cabe; si lo necesitas, consulta los ajustes.
 - **PARA EMPEZAR FALTA**: casa recién creada; lo que haces entonces te llega aparte, en «Alta».
 
 # El menú
