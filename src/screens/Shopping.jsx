@@ -8,6 +8,7 @@ import { createPortal } from "react-dom";
 import {
   AlertTriangle,
   Apple,
+  ArrowUpRight,
   Bean,
   BookOpen,
   Calendar,
@@ -70,6 +71,7 @@ import {
   stripQtyNoise,
   expandAbbreviations,
   toDisplayCase,
+  formatEuro as conCentimos,
   formatEuro0,
 } from "../lib/priceHistory.js";
 import { RECIPES_BY_ID } from "../data/recipes.js";
@@ -108,7 +110,7 @@ import {
 import { shareShoppingList } from "../lib/menuExport.js";
 import { priceShoppingList } from "../lib/listPricing.js";
 import { listaFrenteAPresupuesto } from "../lib/presupuesto.js";
-import { isMercadonaStore } from "../lib/storeCatalog.js";
+import { fichaMercadona, listaParaMercadona } from "../lib/mercadonaList.js";
 
 // Lazy (not a top-level import): Pantry.jsx already imports SwipePurchaseShell
 // from this very file, so a plain top-level import here would be circular.
@@ -759,9 +761,7 @@ export function ShoppingScreen({
 
   const isEmpty = sections.every((s) => s.items.length === 0);
 
-  const mercadonaSelected =
-    data?.wantsPriceEstimates !== false &&
-    (data?.supermarkets ?? []).some(isMercadonaStore);
+  // De momento toda casa compra en Mercadona: los precios se ven siempre.
   const estimateKey = useMemo(
     () => visibleItems.map((i) => `${i.id}|${i.qty}|${i.unit ?? "ud"}`).join(";"),
     [visibleItems],
@@ -769,7 +769,7 @@ export function ShoppingScreen({
   const [storeEstimate, setStoreEstimate] = useState(null);
   const [linePrices, setLinePrices] = useState(() => new Map());
   useEffect(() => {
-    if (!mercadonaSelected || !visibleItems.length) {
+    if (!visibleItems.length) {
       setStoreEstimate(null);
       setLinePrices(new Map());
       return undefined;
@@ -790,7 +790,15 @@ export function ShoppingScreen({
     return () => {
       cancelled = true;
     };
-  }, [mercadonaSelected, estimateKey, compra.precios]);
+  }, [estimateKey, compra.precios]);
+
+  // Lo que se compraría: sale de las líneas por comprar, así que al quitar una
+  // baja el total del botón. En «Comprado» no hay nada que comprar.
+  const paraComprar = useMemo(
+    () => (buyTab === "bought" ? null : listaParaMercadona(visibleItems, linePrices, "Compra HoMenu")),
+    [buyTab, visibleItems, linePrices],
+  );
+  const [comprarAbierto, setComprarAbierto] = useState(false);
 
   // Date label for the current selection: real span of the selected weeks in
   // menú mode; the single-week label otherwise.
@@ -1181,7 +1189,7 @@ export function ShoppingScreen({
                 key={`${section.key}-${item.id}`}
                 item={item}
                 pricing={linePrices.get(item.id) ?? null}
-                showPrice={mercadonaSelected}
+                showPrice
                 isLast={i === section.items.length - 1}
                 onSwipePurchased={() => markItemBought(item.id)}
                 onSwipeReturn={() => unmarkItemBought(item.id)}
@@ -1206,10 +1214,19 @@ export function ShoppingScreen({
   // la franja de Mercadona si esta se pinta, o solo debajo de Por comprar/
   // Comprado si no hay súper seleccionado.
   const showMercadonaStrip =
-    mercadonaSelected && stockReady && storeEstimate && storeEstimate.matched > 0 && !isEmpty;
+    stockReady && storeEstimate && storeEstimate.matched > 0 && !isEmpty;
   // El total de la lista frente al presupuesto (por semana marcada) y lo que
   // no tiene precio, aparte (lib/presupuesto.js, #958).
-  const frente = listaFrenteAPresupuesto(data, storeEstimate, selectedWeeks.length);
+  // Un solo total: el de lo que se compraría. Por comprar, lo que no se puede
+  // comprar cuenta como «sin precio»; en Comprado, lo estimado de esa lista.
+  const estimacionLista = paraComprar
+    ? {
+        total: paraComprar.total,
+        matched: paraComprar.lineas.length,
+        count: paraComprar.lineas.length + paraComprar.sinProducto.length,
+      }
+    : storeEstimate;
+  const frente = listaFrenteAPresupuesto(data, estimacionLista, selectedWeeks.length);
   const weekSelectorEl = orderedAll.length > 1 && !isEmpty && (
     <WeekChips
       ariaLabel="Semanas incluidas en la compra — marca varias para combinar"
@@ -1399,7 +1416,7 @@ export function ShoppingScreen({
                     color: "#fff",
                   }}
                 >
-                  {formatEuro0(storeEstimate.total)}
+                  {formatEuro0(frente.total)}
                 </span>
                 {/* El presupuesto de la casa al lado del total (lib/presupuesto.js,
                     #958): por semana marcada, y con lo que no tiene precio
@@ -1449,7 +1466,7 @@ export function ShoppingScreen({
         {/* Lo que falta se le dice a Lola sin salir de la lista. Pegado al
             pie (sticky, no fixed): al final de la lista ocupa su sitio y no
             tapa la última fila. */}
-        {FRONTAL_BOT && !readOnly && stockReady && !isEmpty && (
+        {!readOnly && stockReady && !isEmpty && (paraComprar?.lineas.length > 0 || FRONTAL_BOT) && (
           <div
             style={{
               position: "sticky",
@@ -1457,20 +1474,52 @@ export function ShoppingScreen({
               zIndex: 5,
               display: "flex",
               justifyContent: "flex-end",
+              gap: "var(--esp-8)",
               marginTop: 12,
               pointerEvents: "none",
             }}
           >
-            <button
+            {paraComprar?.lineas.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setComprarAbierto(true)}
+                style={{
+                  pointerEvents: "auto",
+                  flex: 1,
+                  minWidth: 0,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "var(--esp-8)",
+                  minHeight: 44,
+                  padding: "0 var(--esp-16)",
+                  borderRadius: "var(--radio-pildora)",
+                  border: "none",
+                  background: "var(--color-marca)",
+                  color: "var(--color-superficie)",
+                  fontFamily: "inherit",
+                  fontSize: "var(--tipo-paso-14)",
+                  fontWeight: "var(--tipo-peso-800)",
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                <ShoppingCart size={18} color="currentColor" />
+                Comprar · {conCentimos(paraComprar.total)}
+              </button>
+            )}
+            {FRONTAL_BOT && <button
               type="button"
               onClick={() => abrirLola()}
+              aria-label="¿Falta algo? Díselo a Lola"
               style={{
                 pointerEvents: "auto",
+                flexShrink: 0,
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 8,
                 minHeight: 44,
-                padding: "5px 14px 5px 5px",
+                padding: paraComprar?.lineas.length > 0 ? "var(--esp-4)" : "5px 14px 5px 5px",
                 borderRadius: 999,
                 border: "1px solid #e3ebe6",
                 background: "#fff",
@@ -1487,12 +1536,16 @@ export function ShoppingScreen({
                 alt=""
                 style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover", objectPosition: "center 30%", flexShrink: 0 }}
               />
-              ¿Falta algo? Díselo a Lola
-            </button>
+              {!(paraComprar?.lineas.length > 0) && "¿Falta algo? Díselo a Lola"}
+            </button>}
           </div>
         )}
       </div>
       </>
+      )}
+
+      {comprarAbierto && paraComprar && (
+        <ComprarSheet compra={paraComprar} onClose={() => setComprarAbierto(false)} />
       )}
 
       {showCapture && (
@@ -2724,6 +2777,59 @@ function ActionBtn({ icon: Icon, label, onClick, active, muted, readOnly, coach 
 // bought + saves prices) or add a gasto by hand. Same wizard shell/cards as
 // onboarding's big decision moments, so every "choose one of these paths"
 // popup in the app reads the same.
+// Lo que se va a comprar, con su ficha en Mercadona: en el móvil abre su app.
+function ComprarSheet({ compra, onClose }) {
+  return (
+    <WizardSheet
+      icon={ShoppingCart}
+      title={`Comprar · ${conCentimos(compra.total)}`}
+      subtitle="Mercadona"
+      onClose={onClose}
+    >
+      <div style={{ display: "grid", gap: "var(--esp-8)", maxHeight: "55vh", overflowY: "auto" }}>
+        {compra.lineas.map((l) => (
+          <a
+            key={l.id}
+            href={fichaMercadona(l.id)}
+            target="_blank"
+            rel="noreferrer"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "var(--esp-8)",
+              minHeight: 44,
+              color: "var(--color-tinta)",
+              textDecoration: "none",
+              fontSize: "var(--tipo-paso-14)",
+              fontWeight: "var(--tipo-peso-700)",
+            }}
+          >
+            <span style={{ flex: 1, minWidth: 0 }}>
+              {l.paquetes > 1 ? `${l.paquetes} × ` : ""}
+              {l.nombre}
+            </span>
+            <span style={{ color: "var(--color-tinta-suave)", whiteSpace: "nowrap" }}>{conCentimos(l.precio)}</span>
+            <ArrowUpRight size={16} color="var(--color-tinta-tenue)" />
+          </a>
+        ))}
+        {compra.sinProducto.length > 0 && (
+          <p
+            style={{
+              margin: 0,
+              paddingTop: "var(--esp-8)",
+              borderTop: "1px solid var(--color-linea-suave)",
+              color: "var(--color-tinta-suave)",
+              fontSize: "var(--tipo-paso-13)",
+            }}
+          >
+            Sin producto: {compra.sinProducto.join(", ")}
+          </p>
+        )}
+      </div>
+    </WizardSheet>
+  );
+}
+
 function CaptureSheet({ onClose, onScan, onManual }) {
   return (
     <WizardSheet icon={Wallet} iconColor="#2d5a3d" title="Registrar gasto" onClose={onClose}>
