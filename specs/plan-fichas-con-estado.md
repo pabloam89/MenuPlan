@@ -631,15 +631,15 @@ Done:
 npx vitest run api/_bot/manualPorPartes.test.js && node scripts/bot-evals.mjs --nivel=pr
 ```
 
-### 45. Herramientas agrupadas, primer grupo: quién come dónde, con su línea base
+### 45. Herramientas agrupadas, primer grupo: quién come dónde
 Files: `api/_bot/agente.js`, `api/_bot/ajustes.js`, `api/_bot/router.js`, `api/_bot/routerEjemplos.js`, `api/_bot/ejemplosPrompt.test.js`, `api/_bot/promesas.test.js`, `api/_bot/fichas.test.js`, `src/lib/capacidades.js`, `api/_bot/conocimiento.md`, `scripts/bot-evals.json`, `api/_bot/herramientasAgrupadas.test.js`
 Depends on: 59, 73
 Blocked by: none
 Existing: 46 herramientas (`grep -c 'name: "' api/_bot/agente.js` → 46): 8 empiezan por `ver_` y 11 por `ajustar_` (`grep -c 'name: "ver_'` → 8; `grep -c 'name: "ajustar_'` → 11). `fuera_de_casa` (un día) y `ajustar_horario` (siempre) tratan lo mismo, quién come dónde, con distinto alcance, y necesitan una regla del manual («Cómo se habla de verdad») y un test propio (`api/_bot/ejemplosPrompt.test.js`) para no confundirse. Anthropic recomienda herramientas de propósito claro y sin solapes, agrupadas con prefijos por recurso, y medir llamadas, tokens y errores ([Writing tools for agents](https://www.anthropic.com/engineering/writing-tools-for-agents)). `ls api/_bot/herramientasAgrupadas.test.js` → No such file or directory.
-Not done: antes de tocar nada se mide con el banco de frases la herramienta elegida, las llamadas por turno y los errores, y esa línea base queda en el cuerpo del PR para los trozos 46 y 47. Después, `fuera_de_casa` y `ajustar_horario` pasan a una sola herramienta de quién come dónde con alcance (un día o siempre), como ya los junta la ficha Rutina (trozo 13). No se fusiona si baja la herramienta acertada. El test nuevo falla si dos herramientas comparten objeto y verbo (hoy, esas dos). No escribe a mano en el manual (desde el 4 nov 2026): lo de la herramienta nueva va en su ficha y su descripción; del manual solo se quita la frase que nombre una herramienta que desaparece.
+Not done: `fuera_de_casa` y `ajustar_horario` pasan a una sola herramienta de quién come dónde con alcance (un día o siempre), como ya los junta la ficha Rutina (trozo 13). El PR deja dos o tres frases para que Pablo lo pruebe a mano en staging (decisión del 6 nov 2026, en «Decisions taken»). El test nuevo falla si dos herramientas comparten objeto y verbo (hoy, esas dos). No escribe a mano en el manual (desde el 4 nov 2026): lo de la herramienta nueva va en su ficha y su descripción; del manual solo se quita la frase que nombre una herramienta que desaparece.
 Done:
 ```sh
-npx vitest run api/_bot/herramientasAgrupadas.test.js api/_bot/ejemplosPrompt.test.js api/_bot/promesas.test.js && node scripts/bot-evals.mjs --nivel=pr
+npx vitest run api/_bot/herramientasAgrupadas.test.js api/_bot/ejemplosPrompt.test.js api/_bot/promesas.test.js
 ```
 
 ### 46. Herramientas agrupadas, segundo grupo: las consultas en una sola
@@ -647,10 +647,10 @@ Files: `api/_bot/agente.js`, `api/_bot/menu.js`, `api/_bot/router.js`, `api/_bot
 Depends on: 45
 Blocked by: none
 Existing: las 8 `ver_*` (`grep -c 'name: "ver_' api/_bot/agente.js` → 8) son de solo lectura y cada una es una herramienta aparte. `herramientasAgrupadas.test.js` lo crea el trozo 45.
-Not done: las `ver_*` sin campos pasan a una herramienta `consultar` con `que` de lista cerrada; las que tienen campos propios se quedan aparte. Se mide contra la línea base del trozo 45 y no se fusiona si baja la herramienta acertada. El test comprueba que la lista de `que` sale del vocabulario y que no queda ninguna `ver_*` sin campos.
+Not done: las `ver_*` sin campos pasan a una herramienta `consultar` con `que` de lista cerrada; las que tienen campos propios se quedan aparte. El PR deja dos o tres frases para que Pablo lo pruebe a mano en staging (decisión del 6 nov 2026, en «Decisions taken»). El test comprueba que la lista de `que` sale del vocabulario y que no queda ninguna `ver_*` sin campos.
 Done:
 ```sh
-npx vitest run api/_bot/herramientasAgrupadas.test.js api/_bot/promesas.test.js api/_bot/fichas.test.js && node scripts/bot-evals.mjs --nivel=pr
+npx vitest run api/_bot/herramientasAgrupadas.test.js api/_bot/promesas.test.js api/_bot/fichas.test.js
 ```
 
 ### 47. Herramientas agrupadas, tercer grupo: los ajustes, uno por ficha
@@ -658,10 +658,10 @@ Files: `api/_bot/agente.js`, `api/_bot/ajustes.js`, `api/_bot/router.js`, `api/_
 Depends on: 46
 Blocked by: none
 Existing: 11 herramientas `ajustar_*` (`grep -c 'name: "ajustar_' api/_bot/agente.js` → 11), cada una para unos pocos campos. El registro de campos con su ficha lo hace el trozo 25.
-Not done: las `ajustar_*` de configuración pasan a una por ficha (Casa, Rutina), con `campo` de lista cerrada del registro (trozo 25). Alergias, salud y quitar personas se quedan aparte, porque su riesgo es `quita_proteccion` (trozo 42). Se mide contra la línea base del trozo 45 y no se fusiona si baja la herramienta acertada. Si el total sigue por encima de unas 30 herramientas, la búsqueda de herramientas de la API se estudia en un trozo aparte.
+Not done: las `ajustar_*` de configuración pasan a una por ficha (Casa, Rutina), con `campo` de lista cerrada del registro (trozo 25). Alergias, salud y quitar personas se quedan aparte, porque su riesgo es `quita_proteccion` (trozo 42). El PR deja dos o tres frases para que Pablo lo pruebe a mano en staging (decisión del 6 nov 2026, en «Decisions taken»). Si el total sigue por encima de unas 30 herramientas, la búsqueda de herramientas de la API se estudia en un trozo aparte.
 Done:
 ```sh
-npx vitest run api/_bot/herramientasAgrupadas.test.js api/_bot/promesas.test.js api/_bot/fichas.test.js && node scripts/bot-evals.mjs --nivel=pr
+npx vitest run api/_bot/herramientasAgrupadas.test.js api/_bot/promesas.test.js api/_bot/fichas.test.js
 ```
 
 ### 48. Los huecos de la app, primero: las recetas propias
@@ -1033,6 +1033,7 @@ Por qué te lo pregunto: el 8 oct decidiste lo contrario (#107: se genera esquiv
 - principio 4 | eligió: lo que falta se calcula en cada turno de la ficha, `preferencia` y el documento (trozos 64-65) | descartó: copiar los ejes en una ficha del pedido: dos verdades | motivo: decidido
 - principio 4 | eligió: `donde_come`, una herramienta con `plazo` (trozo 45) | descartó: dos herramientas para lo mismo con distinto alcance | motivo: decidido
 - principio 3 | eligió: con el plazo mal rellenado, «NO GUARDADO» y el motivo (trozo 45) | descartó: valores por defecto, que guardarían un horario que nadie dijo | motivo: decidido
+- principio 6 | eligió: los trozos 45 a 47 no se miden con evals de pago; Pablo los prueba a mano en staging, decidido por él el 6 nov 2026 | descartó: quitar la medición sin preguntárselo, que sería un atajo sobre lo que pedía el plan | motivo: decidido
 - principio 1 | eligió: al rehacer, decir por días que lo cambiado se pierde (trozo 72) | descartó: nombrar los platos cambiados a mano, que afirmaría algo que los datos no guardan: no llevan marca | motivo: decidido
 - principio 4 | eligió: el aviso de rehacer en `avisoDeRehacer`, un solo sitio (trozo 72) | descartó: repetir el texto en la parada y en «YA HAY MENÚ» | motivo: decidido
 - principio 4 | eligió: la parada de rehacer en `generar_menu` de agente.js, donde está el pedido (trozo 72) | descartó: ponerla en `generarMenu` de generar.js, que no conoce el pedido y necesitaría una copia | motivo: decidido
