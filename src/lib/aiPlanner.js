@@ -12,6 +12,7 @@ import { topePorRacion } from "./presupuesto.js";
 import { cumplimientoDelGrupo, delGrupo, pidieronElPlato } from "./cumplimiento.js";
 import { sobreDelMotor } from "./sobreHueco.js";
 import { filterRecipes, filterGarnishes, decisionCatalog, filterOffMenuRecipes, recipeMatchesPreferType, recipeViolatesHardSafety } from "../utils/filterRecipes.js";
+import { platoVetado } from "./vetos.js";
 import { esAnadido, topeDe } from "./cocinaTopes.js";
 import { ajustarCuota } from "./cuotaCocinas.js";
 import { descartadasVigentes, sinDescartadas } from "./descartesPrioridad.js";
@@ -2988,15 +2989,25 @@ export function choquesDelPlan(dataOEntrada, plan, { antes = null } = {}) {
 }
 
 /**
- * Por qué un cambio de plato deja fuera candidatas que sí encajaban (vocabulario cerrado): lo devuelve
- * pickCatalogReplacement con `candidatos`, para que quien enseña las opciones diga el porqué de verdad.
- * VECINOS se puede saltar (`repetirVecinos`); MISMO_DIA no, que es lo que se ve en el plato.
+ * Por qué una receta no encaja en un hueco (vocabulario cerrado). Dos usos, el mismo porqué:
+ * - Cuando elige la máquina, VECINOS y MISMO_DIA dejan fuera candidatas (`descartes` de
+ *   pickCatalogReplacement con `candidatos`). VECINOS se puede saltar (`repetirVecinos`); MISMO_DIA no.
+ * - Cuando elige la persona (`pedido`), ROL, TIEMPO, REPETIDO, MONTAJE y NO_GUSTA no quitan nada:
+ *   van de aviso en cada candidata (`avisos`), y la receta entra si la eligen (trozo 74 de #1037).
  */
-export const DESCARTE = Object.freeze({ VECINOS: "vecinos", MISMO_DIA: "mismo_dia" });
-/** Cada motivo, en palabras: «para no repetir <esto>». */
+export const DESCARTE = Object.freeze({
+  VECINOS: "vecinos", MISMO_DIA: "mismo_dia",
+  ROL: "rol", TIEMPO: "tiempo", REPETIDO: "repetido", MONTAJE: "montaje", NO_GUSTA: "no_gusta",
+});
+/** Cada motivo, en palabras. Los dos primeros, tras «no repito»; los avisos, tras «ojo:». */
 export const DESCARTE_EN_PALABRAS = Object.freeze({
   [DESCARTE.VECINOS]: "lo de los días de al lado",
   [DESCARTE.MISMO_DIA]: "lo de la otra comida del mismo día",
+  [DESCARTE.ROL]: "no es el tipo de plato de ese hueco",
+  [DESCARTE.TIEMPO]: "tarda más del tiempo que tenéis ese día",
+  [DESCARTE.REPETIDO]: "ya está en el menú de esta semana",
+  [DESCARTE.MONTAJE]: "es de montar (bocadillo, tosta…) y ese hueco no es de cena rápida",
+  [DESCARTE.NO_GUSTA]: "lleva algo que alguien de la casa ha dicho que no",
 });
 for (const d of Object.values(DESCARTE)) if (!DESCARTE_EN_PALABRAS[d]) throw new Error(`aiPlanner: el descarte ${d} no tiene palabras`);
 
@@ -3132,6 +3143,35 @@ export function pickCatalogReplacement(dataOEntrada, menuPlan, { groupId, day, m
     (pedido || r.time <= slotMaxTime) &&
     (isCenaRapida || !isMontaje(r)) &&
     (!restrictCategory || r.category === restrictCategory);
+
+  // `pedido` (con `candidatos`): la persona ha nombrado un plato («pasta», «salmón al horno»). Las
+  // reglas del menú (tipo de plato del hueco, tiempo, ya puesto en la semana, montaje, gustos «no») no
+  // quitan nada: cada candidata trae sus `avisos` (DESCARTE) y salen antes las que no rompen ninguna.
+  // Solo frena la seguridad: alergias, intolerancias, dietas, alcohol con niños, bebé (filterRecipes).
+  // Todas, sin cortar en `candidatos`: cortar dejaba fuera justo lo pedido (5 nov 2026: 59 pastas en el
+  // catálogo, 0 en la propuesta para una comida con primero y segundo).
+  if (pedido && candidatos > 0) {
+    const fo = ctx.filterOpts;
+    const { recipes: seguras } = filterRecipes({ ...fo, dislikes: [], excludeIds: [], maxTime: Infinity });
+    const descartadas = new Set(fo.excludeIds ?? []);
+    const avisosDe = (r) => [
+      !roleMatch(r) && DESCARTE.ROL,
+      (r.time > slotMaxTime || r.time > (fo.maxTime ?? Infinity)) && DESCARTE.TIEMPO,
+      usedBaseIds.has(r.id) && DESCARTE.REPETIDO,
+      !isCenaRapida && isMontaje(r) && DESCARTE.MONTAJE,
+      (descartadas.has(r.id) || platoVetado(r, fo.dislikes ?? [])) && DESCARTE.NO_GUSTA,
+    ].filter(Boolean);
+    const lista = seguras
+      .filter((r) => r.id !== currentBaseId && (!restrictCategory || r.category === restrictCategory))
+      .map((r) => ({ r, avisos: avisosDe(r) }));
+    const limpias = lista.filter((x) => x.avisos.length === 0);
+    const conAviso = lista.filter((x) => x.avisos.length > 0);
+    return {
+      candidatos: [...limpias, ...conAviso].map((x) => x.r),
+      avisos: Object.fromEntries(conAviso.map((x) => [x.r.id, x.avisos])),
+    };
+  }
+
   const { candidates: selected, reusedDuplicate: rdup } = selectReplacementCandidates(
     pool,
     structuralFit,
@@ -3141,13 +3181,6 @@ export function pickCatalogReplacement(dataOEntrada, menuPlan, { groupId, day, m
   reusedDuplicate = rdup;
   let candidates = selected;
   if (candidates.length === 0) return null;
-
-  // `pedido` (con `candidatos`): el usuario ha nombrado un plato («salmón al
-  // horno») y se busca el más parecido. Valen las reglas duras de arriba
-  // —alergias, rol del hueco, no repetir plato; el tiempo no— pero no las
-  // preferencias de variedad de abajo, que son para cuando elige la máquina:
-  // dejaban el pool en una docena de platos y sin rastro del salmón.
-  if (pedido && candidatos > 0) return { candidatos: candidates.slice(0, candidatos) };
 
   // School-menu avoidance: this swap path (manual "cambiar plato") is a
   // separate code path from the main generator and never runs through
