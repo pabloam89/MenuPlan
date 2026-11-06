@@ -31,6 +31,25 @@ describe("BarraComprar", () => {
     expect(onComprar).toHaveBeenCalledTimes(1);
   });
 
+  it("el total abre el detalle", async () => {
+    const onDetalle = vi.fn();
+    await pintar({ onDetalle });
+    await act(async () => boton("Ver los productos · 92,70 €").click());
+    expect(onDetalle).toHaveBeenCalledTimes(1);
+  });
+
+  it("rellenando, el botón está ocupado", async () => {
+    await pintar({ paso: { texto: "Rellenando…", ocupado: true } });
+    expect(boton("Rellenando…").disabled).toBe(true);
+  });
+
+  it("con la lista hecha, abre Mercadona y dice qué pasó", async () => {
+    await pintar({ paso: { texto: "Abrir lista", nota: "Lista creada con 3 productos.", href: "https://tienda.mercadona.es/x" } });
+    expect(caja.querySelector("a").href).toBe("https://tienda.mercadona.es/x");
+    expect(caja.textContent).toContain("Lista creada con 3 productos.");
+    expect(caja.textContent).not.toContain("46 productos");
+  });
+
   it("un solo producto va en singular", async () => {
     await pintar({ productos: 1 });
     expect(caja.textContent).toContain("1 producto");
