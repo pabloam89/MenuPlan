@@ -35,7 +35,7 @@ const PARES = [
   ["mañana no comemos", "donde_come"],
   ["los jueves comemos fuera", "donde_come"],
   ["los niños comen en el cole de lunes a jueves", "donde_come"],
-  ["tenemos airfryer", "ajustar_cocina"],
+  ["tenemos airfryer", "ajustar_casa"],
   ["quita la lechuga del viernes", "cambiar_plato"],
 ];
 

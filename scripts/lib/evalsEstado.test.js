@@ -14,7 +14,7 @@ const { casos } = JSON.parse(readFileSync(new URL("scripts/bot-evals.json", RAIZ
 
 const bueno = { id: "uno", tipo: "herramienta", dominio: "ficha", origen: "escrito", nombre: "x", entrada: "x" };
 const conEspera = (espera, otros = {}) => erroresDeCasos([{ ...bueno, ...otros, espera }], otros.acciones ? { acciones: otros.acciones } : {});
-const ESPERA = { accion: "ajustar_cocina", parametros: { trastosMas: ["Airfryer"] } };
+const ESPERA = { accion: "ajustar_casa", parametros: { trastosMas: ["Airfryer"] } };
 
 describe("espera: la operación esperada tiene forma cerrada", () => {
   it("acción y parámetros bien, con o sin sobre del vocabulario del modelo de datos", () => {
@@ -33,8 +33,8 @@ describe("espera: la operación esperada tiene forma cerrada", () => {
     expect(conEspera({ ...ESPERA, sobre: "telegram" })).toEqual([expect.stringMatching(/espera\.sobre tiene que ser/)]);
   });
   it("con la lista de herramientas, una acción que Lola no tiene es un error (daría siempre rojo y parecería de Lola)", () => {
-    expect(conEspera({ accion: "ajustar_trastos", parametros: {} }, { acciones: ["ajustar_cocina"] })).toEqual([expect.stringMatching(/no es ninguna herramienta/)]);
-    expect(conEspera(ESPERA, { acciones: ["ajustar_cocina"] })).toEqual([]);
+    expect(conEspera({ accion: "ajustar_trastos", parametros: {} }, { acciones: ["ajustar_casa"] })).toEqual([expect.stringMatching(/no es ninguna herramienta/)]);
+    expect(conEspera(ESPERA, { acciones: ["ajustar_casa"] })).toEqual([]);
   });
   it("esperar una herramienta del menú ata el caso al día, como con llama o args", () => {
     expect(conEspera({ accion: "cambiar_plato", parametros: { comida: "Cena" } })).toEqual([expect.stringMatching(/le falta "dependeDeFecha"/)]);
