@@ -5,7 +5,7 @@
 // fila de preferencia (trozo 14; abajo, «En filas de preferencia»), no en un
 // sobre. El par de antes se queda sin lector en los documentos que aún lo
 // guardan: no se lee ni se borra (sin convivencia). Lo escriben el asistente de la app (Onboarding.jsx)
-// y Lola (ajustar_casa, api/_bot/ajustes.js), los dos con conPresupuesto.
+// y Lola (ajustar_compra, api/_bot/ajustes.js), los dos con conPresupuesto.
 // Quien lo enseña o hace cuentas con él lo lee aquí: la ficha del bot
 // (api/_bot/ficha.js), lib/presupuesto.js y la pregunta del asistente
 // (wizardRegistry.js), para que «mucho» no sea una cifra en un sitio y «sin

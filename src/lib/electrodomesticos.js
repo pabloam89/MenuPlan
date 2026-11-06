@@ -16,7 +16,7 @@ export const KITCHEN_TOOL_IDS = ["Airfryer", "Horno", "Microondas", "Olla rápid
 /**
  * Los mismos, en el orden en que se enseñan (los cuatro más comunes primero):
  * el mando de trastos del panel (wizardRegistry.js) y el esquema de
- * ajustar_casa de Lola (agente.js) lo leen de aquí, no lo copian (#967, C8).
+ * ajustar_cocina de Lola (agente.js) lo leen de aquí, no lo copian (#967, C8).
  */
 export const APARATOS_EN_ORDEN = Object.freeze(enOrden(KITCHEN_TOOL_IDS, ["Airfryer", "Horno", "Microondas", "Thermomix"]));
 

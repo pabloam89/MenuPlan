@@ -1,7 +1,7 @@
 /**
  * Los supermercados que la casa puede decir que usa (`data.supermarkets`), en
  * un solo sitio: los pinta la app (SpendPanel.jsx, con su chapa de color) y
- * los apunta Lola (ajustar_casa). Sin dependencias, para que el bot lo
+ * los apunta Lola (ajustar_compra). Sin dependencias, para que el bot lo
  * importe sin arrastrar el JSX.
  *
  * Solo Mercadona tiene hoy catálogo de precios (storeCatalog.js): con él, la

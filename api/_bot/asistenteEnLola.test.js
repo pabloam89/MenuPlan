@@ -12,7 +12,7 @@ import { resolveModeData } from "../../src/lib/prepararGeneracion.js";
 // desayuno, merienda y postre, y qué días y cuánta variedad lleva el menú.
 const conNino = { members: [{ id: "a", name: "Ana", age: 40 }, { id: "b", name: "Leo", age: 6 }] };
 
-describe("ajustar_casa", () => {
+describe("ajustar_extras", () => {
   it("guarda solo valores de su lista y deja lo demás como estaba", () => {
     const r = aplicarExtras({ ...conNino, extraMeals: { postre: "cena" } }, { desayuno: "variado", merienda: "laborables", postreTipo: "pastel" });
     expect(r.data.extraMeals).toMatchObject({ desayuno: "variado", merienda: "laborables", postre: "cena", postreTipo: "inmediato" });

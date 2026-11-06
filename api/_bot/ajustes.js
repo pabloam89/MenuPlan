@@ -624,7 +624,7 @@ function conGrupos(m, data, members) {
  * (croquetas, cremas…), cuántas veces por semana; el rato que hay (minutos de
  * manos) y el día en que se cocina.
  *
- * Antes Lola solo podía decir «tanda» en ajustar_casa, que escribía un
+ * Antes Lola solo podía decir «tanda» en ajustar_cocina, que escribía un
  * `cookTime.tanda` que nadie lee: alargaba el finde y no pedía ninguna base.
  */
 export async function pedirTanda(householdId, { bases = [], platos = [], minutos, dia, ninguna = false }) {
