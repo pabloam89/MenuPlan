@@ -1919,16 +1919,16 @@
       "nombre": "habla: «el jueves comida no xq no tengo tiempo» → no comen en casa, no cambia el plato",
       "entrada": "q el jueves comida no xq no tengo tiempo, cámbialo",
       "llama": [
-        "fuera_de_casa"
+        "donde_come"
       ],
       "args": {
-        "fuera_de_casa": {
+        "donde_come": {
+          "plazo": "dias",
           "dias": "jueves",
           "comidas": "comida"
         }
       },
       "noLlama": [
-        "ajustar_horario",
         "cambiar_plato",
         "proponer_platos"
       ]
@@ -1943,16 +1943,14 @@
       "nombre": "habla: «Leo no come en casa el finde ni cena hoy» → ausencias en lote, no una llamada por hueco (2 oct 2026: cinco a la vez)",
       "entrada": "Leo no come en casa el finde ni cena hoy",
       "llama": [
-        "fuera_de_casa"
+        "donde_come"
       ],
       "args": {
-        "fuera_de_casa": {
+        "donde_come": {
+          "plazo": "dias",
           "quienes": "leo"
         }
       },
-      "noLlama": [
-        "ajustar_horario"
-      ],
       "maxLlamadas": 2
     },
     {
@@ -1961,15 +1959,19 @@
       "dominio": "ficha",
       "origen": "escrito",
       "dependeDeFecha": true,
-      "nombre": "habla: «los jueves nunca comemos en casa» → es de cada semana: ajustar_horario, no fuera_de_casa",
+      "nombre": "habla: «los jueves nunca comemos en casa» → es de cada semana: donde_come con plazo siempre",
       "entrada": "los jueves nunca comemos en casa a mediodía",
       "llama": [
-        "ajustar_horario"
+        "donde_come"
       ],
       "noLlama": [
-        "fuera_de_casa",
         "cambiar_plato"
-      ]
+      ],
+      "args": {
+        "donde_come": {
+          "plazo": "siempre"
+        }
+      }
     },
     {
       "id": "habla-por-que-una-tortilla",
@@ -2196,12 +2198,10 @@
       "nombre": "un guardado falla: dice qué se guardó y qué no, sin inventar por qué",
       "entrada": "Leo no come en casa el fin de semana ni cena hoy",
       "respuestas": {
-        "fuera_de_casa": "No he podido guardarlo: se cruzó con otro cambio. No se ha cambiado nada.",
-        "ajustar_horario": "No he podido guardarlo: se cruzó con otro cambio. No se ha cambiado nada."
+        "donde_come": "No he podido guardarlo: se cruzó con otro cambio. No se ha cambiado nada."
       },
       "llamaAlguna": [
-        "fuera_de_casa",
-        "ajustar_horario"
+        "donde_come"
       ],
       "texto": "^(?=[^]*(no (lo |la |los |las )?(he podido|pude|se ha|se han|ha quedado)))(?=[^]*(Reinténtalo|reintent|otra vez|de nuevo))",
       "sinTexto": "(porque|ya que|debido a|parece que|seguramente|probablemente)"
@@ -2216,20 +2216,21 @@
       "nombre": "rehacer el menú con condiciones: primero apunta, luego genera",
       "entrada": "rehazme el menú para lo que queda de semana, asume que mañana no comemos en casa",
       "llama": [
-        "fuera_de_casa",
+        "donde_come",
         "generar_menu"
       ],
       "args": {
         "generar_menu": {
           "semana": "esta"
         },
-        "fuera_de_casa": {
+        "donde_come": {
+          "plazo": "dias",
           "dias": "mañana"
         }
       },
       "antes": [
         [
-          "fuera_de_casa",
+          "donde_come",
           "generar_menu"
         ]
       ],
@@ -2871,7 +2872,7 @@
       ],
       "sinTexto": "✅|[Mm]añana (s[aá]bado|no com|nadie)",
       "respuestas": {
-        "fuera_de_casa": "No he guardado nada: eso ya se apuntó para el sábado 3 y el domingo 4, que ya pasó. Lo que lees en la charla es de otro día. Solo si la persona pide AHORA lo mismo para el sábado 10 y el domingo 11, confírmalo con ella y vuelve a llamar con de_nuevo = true."
+        "donde_come": "No he guardado nada: eso ya se apuntó para el sábado 3 y el domingo 4, que ya pasó. Lo que lees en la charla es de otro día. Solo si la persona pide AHORA lo mismo para el sábado 10 y el domingo 11, confírmalo con ella y vuelve a llamar con de_nuevo = true."
       }
     },
     {
@@ -3370,11 +3371,12 @@
       "dominio": "menu",
       "origen": "conversacion_real",
       "dependeDeFecha": true,
-      "nombre": "«este jueves no comemos en casa» es un día suelto (fuera_de_casa), no el horario fijo (#958 C)",
+      "nombre": "«este jueves no comemos en casa» es un día suelto (plazo dias), no el horario fijo (#958 C)",
       "entrada": "este jueves no comemos en casa, nos vamos a comer con mis padres",
       "espera": {
-        "accion": "fuera_de_casa",
+        "accion": "donde_come",
         "parametros": {
+          "plazo": "dias",
           "dias": [
             "jueves"
           ],
@@ -3382,10 +3384,7 @@
             "Comida"
           ]
         }
-      },
-      "noLlama": [
-        "ajustar_horario"
-      ]
+      }
     },
     {
       "id": "pregunta-y-pedido-contesta-primero",
