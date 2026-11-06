@@ -5,6 +5,7 @@
 
 /** Tope de líneas del prototipo: una compra grande de una familia cabe de sobra. */
 const MAX_LINEAS = 80;
+/** Tope del nombre: sobra para «Compra HoMenu» y frena un texto enorme. */
 const MAX_NOMBRE = 80;
 
 /**
