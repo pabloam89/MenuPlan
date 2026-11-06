@@ -35,7 +35,6 @@ const CATEGORIA_COMPRA = /^\p{Lu}[\p{L} ]+ \d+$/u;
 // sale con la pizarra encendida.
 const ENTRADA_PIZARRA = "Empieza en blanco";
 const TITULO_COMPRA = "Tu compra";
-const PIE_COMPRA = "Comprar ·";
 // El botón de comprar lleva el total de lo que queda por comprar.
 const BOTON_COMPRAR = /^Comprar · .*€$/;
 // La tira de sugerencias del selector de platos (src/screens/CatalogBrowserSheet.jsx).
@@ -146,9 +145,9 @@ async function leerCompra(page) {
   await expect(boton(page, "Por comprar")).toBeVisible();
   const categorias = page.getByRole("button", { name: CATEGORIA_COMPRA });
   await expect(categorias.first()).toBeVisible();
-  await expect(page.getByText(PIE_COMPRA)).toBeVisible();
+  await expect(page.getByRole("button", { name: BOTON_COMPRAR })).toBeVisible();
   const texto = await page.locator("body").innerText();
-  return texto.slice(texto.indexOf(TITULO_COMPRA), texto.indexOf(PIE_COMPRA));
+  return texto.slice(texto.indexOf(TITULO_COMPRA), texto.lastIndexOf("Comprar"));
 }
 
 test("alta, menú de la semana, cambiar un plato y ver la compra", async ({ page }) => {
@@ -179,10 +178,10 @@ test("el botón de comprar sigue a la lista", async ({ page }) => {
   await leerCompra(page);
   const comprar = page.getByRole("button", { name: BOTON_COMPRAR });
   await expect(comprar).toBeVisible();
-  const antes = await comprar.innerText();
+  const antes = await comprar.getAttribute("aria-label");
   await page.getByRole("button", { name: CATEGORIA_COMPRA }).first().click();
   await page.getByRole("checkbox", { name: /: comprado$/ }).first().click();
-  await expect(comprar).not.toHaveText(antes);
+  await expect(comprar).not.toHaveAttribute("aria-label", antes);
   if (process.env.CAPTURAS) {
     for (const width of [375, 420]) {
       await page.setViewportSize({ width, height: 800 });

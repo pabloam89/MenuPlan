@@ -3,6 +3,7 @@ import { pedidoMenu } from "../lib/pedidoLola.js";
 import { BaldosaFranja, RayaBaldosas } from "../components/wizard/ControlRow.jsx";
 import { color as tono } from "../design/tokens.js";
 import lolaFoto from "../assets/lola/lola-perfil.jpg";
+import BarraComprar from "../components/BarraComprar.jsx";
 import { Suspense, lazy, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -1183,7 +1184,7 @@ export function ShoppingScreen({
           )}
         </button>
         {open && (
-          <div style={aisleItemsStyle}>
+          <div style={{ ...aisleItemsStyle, padding: "0 var(--esp-8) var(--esp-4)" }}>
             {section.items.map((item, i) => (
               <ShoppingRow
                 key={`${section.key}-${item.id}`}
@@ -1463,10 +1464,18 @@ export function ShoppingScreen({
           );
         })()}
 
-        {/* Lo que falta se le dice a Lola sin salir de la lista. Pegado al
-            pie (sticky, no fixed): al final de la lista ocupa su sitio y no
-            tapa la última fila. */}
-        {!readOnly && stockReady && !isEmpty && (paraComprar?.lineas.length > 0 || FRONTAL_BOT) && (
+        {/* Con productos, el pie de comprar lleva también a Lola. Sin ellos, solo
+            Lola, en su píldora. Sticky, no fixed: al final de la lista ocupa
+            su sitio y no tapa la última fila. */}
+        {!readOnly && stockReady && !isEmpty && paraComprar?.lineas.length > 0 && (
+          <BarraComprar
+            total={conCentimos(paraComprar.total)}
+            productos={paraComprar.lineas.length}
+            onComprar={() => setComprarAbierto(true)}
+            onLola={FRONTAL_BOT ? () => abrirLola() : undefined}
+          />
+        )}
+        {!readOnly && stockReady && !isEmpty && !(paraComprar?.lineas.length > 0) && FRONTAL_BOT && (
           <div
             style={{
               position: "sticky",
@@ -1474,41 +1483,11 @@ export function ShoppingScreen({
               zIndex: 5,
               display: "flex",
               justifyContent: "flex-end",
-              gap: "var(--esp-8)",
               marginTop: 12,
               pointerEvents: "none",
             }}
           >
-            {paraComprar?.lineas.length > 0 && (
-              <button
-                type="button"
-                onClick={() => setComprarAbierto(true)}
-                style={{
-                  pointerEvents: "auto",
-                  flex: 1,
-                  minWidth: 0,
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "var(--esp-8)",
-                  minHeight: 44,
-                  padding: "0 var(--esp-16)",
-                  borderRadius: "var(--radio-pildora)",
-                  border: "none",
-                  background: "var(--color-marca)",
-                  color: "var(--color-superficie)",
-                  fontFamily: "inherit",
-                  fontSize: "var(--tipo-paso-14)",
-                  fontWeight: "var(--tipo-peso-800)",
-                  cursor: "pointer",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                <ShoppingCart size={18} color="currentColor" />
-                Comprar · {conCentimos(paraComprar.total)}
-              </button>
-            )}
-            {FRONTAL_BOT && <button
+            <button
               type="button"
               onClick={() => abrirLola()}
               aria-label="¿Falta algo? Díselo a Lola"
@@ -1519,7 +1498,7 @@ export function ShoppingScreen({
                 alignItems: "center",
                 gap: 8,
                 minHeight: 44,
-                padding: paraComprar?.lineas.length > 0 ? "var(--esp-4)" : "5px 14px 5px 5px",
+                padding: "5px 14px 5px 5px",
                 borderRadius: 999,
                 border: "1px solid #e3ebe6",
                 background: "#fff",
@@ -1536,8 +1515,8 @@ export function ShoppingScreen({
                 alt=""
                 style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover", objectPosition: "center 30%", flexShrink: 0 }}
               />
-              {!(paraComprar?.lineas.length > 0) && "¿Falta algo? Díselo a Lola"}
-            </button>}
+              ¿Falta algo? Díselo a Lola
+            </button>
           </div>
         )}
       </div>
@@ -2186,8 +2165,8 @@ function QtyInput({ item, onSave, onCancel }) {
   );
 }
 
-const QTY_COL_W = 52;
-const QTY_GAP = 6;
+const QTY_COL_W = 44;
+const QTY_GAP = 4;
 const ROW_COL_GAP = 6;
 const SWIPE_MIN_PX = 140;
 
@@ -2400,7 +2379,7 @@ function QtyCell({ text, cellStyle, editable, onEdit, label }) {
   };
   if (editable && !isEmpty) {
     // La pastilla se queda como está; el botón que la envuelve da los 44 px
-    // de toque.
+    // de alto de toque.
     return (
       <button
         type="button"
@@ -2409,7 +2388,6 @@ function QtyCell({ text, cellStyle, editable, onEdit, label }) {
         aria-label={label ? `Cambiar cantidad de ${label}: ${text}` : `Cambiar cantidad: ${text}`}
         style={{
           minHeight: 44,
-          minWidth: 44,
           padding: 0,
           border: "none",
           background: "transparent",
@@ -2430,7 +2408,7 @@ function QtyCell({ text, cellStyle, editable, onEdit, label }) {
 // Cartoon thumbnail for a shopping row, resolved by name through the
 // ingredient -> family -> aisle cascade. Renders an empty slot when nothing
 // matches so the grid column collapses instead of leaving a gap.
-function IngredientThumb({ name, dimmed = false, size = 34 }) {
+function IngredientThumb({ name, dimmed = false, size = 30 }) {
   const src = ingredientThumbSrc(name);
   const [failed, setFailed] = useState(false);
   if (!src || failed) return <span style={{ width: 0 }} />;
@@ -2540,7 +2518,7 @@ function ShoppingRow({
       onComplete={boughtTab ? undefined : onSwipePurchased}
       onDelete={onRemove}
     >
-      <div style={{ padding: "6px 2px 6px 0" }}>
+      <div style={{ padding: "var(--esp-2) 0" }}>
         <div style={listRowStyle}>
           <button
             type="button"
@@ -2553,7 +2531,7 @@ function ShoppingRow({
             style={checkBtnStyle(readOnly && !canTick)}
           >
             <span style={checkBoxStyle(dimmed)}>
-              {dimmed && <Check size={16} color="#fff" strokeWidth={3} />}
+              {dimmed && <Check size={14} color="#fff" strokeWidth={3} />}
             </span>
           </button>
           <IngredientThumb name={item.name} dimmed={dimmed} />
@@ -4186,27 +4164,24 @@ const nameColStyle = {
   minWidth: 0,
 };
 
-// Las cantidades van a la derecha; si con el € no caben en una línea, el
-// precio baja a la siguiente en vez de comerse el nombre.
+// Las tres pastillas siempre en una línea: el nombre se lleva lo que sobra.
 const pillsBlockStyle = {
   display: "flex",
-  flexWrap: "wrap",
   justifyContent: "flex-end",
   alignItems: "center",
   columnGap: QTY_GAP,
-  maxWidth: 150,
 };
 
 function checkBtnStyle(readOnly) {
   return {
-    width: 44,
+    width: 28,
     height: 44,
     padding: 0,
     border: "none",
     background: "transparent",
     display: "inline-flex",
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "flex-start",
     cursor: readOnly ? "default" : "pointer",
     flexShrink: 0,
   };
@@ -4214,10 +4189,10 @@ function checkBtnStyle(readOnly) {
 
 function checkBoxStyle(checked) {
   return {
-    width: 26,
-    height: 26,
+    width: 22,
+    height: 22,
     boxSizing: "border-box",
-    borderRadius: 8,
+    borderRadius: "var(--radio-chico)",
     border: checked ? "none" : "2px solid #7f9a89",
     background: checked ? "#2f9e52" : "#fff",
     display: "inline-flex",
@@ -4230,8 +4205,8 @@ function checkBoxStyle(checked) {
 function productNameStyle(done) {
   return {
     display: "block",
-    fontSize: 16,
-    fontWeight: 700,
+    fontSize: "var(--tipo-paso-14)",
+    fontWeight: "var(--tipo-peso-700)",
     color: done ? "#5f7468" : "#142f1d",
     textDecoration: done ? "line-through" : "none",
     lineHeight: 1.25,
@@ -4252,11 +4227,11 @@ const valueGroupStyle = {
 
 const qtyCellBase = {
   textAlign: "center",
-  padding: "5px 6px",
+  padding: "var(--esp-4)",
   borderRadius: 7,
   border: "none",
-  fontSize: 15,
-  fontWeight: 700,
+  fontSize: "var(--tipo-paso-12)",
+  fontWeight: "var(--tipo-peso-700)",
   fontVariantNumeric: "tabular-nums",
   whiteSpace: "nowrap",
   lineHeight: 1.2,
@@ -4280,7 +4255,7 @@ const priceCellStyle = {
   ...qtyCellBase,
   background: "#d7eadc",
   color: "#1a3d28",
-  fontWeight: 800,
+  fontWeight: "var(--tipo-peso-800)",
 };
 
 // Day stripe — mirrors Tu menú's DaySectionHeader (Menu.jsx).
