@@ -8,13 +8,13 @@ process.env.VITE_SUPABASE_URL ||= "https://sin-base.invalid";
 process.env.SUPABASE_SERVICE_ROLE_KEY ||= "sin-clave";
 
 vi.mock("./db.js", async (original) => ({ ...(await original()), insert: vi.fn(), update: vi.fn(), rpc: vi.fn(), select: vi.fn(async () => []) }));
-vi.mock("./ajustes.js", async (original) => ({ ...(await original()), dominiosDeGustos: async () => "DOMINIOS", ajustarHorario: vi.fn(async () => "horario") }));
+vi.mock("./ajustes.js", async (original) => ({ ...(await original()), dominiosDeGustos: async () => "DOMINIOS", ajustarHorario: vi.fn(async () => "horario"), ajustarCocina: vi.fn(async () => "cocina"), ajustarCompra: vi.fn(async () => "compra"), ajustarExtras: vi.fn(async () => "extras"), ajustarModoDespensa: vi.fn(async () => "despensa") }));
 vi.mock("./menu.js", async (original) => ({ ...(await original()), apuntarAusencia: vi.fn(async () => ({ texto: "ok", hayMenu: true, hecho: "ok", valores: [] })) }));
 vi.mock("./despensa.js", async (original) => ({ ...(await original()), verDespensa: vi.fn(async () => "despensa") }));
 vi.mock("./cole.js", async (original) => ({ ...(await original()), verMenuCole: vi.fn(async () => "cole") }));
 
-const { FICHAS, SOLO_LECTURA, herramientas, pantallaDe } = await import("./agente.js");
-const { ajustarHorario } = await import("./ajustes.js");
+const { FICHAS, PARTES_DE_CASA, SOLO_LECTURA, herramientas, pantallaDe } = await import("./agente.js");
+const { ajustarCocina, ajustarCompra, ajustarExtras, ajustarHorario, ajustarModoDespensa } = await import("./ajustes.js");
 const { apuntarAusencia } = await import("./menu.js");
 const { QUE_CONSULTAS } = await import("../../src/lib/vocabularios.js");
 
@@ -132,5 +132,51 @@ describe("consultar, una sola para lo que no lleva campos (trozo 46)", () => {
     expect(QUE_CONSULTAS.filter((que) => pantallaDe("consultar", { que }))).toEqual(["compra"]);
     expect(pantallaDe("consultar", {})).toBeNull();
     expect(pantallaDe("consultar")).toBeNull();
+  });
+});
+
+describe("ajustar_casa, cuatro partes y una llamada por parte (trozo 47)", () => {
+  const CHAT = { householdId: "casa", chatId: "1", channel: "telegram", fotos: [], papel: "owner", esGrupo: false, texto: "c", resultados: [] };
+  const GUARDAN = [ajustarCocina, ajustarCompra, ajustarExtras, ajustarModoDespensa];
+  const herramientaCasa = async () => (await herramientas({ ...CHAT })).find((x) => x.name === "ajustar_casa");
+  const ajustar = async (args) => (await herramientaCasa()).run(args, { toolUse: { id: `t-${Math.random()}` } });
+
+  beforeEach(() => GUARDAN.forEach((g) => g.mockClear()));
+
+  it("las cuatro viejas ya no están, y lo que protege o no se deshace igual sigue aparte", () => {
+    for (const n of ["ajustar_cocina", "ajustar_compra", "ajustar_extras", "ajustar_uso_despensa"]) expect(FICHAS.has(n), n).toBe(false);
+    for (const n of ["ajustar_alergias", "ajustar_salud", "quitar_comensal", "ajustar_trato", "ajustar_gustos", "ajustar_semana", "ajustar_persona", "ajustar_menu_peques"]) expect(FICHAS.has(n), n).toBe(true);
+  });
+
+  it("cada parámetro es de una sola parte, y ninguno se queda sin parte", async () => {
+    const campos = Object.values(PARTES_DE_CASA).flatMap((p) => p.campos);
+    expect(new Set(campos).size).toBe(campos.length);
+    expect([...campos].sort()).toEqual(Object.keys((await herramientaCasa()).input_schema.properties).sort());
+  });
+
+  it("cada parte guarda con lo suyo, y con los argumentos tal cual", async () => {
+    await ajustar({ trastosMas: ["Airfryer"] });
+    expect(ajustarCocina.mock.calls[0]).toEqual(["casa", { trastosMas: ["Airfryer"] }]);
+    await ajustar({ supermercadosMas: ["Lidl"] });
+    expect(ajustarCompra.mock.calls[0]).toEqual(["casa", { supermercadosMas: ["Lidl"] }]);
+    await ajustar({ desayuno: "off" });
+    expect(ajustarExtras.mock.calls[0]).toEqual(["casa", { desayuno: "off" }]);
+    await ajustar({ usoDespensa: "off" });
+    expect(ajustarModoDespensa.mock.calls[0]).toEqual(["casa", { modo: "off" }]);
+  });
+
+  it("dos partes en una llamada no guardan nada: deshaz solo volvería atrás una", async () => {
+    expect(await ajustar({ esfuerzo: "pro", presupuesto: 80 })).toMatch(/^NO GUARDADO/);
+    for (const g of GUARDAN) expect(g).not.toHaveBeenCalled();
+  });
+
+  it("sin nada que cambiar tampoco guarda, y lo dice", async () => {
+    expect(await ajustar({})).toMatch(/^NO GUARDADO/);
+    for (const g of GUARDAN) expect(g).not.toHaveBeenCalled();
+  });
+
+  it("solo lo de la compra lleva a la pantalla de la compra", () => {
+    expect(pantallaDe("ajustar_casa", { presupuesto: 80 })).toBe("compra");
+    for (const args of [{ esfuerzo: "pro" }, { desayuno: "off" }, { usoDespensa: "off" }, {}]) expect(pantallaDe("ajustar_casa", args)).toBeNull();
   });
 });
