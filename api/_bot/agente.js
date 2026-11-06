@@ -38,6 +38,7 @@ import { diaDe } from "./interprete.js";
 import { isoDeCasa, diaDeISO } from "../../src/lib/dias.js";
 import { cuadre as cuadreDelTurno, medidaDelCuadre } from "./cuadre.js";
 import { avisoVispera } from "./vispera.js";
+import { pasarAMercadona } from "./mercadonaLola.js";
 import { registrar, EMBUDO, duenoDe } from "./embudo.js";
 import {
   describirAjustes, ajustarGustos, ajustarCocina, ajustarHorario, anadirInvitado,
@@ -1086,6 +1087,12 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
         const out = {};
         return resultadoDeAnadir(out, productos, await anadirCompra(householdId, productos, out));
       },
+    }),
+    herramienta({ capacidades: ["pasar_a_mercadona"], lee: [], escribe: [], lector: false, riesgo: RIESGO_HERRAMIENTA.ESCRIBE_IRREVERSIBLE, deshace: DESHACE.NO, pantalla: "compra" }, {
+      name: "pasar_a_mercadona",
+      description: "Rellena una lista en la cuenta de Mercadona de la familia con lo que queda por comprar («pásalo a Mercadona», «méteme la compra en Mercadona»). Solo crea la lista: no compra ni paga. Tarda unos minutos y el aviso llega solo a este chat. Dile lo que devuelve, sin añadir nada.",
+      inputSchema: { type: "object", properties: {}, additionalProperties: false },
+      run: () => pasarAMercadona({ householdId, userId: chat.userId, chatId: chat.chatId, canal: chat.channel ?? CANAL.TELEGRAM }),
     }),
     // Quitar de la lista (#958): no había herramienta, y Lola lo marcaba como
     // comprado o decía que lo había quitado sin quitarlo.

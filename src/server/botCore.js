@@ -76,3 +76,8 @@ export { presupuestoSemanal, estimarSemana, veredicto, frasePresupuesto } from "
 export { densidadDe, cargaDe, completitudDe } from "../lib/derive/ejesDePlato.js";
 // Un solo lector de nutrientes para las dos formas de plato (src/lib/nutricionPlato.js).
 export { nutrienteDe, vectorDe, crudoDe, CAMPOS_PLATO } from "../lib/nutricionPlato.js";
+
+// «Pásalo a Mercadona» (api/_bot/mercadonaLola.js): los precios y el emparejador tiran de todo el catálogo.
+export { fijarCatalogo } from "../lib/storeCatalog.js";
+export { priceShoppingList } from "../lib/listPricing.js";
+export { isActiveItem } from "../lib/shoppingListUtils.js";
