@@ -1,10 +1,10 @@
 import { describe, it, expect, vi } from "vitest";
-import { CAMPOS_TRATO, TRATO_POR_DEFECTO, tratoDeFicha, lineaDelTrato, datosDelTrato, guardarTrato, personaDeLaCuenta } from "./trato.js";
+import { IDS_CAMINO } from "./caminoMenu.js";
+import { CAMINO_HABITUAL, CAMPOS_TRATO, TRATO_POR_DEFECTO, tratoDeFicha, lineaDelTrato, datosDelTrato, guardarTrato, personaDeLaCuenta } from "./trato.js";
 import { REGISTRO_CAMPOS } from "../../src/lib/registroCampos.js";
 import { RITMOS_TRATO, PROFUNDIDADES_TRATO, LARGOS_TRATO } from "../../src/lib/vocabularios.js";
 import { esResultado, ESTADO } from "./resultado.js";
 import { FICHAS } from "./agente.js";
-import { PREGUNTA_DE_CAMPO } from "../../src/lib/siguientePregunta.js";
 
 // Un elemento de la ficha «trato» de ficha_casa v2 (0116): el de una persona y un campo.
 const el = (campo, persona, valor, estado = "dicho") => ({ campo, sujeto: { tipo: "persona", id: persona }, ambito: null, estado, valor });
@@ -46,11 +46,11 @@ describe("tratoDeFicha: lo que dijo la persona de la cuenta, y el defecto en lo 
 });
 
 describe("lineaDelTrato: cómo hablarle, en la ficha del turno", () => {
-  it("por defecto: guiado, pregunta si afinar, corto; sin «(lo dijo)» y con la seguridad siempre", () => {
+  it("por defecto: guiado, ofrece los tres caminos, corto; sin «(lo dijo)» y con la seguridad siempre", () => {
     const l = lineaDelTrato({ ...TRATO_POR_DEFECTO, dicho: [] });
     expect(l).toMatch(/^TRATO CON QUIEN ESCRIBE/);
     expect(l).toMatch(/guiado/);
-    expect(l).toMatch(/lo preparas ya o lo afináis juntos/);
+    expect(l).toMatch(/al pedir un menú, ofrece los tres caminos/);
     expect(l).toMatch(/cortos/);
     expect(l).not.toMatch(/lo dijo/);
     expect(l).not.toMatch(/fotos/);
@@ -60,7 +60,7 @@ describe("lineaDelTrato: cómo hablarle, en la ficha del turno", () => {
   it("lo dicho se marca, y sin fotos se dice", () => {
     const l = lineaDelTrato({ ritmo: "directo", profundidad: "nada", fotos: false, largo: "largo", dicho: ["ritmo", "fotos"] });
     expect(l).toMatch(/directo: decide tú .*\(lo dijo\)/);
-    expect(l).toMatch(/hazlo ya/);
+    expect(l).toMatch(/suele elegir «Solo los días»: recuérdaselo y ofrece los tres caminos/);
     expect(l).toMatch(/no quiere fotos de los platos \(lo dijo\)/);
     expect(l).toMatch(/explicar más/);
   });
@@ -135,11 +135,10 @@ describe("personaDeLaCuenta: de quién es el trato", () => {
   });
 });
 
-describe("siguientePregunta.js: cada respuesta se guarda con una herramienta de Lola que escribe ese dato", () => {
-  it("guarda es el nombre de una herramienta, y su ficha escribe el campo", () => {
-    for (const [campo, { guarda }] of Object.entries(PREGUNTA_DE_CAMPO)) {
-      expect(FICHAS.has(guarda), `${campo} → ${guarda}`).toBe(true);
-      expect(FICHAS.get(guarda).escribe, `${campo} → ${guarda}`).toContain(campo);
-    }
+describe("el camino habitual del trato (trozo 68)", () => {
+  it("cada profundidad tiene el suyo, y sin decir ninguno", () => {
+    expect(Object.keys(CAMINO_HABITUAL).sort()).toEqual([...PROFUNDIDADES_TRATO].sort());
+    expect(CAMINO_HABITUAL.preguntar).toBeNull();
+    expect(Object.values(CAMINO_HABITUAL).filter(Boolean).sort()).toEqual([...IDS_CAMINO].sort());
   });
 });

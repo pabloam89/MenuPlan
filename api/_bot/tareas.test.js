@@ -226,6 +226,10 @@ describe("tope lleno: lo personal de otro ni se enseña ni se quita", () => {
 });
 
 describe("bloqueDeTareas", () => {
+  it("una espera no sale: el pedido de menú tiene su propia lectura", () => {
+    expect(bloqueDeTareas([{ id: "t", tipo: "espera", texto: "Pedido de menú en curso" }])).toBe("");
+  });
+
   it("sin tareas no añade nada", () => {
     expect(bloqueDeTareas([])).toBe("");
   });

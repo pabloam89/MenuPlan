@@ -12,6 +12,7 @@
  */
 
 import { seguirCon, fallaCon, SIN_LEER, caidaDelModelo } from "./avisar.js";
+import { ultimaVez } from "./menusGenerados.js";
 import { noPude } from "./noPude.js";
 import fs from "node:fs";
 import Anthropic from "@anthropic-ai/sdk";
@@ -19,17 +20,19 @@ import { betaTool } from "@anthropic-ai/sdk/helpers/beta/json-schema";
 import { select, insert, eq, contandoEscrituras } from "./db.js";
 import { deLaCharla } from "./chats.js";
 import { cargarCasa, deshacer, hoyISO, apuntarOperacion } from "./casa.js";
-import { IDS_CAMINO, LEYENDA_CAMINOS, faltaParaGenerar, hayNinosEn } from "./caminoMenu.js";
+import { IDS_CAMINO, LEYENDA_CAMINOS, esBotonUltimaVez, faltaParaGenerar, hayNinosEn, notaDeSupuestos } from "./caminoMenu.js";
+import { bloqueDePedido, cerrarPedido, conUltimaVez, ejesConElPedido, ejesDelPedido, guardarPedido, pedidoDelTurno, pedidoEnCurso } from "./pedidoMenu.js";
+import { avisoDeRehacer, faltaDelPedido } from "../../src/lib/pedidoMenu.js";
 import {
   describirCasa, describirReceta, describirCompra,
-  marcarCompra, anadirCompra, quitarCompra, cambiarPlato, proponerPlatos, franjaDe, porQuePlato, BOTON_REPETIR_VECINOS,
+  marcarCompra, anadirCompra, quitarCompra, compraVacia, cambiarPlato, proponerPlatos, franjaDe, porQuePlato, BOTON_REPETIR_VECINOS,
   rangosDelMenu, resultadoDeCambio, resultadoDeAnadir, SIN_CAMBIAR,
   apuntarAusencia, resultadoDeAusencia,
   resolverHuecos,
 } from "./menu.js";
 import { ESQUEMA_RASGOS, ESQUEMA_EJES, ESQUEMA_PERFIL } from "./esquemas.js";
 import { generarMenu, resultadoDeGenerar, SIN_GENERAR } from "./generar.js";
-import { esBotonRehacer, desdeDelBoton, fechasParaLola } from "./semanaPedida.js";
+import { esBotonRehacer, desdeDelBoton, fechasParaLola, resolverSemana } from "./semanaPedida.js";
 import { faltasDeFormato } from "./formatoMensaje.js";
 import { diaDe } from "./interprete.js";
 import { isoDeCasa, diaDeISO } from "../../src/lib/dias.js";
@@ -54,17 +57,16 @@ import { supervisar, frenoDeshacer } from "./supervisor.js";
 import { armarManual, USAN_UN_HUECO, oNombres, partesDelTurno, PARTES_MANUAL, MARCAS_DEL_TURNO } from "./manual.js";
 import { montarFicha, extrasDeFicha } from "./ficha.js";
 import { planApuntaPlatos } from "../../src/lib/apuntaSuPlato.js";
-import { fichaRpc, leerFichaCasa, tareasDeFicha, calladasDeFicha, conLaFicha, olvidarFicha, estadosDeLaFicha } from "./fichaRpc.js";
-import { lineaDeAfinar } from "../../src/lib/siguientePregunta.js";
+import { fichaRpc, leerFichaCasa, tareasDeFicha, calladasDeFicha, conLaFicha, olvidarFicha } from "./fichaRpc.js";
 import { montarMemoria, ORDEN as ORDEN_MEMORIA } from "./memoria.js";
 import { tramitar, bloqueDe, vigentesSegun } from "./pendientes.js";
-import { tareasAbiertas, clavesCalladas, anotarTarea, cerrarTarea, editarTarea, bloqueDeTareas, separarPorEstado, cerrarResueltas, promoverPreguntas } from "./tareas.js";
+import { tipoDe, tareasAbiertas, clavesCalladas, anotarTarea, cerrarTarea, editarTarea, bloqueDeTareas, separarPorEstado, cerrarResueltas, promoverPreguntas } from "./tareas.js";
 import { claveDePregunta, estadoDeClave } from "./estadoCasa.js";
 import { pintarMenuEntero, filtrosTrasGenerar, filtrosTrasCambiar, sinEtiquetas } from "./pintar.js";
 import { fechasDe, CUANDOS } from "./cuando.js";
 import { IDS_COMIDAS, COMIDAS_PRINCIPALES, IDS_PLATOS } from "../../src/lib/comidas.js";
 import { KITCHEN_TOOL_IDS, APARATOS_EN_ORDEN } from "../../src/lib/electrodomesticos.js";
-import { RITMO_COCINA, ETAPA_BEBE, CANAL, paraEscribir, RIESGOS_HERRAMIENTA, RIESGO_HERRAMIENTA, FORMAS_DE_DESHACER, DESHACE } from "../../src/lib/vocabularios.js";
+import { RITMO_COCINA, RITMO_TRATO, TIPO_TAREA, ETAPA_BEBE, CANAL, paraEscribir, RIESGOS_HERRAMIENTA, RIESGO_HERRAMIENTA, FORMAS_DE_DESHACER, DESHACE } from "../../src/lib/vocabularios.js";
 import { esquemaDato, DEL_REGISTRO } from "../../src/lib/esquemaHerramienta.js";
 import { ETAPA_BEBE_INFO } from "../../src/lib/babyStage.js";
 // Los aparatos, en el orden de la app: la lista vive en electrodomesticos.js y la
@@ -666,11 +668,12 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
       }, ["campo", "valor"]),
       run: (args) => descartarSupuesto(householdId, args),
     }),
-    herramienta({ capacidades: ["primero_segundo", "nivel_cocina", "aparatos", "aparato_otro"], lee: ["kitchenTools", "kitchenToolsNota", "cookTime"], escribe: ["meals", "mealStructure", "mealStructureByGroup", "cookLevel", "cookTime", "kitchenTools", "kitchenToolsNota", "etapaBebe"], lector: false, riesgo: RIESGO_HERRAMIENTA.ESCRIBE_REVERSIBLE, deshace: DESHACE.FOTO, pantalla: null }, {
+    herramienta({ capacidades: ["primero_segundo", "nivel_cocina", "aparatos", "aparato_otro"], lee: ["kitchenTools", "kitchenToolsNota", "cookTime"], escribe: ["mealStructureCena", "meals", "mealStructure", "mealStructureByGroup", "cookLevel", "cookTime", "kitchenTools", "kitchenToolsNota", "etapaBebe"], lector: false, riesgo: RIESGO_HERRAMIENTA.ESCRIBE_REVERSIBLE, deshace: DESHACE.FOTO, pantalla: null }, {
       name: "ajustar_cocina",
       description: `Cómo se cocina en casa: estructura de la comida (primero_segundo = primero y segundo; 1_plato = plato único), esfuerzo (basic/normal/pro), tiempo por día (con_prisa/normal/con_tiempo/depende) y aparatos (${TRASTOS.join(", ")}). «Tenemos airfryer» es trastosMas [Airfryer]; «ya no tenemos horno», trastosMenos [Horno]: los demás se quedan. Uno que no está en la lista («tenemos plancha»), trastoOtro. Cocinar en tanda va por pedir_tanda.`,
       inputSchema: obj({
         estructura: esquemaDato("mealStructure"),
+        estructuraCena: esquemaDato("mealStructureCena"),
         esfuerzo: esquemaDato("cookLevel"),
         tiempo: { type: "string", enum: RITMO_COCINA },
         trastosMas: esquemaDato("kitchenTools", { descripcion: "Aparatos que se añaden." }),
@@ -834,13 +837,16 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
       inputSchema: obj({}),
       run: () => deshacer(householdId, { freno: (ahora, antes) => frenoDeshacer(ahora, antes, chat.texto, chat.anterior) }),
     }),
-    herramienta({ capacidades: ["generar_menu", "regenerar_dia"], lee: ["members", "menuWeekDays", "meals", "menus"], escribe: ["menus", "activeMenuId", "menuModel", "groups"], lector: false, riesgo: RIESGO_HERRAMIENTA.ESCRIBE_REVERSIBLE, deshace: DESHACE.FOTO, pantalla: "semana", avisoLento: "Voy, te preparo el menú, dame unos segundos" }, {
+    herramienta({ capacidades: ["generar_menu", "regenerar_dia"], lee: ["members", "menuWeekDays", "meals", "menus", "mealStructure", "mealStructureCena"], escribe: ["menus", "activeMenuId", "menuModel", "groups"], lector: false, riesgo: RIESGO_HERRAMIENTA.ESCRIBE_REVERSIBLE, deshace: DESHACE.FOTO, pantalla: "semana", avisoLento: "Voy, te preparo el menú, dame unos segundos" }, {
       name: "generar_menu",
       description: "Genera un menú NUEVO con el motor de HoMenu (respeta toda la configuración) y lo deja activo: «esta» semana desde hoy, la «siguiente» (la primera semana SIN menú a partir del lunes que viene) o, con desde, la semana de esa fecha («a partir del 2 de noviembre» → desde 2026-11-02). Una semana que ya tiene menú NO se rehace sin rehacer: true, que solo va cuando piden rehacer esa semana («rehaz», «cambia el menú de…», el botón «Rehacer la del…»); si no, la herramienta avisa sin tocar nada y tú preguntas. Rehacer la semana en curso empieza mañana: hoy y lo pasado no cambian. Tarda unos segundos. fijos: los platos que piden por su nombre para esa semana («un día salmón al horno», «otro pollo con patatas»); se ponen al generar, una vez cada uno, con la receta exacta o la más parecida. Con fijos NO hace falta cambiar_plato después. Solo si piden generar o rehacer, o si no hay menú: una pregunta sobre lo ya generado («¿y las recetas?», «¿y la compra?», «¿y el domingo?») se contesta con ver_receta, ver_compra o ver_menu y NUNCA regenera, porque rehacerlo cambia los platos que ya han visto.",
       inputSchema: obj({
         camino: { type: "string", enum: IDS_CAMINO, description: `El que eligieron con los botones (${LEYENDA_CAMINOS}). Sin él no se genera: pregúntalo siempre.` },
         semana: { type: "string", enum: ["esta", "siguiente"] },
         desde: { type: "string", description: "AAAA-MM-DD: para cuándo, lo que hayan contestado (manda sobre semana). Se pregunta siempre." },
+        estructura: esquemaDato("mealStructure", { descripcion: "Platos por comida solo para este menú («esta semana, un plato»). Si es para siempre, ajustar_cocina." }),
+        estructuraCena: esquemaDato("mealStructureCena", { descripcion: "Platos en la cena solo para este menú. Si es para siempre, ajustar_cocina." }),
+        forzado: { type: "boolean", description: "true si dicen que sigas sin preguntar más («sigue tú», «da igual», «me he cansado»): genera con lo que haya, salvo lo de seguridad." },
         rehacer: { type: "boolean", description: "true si piden rehacer una semana que ya tiene menú, o al pulsar [[Rehacer la del …]]: entonces desde = ese lunes y rehacer: true, los dos." },
         fijos: {
           type: "array", maxItems: 7,
@@ -850,15 +856,32 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
           }, ["nombre"]),
         },
       }, ["semana"]),
-      run: async ({ camino, semana, fijos, desde, rehacer }) => {
+      run: async ({ camino, semana, fijos, desde, rehacer, forzado, estructura, estructuraCena }) => {
         // Antes de generar, para cuándo y el camino (caminoMenu.js, #1210): si falta, qué preguntar, y nada se genera.
-        // La casa solo se lee si hay que preguntar (sus temas de niños y sus semanas, para proponer desde cuándo);
-        // un fallo al leerla lanza, no pregunta de menos.
-        const pedido = { camino, desde, texto: chat.texto, hoy: hoyISO() };
-        if (faltaParaGenerar(pedido)) {
-          const casa = await cargarCasa(householdId);
-          const falta = faltaParaGenerar({ ...pedido, hayNinos: hayNinosEn(casa), semanas: casa?.menu ? casa.semanas : [] });
+        // Lo ya dicho sigue en el pedido en curso (pedidoMenu.js), aunque la charla haya cambiado de tema. Un fallo al
+        // leer la casa lanza, no pregunta de menos.
+        const quien = { householdId, channel: chat.channel, chatId: chat.chatId, userId: chat.userId };
+        // Quien pidió ritmo directo en su trato no quiere preguntas: su pedido va forzado (lo de seguridad se pregunta igual).
+        const delTurno = pedidoDelTurno(await pedidoEnCurso(householdId), { camino, desde, forzado: forzado || chat.trato?.ritmo === RITMO_TRATO.DIRECTO, texto: chat.texto, estructura, estructuraCena });
+        const casa = await cargarCasa(householdId);
+        const semanas = casa?.menu ? casa.semanas : [];
+        // La última vez solo hace falta para ofrecerla o repetirla. Si no se lee, se pregunta como siempre.
+        const ultima = !delTurno.camino || esBotonUltimaVez(chat.texto) ? await ultimaVez(householdId).catch(seguirCon("agente_pedido", null)) : null;
+        const pedido = conUltimaVez(delTurno, ultima, { texto: chat.texto, hoy: hoyISO(), semanas });
+        const ejes = ejesConElPedido(await ejesDelPedido(quien, casa), pedido);
+        const hayNinos = hayNinosEn(casa);
+        const falta = faltaParaGenerar({ ...pedido, texto: chat.texto, hoy: hoyISO(), hayNinos, semanas, ejes, ultima });
+        if (falta) {
+          await guardarPedido(quien, { ...pedido, preguntado: pedido.preguntado || IDS_CAMINO.includes(pedido.camino) });
           return resultadoDeGenerar({ ok: false, motivo: SIN_GENERAR.PREGUNTAR }, falta);
+        }
+        // Antes de pisar una semana con menú, lo que se queda y lo que se pierde, una vez (trozo 72). El botón «Rehacer la
+        // del…» viene de ese mismo aviso; quien dijo «sigue tú» no quiere más preguntas: se le dice al acabar.
+        const seRehace = esBotonRehacer(chat.texto) ? null : resolverSemana({ cual: semana, desde: pedido.desde, rehacer: true, semanas: casa?.menu ? casa.semanas : [], hoy: hoyISO() });
+        const pisa = Boolean(seRehace?.existente);
+        if (pisa && rehacer && !pedido.avisado && !pedido.forzado) {
+          await guardarPedido(quien, { ...pedido, avisado: true });
+          return resultadoDeGenerar({ ok: false, motivo: SIN_GENERAR.PREGUNTAR }, `NO GENERADO: antes de rehacer, dilo en una línea y pregunta si siguen: ${avisoDeRehacer(seRehace)} Si dicen que sí, generar_menu con rehacer: true.`);
         }
         // La semana generada sale pintada debajo del mensaje de Lola (entregar()).
         // Alergias por silencio (#229): antes de generar, para que el menú de
@@ -867,8 +890,15 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
         const out = {};
         // Pulsado «Rehacer la del 26 oct», esa semana y rehacer, diga lo que diga el modelo (#907).
         const delBoton = esBotonRehacer(chat.texto) ? desdeDelBoton(chat.texto, isoDeCasa()) : null;
-        const texto = await generarMenu(householdId, semana, fijos ?? [], out, { desde: delBoton ?? desde ?? null, rehacer: Boolean(rehacer) || Boolean(delBoton) });
+        const texto = await generarMenu(householdId, semana, fijos ?? [], out, { desde: delBoton ?? pedido.desde, rehacer: Boolean(rehacer) || Boolean(delBoton), soloEste: { estructura: pedido.estructura, estructuraCena: pedido.estructuraCena, dias: pedido.dias }, comoSePidio: pedido });
         if (out.ok) pintarTambien(chat, filtrosTrasGenerar(out));
+        // Generar fallido deja el pedido abierto: lo dicho no se pierde.
+        await (out.ok ? cerrarPedido(householdId) : guardarPedido(quien, { ...pedido, avisado: pedido.avisado || pisa })).catch(seguirCon("agente_pedido", null));
+        // Lo que se quedó sin contestar se dice igual, también si dijeron «sigue tú»: no se presenta como sabido.
+        const { supuestos = [], temas = [] } = ejes && out.ok && pedido.camino ? faltaDelPedido({ ...pedido, forzado: false, ejes, hayNinos }) : {};
+        const pisada = pisa && rehacer && out.ok && !pedido.avisado ? `Dilo en una línea del resumen: ${avisoDeRehacer(seRehace)}` : "";
+        const nota = [notaDeSupuestos(supuestos, temas), pisada].filter(Boolean).join("\n");
+        if (nota) return resultadoDeGenerar(out, `${texto}\n${nota}`);
         if (out.recordarSilencio) chat.recordarSilencio = true;
         return resultadoDeGenerar(out, out.recordarSilencio ? `${texto}\n${NOTA_RECORDATORIO}` : texto);
       },
@@ -1001,7 +1031,10 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
       name: "ver_compra",
       description: "La lista de la compra de la semana activa: lo que falta por comprar, por secciones.",
       inputSchema: { type: "object", properties: {}, additionalProperties: false },
-      run: () => conCasa((casa) => describirCompra(casa)),
+      run: () => conCasa((casa) => {
+        chat.nadaQueVer = compraVacia(casa);
+        return describirCompra(casa);
+      }),
     }),
     herramienta({ capacidades: ["marcar_compra"], lee: [], escribe: [], lector: true, riesgo: RIESGO_HERRAMIENTA.ESCRIBE_REVERSIBLE, deshace: DESHACE.FOTO, pantalla: "compra" }, {
       name: "marcar_compra",
@@ -1044,7 +1077,12 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
         },
         additionalProperties: false,
       },
-      run: ({ productos, manuales }) => quitarCompra(householdId, { productos: productos ?? [], manuales: manuales === true }),
+      run: async ({ productos, manuales }) => {
+        const out = {};
+        const texto = await quitarCompra(householdId, { productos: productos ?? [], manuales: manuales === true }, out);
+        if (out.vacia) chat.nadaQueVer = true;
+        return texto;
+      },
     }),
     herramienta({ capacidades: ["elegir_plato"], lee: ["menus", "members", "members.allergies", "notepad"], escribe: [], lector: true, riesgo: RIESGO_HERRAMIENTA.LEE, deshace: DESHACE.NO, pantalla: null }, {
       name: "proponer_platos",
@@ -1389,7 +1427,9 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
   const abiertas = vigentesSegun(guardadas, estaResuelta).filter((p) => !p.clave || !enTabla.has(p.clave));
   // Las tareas abiertas van delante de lo que dice la persona, solo para el modelo: no se guardan en su mensaje.
   const bloque = bloqueDe(abiertas);
-  const entradaModelo = [bloqueDeTareas(tareasVivas, { data, chatId }), bloque, entrada].filter(Boolean).join("\n\n");
+  // Solo se lee si hay una espera abierta: lo normal es no tener pedido y no gastar otra ida a la base.
+  const pedidoAbierto = tareasVivas.some((t) => tipoDe(t) === TIPO_TAREA.ESPERA) ? await pedidoEnCurso(householdId).catch(seguirCon("agente_pedido", null)) : null;
+  const entradaModelo = [bloqueDeTareas(tareasVivas, { data, chatId }), bloqueDePedido(pedidoAbierto), bloque, entrada].filter(Boolean).join("\n\n");
   // Lo último que dijo Lola: un «sí» contesta a eso (supervisor.js).
   chat.anterior = historia.findLast((m) => m.role === "assistant")?.content ?? "";
   chat.anteriorAt = mem.ultimaDeLolaAt ?? null;
@@ -1403,8 +1443,6 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
     ? await resolverHuecos(casa).catch(fallaCon("agente_huecos", null)) : null;
   const fichaBase = casa ? conQuienEscribe(montarFicha(deLaFicha.casa, { ...extras, platoDe }), chat.papel, chat.idioma) : null;
   chat.trato = tratoDeFicha(tablas, personaDeLaCuenta(data, chat.userId, chat.papel));
-  // Si pidió afinar, la siguiente pregunta del catálogo (trozo 17, siguientePregunta.js); sin la ficha v2, ninguna.
-  const afinar = lineaDeAfinar(estadosDeLaFicha(tablas), chat.trato);
   // Quién de la casa escribe, por privado (quienEscribe.js): lo marcado en la app, o deducido por su nombre (y se
   // guarda), o nadie. En un grupo no: cada mensaje ya llega con su «[Nombre]:».
   const escribe = esDeFuera(chat.papel) || esGrupo ? null : personaQueEscribe(data, { userId: chat.userId, autor: nombre, papel: chat.papel });
@@ -1413,7 +1451,7 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
       .then((r) => { if (!r?.ok) console.error("[agente] unir cuenta", r?.error); })
       .catch(fallaCon("agente_unir_cuenta", null))
     : null;
-  const ficha = fichaBase && !esDeFuera(chat.papel) ? { ...fichaBase, delDia: [escribe && lineaDeQuienEscribe(escribe), lineaDelTrato(chat.trato), afinar, fichaBase.delDia].filter(Boolean).join("\n") } : fichaBase;
+  const ficha = fichaBase && !esDeFuera(chat.papel) ? { ...fichaBase, delDia: [escribe && lineaDeQuienEscribe(escribe), lineaDelTrato(chat.trato), fichaBase.delDia].filter(Boolean).join("\n") } : fichaBase;
   let dicho, uso, corregido, medida, promesa, sigueSinGuardar = false;
   const tLola = Date.now();
   // La pista del enrutador (api/_bot/pista.js). `progreso` lo rellena Lola

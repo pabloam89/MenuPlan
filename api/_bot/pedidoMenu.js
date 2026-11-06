@@ -1,0 +1,143 @@
+/**
+ * El pedido de menú en curso (trozo 66 de #1037, tramo 10): una tarea abierta por casa con lo que no sale de la ficha,
+ * el camino elegido, desde cuándo, si dijeron «sigue tú», si ya se hicieron las preguntas del camino y los platos por
+ * comida dichos solo para este menú, que no pisan la ficha. Así sobrevive a que la charla cambie de tema, y dos adultos
+ * comparten el mismo: lo garantiza el índice único (casa, clave) entre las abiertas.
+ * Lo que falta no se guarda aquí: se calcula en cada turno (src/lib/pedidoMenu.js).
+ */
+import { select, insert, update, eq } from "./db.js";
+import { esDuplicado } from "./entradas.js";
+import { CADUCA, COSAS_QUE_CADUCAN, vigente } from "./caducidades.js";
+import { IDS_CAMINO, caminoDelBoton, esBotonSalir, esBotonUltimaVez, semanaPropuesta } from "./caminoMenu.js";
+import { estadosDeLaFicha, leerFichaCasa } from "./fichaRpc.js";
+import { ESTADO_EJE, ejesDeCasa } from "../../src/lib/ejesDeCasa.js";
+import { hasBabyMember } from "../../src/lib/groups.js";
+import { CAMINOS } from "../../src/lib/caminos.js";
+import { DIAS } from "../../src/lib/dias.js";
+import { CANAL, ESTADO_TAREA, ESTRUCTURA_PLATOS, OBJETIVO_TAREA, TIPO_TAREA, paraEscribir } from "../../src/lib/vocabularios.js";
+
+const CLAVE = "pedido_menu";
+const TEXTO = "Pedido de menú en curso";
+const VACIO = { camino: null, desde: null, forzado: false, preguntado: false, estructura: null, estructuraCena: null, dias: null, avisado: false };
+const FECHA = /^\d{4}-\d{2}-\d{2}$/;
+
+const delPedido = (householdId) => `household_id=${eq(householdId)}&clave=${eq(CLAVE)}&status=eq.${ESTADO_TAREA.ABIERTA}`;
+const caducaAt = (ahora) => new Date(ahora.getTime() + COSAS_QUE_CADUCAN[CADUCA.PEDIDO_MENU].vidaMs).toISOString();
+
+/** Pura. Lo guardado en `bot_tareas.pedido`, sin dar por bueno lo que no sea del vocabulario. Si es ilegible, lanza. */
+export function pedidoDeFila(fila) {
+  const p = JSON.parse(fila.pedido);
+  return {
+    camino: IDS_CAMINO.includes(p?.camino) ? p.camino : null,
+    desde: FECHA.test(String(p?.desde ?? "")) ? p.desde : null,
+    forzado: p?.forzado === true,
+    preguntado: p?.preguntado === true,
+    estructura: ESTRUCTURA_PLATOS.includes(p?.estructura) ? p.estructura : null,
+    estructuraCena: ESTRUCTURA_PLATOS.includes(p?.estructuraCena) ? p.estructuraCena : null,
+    dias: Array.isArray(p?.dias) && p.dias.length && p.dias.every((d) => DIAS.includes(d)) ? p.dias : null,
+    avisado: p?.avisado === true,
+  };
+}
+
+const filaAbierta = async (householdId) => (await select("bot_tareas", `${delPedido(householdId)}&limit=1`, "id,pedido,updated_at"))?.[0] ?? null;
+const vivo = (fila, ahora) => vigente(CADUCA.PEDIDO_MENU, fila.updated_at, ahora.getTime());
+
+/** El pedido que sigue vivo en esta casa, o null. */
+export async function pedidoEnCurso(householdId, ahora = new Date()) {
+  const fila = await filaAbierta(householdId);
+  return fila && vivo(fila, ahora) ? pedidoDeFila(fila) : null;
+}
+
+/** Lo que había, si sigue vivo, con lo nuevo encima. */
+const juntar = (fila, cambios, ahora) => ({ ...(fila && vivo(fila, ahora) ? pedidoDeFila(fila) : VACIO), ...cambios });
+
+async function reescribir(fila, pedido, ahora) {
+  const filas = await update("bot_tareas", `id=${eq(fila.id)}&status=eq.${ESTADO_TAREA.ABIERTA}`, {
+    pedido: JSON.stringify(pedido), caduca_at: caducaAt(ahora), updated_at: ahora.toISOString(),
+  });
+  if (!filas?.length) throw new Error("guardarPedido: el pedido se cerró mientras se guardaba");
+}
+
+/**
+ * Abre el pedido o suma `cambios` al que haya. Si otro adulto lo abre a la vez, gana el índice único y se suma al suyo.
+ * @returns {Promise<{ camino: string|null, desde: string|null, forzado: boolean }>}
+ */
+export async function guardarPedido({ householdId, channel = CANAL.TELEGRAM, chatId, userId = null }, cambios, ahora = new Date()) {
+  const fila = await filaAbierta(householdId);
+  const pedido = juntar(fila, cambios, ahora);
+  if (fila) {
+    await reescribir(fila, pedido, ahora);
+    return pedido;
+  }
+  try {
+    await insert("bot_tareas", [{
+      household_id: householdId, channel: paraEscribir("canales", channel), chat_id: String(chatId), tipo: TIPO_TAREA.ESPERA,
+      objetivo: OBJETIVO_TAREA.GENERAR_MENU, clave: CLAVE, texto: TEXTO, pedido: JSON.stringify(pedido), caduca_at: caducaAt(ahora), created_by: userId,
+    }]);
+    return pedido;
+  } catch (e) {
+    if (!esDuplicado(e)) throw e;
+  }
+  const delOtro = await filaAbierta(householdId);
+  if (!delOtro) throw new Error("guardarPedido: la clave estaba cogida y el pedido ya no está abierto");
+  const juntos = juntar(delOtro, cambios, ahora);
+  await reescribir(delOtro, juntos, ahora);
+  return juntos;
+}
+
+/**
+ * Pura. El pedido de este turno: lo que traiga la llamada, el botón pulsado y lo que ya había. Cambiar de camino
+ * deja sus preguntas por hacer.
+ */
+export function pedidoDelTurno(abierto, { camino = null, desde = null, forzado = false, texto = "", estructura = null, estructuraCena = null } = {}) {
+  const antes = abierto ?? VACIO;
+  const elegido = camino ?? caminoDelBoton(texto) ?? antes.camino;
+  return {
+    camino: elegido,
+    desde: desde ?? antes.desde,
+    forzado: forzado === true || esBotonSalir(texto) || antes.forzado,
+    preguntado: antes.preguntado && elegido === antes.camino,
+    estructura: estructura ?? antes.estructura,
+    estructuraCena: estructuraCena ?? antes.estructuraCena,
+    dias: elegido === antes.camino ? antes.dias ?? null : null,
+    avisado: antes.avisado === true,
+  };
+}
+
+/**
+ * Pura. Pulsado «Como la última vez»: su camino y sus días, desde la semana libre si no dijeron otra, y sin las
+ * preguntas del camino. Sin última vez, el pedido tal cual: se pregunta el camino.
+ */
+export function conUltimaVez(pedido, ultima, { texto = "", hoy, semanas = [] }) {
+  if (!ultima || !esBotonUltimaVez(texto)) return pedido;
+  return { ...pedido, camino: ultima.camino, dias: ultima.dias, desde: pedido.desde ?? semanaPropuesta({ hoy, semanas })?.desde ?? null, preguntado: true };
+}
+
+/** Pura. Lo dicho para este menú ya está contestado: no se pregunta ni se da por supuesto. */
+export function ejesConElPedido(ejes, pedido) {
+  if (!ejes) return ejes;
+  const sabido = { estado: ESTADO_EJE.SABIDO, origen: null, fecha: null };
+  return { ...ejes, ...(pedido.estructura ? { mealStructure: sabido } : {}), ...(pedido.estructuraCena ? { mealStructureCena: sabido } : {}) };
+}
+
+/** Pura. Lo que Lola ve de un pedido en curso, delante del mensaje. Sin pedido, nada. */
+export function bloqueDePedido(pedido) {
+  if (!pedido) return "";
+  const camino = CAMINOS.find((c) => c.id === pedido.camino)?.titulo;
+  const hay = [camino ? `camino «${camino}»` : "aún sin camino", pedido.desde ? `desde ${pedido.desde}` : "aún sin fecha"];
+  return `[Pedido de menú en curso: ${hay.join(", ")}. No lo ha escrito la persona. Si lo que dicen contesta a esto, sigue con generar_menu. Si hablan de otra cosa, atiende eso y no insistas.]`;
+}
+
+/** Los ejes de esta casa (src/lib/ejesDeCasa.js), o null si no hay ficha con estados que leer. */
+export async function ejesDelPedido({ householdId, userId = null, channel = CANAL.TELEGRAM }, casa) {
+  const estados = estadosDeLaFicha(await leerFichaCasa({ householdId, userId, canal: channel }));
+  const data = casa?.state?.data ?? {};
+  const miembros = data.members ?? [];
+  return ejesDeCasa({ estados, data, personas: miembros.map((m) => String(m.id ?? m.name)), hayBebe: hasBabyMember(miembros) });
+}
+
+/** Cierra el pedido: `hecha` al generar, `descartada` si lo dejan. Un generar fallido no lo cierra. */
+export async function cerrarPedido(householdId, estado = ESTADO_TAREA.HECHA, ahora = new Date()) {
+  const cuando = ahora.toISOString();
+  return update("bot_tareas", delPedido(householdId), { status: estado, closed_at: cuando, updated_at: cuando });
+}

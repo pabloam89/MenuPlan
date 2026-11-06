@@ -18,6 +18,7 @@
  * señales de la cuenta (registro «senal»), en otro trozo.
  */
 import { DATOS_PERSONA } from "../../src/lib/registroFicha.js";
+import { CAMINO, CAMINOS } from "../../src/lib/caminos.js";
 import { resultado } from "./resultado.js";
 import { FICHA, CANAL_DATO, REF_OPERACION, RITMO_TRATO, PROFUNDIDAD_TRATO, LARGO_TRATO, ORIGEN, ESTADO_DATO } from "../../src/lib/vocabularios.js";
 import { esquemaDato } from "../../src/lib/esquemaHerramienta.js";
@@ -69,12 +70,19 @@ const RITMO = {
   [RITMO_TRATO.DIRECTO]: "directo: decide tú lo que no sea de seguridad y avisa en una línea; pregunta solo lo que no se puede deducir",
   [RITMO_TRATO.GUIADO]: "guiado: ve paso a paso y, antes de decidir algo que no es obvio, pregúntale",
 };
-const PROFUNDIDAD = {
-  [PROFUNDIDAD_TRATO.NADA]: "al pedir un menú, hazlo ya, sin preguntas antes",
-  [PROFUNDIDAD_TRATO.POCO]: "al pedir un menú, como mucho una o dos preguntas antes",
-  [PROFUNDIDAD_TRATO.MUCHO]: "al pedir un menú, afinad antes con unas preguntas (de una en una)",
-  [PROFUNDIDAD_TRATO.PREGUNTAR]: "al pedir un menú, si no está claro, pregúntale si lo preparas ya o lo afináis juntos",
-};
+/** El camino que suele elegir cada profundidad del trato. Sin decir, ninguno: se ofrecen los tres sin más. */
+export const CAMINO_HABITUAL = Object.freeze({
+  [PROFUNDIDAD_TRATO.NADA]: CAMINO.BASICO,
+  [PROFUNDIDAD_TRATO.POCO]: CAMINO.MEDIO,
+  [PROFUNDIDAD_TRATO.MUCHO]: CAMINO.AVANZADO,
+  [PROFUNDIDAD_TRATO.PREGUNTAR]: null,
+});
+
+/** Pura. Lo que Lola recuerda al pedir un menú: el camino habitual solo se recuerda, siempre se ofrecen los tres. */
+function lineaDeCaminoHabitual(profundidad) {
+  const titulo = CAMINOS.find((c) => c.id === CAMINO_HABITUAL[profundidad])?.titulo;
+  return titulo ? `al pedir un menú suele elegir «${titulo}»: recuérdaselo y ofrece los tres caminos` : "al pedir un menú, ofrece los tres caminos";
+}
 const LARGO = {
   [LARGO_TRATO.CORTO]: "mensajes cortos, lo justo",
   [LARGO_TRATO.LARGO]: "puedes explicar más, con el porqué",
@@ -89,7 +97,7 @@ export function lineaDelTrato(trato) {
   const de = (c) => (t.dicho?.includes(c) ? " (lo dijo)" : "");
   const partes = [
     `ritmo ${RITMO[t.ritmo] ?? RITMO[TRATO_POR_DEFECTO.ritmo]}${de("ritmo")}`,
-    `${PROFUNDIDAD[t.profundidad] ?? PROFUNDIDAD[TRATO_POR_DEFECTO.profundidad]}${de("profundidad")}`,
+    `${lineaDeCaminoHabitual(t.profundidad)}${de("profundidad")}`,
     `${LARGO[t.largo] ?? LARGO[TRATO_POR_DEFECTO.largo]}${de("largo")}`,
     t.fotos === false ? `no quiere fotos de los platos${de("fotos")}` : null,
   ].filter(Boolean);

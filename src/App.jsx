@@ -129,7 +129,7 @@ import {
   MAX_MENU_WEEKS,
 } from "./lib/menuArchive.js";
 import { todayDayIdx, getWeekDatesByMenuWeek, mondayISOForOffset } from "./lib/weekCalendar.js";
-import { diaDeFecha, indiceDeFecha } from "./lib/dias.js";
+import { diaDeFecha } from "./lib/dias.js";
 import { claveCocinado, cocinadosLocales, ponerCocinadoLocal, sinCocinados } from "./lib/cocinados.js";
 import { CompraContext, cambiarCompraLocal, compraLocal, conCambio, leerCompra, mandarCompra, sinCompra } from "./lib/compraApp.js";
 import { leerCocinados, mandarCocinado } from "./lib/cocinadosApp.js";
@@ -240,7 +240,7 @@ import { RASTRO, MOTIVO_CAMBIO, ORIGEN_RECETA, idBase } from "./lib/rastro.js";
 const recetaDelPlato = (id) => (id ? RECIPES_BY_ID[id] ?? recipeCatalogById[idBase(id)] ?? null : null);
 import { registrarDescartes, refrescarDescartadas } from "./lib/descartes.js";
 import { ALCANCE_DESCARTE, CANAL_DATO } from "./lib/vocabularios.js";
-import { barrerDias } from "./lib/barridoDia.js";
+import { barrerDias, diasPorBarrer, podarMarcas } from "./lib/barridoDia.js";
 import { loadPantry, loadLocalPantry, mergeLocalPantryIntoCloud, clearLocalPantry, clearHouseholdPantry, addPantryItems, addLocalPantryItems, removePantryItem, removeLocalPantryItem, setPantryItemQty, setLocalPantryItemQty } from "./lib/pantry.js";
 import { toCanonicalStockQty } from "./lib/kitchenUnits.js";
 import { normalizePantryInput } from "./utils/normalizePantryInput.js";
@@ -882,18 +882,6 @@ function migrate(state) {
 }
 
 // ── Barrido "al final del día" ─────────────────────────────────────────────
-// Sin backend que corra a medianoche, el consumo diario se resuelve de forma
-// perezosa la próxima vez que abres la app: para cada día del menú activo que
-// YA pasó y no se haya contabilizado, se da por comido lo que ese día planificó
-// y se resta de la despensa real. Reutiliza la MISMA lógica que "al generar"
-// (buildShoppingList → pantryItems) pero recortada a un solo día.
-
-// Ventana única del barrido: solo se barren (y solo se guardan) los días de los
-// últimos N días. Las dos cosas DEBEN usar el mismo límite: si prunearamos la
-// marca de un día que todavía es "barrible", el siguiente arranque lo volvería a
-// descontar una y otra vez.
-const PANTRY_DAY_WINDOW_DAYS = 45;
-
 // yyyy-mm-dd en hora local (no UTC) para casar con el día natural del usuario.
 /**
  * Lo que se guarda de la casa en household_state: todo menos lo que va por
@@ -917,81 +905,6 @@ function isoLocalDate(date) {
   const m = String(date.getMonth() + 1).padStart(2, "0");
   const d = String(date.getDate()).padStart(2, "0");
   return `${y}-${m}-${d}`;
-}
-
-// "yyyy-mm-dd" → medianoche LOCAL. new Date(iso) lo interpretaría como UTC, que
-// según el huso desplaza el día y descuadra la comparación con la ventana.
-function parseLocalISODate(iso) {
-  const [y, m, d] = String(iso).split("-").map(Number);
-  if (!y || !m || !d) return new Date(NaN);
-  return new Date(y, m - 1, d);
-}
-
-// Medianoche local del día más antiguo que sigue dentro de la ventana.
-function pantryDayWindowStart() {
-  const cutoff = new Date();
-  cutoff.setHours(0, 0, 0, 0);
-  cutoff.setDate(cutoff.getDate() - PANTRY_DAY_WINDOW_DAYS);
-  return cutoff;
-}
-
-// Las marcas de días barridos no se guardan para siempre: fuera de la ventana
-// se descartan (los días de fuera tampoco se vuelven a barrer). Es interno.
-function prunePantryDayDeltas(map) {
-  const cutoff = pantryDayWindowStart();
-  const out = {};
-  for (const [k, v] of Object.entries(map ?? {})) {
-    const dt = parseLocalISODate(k);
-    if (Number.isNaN(dt.getTime()) || dt >= cutoff) out[k] = v;
-  }
-  return out;
-}
-
-// Devuelve, para el menú activo, la lista de días ya pasados y aún sin barrer,
-// cada uno con su plan recortado a ese solo día. No toca estado ni BD.
-// `since` (ISO local) es la fecha desde la que aplica el modo: nunca se barre
-// nada anterior, para no re-descontar lo que ya se descontó de otra forma.
-function pendingEndOfDaySweep(data, since) {
-  const menu = data?.menus?.[data?.activeMenuId];
-  if (!menu?.weeks || !since) return [];
-  const already = data?.pantryDayDeltas ?? {};
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const windowStart = pantryDayWindowStart();
-  const pending = [];
-  for (const wk of Object.values(menu.weeks)) {
-    if (!wk?.plan || !wk.startISO) continue;
-    // parseLocalISODate y no new Date(iso): este último interpreta la fecha como
-    // UTC y en husos negativos desplazaría toda la semana un día.
-    const start = parseLocalISODate(wk.startISO);
-    if (Number.isNaN(start.getTime())) continue;
-    const firstDayIdx = indiceDeFecha(start);
-    const end = wk.endISO ? parseLocalISODate(wk.endISO) : null;
-    const span = end && !Number.isNaN(end.getTime())
-      ? Math.round((end - start) / 86400000) + 1
-      : 7;
-    for (let pos = 0; pos < span; pos++) {
-      const dayDate = new Date(start);
-      dayDate.setDate(start.getDate() + pos);
-      dayDate.setHours(0, 0, 0, 0);
-      if (dayDate >= today) continue; // solo días ya cerrados
-      if (dayDate < windowStart) continue; // fuera de ventana: ni se barre ni se marca
-      const dayISO = isoLocalDate(dayDate);
-      if (dayISO < since) continue; // antes de activar el modo: no es nuestro
-      if (already[dayISO]) continue; // ya barrido
-      const dayName = DAYS[(firstDayIdx + pos) % 7];
-      const dayPlan = {};
-      for (const [gid, slots] of Object.entries(wk.plan)) {
-        const kept = {};
-        for (const [sk, val] of Object.entries(slots ?? {})) {
-          if (sk.startsWith(`${dayName}-`)) kept[sk] = val;
-        }
-        if (Object.keys(kept).length) dayPlan[gid] = kept;
-      }
-      pending.push({ dayISO, dayPlan });
-    }
-  }
-  return pending;
 }
 
 /**
@@ -2085,7 +1998,13 @@ export default function App() {
     const activeMenuEntry = data.menus?.[data.activeMenuId];
     if (!activeMenuEntry?.activatedAt) return;
     if (endOfDaySweepRef.current) return;
-    const pending = pendingEndOfDaySweep(data, data.pantryEndOfDaySince);
+    const hoyLocal = isoLocalDate(new Date());
+    const pending = diasPorBarrer({
+      semanas: Object.values(activeMenuEntry.weeks ?? {}),
+      ya: data.pantryDayDeltas,
+      desde: data.pantryEndOfDaySince,
+      hoy: hoyLocal,
+    });
     if (!pending.length) return;
 
     const groups = gruposVigentes(data);
@@ -2114,7 +2033,7 @@ export default function App() {
         if (Object.keys(newDeltas).length) {
           setData((d) => ({
             ...d,
-            pantryDayDeltas: prunePantryDayDeltas({ ...(d.pantryDayDeltas ?? {}), ...newDeltas }),
+            pantryDayDeltas: podarMarcas({ ...(d.pantryDayDeltas ?? {}), ...newDeltas }, hoyLocal),
           }));
         }
       } catch (err) {

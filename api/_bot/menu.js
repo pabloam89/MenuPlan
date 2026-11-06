@@ -403,9 +403,12 @@ function guardarLista(casa, shopping) {
     : { state: { ...casa.state, shopping } };
 }
 
+/** La lista no tiene nada, ni comprado: su pantalla no enseñaría nada. */
+export const compraVacia = (casa) => !(listaDe(casa).items ?? []).length;
+
 export function describirCompra(casa) {
-  const items = listaDe(casa).items ?? [];
-  if (!items.length) return "La lista de la compra está vacía.";
+  if (compraVacia(casa)) return "La lista de la compra está vacía.";
+  const items = listaDe(casa).items;
   const porCategoria = new Map();
   for (const it of items.filter(activo)) {
     const c = it.category || "Otros";
@@ -524,13 +527,14 @@ function quitarDeLista(items, productos = [], { manuales = false } = {}) {
  * la compra (al cambiar el menú); lo añadido a mano, no.
  * @returns {Promise<object|string>} un RESULTADO (resultado.js), o el texto del error al guardar
  */
-export async function quitarCompra(householdId, { productos = [], manuales = false } = {}) {
+export async function quitarCompra(householdId, { productos = [], manuales = false } = {}, out = {}) {
   let hecho = null;
   let habiaManuales = false;
   const r = await conCasa(householdId, (casa) => {
     habiaManuales = (listaDe(casa).items ?? []).some((it) => it.manual);
     hecho = quitarDeLista(listaDe(casa).items ?? [], productos, { manuales });
     if (!hecho.quitados.length) return null;
+    out.vacia = !hecho.items.length;
     return guardarLista(casa, { ...listaDe(casa), items: hecho.items });
   });
   if (!r.ok) return `No he podido guardar la lista: ${r.error}.`;

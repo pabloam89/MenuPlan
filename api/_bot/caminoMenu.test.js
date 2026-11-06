@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { lineaDeCamino, rellenos } from "./manual.js";
 import { CAMINO, CAMINOS } from "../../src/lib/caminos.js";
-import { BOTONES_CAMINO, BOTONES_CAMINO_TELEGRAM, IDS_CAMINO, PREGUNTA_DE_CAMINO, LEYENDA_CAMINOS, caminoDelBoton, faltaParaGenerar, hayNinosEn, preguntaDeCamino, preguntasDelCamino } from "./caminoMenu.js";
+import { BOTON_SALIR, BOTON_ULTIMA_VEZ, BOTONES_CAMINO, BOTONES_CAMINO_TELEGRAM, IDS_CAMINO, PREGUNTA_DE_CAMINO, LEYENDA_CAMINOS, caminoDelBoton, faltaParaGenerar, hayNinosEn, preguntaDeCamino, preguntasDelCamino } from "./caminoMenu.js";
 import { faltasDeFormato } from "./formatoMensaje.js";
 
 describe("los caminos de Lola son los de la app", () => {
@@ -79,6 +79,13 @@ describe("la pregunta del camino, en corto (trozo 60)", () => {
     ].join("\n"));
   });
 
+  it("con última vez, un botón más y los tres caminos siguen (trozo 71)", () => {
+    const r = preguntaDeCamino({ hoy: HOY, semanas: ESTA, ultima: { camino: "medio", dias: ["Lun", "Mar", "Mié"] } });
+    expect(r).toContain("<b>Como la última vez</b>: Unas preguntas, 3 días");
+    expect(r.endsWith("[[Solo los días]]\n[[Unas preguntas]]\n[[A fondo]]\n[[Como la última vez]]")).toBe(true);
+    expect(faltaParaGenerar({ hoy: HOY, semanas: ESTA, ultima: { camino: "basico", dias: ["Lun"] } })).toContain("Solo los días, 1 día");
+  });
+
   it("sin menú esta semana, desde hoy; sin semana libre, la pregunta abierta", () => {
     expect(preguntaDeCamino({ hoy: HOY, semanas: [] })).toMatch(/^Del 4 al 8 de noviembre no tenéis menú\. ¿Te lo preparo desde el <b>miércoles 4<\/b>\?/);
     const llenas = Array.from({ length: 10 }, (_, i) => ({
@@ -104,6 +111,15 @@ describe("la línea de cada camino (trozo 60)", () => {
   it("quita el punto final, y solo el punto: una frase sin punto conserva su última letra", () => {
     expect(lineaDeCamino({ titulo: "A", enChat: "uno, dos.", minutos: 5 })).toBe("<b>A</b>: uno, dos (5 min)");
     expect(lineaDeCamino({ titulo: "A", enChat: "cole y tiempos", minutos: 5 })).toBe("<b>A</b>: cole y tiempos (5 min)");
+  });
+});
+
+describe("el botón de salir (trozo 67)", () => {
+  it("el manual enseña el mismo texto que el código reconoce", () => {
+    const manual = readFileSync(new URL("./conocimiento.md", import.meta.url), "utf8");
+    expect(manual.match(/\[\[Ya está[^\]]*\]\]/g).every((b) => b === `[[${BOTON_SALIR}]]`)).toBe(true);
+    expect(manual).toContain(`[[${BOTON_SALIR}]]`);
+    expect(manual).toContain(`[[${BOTON_ULTIMA_VEZ}]]`);
   });
 });
 
@@ -151,6 +167,6 @@ describe("faltaParaGenerar: no se genera sin preguntar", () => {
   });
 
   it("si al elegir camino no falta nada, no pregunta: con fecha, se genera (trozo 65)", () => {
-    expect(faltaParaGenerar({ camino: CAMINO.BASICO, desde: "2026-11-02", texto: "Solo los días", ejes: { schedule: { estado: "sabido" } } })).toBeNull();
+    expect(faltaParaGenerar({ camino: CAMINO.BASICO, desde: "2026-11-02", texto: "Solo los días", ejes: { schedule: { estado: "sabido" } }, preguntado: true })).toBeNull();
   });
 });

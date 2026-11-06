@@ -69,6 +69,7 @@
   "bot_tareas": [
     "api/_bot/caducidades.js",
     "api/_bot/chats.js",
+    "api/_bot/pedidoMenu.js",
     "api/_bot/recordatorios.js",
     "api/_bot/tareas.js"
   ],
@@ -180,6 +181,7 @@
   "user_menu_weeks": [
     "api/_bot/casa.js",
     "api/_bot/generar.js",
+    "api/_bot/menusGenerados.js",
     "src/lib/menusSync.js"
   ],
   "user_menus": [

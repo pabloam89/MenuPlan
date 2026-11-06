@@ -115,6 +115,32 @@ describe("generar menú: todo o nada", () => {
     expect(borrar).not.toHaveBeenCalled();
   });
 
+  it("apunta de qué semana es y por qué camino se pidió (trozo 70)", async () => {
+    conCasa.mockResolvedValue({ ok: true });
+    const out = {};
+    await generarMenu("h1", "esta", [], out, { comoSePidio: { camino: "medio" } });
+    const fila = insert.mock.calls.find(([tabla]) => tabla === "menu_generado")[1][0];
+    expect(fila).toEqual({ household_id: "h1", menu_id: "menu-nuevo", week_start: out.desde, camino: "medio" });
+  });
+
+  it("los días de la última vez mandan sobre los de la casa (trozo 71)", async () => {
+    conCasa.mockResolvedValue({ ok: true });
+    const pedidos = [];
+    motor.mockResolvedValue({ ...m, computeWeekRange: (...a) => { pedidos.push(a[2]); return m.computeWeekRange(...a); } });
+    await generarMenu("h1", "siguiente", [], {}, { soloEste: { dias: ["Lun", "Mar"] } });
+    expect(pedidos[0]).toEqual(["Lun", "Mar"]);
+  });
+
+  it("si no se puede apuntar, el menú sigue hecho (trozo 70)", async () => {
+    const aviso = vi.spyOn(console, "error").mockImplementation(() => {});
+    conCasa.mockResolvedValue({ ok: true });
+    insert.mockImplementation(async (tabla) => { if (tabla === "menu_generado") throw new Error("500"); return []; });
+    const out = {};
+    await generarMenu("h1", "esta", [], out);
+    expect(out.ok).toBe(true);
+    aviso.mockRestore();
+  });
+
   it("si la casa no se guarda, no dice «activado»: borra el menú a medias y lo dice", async () => {
     conCasa.mockResolvedValue({ ok: false, error: "conflicto persistente" });
     const out = {};
