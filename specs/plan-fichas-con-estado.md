@@ -655,12 +655,12 @@ Done:
 npx vitest run api/_bot/herramientasAgrupadas.test.js api/_bot/promesas.test.js api/_bot/fichas.test.js
 ```
 
-### 47. Herramientas agrupadas, tercer grupo: los ajustes, uno por ficha
+### 47. Herramientas agrupadas, tercer grupo: los ajustes sencillos, en uno
 Files: `api/_bot/agente.js`, `api/_bot/ajustes.js`, `api/_bot/router.js`, `api/_bot/routerEjemplos.js`, `api/_bot/promesas.test.js`, `api/_bot/fichas.test.js`, `src/lib/capacidades.js`, `api/_bot/conocimiento.md`, `scripts/bot-evals.json`, `api/_bot/herramientasAgrupadas.test.js`
 Depends on: 46
 Blocked by: none
 Existing: 11 herramientas `ajustar_*` (`grep -c 'name: "ajustar_' api/_bot/agente.js` → 11), cada una para unos pocos campos. El registro de campos con su ficha lo hace el trozo 25.
-Not done: las `ajustar_*` de configuración pasan a una por ficha (Casa, Rutina), con `campo` de lista cerrada del registro (trozo 25). Alergias, salud y quitar personas se quedan aparte, porque su riesgo es `quita_proteccion` (trozo 42). El PR deja dos o tres frases para que Pablo lo pruebe a mano en staging (decisión del 6 nov 2026, en «Decisions taken»). Si el total sigue por encima de unas 30 herramientas, la búsqueda de herramientas de la API se estudia en un trozo aparte.
+Not done: `ajustar_cocina`, `ajustar_compra`, `ajustar_extras` y `ajustar_uso_despensa` pasan a `ajustar_casa`, con sus parámetros y sus reglas de siempre, una parte por llamada. Las demás `ajustar_*` se quedan como están: gustos, trato, persona, semana y peques tienen esquemas propios o no se deshacen igual; alergias y salud, además, llevan riesgo `quita_proteccion` (trozo 42). El PR deja dos o tres frases para que Pablo lo pruebe a mano en staging (decisión del 6 nov 2026, en «Decisions taken»). Si el total sigue por encima de unas 30 herramientas, la búsqueda de herramientas de la API se estudia en un trozo aparte.
 Done:
 ```sh
 npx vitest run api/_bot/herramientasAgrupadas.test.js api/_bot/promesas.test.js api/_bot/fichas.test.js
@@ -1058,6 +1058,7 @@ Por qué te lo pregunto: el 8 oct decidiste lo contrario (#107: se genera esquiv
 - principio 4 | eligió: el pedido en curso como tarea de `bot_tareas` (trozo 66) | descartó: guardarlo en la `propuesta` del mensaje, que se pierde si la charla cambia de tema; y una tabla nueva, cuando la tarea ya es por casa y caduca | motivo: decidido
 - principio 4 | eligió: lo que falta se calcula en cada turno de la ficha, `preferencia` y el documento (trozos 64-65) | descartó: copiar los ejes en una ficha del pedido: dos verdades | motivo: decidido
 - principio 4 | eligió: `donde_come`, una herramienta con `plazo` (trozo 45) | descartó: dos herramientas para lo mismo con distinto alcance | motivo: decidido
+- principio 6 | eligió: el trozo 47 junta solo cuatro ajustes, tras preguntárselo a Pablo con tres opciones; su respuesta a esta sesión, del 6 nov 2026: «ok» a juntar los sencillos | descartó: una herramienta por ficha con `campo` genérico sin avisar de que Lola perdería las reglas de cada ajuste | motivo: decidido
 - principio 3 | eligió: con el plazo mal rellenado, «NO GUARDADO» y el motivo (trozo 45) | descartó: valores por defecto, que guardarían un horario que nadie dijo | motivo: decidido
 - principio 6 | eligió: los trozos 45 a 47 no se miden con evals de pago; Pablo los prueba a mano en staging. Fuente: su mensaje a la sesión que construye estos trozos, del 6 nov 2026, que no deja rastro en el repo: «respecto a a herramientas, pruebo y a mano y aprueba tú el 1345»; y el del 4 nov 2026: «Sin evals: los evals soy yo probando a mano, así que no te ralles» | descartó: quitar la medición sin preguntárselo, que sería un atajo sobre lo que pedía el plan | motivo: decidido
 - principio 1 | eligió: al rehacer, decir por días que lo cambiado se pierde (trozo 72) | descartó: nombrar los platos cambiados a mano, que afirmaría algo que los datos no guardan: no llevan marca | motivo: decidido

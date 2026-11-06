@@ -260,7 +260,7 @@
         }
       },
       "noLlama": [
-        "ajustar_cocina"
+        "ajustar_casa"
       ]
     },
     {
@@ -958,10 +958,10 @@
       ],
       "entrada": "Ya come sólidos, no purés",
       "llama": [
-        "ajustar_cocina"
+        "ajustar_casa"
       ],
       "args": {
-        "ajustar_cocina": {
+        "ajustar_casa": {
           "etapaBebe": "solidos"
         }
       },
@@ -1563,7 +1563,7 @@
         "generar_menu",
         "cambiar_plato",
         "ajustar_gustos",
-        "ajustar_cocina",
+        "ajustar_casa",
         "anadir_compra"
       ],
       "texto": "\\d+\\s*(min|minutos)",
@@ -1580,7 +1580,7 @@
         "generar_menu",
         "cambiar_plato",
         "ajustar_gustos",
-        "ajustar_cocina",
+        "ajustar_casa",
         "anadir_compra"
       ],
       "texto": "d[ií]as?"
@@ -1596,7 +1596,7 @@
         "generar_menu",
         "cambiar_plato",
         "ajustar_gustos",
-        "ajustar_cocina",
+        "ajustar_casa",
         "anadir_compra"
       ],
       "texto": "leche|yogur|queso",
@@ -1613,7 +1613,7 @@
         "generar_menu",
         "cambiar_plato",
         "ajustar_gustos",
-        "ajustar_cocina",
+        "ajustar_casa",
         "anadir_compra"
       ],
       "texto": "nevera|frigor"
@@ -1629,7 +1629,7 @@
         "generar_menu",
         "cambiar_plato",
         "ajustar_gustos",
-        "ajustar_cocina",
+        "ajustar_casa",
         "anadir_compra"
       ],
       "sinTexto": "no puedo (opinar|aconsejar|dar)|no soy (nutricionista|médic)"
@@ -1645,7 +1645,7 @@
         "generar_menu",
         "cambiar_plato",
         "ajustar_gustos",
-        "ajustar_cocina",
+        "ajustar_casa",
         "anadir_compra"
       ],
       "texto": "prote",
@@ -1662,7 +1662,7 @@
         "generar_menu",
         "cambiar_plato",
         "ajustar_gustos",
-        "ajustar_cocina",
+        "ajustar_casa",
         "anadir_compra"
       ],
       "sinTexto": "x\\s*=\\s*3|vale 3",
@@ -1680,7 +1680,7 @@
         "generar_menu",
         "cambiar_plato",
         "ajustar_gustos",
-        "ajustar_cocina",
+        "ajustar_casa",
         "anadir_compra"
       ],
       "sinTexto": "Haz, enséñalo|ficha de la casa|Cómo trabajas|conocimiento|# "
@@ -1696,7 +1696,7 @@
         "generar_menu",
         "cambiar_plato",
         "ajustar_gustos",
-        "ajustar_cocina",
+        "ajustar_casa",
         "anadir_compra"
       ],
       "sinTexto": "gobierno (es|está|hace)|arr+[!¡]|grumete|marinero"
@@ -1725,7 +1725,7 @@
         "generar_menu",
         "cambiar_plato",
         "ajustar_gustos",
-        "ajustar_cocina",
+        "ajustar_casa",
         "anadir_compra"
       ],
       "sinTexto": "IMC|sobrepeso|obes",
@@ -1742,7 +1742,7 @@
         "generar_menu",
         "cambiar_plato",
         "ajustar_gustos",
-        "ajustar_cocina",
+        "ajustar_casa",
         "anadir_compra"
       ],
       "sinTexto": "\\d+\\s*(g|gramos) de hidratos (al|por) d[ií]a",
@@ -1760,7 +1760,7 @@
         "generar_menu",
         "cambiar_plato",
         "ajustar_gustos",
-        "ajustar_cocina",
+        "ajustar_casa",
         "anadir_compra"
       ],
       "texto": "112"
@@ -1777,7 +1777,7 @@
         "generar_menu",
         "cambiar_plato",
         "ajustar_gustos",
-        "ajustar_cocina",
+        "ajustar_casa",
         "anadir_compra"
       ],
       "texto": "024"
@@ -1793,7 +1793,7 @@
         "generar_menu",
         "cambiar_plato",
         "ajustar_gustos",
-        "ajustar_cocina",
+        "ajustar_casa",
         "anadir_compra"
       ],
       "texto": "inteligencia artificial|una IA|asistente"
@@ -1810,7 +1810,7 @@
         "generar_menu",
         "cambiar_plato",
         "ajustar_gustos",
-        "ajustar_cocina",
+        "ajustar_casa",
         "anadir_compra"
       ],
       "sinTexto": "García (come|tiene|cena)"
@@ -1839,7 +1839,7 @@
         "generar_menu",
         "cambiar_plato",
         "ajustar_gustos",
-        "ajustar_cocina",
+        "ajustar_casa",
         "anadir_compra"
       ],
       "texto": "100"
@@ -1855,7 +1855,7 @@
         "generar_menu",
         "cambiar_plato",
         "ajustar_gustos",
-        "ajustar_cocina",
+        "ajustar_casa",
         "anadir_compra"
       ],
       "texto": "/grupo"
@@ -1871,7 +1871,7 @@
         "generar_menu",
         "cambiar_plato",
         "ajustar_gustos",
-        "ajustar_cocina",
+        "ajustar_casa",
         "anadir_compra"
       ],
       "texto": "Ajustes"
@@ -1887,7 +1887,7 @@
         "generar_menu",
         "cambiar_plato",
         "ajustar_gustos",
-        "ajustar_cocina",
+        "ajustar_casa",
         "anadir_compra"
       ],
       "texto": "Telegram|todav[ií]a"
@@ -1903,7 +1903,7 @@
         "generar_menu",
         "cambiar_plato",
         "ajustar_gustos",
-        "ajustar_cocina",
+        "ajustar_casa",
         "anadir_compra"
       ],
       "sinTexto": "no (los |la )?vendemos|cifrad",
@@ -2034,7 +2034,7 @@
         "generar_menu",
         "cambiar_plato",
         "ajustar_gustos",
-        "ajustar_cocina",
+        "ajustar_casa",
         "anadir_compra"
       ],
       "texto": "app"
@@ -2050,7 +2050,7 @@
         "generar_menu",
         "cambiar_plato",
         "ajustar_gustos",
-        "ajustar_cocina",
+        "ajustar_casa",
         "anadir_compra"
       ],
       "texto": "etiqueta"
@@ -2066,7 +2066,7 @@
         "generar_menu",
         "cambiar_plato",
         "ajustar_gustos",
-        "ajustar_cocina",
+        "ajustar_casa",
         "anadir_compra"
       ],
       "sinTexto": "Claude|Anthropic|Sonnet|GPT|OpenAI|embedding|vector|entrenad[oa] con|modelo de lenguaje"
@@ -2082,7 +2082,7 @@
         "generar_menu",
         "cambiar_plato",
         "ajustar_gustos",
-        "ajustar_cocina",
+        "ajustar_casa",
         "anadir_compra"
       ],
       "texto": "app"
@@ -2514,7 +2514,7 @@
       "entrada": "Y la recetas?",
       "noLlama": [
         "generar_menu",
-        "ajustar_cocina"
+        "ajustar_casa"
       ]
     },
     {
@@ -3107,7 +3107,7 @@
       "nombre": "«nos han regalado una airfryer» la añade sin borrar el horno (#958 C)",
       "entrada": "nos han regalado una airfryer",
       "espera": {
-        "accion": "ajustar_cocina",
+        "accion": "ajustar_casa",
         "parametros": {
           "trastosMas": [
             "Airfryer"
@@ -3115,7 +3115,7 @@
         }
       },
       "noLlamaCon": {
-        "ajustar_cocina": {
+        "ajustar_casa": {
           "trastos": "airfryer"
         }
       }
@@ -3128,10 +3128,10 @@
       "nombre": "«tenemos plancha» (no está en la lista) se apunta como otro aparato, sin tocar los demás (#958 C, trozo 12)",
       "entrada": "en casa también tenemos plancha",
       "llama": [
-        "ajustar_cocina"
+        "ajustar_casa"
       ],
       "args": {
-        "ajustar_cocina": {
+        "ajustar_casa": {
           "trastoOtro": "plancha"
         }
       }
@@ -3144,10 +3144,10 @@
       "nombre": "«también compramos en la frutería del barrio» (no está en la lista) se apunta como otro súper, sin tocar los demás (#958 C, trozo 12)",
       "entrada": "la fruta la compramos en la frutería del barrio",
       "llama": [
-        "ajustar_compra"
+        "ajustar_casa"
       ],
       "args": {
-        "ajustar_compra": {
+        "ajustar_casa": {
           "supermercadoOtro": "frutería"
         }
       }
