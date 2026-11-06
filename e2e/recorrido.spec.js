@@ -35,7 +35,9 @@ const CATEGORIA_COMPRA = /^\p{Lu}[\p{L} ]+ \d+$/u;
 // sale con la pizarra encendida.
 const ENTRADA_PIZARRA = "Empieza en blanco";
 const TITULO_COMPRA = "Tu compra";
-const PIE_COMPRA = "¿Falta algo?";
+const PIE_COMPRA = "Comprar ·";
+// El botón de comprar lleva el total de lo que queda por comprar.
+const BOTON_COMPRAR = /^Comprar · .*€$/;
 // La tira de sugerencias del selector de platos (src/screens/CatalogBrowserSheet.jsx).
 const SUGERENCIAS_HUECO = "Para este hueco";
 const AVISO_COLOCADO = /Colocado «(.+)»/;
@@ -168,4 +170,26 @@ test("la compra sigue al plato cambiado (#1063)", async ({ page }) => {
   await boton(page, "Menú").click();
   await cambiarPrimerPlato(page, platos);
   expect(await leerCompra(page)).not.toBe(compraAntes);
+});
+
+// El total del botón baja al marcar una línea, y la hoja enseña los productos.
+test("el botón de comprar sigue a la lista", async ({ page }) => {
+  await darDeAlta(page);
+  await abrirMenu(page);
+  await leerCompra(page);
+  const comprar = page.getByRole("button", { name: BOTON_COMPRAR });
+  await expect(comprar).toBeVisible();
+  const antes = await comprar.innerText();
+  await page.getByRole("button", { name: CATEGORIA_COMPRA }).first().click();
+  await page.getByRole("checkbox", { name: /: comprado$/ }).first().click();
+  await expect(comprar).not.toHaveText(antes);
+  if (process.env.CAPTURAS) {
+    for (const width of [375, 420]) {
+      await page.setViewportSize({ width, height: 800 });
+      await page.screenshot({ path: `${process.env.CAPTURAS}/lista-${width}.png` });
+    }
+  }
+  await comprar.click();
+  await expect(page.getByRole("link", { name: /€/ }).first()).toHaveAttribute("href", /tienda\.mercadona\.es\/product\//);
+  if (process.env.CAPTURAS) await page.screenshot({ path: `${process.env.CAPTURAS}/hoja-420.png` });
 });
