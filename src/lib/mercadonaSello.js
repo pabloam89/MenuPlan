@@ -21,8 +21,18 @@ export async function sellar(texto, clavePublica) {
   const clave = await subtle.generateKey({ name: "AES-GCM", length: 256 }, true, ["encrypt"]);
   const iv = globalThis.crypto.getRandomValues(new Uint8Array(12));
   const cifrado = await subtle.encrypt({ name: "AES-GCM", iv }, clave, new TextEncoder().encode(texto));
-  const envuelta = await subtle.wrapKey("raw", clave, publica, { name: "RSA-OAEP" });
+  const envuelta = await subtle.wrapKey("raw", clave, publica, ALGORITMO_CLAVE);
   return JSON.stringify({ v: VERSION_SELLO, k: aBase64(envuelta), iv: aBase64(iv), c: aBase64(cifrado) });
+}
+
+/** ¿Tiene la forma de un sello? Lo mira el servidor antes de guardar: nunca una sesión en claro, ni por un fallo de la app. */
+export function esSello(texto) {
+  try {
+    const { v, k, iv, c, ...resto } = JSON.parse(texto);
+    return v === VERSION_SELLO && [k, iv, c].every((x) => typeof x === "string" && x) && Object.keys(resto).length === 0;
+  } catch {
+    return false; // a propósito: lo que no es JSON no es un sello
+  }
 }
 
 /** @param {string} sello lo que dio `sellar` @param {CryptoKey} privada la clave privada RSA-OAEP, con uso `unwrapKey` */
@@ -30,6 +40,6 @@ export async function abrir(sello, privada) {
   const { v, k, iv, c } = JSON.parse(sello);
   if (v !== VERSION_SELLO) throw new Error(`sello de otra versión: ${v}`);
   const { subtle } = globalThis.crypto;
-  const clave = await subtle.unwrapKey("raw", deBase64(k), privada, { name: "RSA-OAEP" }, { name: "AES-GCM" }, false, ["decrypt"]);
+  const clave = await subtle.unwrapKey("raw", deBase64(k), privada, ALGORITMO_CLAVE, { name: "AES-GCM" }, false, ["decrypt"]);
   return new TextDecoder().decode(await subtle.decrypt({ name: "AES-GCM", iv: deBase64(iv) }, clave, deBase64(c)));
 }

@@ -16,6 +16,7 @@ import { erroresDeLista } from "../../scripts/lib/mercadonaLista.mjs";
 import { CANAL, ESTADO_CUENTA_MERCADONA, ESTADO_ENCARGO_MERCADONA, FALLO_ENCARGO_MERCADONA, paraEscribir } from "../../src/lib/vocabularios.js";
 import { enlaceDeLista } from "../../src/lib/mercadonaList.js";
 import { NO_EXISTE } from "../../src/lib/postgrest.js";
+import { esSello } from "../../src/lib/mercadonaSello.js";
 
 const { PENDIENTE, RELLENANDO, HECHO, FALLIDO } = ESTADO_ENCARGO_MERCADONA;
 
@@ -151,20 +152,10 @@ export async function encargar({ casa, por, canal, chat_id = null, lista }, ahor
 /** Un fallo nuestro en el endpoint: se cuenta, y hacia fuera sale sin detalle. */
 export const contarFallo = (e) => avisarFallo("mercadona", e);
 
-/** Solo un sello: nunca una sesión en claro, ni por un fallo de la app (sellar, src/lib/mercadonaSello.js). */
-function esSello(texto) {
-  if (typeof texto !== "string" || !texto || texto.length > TOPE_SESION) return false;
-  try {
-    const { v, k, iv, c, ...resto } = JSON.parse(texto);
-    return Number.isInteger(v) && [k, iv, c].every((x) => typeof x === "string" && x) && Object.keys(resto).length === 0;
-  } catch {
-    return false; // a propósito: lo que no es JSON no es un sello, y conectar lo rechaza
-  }
-}
-
 /** Guarda la sesión sellada de la casa, y con ella la cuenta vuelve a valer. */
 export async function conectar({ casa, por, sesion_cifrada }) {
-  if (!esSello(sesion_cifrada)) throw new PeticionMala("sesión no válida");
+  const valida = typeof sesion_cifrada === "string" && sesion_cifrada.length <= TOPE_SESION && esSello(sesion_cifrada);
+  if (!valida) throw new PeticionMala("sesión no válida");
   await insert("mercadona_cuenta", [{ household_id: casa, conectada_por: por, sesion_cifrada, estado: paraEscribir("estados_cuenta_mercadona", ESTADO_CUENTA_MERCADONA.CONECTADA) }], { upsert: true });
   return { conectada: true };
 }

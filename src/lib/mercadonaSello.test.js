@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { abrir, sellar } from "./mercadonaSello.js";
+import { abrir, ALGORITMO_CLAVE, esSello, sellar } from "./mercadonaSello.js";
 
 async function claves() {
   const par = await crypto.subtle.generateKey(
-    { name: "RSA-OAEP", modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: "SHA-256" },
+    { ...ALGORITMO_CLAVE, modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]) },
     true,
     ["wrapKey", "unwrapKey"],
   );
@@ -12,6 +12,20 @@ async function claves() {
 }
 
 const SESION = JSON.stringify({ token: "secreto-ñ", uuid: "u" });
+
+describe("esSello", () => {
+  it("reconoce lo que da sellar", async () => {
+    const { publica } = await claves();
+    expect(esSello(await sellar(SESION, publica))).toBe(true);
+  });
+
+  it.each([["sin sellar"], [SESION], [JSON.stringify({ v: 1, k: "a", iv: "b", c: "d", mo: "en claro" })], [JSON.stringify({ v: 9, k: "a", iv: "b", c: "d" })]])(
+    "no da por sello %s",
+    (texto) => {
+      expect(esSello(texto)).toBe(false);
+    },
+  );
+});
 
 describe("sellar y abrir", () => {
   it("se abre con la privada y da lo mismo", async () => {

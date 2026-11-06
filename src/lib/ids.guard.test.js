@@ -63,6 +63,8 @@ const PERMITIDO_FABRICAR = Object.freeze({
   // Se reconoce por el `manual:` y el nombre; la hora solo desempata. Vive con
   // la identidad de los artículos (#958), que es lo que de verdad los distingue.
   "src/lib/compraIdentidad.js": 1,
+  // El vector de AES-GCM: azar para cifrar, no un id.
+  "src/lib/mercadonaSello.js": 1,
   // El nombre del fichero de una foto en Storage, no un id de nada.
   "api/_bot/recetas.js": 1,
 });
