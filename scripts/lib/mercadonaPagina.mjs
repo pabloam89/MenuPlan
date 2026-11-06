@@ -36,11 +36,18 @@ export const enPagina = async (lista) => {
   return { paso: "leer", status: g.status, id, guardada: g.ok ? await g.json() : null };
 };
 
-/** Abre la tienda y mira si hay sesión: `{ resultado, status }`, con `resultado` null si se puede seguir. */
-export async function entrarEnTienda(pagina) {
+/** Abre la tienda: `{ resultado, status }`, con `resultado` null si no ha bloqueado. */
+export async function abrirPortada(pagina) {
   const respuesta = await pagina.goto(TIENDA, { waitUntil: "domcontentloaded", timeout: 60_000 });
   const status = respuesta?.status();
-  if (respuesta && status >= 400) return { resultado: "bloqueado_portada", status };
+  return { resultado: respuesta && status >= 400 ? "bloqueado_portada" : null, status };
+}
+
+/** Abre la tienda y mira si hay sesión: `{ resultado, status }`, con `resultado` null si se puede seguir. */
+export async function entrarEnTienda(pagina) {
+  const portada = await abrirPortada(pagina);
+  if (portada.resultado) return portada;
+  const { status } = portada;
   await pagina.waitForTimeout(ESPERA_CARGA_MS);
   if (!(await pagina.evaluate(enPagina, null))) return { resultado: "sin_sesion", status };
   return { resultado: null, status };

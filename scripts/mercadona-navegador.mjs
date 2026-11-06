@@ -21,7 +21,7 @@ import os from "node:os";
 import path from "node:path";
 import { chromium } from "@playwright/test";
 import { erroresDeLista } from "./lib/mercadonaLista.mjs";
-import { crearLista, enPagina, entrarEnTienda, TIENDA } from "./lib/mercadonaPagina.mjs";
+import { abrirPortada, crearLista, enPagina, entrarEnTienda, TIENDA } from "./lib/mercadonaPagina.mjs";
 
 const ESPERA_LOGIN_MS = 5 * 60 * 1000;
 const args = process.argv.slice(2);
@@ -59,9 +59,10 @@ async function main() {
   try {
     const pagina = contexto.pages()[0] ?? (await contexto.newPage());
     if (entrar) {
-      const respuesta = await pagina.goto(TIENDA, { waitUntil: "domcontentloaded", timeout: 60_000 });
-      if (respuesta && respuesta.status() >= 400) {
-        console.log(`resultado: bloqueado_portada (HTTP ${respuesta.status()})`);
+      const portada = await abrirPortada(pagina);
+      console.log(`portada: HTTP ${portada.status}`);
+      if (portada.resultado) {
+        console.log(`resultado: ${portada.resultado}`);
         return;
       }
       console.log("Entra con tu cuenta en la ventana de Chrome. Espero hasta 5 minutos.");
@@ -92,7 +93,7 @@ async function main() {
     if (r.id) console.log(`lista creada: ${TIENDA}shopping-lists/${r.id}`);
     if (r.entraron !== undefined) console.log(`entraron ${r.entraron} de ${lista.products.length} productos (las cantidades no se releen)`);
     for (const c of r.faltan ?? []) console.log(`  falta: ${c}`);
-    console.log(`resultado: ${r.resultado}${r.status ? ` (HTTP ${r.status})` : ""}`);
+    console.log(`resultado: ${r.resultado}${r.status === undefined ? "" : ` (HTTP ${r.status})`}`);
   } finally {
     await contexto.close();
     await navegador?.close();
