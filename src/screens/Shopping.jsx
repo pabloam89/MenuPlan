@@ -3,6 +3,7 @@ import { pedidoMenu } from "../lib/pedidoLola.js";
 import { BaldosaFranja, RayaBaldosas } from "../components/wizard/ControlRow.jsx";
 import { color as tono } from "../design/tokens.js";
 import BarraComprar, { PildoraLola } from "../components/BarraComprar.jsx";
+import { RellenarMercadona } from "../components/ComprarMercadona.jsx";
 import { Suspense, lazy, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -1482,7 +1483,7 @@ export function ShoppingScreen({
       )}
 
       {comprarAbierto && paraComprar && (
-        <ComprarSheet compra={paraComprar} onClose={() => setComprarAbierto(false)} />
+        <ComprarSheet compra={paraComprar} casa={pantryHouseholdId} onClose={() => setComprarAbierto(false)} />
       )}
 
       {showCapture && (
@@ -2714,7 +2715,7 @@ function ActionBtn({ icon: Icon, label, onClick, active, muted, readOnly, coach 
 // onboarding's big decision moments, so every "choose one of these paths"
 // popup in the app reads the same.
 // Lo que se va a comprar, con su ficha en Mercadona: en el móvil abre su app.
-function ComprarSheet({ compra, onClose }) {
+function ComprarSheet({ compra, casa, onClose }) {
   return (
     <WizardSheet
       icon={ShoppingCart}
@@ -2722,6 +2723,11 @@ function ComprarSheet({ compra, onClose }) {
       subtitle="Mercadona"
       onClose={onClose}
     >
+      {casa && (
+        <div style={{ marginBottom: "var(--esp-16)" }}>
+          <RellenarMercadona casa={casa} lista={compra.lista} />
+        </div>
+      )}
       <div style={{ display: "grid", gap: "var(--esp-8)", maxHeight: "55vh", overflowY: "auto" }}>
         {compra.lineas.map((l) => (
           <a

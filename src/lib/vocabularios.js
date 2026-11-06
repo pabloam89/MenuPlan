@@ -401,6 +401,14 @@ export const CANALES_ENCARGO = ["app", ...CANALES];
 export const ESTADOS_ENCARGO_MERCADONA = ["pendiente", "rellenando", "hecho", "fallido"];
 export const ESTADO_ENCARGO_MERCADONA = porNombre(ESTADOS_ENCARGO_MERCADONA);
 export { FALLOS_ENCARGO_MERCADONA, FALLO_ENCARGO_MERCADONA };
+/** Por qué no se ha encolado un encargo (api/_bot/mercadonaEncargos.js): lo que la app y Lola tienen que explicar. */
+export const NO_ENCARGADO = Object.freeze({
+  SIN_SERVICIO: "sin_servicio",
+  SIN_CUENTA: FALLO_ENCARGO_MERCADONA.SIN_CUENTA,
+  SESION_CADUCADA: FALLO_ENCARGO_MERCADONA.SESION_CADUCADA,
+  EN_MARCHA: "en_marcha",
+  TOPE: "tope",
+});
 /** Para qué es una tarea de objetivo (bot_tareas.objetivo, 0080). */
 export const OBJETIVOS_TAREA = ["ideas_plato", "calorias", "generar_menu"];
 export const OBJETIVO_TAREA = porNombre(OBJETIVOS_TAREA);

@@ -13,21 +13,12 @@ import { select, insert, update, borrar, rpc, eq } from "./db.js";
 import { enviar } from "./telegram.js";
 import { avisarFallo } from "./avisar.js";
 import { erroresDeLista } from "../../scripts/lib/mercadonaLista.mjs";
-import { CANAL, ESTADO_CUENTA_MERCADONA, ESTADO_ENCARGO_MERCADONA, FALLO_ENCARGO_MERCADONA, paraEscribir } from "../../src/lib/vocabularios.js";
+import { CANAL, ESTADO_CUENTA_MERCADONA, ESTADO_ENCARGO_MERCADONA, FALLO_ENCARGO_MERCADONA, NO_ENCARGADO, paraEscribir } from "../../src/lib/vocabularios.js";
 import { enlaceDeLista } from "../../src/lib/mercadonaList.js";
 import { NO_EXISTE } from "../../src/lib/postgrest.js";
 import { esSello } from "../../src/lib/mercadonaSello.js";
 
 const { PENDIENTE, RELLENANDO, HECHO, FALLIDO } = ESTADO_ENCARGO_MERCADONA;
-
-/** Por qué no se ha encolado: lo que la app y Lola tienen que explicar. */
-export const NO_ENCARGADO = Object.freeze({
-  SIN_SERVICIO: "sin_servicio",
-  SIN_CUENTA: FALLO_ENCARGO_MERCADONA.SIN_CUENTA,
-  SESION_CADUCADA: FALLO_ENCARGO_MERCADONA.SESION_CADUCADA,
-  EN_MARCHA: "en_marcha",
-  TOPE: "tope",
-});
 
 /** Encargos de una casa al día: un uso normal son uno o dos; más, y la cuenta de la familia parece un robot. */
 export const TOPE_DIARIO = 10;
