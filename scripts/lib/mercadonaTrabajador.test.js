@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { atender, esperaTrasFallos, resultadoDeEncargo, unaVuelta } from "./mercadonaTrabajador.mjs";
+import { FALLOS_ENCARGO_MERCADONA } from "../../src/lib/vocabularios.js";
 
 const lista = { name: "Compra", products: [{ merca_code: "1", quantity: 2 }, { merca_code: "2", quantity: 1 }] };
 const siguiente = { encargo: { id: "e1", lista }, sesion_cifrada: "sellada" };
@@ -42,6 +43,14 @@ describe("resultadoDeEncargo", () => {
   });
 });
 
+describe("el vocabulario de fallos", () => {
+  it("todo lo que el trabajador cuenta es un fallo que la API acepta", () => {
+    const salen = ["bloqueado_portada", "sin_sesion", "fallo_sesion", "lo_que_sea"].map((resultado) => resultadoDeEncargo({ resultado }).fallo);
+    salen.push(...[401, 403, 429, 500].map((status) => resultadoDeEncargo({ resultado: "fallo_crear", status }).fallo));
+    expect(salen.filter((f) => !FALLOS_ENCARGO_MERCADONA.includes(f))).toEqual([]);
+  });
+});
+
 describe("atender", () => {
   it("crea la lista y cierra el navegador", async () => {
     expect(await atender(siguiente, dep(paginaCon()))).toEqual({ lista_xid: "7", entraron: 2, faltan: [] });
@@ -62,9 +71,11 @@ describe("atender", () => {
 
   it("un sello que no se abre pide volver a conectar, sin abrir navegador", async () => {
     const abrirNavegador = vi.fn();
-    const r = await atender(siguiente, { abrirSesion: async () => { throw new Error("x"); }, abrirNavegador });
+    const log = vi.fn();
+    const r = await atender(siguiente, { abrirSesion: async () => { throw new TypeError("Bearer secreto"); }, abrirNavegador, log });
     expect(r).toEqual({ fallo: "sesion_caducada" });
     expect(abrirNavegador).not.toHaveBeenCalled();
+    expect(log).toHaveBeenCalledWith("sesión sin abrir: TypeError");
   });
 
   it("una lista mala no abre ni la sesión", async () => {

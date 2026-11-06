@@ -10,14 +10,13 @@
  */
 import fs from "node:fs";
 import { chromium } from "@playwright/test";
-import { abrir } from "../src/lib/mercadonaSello.js";
+import { abrir, ALGORITMO_CLAVE } from "../src/lib/mercadonaSello.js";
 import { esperaTrasFallos, unaVuelta } from "./lib/mercadonaTrabajador.mjs";
 
 const CADA_MS = 20_000;
 const TOPE_ESPERA_MS = 5 * 60 * 1000;
 const ENTRE_ENCARGOS_MS = 5000;
 const TIEMPO_API_MS = 30_000;
-const ALGORITMO = { name: "RSA-OAEP", hash: "SHA-256" };
 
 const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
 const log = (texto) => console.log(`${new Date().toISOString()} ${texto}`);
@@ -32,7 +31,7 @@ function requerida(nombre) {
 async function crearClaves(fichero) {
   if (fs.existsSync(fichero)) throw new Error(`${fichero} ya existe: rotar la clave deja fuera las cuentas conectadas`);
   const par = await crypto.subtle.generateKey(
-    { ...ALGORITMO, modulusLength: 3072, publicExponent: new Uint8Array([1, 0, 1]) },
+    { ...ALGORITMO_CLAVE, modulusLength: 3072, publicExponent: new Uint8Array([1, 0, 1]) },
     true,
     ["wrapKey", "unwrapKey"],
   );
@@ -70,7 +69,7 @@ async function main() {
 
   const api = clienteApi(requerida("MERCADONA_API"), requerida("MERCADONA_TRABAJADOR_TOKEN"));
   const der = Buffer.from(requerida("MERCADONA_CLAVE_PRIVADA"), "base64");
-  const privada = await crypto.subtle.importKey("pkcs8", der, ALGORITMO, false, ["unwrapKey"]);
+  const privada = await crypto.subtle.importKey("pkcs8", der, ALGORITMO_CLAVE, false, ["unwrapKey"]);
   const abrirSesion = (sello) => abrir(sello, privada);
 
   log("en marcha");

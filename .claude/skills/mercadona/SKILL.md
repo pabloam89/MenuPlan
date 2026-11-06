@@ -46,9 +46,9 @@ Quien toca Comprar en la app (o se lo pide a Lola) crea un encargo en `mercadona
 `api/mercadona.js?trabajador=1`, abre la sesión en un navegador limpio, crea la lista y
 cierra el encargo. No tiene acceso a la base. Con el servidor de 1 GB, de uno en uno.
 
-- **Conectar una cuenta:** desde un ordenador, con un marcador. Abre HoMenu, que sella la
-  sesión en el navegador (`src/lib/mercadonaSello.js`) y la envía. Basta con lo que el
-  marcador puede leer: comprobado el 6 nov 2026 en un navegador limpio (leer listas, 200).
+- **Conectar una cuenta:** desde un ordenador. La sesión se sella en el navegador
+  (`src/lib/mercadonaSello.js`) y se envía sellada. Basta con el `localStorage` y las
+  cookies que no son `httpOnly`: comprobado el 6 nov 2026 en un navegador limpio (leer listas, 200).
 - **Pasar a un navegador en la nube:** cambiar `abrirNavegador` en
   `scripts/mercadona-trabajador.mjs`, y nada más.
 - **Variables.** En Vercel: `MERCADONA_TRABAJADOR_TOKEN` (secreto), `MERCADONA_CLAVE_PUBLICA`

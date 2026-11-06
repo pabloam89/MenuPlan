@@ -7,7 +7,7 @@ RUN echo '{"type":"module"}' > package.json && npm install --no-save --ignore-sc
 
 COPY scripts/mercadona-trabajador.mjs scripts/
 COPY scripts/lib/mercadonaTrabajador.mjs scripts/lib/mercadonaPagina.mjs scripts/lib/mercadonaLista.mjs scripts/lib/
-COPY src/lib/mercadonaSello.js src/lib/
+COPY src/lib/mercadonaSello.js src/lib/mercadonaFallos.js src/lib/
 
 USER pwuser
 CMD ["node", "scripts/mercadona-trabajador.mjs"]

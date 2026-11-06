@@ -7,6 +7,7 @@
  */
 import { erroresDeLista } from "./mercadonaLista.mjs";
 import { crearLista, entrarEnTienda } from "./mercadonaPagina.mjs";
+import { FALLO_ENCARGO_MERCADONA as FALLO } from "../../src/lib/mercadonaFallos.js";
 
 /** Lo que se permite por encargo: pasado esto, lo da por fallido y sigue. Menor que CADUCA_RELLENANDO_MIN; un test los ata. */
 export const TOPE_ENCARGO_MS = 5 * 60 * 1000;
@@ -20,13 +21,13 @@ export function resultadoDeEncargo(r) {
   }
   // La lista está, pero no se pudo releer: decir «falló» haría que la familia pidiese otra.
   if (r.resultado === "lista_sin_releer") return { lista_xid: String(r.id), entraron: null, faltan: null };
-  if (r.resultado === "bloqueado_portada") return { fallo: "bloqueado" };
-  if (r.resultado === "sin_sesion" || r.resultado === "fallo_sesion") return { fallo: "sesion_caducada" };
+  if (r.resultado === "bloqueado_portada") return { fallo: FALLO.BLOQUEADO };
+  if (r.resultado === "sin_sesion" || r.resultado === "fallo_sesion") return { fallo: FALLO.SESION_CADUCADA };
   if (r.resultado === "fallo_crear") {
-    if (r.status === 401) return { fallo: "sesion_caducada" };
-    return { fallo: r.status === 403 || r.status === 429 ? "bloqueado" : "error" };
+    if (r.status === 401) return { fallo: FALLO.SESION_CADUCADA };
+    return { fallo: r.status === 403 || r.status === 429 ? FALLO.BLOQUEADO : FALLO.ERROR };
   }
-  return { fallo: "error" };
+  return { fallo: FALLO.ERROR };
 }
 
 async function trabajar(pagina, lista) {
@@ -48,14 +49,16 @@ function conTope(promesa, ms) {
  * @param {{ encargo: { id: string, lista: object }, sesion_cifrada: string }} siguiente
  * @param {{ abrirSesion: (sello: string) => Promise<string>, abrirNavegador: (estado: object) => Promise<{ pagina: object, cerrar: () => Promise<void> }> }} d
  */
-export async function atender({ encargo, sesion_cifrada }, { abrirSesion, abrirNavegador, topeMs = TOPE_ENCARGO_MS }) {
-  if (erroresDeLista(encargo.lista).length) return { fallo: "lista_no_valida" };
+export async function atender({ encargo, sesion_cifrada }, { abrirSesion, abrirNavegador, log = () => {}, topeMs = TOPE_ENCARGO_MS }) {
+  if (erroresDeLista(encargo.lista).length) return { fallo: FALLO.LISTA_NO_VALIDA };
   let estado;
   try {
     estado = JSON.parse(await abrirSesion(sesion_cifrada));
-  } catch {
-    // Sellada con otra clave, o tocada: la familia tiene que volver a conectar.
-    return { fallo: "sesion_caducada" };
+  } catch (e) {
+    // Sellada con otra clave, o tocada: la familia tiene que volver a conectar. Y queda escrito: si salen muchos, la
+    // clave del servidor está mal. Solo el nombre del error: el mensaje podría traer la sesión.
+    log(`sesión sin abrir: ${e.name}`);
+    return { fallo: FALLO.SESION_CADUCADA };
   }
   const { pagina, cerrar } = await abrirNavegador(estado);
   try {
@@ -81,10 +84,10 @@ export async function unaVuelta({ api, log, dormir = esperar, entreCierresMs = E
   const { id } = siguiente.encargo;
   let resultado;
   try {
-    resultado = await atender(siguiente, navegador);
+    resultado = await atender(siguiente, { ...navegador, log });
   } catch (e) {
     log(`encargo ${id}: ${e.name}`);
-    resultado = { fallo: "error" };
+    resultado = { fallo: FALLO.ERROR };
   }
   log(`encargo ${id}: ${resultado.fallo ?? "hecho"}`);
   // Una lista ya creada no se pierde por un corte: cerrar se puede repetir sin hacer nada dos veces.
