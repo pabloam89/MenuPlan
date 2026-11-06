@@ -1,27 +1,8 @@
-import { useEffect, useRef, useState } from "react";
-import { BOTON, TEXTO } from "./mercadonaEstilos.js";
+import { useEffect, useState } from "react";
 import { Check } from "./icons.jsx";
 import { sellar } from "../lib/mercadonaSello.js";
-import { estadoDeMarcador, marcador, MENSAJE_LISTA, ORIGEN_TIENDA } from "../lib/mercadonaConectar.js";
+import { estadoDeMarcador, MENSAJE_LISTA, ORIGEN_TIENDA } from "../lib/mercadonaConectar.js";
 import { guardarSesion, leerEstado } from "../lib/mercadonaApp.js";
-
-/** Conectar se hace una vez, desde un ordenador: el marcador no se puede arrastrar en un móvil. */
-export function Conectar({ caducada }) {
-  const enlace = useRef(null);
-  // React no deja poner un `javascript:` en un href: se pone a mano.
-  useEffect(() => {
-    enlace.current?.setAttribute("href", marcador(window.location.origin));
-  }, []);
-  const motivo = caducada ? "Mercadona ha cerrado la sesión. Conéctala otra vez." : "Conecta tu cuenta una vez y yo te relleno la lista.";
-  if (!window.matchMedia?.("(pointer: fine)").matches) return <p style={TEXTO}>{motivo} Se hace una sola vez, desde un ordenador.</p>;
-  return (
-    <div style={{ display: "grid", gap: "var(--esp-8)" }}>
-      <p style={TEXTO}>{motivo} Nunca veo tu contraseña, y no puedo pagar.</p>
-      <a ref={enlace} style={{ ...BOTON, cursor: "grab" }} onClick={(e) => e.preventDefault()}>Conectar Mercadona</a>
-      <p style={TEXTO}>Arrastra el botón a tu barra de marcadores. Luego entra en Mercadona y púlsalo allí.</p>
-    </div>
-  );
-}
 
 /** La pestaña que abre el marcador: recibe la sesión, la sella aquí mismo y la envía. */
 export function RecibirCuentaMercadona({ casa }) {
