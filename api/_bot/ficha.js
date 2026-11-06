@@ -3,7 +3,7 @@
  * delante de Lola en cada mensaje (specs/ficha-de-la-casa.md §2).
  *
  * Sin ella, para saber quién come o quién es alérgico Lola tenía que llamar a
- * ver_casa o ver_ajustes: una vuelta más del modelo (2-4 s), y si no se
+ * consultar (casa o ajustes): una vuelta más del modelo (2-4 s), y si no se
  * acordaba de mirar, no sabía que Cova es alérgica. Con ella lo sabe siempre.
  *
  * ── Cómo se monta ─────────────────────────────────────────────────────────
@@ -291,7 +291,7 @@ function casaBloque(data) {
     lineas.push("- Todos comen lo mismo (un solo menú).");
   }
   const h = horario(data);
-  if (h.length) lineas.push(`- ${h.slice(0, 3).join(". ")}${h.length > 3 ? `. +${h.length - 3} (ver_ajustes)` : ""}.`);
+  if (h.length) lineas.push(`- ${h.slice(0, 3).join(". ")}${h.length > 3 ? `. +${h.length - 3} (consultar ajustes)` : ""}.`);
   return lineas;
 }
 
@@ -351,8 +351,8 @@ function cocinaBloque(data, hoy, marcas = []) {
     .map((m) => `${m.campo}${m.personaId && nombre(m.personaId) ? ` (${nombre(m.personaId)})` : ""}: ${Array.isArray(m.valor) ? m.valor.join("/") : m.valor}`);
   const dicho = [...vivos.filter(([, c]) => matizDe(c) === "dicho").map(texto), ...delSobre("dicho")];
   const supuesto = [...vivos.filter(([, c]) => matizDe(c) === "visto" || matizDe(c) === "supuesto").map(texto), ...delSobre("supuesto")];
-  if (dicho.length) lineas.push(`- Dicho: ${dicho.slice(0, 3).join("; ")}${dicho.length > 3 ? `; +${dicho.length - 3} (ver_ajustes)` : ""}.`);
-  if (supuesto.length) lineas.push(`- Supuesto: ${supuesto.slice(0, 2).join("; ")}${supuesto.length > 2 ? `; +${supuesto.length - 2} (ver_ajustes)` : ""}.`);
+  if (dicho.length) lineas.push(`- Dicho: ${dicho.slice(0, 3).join("; ")}${dicho.length > 3 ? `; +${dicho.length - 3} (consultar ajustes)` : ""}.`);
+  if (supuesto.length) lineas.push(`- Supuesto: ${supuesto.slice(0, 2).join("; ")}${supuesto.length > 2 ? `; +${supuesto.length - 2} (consultar ajustes)` : ""}.`);
   // Lo que ya le dijeron que no: los dos últimos, para no volver a suponerlo.
   const rechazados = rechazadosDe(data.notepad).sort((a, b) => String(a.fecha).localeCompare(String(b.fecha))).slice(-2);
   if (rechazados.length) lineas.push(`- No volver a suponer: ${rechazados.map((r) => texto([r.path, { valor: r.valor }])).join("; ")}.`);
@@ -360,7 +360,7 @@ function cocinaBloque(data, hoy, marcas = []) {
   // Las de una semana (invitados) no llevan «hasta»: pasada su semana no son
   // ni de siempre ni de ahora, y Lola las leía como vivas (#911).
   const fijas = (data.reglas ?? []).filter((r) => !r?.vigencia?.hasta && !semanasAcabadas(r, hoy));
-  if (fijas.length) lineas.push(`- Reglas: ${fijas.slice(0, 3).map((r) => describirRegla(r, data)).join("; ")}${fijas.length > 3 ? `; +${fijas.length - 3} (ver_ajustes)` : ""}.`);
+  if (fijas.length) lineas.push(`- Reglas: ${fijas.slice(0, 3).map((r) => describirRegla(r, data)).join("; ")}${fijas.length > 3 ? `; +${fijas.length - 3} (consultar ajustes)` : ""}.`);
   // Los de la casa, de la libreta, con la fecha de hoy y con su ámbito
   // («cebolla (niños)», lib/vetos.js); los de cada persona ya salen en CASA.
   const nunca = vetosConAmbito(data, { hoy }).map(textoDeVeto);
@@ -486,7 +486,7 @@ export function montarFicha(casa, extras = {}, hoy = hoyMadrid()) {
   const pasos = [
     () => { secciones.casa = secciones.casa.map((l) => l.replace(/ \(no le gusta: [^)]*\)/g, "")); },
     () => { delDia = delDia.filter((l) => !/^- Hecho/.test(l)); },
-    () => { secciones.cocina = secciones.cocina.slice(0, 2).concat(["- +más (ver_ajustes)"]); },
+    () => { secciones.cocina = secciones.cocina.slice(0, 2).concat(["- +más (consultar ajustes)"]); },
     () => { secciones.casa = secciones.casa.slice(0, 2); },
     () => { secciones.recetario = []; },
     () => { delDia = delDia.filter((l) => !/^- Mañana/.test(l)); },

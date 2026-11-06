@@ -92,8 +92,7 @@ describe("una ficha por herramienta", () => {
 
   it("las de solo leer son las de antes, una a una (cambiarlo es a propósito: es la puerta de pista.js)", () => {
     expect([...SOLO_LECTURA].sort()).toEqual([
-      "buscar_recetas", "compartir", "por_que_plato", "proponer_platos", "ver_ajustes", "ver_casa", "ver_compra",
-      "ver_despensa", "ver_menu", "ver_menu_cole", "ver_receta", "ver_recordatorios",
+      "buscar_recetas", "compartir", "consultar", "por_que_plato", "proponer_platos", "ver_menu", "ver_receta",
     ]);
   });
 
@@ -116,7 +115,9 @@ describe("una ficha por herramienta", () => {
     expect(pantallaDe("guardar_receta")).toBe("recetas:mias");
     expect(pantallaDe("receta_propia")).toBe("recetas:mias");
     // ajustar_compra lleva a la compra: ahí se ven los precios del súper.
-    for (const n of ["ver_compra", "marcar_compra", "anadir_compra", "quitar_compra", "ajustar_compra"]) expect(pantallaDe(n)).toBe("compra");
+    expect(pantallaDe("consultar", { que: "compra" })).toBe("compra");
+    expect(pantallaDe("consultar", { que: "casa" })).toBeNull();
+    for (const n of ["marcar_compra", "anadir_compra", "quitar_compra", "ajustar_compra"]) expect(pantallaDe(n)).toBe("compra");
     for (const n of ["generar_menu", "donde_come"]) expect(pantallaDe(n)).toBe("semana");
     const conPantalla = new Set(["ver_menu", "cambiar_plato", "buscar_recetas", "guardar_receta", "receta_propia", "ver_compra", "marcar_compra", "anadir_compra", "quitar_compra", "ajustar_compra", "generar_menu", "donde_come"]);
     for (const n of FICHAS.keys()) if (!conPantalla.has(n)) expect(pantallaDe(n, {}), n).toBeNull();

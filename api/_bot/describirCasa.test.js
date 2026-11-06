@@ -1,5 +1,5 @@
 /**
- * ver_casa (describirCasa): un «ninguna» por silencio (#229) no se cuenta como
+ * consultar la casa (describirCasa): un «ninguna» por silencio (#229) no se cuenta como
  * confirmado. Es lo que Lola lee si le preguntan qué alergias hay apuntadas.
  */
 import { describe, it, expect } from "vitest";
