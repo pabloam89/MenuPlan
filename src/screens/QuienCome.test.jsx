@@ -93,6 +93,31 @@ describe("quién come, en la fila de la pizarra", () => {
     expect(espia.mock.calls.slice(-2)).toEqual([["menu", "all"], ["persona", "p5"]]);
   });
 
+  it("mide lo mismo veas a quien veas, y un nombre largo se recorta", () => {
+    const largos = casa.map((p, i) => (i === 2 ? { ...p, name: "Maximiliana de la Concepción" } : p));
+    function Larga() {
+      const [scope, setScope] = useState("all");
+      const [elegida, setElegida] = useState(null);
+      return <QuienCome groups={unMenu} scope={scope} members={largos} persona={elegida} onScopeChange={setScope} onPersona={setElegida} />;
+    }
+    const caja = montar(<Larga />);
+    const ancho = () => boton(caja).style.width;
+    const conTodos = ancho();
+    // Cuatro discos, el «+2» incluido: 32 + 3 × (32 − 12).
+    expect(conTodos).toBe("92px");
+    abrir(caja);
+    act(() => opcion("Maximiliana").click());
+    expect(caras(caja)).toBe(1);
+    expect(ancho()).toBe(conTodos);
+    expect(boton(caja).querySelector("span[style*='ellipsis']").textContent).toBe("Maximiliana de la Concepción");
+  });
+
+  it("una casa pequeña guarda sitio para el nombre", () => {
+    const pareja = casa.slice(0, 2);
+    const caja = montar(<QuienCome groups={[{ id: "g1", label: "Familia", memberIds: ["p1", "p2"] }]} scope="all" onScopeChange={() => {}} members={pareja} />);
+    expect(boton(caja).style.width).toBe("72px");
+  });
+
   it("un menú que ya no existe cae en Todos", () => {
     const caja = montar(<QuienCome groups={dosMenus} scope="borrado" onScopeChange={() => {}} members={casa} />);
     expect(boton(caja).getAttribute("aria-label")).toBe("Quién come: Todos. Toca para elegir");

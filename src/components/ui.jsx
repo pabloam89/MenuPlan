@@ -1314,13 +1314,21 @@ export function groupAvatarFaces(groupMembers, allMembers) {
  * growing wider. Pass `max` where the width is genuinely constrained — the menu
  * badges do — and the stack falls back to one row plus the counter.
  */
+// Faces sit centred in the thumb, so hiding ~38% of the circle underneath
+// still leaves each one recognisable.
+const mordidaDeCara = (size) => Math.round(size * 0.38);
+
+/** Lo que ocupa una `GroupAvatarStack` de `caras` personas, con su «+N» si pasan de `max`. */
+export function anchoDePilaDeCaras(caras, size, max) {
+  const discos = Math.max(1, caras > max ? max + 1 : caras);
+  return size + (discos - 1) * (size - mordidaDeCara(size));
+}
+
 export function GroupAvatarStack({ faces, size = 46, active = true, max = null }) {
   const border = Math.max(2, Math.round(size * 0.055));
   const shown = max ? faces.slice(0, max) : faces;
   const overflow = faces.length - shown.length;
-  // Faces sit centred in the thumb, so hiding ~38% of the circle underneath
-  // still leaves each one recognisable.
-  const bite = Math.round(size * 0.38);
+  const bite = mordidaDeCara(size);
 
   const disc = (face, i, key) => (
     <span

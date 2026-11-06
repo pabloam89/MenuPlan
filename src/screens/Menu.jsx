@@ -136,7 +136,7 @@ import { membersOfGroup, isBabyMenuGroup, adhocReasonLabel, opcionesDeMenu } fro
 import { eatersForSlot } from "../lib/slotEaters.js";
 import { comidasFuera, planSinComidas } from "../lib/presentes.js";
 import { summarizeMenuRestrictionConflicts } from "../utils/menuConflicts.js";
-import { Avatar, BottomNav, Chip, EmptyIllustration, GroupAvatarStack, GroupScopePicker, WeekRangeBadge, WizardSheet, bottomNavSpacer, safeTop, groupAvatarFaces, APP_SHELL_MAX_WIDTH } from "../components/ui.jsx";
+import { anchoDePilaDeCaras, Avatar, BottomNav, Chip, EmptyIllustration, GroupAvatarStack, GroupScopePicker, WeekRangeBadge, WizardSheet, bottomNavSpacer, safeTop, groupAvatarFaces, APP_SHELL_MAX_WIDTH } from "../components/ui.jsx";
 import { CommentThread } from "../components/CommentThread.jsx";
 import { ShareMenuSheet } from "../components/ShareMenuSheet.jsx";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
@@ -4609,6 +4609,8 @@ function ScopeCircle({ opt, active, size = 42, members }) {
  * Con una sola persona no hay nada que filtrar: es solo la cara y no es un
  * botón, porque un botón que no hace nada parece roto.
  */
+const CARA_QUIEN_COME = 32;
+
 export function QuienCome({ groups, scope, onScopeChange, members, persona = null, onPersona }) {
   const roster = members ?? [];
   const { opciones, indice } = opcionesDeMenu(groups, scope);
@@ -4626,17 +4628,17 @@ export function QuienCome({ groups, scope, onScopeChange, members, persona = nul
 
   const contenido = (
     <>
-      {caras.length > 0 && <GroupAvatarStack faces={caras} size={32} max={3} />}
+      {caras.length > 0 && <GroupAvatarStack faces={caras} size={CARA_QUIEN_COME} max={3} />}
       {elegible && (
         <span
           style={{
-            display: "inline-flex", alignItems: "center", gap: "var(--esp-2)",
+            display: "inline-flex", alignItems: "center", gap: "var(--esp-2)", maxWidth: "100%",
             fontSize: "var(--tipo-paso-10)", fontWeight: "var(--tipo-peso-800)", lineHeight: 1,
             color: "var(--color-marca)", whiteSpace: "nowrap",
           }}
         >
-          {nombre}
-          <ChevronDown size={11} strokeWidth={3} />
+          <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis" }}>{nombre}</span>
+          <ChevronDown size={11} strokeWidth={3} style={{ flexShrink: 0 }} />
         </span>
       )}
     </>
@@ -4645,6 +4647,9 @@ export function QuienCome({ groups, scope, onScopeChange, members, persona = nul
     flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center",
     justifyContent: "center", gap: "var(--esp-4)", minWidth: "var(--tam-tactil)",
     padding: "0 var(--esp-8)",
+    // El ancho es el de la casa entera, no el de quien se está viendo: si no,
+    // la fila de al lado se movería cada vez que eliges a alguien.
+    ...(elegible ? { boxSizing: "content-box", width: Math.max(anchoDePilaDeCaras(roster.length, CARA_QUIEN_COME, 3), anchoDePilaDeCaras(3, CARA_QUIEN_COME, 3)) } : null),
   };
 
   if (!elegible) {
