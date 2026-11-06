@@ -51,6 +51,9 @@ export function listaParaMercadona(items, priceMap, name) {
 }
 
 /** La ficha del producto en Mercadona; en el móvil, su enlace abre su app. */
+/** Cómo se llama en la cuenta de Mercadona la lista que crea HoMenu, desde la app o desde Lola. */
+export const NOMBRE_LISTA_MERCADONA = "Compra HoMenu";
+
 /** El enlace a una lista de la cuenta, que en el móvil abre la app de Mercadona. */
 export const enlaceDeLista = (xid) => `https://tienda.mercadona.es/shopping-lists/${encodeURIComponent(xid)}`;
 

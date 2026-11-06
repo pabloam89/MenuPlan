@@ -119,9 +119,9 @@ describe("una ficha por herramienta", () => {
     expect(pantallaDe("ajustar_casa", { esfuerzo: "pro" })).toBeNull();
     expect(pantallaDe("consultar", { que: "compra" })).toBe("compra");
     expect(pantallaDe("consultar", { que: "casa" })).toBeNull();
-    for (const n of ["marcar_compra", "anadir_compra", "quitar_compra"]) expect(pantallaDe(n)).toBe("compra");
+    for (const n of ["marcar_compra", "anadir_compra", "quitar_compra", "pasar_a_mercadona", "pasar_a_mercadona"]) expect(pantallaDe(n)).toBe("compra");
     for (const n of ["generar_menu", "donde_come"]) expect(pantallaDe(n)).toBe("semana");
-    const conPantalla = new Set(["ver_menu", "cambiar_plato", "buscar_recetas", "guardar_receta", "receta_propia", "ver_compra", "marcar_compra", "anadir_compra", "quitar_compra", "generar_menu", "donde_come"]);
+    const conPantalla = new Set(["ver_menu", "cambiar_plato", "buscar_recetas", "guardar_receta", "receta_propia", "ver_compra", "marcar_compra", "anadir_compra", "quitar_compra", "pasar_a_mercadona", "generar_menu", "donde_come"]);
     for (const n of FICHAS.keys()) if (!conPantalla.has(n)) expect(pantallaDe(n, {}), n).toBeNull();
     expect(pantallaDe("no_existe")).toBeNull();
   });
