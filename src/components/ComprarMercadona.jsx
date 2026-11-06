@@ -1,54 +1,14 @@
-import { useEffect, useState } from "react";
 import { ArrowUpRight } from "./icons.jsx";
 import { Conectar } from "./ConectarMercadona.jsx";
 import { BOTON, TEXTO } from "./mercadonaEstilos.js";
 import { enlaceDeLista } from "../lib/mercadonaList.js";
-import { NO_ENCARGADO, ESTADO_CUENTA_MERCADONA } from "../lib/vocabularios.js";
-import {
-  CADA_MS, ESPERA_MAX_MS, FALLOS_MAX, encargoEnMarcha, leerEstado, pedirLista, quitarCuenta, TEXTO_NO_ENCARGADO, textoDeEncargo,
-} from "../lib/mercadonaApp.js";
+import { PASO_COMPRAR, textoDeEncargo } from "../lib/mercadonaApp.js";
 
 /** La parte de la hoja de Comprar que rellena la lista. Si el servicio no está, no pinta nada. */
-export function RellenarMercadona({ casa, lista }) {
-  const [estado, setEstado] = useState(null);
-  const [aviso, setAviso] = useState(null);
-  // El servidor puede tardar más que la espera de aquí: pasada, se dice y se deja mirar otra vez.
-  const [sinNoticias, setSinNoticias] = useState(false);
-  const encargo = estado?.encargo;
-  const esperando = encargoEnMarcha(encargo);
-
-  useEffect(() => {
-    let vivo = true;
-    leerEstado(casa).then((r) => vivo && setEstado(r));
-    return () => {
-      vivo = false;
-    };
-  }, [casa]);
-
-  useEffect(() => {
-    if (!esperando || sinNoticias) return undefined;
-    const hasta = Date.now() + ESPERA_MAX_MS;
-    let fallos = 0;
-    const t = setInterval(async () => {
-      const r = await leerEstado(casa);
-      fallos = r.ok ? 0 : fallos + 1;
-      if (r.ok) setEstado(r);
-      if (fallos >= FALLOS_MAX || Date.now() > hasta) setSinNoticias(true);
-    }, CADA_MS);
-    return () => clearInterval(t);
-  }, [casa, esperando, sinNoticias]);
-
-  if (!estado?.ok || !estado.disponible || !estado.clave_publica) return null;
-  if (estado.cuenta !== ESTADO_CUENTA_MERCADONA.CONECTADA) return <Conectar caducada={estado.cuenta === ESTADO_CUENTA_MERCADONA.CADUCADA} />;
-
-  const rellenar = async () => {
-    setAviso(null);
-    const r = await pedirLista(casa, lista);
-    if (r.encargo) return setEstado((s) => ({ ...s, encargo: r.encargo }));
-    if (r.fallo === NO_ENCARGADO.SIN_CUENTA || r.fallo === NO_ENCARGADO.SESION_CADUCADA) return setEstado(await leerEstado(casa));
-    setAviso(TEXTO_NO_ENCARGADO[r.fallo] ?? "No se ha podido pedir. Inténtalo otra vez.");
-    return undefined;
-  };
+export function RellenarMercadona({ m }) {
+  const { encargo, esperando, sinNoticias, aviso, rellenar } = m;
+  if (!m.servicio) return null;
+  if (!m.conectada) return <Conectar caducada={m.caducada} />;
 
   return (
     <div style={{ display: "grid", gap: "var(--esp-8)" }}>
@@ -65,7 +25,7 @@ export function RellenarMercadona({ casa, lista }) {
           {esperando && sinNoticias ? (
             <>
               <p style={TEXTO}>Sigue en marcha, pero ahora mismo no sé cómo va.</p>
-              <button type="button" onClick={() => setSinNoticias(false)} style={BOTON}>Mirar cómo va</button>
+              <button type="button" onClick={m.mirar} style={BOTON}>{PASO_COMPRAR.MIRAR}</button>
             </>
           ) : (
             <button type="button" onClick={rellenar} disabled={esperando} style={{ ...BOTON, opacity: esperando ? 0.6 : 1 }}>
@@ -82,11 +42,7 @@ export function RellenarMercadona({ casa, lista }) {
       {aviso && <p style={TEXTO}>{aviso}</p>}
       <button
         type="button"
-        onClick={async () => {
-          const r = await quitarCuenta(casa);
-          if (r.ok) setEstado(await leerEstado(casa));
-          else setAviso("No se ha podido desconectar. Inténtalo otra vez.");
-        }}
+        onClick={m.desconectar}
         style={{ border: "none", background: "none", fontFamily: "inherit", cursor: "pointer", ...TEXTO }}
       >
         Desconectar mi cuenta de Mercadona

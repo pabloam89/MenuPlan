@@ -4,12 +4,12 @@ import { BaldosaFranja, RayaBaldosas } from "../components/wizard/ControlRow.jsx
 import { color as tono } from "../design/tokens.js";
 import BarraComprar, { PildoraLola } from "../components/BarraComprar.jsx";
 import { RellenarMercadona } from "../components/ComprarMercadona.jsx";
+import { pasoDeComprar, useRellenarMercadona } from "../components/useRellenarMercadona.js";
 import { Suspense, lazy, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   AlertTriangle,
   Apple,
-  ArrowUpRight,
   Bean,
   BookOpen,
   Calendar,
@@ -800,6 +800,14 @@ export function ShoppingScreen({
     [buyTab, visibleItems, linePrices],
   );
   const [comprarAbierto, setComprarAbierto] = useState(false);
+  const mercadona = useRellenarMercadona(pantryHouseholdId, paraComprar?.lista);
+  const paso = pasoDeComprar(mercadona);
+  // Con la cuenta conectada, comprar va directo; sin ella, lo que se puede hacer está en la hoja.
+  const comprar = async () => {
+    if (paso.mirar) return mercadona.mirar();
+    if (!mercadona.conectada || !(await mercadona.rellenar())) setComprarAbierto(true);
+    return undefined;
+  };
 
   // Date label for the current selection: real span of the selected weeks in
   // menú mode; the single-week label otherwise.
@@ -1471,7 +1479,9 @@ export function ShoppingScreen({
           <BarraComprar
             total={conCentimos(paraComprar.total)}
             productos={paraComprar.lineas.length}
-            onComprar={() => setComprarAbierto(true)}
+            paso={paso}
+            onComprar={comprar}
+            onDetalle={() => setComprarAbierto(true)}
             onLola={FRONTAL_BOT ? () => abrirLola() : undefined}
           />
         )}
@@ -1483,7 +1493,7 @@ export function ShoppingScreen({
       )}
 
       {comprarAbierto && paraComprar && (
-        <ComprarSheet compra={paraComprar} casa={pantryHouseholdId} onClose={() => setComprarAbierto(false)} />
+        <ComprarSheet compra={paraComprar} mercadona={mercadona} onClose={() => setComprarAbierto(false)} />
       )}
 
       {showCapture && (
@@ -2715,20 +2725,20 @@ function ActionBtn({ icon: Icon, label, onClick, active, muted, readOnly, coach 
 // onboarding's big decision moments, so every "choose one of these paths"
 // popup in the app reads the same.
 // Lo que se va a comprar, con su ficha en Mercadona: en el móvil abre su app.
-function ComprarSheet({ compra, casa, onClose }) {
+function ComprarSheet({ compra, mercadona, onClose }) {
   return (
     <WizardSheet
       icon={ShoppingCart}
-      title={`Comprar · ${conCentimos(compra.total)}`}
-      subtitle="Mercadona"
+      title="Tu lista en Mercadona"
+      subtitle={`${compra.lineas.length} productos · ${conCentimos(compra.total)}`}
       onClose={onClose}
     >
-      {casa && (
+      {mercadona.servicio && (
         <div style={{ marginBottom: "var(--esp-16)" }}>
-          <RellenarMercadona casa={casa} lista={compra.lista} />
+          <RellenarMercadona m={mercadona} />
         </div>
       )}
-      <div style={{ display: "grid", gap: "var(--esp-8)", maxHeight: "55vh", overflowY: "auto" }}>
+      <div style={{ display: "grid", maxHeight: "55vh", overflowY: "auto" }}>
         {compra.lineas.map((l) => (
           <a
             key={l.id}
@@ -2740,9 +2750,11 @@ function ComprarSheet({ compra, casa, onClose }) {
               alignItems: "center",
               gap: "var(--esp-8)",
               minHeight: 44,
+              padding: "var(--esp-8) 0",
+              borderBottom: "1px solid var(--color-linea-suave)",
               color: "var(--color-tinta)",
               textDecoration: "none",
-              fontSize: "var(--tipo-paso-14)",
+              fontSize: "var(--tipo-paso-13)",
               fontWeight: "var(--tipo-peso-700)",
             }}
           >
@@ -2750,8 +2762,7 @@ function ComprarSheet({ compra, casa, onClose }) {
               {l.paquetes > 1 ? `${l.paquetes} × ` : ""}
               {l.nombre}
             </span>
-            <span style={{ color: "var(--color-tinta-suave)", whiteSpace: "nowrap" }}>{conCentimos(l.precio)}</span>
-            <ArrowUpRight size={16} color="var(--color-tinta-tenue)" />
+            <span style={{ color: "var(--color-tinta-suave)", fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>{conCentimos(l.precio)}</span>
           </a>
         ))}
         {compra.sinProducto.length > 0 && (
