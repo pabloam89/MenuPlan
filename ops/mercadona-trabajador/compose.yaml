@@ -1,0 +1,17 @@
+# En el servidor: cd /opt/mercadona/repo/ops/mercadona-trabajador && docker compose up -d --build
+# Sus tres variables, en /opt/mercadona/.env (permisos 600). Sin `ports`: nadie entra, solo sale él a Vercel y a Mercadona.
+services:
+  trabajador:
+    build:
+      context: ../..
+      dockerfile: ops/mercadona-trabajador/Dockerfile
+    restart: unless-stopped
+    init: true
+    env_file: /opt/mercadona/.env
+    mem_limit: 900m
+    shm_size: 256m
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    logging:
+      driver: json-file
+      options: { max-size: "5m", max-file: "2" }
