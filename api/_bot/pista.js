@@ -70,7 +70,7 @@ export function planDeAdelanto(d, { umbral = UMBRAL_PISTA, texto = "" } = {}) {
   if (x.varias && !VARIAS_QUE_DEPENDEN.has(d.modo)) return null;
   switch (d.modo) {
     case "consulta": {
-      if (x.que === "compra") return { herramienta: "ver_compra", args: {} };
+      if (x.que === "compra") return { herramienta: "consultar", args: { que: "compra" } };
       if (x.que !== "menu" || !CUANDOS.includes(x.cuando)) return null;
       if (x.cuando === "dia" && !x.dia) return null;
       if (x.cuando === "rango" && !(x.dia && x.hasta)) return null;
@@ -85,7 +85,7 @@ export function planDeAdelanto(d, { umbral = UMBRAL_PISTA, texto = "" } = {}) {
       if (!args.semana && SEMANA_QUE_VIENE.test(String(texto))) args.semana = "siguiente";
       return { herramienta: "proponer_platos", args };
     }
-    case "despensa": return { herramienta: "ver_despensa", args: {} };
+    case "despensa": return { herramienta: "consultar", args: { que: "despensa" } };
     case "receta":
       if (x.plato) return { herramienta: "ver_receta", args: { nombre: x.plato } };
       return x.dia ? { plantilla: "receta", datos: x } : null;

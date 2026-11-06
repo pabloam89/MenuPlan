@@ -231,6 +231,9 @@ export const MOTIVOS_SIN_DESHACER = ["no_existe", "no_es_suya", "no_esta_hecha",
 export const RIESGOS_HERRAMIENTA = ["lee", "escribe_reversible", "escribe_irreversible", "quita_proteccion"];
 export const RIESGO_HERRAMIENTA = porNombre(RIESGOS_HERRAMIENTA);
 
+/** Lo que Lola puede mirar con `consultar` (trozo 46 de #1037). No va a ninguna tabla. */
+export const QUE_CONSULTAS = ["casa", "ajustes", "despensa", "compra", "cole", "recordatorios"];
+
 /**
  * Cómo deshace «deshaz» lo que escribe una herramienta de Lola (su ficha, trozo 42; deshacer en api/_bot/casa.js).
  * `foto`: vuelve a la foto de la casa de antes del cambio (bot_deshacer), con lo que apuntó fuera de la casa;
@@ -577,6 +580,7 @@ export const VOCABULARIOS = Object.freeze({
   motivos_sin_hacer_dato: MOTIVOS_SIN_HACER_DATO,
   motivos_sin_deshacer: MOTIVOS_SIN_DESHACER,
   riesgos_herramienta: RIESGOS_HERRAMIENTA,
+  que_consultas: QUE_CONSULTAS,
   formas_de_deshacer: FORMAS_DE_DESHACER,
   fallos_dato: FALLOS_DATO,
   motivos_puerta: MOTIVOS_PUERTA,

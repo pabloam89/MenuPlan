@@ -80,8 +80,8 @@ describe("el papel de quien escribe", () => {
 });
 
 // La lista de la propuesta (specs/roles-de-la-casa-propuesta.md, apartado 4).
-const DEL_LECTOR = ["buscar_recetas", "marcar_compra", "por_que_plato", "proponer_platos", "ver_ajustes", "ver_casa", "ver_compra", "ver_despensa", "ver_menu", "ver_menu_cole", "ver_receta"];
-const SOLO_EN_PRIVADO = ["aviso_vispera", "cancelar_recordatorio", "crear_recordatorio", "empezar_de_nuevo", "ver_recordatorios"];
+const DEL_LECTOR = ["buscar_recetas", "consultar", "marcar_compra", "por_que_plato", "proponer_platos", "ver_menu", "ver_receta"];
+const SOLO_EN_PRIVADO = ["aviso_vispera", "cancelar_recordatorio", "crear_recordatorio", "empezar_de_nuevo"];
 const nombres = async (chat) => (await herramientas({ householdId: "x", chatId: "1", channel: "telegram", fotos: [], ...chat })).map((t) => t.name).sort();
 
 describe("las herramientas de Lola según el papel", () => {
@@ -104,7 +104,7 @@ describe("las herramientas de Lola según el papel", () => {
   });
 
   it("alguien sin cuenta: solo el menú, las recetas y la compra (ni familia ni salud, ni tachar)", async () => {
-    expect(await nombres({ papel: "ajeno", esGrupo: true })).toEqual(["buscar_recetas", "proponer_platos", "ver_compra", "ver_menu", "ver_menu_cole", "ver_receta"]);
+    expect(await nombres({ papel: "ajeno", esGrupo: true })).toEqual(["buscar_recetas", "consultar", "proponer_platos", "ver_menu", "ver_receta"]);
   });
 
   it("sin papel: como alguien sin cuenta (falla cerrado)", async () => {
