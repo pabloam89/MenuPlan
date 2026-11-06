@@ -1969,10 +1969,11 @@ export default function App() {
     };
   }, [user?.id, syncHouseholdId]);
 
-  // Barrido "al final del día": al montar / cambiar de
+  // Barrido "al final del día", solo sin casa en la nube (a esa la barre el
+  // servidor cada noche, api/_bot/barridoDespensa.js): al montar / cambiar de
   // menú, resta de la despensa lo que el menú activo planificó para cada día ya
-  // pasado y aún no contabilizado. Perezoso (no hay backend a medianoche) y en
-  // serie recargando stock entre días para que la resta encadene sin duplicar.
+  // pasado y aún no contabilizado, en serie y recargando stock entre días para
+  // que la resta encadene sin duplicar.
   // Solo cuenta a partir de pantryEndOfDaySince (la fecha en que se activó el
   // modo): así estrenarlo con un menú en marcha no vuelve a descontarlo.
   const endOfDaySweepRef = useRef(false);
@@ -1998,6 +1999,7 @@ export default function App() {
     const activeMenuEntry = data.menus?.[data.activeMenuId];
     if (!activeMenuEntry?.activatedAt) return;
     if (endOfDaySweepRef.current) return;
+    if (syncHouseholdId) return;
     const hoyLocal = isoLocalDate(new Date());
     const pending = diasPorBarrer({
       semanas: Object.values(activeMenuEntry.weeks ?? {}),
@@ -2049,6 +2051,7 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     user?.id,
+    syncHouseholdId,
     data.activeMenuId,
     data.menus,
     data.pantryPrefs?.consume,

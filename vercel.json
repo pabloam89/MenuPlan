@@ -11,6 +11,9 @@
       "includeFiles": "{api/_bot/{core.mjs,conocimiento.md,manual/*.md,dominiosGustos.json,recetasVectores.json},src/assets/dishes/dishImages.json}",
       "maxDuration": 120
     },
+    "api/bot/recordatorios.js": {
+      "includeFiles": "{api/_bot/core.mjs,src/assets/dishes/dishImages.json}"
+    },
     "api/bot/canario.js": {
       "includeFiles": "{api/_bot/{core.mjs,conocimiento.md,manual/*.md,dominiosGustos.json,recetasVectores.json},src/assets/dishes/dishImages.json}",
       "maxDuration": 120
