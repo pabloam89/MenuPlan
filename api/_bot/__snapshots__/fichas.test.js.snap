@@ -963,7 +963,7 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
  },
  {
   "type": "custom",
-  "name": "ajustar_cocina",
+  "name": "ajustar_casa",
   "input_schema": {
    "type": "object",
    "properties": {
@@ -1051,19 +1051,7 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
       "solidos"
      ],
      "description": "Qué come el bebé: cremas (solo cremas y purés: todo triturado fino), mixto (un poco de cada: purés y algún trozo blando), solidos (ya come sólidos: trozos que coge con la mano). «Come de todo» o «ya come de todo» es solidos; «un poco de cada» o «purés y algún trozo», mixto. Apúntalo en cuanto lo digan, antes de proponerle nada."
-    }
-   },
-   "required": [],
-   "additionalProperties": false
-  },
-  "description": "Cómo se cocina en casa: estructura de la comida (primero_segundo = primero y segundo; 1_plato = plato único), esfuerzo (basic/normal/pro), tiempo por día (con_prisa/normal/con_tiempo/depende) y aparatos (Airfryer, Horno, Microondas, Thermomix, Olla rápida, Vaporera). «Tenemos airfryer» es trastosMas [Airfryer]; «ya no tenemos horno», trastosMenos [Horno]: los demás se quedan. Uno que no está en la lista («tenemos plancha»), trastoOtro. Cocinar en tanda va por pedir_tanda."
- },
- {
-  "type": "custom",
-  "name": "ajustar_compra",
-  "input_schema": {
-   "type": "object",
-   "properties": {
+    },
     "supermercadosMas": {
      "type": "array",
      "items": {
@@ -1128,57 +1116,7 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
     },
     "sinPresupuesto": {
      "type": "boolean"
-    }
-   },
-   "required": [],
-   "additionalProperties": false
-  },
-  "description": "Dónde hace la compra la casa y cuánto quiere gastar. «También compramos en Lidl» es supermercadosMas [Lidl]; «ya no vamos al Dia», supermercadosMenos [Dia]: los demás se quedan. Uno que no está en la lista («compramos en la frutería de abajo»), supermercadoOtro. Con Mercadona, en la app la lista de la compra enseña el precio de cada cosa. presupuesto: euros por semana; sinPresupuesto=true si dicen que no tienen."
- },
- {
-  "type": "custom",
-  "name": "ajustar_trato",
-  "input_schema": {
-   "type": "object",
-   "properties": {
-    "ritmo": {
-     "type": "string",
-     "enum": [
-      "directo",
-      "guiado"
-     ]
     },
-    "profundidad": {
-     "type": "string",
-     "enum": [
-      "nada",
-      "poco",
-      "mucho",
-      "preguntar"
-     ]
-    },
-    "fotos": {
-     "type": "boolean"
-    },
-    "largo": {
-     "type": "string",
-     "enum": [
-      "corto",
-      "largo"
-     ]
-    }
-   },
-   "required": [],
-   "additionalProperties": false
-  },
-  "description": "Cómo quiere quien escribe que le hables (solo a él o ella, no a toda la casa). ritmo: directo («no me preguntes tanto», «decide tú») o guiado («ve paso a paso», «pregúntame antes»). profundidad, cuánto afinar antes de hacer un menú: nada («hazlo ya»), poco, mucho («quiero afinarlo bien») o preguntar (preguntárselo cada vez). fotos: si quiere fotos de los platos. largo: corto («más corto», «al grano») o largo («explícame más»). Solo lo que diga; lo demás no se toca. Úsala cuando lo pida como algo para siempre, no por un mensaje suelto."
- },
- {
-  "type": "custom",
-  "name": "ajustar_extras",
-  "input_schema": {
-   "type": "object",
-   "properties": {
     "desayuno": {
      "type": "string",
      "enum": [
@@ -1220,12 +1158,59 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
       "yogur",
       "mix"
      ]
+    },
+    "usoDespensa": {
+     "type": "string",
+     "enum": [
+      "strict",
+      "only",
+      "prefer",
+      "off"
+     ]
     }
    },
    "required": [],
    "additionalProperties": false
   },
-  "description": "Desayuno, merienda y postre, que van aparte de comida y cena. desayuno: off (sin desayuno), variado (uno distinto cada día), findes (el mismo entre semana y otro el finde), igual (siempre el mismo). merienda (solo para los niños): off, semana (los 7 días), laborables (de lunes a viernes). postre: off, comida, cena, ambas; postreTipo: inmediato (sin cocinar), cazo (cremas), horno (horneados); postreInmediato, si es sin cocinar: fruta, yogur, mix (alterna). Pasa solo lo que cambien."
+  "description": "Cómo funciona la casa, en cuatro partes. Cada llamada toca UNA parte; si dicen cosas de dos, dos llamadas. Pasa solo lo que cambien.\\nCOCINA. Cómo se cocina en casa: estructura de la comida (primero_segundo = primero y segundo; 1_plato = plato único), esfuerzo (basic/normal/pro), tiempo por día (con_prisa/normal/con_tiempo/depende) y aparatos (Airfryer, Horno, Microondas, Thermomix, Olla rápida, Vaporera). «Tenemos airfryer» es trastosMas [Airfryer]; «ya no tenemos horno», trastosMenos [Horno]: los demás se quedan. Uno que no está en la lista («tenemos plancha»), trastoOtro. Cocinar en tanda va por pedir_tanda.\\nCOMPRA. Dónde hace la compra la casa y cuánto quiere gastar. «También compramos en Lidl» es supermercadosMas [Lidl]; «ya no vamos al Dia», supermercadosMenos [Dia]: los demás se quedan. Uno que no está en la lista («compramos en la frutería de abajo»), supermercadoOtro. Con Mercadona, en la app la lista de la compra enseña el precio de cada cosa. presupuesto: euros por semana; sinPresupuesto=true si dicen que no tienen.\\nEXTRAS. Desayuno, merienda y postre, que van aparte de comida y cena. desayuno: off (sin desayuno), variado (uno distinto cada día), findes (el mismo entre semana y otro el finde), igual (siempre el mismo). merienda (solo para los niños): off, semana (los 7 días), laborables (de lunes a viernes). postre: off, comida, cena, ambas; postreTipo: inmediato (sin cocinar), cazo (cremas), horno (horneados); postreInmediato, si es sin cocinar: fruta, yogur, mix (alterna).\\nDESPENSA. Cuánto aprovecha el menú lo que hay en casa (la despensa). usoDespensa: strict (solo con lo de casa, sin comprar salvo que un hueco no salga de otra forma); only (sobre todo lo de casa, y se compra lo que falte); prefer (con lo de casa solo para desempatar entre platos); off (sin mirar lo de casa (la compra sigue descontando lo que tengas)). «Deja de usar lo de casa» es off. Lo que hay se apunta con anadir_despensa."
+ },
+ {
+  "type": "custom",
+  "name": "ajustar_trato",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "ritmo": {
+     "type": "string",
+     "enum": [
+      "directo",
+      "guiado"
+     ]
+    },
+    "profundidad": {
+     "type": "string",
+     "enum": [
+      "nada",
+      "poco",
+      "mucho",
+      "preguntar"
+     ]
+    },
+    "fotos": {
+     "type": "boolean"
+    },
+    "largo": {
+     "type": "string",
+     "enum": [
+      "corto",
+      "largo"
+     ]
+    }
+   },
+   "required": [],
+   "additionalProperties": false
+  },
+  "description": "Cómo quiere quien escribe que le hables (solo a él o ella, no a toda la casa). ritmo: directo («no me preguntes tanto», «decide tú») o guiado («ve paso a paso», «pregúntame antes»). profundidad, cuánto afinar antes de hacer un menú: nada («hazlo ya»), poco, mucho («quiero afinarlo bien») o preguntar (preguntárselo cada vez). fotos: si quiere fotos de los platos. largo: corto («más corto», «al grano») o largo («explícame más»). Solo lo que diga; lo demás no se toca. Úsala cuando lo pida como algo para siempre, no por un mensaje suelto."
  },
  {
   "type": "custom",
@@ -1260,29 +1245,6 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
    "additionalProperties": false
   },
   "description": "Qué días entran en el menú de una semana concreta («esta semana solo hasta el jueves», «la que viene de lunes a viernes»), y cuánto se pueden repetir platos entre semanas: variedad strict (nada de ninguna semana anterior), moderate (nada de la semana anterior), relaxed (se pueden repetir). Para «nunca el finde» de siempre, donde_come con plazo siempre con donde = off. Después, generar_menu para esa semana si quieren el menú ya."
- },
- {
-  "type": "custom",
-  "name": "ajustar_uso_despensa",
-  "input_schema": {
-   "type": "object",
-   "properties": {
-    "modo": {
-     "type": "string",
-     "enum": [
-      "strict",
-      "only",
-      "prefer",
-      "off"
-     ]
-    }
-   },
-   "required": [
-    "modo"
-   ],
-   "additionalProperties": false
-  },
-  "description": "Cuánto aprovecha el menú lo que hay en casa (la despensa). modo: strict (solo con lo de casa, sin comprar salvo que un hueco no salga de otra forma); only (sobre todo lo de casa, y se compra lo que falte); prefer (con lo de casa solo para desempatar entre platos); off (sin mirar lo de casa (la compra sigue descontando lo que tengas)). «Deja de usar lo de casa» es off. Lo que hay se apunta con anadir_despensa."
  },
  {
   "type": "custom",
@@ -1633,7 +1595,7 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
       "primero_segundo",
       "1_plato"
      ],
-     "description": "Platos por comida solo para este menú («esta semana, un plato»). Si es para siempre, ajustar_cocina."
+     "description": "Platos por comida solo para este menú («esta semana, un plato»). Si es para siempre, ajustar_casa."
     },
     "estructuraCena": {
      "type": "string",
@@ -1641,7 +1603,7 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
       "primero_segundo",
       "1_plato"
      ],
-     "description": "Platos en la cena solo para este menú. Si es para siempre, ajustar_cocina."
+     "description": "Platos en la cena solo para este menú. Si es para siempre, ajustar_casa."
     },
     "forzado": {
      "type": "boolean",

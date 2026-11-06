@@ -602,6 +602,35 @@ function herramientasDeRecordatorios(chat) {
 // autor: en un grupo, el del mensaje; por privado, su nombre de Telegram (`nombre`), como en la línea «TE ESCRIBE».
 const quienDe = (chat) => ({ get userId() { return chat.userId ?? null; }, get autor() { return chat.autor ?? chat.nombre ?? null; }, get papel() { return chat.papel ?? null; } });
 
+// Las cuatro partes de ajustar_casa (trozo 47 de #1037). Cada una guarda por su
+// lado y deja su propia foto para «deshaz»: por eso una llamada toca una sola,
+// y mezclar dos no guarda. Cada parte nombra sus parámetros, que no se solapan.
+export const PARTES_DE_CASA = {
+  cocina: {
+    capacidades: ["primero_segundo", "nivel_cocina", "aparatos", "aparato_otro"],
+    campos: ["estructura", "estructuraCena", "esfuerzo", "tiempo", "trastosMas", "trastosMenos", "trastoOtro", "comidas", "etapaBebe"],
+    guardar: ajustarCocina,
+  },
+  compra: {
+    capacidades: ["elegir_super", "presupuesto"],
+    campos: ["supermercadosMas", "supermercadosMenos", "supermercadoOtro", "presupuesto", "sinPresupuesto"],
+    guardar: ajustarCompra,
+  },
+  extras: {
+    capacidades: ["extras"],
+    campos: ["desayuno", "merienda", "postre", "postreTipo", "postreInmediato"],
+    guardar: ajustarExtras,
+  },
+  despensa: {
+    capacidades: ["aprovechar_casa"],
+    campos: ["usoDespensa"],
+    guardar: (householdId, { usoDespensa }) => ajustarModoDespensa(householdId, { modo: usoDespensa }),
+  },
+};
+
+/** Qué partes de la casa toca esta llamada. */
+const partesDeCasa = (args) => Object.keys(PARTES_DE_CASA).filter((p) => PARTES_DE_CASA[p].campos.some((c) => args[c] !== undefined));
+
 function herramientasDeAjustes(householdId, gustos, chat = {}) {
   const quien = quienDe(chat);
   const obj = (properties, required = []) => ({ type: "object", properties, required, additionalProperties: false });
@@ -641,9 +670,15 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
       }, ["campo", "valor"]),
       run: (args) => descartarSupuesto(householdId, args),
     }),
-    herramienta({ capacidades: ["primero_segundo", "nivel_cocina", "aparatos", "aparato_otro"], lee: ["kitchenTools", "kitchenToolsNota", "cookTime"], escribe: ["mealStructureCena", "meals", "mealStructure", "mealStructureByGroup", "cookLevel", "cookTime", "kitchenTools", "kitchenToolsNota", "etapaBebe"], lector: false, riesgo: RIESGO_HERRAMIENTA.ESCRIBE_REVERSIBLE, deshace: DESHACE.FOTO, pantalla: null }, {
-      name: "ajustar_cocina",
-      description: `Cómo se cocina en casa: estructura de la comida (primero_segundo = primero y segundo; 1_plato = plato único), esfuerzo (basic/normal/pro), tiempo por día (con_prisa/normal/con_tiempo/depende) y aparatos (${TRASTOS.join(", ")}). «Tenemos airfryer» es trastosMas [Airfryer]; «ya no tenemos horno», trastosMenos [Horno]: los demás se quedan. Uno que no está en la lista («tenemos plancha»), trastoOtro. Cocinar en tanda va por pedir_tanda.`,
+    herramienta({ capacidades: [...new Set(Object.values(PARTES_DE_CASA).flatMap((p) => p.capacidades))], lee: ["kitchenTools", "kitchenToolsNota", "cookTime", "supermarkets", "supermarketsNota", "extraMeals", "members"], escribe: ["mealStructureCena", "meals", "mealStructure", "mealStructureByGroup", "cookLevel", "cookTime", "kitchenTools", "kitchenToolsNota", "etapaBebe", "supermarkets", "supermarketsNota", "presupuesto", "extraMeals", "pantryMode"], lector: false, riesgo: RIESGO_HERRAMIENTA.ESCRIBE_REVERSIBLE, deshace: DESHACE.FOTO, pantalla: (args = {}) => (partesDeCasa(args).includes("compra") ? "compra" : null) }, {
+      name: "ajustar_casa",
+      description: [
+        "Cómo funciona la casa, en cuatro partes. Cada llamada toca UNA parte; si dicen cosas de dos, dos llamadas. Pasa solo lo que cambien.",
+        `COCINA. ${`Cómo se cocina en casa: estructura de la comida (primero_segundo = primero y segundo; 1_plato = plato único), esfuerzo (basic/normal/pro), tiempo por día (con_prisa/normal/con_tiempo/depende) y aparatos (${TRASTOS.join(", ")}). «Tenemos airfryer» es trastosMas [Airfryer]; «ya no tenemos horno», trastosMenos [Horno]: los demás se quedan. Uno que no está en la lista («tenemos plancha»), trastoOtro. Cocinar en tanda va por pedir_tanda.`}`,
+        `COMPRA. ${"Dónde hace la compra la casa y cuánto quiere gastar. «También compramos en Lidl» es supermercadosMas [Lidl]; «ya no vamos al Dia», supermercadosMenos [Dia]: los demás se quedan. Uno que no está en la lista («compramos en la frutería de abajo»), supermercadoOtro. Con Mercadona, en la app la lista de la compra enseña el precio de cada cosa. presupuesto: euros por semana; sinPresupuesto=true si dicen que no tienen."}`,
+        `EXTRAS. ${"Desayuno, merienda y postre, que van aparte de comida y cena. desayuno: off (sin desayuno), variado (uno distinto cada día), findes (el mismo entre semana y otro el finde), igual (siempre el mismo). merienda (solo para los niños): off, semana (los 7 días), laborables (de lunes a viernes). postre: off, comida, cena, ambas; postreTipo: inmediato (sin cocinar), cazo (cremas), horno (horneados); postreInmediato, si es sin cocinar: fruta, yogur, mix (alterna)."}`,
+        `DESPENSA. ${`Cuánto aprovecha el menú lo que hay en casa (la despensa). usoDespensa: ${Object.entries(MODOS_DESPENSA_TEXTO).map(([k, v]) => `${k} (${v})`).join("; ")}. «Deja de usar lo de casa» es off. Lo que hay se apunta con anadir_despensa.`}`,
+      ].join("\n"),
       inputSchema: obj({
         estructura: esquemaDato("mealStructure"),
         estructuraCena: esquemaDato("mealStructureCena"),
@@ -654,20 +689,23 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
         trastoOtro: esquemaDato("kitchenToolsNota", { descripcion: "Un aparato que no está en la lista, como lo digan: se suma a los de fuera ya apuntados. Vacío (\"\") si ya no tienen los de fuera." }),
         comidas: { type: "array", items: { type: "string", enum: COMIDAS_PRINCIPALES }, description: "Qué comidas se planifican." },
         etapaBebe: esquemaDato("etapaBebe", { descripcion: `Qué come el bebé: ${ETAPA_BEBE.map((e) => `${e} (${ETAPA_BEBE_INFO[e].label.toLowerCase()}: ${ETAPA_BEBE_INFO[e].desc.toLowerCase()})`).join(", ")}. «Come de todo» o «ya come de todo» es solidos; «un poco de cada» o «purés y algún trozo», mixto. Apúntalo en cuanto lo digan, antes de proponerle nada.` }),
-      }),
-      run: (args) => ajustarCocina(householdId, args),
-    }),
-    herramienta({ capacidades: ["elegir_super", "presupuesto"], lee: ["supermarkets", "supermarketsNota"], escribe: ["supermarkets", "supermarketsNota", "presupuesto"], lector: false, riesgo: RIESGO_HERRAMIENTA.ESCRIBE_REVERSIBLE, deshace: DESHACE.FOTO, pantalla: "compra" }, {
-      name: "ajustar_compra",
-      description: "Dónde hace la compra la casa y cuánto quiere gastar. «También compramos en Lidl» es supermercadosMas [Lidl]; «ya no vamos al Dia», supermercadosMenos [Dia]: los demás se quedan. Uno que no está en la lista («compramos en la frutería de abajo»), supermercadoOtro. Con Mercadona, en la app la lista de la compra enseña el precio de cada cosa. presupuesto: euros por semana; sinPresupuesto=true si dicen que no tienen.",
-      inputSchema: obj({
         supermercadosMas: esquemaDato("supermarkets", { descripcion: "Súper que se añaden." }),
         supermercadosMenos: esquemaDato("supermarkets", { descripcion: "Súper que dejan." }),
         supermercadoOtro: esquemaDato("supermarketsNota", { descripcion: "Un súper o tienda que no está en la lista, como lo digan: se suma a los de fuera ya apuntados. Vacío (\"\") si ya no compran en los de fuera." }),
         presupuesto: { type: "number", minimum: PRESUPUESTO[0], maximum: PRESUPUESTO[1], description: "Euros por semana." },
         sinPresupuesto: { type: "boolean" },
+        desayuno: { type: "string", enum: EXTRAS.desayuno },
+        merienda: { type: "string", enum: EXTRAS.merienda },
+        postre: { type: "string", enum: EXTRAS.postre },
+        postreTipo: { type: "string", enum: EXTRAS.postreTipo },
+        postreInmediato: { type: "string", enum: EXTRAS.postreInmediato },
+        usoDespensa: esquemaDato("pantryMode"),
       }),
-      run: (args) => ajustarCompra(householdId, args),
+      run: (args) => {
+        const partes = partesDeCasa(args);
+        if (partes.length !== 1) return `NO GUARDADO: cada llamada toca una parte de la casa y esta toca ${partes.length ? partes.join(" y ") : "ninguna"}.`;
+        return PARTES_DE_CASA[partes[0]].guardar(householdId, args);
+      },
     }),
     herramienta({ capacidades: ["trato"], lee: ["accountMemberIdByUser"], escribe: [...ESCRIBE_TRATO], lector: false, riesgo: RIESGO_HERRAMIENTA.ESCRIBE_IRREVERSIBLE, deshace: DESHACE.NO, pantalla: null }, {
       name: "ajustar_trato",
@@ -686,18 +724,6 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
         });
       },
     }),
-    herramienta({ capacidades: ["extras"], lee: ["extraMeals", "members"], escribe: ["extraMeals"], lector: false, riesgo: RIESGO_HERRAMIENTA.ESCRIBE_REVERSIBLE, deshace: DESHACE.FOTO, pantalla: null }, {
-      name: "ajustar_extras",
-      description: "Desayuno, merienda y postre, que van aparte de comida y cena. desayuno: off (sin desayuno), variado (uno distinto cada día), findes (el mismo entre semana y otro el finde), igual (siempre el mismo). merienda (solo para los niños): off, semana (los 7 días), laborables (de lunes a viernes). postre: off, comida, cena, ambas; postreTipo: inmediato (sin cocinar), cazo (cremas), horno (horneados); postreInmediato, si es sin cocinar: fruta, yogur, mix (alterna). Pasa solo lo que cambien.",
-      inputSchema: obj({
-        desayuno: { type: "string", enum: EXTRAS.desayuno },
-        merienda: { type: "string", enum: EXTRAS.merienda },
-        postre: { type: "string", enum: EXTRAS.postre },
-        postreTipo: { type: "string", enum: EXTRAS.postreTipo },
-        postreInmediato: { type: "string", enum: EXTRAS.postreInmediato },
-      }),
-      run: (args) => ajustarExtras(householdId, args),
-    }),
     herramienta({ capacidades: ["semanas"], lee: ["menuWeekDays"], escribe: ["menuWeekDays", "menuWeekOffsets", "menuWeek", "menuVarietyPref"], lector: false, riesgo: RIESGO_HERRAMIENTA.ESCRIBE_REVERSIBLE, deshace: DESHACE.FOTO, pantalla: null }, {
       name: "ajustar_semana",
       description: "Qué días entran en el menú de una semana concreta («esta semana solo hasta el jueves», «la que viene de lunes a viernes»), y cuánto se pueden repetir platos entre semanas: variedad strict (nada de ninguna semana anterior), moderate (nada de la semana anterior), relaxed (se pueden repetir). Para «nunca el finde» de siempre, donde_come con plazo siempre con donde = off. Después, generar_menu para esa semana si quieren el menú ya.",
@@ -707,12 +733,6 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
         variedad: { type: "string", enum: VARIEDADES },
       }),
       run: (args) => ajustarSemana(householdId, args),
-    }),
-    herramienta({ capacidades: ["aprovechar_casa"], lee: [], escribe: ["pantryMode"], lector: false, riesgo: RIESGO_HERRAMIENTA.ESCRIBE_REVERSIBLE, deshace: DESHACE.FOTO, pantalla: null }, {
-      name: "ajustar_uso_despensa",
-      description: `Cuánto aprovecha el menú lo que hay en casa (la despensa). modo: ${Object.entries(MODOS_DESPENSA_TEXTO).map(([k, v]) => `${k} (${v})`).join("; ")}. «Deja de usar lo de casa» es off. Lo que hay se apunta con anadir_despensa.`,
-      inputSchema: obj({ modo: esquemaDato("pantryMode") }, ["modo"]),
-      run: (args) => ajustarModoDespensa(householdId, args),
     }),
     herramienta({ capacidades: ["tanda"], lee: ["notepad", "tanda", "tandaPlatos"], escribe: ["notepad", "sesgos", "tanda", "tandaPlatos", "cookTime", "tandaMinutos", "diaTanda"], lector: false, riesgo: RIESGO_HERRAMIENTA.ESCRIBE_REVERSIBLE, deshace: DESHACE.FOTO, pantalla: null }, {
       name: "pedir_tanda",
@@ -806,8 +826,8 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
         camino: { type: "string", enum: IDS_CAMINO, description: `El que eligieron con los botones (${LEYENDA_CAMINOS}). Sin él no se genera: pregúntalo siempre.` },
         semana: { type: "string", enum: ["esta", "siguiente"] },
         desde: { type: "string", description: "AAAA-MM-DD: para cuándo, lo que hayan contestado (manda sobre semana). Se pregunta siempre." },
-        estructura: esquemaDato("mealStructure", { descripcion: "Platos por comida solo para este menú («esta semana, un plato»). Si es para siempre, ajustar_cocina." }),
-        estructuraCena: esquemaDato("mealStructureCena", { descripcion: "Platos en la cena solo para este menú. Si es para siempre, ajustar_cocina." }),
+        estructura: esquemaDato("mealStructure", { descripcion: "Platos por comida solo para este menú («esta semana, un plato»). Si es para siempre, ajustar_casa." }),
+        estructuraCena: esquemaDato("mealStructureCena", { descripcion: "Platos en la cena solo para este menú. Si es para siempre, ajustar_casa." }),
         forzado: { type: "boolean", description: "true si dicen que sigas sin preguntar más («sigue tú», «da igual», «me he cansado»): genera con lo que haya, salvo lo de seguridad." },
         rehacer: { type: "boolean", description: "true si piden rehacer una semana que ya tiene menú, o al pulsar [[Rehacer la del …]]: entonces desde = ese lunes y rehacer: true, los dos." },
         fijos: {
@@ -1974,8 +1994,7 @@ export const vigilada = (nombre) => FICHAS.get(nombre)?.riesgo === RIESGO_HERRAM
  * devuelve su resultado en todos sus caminos.
  */
 export const SIN_RESULTADO_TODAVIA = new Set([
-  "guardar_receta", "guardar_menu_cole", "ajustar_gustos", "descartar_supuesto", "ajustar_cocina", "ajustar_compra",
-  "ajustar_extras", "ajustar_semana", "ajustar_uso_despensa", "pedir_tanda", "anadir_invitado",
+  "guardar_receta", "guardar_menu_cole", "ajustar_gustos", "descartar_supuesto", "ajustar_casa", "ajustar_semana", "pedir_tanda", "anadir_invitado",
   "anadir_comensal", "ajustar_persona", "ajustar_menu_peques", "quitar_comensal", "ajustar_alergias", "ajustar_salud",
 ]);
 
