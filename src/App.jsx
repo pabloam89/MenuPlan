@@ -6336,7 +6336,7 @@ export default function App() {
               shoppingItems={compra.items}
               // La fila de mandos del asistente antiguo (proporciones y
               // estilos) ya no se pinta: lo mismo se le pide a Lola
-              // (ajustar_gustos, ajustar_cocina), y la pizarra trae su fila.
+              // (ajustar_gustos, ajustar_casa), y la pizarra trae su fila.
               wizardControls={null}
               wizardBubble={esPizarra && !householdReadOnly && (
                 <Suspense fallback={null}>

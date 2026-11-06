@@ -12,7 +12,7 @@ const casa = () => ({
 
 describe("uno o dos platos (#958): lo que se escribe es lo que usa el motor", () => {
   it("«solo un plato» desde Lola llega a todos los grupos, también con estructura por grupo", () => {
-    // Lola escribe con el `escribe` del registro (ajustes.js, ajustar_cocina).
+    // Lola escribe con el `escribe` del registro (ajustes.js, ajustar_casa).
     const d = PREGUNTAS_POR_ID.estructura.escribe(casa(), "1_plato");
     expect(estructuraDelGrupo(d, "familia")).toBe("1_plato");
     expect(estructuraDelGrupo(d, "peques")).toBe("1_plato");
