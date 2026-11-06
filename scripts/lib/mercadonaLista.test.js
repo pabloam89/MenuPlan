@@ -41,3 +41,23 @@ describe("leerGuardada", () => {
     expect(() => leerGuardada(r)).toThrow("forma esperada");
   });
 });
+
+describe("erroresDeLista con lo que manda otro", () => {
+  const productos = [{ merca_code: "1", quantity: 1 }];
+
+  it("un nombre que no es texto es un error, no una excepción", () => {
+    expect(erroresDeLista({ name: 123, products: productos })).toContain("la lista no tiene nombre");
+  });
+
+  it("un nombre sin tope no entra", () => {
+    expect(erroresDeLista({ name: "x".repeat(81), products: productos }).join()).toContain("nombre de más de");
+  });
+
+  it("un código en una lista no pasa por número", () => {
+    expect(erroresDeLista({ name: "x", products: [{ merca_code: ["1"], quantity: 1 }] }).join()).toContain("código raro");
+  });
+
+  it("un código numérico sigue valiendo", () => {
+    expect(erroresDeLista({ name: "x", products: [{ merca_code: 12.3, quantity: 1 }] })).toEqual([]);
+  });
+});
