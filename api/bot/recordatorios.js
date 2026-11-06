@@ -8,7 +8,6 @@
 
 import crypto from "node:crypto";
 import { enviarPendientes } from "../_bot/recordatorios.js";
-import { barrerCaducados as barrerMercadona } from "../_bot/mercadonaEncargos.js";
 import { botonDeRecordatorio } from "../_bot/botonRecordatorio.js";
 import { enviar, escaparHtml } from "../_bot/telegram.js";
 import { TIPO_VISPERA, avisoDeVisperaDe } from "../_bot/vispera.js";
@@ -53,8 +52,6 @@ export default async function handler(req, res) {
   // dueño para todo lo que vence, con su lista cerrada (#958).
   const caducado = await barrer({ enviar, cadaMs: CADA_MS }).catch((e) => { console.error("[caducidades]", e?.message); return null; });
   // Lo que se aprende de las señales (api/_bot/aprender.js, trozo 15): lo último; si falla, lo de arriba ya salió.
-  // Comprar en Mercadona: si el trabajador cayó, quien lo pidió por Lola se entera. Sin la 0131, nada que barrer.
-  const mercadona = await barrerMercadona().catch((e) => { console.error("[mercadona]", e?.message); return null; });
   const aprendido = await aprenderDeSenales({ cadaMs: CADA_MS }).catch((e) => { console.error("[senales]", e?.message); return null; });
-  return res.status(200).json({ ok: true, enviados, tareas, caducado, mercadona, aprendido });
+  return res.status(200).json({ ok: true, enviados, tareas, caducado, aprendido });
 }

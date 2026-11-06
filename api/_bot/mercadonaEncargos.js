@@ -15,7 +15,7 @@ import { avisarFallo } from "./avisar.js";
 import { erroresDeLista } from "../../scripts/lib/mercadonaLista.mjs";
 import { CANAL, ESTADO_CUENTA_MERCADONA, ESTADO_ENCARGO_MERCADONA, FALLO_ENCARGO_MERCADONA, paraEscribir } from "../../src/lib/vocabularios.js";
 import { enlaceDeLista } from "../../src/lib/mercadonaList.js";
-import { PG_SIN_FUNCION, PGRST_SIN_FUNCION } from "../../src/lib/postgrest.js";
+import { NO_EXISTE } from "../../src/lib/postgrest.js";
 
 const { PENDIENTE, RELLENANDO, HECHO, FALLIDO } = ESTADO_ENCARGO_MERCADONA;
 
@@ -44,7 +44,7 @@ const VISIBLES = "id,status,entraron,faltan,fallo,lista_xid,created_at";
 export class PeticionMala extends Error {}
 
 /** La tabla o la función aún no existen: PostgREST o Postgres. Otro fallo, lanza. */
-const sinMigracion = (e) => ["PGRST205", "42P01", PGRST_SIN_FUNCION, PG_SIN_FUNCION].includes(e?.codigo);
+const sinMigracion = (e) => NO_EXISTE.has(e?.codigo);
 const conPlanB = (valor) => (e) => {
   if (!sinMigracion(e)) throw e;
   return valor;
