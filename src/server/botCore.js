@@ -37,6 +37,7 @@ export { EU_ALLERGEN_IDS } from "../data/ingredientSchema.js";
 export { aplicarAlergias, FAMILIA, marcarRevisadas, pendientesDeAlergias, conMiembroNuevo } from "../lib/alergias.js";
 export { SLOT_VALUES, slotKey } from "../lib/planner.js";
 export { mapRow as filaDeDespensa, COLUMNAS_DESPENSA } from "../lib/pantry.js";
+export { applyConsumption } from "../lib/cookPantry.js";
 
 // Fotos desde el chat: ticket o nevera → despensa; menú del cole → la casa.
 export { normalizePantryInput } from "../utils/normalizePantryInput.js";
