@@ -23,6 +23,20 @@ describe("listaParaMercadona", () => {
     expect(listaParaMercadona(items.slice(1), map, "x").total).toBe(2.2);
   });
 
+  it("si el mayor va primero, un repetido menor no lo pisa", () => {
+    const items = [
+      { id: "a", name: "Pimentón dulce" },
+      { id: "b", name: "Pimentón" },
+    ];
+    const map = new Map([
+      ["a", merca("7", 2, 2)],
+      ["b", merca("7", 1, 1)],
+    ]);
+    const { lista, total } = listaParaMercadona(items, map, "x");
+    expect(lista.products).toEqual([{ merca_code: "7", quantity: 2 }]);
+    expect(total).toBe(2);
+  });
+
   it("en un producto repetido cuenta solo el precio de la línea que se queda", () => {
     const items = [
       { id: "a", name: "Pimentón" },

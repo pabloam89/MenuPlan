@@ -12,7 +12,7 @@ const NO_SE_COMPRA = /^agua\b(?! (?:mineral|con gas)\b)/;
 
 /**
  * @param {{ id: string, name: string }[]} items líneas pendientes de la lista
- * @param {Map<string, { storeProductId?: string, storeProductName?: string, storePacks?: number, storePrice?: number, storePriceSource?: string }>} priceMap
+ * @param {Map<string, { storeProductId?: string, storeProductName?: string, storePacks?: number, storePrice?: number }>} priceMap
  *   el mapa de `priceShoppingList`: solo trae producto quien pasó MATCH_HIGH
  * @param {string} name nombre de la lista en Mercadona
  * @returns {{ lista: { name: string, products: { merca_code: string, quantity: number }[] },
@@ -24,7 +24,7 @@ export function listaParaMercadona(items, priceMap, name) {
   for (const item of items) {
     if (NO_SE_COMPRA.test(normalizeName(item.name))) continue;
     const m = priceMap.get(item.id);
-    if (!m?.storeProductId || m.storePriceSource !== "mercadona") {
+    if (!m?.storeProductId) {
       sinProducto.push(item.name);
       continue;
     }
