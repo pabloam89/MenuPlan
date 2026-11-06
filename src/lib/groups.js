@@ -578,3 +578,13 @@ export function gruposVigentes(data) {
   if (guardados.length > 0) return guardados;
   return groupsFromModel(data?.members ?? [], data?.menuModel ?? "same");
 }
+
+// Faces sit centred in the thumb, so hiding ~38% of the circle underneath
+// still leaves each one recognisable.
+export const mordidaDeCara = (size) => Math.round(size * 0.38);
+
+/** Lo que ocupa una `GroupAvatarStack` de `caras` personas, con su «+N» si pasan de `max`. */
+export function anchoDePilaDeCaras(caras, size, max) {
+  const discos = Math.max(1, caras > max ? max + 1 : caras);
+  return size + (discos - 1) * (size - mordidaDeCara(size));
+}

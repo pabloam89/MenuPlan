@@ -7,7 +7,7 @@ import { color as tono, tipografia, espaciado, radio, sombra, capa } from "../de
 import { urlEntrarConTelegram, PREGUNTA_ALTA } from "../lib/cuentaTelegram.js";
 import { initialsOf, memberAvatarColor, memberAvatarThumbSrc } from "../lib/stages.js";
 import { formatWeekRangeLabel, getWeekDates } from "../lib/weekCalendar.js";
-import { adhocReasonLabel } from "../lib/groups.js";
+import { adhocReasonLabel, mordidaDeCara } from "../lib/groups.js";
 import { subscribeFeedBadge, readFeedBadge } from "../lib/socialBadge.js";
 
 const GROUP_ABBREV = { Adultos: "A", Niños: "N", Bebé: "B", Familia: "F" };
@@ -1318,9 +1318,7 @@ export function GroupAvatarStack({ faces, size = 46, active = true, max = null }
   const border = Math.max(2, Math.round(size * 0.055));
   const shown = max ? faces.slice(0, max) : faces;
   const overflow = faces.length - shown.length;
-  // Faces sit centred in the thumb, so hiding ~38% of the circle underneath
-  // still leaves each one recognisable.
-  const bite = Math.round(size * 0.38);
+  const bite = mordidaDeCara(size);
 
   const disc = (face, i, key) => (
     <span
