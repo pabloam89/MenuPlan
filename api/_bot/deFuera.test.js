@@ -15,7 +15,7 @@ const casa = {
   schedule: {},
 };
 const plan = { g1: { "Vie-Cena": { recipeId: "carnes_002", eaters: 6 } } };
-const ids = (data) => (pickCatalogReplacement(data, plan, { groupId: "g1", day: "Vie", meal: "Cena", course: "main", candidatos: 400 })?.candidatos ?? []).map((r) => r.id).sort();
+const ids = (data) => (pickCatalogReplacement(data, plan, { groupId: "g1", day: "Vie", meal: "Cena", course: "main", candidatos: 400, pedido: true })?.candidatos ?? []).map((r) => r.id).sort();
 
 describe("restriccionesDeFuera", () => {
   it("normaliza lo que dice Lola y tira lo que el motor no sabe filtrar", () => {
@@ -44,9 +44,11 @@ describe("conQuienViene: el motor filtra como si fuera de la casa", () => {
     expect(conInvitado).toEqual(comoDeCasa);
   });
 
+  // `pedido`: el pool del hueco antes de las reglas de variedad del solver, que
+  // dejan en cuatro los platos del viernes y no dejarían medir qué quita el embarazo.
   it("de verdad quita platos, y ninguno choca con el embarazo", () => {
     const sin = ids(casa);
-    const con = pickCatalogReplacement(conQuienViene(casa, ["g1"], r), plan, { groupId: "g1", day: "Vie", meal: "Cena", course: "main", candidatos: 400 }).candidatos;
+    const con = pickCatalogReplacement(conQuienViene(casa, ["g1"], r), plan, { groupId: "g1", day: "Vie", meal: "Cena", course: "main", candidatos: 400, pedido: true }).candidatos;
     expect(con.length).toBeLessThan(sin.length);
     for (const receta of con) expect(recipeHitsIntolerances(receta, ["embarazo"])).toBe(false);
   });
