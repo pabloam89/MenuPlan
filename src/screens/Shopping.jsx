@@ -2,8 +2,7 @@ import { FRONTAL_BOT, GUIAS_ACTIVAS, abrirLola } from "../lib/frontalBot.js";
 import { pedidoMenu } from "../lib/pedidoLola.js";
 import { BaldosaFranja, RayaBaldosas } from "../components/wizard/ControlRow.jsx";
 import { color as tono } from "../design/tokens.js";
-import lolaFoto from "../assets/lola/lola-perfil.jpg";
-import BarraComprar from "../components/BarraComprar.jsx";
+import BarraComprar, { PildoraLola } from "../components/BarraComprar.jsx";
 import { Suspense, lazy, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -1184,7 +1183,7 @@ export function ShoppingScreen({
           )}
         </button>
         {open && (
-          <div style={{ ...aisleItemsStyle, padding: "0 var(--esp-8) var(--esp-4)" }}>
+          <div style={{ ...aisleItemsStyle, padding: "0 0 var(--esp-4)" }}>
             {section.items.map((item, i) => (
               <ShoppingRow
                 key={`${section.key}-${item.id}`}
@@ -1476,48 +1475,7 @@ export function ShoppingScreen({
           />
         )}
         {!readOnly && stockReady && !isEmpty && !(paraComprar?.lineas.length > 0) && FRONTAL_BOT && (
-          <div
-            style={{
-              position: "sticky",
-              bottom: `calc(${bottomNavSpacer()} + 10px)`,
-              zIndex: 5,
-              display: "flex",
-              justifyContent: "flex-end",
-              marginTop: 12,
-              pointerEvents: "none",
-            }}
-          >
-            <button
-              type="button"
-              onClick={() => abrirLola()}
-              aria-label="¿Falta algo? Díselo a Lola"
-              style={{
-                pointerEvents: "auto",
-                flexShrink: 0,
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                minHeight: 44,
-                padding: "5px 14px 5px 5px",
-                borderRadius: 999,
-                border: "1px solid #e3ebe6",
-                background: "#fff",
-                boxShadow: "0 6px 16px -8px rgba(20,47,29,.35)",
-                cursor: "pointer",
-                fontFamily: "inherit",
-                fontSize: 14,
-                fontWeight: 800,
-                color: "#142f1d",
-              }}
-            >
-              <img
-                src={lolaFoto}
-                alt=""
-                style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover", objectPosition: "center 30%", flexShrink: 0 }}
-              />
-              ¿Falta algo? Díselo a Lola
-            </button>
-          </div>
+          <PildoraLola onClick={() => abrirLola()} />
         )}
       </div>
       </>
@@ -2518,7 +2476,7 @@ function ShoppingRow({
       onComplete={boughtTab ? undefined : onSwipePurchased}
       onDelete={onRemove}
     >
-      <div style={{ padding: "var(--esp-2) 0" }}>
+      <div style={{ padding: "var(--esp-2) var(--esp-8)" }}>
         <div style={listRowStyle}>
           <button
             type="button"
@@ -2571,7 +2529,7 @@ function ShoppingRow({
               </span>
             )}
           </div>
-          <div style={pillsBlockStyle} data-no-swipe>
+          <div className="fila-compra-pastillas" style={pillsBlockStyle} data-no-swipe>
             {isEditingQty ? (
               <QtyInput item={item} onSave={onSaveQty} onCancel={onCancelQty} />
             ) : (
@@ -4172,16 +4130,18 @@ const pillsBlockStyle = {
   columnGap: QTY_GAP,
 };
 
+// Toca en 44 y ocupa 28 en la fila: los márgenes negativos prestan el ancho.
 function checkBtnStyle(readOnly) {
   return {
-    width: 28,
+    width: 44,
     height: 44,
+    margin: "0 calc(var(--esp-8) * -1)",
     padding: 0,
     border: "none",
     background: "transparent",
     display: "inline-flex",
     alignItems: "center",
-    justifyContent: "flex-start",
+    justifyContent: "center",
     cursor: readOnly ? "default" : "pointer",
     flexShrink: 0,
   };

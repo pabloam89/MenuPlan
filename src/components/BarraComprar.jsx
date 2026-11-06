@@ -1,6 +1,8 @@
 import { bottomNavSpacer } from "./ui.jsx";
 import lolaFoto from "../assets/lola/lola-perfil.jpg";
 
+const FALTA_ALGO = "¿Falta algo? Díselo a Lola";
+
 const pie = {
   position: "sticky",
   // Se mete 16 bajo el menú: sus esquinas son redondas y la lista asomaría.
@@ -76,7 +78,7 @@ export default function BarraComprar({ total, productos, onComprar, onLola }) {
   return (
     <div style={pie}>
       {onLola && (
-        <button type="button" onClick={onLola} aria-label="¿Falta algo? Díselo a Lola" style={botonLola}>
+        <button type="button" onClick={onLola} aria-label={FALTA_ALGO} style={botonLola}>
           <img src={lolaFoto} alt="" style={fotoLola} />
         </button>
       )}
@@ -86,6 +88,44 @@ export default function BarraComprar({ total, productos, onComprar, onLola }) {
       </div>
       <button type="button" onClick={onComprar} aria-label={`Comprar · ${total}`} style={botonComprar}>
         Comprar
+      </button>
+    </div>
+  );
+}
+
+const hueco = {
+  position: "sticky",
+  bottom: `calc(${bottomNavSpacer()} + var(--esp-12))`,
+  zIndex: "var(--capa-local)",
+  display: "flex",
+  justifyContent: "flex-end",
+  marginTop: "var(--esp-12)",
+};
+
+const pildora = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: "var(--esp-8)",
+  minHeight: 44,
+  padding: "var(--esp-4) var(--esp-12) var(--esp-4) var(--esp-4)",
+  border: "1px solid var(--color-linea)",
+  borderRadius: "var(--radio-pildora)",
+  background: "var(--color-superficie)",
+  boxShadow: "var(--sombra-2)",
+  color: "var(--color-tinta)",
+  fontFamily: "inherit",
+  fontSize: "var(--tipo-paso-14)",
+  fontWeight: "var(--tipo-peso-800)",
+  cursor: "pointer",
+};
+
+/** Sin nada que comprar no hay barra: queda solo Lola, en su píldora. */
+export function PildoraLola({ onClick }) {
+  return (
+    <div style={hueco}>
+      <button type="button" onClick={onClick} style={pildora}>
+        <img src={lolaFoto} alt="" style={{ ...fotoLola, width: 32, height: 32 }} />
+        {FALTA_ALGO}
       </button>
     </div>
   );

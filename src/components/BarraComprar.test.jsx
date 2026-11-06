@@ -2,7 +2,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
-import BarraComprar from "./BarraComprar.jsx";
+import BarraComprar, { PildoraLola } from "./BarraComprar.jsx";
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -46,5 +46,16 @@ describe("BarraComprar", () => {
     await pintar({ onLola });
     await act(async () => boton("¿Falta algo? Díselo a Lola").click());
     expect(onLola).toHaveBeenCalledTimes(1);
+  });
+
+  it("sin nada que comprar, la píldora de Lola abre a Lola", async () => {
+    const onClick = vi.fn();
+    caja = document.createElement("div");
+    document.body.append(caja);
+    raiz = createRoot(caja);
+    await act(async () => raiz.render(<PildoraLola onClick={onClick} />));
+    expect(caja.textContent).toBe("¿Falta algo? Díselo a Lola");
+    await act(async () => caja.querySelector("button").click());
+    expect(onClick).toHaveBeenCalledTimes(1);
   });
 });

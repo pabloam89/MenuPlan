@@ -36,6 +36,7 @@ const CATEGORIA_COMPRA = /^\p{Lu}[\p{L} ]+ \d+$/u;
 const ENTRADA_PIZARRA = "Empieza en blanco";
 const TITULO_COMPRA = "Tu compra";
 // El botón de comprar lleva el total de lo que queda por comprar.
+const ANCHOS_MOVIL = [360, 375, 420];
 const BOTON_COMPRAR = /^Comprar · .*€$/;
 // La tira de sugerencias del selector de platos (src/screens/CatalogBrowserSheet.jsx).
 const SUGERENCIAS_HUECO = "Para este hueco";
@@ -182,12 +183,27 @@ test("el botón de comprar sigue a la lista", async ({ page }) => {
   await page.getByRole("button", { name: CATEGORIA_COMPRA }).first().click();
   await page.getByRole("checkbox", { name: /: comprado$/ }).first().click();
   await expect(comprar).not.toHaveAttribute("aria-label", antes);
-  if (process.env.CAPTURAS) {
-    for (const width of [375, 420]) {
-      await page.setViewportSize({ width, height: 800 });
-      await page.screenshot({ path: `${process.env.CAPTURAS}/lista-${width}.png` });
-    }
+  for (const width of ANCHOS_MOVIL) {
+    await page.setViewportSize({ width, height: 800 });
+    // Las tres pastillas de cada fila, en una línea; nada se sale de la pantalla.
+    const descuadradas = await page.$$eval(".fila-compra-pastillas", (filas) =>
+      filas.filter((fila) => {
+        const centros = [...fila.children].map((c) => c.getBoundingClientRect()).map((r) => r.top + r.height / 2);
+        return Math.max(...centros) - Math.min(...centros) > 4;
+      }).length);
+    expect(descuadradas).toBe(0);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+    if (process.env.CAPTURAS) await page.screenshot({ path: `${process.env.CAPTURAS}/lista-${width}.png` });
   }
+  // Al final de la lista, la barra no tapa la última fila.
+  await page.getByRole("checkbox", { name: /: comprado$/ }).last().scrollIntoViewIfNeeded();
+  await page.mouse.wheel(0, 100000);
+  const ultima = page.getByRole("checkbox", { name: /: comprado$/ }).last();
+  await expect(async () => {
+    const fila = await ultima.boundingBox();
+    const barra = await comprar.boundingBox();
+    expect(fila.y + fila.height).toBeLessThanOrEqual(barra.y);
+  }).toPass();
   await comprar.click();
   await expect(page.getByRole("link", { name: /€/ }).first()).toHaveAttribute("href", /tienda\.mercadona\.es\/product\//);
   if (process.env.CAPTURAS) await page.screenshot({ path: `${process.env.CAPTURAS}/hoja-420.png` });
