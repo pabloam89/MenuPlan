@@ -81,8 +81,8 @@ const PODIAN = {
   casa: ["owner", "editor", "viewer", "viewer-grupo"],
   ajustes: ["owner", "editor", "viewer", "viewer-grupo"],
   despensa: ["owner", "editor", "viewer", "viewer-grupo"],
-  compra: ["owner", "editor", "viewer", "viewer-grupo", "ajeno"],
-  cole: ["owner", "editor", "viewer", "viewer-grupo", "ajeno"],
+  compra: ["owner", "editor", "viewer", "viewer-grupo", "ajeno", "sin-papel"],
+  cole: ["owner", "editor", "viewer", "viewer-grupo", "ajeno", "sin-papel"],
   recordatorios: ["owner", "editor", "viewer"],
 };
 const QUIENES = { owner: { papel: "owner" }, editor: { papel: "editor" }, viewer: { papel: "viewer" }, "viewer-grupo": { papel: "viewer", esGrupo: true }, ajeno: { papel: "ajeno", esGrupo: true }, "sin-papel": {} };
