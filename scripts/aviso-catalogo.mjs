@@ -9,6 +9,9 @@ import { execFileSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
 import { enviarAviso } from "./vigia.mjs";
 
+/** Con este prefijo abre el cron su rama; un test lo ata al workflow. */
+export const PREFIJO_RAMA = "datos/mercadona-semanal";
+
 /**
  * @param {{ resultado: string, atascados: { number: number, url: string }[], urlRun: string }} d
  *   `resultado`, el del job `sync`; `skipped` es la pasada del martes.
@@ -27,7 +30,7 @@ export function textoDeAviso({ resultado, atascados, urlRun }) {
 function prsAtascados() {
   const salida = execFileSync(
     "gh",
-    ["pr", "list", "--state", "open", "--base", "staging", "--search", "head:datos/mercadona-semanal", "--json", "number,url"],
+    ["pr", "list", "--state", "open", "--base", "staging", "--search", `head:${PREFIJO_RAMA}`, "--json", "number,url"],
     { encoding: "utf8" },
   );
   return JSON.parse(salida);

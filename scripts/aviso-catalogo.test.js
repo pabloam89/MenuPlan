@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { textoDeAviso } from "./aviso-catalogo.mjs";
+import { PREFIJO_RAMA, textoDeAviso } from "./aviso-catalogo.mjs";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
 const pr = { number: 1, url: "https://github.com/x/y/pull/1" };
@@ -37,6 +37,10 @@ describe("mercadona-sync.yml avisa", () => {
     expect(job).toMatch(/if: always\(\)/);
     expect(job).toMatch(/environment: vigia/);
     expect(job).toMatch(/scripts\/aviso-catalogo\.mjs/);
+  });
+
+  it("busca los PR con el prefijo de rama que usa el cron", () => {
+    expect(wf).toContain(`RAMA="${PREFIJO_RAMA}-`);
   });
 
   it("la pasada del martes no baja el catálogo", () => {
