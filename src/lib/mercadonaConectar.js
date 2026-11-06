@@ -28,8 +28,7 @@ addEventListener("message",f)
 }
 
 /**
- * Lo que manda el marcador, como estado de navegador para el trabajador. Es lo que un marcador puede leer, y basta:
- * comprobado el 6 nov 2026 con una cuenta real, en un navegador limpio.
+ * Lo que manda el marcador, como estado de navegador para el trabajador: lo que un marcador puede leer.
  * @returns {string} el texto a sellar; lanza si no trae sesión
  */
 export function estadoDeMarcador({ mo, cookies }) {
