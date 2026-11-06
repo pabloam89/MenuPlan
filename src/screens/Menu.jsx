@@ -134,6 +134,7 @@ import { addPantryItems, addLocalPantryItems, adjustCookedDishPortions, adjustLo
 import { normalizePantryInput } from "../utils/normalizePantryInput.js";
 import { membersOfGroup, isBabyMenuGroup, adhocReasonLabel, opcionesDeMenu } from "../lib/groups.js";
 import { eatersForSlot } from "../lib/slotEaters.js";
+import { comidasFuera, planSinComidas } from "../lib/presentes.js";
 import { summarizeMenuRestrictionConflicts } from "../utils/menuConflicts.js";
 import { Avatar, BottomNav, Chip, EmptyIllustration, GroupAvatarStack, GroupScopePicker, WeekRangeBadge, WizardSheet, bottomNavSpacer, safeTop, groupAvatarFaces, APP_SHELL_MAX_WIDTH } from "../components/ui.jsx";
 import { CommentThread } from "../components/CommentThread.jsx";
@@ -480,13 +481,12 @@ function FilterSectionRow({ label, color, children }) {
 }
 
 function groupForMember(memberId, groups) {
-  return groups.find((g) => g.memberIds.includes(memberId));
+  return groups.find((g) => g.memberIds?.includes(memberId));
 }
 
-/** Filled person avatar (name below) that jumps the menu to whichever group
- * this person is currently in — their own ad-hoc menu if they have one,
- * otherwise their shared family/group menu. Same selection model as the
- * "Menú" row above: one `scope`, whatever avatar you tap. */
+/** Filled person avatar (name below). Tapping it shows that person's week:
+ * their own ad-hoc menu if they have one, otherwise their shared menu, without
+ * the meals they eat out. */
 function PersonScopeCircle({ member, color, active, onClick }) {
   const abbrev = initialsOf(member.name);
   const avatar = memberAvatarThumbSrc(member);
@@ -2927,6 +2927,7 @@ function DeckDayPager({ days, activeDay, onActiveDay, weekDates, data, menuPlan,
                   <span style={{ fontSize: 15, fontWeight: 900, color: "#142f1d", letterSpacing: "-.2px" }}>{dayLabel(day)}</span>
                   <span style={{ fontSize: 13, fontWeight: 800, color: "#2d5a3d", ...(esHoy(day, weekDates) ? numeroDeHoy : null) }}>{calendarDayNumber(day, weekDates)}</span>
                   <span style={{ flex: 1, height: 1, background: "#dbe8df", marginLeft: 2 }} />
+                  <FueraDelDia day={day} comidasDelDia={getDayMeals(data)} />
                   <DayRegenButton day={day} onRegenerateDay={onRegenerateDay} groups={regenGroups} />
                 </div>
               </div>
@@ -2971,11 +2972,33 @@ function DeckDayPager({ days, activeDay, onActiveDay, weekDates, data, menuPlan,
 
 // Hoy, en las cabeceras de Día y Semana: el mismo aro verde que marca hoy en
 // el Mes, alrededor del número.
+/** Las comidas que la persona elegida pasa fuera, por día (`comidasFuera`). Sin persona elegida, vacío. */
+const FueraContext = createContext({});
+
+/** La marca del día en la vista de una persona: «Fuera» si es el día entero; si no, qué comidas. */
+function FueraDelDia({ day, comidasDelDia }) {
+  const comidas = useContext(FueraContext)[day];
+  if (!comidas) return null;
+  const todoElDia = comidasDelDia.every((c) => comidas.includes(c));
+  return (
+    <span
+      style={{
+        flexShrink: 0, padding: "var(--esp-2) var(--esp-8)", borderRadius: "var(--radio-pildora)",
+        background: "var(--color-fondo-suave)", color: "var(--color-tinta-suave)",
+        fontSize: "var(--tipo-paso-10)", fontWeight: "var(--tipo-peso-800)", whiteSpace: "nowrap",
+      }}
+    >
+      {todoElDia ? "Fuera" : `Fuera · ${comidas.join(", ")}`}
+    </span>
+  );
+}
+
 const esHoy = (day, weekDates) => Boolean(weekDates?.[day]) && isoLocalDate(weekDates[day]) === isoLocalDate(new Date());
 const numeroDeHoy = { fontWeight: 900, padding: "1px 7px", borderRadius: 999, boxShadow: "0 0 0 1.5px currentColor" };
 
 /** "Semana" view — one row per day, horizontally scrollable mini photo cards. */
 function DeckWeek({ days, weekDates, data, menuPlan, visibleGroups, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [], showGroup = false, invitadosPorHueco = null, denso = false, zoom = null, onAddSlot = null, onRemoveSlot = null, onFillSlot = null, onDishActions = null, repartiendo = false }) {
+  const fuera = useContext(FueraContext);
   // Un contador que corre por TODA la semana, no por día: las cartas caen de
   // lunes a domingo seguidas, que es como se lee el tablero. Reiniciarlo en
   // cada día las haría caer de siete en siete a la vez.
@@ -2994,7 +3017,7 @@ function DeckWeek({ days, weekDates, data, menuPlan, visibleGroups, onDishTap, o
         const tiles = getDeckDayTiles(day, data, menuPlan, visibleGroups);
         // Un día sin huecos se sigue pintando cuando hay `+`: si desapareciera,
         // no habría dónde tocar para volver a abrirle uno.
-        if (tiles.length === 0 && !onAddSlot) return null;
+        if (tiles.length === 0 && !onAddSlot && !fuera[day]) return null;
         // De lejos (mosaico) el día pasa a una columna a la izquierda: una
         // línea de cabecera por día se comía media pantalla, y lo que se busca
         // desde ahí arriba es ver la semana entera de un vistazo.
@@ -3012,6 +3035,7 @@ function DeckWeek({ days, weekDates, data, menuPlan, visibleGroups, onDishTap, o
                 <span style={{ fontSize: 14, fontWeight: 900, color: "var(--pz-tinta, #142f1d)" }}>{dayLabel(day)}</span>
                 <span style={{ fontSize: 12, fontWeight: 800, color: "var(--pz-verde, #2d5a3d)", ...(hoy ? numeroDeHoy : null) }}>{calendarDayNumber(day, weekDates)}</span>
                 <span style={{ flex: 1, height: 1, background: "var(--pz-linea, #e8f0ea)" }} />
+                <FueraDelDia day={day} comidasDelDia={getDayMeals(data)} />
                 <DayRegenButton day={day} onRegenerateDay={onRegenerateDay} groups={regenGroups} compact />
               </div>
             )}
@@ -4577,42 +4601,42 @@ function ScopeCircle({ opt, active, size = 42, members }) {
 }
 
 /**
- * Quién come, a la izquierda de la fila de la pizarra: hasta tres caras y un
- * «+N». Con varios menús, tocarlo pasa a la opción siguiente (Todos → cada
- * menú → Todos) y filtra el tablero con el mismo `scope` de la pantalla.
+ * Quién come, a la izquierda de la fila de la pizarra: hasta tres caras, un
+ * «+N» y debajo a quién se está viendo. Tocarlo abre la hoja de `DeckFilter`
+ * (Todos, cada menú y cada persona): antes rotaba entre menús sin avisar de
+ * cuál venía, y la flecha es lo que dice que esto se toca.
  *
- * Aquí antes había chips, y con razón: tocar las caras pasaba a la siguiente
- * sin decir a cuál, y una pila de caras no explica que lo que se filtra es un
- * menú y no una persona. Por eso el nombre de la opción va siempre bajo las
- * caras, y el `aria-label` dice cuál viene después.
- *
- * Con un solo menú no hay nada que filtrar: son solo las caras y no es un
+ * Con una sola persona no hay nada que filtrar: es solo la cara y no es un
  * botón, porque un botón que no hace nada parece roto.
  */
-export function QuienCome({ groups, scope, onScopeChange, members }) {
+export function QuienCome({ groups, scope, onScopeChange, members, persona = null, onPersona }) {
   const roster = members ?? [];
   const { opciones, indice } = opcionesDeMenu(groups, scope);
   const variosMenus = opciones.length > 2;
-  const i = variosMenus ? indice : 0;
-  const actual = opciones[i];
-  const siguiente = opciones[(i + 1) % opciones.length];
+  const actual = opciones[variosMenus ? indice : 0];
+  const elegible = variosMenus || roster.length > 1;
   // Con un solo menú, quien come es quien está en él (o la casa, si el menú no
   // dice quién).
   const grupo = variosMenus ? actual.group : groups?.[0] ?? null;
-  const quienes = grupo?.memberIds ? roster.filter((m) => grupo.memberIds.includes(m.id)) : roster;
+  const delMenu = grupo?.memberIds ? roster.filter((m) => grupo.memberIds.includes(m.id)) : roster;
+  const elegida = roster.find((m) => m.id === persona);
+  const quienes = elegida ? [elegida] : delMenu;
   const caras = groupAvatarFaces(quienes, roster);
+  const nombre = elegida?.name ?? actual.label;
 
   const contenido = (
     <>
       {caras.length > 0 && <GroupAvatarStack faces={caras} size={32} max={3} />}
-      {variosMenus && (
+      {elegible && (
         <span
           style={{
+            display: "inline-flex", alignItems: "center", gap: "var(--esp-2)",
             fontSize: "var(--tipo-paso-10)", fontWeight: "var(--tipo-peso-800)", lineHeight: 1,
             color: "var(--color-marca)", whiteSpace: "nowrap",
           }}
         >
-          {actual.label}
+          {nombre}
+          <ChevronDown size={11} strokeWidth={3} />
         </span>
       )}
     </>
@@ -4623,7 +4647,7 @@ export function QuienCome({ groups, scope, onScopeChange, members }) {
     padding: "0 var(--esp-8)",
   };
 
-  if (!variosMenus) {
+  if (!elegible) {
     if (caras.length === 0) return null;
     const nombres = quienes.map((m) => m.name).filter(Boolean).join(", ");
     return (
@@ -4633,52 +4657,63 @@ export function QuienCome({ groups, scope, onScopeChange, members }) {
     );
   }
   return (
-    <button
-      type="button"
-      className="deck-press"
-      data-coach="menu-filters"
-      onClick={() => onScopeChange(siguiente.id)}
-      aria-label={`Menú de ${actual.label}. Toca para ver ${siguiente.label}`}
-      style={{ ...caja, border: "none", background: "transparent", cursor: "pointer", fontFamily: "inherit" }}
-    >
-      {contenido}
-    </button>
+    <DeckFilter
+      groups={groups} scope={scope} onScopeChange={onScopeChange} members={members}
+      persona={persona} onPersona={onPersona}
+      boton={(abrir) => (
+        <button
+          type="button"
+          className="deck-press"
+          data-coach="menu-filters"
+          onClick={abrir}
+          aria-haspopup="dialog"
+          aria-label={`Quién come: ${nombre}. Toca para elegir`}
+          style={{ ...caja, border: "none", background: "transparent", cursor: "pointer", fontFamily: "inherit" }}
+        >
+          {contenido}
+        </button>
+      )}
+    />
   );
 }
 
 /**
  * Deck filter — a circular chip (identical to the popup circles) that opens a
  * centered "liquid glass" modal to filter by menú (dieta/bebés/niños…) and by
- * persona. Only rendered when there are several menús.
+ * persona. Con un solo menú la fila de menús se queda en «Todos»: quedan las
+ * personas. `boton`, si viene, sustituye al círculo (lo usa `QuienCome`).
  */
-export function DeckFilter({ groups, scope, onScopeChange, members }) {
+export function DeckFilter({ groups, scope, onScopeChange, members, persona = null, onPersona, boton = null }) {
   const [open, setOpen] = useState(false);
 
-  const { opciones: scopeOptions, indice } = opcionesDeMenu(groups, scope);
-  const activeOpt = scopeOptions[indice];
+  const { opciones, indice } = opcionesDeMenu(groups, scope);
+  const activeOpt = opciones[indice];
+  const scopeOptions = opciones.length > 2 ? opciones : opciones.slice(0, 1);
 
   return (
     <>
-      <button
-        type="button"
-        className="deck-press"
-        data-coach="menu-filters"
-        onClick={() => setOpen(true)}
-        aria-haspopup="dialog"
-        aria-label={`Filtrar menú (${activeOpt.label})`}
-        title={`Filtrar · ${activeOpt.label}`}
-        style={{
-          border: "none",
-          background: "transparent",
-          padding: 0,
-          cursor: "pointer",
-          fontFamily: "inherit",
-          flexShrink: 0,
-          display: "inline-flex",
-        }}
-      >
-        <ScopeCircle opt={activeOpt} active size={42} members={members} />
-      </button>
+      {boton ? boton(() => setOpen(true)) : (
+        <button
+          type="button"
+          className="deck-press"
+          data-coach="menu-filters"
+          onClick={() => setOpen(true)}
+          aria-haspopup="dialog"
+          aria-label={`Filtrar menú (${activeOpt.label})`}
+          title={`Filtrar · ${activeOpt.label}`}
+          style={{
+            border: "none",
+            background: "transparent",
+            padding: 0,
+            cursor: "pointer",
+            fontFamily: "inherit",
+            flexShrink: 0,
+            display: "inline-flex",
+          }}
+        >
+          <ScopeCircle opt={activeOpt} active size={42} members={members} />
+        </button>
+      )}
 
       {open && (
         <div
@@ -4719,7 +4754,7 @@ export function DeckFilter({ groups, scope, onScopeChange, members }) {
             </div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 16, marginBottom: 18 }}>
               {scopeOptions.map((opt) => {
-                const isActive = scope === opt.id;
+                const isActive = !persona && (opciones.length <= 2 || scope === opt.id);
                 return (
                   <button
                     key={opt.id}
@@ -4727,6 +4762,7 @@ export function DeckFilter({ groups, scope, onScopeChange, members }) {
                     className="deck-press"
                     onClick={() => {
                       onScopeChange(opt.id);
+                      onPersona?.(null);
                       setOpen(false);
                     }}
                     style={{
@@ -4769,16 +4805,16 @@ export function DeckFilter({ groups, scope, onScopeChange, members }) {
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 14 }}>
                   {members.map((member) => {
                     const color = memberAvatarColor(member.id, members);
-                    const memberGroupId = groupForMember(member.id, groups)?.id ?? "all";
-                    const active = scope === memberGroupId;
+                    const memberGroupId = groupForMember(member.id, groups ?? [])?.id ?? "all";
                     return (
                       <PersonScopeCircle
                         key={member.id}
                         member={member}
                         color={color}
-                        active={active}
+                        active={persona === member.id}
                         onClick={() => {
                           onScopeChange(memberGroupId);
+                          onPersona?.(member.id);
                           setOpen(false);
                         }}
                       />
@@ -5174,6 +5210,9 @@ export const MenuScreen = memo(function MenuScreen({
   // Pellizcar la pizarra: la semana, más cerca o más lejos (ver el hook).
   const { ref: refZoom, zoom: zoomPizarra } = useZoomPellizco(modoPizarra);
   const [scope, setScope] = useState("all");
+  // La persona que se está mirando, o null. Va aparte del `scope` (que pasa a
+  // su menú) porque un menú no sabe qué comidas se salta cada uno.
+  const [persona, setPersona] = useState(null);
   const [profileOpen, setProfileOpen] = useState(false);
   const [pdfExportOpen, setPdfExportOpen] = useState(false);
   const [showIconCoach, setShowIconCoach] = useState(false);
@@ -5530,6 +5569,7 @@ export const MenuScreen = memo(function MenuScreen({
     if (!multiGroup || scope === "all") return data.groups;
     return data.groups.filter((g) => g.id === scope);
   }, [data.groups, multiGroup, scope]);
+  const personaVista = (data.members ?? []).some((m) => m.id === persona) ? persona : null;
   // A plan can have keys (or leftover recipe ids on days outside this week)
   // without anything to paint in the current deck — treat that as empty so
   // the "Generar" card shows instead of a blank Semana view.
@@ -5648,6 +5688,26 @@ export const MenuScreen = memo(function MenuScreen({
     }
     return live ? [live] : [];
   }, [menuWeeks, currentWeekIdx, menuPlan, activeDays, weekDates]);
+
+  // La vista de una persona: lo mismo, sin las comidas que no come. Es solo lo
+  // que se pinta en el tablero; el plan de verdad no cambia.
+  const fueraDeSemana = useCallback((dates, dias, schedule) => {
+    const fechas = Object.fromEntries(dias.flatMap((d) => (dates?.[d] ? [[d, isoLocalDate(dates[d])]] : [])));
+    return comidasFuera({ ...data, schedule }, personaVista, fechas, getDayMeals(data));
+  }, [data, personaVista]);
+  const fuera = useMemo(
+    () => (personaVista ? fueraDeSemana(weekDates, activeDays ?? [], data.schedule) : {}),
+    [personaVista, fueraDeSemana, weekDates, activeDays, data.schedule],
+  );
+  const planVisto = useMemo(() => (personaVista ? planSinComidas(menuPlan, fuera) : menuPlan), [personaVista, menuPlan, fuera]);
+  const semanasVistas = useMemo(() => {
+    if (!personaVista) return monthWeeks;
+    return monthWeeks.map((w) => {
+      if (!w?.weekStart || !w.plan) return w;
+      const { dates, activeDays: dias } = w.dates && w.activeDays ? w : getWeekDatesFromStartISO(w.weekStart, w.startDayIdx ?? 0);
+      return { ...w, plan: planSinComidas(w.plan, fueraDeSemana(dates, dias, w.schedule ?? data.schedule)) };
+    });
+  }, [personaVista, monthWeeks, fueraDeSemana, data.schedule]);
 
   /**
    * Tocar un día en la vista de mes.
@@ -6252,7 +6312,7 @@ export const MenuScreen = memo(function MenuScreen({
                     // chips que iban encima: dos mandos del mismo filtro
                     // obligan a mirar los dos para saber cuál manda.
                     quienCome: (
-                      <QuienCome groups={data.groups} scope={scope} onScopeChange={setScope} members={data.members ?? []} />
+                      <QuienCome groups={data.groups} scope={scope} onScopeChange={setScope} members={data.members ?? []} persona={personaVista} onPersona={setPersona} />
                     ),
                   })
                   : pizarraControles}
@@ -6293,12 +6353,14 @@ export const MenuScreen = memo(function MenuScreen({
               )}
             </div>
             <span style={{ flex: 1, minWidth: 0 }} />
-            {!modoPizarra && multiGroup && (
+            {!modoPizarra && (multiGroup || (data.members?.length ?? 0) > 1) && (
               <DeckFilter
                 groups={data.groups}
                 scope={scope}
                 onScopeChange={setScope}
                 members={data.members ?? []}
+                persona={personaVista}
+                onPersona={setPersona}
               />
             )}
           </div>
@@ -6357,11 +6419,12 @@ export const MenuScreen = memo(function MenuScreen({
           >
             <ArmedContext.Provider value={armed}>
             <SeleccionContext.Provider value={hayMarcados ? { marcados } : null}>
+            <FueraContext.Provider value={fuera}>
             <MenuDeck
               repartiendo={repartiendo}
               denso={modoPizarra}
               zoom={modoPizarra ? zoomPizarra : null}
-              onAddSlot={modoPizarra ? onAddSlot : null}
+              onAddSlot={modoPizarra && !personaVista ? onAddSlot : null}
               onRemoveSlot={modoPizarra ? onRemoveSlot : null}
               onFillSlot={modoPizarra ? onFillSlots : null}
               onDishActions={modoPizarra && !readOnly ? setDishAction : null}
@@ -6369,7 +6432,7 @@ export const MenuScreen = memo(function MenuScreen({
               days={activeDays}
               weekDates={weekDates}
               data={data}
-              menuPlan={menuPlan}
+              menuPlan={planVisto}
               visibleGroups={visibleGroups}
               members={data.members ?? []}
               dishAvailability={dishAvailability}
@@ -6381,10 +6444,11 @@ export const MenuScreen = memo(function MenuScreen({
               onDishLongPress={handleTileLongPress}
               onRegenerateDay={onRegenerateDay}
               regenGroups={activeMenus}
-              menuWeeks={monthWeeks}
+              menuWeeks={semanasVistas}
               onPickMonthDay={handlePickMonthDay}
               invitadosPorHueco={invitadosPorHueco}
             />
+            </FueraContext.Provider>
             </SeleccionContext.Provider>
             </ArmedContext.Provider>
           </div>

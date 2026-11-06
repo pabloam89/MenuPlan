@@ -175,8 +175,8 @@ export const MENU_COACH_STEPS = [
     place: "below",
   },
   {
-    // The circle of faces that opens the scope picker (only when the family
-    // eats from more than one menú — otherwise there's nothing to filter).
+    // The circle of faces that opens the scope picker (with one person there's
+    // nothing to filter).
     selector: '[data-coach="menu-filters"]',
     Icon: Users,
     title: "El menú de cada uno",
