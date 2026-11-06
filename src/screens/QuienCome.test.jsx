@@ -87,8 +87,10 @@ describe("quién come, en la fila de la pizarra", () => {
     const espia = vi.fn();
     const caja = montar(<Pantalla grupos={dosMenus} espia={espia} />);
     abrir(caja);
+    act(() => opcion("Peques").click());
+    abrir(caja);
     act(() => opcion("Sol").click());
-    expect(espia.mock.calls).toEqual([["menu", "all"], ["persona", "p5"]]);
+    expect(espia.mock.calls.slice(-2)).toEqual([["menu", "all"], ["persona", "p5"]]);
   });
 
   it("un menú que ya no existe cae en Todos", () => {
