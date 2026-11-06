@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { TOPE_ENCARGO_MS } from "../../scripts/lib/mercadonaTrabajador.mjs";
 
 const db = vi.hoisted(() => ({ cuenta: [], encargo: [], insertar: null, tomado: [] }));
 const CASA = "c1";
@@ -252,6 +253,10 @@ describe("los plazos", () => {
 
   it("el de sin coger es el de tomar_encargo_mercadona", () => {
     expect(sql).toContain(`interval '${m.CADUCA_PENDIENTE_MIN} minutes'`);
+  });
+
+  it("el de en marcha pasa de lo que el trabajador se permite por encargo", () => {
+    expect(m.CADUCA_RELLENANDO_MIN * 60 * 1000).toBeGreaterThan(TOPE_ENCARGO_MS);
   });
 });
 

@@ -263,6 +263,7 @@ export const esCopia = (lista, valores) =>
 /** Vocabularios que su fuente importa de otro fichero: ese otro es el dueño. */
 const DUENO_DE = {
   "vocabularios.aparatos": "src/lib/electrodomesticos.js",
+  "vocabularios.fallos_encargo_mercadona": "src/lib/mercadonaFallos.js",
   "receta.healthFlags": "src/lib/healthFlags.js",
 };
 
