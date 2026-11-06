@@ -10,7 +10,7 @@ vi.mock("../lib/mercadonaApp.js", async (original) => ({
 }));
 vi.mock("../lib/mercadonaSello.js", () => ({ sellar: vi.fn(async () => "sellada") }));
 
-const { RecibirCuentaMercadona } = await import("./ConectarMercadona.jsx");
+const { Conectar, RecibirCuentaMercadona } = await import("./ConectarMercadona.jsx");
 const app = await import("../lib/mercadonaApp.js");
 const { MENSAJE_LISTA, ORIGEN_TIENDA } = await import("../lib/mercadonaConectar.js");
 const { sellar } = await import("../lib/mercadonaSello.js");
@@ -28,12 +28,33 @@ async function pintar(ui) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  window.matchMedia = vi.fn(() => ({ matches: true }));
 });
 
 afterEach(() => {
   act(() => root?.unmount());
   document.body.innerHTML = "";
   delete window.opener;
+});
+
+describe("Conectar", () => {
+  it("con ratón, ofrece el marcador con su enlace", async () => {
+    await pintar(<Conectar />);
+    expect(contenedor.querySelector("a").getAttribute("href")).toMatch(/^javascript:/);
+    expect(contenedor.textContent).toContain("Nunca veo tu contraseña");
+  });
+
+  it("en un móvil dice que se hace desde un ordenador, sin marcador", async () => {
+    window.matchMedia = vi.fn(() => ({ matches: false }));
+    await pintar(<Conectar />);
+    expect(contenedor.querySelector("a")).toBeNull();
+    expect(contenedor.textContent).toContain("desde un ordenador");
+  });
+
+  it("con la sesión caducada lo dice", async () => {
+    await pintar(<Conectar caducada />);
+    expect(contenedor.textContent).toContain("ha cerrado la sesión");
+  });
 });
 
 describe("RecibirCuentaMercadona", () => {
