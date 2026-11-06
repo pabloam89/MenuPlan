@@ -55,10 +55,24 @@ const cuenta = {
   lineHeight: 1.2,
 };
 
+const detalle = {
+  flex: 1,
+  minWidth: 0,
+  minHeight: 44,
+  padding: 0,
+  border: "none",
+  background: "transparent",
+  fontFamily: "inherit",
+  textAlign: "left",
+  cursor: "pointer",
+};
+
 const botonComprar = {
   flexShrink: 0,
   minHeight: 44,
-  padding: "0 var(--esp-24)",
+  display: "inline-flex",
+  alignItems: "center",
+  padding: "0 var(--esp-20)",
   border: "none",
   borderRadius: "var(--radio-control)",
   background: "var(--color-marca)",
@@ -66,6 +80,7 @@ const botonComprar = {
   fontFamily: "inherit",
   fontSize: "var(--tipo-paso-14)",
   fontWeight: "var(--tipo-peso-800)",
+  textDecoration: "none",
   cursor: "pointer",
 };
 
@@ -73,8 +88,10 @@ const botonComprar = {
  * El pie de la compra: cuánto es, cuántos productos, y el paso de comprar.
  * Pegado al menú de abajo (sticky, no fixed): al final de la lista ocupa su
  * sitio y no tapa la última fila. `onLola` es opcional: sin él no hay foto.
+ * `paso` es lo que dice el botón (`pasoDeComprar`); el total abre el detalle.
  */
-export default function BarraComprar({ total, productos, onComprar, onLola }) {
+export default function BarraComprar({ total, productos, paso = { texto: "Comprar" }, onComprar, onDetalle, onLola }) {
+  const nombre = paso.texto === "Comprar" ? `Comprar · ${total}` : paso.texto;
   return (
     <div style={pie}>
       {onLola && (
@@ -82,13 +99,17 @@ export default function BarraComprar({ total, productos, onComprar, onLola }) {
           <img src={lolaFoto} alt="" style={fotoLola} />
         </button>
       )}
-      <div style={{ flex: 1, minWidth: 0 }}>
+      <button type="button" onClick={onDetalle} aria-label={`Ver los productos · ${total}`} style={detalle}>
         <span style={importe}>{total}</span>
-        <span style={cuenta}>{productos === 1 ? "1 producto" : `${productos} productos`}</span>
-      </div>
-      <button type="button" onClick={onComprar} aria-label={`Comprar · ${total}`} style={botonComprar}>
-        Comprar
+        <span style={cuenta}>{paso.nota ?? (productos === 1 ? "1 producto" : `${productos} productos`)}</span>
       </button>
+      {paso.href ? (
+        <a href={paso.href} target="_blank" rel="noreferrer" style={botonComprar}>{paso.texto}</a>
+      ) : (
+        <button type="button" onClick={onComprar} disabled={paso.ocupado} aria-label={nombre} style={{ ...botonComprar, opacity: paso.ocupado ? 0.6 : 1 }}>
+          {paso.texto}
+        </button>
+      )}
     </div>
   );
 }
