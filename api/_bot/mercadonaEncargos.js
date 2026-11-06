@@ -32,7 +32,7 @@ export const NO_ENCARGADO = Object.freeze({
 export const TOPE_DIARIO = 10;
 /** Sin coger, nadie sigue esperando. El mismo plazo que tomar_encargo_mercadona en la 0131; un test los ata. */
 export const CADUCA_PENDIENTE_MIN = 15;
-/** Cogido y sin acabar: el trabajador murió. */
+/** Cogido y sin acabar: el trabajador murió. Mayor que su tope por encargo (TOPE_ENCARGO_MS); un test los ata. */
 export const CADUCA_RELLENANDO_MIN = 10;
 const DIA_MS = 24 * 60 * 60 * 1000;
 /** La sesión sellada: unas decenas de KB como mucho. */

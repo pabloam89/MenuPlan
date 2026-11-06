@@ -20,9 +20,9 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { chromium } from "@playwright/test";
-import { compararLista, erroresDeLista, leerGuardada } from "./lib/mercadonaLista.mjs";
+import { erroresDeLista } from "./lib/mercadonaLista.mjs";
+import { crearLista, enPagina, entrarEnTienda, TIENDA } from "./lib/mercadonaPagina.mjs";
 
-const TIENDA = "https://tienda.mercadona.es/";
 const ESPERA_LOGIN_MS = 5 * 60 * 1000;
 const args = process.argv.slice(2);
 const opcion = (n) => args.includes(n);
@@ -34,34 +34,6 @@ function listaDePrueba() {
   const baratos = products.filter((p) => Number(p.price) > 0 && Number(p.price) < 3).slice(0, 3);
   return { name: "Prueba Lola", products: baratos.map((p) => ({ merca_code: p.id, quantity: 1 })) };
 }
-
-// Corre dentro de su página, y la sesión no sale nunca de ahí. Sin lista, solo
-// dice si hay sesión; con lista, la crea y la relee.
-const enPagina = async (lista) => {
-  const leer = (k) => {
-    try {
-      const v = JSON.parse(localStorage.getItem(k));
-      return v?.token && v?.uuid ? v : null;
-    } catch {
-      return null;
-    }
-  };
-  let u = leer("MO-user");
-  for (let i = 0; !u && i < localStorage.length; i++) u = leer(localStorage.key(i));
-  if (!lista) return Boolean(u);
-  if (!u) return { paso: "sesion", status: 0 };
-  const cabeceras = { "content-type": "application/json", authorization: `Bearer ${u.token}` };
-  const base = `/api/customers/${u.uuid}/shopping-lists/`;
-  const r = await fetch(`${base}create-with-products/?lang=es`, {
-    method: "POST",
-    headers: cabeceras,
-    body: JSON.stringify({ name: lista.name, products: lista.products }),
-  });
-  if (!r.ok) return { paso: "crear", status: r.status };
-  const { id } = await r.json();
-  const g = await fetch(`${base}${id}/?lang=es`, { headers: cabeceras });
-  return { paso: "leer", status: g.status, id, guardada: g.ok ? await g.json() : null };
-};
 
 async function main() {
   const entrar = opcion("--entrar");
@@ -86,23 +58,22 @@ async function main() {
   }
   try {
     const pagina = contexto.pages()[0] ?? (await contexto.newPage());
-    const respuesta = await pagina.goto(TIENDA, { waitUntil: "domcontentloaded", timeout: 60_000 });
-    console.log(`portada: HTTP ${respuesta?.status()}`);
-    if (respuesta && respuesta.status() >= 400) {
-      console.log("resultado: bloqueado_portada");
-      return;
-    }
-
     if (entrar) {
+      const respuesta = await pagina.goto(TIENDA, { waitUntil: "domcontentloaded", timeout: 60_000 });
+      if (respuesta && respuesta.status() >= 400) {
+        console.log(`resultado: bloqueado_portada (HTTP ${respuesta.status()})`);
+        return;
+      }
       console.log("Entra con tu cuenta en la ventana de Chrome. Espero hasta 5 minutos.");
       await pagina.waitForFunction(enPagina, null, { timeout: ESPERA_LOGIN_MS, polling: 2000 });
       console.log("resultado: sesion_guardada");
       return;
     }
 
-    await pagina.waitForTimeout(3000);
-    if (!(await pagina.evaluate(enPagina, null))) {
-      console.log("resultado: sin_sesion (lanza primero --entrar)");
+    const portada = await entrarEnTienda(pagina);
+    console.log(`portada: HTTP ${portada.status}`);
+    if (portada.resultado) {
+      console.log(`resultado: ${portada.resultado}${portada.resultado === "sin_sesion" ? " (lanza primero --entrar)" : ""}`);
       return;
     }
     if (valor("--exportar")) {
@@ -117,20 +88,11 @@ async function main() {
       return;
     }
 
-    const r = await pagina.evaluate(enPagina, lista);
-    if (r.paso !== "leer") {
-      console.log(`resultado: fallo_${r.paso} (HTTP ${r.status})`);
-      return;
-    }
-    console.log(`lista creada: ${TIENDA}shopping-lists/${r.id}`);
-    if (!r.guardada) {
-      console.log(`resultado: lista_sin_releer (HTTP ${r.status})`);
-      return;
-    }
-    const { entraron, faltan } = compararLista(lista.products, leerGuardada(r.guardada));
-    console.log(`entraron ${entraron} de ${lista.products.length} productos (las cantidades no se releen)`);
-    for (const c of faltan) console.log(`  falta: ${c}`);
-    console.log(faltan.length ? "resultado: faltan_productos" : "resultado: productos_completos");
+    const r = await crearLista(pagina, lista);
+    if (r.id) console.log(`lista creada: ${TIENDA}shopping-lists/${r.id}`);
+    if (r.entraron !== undefined) console.log(`entraron ${r.entraron} de ${lista.products.length} productos (las cantidades no se releen)`);
+    for (const c of r.faltan ?? []) console.log(`  falta: ${c}`);
+    console.log(`resultado: ${r.resultado}${r.status ? ` (HTTP ${r.status})` : ""}`);
   } finally {
     await contexto.close();
     await navegador?.close();
