@@ -53,6 +53,11 @@ export const COLUMNAS_VOCABULARIO = Object.freeze({
   "receta_descartes.alcance": { lista: "alcances_descarte" },
   // Cómo se pidió cada menú (0130, trozo 70). Común: «camino» es también clave de objetos que no son filas.
   "menu_generado.camino": { lista: "caminos_menu", comun: true },
+  // Comprar en Mercadona (0131). Comunes: «estado», «status», «canal» y «fallo» son también claves de otras cosas.
+  "mercadona_cuenta.estado": { lista: "estados_cuenta_mercadona", comun: true },
+  "mercadona_encargo.canal": { lista: "canales_encargo", comun: true },
+  "mercadona_encargo.status": { lista: "estados_encargo_mercadona", comun: true },
+  "mercadona_encargo.fallo": { lista: "fallos_encargo_mercadona", comun: true },
   // Las columnas del eje de registro_campo (0105): listas del producto que registroFicha.js usa en cada dato.
   // Comunes: «ficha», «clase», «escribe» y «choque» son también claves de objetos que no son filas.
   "registro_campo.ficha": { lista: "fichas", comun: true },
@@ -96,6 +101,10 @@ export const COLUMNAS_VOCABULARIO = Object.freeze({
  * un `default '<valor>'` de las migraciones sobre una columna de arriba no está aquí.
  */
 export const ESCRITORES_SQL = Object.freeze({
+  "mercadona_encargo.status": "tomar_encargo_mercadona (0131) escribe el valor fijo 'rellenando', de la lista; el default 'pendiente' lo pone la base",
+  "mercadona_encargo.canal": "solo la autoprueba de la 0131 ('app', en un bloque que se deshace); encargar lo pasa por paraEscribir",
+  "mercadona_encargo.fallo": "solo la autoprueba de la 0131 (caducado, en un bloque que se deshace); cerrar y barrerCaducados lo pasan por paraEscribir",
+  "mercadona_cuenta.estado": "el default 'conectada' de la 0131; conectar y cerrar (api/_bot/mercadonaEncargos.js) escriben valores de la lista",
   "bot_tareas.aviso": "solo la autoprueba de la 0122 ('libre', en un bloque que se deshace); el código lo escribe con el PR 2 del trozo 34",
   "bot_tareas.repite": "solo la autoprueba de la 0122 ('semanal', en un bloque que se deshace); el código lo escribe con el PR 2 del trozo 34",
   "bot_tareas.channel": "la autoprueba de la 0122 (0122_recordatorios_en_tareas) inserta 'telegram' a mano, en un bloque que se deshace: no queda ninguna fila",

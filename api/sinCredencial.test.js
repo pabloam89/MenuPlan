@@ -27,6 +27,7 @@ const PETICIONES = {
   "api/generate-dish-photo.js": { method: "POST", body: { dishName: "Lentejas" } },
   "api/generate.js": { method: "POST", body: { messages: [{ role: "user", content: "hola" }] } },
   "api/moderate-takedown.js": { method: "GET", query: { r: UUID } },
+  "api/mercadona.js": { method: "POST", body: { casa: UUID, encargar: { lista: {} } } },
   "api/moderate.js": { method: "POST", body: { text: "hola" } },
   "api/operacion.js": { method: "POST", body: { casa: UUID, clave: UUID, accion: "ver_ajustes", ref_id: "ajustes", dato: { campo: "sexo", persona_id: "p1", valor: "mujer", origen: "dicho" } } },
   "api/recipe-steps.js": { method: "POST", body: { recipeId: "r1", appliance: "horno" } },
