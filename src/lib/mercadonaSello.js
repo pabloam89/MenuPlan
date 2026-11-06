@@ -1,0 +1,45 @@
+/**
+ * Sellar la sesión de Mercadona con la clave pública del trabajador (0131, skill `mercadona`): el navegador la sella
+ * antes de enviarla, y ni Vercel ni la base la pueden abrir. Solo la abre el trabajador (scripts/mercadona-trabajador.mjs),
+ * con la clave privada.
+ *
+ * Por dentro: AES-256-GCM con una clave de un solo uso, y esa clave cifrada con RSA-OAEP (SHA-256). Es lo que WebCrypto
+ * da en todos los navegadores. Funciona igual en Node, que trae el mismo `crypto.subtle`.
+ */
+
+export const VERSION_SELLO = 1;
+/** El algoritmo de las claves: lo usan también el test y quien crea las claves. */
+export const ALGORITMO_CLAVE = Object.freeze({ name: "RSA-OAEP", hash: "SHA-256" });
+
+const aBase64 = (bytes) => btoa(String.fromCharCode(...new Uint8Array(bytes)));
+const deBase64 = (texto) => Uint8Array.from(atob(texto), (c) => c.charCodeAt(0));
+
+/** @param {string} texto la sesión @param {string} clavePublica base64 de la clave en SPKI */
+export async function sellar(texto, clavePublica) {
+  const { subtle } = globalThis.crypto;
+  const publica = await subtle.importKey("spki", deBase64(clavePublica), ALGORITMO_CLAVE, false, ["wrapKey"]);
+  const clave = await subtle.generateKey({ name: "AES-GCM", length: 256 }, true, ["encrypt"]);
+  const iv = globalThis.crypto.getRandomValues(new Uint8Array(12));
+  const cifrado = await subtle.encrypt({ name: "AES-GCM", iv }, clave, new TextEncoder().encode(texto));
+  const envuelta = await subtle.wrapKey("raw", clave, publica, ALGORITMO_CLAVE);
+  return JSON.stringify({ v: VERSION_SELLO, k: aBase64(envuelta), iv: aBase64(iv), c: aBase64(cifrado) });
+}
+
+/** ¿Tiene la forma de un sello? Lo mira el servidor antes de guardar: nunca una sesión en claro, ni por un fallo de la app. */
+export function esSello(texto) {
+  try {
+    const { v, k, iv, c, ...resto } = JSON.parse(texto);
+    return v === VERSION_SELLO && [k, iv, c].every((x) => typeof x === "string" && x) && Object.keys(resto).length === 0;
+  } catch {
+    return false; // a propósito: lo que no es JSON no es un sello
+  }
+}
+
+/** @param {string} sello lo que dio `sellar` @param {CryptoKey} privada la clave privada RSA-OAEP, con uso `unwrapKey` */
+export async function abrir(sello, privada) {
+  const { v, k, iv, c } = JSON.parse(sello);
+  if (v !== VERSION_SELLO) throw new Error(`sello de otra versión: ${v}`);
+  const { subtle } = globalThis.crypto;
+  const clave = await subtle.unwrapKey("raw", deBase64(k), privada, ALGORITMO_CLAVE, { name: "AES-GCM" }, false, ["decrypt"]);
+  return new TextDecoder().decode(await subtle.decrypt({ name: "AES-GCM", iv: deBase64(iv) }, clave, deBase64(c)));
+}
