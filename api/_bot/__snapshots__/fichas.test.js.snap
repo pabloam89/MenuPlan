@@ -220,6 +220,16 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
  },
  {
   "type": "custom",
+  "name": "pasar_a_mercadona",
+  "input_schema": {
+   "type": "object",
+   "properties": {},
+   "additionalProperties": false
+  },
+  "description": "Rellena una lista en la cuenta de Mercadona de la familia con lo que queda por comprar («pásalo a Mercadona», «méteme la compra en Mercadona»). Solo crea la lista: no compra ni paga. Tarda unos minutos y el aviso llega solo a este chat. Dile lo que devuelve, sin añadir nada."
+ },
+ {
+  "type": "custom",
   "name": "quitar_compra",
   "input_schema": {
    "type": "object",

@@ -404,6 +404,14 @@ function guardarLista(casa, shopping) {
 }
 
 /** La lista no tiene nada, ni comprado: su pantalla no enseñaría nada. */
+/** Las líneas por comprar de la casa, o null si no hay casa. */
+export async function lineasPorComprar(householdId) {
+  const casa = await cargarCasa(householdId);
+  if (!casa) return null;
+  const { isActiveItem } = await motor();
+  return (listaDe(casa).items ?? []).filter(isActiveItem);
+}
+
 export const compraVacia = (casa) => !(listaDe(casa).items ?? []).length;
 
 export function describirCompra(casa) {

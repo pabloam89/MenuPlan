@@ -29,6 +29,11 @@ export async function loadStoreCatalog(store = "mercadona") {
   return _cache.get(key);
 }
 
+/** Deja el catálogo ya leído: el servidor no puede pedirlo por red como el navegador. */
+export function fijarCatalogo(store, catalogo) {
+  _cache.set(store.toLowerCase(), Promise.resolve(catalogo));
+}
+
 /** @param {string} [store] */
 export function resetStoreCatalogCache(store) {
   if (store) _cache.delete(store.toLowerCase());

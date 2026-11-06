@@ -166,6 +166,7 @@ const MAPA = [
   c("anadir_compra", "añadir a la lista algo que no sale del menú", "compra", "anadir", "compra"),
   c("cantidad_compra", "cambiar la cantidad de un producto", "compra", "cambiar", "compra", { app: app("compra") }),
   c("quitar_compra", "quitar productos de la lista, o todo lo añadido a mano", "compra", "quitar", "compra", { app: app("compra") }),
+  c("pasar_a_mercadona", "rellenar una lista en la cuenta de Mercadona", "compra", "compartir", "compra", { app: app("compra") }),
   c("compartir_compra", "mandar la lista a otra persona", "compra", "compartir", "compra", { app: app("compra") }),
   c("elegir_super", "elegir el súper", "compra", "cambiar", "compra", { app: app("asistente", { escribe: ["supermarkets"], apagada: ASISTENTE }), aProposito: SE_PREGUNTA_EN_LOLA }),
   // Qué hace (lib/presupuesto.js, #958): al generar, el solver prefiere lo que
