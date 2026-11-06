@@ -58,7 +58,7 @@ Solo lo irreversible o lo que sale fuera; lo demás se hace y se cuenta.
 ## Reglas por carpeta y skills
 
 - Reglas (`.claude/rules/`), saltan al leer o editar su zona: `lola` (`api/_bot/`, `api/bot/`), `catalogo` (`src/data/`, `src/utils/`, `src/lib/`), `ui` (`src/**/*.jsx`), `api` (`api/*.js`), `migraciones` (`supabase/`) y `tests`.
-- Skills (`.claude/skills/`), runbooks de cada servicio: `1password`, `alta-de-secreto`, `github`, `hetzner`, `pr-con-juez`, `supabase`, `tailscale`, `telegram` y `vercel`.
+- Skills (`.claude/skills/`), runbooks de cada servicio: `1password`, `alta-de-secreto`, `github`, `hetzner`, `mercadona`, `pr-con-juez`, `supabase`, `tailscale`, `telegram` y `vercel`.
 - **Antes de usar un servicio por primera vez en la sesión, y siempre antes de un bucle o un reintento contra él, lee su skill entera**, también «Lo que falló»: ahí están sus cupos, sus límites y lo que no se hace. Vale para todas las de arriba y las que se añadan. Al arrancar solo se ve una línea de cada una, y sus avisos no. Si un servicio falla raro, se para y se lee la skill; no se reintenta. El encargo de un agente que use un servicio dice lo mismo. Pasó el 4 nov 2026: consultas en bucle sin leer `1password` agotaron el cupo de todas las sesiones.
 
 ## Código
