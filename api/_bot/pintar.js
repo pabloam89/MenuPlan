@@ -30,7 +30,7 @@ import { comida as delCatalogo, comidasDeLaCasa, iconoDe } from "../../src/lib/c
 import { diaDeFecha, sumarDias } from "./cuando.js";
 import { grupos as gruposDeLaCasa, grupoPara, quienesDe, cambiosDe, normal, prepararRecetas, resolverHuecos } from "./menu.js";
 import { apuntaSuPlato } from "../../src/lib/apuntaSuPlato.js";
-import { fueraEn } from "./presentes.js";
+import { fueraEn } from "../../src/lib/presentes.js";
 import { propiasDe } from "./propias.js";
 import { DIA_LARGO_MINUSCULAS } from "../../src/lib/dias.js";
 
@@ -165,7 +165,7 @@ export function pintarMenu(casa, { dias = [], comidas = null, platos = null, gru
     const lineas = [];
     for (const c of aPintar) {
       // Los que ese día no comen en casa no salen en la etiqueta, y un grupo
-      // que se ha ido entero no se pinta (presentes.js).
+      // que se ha ido entero no se pinta (src/lib/presentes.js).
       const fuera = fueraEn(casa?.state?.data ?? {}, fecha, dia, c);
       const enCasa = (g) => (fuera.size ? { ...g, memberIds: (g.memberIds ?? []).filter((id) => !fuera.has(id)) } : g);
       const porGrupo = gs.map((g) => {
