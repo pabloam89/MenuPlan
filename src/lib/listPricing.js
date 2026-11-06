@@ -279,6 +279,7 @@ function priceOneItem(item, catalogProducts, priceObs) {
           storePackLabel: buy.packLabel,
           storeTotalQty: buy.totalQtyText,
           storeUnitSize: buy.unitSizeText,
+          storeProductId: match.product.id,
           storePacks: buy.packs,
           storeConfidence: match.confidence,
           storePriceSource: "mercadona",
