@@ -1,3 +1,4 @@
+import { vieneDelMarcador } from "./lib/mercadonaConectar.js";
 import { FRONTAL_BOT, GUIAS_ACTIVAS, GENTE_ACTIVA, abrirLola, avisarAltaALola } from "./lib/frontalBot.js";
 import { pedidoMenu } from "./lib/pedidoLola.js";
 import { cerrarAlta, MOTIVO } from "./lib/altaGuardada.js";
@@ -45,6 +46,7 @@ import { CatalogBrowserSheet } from "./screens/CatalogBrowserSheet.jsx";
 import { recipeCatalogById } from "./data/recipeCatalog.js";
 import { tandaDelMenu } from "./lib/tandaDelPlato.js";
 const ValuePropsCarousel = lazy(() => import("./screens/ValueProps.jsx").then(m => ({ default: m.ValuePropsCarousel })));
+const RecibirCuentaMercadona = lazy(() => import("./components/ConectarMercadona.jsx").then(m => ({ default: m.RecibirCuentaMercadona })));
 const ShoppingScreen = lazy(() => import("./screens/Shopping.jsx").then(m => ({ default: m.ShoppingScreen })));
 const AnalyticsScreen = lazy(() => import("./screens/Analytics.jsx").then(m => ({ default: m.AnalyticsScreen })));
 const SettingsScreen = lazy(() => import("./screens/Settings.jsx").then(m => ({ default: m.SettingsScreen })));
@@ -6479,6 +6481,12 @@ export default function App() {
               />
             </Suspense>
           </div>
+        )}
+
+        {vieneDelMarcador(window.location.search) && (
+          <Suspense fallback={null}>
+            <RecibirCuentaMercadona casa={activeHouseholdId} />
+          </Suspense>
         )}
 
         {screen === "shopping" && (
