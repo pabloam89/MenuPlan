@@ -234,5 +234,11 @@
   ],
   "menu_generado": [
     "api/_bot/menusGenerados.js"
+  ],
+  "mercadona_cuenta": [
+    "api/_bot/mercadonaEncargos.js"
+  ],
+  "mercadona_encargo": [
+    "api/_bot/mercadonaEncargos.js"
   ]
 }
