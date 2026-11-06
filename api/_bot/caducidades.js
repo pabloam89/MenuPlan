@@ -57,6 +57,8 @@ export const CADUCA = {
   REPORTE: "reporte",
   /** El pedido de menú en curso de una casa (pedidoMenu.js). */
   PEDIDO_MENU: "pedido_menu",
+  /** Un día del menú ya pasado: lo planificado se da por gastado de la despensa (barridoDespensa.js). */
+  DIA_DEL_MENU: "dia_del_menu",
 };
 
 /**
@@ -79,6 +81,7 @@ export const COSAS_QUE_CADUCAN = {
   [CADUCA.REPORTE]: { quien: "lectura", efecto: "ignorar", vidaMs: 15 * MIN, que: "un /fallo que espera lo que esperaba quien lo reporta" },
   // Tres días desde lo último que se dijo: da para contestar mañana; más tarde, lo pedido ya es otra semana.
   [CADUCA.PEDIDO_MENU]: { quien: "lectura", efecto: "ignorar", vidaMs: 3 * DIA, que: "un pedido de menú a medias" },
+  [CADUCA.DIA_DEL_MENU]: { quien: "barrido", efecto: "corregir", que: "un día del menú que ya pasó, con lo que usaba aún en la despensa" },
 };
 
 /**
@@ -350,10 +353,13 @@ export const BARRIDOS = {
   [CADUCA.ESTADO_SALUD]: barrerEstados,
   [CADUCA.COLA]: barrerCola,
   [CADUCA.REFERENCIA_ROTA]: barrerReferencias,
+  // Se pide al usarlo: arrastra casa.js y menu.js, que el resto de la pasada no necesita.
+  [CADUCA.DIA_DEL_MENU]: async ({ hoy }) => (await import("./barridoDespensa.js")).barrerDespensa({ hoy }),
 };
 
-// Lo que no hace falta mirar en cada pasada: una vez por hora basta.
-const CADA = { [CADUCA.ESTADO_SALUD]: HORA, [CADUCA.COLA]: 0, [CADUCA.REFERENCIA_ROTA]: HORA };
+// Lo que no hace falta mirar en cada pasada: una vez por hora basta, y el día del menú, una vez al día. El intervalo
+// de un día empieza a las 00:00 UTC, que en Madrid es la 1 o las 2 de la madrugada: el día anterior ya ha acabado.
+const CADA = { [CADUCA.ESTADO_SALUD]: HORA, [CADUCA.COLA]: 0, [CADUCA.REFERENCIA_ROTA]: HORA, [CADUCA.DIA_DEL_MENU]: DIA };
 
 /**
  * La pasada del cron. Cada cosa por su cuenta: si una falla, las demás siguen.

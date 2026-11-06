@@ -23,8 +23,8 @@ const { cargarCasa, conCasa } = await import("./casa.js");
 const apuntar = async (devuelve) => {
   const chat = { householdId: "casa", chatId: "1", channel: "telegram", fotos: [], papel: "owner", esGrupo: false, texto: "c", resultados: [] };
   apuntarAusencia.mockImplementationOnce(async () => devuelve);
-  const t = (await herramientas(chat)).find((x) => x.name === "fuera_de_casa");
-  await t.run({ dias: ["hoy"], comidas: ["Cena"] }, { toolUse: { id: `t-${Math.random()}` } });
+  const t = (await herramientas(chat)).find((x) => x.name === "donde_come");
+  await t.run({ plazo: "dias", dias: ["hoy"], comidas: ["Cena"] }, { toolUse: { id: `t-${Math.random()}` } });
   return chat;
 };
 const GUARDADA = { texto: "Isa fuera hoy.", pintar: null, hecho: "Isa fuera hoy", valores: [], aMedias: false };
@@ -73,7 +73,7 @@ describe("quitarCompra dice si la lista se ha quedado vacía (trozo 73)", () => 
   });
 });
 
-describe("fuera_de_casa y el botón a la app", () => {
+describe("donde_come y el botón a la app", () => {
   it("sin menú en esos días, guarda y no lleva botón", async () => {
     expect((await apuntar({ ...GUARDADA, hayMenu: false })).ir ?? null).toBeNull();
   });

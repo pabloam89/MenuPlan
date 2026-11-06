@@ -1490,7 +1490,7 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
 
 /**
  * «Hoy cenamos fuera», «Nat no come el finde ni cena hoy»: ausencias de días
- * concretos, no un horario (ajustar_horario es para lo que se repite cada
+ * concretos, no un horario (el horario de donde_come es para lo que se repite cada
  * semana). Varios días y comidas van en UNA llamada: con cinco llamadas en
  * paralelo, las escrituras chocaban sobre la misma casa y las últimas se
  * perdían («conflicto persistente», 2 oct 2026).
@@ -1660,7 +1660,7 @@ export async function apuntarAusencia(householdId, { dia, dias, semana = null, c
 export const SIN_AUSENCIA = Object.freeze({ guardar: NO_GUARDADO });
 
 /**
- * El RESULTADO de fuera_de_casa (trozo 27 de #1037 y L1): lo apuntado con sus
+ * El RESULTADO de donde_come (trozo 27 de #1037 y L1): lo apuntado con sus
  * valores (días, comidas, personas). Una duda (qué día, qué comida, quién) o
  * una orden repetida no se guarda y no lleva línea en el recibo: Lola pregunta
  * con lo que lee en la nota. Un fallo al guardar sí sale (⚠️).

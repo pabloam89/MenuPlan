@@ -504,16 +504,23 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
  },
  {
   "type": "custom",
-  "name": "fuera_de_casa",
+  "name": "donde_come",
   "input_schema": {
    "type": "object",
    "properties": {
+    "plazo": {
+     "type": "string",
+     "enum": [
+      "dias",
+      "siempre"
+     ],
+     "description": "dias: solo esos días. siempre: todas las semanas."
+    },
     "dias": {
      "type": "array",
      "items": {
       "type": "string"
      },
-     "minItems": 1,
      "description": "Como lo digan: hoy, mañana, pasado mañana, el jueves, el finde, el 15, 15 de noviembre, de lunes a miércoles o AAAA-MM-DD. Si dudas de qué día es, pregúntalo antes."
     },
     "semana": {
@@ -522,7 +529,7 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
       "esta",
       "siguiente"
      ],
-     "description": "siguiente si dicen «de la semana que viene» («el viernes de la que viene»)."
+     "description": "Con plazo dias, siguiente si dicen «de la semana que viene» («el viernes de la que viene»)."
     },
     "comidas": {
      "type": "array",
@@ -536,15 +543,24 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
        "Postre",
        "Aperitivo"
       ]
-     },
-     "minItems": 1
+     }
     },
     "quienes": {
      "type": "array",
      "items": {
       "type": "string"
      },
-     "description": "Nombres de la casa, «yo» (quien escribe), «los niños»; vacío = toda la casa."
+     "description": "Nombres de la casa, «yo» (quien escribe), «los niños», «adultos»; con plazo dias, vacío = toda la casa."
+    },
+    "donde": {
+     "type": "string",
+     "enum": [
+      "casa",
+      "tupper",
+      "fuera",
+      "cole",
+      "off"
+     ]
     },
     "de_nuevo": {
      "type": "boolean",
@@ -552,12 +568,11 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
     }
    },
    "required": [
-    "dias",
-    "comidas"
+    "plazo"
    ],
    "additionalProperties": false
   },
-  "description": "Días concretos en que alguien (o toda la casa) no come en casa, o esa comida no se hace: «hoy cenamos fuera», «el viernes Leo come con los abuelos», «Nat no está el finde», «el jueves comida no, que no tengo tiempo», «el 15 no comemos». Solo esos días; lo que se repite cada semana («los jueves comemos fuera») es ajustar_horario. Una llamada apunta todos los días × todas las comidas que le pases: «no come el finde» es dias [finde] con comidas [Comida, Cena]. Si los días no llevan las mismas comidas («el finde entero y hoy solo la cena»), una llamada por cada combinación. Si en el menú ya hecho todo un grupo queda fuera, se quita ese plato y la compra se rehace (sale pintado debajo); si solo falta alguien, el plato se queda para los demás. quienes: nombres de la casa (vacío = toda la casa)."
+  "description": "Quién come dónde, con su plazo. plazo dias: días concretos en que alguien (o toda la casa) no come en casa, o esa comida no se hace: «hoy cenamos fuera», «el viernes Leo come con los abuelos», «Nat no está el finde», «el jueves comida no, que no tengo tiempo», «el 15 no comemos». Una llamada apunta todos los días × todas las comidas que le pases: «no come el finde» es dias [finde] con comidas [Comida, Cena]. Si los días no llevan las mismas comidas («el finde entero y hoy solo la cena»), una llamada por cada combinación. Si en el menú ya hecho todo un grupo queda fuera, se quita ese plato y la compra se rehace (sale pintado debajo); si solo falta alguien, el plato se queda para los demás. plazo siempre: el horario FIJO, lo que se repite TODAS las semanas («los jueves comemos fuera», «los niños comen en el cole de lunes a jueves»), con donde y quienes obligatorios: dias lunes…domingo, «entre semana», «finde» o «de lunes a jueves» (vacío = todos); comidas vacío = Comida y Cena (con donde = cole, solo la Comida). Un día suelto («el jueves no comemos», «este viernes cenamos fuera») NUNCA es plazo siempre."
  },
  {
   "type": "custom",
@@ -1249,7 +1264,7 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
    "required": [],
    "additionalProperties": false
   },
-  "description": "Qué días entran en el menú de una semana concreta («esta semana solo hasta el jueves», «la que viene de lunes a viernes»), y cuánto se pueden repetir platos entre semanas: variedad strict (nada de ninguna semana anterior), moderate (nada de la semana anterior), relaxed (se pueden repetir). Para «nunca el finde» de siempre, ajustar_horario con donde = off. Después, generar_menu para esa semana si quieren el menú ya."
+  "description": "Qué días entran en el menú de una semana concreta («esta semana solo hasta el jueves», «la que viene de lunes a viernes»), y cuánto se pueden repetir platos entre semanas: variedad strict (nada de ninguna semana anterior), moderate (nada de la semana anterior), relaxed (se pueden repetir). Para «nunca el finde» de siempre, donde_come con plazo siempre con donde = off. Después, generar_menu para esa semana si quieren el menú ya."
  },
  {
   "type": "custom",
@@ -1336,50 +1351,6 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
    "additionalProperties": false
   },
   "description": "Batch cooking (día de hacer tuppers; a la familia nunca le digas «tanda»), como la pantalla de bases de la app. bases: lo que se deja hecho para usar en varios platos (claves: arroz, pasta, patatas, boniato, legumbre, quinoa, cuscus, sofrito, caldo, salsa_tomate, verdura_asada, pesto, bechamel, patatas_asadas, bolonesa), con veces = platos de la semana que lo usan (2-5; 0 lo quita). platos: platos que se dejan hechos o a medias (claves: croquetas-crudas, bunuelos-masa, falafel-crudo, empanadillas-cerradas, empanada-montada, lasana-montada, ravioli-cortados, quiche-sin-hornear, pastel-al-horno, huevos-rellenos, carne-empanada, verduras-rellenas, gazpacho, caldo-casero, crema, sopa), veces 1-4. minutos: el rato de manos que hay para la sesión (30-240). dia: el día en que se cocina (lunes…domingo). ninguna=true: deja de cocinar en tanda. Si una clave no vale, te devuelvo la lista buena: corrígela, no se lo preguntes a la familia."
- },
- {
-  "type": "custom",
-  "name": "ajustar_horario",
-  "input_schema": {
-   "type": "object",
-   "properties": {
-    "personas": {
-     "type": "array",
-     "items": {
-      "type": "string"
-     },
-     "minItems": 1
-    },
-    "dias": {
-     "type": "array",
-     "items": {
-      "type": "string"
-     }
-    },
-    "comidas": {
-     "type": "array",
-     "items": {
-      "type": "string"
-     }
-    },
-    "donde": {
-     "type": "string",
-     "enum": [
-      "casa",
-      "tupper",
-      "fuera",
-      "cole",
-      "off"
-     ]
-    }
-   },
-   "required": [
-    "personas",
-    "donde"
-   ],
-   "additionalProperties": false
-  },
-  "description": "El horario FIJO, lo que se repite TODAS las semanas: quién come dónde. personas: nombres, «yo», «todos», «niños», «los peques», «adultos». dias: lunes…domingo, «entre semana», «finde» o «de lunes a jueves» (vacío = todos). comidas: Desayuno/Comida/Merienda/Cena/Postre (vacío = Comida y Cena; con donde = cole, vacío = solo la Comida). donde: casa | tupper (se lleva comida de casa) | fuera | cole | off (esa comida no se hace). Un día suelto («el jueves no comemos», «este viernes cenamos fuera») NO es esto: es fuera_de_casa."
  },
  {
   "type": "custom",
