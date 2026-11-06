@@ -22,17 +22,17 @@ vi.mock("../_bot/aprender.js", () => ({
 }));
 
 const barrido = vi.hoisted(() => ({ falla: false }));
+const contado = vi.hoisted(() => vi.fn());
 vi.mock("../_bot/mercadonaEncargos.js", () => ({
   barrerCaducados: vi.fn(async () => {
     llamadas.push("mercadona");
     if (barrido.falla) throw new Error("sin base");
     return 2;
   }),
-  contarFallo: vi.fn(async () => {}),
 }));
+vi.mock("../_bot/avisar.js", () => ({ fallaCon: (donde, valor) => (e) => { contado(donde, e); return valor; } }));
 
 const { default: handler } = await import("./recordatorios.js");
-const { contarFallo } = await import("../_bot/mercadonaEncargos.js");
 const { enviar } = await import("../_bot/telegram.js");
 
 const respuesta = () => {
@@ -75,7 +75,7 @@ describe("cron: cierra los encargos de Mercadona que llevan demasiado", () => {
     const res = await handler(pedir(), respuesta());
     expect(res.code).toBe(200);
     expect(res.cuerpo).toMatchObject({ ok: true, mercadona: null });
-    expect(contarFallo).toHaveBeenCalledWith(expect.objectContaining({ message: "sin base" }));
+    expect(contado).toHaveBeenCalledWith("mercadona", expect.objectContaining({ message: "sin base" }));
   });
 });
 
