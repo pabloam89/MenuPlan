@@ -46,6 +46,7 @@ on:
     # Lunes a las 06:15 UTC. En punto no: los cron de GitHub se atascan en las
     # horas redondas, cuando arranca medio mundo a la vez.
     - cron: "15 6 * * 1"
+    - cron: "15 7 * * 2" # martes: solo mira si el PR del lunes sigue sin entrar
   workflow_dispatch: # para poder lanzarlo a mano desde la pestaña Actions
     inputs:
       probar_push:
@@ -64,6 +65,7 @@ concurrency:
 
 jobs:
   sync:
+    if: github.event.schedule != '15 7 * * 2'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     # De aquí salen las claves; su política de ramas solo deja staging.
@@ -241,3 +243,34 @@ jobs:
           echo "Empujo con la deploy key a $GITHUB_REF_NAME"
           GIT_SSH_COMMAND="ssh -i $KEY -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$HOSTS" \
             git push "git@github.com:${GITHUB_REPOSITORY}.git" "HEAD:refs/heads/${GITHUB_REF_NAME}"
+
+  # Avisa al grupo si el cron falla o su PR no ha entrado al día siguiente.
+  # Corre sobre staging con el token del grupo: solo lee el resultado y los PR.
+  avisar:
+    needs: sync
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # De aquí sale el token de Telegram; su política de ramas solo deja staging.
+    environment: vigia
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      # Sin scripts de instalación, y antes de que el token entre en ningún paso.
+      - run: npm ci --ignore-scripts
+      - name: Avisar
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RESULTADO_SYNC: ${{ needs.sync.result }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          AVISOS_TELEGRAM_TOKEN: ${{ secrets.AVISOS_TELEGRAM_TOKEN }}
+          AVISOS_TELEGRAM_CHAT: ${{ vars.AVISOS_TELEGRAM_CHAT }}
+        run: node scripts/aviso-catalogo.mjs
