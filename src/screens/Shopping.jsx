@@ -1217,7 +1217,16 @@ export function ShoppingScreen({
     stockReady && storeEstimate && storeEstimate.matched > 0 && !isEmpty;
   // El total de la lista frente al presupuesto (por semana marcada) y lo que
   // no tiene precio, aparte (lib/presupuesto.js, #958).
-  const frente = listaFrenteAPresupuesto(data, storeEstimate, selectedWeeks.length);
+  // Un solo total: el de lo que se compraría. Por comprar, lo que no se puede
+  // comprar cuenta como «sin precio»; en Comprado, lo estimado de esa lista.
+  const estimacionLista = paraComprar
+    ? {
+        total: paraComprar.total,
+        matched: paraComprar.lineas.length,
+        count: paraComprar.lineas.length + paraComprar.sinProducto.length,
+      }
+    : storeEstimate;
+  const frente = listaFrenteAPresupuesto(data, estimacionLista, selectedWeeks.length);
   const weekSelectorEl = orderedAll.length > 1 && !isEmpty && (
     <WeekChips
       ariaLabel="Semanas incluidas en la compra — marca varias para combinar"
@@ -1407,7 +1416,7 @@ export function ShoppingScreen({
                     color: "#fff",
                   }}
                 >
-                  {formatEuro0(paraComprar?.total ?? storeEstimate.total)}
+                  {formatEuro0(frente.total)}
                 </span>
                 {/* El presupuesto de la casa al lado del total (lib/presupuesto.js,
                     #958): por semana marcada, y con lo que no tiene precio
