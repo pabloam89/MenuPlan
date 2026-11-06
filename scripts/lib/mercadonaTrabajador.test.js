@@ -1,5 +1,3 @@
-import { readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { atender, esperaTrasFallos, resultadoDeEncargo, unaVuelta } from "./mercadonaTrabajador.mjs";
 import { FALLOS_ENCARGO_MERCADONA } from "../../src/lib/vocabularios.js";
@@ -150,32 +148,5 @@ describe("el tope y los reintentos", () => {
 describe("esperaTrasFallos", () => {
   it("crece hasta el tope", () => {
     expect([0, 1, 2, 9].map((n) => esperaTrasFallos(n, 20, 300))).toEqual([20, 40, 80, 300]);
-  });
-});
-
-describe("la imagen del trabajador", () => {
-  const RAIZ = join(import.meta.dirname, "..", "..");
-  const dockerfile = readFileSync(join(RAIZ, "ops/mercadona-trabajador/Dockerfile"), "utf8");
-
-  /** Los ficheros propios a los que llega el trabajador, siguiendo sus imports. */
-  function alcanzables(fichero, vistos = new Set()) {
-    vistos.add(fichero);
-    const codigo = readFileSync(join(RAIZ, fichero), "utf8");
-    for (const [, ruta] of codigo.matchAll(/from "(\.[^"]+)"/g)) {
-      const siguiente = join(dirname(fichero), ruta).replaceAll("\\", "/");
-      if (!vistos.has(siguiente)) alcanzables(siguiente, vistos);
-    }
-    return [...vistos];
-  }
-
-  it("copia todo lo que el trabajador importa", () => {
-    const faltan = alcanzables("scripts/mercadona-trabajador.mjs").filter((f) => !dockerfile.includes(f.split("/").pop()));
-    expect(faltan).toEqual([]);
-  });
-
-  it("va con la misma versión de Playwright que el repo", () => {
-    const { version } = JSON.parse(readFileSync(join(RAIZ, "node_modules/@playwright/test/package.json"), "utf8"));
-    expect(dockerfile).toContain(`playwright:v${version}-`);
-    expect(dockerfile).toContain(`@playwright/test@${version}`);
   });
 });

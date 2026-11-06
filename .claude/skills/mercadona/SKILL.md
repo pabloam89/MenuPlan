@@ -26,35 +26,16 @@ pública: se usa la misma llamada que su propia web.
 
 ## Reglas
 
-- **Solo cuentas de quien lo ha pedido.** Solo las casas de `MERCADONA_CASAS`:
-  Pablo y quien él nombre, con su consentimiento. Antes de abrirlo a otra familia:
-  visto bueno de Mercadona o de un abogado (ver «Condiciones»).
+- **Solo cuentas de quien lo ha pedido.** Hoy, solo la de Pablo. Antes de abrirlo
+  a otra familia: visto bueno de Mercadona o de un abogado (ver «Condiciones»).
 - **Sin disfraces.** Ni ocultar que es automático, ni cambiar huella o IP, ni
   esquivar captchas. Si bloquean, se para y se cuenta: ese es el resultado.
 - **La contraseña, nunca por el chat.** La escribe la persona en la ventana del
   navegador. Se guarda la sesión, no la contraseña.
-- **La sesión es un secreto.** Lleva el token: no se abre, no se imprime y no va
-  al repo. Solo se guarda sellada en `mercadona_cuenta`, y en claro vive en la
-  memoria del trabajador lo que dura un encargo.
+- **La sesión es un secreto.** Lleva el token: no se abre, no se imprime, no va
+  al repo, y en un servidor se borra al acabar.
 - **Sin bucles.** Es una cuenta real: una pasada y se mira. Nada de reintentar
   contra un error raro.
-
-## Comprar: cómo va
-
-Quien toca Comprar en la app (o se lo pide a Lola) crea un encargo en `mercadona_encargo`
-(0131). El trabajador, en un contenedor en Hetzner, pregunta cada 20 s a
-`api/mercadona.js?trabajador=1`, abre la sesión en un navegador limpio, crea la lista y
-cierra el encargo. No tiene acceso a la base. Con el servidor de 1 GB, de uno en uno.
-
-- **Conectar una cuenta:** desde un ordenador. La sesión se sella en el navegador
-  (`src/lib/mercadonaSello.js`) y se envía sellada. Basta con el `localStorage` y las
-  cookies que no son `httpOnly`: comprobado el 6 nov 2026 en un navegador limpio (leer listas, 200).
-- **Pasar a un navegador en la nube:** cambiar `abrirNavegador` en
-  `scripts/mercadona-trabajador.mjs`, y nada más.
-- **Variables.** En Vercel: `MERCADONA_TRABAJADOR_TOKEN` (secreto), `MERCADONA_CLAVE_PUBLICA`
-  y `MERCADONA_CASAS`. En el servidor, `/opt/mercadona/.env` (600): `MERCADONA_API`, el
-  mismo token y `MERCADONA_CLAVE_PRIVADA`, que solo vive ahí y en 1Password.
-- **Rotar la clave** deja fuera las cuentas conectadas: hay que volver a conectarlas.
 
 ## Operaciones
 
@@ -65,9 +46,6 @@ cierra el encargo. No tiene acceso a la base. Con el servidor de 1 GB, de uno en
 | Crear la lista | `node scripts/mercadona-navegador.mjs --si` | `resultado: productos_completos` y `entraron N de N` |
 | Otra lista | añadir `--lista fichero.json` | `{ name, products: [{ merca_code, quantity }] }` |
 | Exportar la sesión | `--exportar fichero` | `resultado: sesion_exportada` |
-| Crear las claves (en el servidor) | `node scripts/mercadona-trabajador.mjs --claves fichero` | guarda la privada en el fichero y escribe la pública |
-| Levantar el trabajador | `cd /opt/mercadona/repo/ops/mercadona-trabajador && docker compose up -d --build` | `docker compose logs` dice `en marcha` |
-| Cómo van los encargos | `npm run consulta -- "select status, fallo, count(*) from mercadona_encargo group by 1, 2"` | los `fallido`, con su motivo |
 | Usar esa sesión en un servidor | `--estado fichero`, en un contenedor desechable | igual que en el PC |
 
 La sesión vive en `~/.menuplan/mercadona-perfil` (o `MERCADONA_PERFIL`).
