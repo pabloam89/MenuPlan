@@ -807,6 +807,10 @@ export const NADA_PARECIDO_EN_EL_CATALOGO = "NADA PARECIDO: en el catálogo no h
 /** Si alguna opción rompe una regla del menú (sus «ojo:», DESCARTE de aiPlanner.js): se puede elegir igual. */
 export const OJO_SE_PUEDE_ELEGIR = "Las que llevan «ojo» rompen una regla del menú, no de seguridad: dilo con esas palabras, y si la eligen entra igual con cambiar_plato.";
 
+/** cambiar_plato con una receta que no se parece a nada que la casa pueda comer. */
+export const NADA_PARECIDO_PARA_CAMBIAR = "No hay nada parecido a «{pedido}» en el catálogo que podáis comer. Pide opciones con proponer_platos.";
+/** Delante de las reglas del menú que rompe lo elegido (sus palabras, DESCARTE_EN_PALABRAS). */
+export const ROMPE_REGLAS_DEL_MENU = "ROMPE REGLAS DEL MENÚ (no de seguridad; dilo con estas palabras): ";
 /** Lo elegido solo vale de plato único y la comida tenía primero y segundo: se quita el primero y se dice. */
 export const PASA_A_PLATO_UNICO = "Es plato único: esa comida pasa a plato único y se quita el primero ({primero}). Dilo así.";
 /** Lo elegido solo vale de primero: va de primero y el segundo se queda. */
@@ -1355,7 +1359,7 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
         }
         rompe = forcedRecipe ? grande?.avisos?.[forcedRecipe.id] ?? [] : [];
       }
-      if (!forcedRecipe) { texto = `No hay nada parecido a «${receta}» en el catálogo que podáis comer. Pide opciones con proponer_platos.`; motivoSin = SIN_CAMBIAR.NADA_PARECIDO; return null; }
+      if (!forcedRecipe) { texto = NADA_PARECIDO_PARA_CAMBIAR.replace("{pedido}", receta); motivoSin = SIN_CAMBIAR.NADA_PARECIDO; return null; }
       // Dónde va según lo que es: en una comida con primero y segundo, un plato que no vale de segundo no
       // se apunta como segundo. Solo de primero → va de primero; de plato único → la comida pasa a plato único.
       const roles = forcedRecipe.mealRole ?? [];
@@ -1464,7 +1468,7 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
       + (aproximada ? ` No había «${receta}» tal cual: es lo más parecido que encaja. Díselo así.` : "")
       + (quitaPrimero ? ` ${PASA_A_PLATO_UNICO.replace("{primero}", primeroQuitado ?? "el primero")}` : "")
       + (course === "first" && !anadir && receta && h.course === "main" ? ` ${VA_DE_PRIMERO}` : "")
-      + (rompe.length ? ` ROMPE REGLAS DEL MENÚ (no de seguridad; dilo con estas palabras): ${rompe.map((d) => m.DESCARTE_EN_PALABRAS[d]).join("; ")}.` : "")
+      + (rompe.length ? ` ${ROMPE_REGLAS_DEL_MENU}${rompe.map((d) => m.DESCARTE_EN_PALABRAS[d]).join("; ")}.` : "")
       + notaEjes
       + (rf ? ` Elegido también para quien viene: ${describirDeFuera(rf)}.` : "")
       + (dePintado ? `\n\nAsí queda ese día (es lo guardado, y SALE PINTADO debajo de tu mensaje con el plato nuevo destacado: no lo escribas ni llames a ver_menu; di solo qué has cambiado):\n${dePintado}` : "");

@@ -21,7 +21,7 @@ vi.mock("./embudo.js", () => ({ rastro: vi.fn(), registrar: vi.fn(), EMBUDO: {} 
 const core = await import("../../src/server/botCore.js");
 const {
   proponerPlatos, cambiarPlato, usarMotor, usarNutricion,
-  NADA_PARECIDO_EN_EL_CATALOGO, OJO_SE_PUEDE_ELEGIR, PASA_A_PLATO_UNICO, VA_DE_PRIMERO,
+  NADA_PARECIDO_EN_EL_CATALOGO, OJO_SE_PUEDE_ELEGIR, PASA_A_PLATO_UNICO, VA_DE_PRIMERO, ROMPE_REGLAS_DEL_MENU,
 } = await import("./menu.js");
 const { recipeCatalogById } = await import("../../src/data/recipeCatalog.js");
 
@@ -102,7 +102,7 @@ describe("proponer_platos con parecido_a", () => {
     const opciones = opcionesDe(texto);
     expect(opciones.length).toBe(3);
     expect(opciones.some((l) => /pasta|fideo|espagueti|macarr/i.test(l))).toBe(true);
-    expect(opciones.some((l) => l.includes("ojo: no es el tipo de plato de ese hueco"))).toBe(true);
+    expect(opciones.some((l) => l.includes(`ojo: ${core.DESCARTE_EN_PALABRAS[core.DESCARTE.ROL]}`))).toBe(true);
     expect(texto).toContain(OJO_SE_PUEDE_ELEGIR);
   });
 
@@ -141,7 +141,7 @@ describe("cambiar_plato con receta", () => {
     const texto = await cambiarPlato("h", { dia: "lunes", franja: "Comida", receta: recipeCatalogById[MUSLOS].name }, null, out);
     expect(out.cambiado).toBe(true);
     expect(sinPrefijo(huecoGuardado().recipeId)).toBe(MUSLOS);
-    expect(texto).toContain(`ROMPE REGLAS DEL MENÚ (no de seguridad; dilo con estas palabras): ${core.DESCARTE_EN_PALABRAS[core.DESCARTE.REPETIDO]}`);
+    expect(texto).toContain(`${ROMPE_REGLAS_DEL_MENU}${core.DESCARTE_EN_PALABRAS[core.DESCARTE.REPETIDO]}`);
   });
 
   it("la seguridad sí frena: con alergia al gluten, la boloñesa no entra", async () => {
