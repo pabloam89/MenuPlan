@@ -739,20 +739,23 @@ export async function proponerPlatos(householdId, { plato = null, dia: diaDicho 
     // El tipo pedido («prefiero pasta») filtra primero, sobre el pool grande: si
     // no queda ninguna, no hay opciones y la vía rápida pasa a Lola (#930).
     const filtro = filtrarCandidatas(delTipo(candidatas, tipo ?? {}), { rasgos, ejes, perfil, cual: h.course === "first" ? "primero" : "principal" }, baseDelHueco(m, h.hueco, h.course, nut), nut);
+    const avisos = res?.avisos ?? {};
     let lista = parecidoA ? candidatas : variadas(ordenParaVariar(filtro.lista, { ordenado: filtro.ordenado, estilo, n }), n);
     if (parecidoA) {
-      // Las más parecidas primero; si ninguna se parece, las de siempre.
+      // Las más parecidas, antes las que no rompen ninguna regla del menú. Si ninguna se parece, ninguna:
+      // dar otras bajo «ordenadas por parecido» era presentarlas como lo pedido (5 nov 2026).
       const ordenadas = [];
-      let resto = lista;
-      while (ordenadas.length < n) {
-        const r = masParecida(resto, parecidoA);
-        if (!r) break;
-        ordenadas.push(r);
-        resto = resto.filter((x) => x !== r);
+      for (let resto of [lista.filter((r) => !avisos[r.id]), lista.filter((r) => avisos[r.id])]) {
+        while (ordenadas.length < n) {
+          const r = masParecida(resto, parecidoA);
+          if (!r) break;
+          ordenadas.push(r);
+          resto = resto.filter((x) => x !== r);
+        }
       }
-      lista = ordenadas.length ? ordenadas : lista.slice(0, n);
+      lista = ordenadas;
     }
-    return { lista, aviso: filtro.aviso, descartes: res?.descartes ?? [] };
+    return { lista, aviso: filtro.aviso, descartes: res?.descartes ?? [], avisos };
   };
   let tanda = elegir(repetirVecinos);
   // Lo mismo que acaba de enseñar, otra vez: se cambia de estrategia y se dice (nunca la misma lista callada).
@@ -766,9 +769,10 @@ export async function proponerPlatos(householdId, { plato = null, dia: diaDicho 
     else if (abiertas?.lista.length) [tanda, repetida] = [abiertas, REPETIDA.CON_VECINOS];
     else repetida = REPETIDA.SIN_OTRAS;
   }
-  const { lista, aviso, descartes } = tanda;
+  const { lista, aviso, descartes, avisos } = tanda;
   if (!lista.length) {
     if (out) Object.assign(out, { conMenu: true, bloques: [], fecha, dia, franja });
+    if (parecidoA) return `${NADA_PARECIDO_EN_EL_CATALOGO.replace("{pedido}", parecidoA)}${filtradoPara}`;
     return `No hay otras recetas que encajen en ese hueco con vuestras alergias, gustos y tiempo.${filtradoPara}`;
   }
   const porQue = fraseDeDescartes(descartes, m.DESCARTE_EN_PALABRAS);
@@ -784,16 +788,29 @@ export async function proponerPlatos(householdId, { plato = null, dia: diaDicho 
   }
   const ahora = actual?.name ? `${actual.name}${detalleDe(actual, estilo) ? ` (${detalleDe(actual, estilo)})` : ""}` : null;
   const detalle = (r) => detalleDe(r, estilo);
+  const ojo = (r) => (avisos[r.id]?.length ? ` — ojo: ${avisos[r.id].map((d) => m.DESCARTE_EN_PALABRAS[d]).join("; ")}` : "");
+  const conOjo = lista.some((r) => avisos[r.id]?.length);
   lista.forEach((r, i) => apuntarFoto(m, fotos, r, `${i + 1}. ${r.name}`));
   return [
     `Opciones para el ${fechaCorta(fecha)}, ${franja.toLowerCase()}${h.course === "first" ? " (primero)" : ""}${h.gs.length > 1 ? `, para ${quienesDe(h.g, casa.state?.data?.members ?? [])}` : ""}. Ahora mismo: ${ahora ?? "nada"}.${queEs(actual) ? ` Qué es (si lo preguntan, contéstalo antes de nada): ${queEs(actual)}` : ""}${parecidoA ? ` Ordenadas por parecido a «${parecidoA}» (ninguna es exactamente eso salvo que se llame igual).` : ""}${estilo ? ` Las más ${estilo === "ligero" ? "ligeras" : "rápidas"} que encajan, variadas.` : ""}${aviso ? ` ${aviso}` : ""}${filtradoPara}`,
-    ...lista.map((r, i) => `${i + 1}. ${r.name}${detalle(r) ? ` (${detalle(r)})` : ""}`),
+    ...lista.map((r, i) => `${i + 1}. ${r.name}${detalle(r) ? ` (${detalle(r)})` : ""}${ojo(r)}`),
+    ...(conOjo ? [OJO_SE_PUEDE_ELEGIR] : []),
     ...(porQue ? [`EXCLUIDO (dilo en una frase, con estas palabras, sin inventar otro motivo): ${porQue}${soltable ? ` Ofrece el botón [[${BOTON_REPETIR_VECINOS}]]: proponer_platos con repetir_vecinos.` : ""}`] : []),
     ...(repetirVecinos ? ["Con repetir_vecinos: entran también las proteínas de los días de al lado."] : []),
     ...(repetida ? [`REPETIDA: ${repetida}`] : []),
     "Nada está cambiado aún: para poner una, cambiar_plato con receta = su nombre.",
   ].join("\n");
 }
+
+/** Con `parecido_a` y ninguna receta parecida que podáis comer: se dice, y no se dan otras como si se parecieran. */
+export const NADA_PARECIDO_EN_EL_CATALOGO = "NADA PARECIDO: en el catálogo no hay nada parecido a «{pedido}» que podáis comer. Dilo así y pregunta si quiere otra cosa; no ofrezcas otras recetas como si se parecieran.";
+/** Si alguna opción rompe una regla del menú (sus «ojo:», DESCARTE de aiPlanner.js): se puede elegir igual. */
+export const OJO_SE_PUEDE_ELEGIR = "Las que llevan «ojo» rompen una regla del menú, no de seguridad: dilo con esas palabras, y si la eligen entra igual con cambiar_plato.";
+
+/** Lo elegido solo vale de plato único y la comida tenía primero y segundo: se quita el primero y se dice. */
+export const PASA_A_PLATO_UNICO = "Es plato único: esa comida pasa a plato único y se quita el primero ({primero}). Dilo así.";
+/** Lo elegido solo vale de primero: va de primero y el segundo se queda. */
+export const VA_DE_PRIMERO = "Es de primero: lo he puesto de primero y el segundo se queda. Dilo así.";
 
 /** El botón que suelta el filtro de los días de al lado. Lo entiende Lola (proponer_platos con repetir_vecinos), no el código. */
 export const BOTON_REPETIR_VECINOS = "Repetir con los días de al lado";
@@ -1287,9 +1304,10 @@ export function resultadoDeCambio(out, texto, { dia = null, franja = null } = {}
  * Cambia el plato de un hueco con el mismo motor que la app
  * (`pickCatalogReplacement`), y rehace la compra conservando lo ya marcado.
  *
- * Con `receta`, pone ESA en vez de sortear, pero solo si está entre las que el
- * motor da por buenas para el hueco: elegir no se salta las alergias, el
- * tiempo ni lo repetido.
+ * Con `receta`, pone ESA en vez de sortear, aunque rompa una regla del menú
+ * (tipo de plato, tiempo, ya puesta en la semana, montaje, gustos «no»): lo
+ * que rompe va en el resultado. Lo único que frena es la seguridad de la casa
+ * (trozo 74 de #1037).
  */
 // `motivo` (MOTIVO_CAMBIO, interno: no está en el esquema de la herramienta)
 // lo pone quien sabe por qué se cambia: la elección de una opción, «elige tú».
@@ -1308,7 +1326,8 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
     const { casa, dia, fecha } = rd;
     const h = huecoDe(casa, { dia, franja, grupo, cual });
     if (h.error) { texto = h.error; motivoSin = SIN_CAMBIAR.HUECO; return null; }
-    const { gs, g, clave, hueco, course, anadir } = h;
+    const { gs, g, clave, hueco, anadir } = h;
+    let { course } = h;
     const m = await prepararRecetas(casa);
     const data = casa.state?.data ?? {};
     // Para ELEGIR plato, con quien viene de fuera sentado en todos los grupos
@@ -1318,16 +1337,33 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
     let forcedRecipe = null;
     let aproximada = false;
     let notaEjes = "";
+    // Las reglas del menú que rompe la elegida (DESCARTE): no la frenan, se dicen (trozo 74 de #1037).
+    let rompe = [];
+    // Una elegida que solo vale de plato único, en una comida con primero: la comida pasa a plato único.
+    let quitaPrimero = false;
     if (receta) {
       const pool = m.pickCatalogReplacement(paraElegir, casa.semana.plan, { hoy: hoyISO(), groupId: g.id, day: dia, meal: franja, course, candidatos: POOL_PARA_ELEGIR });
       forcedRecipe = candidataPorNombre(pool?.candidatos ?? [], receta);
       if (!forcedRecipe) {
-        // No está tal cual: la más parecida de todo lo que encaja en el hueco.
+        // No está entre las que encajan: en todo lo que la casa puede comer, tal cual o la más parecida.
         const grande = m.pickCatalogReplacement(paraElegir, casa.semana.plan, { hoy: hoyISO(), groupId: g.id, day: dia, meal: franja, course, candidatos: POOL_PARA_APROXIMAR, pedido: true });
-        forcedRecipe = masParecida(grande?.candidatos ?? [], receta);
-        aproximada = !!forcedRecipe;
+        const todas = grande?.candidatos ?? [];
+        forcedRecipe = candidataPorNombre(todas, receta);
+        if (!forcedRecipe) {
+          forcedRecipe = masParecida(todas, receta);
+          aproximada = !!forcedRecipe;
+        }
+        rompe = forcedRecipe ? grande?.avisos?.[forcedRecipe.id] ?? [] : [];
       }
-      if (!forcedRecipe) { texto = `No hay nada parecido a «${receta}» que encaje en ese hueco (por alergias, tiempo o porque ya está en la semana). Pide opciones con proponer_platos.`; motivoSin = SIN_CAMBIAR.NADA_PARECIDO; return null; }
+      if (!forcedRecipe) { texto = `No hay nada parecido a «${receta}» en el catálogo que podáis comer. Pide opciones con proponer_platos.`; motivoSin = SIN_CAMBIAR.NADA_PARECIDO; return null; }
+      // Dónde va según lo que es: en una comida con primero y segundo, un plato que no vale de segundo no
+      // se apunta como segundo. Solo de primero → va de primero; de plato único → la comida pasa a plato único.
+      const roles = forcedRecipe.mealRole ?? [];
+      if (course === "main" && hueco.firstRecipeId && !anadir && !roles.includes("segundo")) {
+        if (roles.includes("plato_unico")) quitaPrimero = true;
+        else if (roles.includes("primero")) course = "first";
+        if (quitaPrimero || course === "first") rompe = rompe.filter((d) => d !== m.DESCARTE.ROL);
+      }
     }
     const pideEjes = normalizarEjes(ejes);
     if (!receta && (rasgos || pideEjes.pedidos.length || pideEjes.invalidos || perfil)) {
@@ -1359,8 +1395,14 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
     m.registerRecipes([elegido.frontendRecipe]);
 
     const plan = structuredClone(casa.semana.plan);
+    const sinPrimero = (x) => {
+      if (!quitaPrimero) return x;
+      const { firstRecipeId: _a, firstGarnishId: _b, firstSauceId: _c, primeroDe: _d, ...resto } = x;
+      return resto;
+    };
+    const primeroQuitado = quitaPrimero ? (m.RECIPES_BY_ID[hueco.firstRecipeId] ?? m.recipeCatalogById?.[idBase(hueco.firstRecipeId)])?.name ?? null : null;
     // Con su guarnición, su salsa y para qué receta son (#1246): el plato sale del hueco.
-    plan[g.id][clave] = { ...hueco, ...elegido.hueco, warnings: [] };
+    plan[g.id][clave] = sinPrimero({ ...hueco, ...elegido.hueco, warnings: [] });
     cambios.length = 0;
     cambios.push({ day: dia, meal: franja, course, groupId: g.id, oldRecipeId: idBase(course === "first" ? hueco.firstRecipeId : hueco.recipeId), newRecipeId: idBase(elegido.recipeId) });
 
@@ -1386,7 +1428,7 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
         const suyoElegido = m.pickCatalogReplacement(paraElegir, plan, { hoy: hoyISO(), groupId: x.id, day: dia, meal: franja, course: curso, forcedRecipe: elegido.frontendRecipe });
         if (!suyoElegido?.recipeId) { sinCambiar.push(x.label); continue; }
         m.registerRecipes([suyoElegido.frontendRecipe]);
-        plan[x.id][clave] = { ...suyo, ...suyoElegido.hueco, warnings: [] };
+        plan[x.id][clave] = sinPrimero({ ...suyo, ...suyoElegido.hueco, warnings: [] });
         cambios.push({ day: dia, meal: franja, course: curso, groupId: x.id, oldRecipeId: idBase(curso === "first" ? suyo.firstRecipeId : suyo.recipeId), newRecipeId: idBase(suyoElegido.recipeId) });
         tambien.push(x.label);
       }
@@ -1420,6 +1462,9 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
       : `Cambiado (${dondeQuien}): ${antes ?? "—"} → ${elegido.frontendRecipe.name}.`)
       + (sinCambiarQuienes.length ? ` ${sinCambiarQuienes.join(" y ")} se quedan con lo suyo: ese plato no encaja con sus alergias o su etapa. Dilo así.` : "")
       + (aproximada ? ` No había «${receta}» tal cual: es lo más parecido que encaja. Díselo así.` : "")
+      + (quitaPrimero ? ` ${PASA_A_PLATO_UNICO.replace("{primero}", primeroQuitado ?? "el primero")}` : "")
+      + (course === "first" && !anadir && receta && h.course === "main" ? ` ${VA_DE_PRIMERO}` : "")
+      + (rompe.length ? ` ROMPE REGLAS DEL MENÚ (no de seguridad; dilo con estas palabras): ${rompe.map((d) => m.DESCARTE_EN_PALABRAS[d]).join("; ")}.` : "")
       + notaEjes
       + (rf ? ` Elegido también para quien viene: ${describirDeFuera(rf)}.` : "")
       + (dePintado ? `\n\nAsí queda ese día (es lo guardado, y SALE PINTADO debajo de tu mensaje con el plato nuevo destacado: no lo escribas ni llames a ver_menu; di solo qué has cambiado):\n${dePintado}` : "");
