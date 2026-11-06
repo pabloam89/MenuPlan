@@ -14,7 +14,8 @@ import { enviar } from "./telegram.js";
 import { avisarFallo } from "./avisar.js";
 import { erroresDeLista } from "../../scripts/lib/mercadonaLista.mjs";
 import { CANAL, ESTADO_CUENTA_MERCADONA, ESTADO_ENCARGO_MERCADONA, FALLO_ENCARGO_MERCADONA, paraEscribir } from "../../src/lib/vocabularios.js";
-import { enlaceDeLista } from "../../src/lib/mercadonaConectar.js";
+import { enlaceDeLista } from "../../src/lib/mercadonaList.js";
+import { PG_SIN_FUNCION, PGRST_SIN_FUNCION } from "../../src/lib/postgrest.js";
 
 const { PENDIENTE, RELLENANDO, HECHO, FALLIDO } = ESTADO_ENCARGO_MERCADONA;
 
@@ -31,7 +32,7 @@ export const NO_ENCARGADO = Object.freeze({
 export const TOPE_DIARIO = 10;
 /** Sin coger, nadie sigue esperando. El mismo plazo que tomar_encargo_mercadona en la 0131; un test los ata. */
 export const CADUCA_PENDIENTE_MIN = 15;
-/** Cogido y sin acabar: el trabajador murió. Mayor que su tope por encargo (TOPE_ENCARGO_MS); un test los ata. */
+/** Cogido y sin acabar: el trabajador murió. */
 export const CADUCA_RELLENANDO_MIN = 10;
 const DIA_MS = 24 * 60 * 60 * 1000;
 /** La sesión sellada: unas decenas de KB como mucho. */
@@ -39,8 +40,11 @@ export const TOPE_SESION = 64 * 1024;
 
 const VISIBLES = "id,status,entraron,faltan,fallo,lista_xid,created_at";
 
+/** Lo que quien llama ha mandado mal: 400, sin aviso. El resto es fallo nuestro. */
+export class PeticionMala extends Error {}
+
 /** La tabla o la función aún no existen: PostgREST o Postgres. Otro fallo, lanza. */
-const sinMigracion = (e) => ["PGRST205", "42P01", "PGRST202", "42883"].includes(e?.codigo);
+const sinMigracion = (e) => ["PGRST205", "42P01", PGRST_SIN_FUNCION, PG_SIN_FUNCION].includes(e?.codigo);
 const conPlanB = (valor) => (e) => {
   if (!sinMigracion(e)) throw e;
   return valor;
@@ -96,7 +100,7 @@ export async function barrerCaducados({ casa = null, ahora = Date.now() } = {}) 
     }
     return cerrados;
   } catch (e) {
-    return conPlanB(0)(e);
+    return conPlanB(0)(e); // a propósito: sin la 0131 no hay nada que barrer; otro fallo, conPlanB lo relanza
   }
 }
 
@@ -110,7 +114,7 @@ export async function estadoDeCasa(casa, ahora = Date.now()) {
     const [encargo] = await select("mercadona_encargo", `household_id=${eq(casa)}&order=created_at.desc&limit=1`, VISIBLES);
     return { disponible: true, cuenta: cuenta?.estado ?? null, encargo: encargo ?? null };
   } catch (e) {
-    return conPlanB(nada)(e);
+    return conPlanB(nada)(e); // a propósito: sin la 0131, sin servicio; otro fallo, conPlanB lo relanza
   }
 }
 
@@ -120,7 +124,7 @@ export async function estadoDeCasa(casa, ahora = Date.now()) {
  */
 export async function encargar({ casa, por, canal, chat_id = null, lista }, ahora = Date.now()) {
   const errores = erroresDeLista(lista);
-  if (errores.length) throw new Error(`lista no válida: ${errores.join("; ")}`);
+  if (errores.length) throw new PeticionMala(`lista no válida: ${errores.join("; ")}`);
   const estado = await estadoDeCasa(casa, ahora);
   if (!estado.disponible) return { fallo: NO_ENCARGADO.SIN_SERVICIO };
   if (!estado.cuenta) return { fallo: NO_ENCARGADO.SIN_CUENTA };
@@ -144,6 +148,9 @@ export async function encargar({ casa, por, canal, chat_id = null, lista }, ahor
   }
 }
 
+/** Un fallo nuestro en el endpoint: se cuenta, y hacia fuera sale sin detalle. */
+export const contarFallo = (e) => avisarFallo("mercadona", e);
+
 /** Solo un sello: nunca una sesión en claro, ni por un fallo de la app (sellar, src/lib/mercadonaSello.js). */
 function esSello(texto) {
   if (typeof texto !== "string" || !texto || texto.length > TOPE_SESION) return false;
@@ -151,13 +158,13 @@ function esSello(texto) {
     const { v, k, iv, c, ...resto } = JSON.parse(texto);
     return Number.isInteger(v) && [k, iv, c].every((x) => typeof x === "string" && x) && Object.keys(resto).length === 0;
   } catch {
-    return false;
+    return false; // a propósito: lo que no es JSON no es un sello, y conectar lo rechaza
   }
 }
 
 /** Guarda la sesión sellada de la casa, y con ella la cuenta vuelve a valer. */
 export async function conectar({ casa, por, sesion_cifrada }) {
-  if (!esSello(sesion_cifrada)) throw new Error("sesión no válida");
+  if (!esSello(sesion_cifrada)) throw new PeticionMala("sesión no válida");
   await insert("mercadona_cuenta", [{ household_id: casa, conectada_por: por, sesion_cifrada, estado: paraEscribir("estados_cuenta_mercadona", ESTADO_CUENTA_MERCADONA.CONECTADA) }], { upsert: true });
   return { conectada: true };
 }

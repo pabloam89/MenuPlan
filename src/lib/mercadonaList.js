@@ -51,4 +51,7 @@ export function listaParaMercadona(items, priceMap, name) {
 }
 
 /** La ficha del producto en Mercadona; en el móvil, su enlace abre su app. */
+/** El enlace a una lista de la cuenta, que en el móvil abre la app de Mercadona. */
+export const enlaceDeLista = (xid) => `https://tienda.mercadona.es/shopping-lists/${encodeURIComponent(xid)}`;
+
 export const fichaMercadona = (id) => `https://tienda.mercadona.es/product/${encodeURIComponent(id)}`;

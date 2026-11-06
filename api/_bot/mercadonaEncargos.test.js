@@ -69,7 +69,7 @@ describe("encargar", () => {
   });
 
   it("una lista mal formada lanza", async () => {
-    await expect(m.encargar({ ...pedido, lista: { name: "x", products: [] } })).rejects.toThrow("lista no válida");
+    await expect(m.encargar({ ...pedido, lista: { name: "x", products: [] } })).rejects.toBeInstanceOf(m.PeticionMala);
   });
 
   it("un canal fuera de vocabulario no se escribe", async () => {
@@ -145,7 +145,7 @@ describe("conectar y desconectar", () => {
     [JSON.stringify({ cookies: [], origins: [] })],
     [JSON.stringify({ v: 1, k: "a", iv: "b", c: "d", mo: "en claro" })],
   ])("rechaza lo que no es un sello %#", async (s) => {
-    await expect(m.conectar({ casa: "c1", por: "u1", sesion_cifrada: s })).rejects.toThrow("sesión no válida");
+    await expect(m.conectar({ casa: "c1", por: "u1", sesion_cifrada: s })).rejects.toBeInstanceOf(m.PeticionMala);
   });
 
   it("desconectar borra la única copia", async () => {

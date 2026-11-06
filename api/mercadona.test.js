@@ -5,8 +5,9 @@ const CASA = "3f2b8c1e-7a4d-4e0b-9c5a-1d2e3f4a5b6c";
 vi.mock("./_guard.js", () => ({ cors: () => false, blocked: async () => false }));
 vi.mock("./_bot/db.js", () => ({ usuarioDeToken: vi.fn(async (t) => (t === "buena" ? { id: "u1" } : null)) }));
 vi.mock("./_bot/papel.js", () => ({ papelDeUsuario: vi.fn(async () => "editor") }));
-vi.mock("./_bot/avisar.js", () => ({ avisarFallo: vi.fn() }));
 vi.mock("./_bot/mercadonaEncargos.js", () => ({
+  contarFallo: vi.fn(),
+  PeticionMala: class extends Error {},
   casaPermitida: vi.fn(() => true),
   cerrar: vi.fn(async () => true),
   conectar: vi.fn(async () => ({ conectada: true })),
@@ -95,7 +96,7 @@ describe("la app", () => {
   });
 
   it("una lista mala es 400; un fallo nuestro, 500 sin detalle", async () => {
-    e.encargar.mockRejectedValueOnce(new Error("lista no válida: vacía"));
+    e.encargar.mockRejectedValueOnce(new e.PeticionMala("lista no válida: vacía"));
     expect((await llamar({ token: "buena", body: { casa: CASA, encargar: { lista: {} } } })).statusCode).toBe(400);
     e.encargar.mockRejectedValueOnce(new Error("clave de la base"));
     const r = await llamar({ token: "buena", body: { casa: CASA, encargar: { lista: {} } } });

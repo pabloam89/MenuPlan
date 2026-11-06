@@ -19,8 +19,7 @@ import { timingSafeEqual } from "node:crypto";
 import { cors, blocked } from "./_guard.js";
 import { usuarioDeToken } from "./_bot/db.js";
 import { papelDeUsuario } from "./_bot/papel.js";
-import { avisarFallo } from "./_bot/avisar.js";
-import { casaPermitida, cerrar, conectar, desconectar, encargar, estadoDeCasa, tomar } from "./_bot/mercadonaEncargos.js";
+import { casaPermitida, cerrar, conectar, contarFallo, desconectar, encargar, estadoDeCasa, PeticionMala, tomar } from "./_bot/mercadonaEncargos.js";
 import { FALLOS_ENCARGO_MERCADONA } from "../src/lib/vocabularios.js";
 import { puede } from "../src/lib/papeles.js";
 import * as ids from "../src/lib/ids.js";
@@ -85,9 +84,8 @@ export default async function handler(req, res) {
   try {
     return await (req.query?.trabajador ? trabajador(req, res) : app(req, res));
   } catch (e) {
-    // Una lista o una sesión mal formadas son culpa de quien llama; el resto, nuestra, y sin detalle hacia fuera.
-    if (/^(lista|sesión) no válida/.test(e.message)) return res.status(400).json({ error: e.message });
-    avisarFallo("mercadona", e);
+    if (e instanceof PeticionMala) return res.status(400).json({ error: e.message });
+    contarFallo(e);
     return res.status(500).json({ error: "no se ha podido" });
   }
 }
