@@ -4697,28 +4697,26 @@ export function DeckFilter({ groups, scope, onScopeChange, members, persona = nu
 
   return (
     <>
-      {boton ? boton(() => setOpen(true)) : (
-        <button
-          type="button"
-          className="deck-press"
-          data-coach="menu-filters"
-          onClick={() => setOpen(true)}
-          aria-haspopup="dialog"
-          aria-label={`Filtrar menú (${activeOpt.label})`}
-          title={`Filtrar · ${activeOpt.label}`}
-          style={{
-            border: "none",
-            background: "transparent",
-            padding: 0,
-            cursor: "pointer",
-            fontFamily: "inherit",
-            flexShrink: 0,
-            display: "inline-flex",
-          }}
-        >
-          <ScopeCircle opt={activeOpt} active size={42} members={members} />
-        </button>
-      )}
+      {boton ? boton(() => setOpen(true)) : <button
+        type="button"
+        className="deck-press"
+        data-coach="menu-filters"
+        onClick={() => setOpen(true)}
+        aria-haspopup="dialog"
+        aria-label={`Filtrar menú (${activeOpt.label})`}
+        title={`Filtrar · ${activeOpt.label}`}
+        style={{
+          border: "none",
+          background: "transparent",
+          padding: 0,
+          cursor: "pointer",
+          fontFamily: "inherit",
+          flexShrink: 0,
+          display: "inline-flex",
+        }}
+      >
+        <ScopeCircle opt={activeOpt} active size={42} members={members} />
+      </button>}
 
       {open && (
         <div
