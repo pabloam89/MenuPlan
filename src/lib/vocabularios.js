@@ -27,6 +27,7 @@
 import { KITCHEN_TOOL_IDS } from "./electrodomesticos.js";
 import { COMIDAS_PLANIFICABLES } from "./comidas.js";
 import { SUPERMERCADOS } from "./supermercados.js";
+import { FALLOS_ENCARGO_MERCADONA, FALLO_ENCARGO_MERCADONA } from "./mercadonaFallos.js";
 
 /** Días de la semana tal como se guardan (claves del plan, active_days de 0086). En NFC. */
 export const DIAS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
@@ -399,9 +400,7 @@ export const CANALES_ENCARGO = ["app", ...CANALES];
 /** Por dónde va un encargo de Mercadona (mercadona_encargo.status, 0131). */
 export const ESTADOS_ENCARGO_MERCADONA = ["pendiente", "rellenando", "hecho", "fallido"];
 export const ESTADO_ENCARGO_MERCADONA = porNombre(ESTADOS_ENCARGO_MERCADONA);
-/** Por qué falló un encargo de Mercadona (mercadona_encargo.fallo, 0131). */
-export const FALLOS_ENCARGO_MERCADONA = ["sin_cuenta", "sesion_caducada", "bloqueado", "lista_no_valida", "caducado", "error"];
-export const FALLO_ENCARGO_MERCADONA = porNombre(FALLOS_ENCARGO_MERCADONA);
+export { FALLOS_ENCARGO_MERCADONA, FALLO_ENCARGO_MERCADONA };
 /** Para qué es una tarea de objetivo (bot_tareas.objetivo, 0080). */
 export const OBJETIVOS_TAREA = ["ideas_plato", "calorias", "generar_menu"];
 export const OBJETIVO_TAREA = porNombre(OBJETIVOS_TAREA);
