@@ -9,6 +9,8 @@ import { ESTADO_ENCARGO_MERCADONA, FALLO_ENCARGO_MERCADONA, NO_ENCARGADO } from 
 /** Cada cuánto mira la app cómo va un encargo, y cuánto espera antes de dejar de mirar. */
 export const CADA_MS = 4000;
 export const ESPERA_MAX_MS = 5 * 60 * 1000;
+/** Consultas seguidas sin respuesta antes de decir que no se sabe cómo va. */
+export const FALLOS_MAX = 3;
 
 async function pedir({ casa, cuerpo, token, fetcher }) {
   try {

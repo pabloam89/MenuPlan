@@ -71,6 +71,37 @@ describe("RellenarMercadona", () => {
     expect(boton("Rellenando").disabled).toBe(true);
   });
 
+  describe("mientras se rellena", () => {
+    const EN_MARCHA = { ...BASE, encargo: { id: "e", status: "rellenando" } };
+    const avanzar = (ms) => act(async () => vi.advanceTimersByTimeAsync(ms));
+
+    beforeEach(() => vi.useFakeTimers());
+    afterEach(() => vi.useRealTimers());
+
+    it("pasada la espera lo dice, deja de preguntar y deja mirar otra vez", async () => {
+      app.leerEstado.mockResolvedValue(EN_MARCHA);
+      await pintar(<RellenarMercadona casa="c" lista={LISTA} />);
+      await avanzar(app.ESPERA_MAX_MS + app.CADA_MS);
+      expect(contenedor.textContent).toContain("no sé cómo va");
+      const consultas = app.leerEstado.mock.calls.length;
+      await avanzar(app.CADA_MS * 3);
+      expect(app.leerEstado).toHaveBeenCalledTimes(consultas);
+      app.leerEstado.mockResolvedValue({ ...BASE, encargo: { status: "hecho", entraron: 3, faltan: [], lista_xid: "7" } });
+      await pulsar(boton("Mirar cómo va"));
+      await avanzar(app.CADA_MS);
+      expect(contenedor.textContent).toContain("Lista creada con 3 productos");
+    });
+
+    it("si no responde varias veces seguidas, lo dice", async () => {
+      app.leerEstado.mockResolvedValueOnce(EN_MARCHA).mockResolvedValue({ ok: false });
+      await pintar(<RellenarMercadona casa="c" lista={LISTA} />);
+      await avanzar(app.CADA_MS * (app.FALLOS_MAX - 1));
+      expect(contenedor.textContent).not.toContain("no sé cómo va");
+      await avanzar(app.CADA_MS);
+      expect(contenedor.textContent).toContain("no sé cómo va");
+    });
+  });
+
   it("acabada, da el enlace y lo que entró", async () => {
     app.leerEstado.mockResolvedValue({ ...BASE, encargo: { status: "hecho", entraron: 3, faltan: [], lista_xid: "7" } });
     await pintar(<RellenarMercadona casa="c" lista={LISTA} />);
