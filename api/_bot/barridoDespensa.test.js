@@ -73,9 +73,18 @@ describe("bajar una fila de la despensa", () => {
   });
 
   it("a cero se borra, como en la app", async () => {
+    db.select.mockResolvedValue([]);
     expect(await escribirGasto({ id: "a", leida: 100, quitar: 100 })).toBe(true);
     expect(db.borrar).toHaveBeenCalledWith("user_pantry", "id=eq.a&qty=eq.100");
     expect(db.update).not.toHaveBeenCalled();
+  });
+
+  it("si otro la subió justo antes de borrarla, resta sobre la nueva y no la borra", async () => {
+    db.select.mockResolvedValue([{ qty: 1000 }]);
+    db.update.mockResolvedValue([{ id: "a" }]);
+    expect(await escribirGasto({ id: "a", leida: 100, quitar: 100 })).toBe(true);
+    expect(db.borrar).toHaveBeenCalledTimes(1);
+    expect(db.update).toHaveBeenCalledWith("user_pantry", "id=eq.a&qty=eq.1000", { qty: 900 });
   });
 
   it("si cambia una y otra vez, se rinde y lo dice", async () => {

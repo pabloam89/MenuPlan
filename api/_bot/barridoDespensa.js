@@ -67,12 +67,9 @@ export async function escribirGasto({ id, leida, quitar }) {
   for (let i = 0; i < INTENTOS; i++) {
     const nueva = (Number(actual) || 0) - quitar;
     const filtro = `id=${eq(id)}&qty=${actual == null ? "is.null" : eq(actual)}`;
-    if (nueva <= 0) {
-      await borrar("user_pantry", filtro);
-      return true;
-    }
-    const filas = await update("user_pantry", filtro, { qty: nueva });
-    if (filas?.length) return true;
+    if (nueva <= 0) await borrar("user_pantry", filtro);
+    else if ((await update("user_pantry", filtro, { qty: nueva }))?.length) return true;
+    // Un borrado no dice si tocó algo: lo que cuenta es si la fila sigue ahí.
     const [fila] = await select("user_pantry", `id=${eq(id)}`, "qty");
     if (!fila) return true; // ya no está: no queda nada que gastar
     actual = fila.qty;
