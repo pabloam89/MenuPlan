@@ -19,6 +19,9 @@ vi.mock("node:child_process", () => ({
     }
     if (globalThis.__sinOp) throw Object.assign(new Error("spawn op ENOENT"), { code: "ENOENT" });
     if (globalThis.__limite) throw Object.assign(new Error("Command failed: op inject"), { status: 1, stderr: "[ERROR] 2026/10/11 08:36:59 Too many requests. Your client has been rate-limited. Try again in  seconds\n" });
+    // Un fallo que pasa (red caída): no dice que la dirección no exista.
+    const caida = [...(globalThis.__redCaida ?? [])].find((ref) => opts.input.includes(`{{ ${ref} }}`));
+    if (caida) throw Object.assign(new Error("Command failed: op inject"), { status: 1, stderr: "[ERROR] dial tcp: connection refused\n" });
     // Como `op inject`: basta una dirección que no existe para que falle entera.
     const mala = [...globalThis.__noExisten].find((ref) => opts.input.includes(`{{ ${ref} }}`));
     if (mala) throw Object.assign(new Error("Command failed: op inject"), { status: 1, stderr: `[ERROR] could not resolve item UUID for ${mala}\n` });
@@ -26,7 +29,7 @@ vi.mock("node:child_process", () => ({
   },
 }));
 
-const { cargarEnv, enOtraBoveda, esReferencia, leerEnv, leerFichero, opPorLaApp } = await import("./env.mjs");
+const { BOVEDA_SESIONES, cargarEnv, direcciones, enOtraBoveda, esReferencia, leerEnv, leerFichero, opPorLaApp, MOTIVOS_AVISO, VAR_OP_PABLO } = await import("./env.mjs");
 
 const NOMBRES = ["PRUEBA_A", "PRUEBA_B", "PRUEBA_C", "PRUEBA_LLANA", "PRUEBA_D", "PRUEBA_E", "PRUEBA_F", "PRUEBA_G"];
 beforeEach(() => {
@@ -50,6 +53,59 @@ describe("leerFichero", () => {
 
   it("sin fichero, vacío (el CI no tiene .env.local)", () => {
     expect(leerFichero(join(tmpdir(), "no-existe", ".env.local"))).toEqual({});
+  });
+});
+
+describe("direcciones: la plantilla de git manda, .env.local solo añade lo de cada PC", () => {
+  const SESIONES = "op://HoMenu-sesiones/Supabase lectura/URL";
+  const VIEJA = "op://HoMenu/Supabase lectura/URL";
+  const ADMIN = "op://HoMenu/Supabase/ADMIN";
+  function ficheros(local) {
+    const dir = mkdtempSync(join(tmpdir(), "dir-"));
+    writeFileSync(join(dir, "plantilla"), `# comentario\nLECTURA=${SESIONES}\nOTRA=op://HoMenu-sesiones/X/OTRA\n`);
+    if (local !== undefined) writeFileSync(join(dir, ".env.local"), local);
+    return { plantilla: join(dir, "plantilla"), local: join(dir, ".env.local"), entorno: {} };
+  }
+
+  it("sin .env.local, las de la plantilla (una carpeta nueva no copia nada)", () => {
+    expect(direcciones(ficheros())).toEqual({ LECTURA: SESIONES, OTRA: "op://HoMenu-sesiones/X/OTRA" });
+  });
+
+  it("una dirección vieja de .env.local no pisa a la plantilla, y lo avisa con su nombre y sin la dirección", () => {
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      const d = direcciones(ficheros(`LECTURA=${VIEJA}\nADMIN=${ADMIN}\n`));
+      expect(d.LECTURA).toBe(SESIONES);
+      expect(d.ADMIN).toBe(ADMIN);
+      expect(err).toHaveBeenCalledTimes(1);
+      expect(err.mock.calls[0][0]).toMatch(/env-direcciones: .*LECTURA/);
+      expect(err.mock.calls[0][0]).not.toContain("op://");
+    } finally {
+      err.mockRestore();
+    }
+  });
+
+  it("un valor en claro de .env.local sí manda (una prueba a mano), y la misma dirección no avisa", () => {
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      expect(direcciones(ficheros(`LECTURA=postgres://a-mano\nOTRA=op://HoMenu-sesiones/X/OTRA\n`)).LECTURA).toBe("postgres://a-mano");
+      expect(err).not.toHaveBeenCalled();
+    } finally {
+      err.mockRestore();
+    }
+  });
+
+  it("en el CI y en Vercel no hay plantilla: solo lo que hubiera en .env.local", () => {
+    for (const entorno of [{ CI: "true" }, { VERCEL: "1" }]) {
+      expect(direcciones({ ...ficheros(), entorno })).toEqual({});
+    }
+  });
+
+  it("la plantilla de verdad solo nombra HoMenu-sesiones: lo que lee una carpeta nueva lo ve la cuenta de las sesiones", () => {
+    const d = direcciones({ local: join(tmpdir(), "no-existe", ".env.local"), entorno: {} });
+    const refs = Object.values(d).filter(esReferencia);
+    expect(refs.length).toBeGreaterThan(0);
+    expect(refs.filter((r) => !r.startsWith(`op://${BOVEDA_SESIONES}/`))).toEqual([]);
   });
 });
 
@@ -109,7 +165,7 @@ describe("plan B entre bóvedas (#299): HoMenu-sesiones y HoMenu", () => {
     expect(process.env.PRUEBA_D).toBe("VALOR-de-op://HoMenu/Nueva/PRUEBA_D");
     expect(process.env.PRUEBA_E).toBe("VALOR-de-op://HoMenu-sesiones/Ya/PRUEBA_E");
     expect(aviso).toHaveBeenCalledTimes(1);
-    expect(aviso.mock.calls[0][0]).toBe("env-boveda clave: PRUEBA_D de: HoMenu-sesiones a: HoMenu motivo: respaldo");
+    expect(aviso.mock.calls[0][0]).toBe(`env-boveda clave: PRUEBA_D de: HoMenu-sesiones a: HoMenu motivo: ${MOTIVOS_AVISO.RESPALDO}`);
     // Nunca el valor en el aviso.
     expect(aviso.mock.calls[0][0]).not.toMatch(/VALOR/);
     aviso.mockRestore();
@@ -142,7 +198,10 @@ describe("plan B entre bóvedas (#299): HoMenu-sesiones y HoMenu", () => {
     cargarEnv(["PRUEBA_B", "PRUEBA_C"], { tolerante: true });
     expect(process.env.PRUEBA_B).toBe("");
     expect(process.env.PRUEBA_C).toBe("VALOR-de-op://HoMenu-sesiones/Tolerante/PRUEBA_C");
-    expect(aviso.mock.calls.map((c) => c[0])).toEqual(["env-boveda clave: PRUEBA_B motivo: sin-acceso"]);
+    const avisos = aviso.mock.calls.map((c) => c[0]);
+    expect(avisos[0]).toBe(`env-boveda clave: PRUEBA_B motivo: ${MOTIVOS_AVISO.SIN_ACCESO}`);
+    // El detalle dice lo que dijo 1Password, sin la dirección.
+    expect(avisos.join("\n")).not.toContain("op://");
     aviso.mockRestore();
   });
 
@@ -313,5 +372,221 @@ describe("registro de lecturas (#556)", () => {
       globalThis.__limite = false;
       delete process.env.PRUEBA_M;
     }
+  });
+});
+
+describe("una clave de la otra bóveda cuesta una lectura (cupo diario de la cuenta)", () => {
+  const movida = "op://HoMenu/Ruta/PRUEBA_N";
+  const buena = "op://HoMenu-sesiones/Ruta/PRUEBA_N";
+  // Otro proceso: lo leído en este se olvida y la dirección vuelve a venir de .env.local.
+  const arrancar = async () => {
+    vi.resetModules();
+    llamadas.length = 0;
+    process.env.PRUEBA_N = movida;
+    return import("./env.mjs");
+  };
+  const conRutas = async (fn) => {
+    const ruta = join(mkdtempSync(join(tmpdir(), "oprutas-")), "rutas.json");
+    process.env.MENUPLAN_OP_RUTAS = ruta;
+    const aviso = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      return await fn(ruta);
+    } finally {
+      delete process.env.MENUPLAN_OP_RUTAS;
+      delete process.env.PRUEBA_N;
+      aviso.mockRestore();
+    }
+  };
+
+  it("como consulta.mjs dos veces: la primera, tres lecturas y aprende la ruta, sin valores; la segunda, una, sin reintentos", async () => {
+    await conRutas(async (ruta) => {
+      globalThis.__noExisten.add(movida);
+      expect((await arrancar()).leerEnv("PRUEBA_N")).toBe(`VALOR-de-${buena}`);
+      expect(llamadas).toHaveLength(3);
+      expect(JSON.parse(readFileSync(ruta, "utf8"))).toEqual({ [movida]: buena });
+
+      expect((await arrancar()).leerEnv("PRUEBA_N")).toBe(`VALOR-de-${buena}`);
+      expect(llamadas).toHaveLength(1);
+      expect(llamadas[0].input).toContain(buena);
+    });
+  });
+
+  it("si la clave vuelve a su sitio, la lee y olvida la ruta", async () => {
+    await conRutas(async (ruta) => {
+      writeFileSync(ruta, JSON.stringify({ [movida]: buena }));
+      globalThis.__noExisten.add(buena);
+      expect((await arrancar()).leerEnv("PRUEBA_N")).toBe(`VALOR-de-${movida}`);
+      expect(JSON.parse(readFileSync(ruta, "utf8"))).toEqual({});
+    });
+  });
+
+  it("una ruta que no es entre las dos bóvedas no se obedece", async () => {
+    await conRutas(async (ruta) => {
+      writeFileSync(ruta, JSON.stringify({ [movida]: "op://Personal/Otra/PRUEBA_N" }));
+      expect((await arrancar()).leerEnv("PRUEBA_N")).toBe(`VALOR-de-${movida}`);
+      expect(llamadas[0].input).not.toContain("Personal");
+    });
+  });
+
+  it("con la app de Pablo no se mira ni se apunta", async () => {
+    await conRutas(async (ruta) => {
+      writeFileSync(ruta, JSON.stringify({ [movida]: buena }));
+      process.env[VAR_OP_PABLO] = "1";
+      try {
+        expect((await arrancar()).leerEnv("PRUEBA_N")).toBe(`VALOR-de-${movida}`);
+      } finally {
+        delete process.env[VAR_OP_PABLO];
+      }
+    });
+  });
+});
+
+describe("lo que no se puede leer no se vuelve a pedir (cupo diario de la cuenta)", () => {
+  const conFichero = (fn) => {
+    const ruta = join(mkdtempSync(join(tmpdir(), "opsin-")), "sin-acceso.json");
+    process.env.MENUPLAN_OP_SIN_ACCESO = ruta;
+    const aviso = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      return fn(ruta, aviso);
+    } finally {
+      delete process.env.MENUPLAN_OP_SIN_ACCESO;
+      aviso.mockRestore();
+      for (const k of ["PRUEBA_N", "PRUEBA_O", "PRUEBA_P"]) delete process.env[k];
+    }
+  };
+  const administracion = "op://HoMenu/Admin3/PRUEBA_N";
+
+  it("como Vite al arrancar dos veces: la segunda, la clave de administración no se pide y las demás van en una sola lectura", () => {
+    conFichero((ruta, aviso) => {
+      globalThis.__noExisten.add(administracion);
+      globalThis.__noExisten.add("op://HoMenu-sesiones/Admin3/PRUEBA_N");
+      process.env.PRUEBA_N = administracion;
+      process.env.PRUEBA_O = "op://HoMenu-sesiones/Vite/PRUEBA_O";
+      cargarEnv(["PRUEBA_N", "PRUEBA_O"], { tolerante: true });
+      // Las dos juntas, y luego una a una (la de administración, también en la otra bóveda).
+      expect(llamadas).toHaveLength(4);
+      expect(Object.keys(JSON.parse(readFileSync(ruta, "utf8")))).toEqual([administracion]);
+      expect(readFileSync(ruta, "utf8")).not.toMatch(/VALOR/);
+
+      llamadas.length = 0;
+      aviso.mockClear();
+      process.env.PRUEBA_N = administracion; // otro arranque: la dirección vuelve a venir de .env.local
+      process.env.PRUEBA_P = "op://HoMenu-sesiones/Vite/PRUEBA_P";
+      cargarEnv(["PRUEBA_N", "PRUEBA_P"], { tolerante: true });
+      expect(llamadas).toHaveLength(1);
+      expect(llamadas[0].input).not.toContain(administracion);
+      expect(process.env.PRUEBA_N).toBe("");
+      expect(process.env.PRUEBA_P).toBe("VALOR-de-op://HoMenu-sesiones/Vite/PRUEBA_P");
+      const avisos = aviso.mock.calls.map((c) => c[0]);
+      expect(avisos).toContain(`env-boveda clave: PRUEBA_N motivo: ${MOTIVOS_AVISO.APUNTADA}`);
+      expect(avisos.at(-1)).toMatch(/^env-boveda: sin acceso desde .*borra /);
+    });
+  });
+
+  it("con la app de Pablo (MENUPLAN_OP_PABLO=1), lo apuntado por la cuenta de servicio no frena ni se apunta", () => {
+    conFichero((ruta) => {
+      const deLaApp = administracion.replace("Admin3", "Admin5");
+      const antes = JSON.stringify({ [deLaApp]: new Date().toISOString() });
+      writeFileSync(ruta, antes);
+      process.env.PRUEBA_N = deLaApp;
+      process.env[VAR_OP_PABLO] = "1";
+      try {
+        cargarEnv(["PRUEBA_N"]);
+        expect(process.env.PRUEBA_N).toBe(`VALOR-de-${deLaApp}`);
+        expect(llamadas.length).toBeGreaterThan(0);
+        globalThis.__noExisten.add("op://HoMenu/Otra/PRUEBA_O");
+        globalThis.__noExisten.add("op://HoMenu-sesiones/Otra/PRUEBA_O");
+        process.env.PRUEBA_O = "op://HoMenu/Otra/PRUEBA_O";
+        cargarEnv(["PRUEBA_O"], { tolerante: true });
+        expect(readFileSync(ruta, "utf8")).toBe(antes);
+      } finally {
+        delete process.env[VAR_OP_PABLO];
+      }
+    });
+  });
+
+  it("un script que la necesita falla con su nombre y dice qué borrar si ya hay acceso, sin llamar a op", () => {
+    conFichero((ruta) => {
+      writeFileSync(ruta, JSON.stringify({ [administracion]: new Date().toISOString() }));
+      process.env.PRUEBA_N = administracion;
+      let error = null;
+      try {
+        cargarEnv(["PRUEBA_N"]);
+      } catch (e) {
+        error = e.message;
+      }
+      expect(error).toMatch(/No pude leer de 1Password PRUEBA_N: sin acceso desde /);
+      expect(error).toContain(`borra ${ruta}`);
+      expect(llamadas).toHaveLength(0);
+    });
+  });
+
+  it("un fallo que pasa (red, token) no se apunta: la próxima vez se vuelve a pedir", () => {
+    conFichero((ruta) => {
+      globalThis.__redCaida = new Set(["op://HoMenu-sesiones/Red/PRUEBA_O", enOtraBoveda("op://HoMenu-sesiones/Red/PRUEBA_O")]);
+      try {
+        process.env.PRUEBA_O = "op://HoMenu-sesiones/Red/PRUEBA_O";
+        const aviso = vi.spyOn(console, "error").mockImplementation(() => {});
+        cargarEnv(["PRUEBA_O"], { tolerante: true });
+        const avisos = aviso.mock.calls.map((c) => c[0]);
+        aviso.mockRestore();
+        expect(avisos).toContain(`env-boveda clave: PRUEBA_O motivo: ${MOTIVOS_AVISO.FALLO}`);
+        expect(avisos.at(-1)).toMatch(/connection refused/);
+        expect(process.env.PRUEBA_O).toBe("");
+        expect(() => readFileSync(ruta, "utf8")).toThrow();
+      } finally {
+        globalThis.__redCaida = null;
+      }
+    });
+  });
+
+  it("en un script, cada clave que falla lleva su motivo: la apuntada no tapa el de la nueva", () => {
+    conFichero((ruta) => {
+      writeFileSync(ruta, JSON.stringify({ [administracion]: new Date().toISOString() }));
+      globalThis.__noExisten.add("op://HoMenu-sesiones/Nueva/PRUEBA_Q");
+      globalThis.__noExisten.add(enOtraBoveda("op://HoMenu-sesiones/Nueva/PRUEBA_Q"));
+      process.env.PRUEBA_N = administracion;
+      process.env.PRUEBA_Q = "op://HoMenu-sesiones/Nueva/PRUEBA_Q";
+      let error = null;
+      try {
+        cargarEnv(["PRUEBA_N", "PRUEBA_Q"]);
+      } catch (e) {
+        error = e.message;
+      }
+      expect(error).toMatch(/PRUEBA_Q: \[ERROR\] could not resolve item UUID/);
+      expect(error).toMatch(/PRUEBA_N: sin acceso desde /);
+    });
+  });
+
+  it("pasado un día se vuelve a probar (el acceso puede haber cambiado)", () => {
+    conFichero((ruta) => {
+      const vieja = administracion.replace("Admin3", "Admin4"); // otra dirección: ninguna lectura de otro test la tiene en memoria
+      writeFileSync(ruta, JSON.stringify({ [vieja]: new Date(Date.now() - 25 * 3600e3).toISOString() }));
+      process.env.PRUEBA_N = vieja;
+      expect(leerEnv("PRUEBA_N")).toBe(`VALOR-de-${vieja}`);
+      expect(llamadas).toHaveLength(1);
+    });
+  });
+
+  it("sin cupo no se reintenta una a una ni se apunta como sin acceso", () => {
+    conFichero((ruta) => {
+      globalThis.__limite = true;
+      try {
+        process.env.PRUEBA_O = "op://HoMenu-sesiones/Cupo/PRUEBA_O";
+        process.env.PRUEBA_P = "op://HoMenu-sesiones/Cupo/PRUEBA_P";
+        const aviso = vi.spyOn(console, "error").mockImplementation(() => {});
+        cargarEnv(["PRUEBA_O", "PRUEBA_P"], { tolerante: true });
+        const avisos = aviso.mock.calls.map((c) => c[0]);
+        aviso.mockRestore();
+        expect(avisos).toContain(`env-boveda clave: PRUEBA_O motivo: ${MOTIVOS_AVISO.SIN_CUPO}`);
+        expect(avisos).not.toContain(`env-boveda clave: PRUEBA_O motivo: ${MOTIVOS_AVISO.SIN_ACCESO}`);
+        expect(avisos.at(-1)).toMatch(/^env-boveda: .*Too many requests/);
+        expect(llamadas).toHaveLength(1);
+        expect(process.env.PRUEBA_O).toBe("");
+        expect(() => readFileSync(ruta, "utf8")).toThrow();
+      } finally {
+        globalThis.__limite = false;
+      }
+    });
   });
 });

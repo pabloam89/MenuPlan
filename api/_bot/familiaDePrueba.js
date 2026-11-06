@@ -15,7 +15,7 @@ export { RPC_FAMILIA } from "../../src/lib/personas.js";
 /** ficha_casa (0097, v2 desde la 0107): desde el trozo 12 (#1037) la casa de Lola lee de ahí los datos de la casa con sobre. */
 export const RPC_FICHA = "ficha_casa";
 /** Lo que la ficha trae además de «fichas», para una casa sin tareas. */
-export const FICHA_SIN_TAREAS = Object.freeze({ casa: { rev: 1 }, personas: [], faltan: [], tareas: [], callados: [] });
+export const FICHA_SIN_TAREAS = Object.freeze({ casa: { rev: 1 }, personas: [{ id: "p1" }], faltan: [], tareas: [], callados: [] });
 
 /** Un dato de «fichas» de la casa sin sobre: el defecto del registro, o vacío si no tiene. La base de un campo con ámbito, `ambito: null`. */
 const sinSobre = (campo) => {

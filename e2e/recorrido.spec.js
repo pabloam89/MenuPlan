@@ -27,11 +27,6 @@ const FAMILIA = [["Papá", "Juan"], ["Mamá", "Ana"]];
 // La única función de api/ que el recorrido llama sin cuenta: la analítica.
 // Se le responde con un doble vacío; cualquier otra cuenta como escape.
 const API_ANALITICA = "/api/track";
-// Lo que se adelanta el reloj de la página con el dedo abajo para que salte
-// la pulsación larga (useLongPress en src/screens/Menu.jsx espera 420 ms).
-// Con el reloj de Playwright, y no en tiempo real: así no depende de lo
-// cargada que vaya la máquina.
-const PULSACION_LARGA_MS = 700;
 // Una tarjeta de plato en el menú lleva su franja escrita.
 const TARJETA_PLATO = /\b(comida|cena)\b/i;
 // La cabecera de una categoría de la compra: «Verduras 17».
@@ -97,17 +92,23 @@ async function darDeAlta(page) {
   await boton(page, "Nada que evitar").click();
 }
 
-// Tras el alta la app genera el menú sola; se espera a que la portada enseñe
-// el de hoy y se abre la semana. La entrada a la pizarra en la portada dice
-// que las banderas salieron como en staging (playwright.config.js); que el
-// motor es el `solver` lo dice la guarda de escapes: el otro llama a
-// /api/generate.
+// Tras el alta la app ya no genera el menú: eso es de Lola (#1210). La
+// portada no trae platos; se empieza en blanco (la entrada a la pizarra dice
+// que las banderas salieron como en staging, playwright.config.js) y
+// «Rellenar» pone platos del recetario en todos los huecos, sin el motor.
 async function abrirMenu(page) {
-  await expect(page.getByText("Hoy toca")).toBeVisible();
   await expect(page.getByText(ENTRADA_PIZARRA)).toBeVisible();
+  await expect(page.getByRole("button", { name: TARJETA_PLATO })).toHaveCount(0);
+  await page.getByText(ENTRADA_PIZARRA).click();
+  // La pizarra pregunta antes qué días pone: se deja lo que trae (esta semana).
+  const dias = page.getByRole("dialog", { name: "¿Qué días pones?" });
+  await expect(dias).toBeVisible();
+  await dias.getByRole("button", { name: "Siguiente" }).click();
+  await dias.getByRole("button", { name: "Empezar" }).click();
+  await expect(dias).toBeHidden();
+  // La baldosa lleva delante cuántos huecos quedan («14 Rellenar»).
+  await page.getByRole("button", { name: /^\d+ Rellenar$/ }).click();
   await expect(page.getByRole("button", { name: TARJETA_PLATO }).first()).toBeVisible();
-  await boton(page, "Menú").click();
-  await expect(page.getByText("Tu menú")).toBeVisible();
   for (const dia of NOMBRES_DIA) await expect(page.getByText(dia, { exact: true })).toBeVisible();
   const platos = page.getByRole("button", { name: TARJETA_PLATO });
   expect(await platos.count()).toBeGreaterThanOrEqual(NOMBRES_DIA.length);
@@ -116,17 +117,15 @@ async function abrirMenu(page) {
 
 const nombreDePlato = async (tarjeta) => (await tarjeta.innerText()).trim().split("\n").at(-1).trim();
 
-// Pulsación larga en el primer plato → «Cambiar» → «Elegir a mano» → la
-// primera sugerencia del hueco. Devuelve el plato que había y el que lo
-// sustituye.
+// Los «…» del primer plato → «Cambiar» → «Elegir a mano» → la primera
+// sugerencia del hueco. Devuelve el plato que había y el que lo sustituye.
+// Todo menú se maneja con el tablero de la pizarra (src/lib/modoMenu.js), y
+// allí la pulsación larga levanta el plato para moverlo: las acciones están
+// en sus «…».
 async function cambiarPrimerPlato(page, platos) {
   const tarjeta = platos.first();
   const antes = await nombreDePlato(tarjeta);
-  const caja = await tarjeta.boundingBox();
-  await page.mouse.move(caja.x + caja.width / 2, caja.y + caja.height / 2);
-  await page.mouse.down();
-  await page.clock.runFor(PULSACION_LARGA_MS);
-  await page.mouse.up();
+  await page.getByRole("button", { name: `Acciones de ${antes}`, exact: true }).first().click();
   await boton(page, "Cambiar").click();
   await boton(page, "Elegir a mano").click();
   const tira = page.locator("div", { has: page.getByText(SUGERENCIAS_HUECO, { exact: true }) }).last();

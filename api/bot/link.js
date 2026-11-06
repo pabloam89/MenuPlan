@@ -13,18 +13,19 @@
  * titular y cotitular: meter a Lola en el grupo es cosa de quien gestiona.
  */
 
-import { codigoBot } from "../../src/lib/ids.js";
+import { codigoBot, codigoGrupo } from "../../src/lib/ids.js";
 import { cors } from "../_guard.js";
 import { select, insert, usuarioDeToken, eq } from "../_bot/db.js";
 import { nombreDelBot, enviar } from "../_bot/telegram.js";
 import { recordar } from "../_bot/rapido.js";
 import { puede } from "../../src/lib/papeles.js";
+import { BOTONES_CAMINO_TELEGRAM, PREGUNTA_DE_CAMINO } from "../_bot/caminoMenu.js";
 
 const VALIDEZ_MS = 15 * 60 * 1000;
-// El menú no sale solo: se ofrece (Pablo, 6 oct 2026). El botón vuelve como si
-// lo hubiera escrito (`t:`, sacarBotones en telegram.js) y Lola lo genera.
-export const AVISO_ALTA = "¡Listo, ya os tengo! 🙌 ¿Os preparo el menú de la semana?\n\nCuando quieras me pides lo que sea: «¿qué comemos hoy?», «cambia la cena del jueves» o «apunta leche».";
-export const BOTON_ALTA = { texto: "🍽️ Prepáralo ya", dato: "t:Prepárame ya el menú de esta semana" };
+// El menú no sale solo: se ofrece (Pablo, 6 oct 2026). Tras el alta, la misma pregunta que antes de cada menú
+// (#1210, 4 nov 2026): para cuándo y cómo de a fondo, con los tres caminos. Cada botón vuelve como si lo hubiera
+// escrito (`t:`, sacarBotones en telegram.js) y Lola hace las preguntas de ese camino (caminoMenu.js).
+export const AVISO_ALTA = `¡Listo, ya os tengo! 🙌 ${PREGUNTA_DE_CAMINO}\n\nCuando quieras me pides lo que sea: «¿qué comemos hoy?», «cambia la cena del jueves» o «apunta leche».`;
 
 export default async function handler(req, res) {
   // La app iOS (Capacitor) llama desde capacitor://localhost: sin CORS el
@@ -64,7 +65,7 @@ export default async function handler(req, res) {
     if (req.body?.aviso === "alta") {
       const chats = await select("bot_chats", `household_id=${eq(householdId)}&kind=eq.private&linked_by=${eq(user.id)}`, "chat_id");
       await Promise.all(chats.map(async ({ chat_id }) => {
-        await enviar(chat_id, AVISO_ALTA, { botones: [[BOTON_ALTA]] });
+        await enviar(chat_id, AVISO_ALTA, { botones: [BOTONES_CAMINO_TELEGRAM] });
         await recordar({ chatId: chat_id, householdId, pregunta: "(He rellenado en la app quiénes comemos y las alergias.)", respuesta: AVISO_ALTA });
       }));
       return res.status(200).json({ avisados: chats.length });
@@ -72,18 +73,23 @@ export default async function handler(req, res) {
 
     // 16 bytes en base64url: cabe en el límite de 64 caracteres de /start, y
     // nunca empieza como un enlace de compartir (rc_, ru_, m_…): src/lib/ids.js.
+    // El del grupo, con su propio código de grupo (la «g» delante, codigoGrupo): el enlace de «añadir al grupo» se
+    // reenvía, y con el mismo código cualquiera que lo recibiera lo abriría en su privado y su Telegram pasaría a ser
+    // esta cuenta (specs/auth.md §7, trozo 3). Un código de grupo, en un privado, se rechaza (enlazarDesdeAjustes).
     const token = codigoBot.nuevo();
-    await insert("bot_link_tokens", [{
-      token,
+    const tokenGrupo = puede(miembro.role, "enlazar_grupo") ? codigoGrupo.nuevo() : null;
+    const caduca = new Date(Date.now() + VALIDEZ_MS).toISOString();
+    await insert("bot_link_tokens", [token, tokenGrupo].filter(Boolean).map((t) => ({
+      token: t,
       user_id: user.id,
       household_id: householdId,
-      expires_at: new Date(Date.now() + VALIDEZ_MS).toISOString(),
-    }]);
+      expires_at: caduca,
+    })));
 
     const bot = await nombreDelBot();
     return res.status(200).json({
       privado: `https://t.me/${bot}?start=${token}`,
-      grupo: puede(miembro.role, "enlazar_grupo") ? `https://t.me/${bot}?startgroup=${token}` : null,
+      grupo: tokenGrupo ? `https://t.me/${bot}?startgroup=${tokenGrupo}` : null,
       caduca: VALIDEZ_MS / 60000,
     });
   } catch (err) {

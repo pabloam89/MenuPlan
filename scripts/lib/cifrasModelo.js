@@ -12,7 +12,10 @@ import { PIEZAS_FUERA } from "../../api/_bot/interprete.js";
 import { CAMPO_LLEGARON } from "../../api/_bot/medidaTurno.js";
 import { RASTRO, CAMPO_CUMPLIMIENTO, CIFRA_CUMPLIMIENTO as C } from "../../src/lib/rastro.js";
 import { ESCRITORAS_HEREDADAS, LLAMADAS_HEREDADAS } from "../../src/lib/operaciones/escritoras.js";
+import { PREFERENCIAS_SISTEMA } from "../../src/lib/preferenciasSistema.js";
 import { clavesGuardadas } from "./inventarioFicha.mjs";
+import { rotasDeLaBase } from "./referenciasRotasBase.mjs";
+import { medirCascadas } from "./cascadas.mjs";
 import CAPACIDADES_BASE from "../../src/lib/capacidades.base.json" with { type: "json" };
 
 /** De dónde sale una cifra: el código del repo, la base (producción, solo lectura) o el banco de frases. */
@@ -160,17 +163,26 @@ export const CIFRAS = [
       return f.d ? Math.round((100 * f.c) / f.d) : { sin_medir: `ningún menú con preferencias dichas medidas: ${RASTRO.MENU_GENERADO} lleva ${CAMPO_CUMPLIMIENTO} desde el trozo 31` };
     } },
   { id: "reglas_fuera_de_preferencias", nombre: "Reglas del validador escritas a mano (no caben como preferencia)", trozo: 32, fuente: FUENTE.codigo, sentido: SENTIDO.baja, meta: null,
-    base: null, falta: "src/lib/preferenciasSistema.js" },
+    base: base(18, "2026-11-02", "trozo 32 (#1037)", 31),
+    medir: () => ({ valor: PREFERENCIAS_SISTEMA.filter((p) => p.forma === "escrita").length, de: PREFERENCIAS_SISTEMA.length }) },
   { id: "choques_repetidos", nombre: "Choques repetidos tras una tarea de decisión", trozo: 33, fuente: FUENTE.base, sentido: SENTIDO.baja, meta: 0,
-    base: null, falta: "src/lib/choques.js" },
+    // Para repetirse tras una tarea de decisión hace falta la tarea: el choque que la pide la creará con las tareas a
+    // fondo (la migración de MIGRACION_TAREAS, trozo 34). Hasta entonces no hay nada que contar, y se dice.
+    base: null, nota: "sin tareas de decisión no hay repetición que contar: la base sale con el trozo 34",
+    medir: () => ({ sin_medir: "sin tareas de decisión todavía: llegan con las tareas a fondo (trozo 34)" }) },
   { id: "preguntas_hasta_primer_menu", nombre: "Preguntas hasta el primer menú", trozo: 34, fuente: FUENTE.base, sentido: SENTIDO.baja, meta: null,
     base: null, falta: MIGRACION_TAREAS },
   { id: "tareas_caducadas_sin_respuesta", nombre: "Tareas caducadas sin respuesta", trozo: 34, fuente: FUENTE.base, sentido: SENTIDO.baja, meta: null,
     base: null, falta: MIGRACION_TAREAS },
   { id: "referencias_rotas", nombre: "Referencias rotas (receta, valor o persona que ya no está)", trozo: 35, fuente: FUENTE.base, sentido: SENTIDO.baja, meta: 0,
-    base: null, falta: "src/lib/referenciasRotas.js" },
+    // 3 nov 2026: 0 de 15 preferencias y 0 tareas vivas en 32 casas (node scripts/referencias-rotas.mjs). De: lo mirado del todo (sin las tareas de casas sin personas conocidas).
+    base: base(0, "2026-11-03", "node scripts/referencias-rotas.mjs", 15),
+    medir: async (ctx) => { const { rotas, miradas } = await rotasDeLaBase(ctx.consultar); return { valor: rotas.length, de: miradas.enteras }; } },
   { id: "tablas_sin_cascada", nombre: "Tablas de casa o persona sin cascada declarada", trozo: 36, fuente: FUENTE.codigo, sentido: SENTIDO.baja, meta: 0,
-    base: null, falta: "supabase/cascadas.test.js" },
+    // 3 nov 2026: 0 de 62 columnas de dueño (household_id, user_id, persona_id) en las migraciones; la base, 0 de 61
+    // (la 62 es la tabla de la 0010, que no se creó). De: las columnas de dueño.
+    base: base(0, "2026-11-03", "supabase/cascadas.test.js (scripts/lib/cascadas.mjs)", 62),
+    medir: () => medirCascadas() },
 ];
 
 /** El valor de una medida en { valor, de }; falla en alto si no es un número (una cifra rota no sale como 0). */

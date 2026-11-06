@@ -27,7 +27,7 @@ describe("lo que Lola ve de sus herramientas", () => {
   });
 
   it("la ficha no viaja a la API", async () => {
-    expect(JSON.stringify(await herramientas(charla))).not.toMatch(/"(soloLectura|pantalla|avisoLento|lector|capacidades|lee|escribe)":/);
+    expect(JSON.stringify(await herramientas(charla))).not.toMatch(/"(soloLectura|riesgo|deshace|pantalla|avisoLento|lector|capacidades|lee|escribe)":/);
   });
 });
 
@@ -92,7 +92,7 @@ describe("una ficha por herramienta", () => {
 
   it("las de solo leer son las de antes, una a una (cambiarlo es a propósito: es la puerta de pista.js)", () => {
     expect([...SOLO_LECTURA].sort()).toEqual([
-      "buscar_recetas", "compartir", "proponer_platos", "ver_ajustes", "ver_casa", "ver_compra",
+      "buscar_recetas", "compartir", "por_que_plato", "proponer_platos", "ver_ajustes", "ver_casa", "ver_compra",
       "ver_despensa", "ver_menu", "ver_menu_cole", "ver_receta", "ver_recordatorios",
     ]);
   });
@@ -114,10 +114,11 @@ describe("una ficha por herramienta", () => {
     expect(pantallaDe("buscar_recetas", { categoria: "mias" })).toBe("recetas");
     expect(pantallaDe("buscar_recetas")).toBe("recetas");
     expect(pantallaDe("guardar_receta")).toBe("recetas:mias");
+    expect(pantallaDe("receta_propia")).toBe("recetas:mias");
     // ajustar_compra lleva a la compra: ahí se ven los precios del súper.
     for (const n of ["ver_compra", "marcar_compra", "anadir_compra", "quitar_compra", "ajustar_compra"]) expect(pantallaDe(n)).toBe("compra");
-    for (const n of ["generar_menu", "fuera_de_casa"]) expect(pantallaDe(n)).toBe("semana");
-    const conPantalla = new Set(["ver_menu", "cambiar_plato", "buscar_recetas", "guardar_receta", "ver_compra", "marcar_compra", "anadir_compra", "quitar_compra", "ajustar_compra", "generar_menu", "fuera_de_casa"]);
+    for (const n of ["generar_menu", "donde_come"]) expect(pantallaDe(n)).toBe("semana");
+    const conPantalla = new Set(["ver_menu", "cambiar_plato", "buscar_recetas", "guardar_receta", "receta_propia", "ver_compra", "marcar_compra", "anadir_compra", "quitar_compra", "ajustar_compra", "generar_menu", "donde_come"]);
     for (const n of FICHAS.keys()) if (!conPantalla.has(n)) expect(pantallaDe(n, {}), n).toBeNull();
     expect(pantallaDe("no_existe")).toBeNull();
   });

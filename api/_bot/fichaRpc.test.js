@@ -140,6 +140,8 @@ vi.mock("./db.js", () => ({
   select: vi.fn(async (tabla, filtro = "") => {
     llamadas.push(["select", tabla, filtro]);
     if (tabla !== "bot_tareas") return [];
+    // Los recordatorios (tipo recordatorio, 0122) los lee la ficha aparte (extrasDeFicha): aquí no hay ninguno.
+    if (filtro.includes("tipo=eq.recordatorio")) return filas.filter((t) => t.tipo === "recordatorio");
     if (/rechazada/.test(filtro)) return filas.filter((t) => t.status === "rechazada");
     return filas.filter((t) => vivas(t) && (t.scope === "casa" || filtro.includes(`owner_user_id.eq.${t.owner_user_id}`)));
   }),
@@ -154,6 +156,8 @@ vi.mock("./papel.js", () => ({
   papelDeQuien: vi.fn(async () => ({ papel: "owner", userId: YO })),
   idiomaDe: vi.fn(async () => null),
 }));
+// La unión cuenta → persona deducida (quienEscribe.js) se apunta, sin ir a la base.
+vi.mock("./quienEscribe.js", async (original) => ({ ...(await original()), unirCuenta: vi.fn(async () => ({ ok: true })) }));
 // Sin el build (core.mjs, dominiosGustos.json): las descripciones de las herramientas no cuentan aquí.
 vi.mock("./ajustes.js", async (original) => ({ ...(await original()), dominiosDeGustos: async () => "favoritos (Lo que os gusta)" }));
 vi.mock("./uso.js",() => ({ fueraDeLimite: async () => null, contarUso: async () => 0, avisoDeLimite: () => "" }));
@@ -175,9 +179,9 @@ vi.mock("@anthropic-ai/sdk", async (original) => {
 const { responder } = await import("./agente.js");
 
 /** Lo que llega al modelo en el turno: los bloques de la ficha y la entrada (con las tareas). */
-async function turno({ esGrupo = false, chatId = "100" } = {}) {
+async function turno({ esGrupo = false, chatId = "100", nombre = null } = {}) {
   peticiones = [];
-  const r = await responder({ channel: "telegram", chatId, householdId: CASA, texto: "¿qué cenamos?", autor: "Pablo", esGrupo, desde: ["9"] });
+  const r = await responder({ channel: "telegram", chatId, householdId: CASA, texto: "¿qué cenamos?", autor: "Pablo", nombre, esGrupo, desde: ["9"] });
   await r.guardado;
   const p = peticiones[0];
   return {
@@ -230,7 +234,8 @@ describe("con BOT_FICHA_RPC encendido, ficha y tareas de ficha_casa en una ida",
     llamadas = [];
     return t;
   };
-  const selectsDeTareas = () => llamadas.filter(([q, tabla]) => q === "select" && tabla === "bot_tareas");
+  // Sin la lectura de los recordatorios (extrasDeFicha, 0122): esa no es la de las tareas.
+  const selectsDeTareas = () => llamadas.filter(([q, tabla, filtro]) => q === "select" && tabla === "bot_tareas" && !String(filtro).includes("tipo=eq.recordatorio"));
   const llamadasRpc = () => llamadas.filter(([q, f]) => q === "rpc" && f === "ficha_casa");
   let errores;
   beforeEach(async () => {
@@ -362,6 +367,32 @@ describe("con BOT_FICHA_RPC encendido, ficha y tareas de ficha_casa en una ida",
     // El turno acaba olvidando lo leído: puede haber cerrado o anotado tareas sin tocar bot_rev.
     await turno();
     expect(llamadasRpc()).toHaveLength(2);
+  });
+});
+
+describe("quién de la casa escribe, en la ficha del turno (quienEscribe.js)", () => {
+  beforeEach(async () => { delete process.env.BOT_FICHA_RPC; (await import("./quienEscribe.js")).unirCuenta.mockClear(); });
+  const lineaDe = (t) => t.ficha.join("\n").split("\n").find((l) => l.startsWith("TE ESCRIBE:"));
+
+  it("por privado, sin marcar en la app: Pablo por su nombre de Telegram, y la unión se guarda", async () => {
+    const { unirCuenta } = await import("./quienEscribe.js");
+    const t = await turno({ nombre: "Pablo Artiñano" });
+    expect(lineaDe(t)).toMatch(/^TE ESCRIBE: Pablo \(Papá\)\..*Lo deduzco por su nombre de Telegram/);
+    expect(unirCuenta).toHaveBeenCalledWith(CASA, YO, "p");
+  });
+
+  it("por privado, con un nombre que no es de la casa: que lo pregunte, y no se guarda nada", async () => {
+    const { unirCuenta } = await import("./quienEscribe.js");
+    const t = await turno({ nombre: "Manu" });
+    expect(lineaDe(t)).toMatch(/^TE ESCRIBE: no sé quién de la casa es/);
+    expect(unirCuenta).not.toHaveBeenCalled();
+  });
+
+  it("en un grupo no hay línea (cada mensaje lleva su [Nombre]:) ni se guarda nada", async () => {
+    const { unirCuenta } = await import("./quienEscribe.js");
+    const t = await turno({ esGrupo: true, chatId: "200", nombre: "Pablo" });
+    expect(lineaDe(t)).toBeUndefined();
+    expect(unirCuenta).not.toHaveBeenCalled();
   });
 });
 

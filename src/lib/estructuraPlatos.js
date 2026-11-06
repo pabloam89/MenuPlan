@@ -58,6 +58,18 @@ export function conEstructura(data, valor) {
   return { ...resto, mealStructure: valor };
 }
 
+/** Igual, para la cena: también los grupos que tenían la suya. */
+export function conEstructuraCena(data, valor) {
+  const { mealStructureCenaByGroup: _porGrupo, ...resto } = data ?? {};
+  return { ...resto, mealStructureCena: valor };
+}
+
+/** Pura. La casa para un solo menú: lo que digan para esta vez, sin tocar lo guardado. */
+export function conEstructuraDelMenu(data, { estructura = null, estructuraCena = null } = {}) {
+  const conComida = estructura ? conEstructura(data, estructura) : data;
+  return estructuraCena ? conEstructuraCena(conComida, estructuraCena) : conComida;
+}
+
 /**
  * Lo que de verdad usa el motor, para contarlo: un valor si todos los grupos
  * comen igual, o uno por grupo (con su nombre) si no.

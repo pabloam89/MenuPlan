@@ -49,3 +49,12 @@ describe("conMarcas: rehacer no desmarca lo comprado", () => {
     expect(r[3].atHome).toBeFalsy();
   });
 });
+
+describe("idManual: el id de un añadido a mano, en un solo sitio", () => {
+  it("al apuntarlo lleva su sello; el de una lista vieja sin id, sin sello, y es el que da idDeArticulo", async () => {
+    const { idManual, idDeArticulo, anadirArticulos } = await import("./compraIdentidad.js");
+    expect(anadirArticulos([], ["Pan de molde"], () => "s1").items[0].id).toBe(idManual("Pan de molde", "s1"));
+    expect(idDeArticulo({ name: "Pan de molde", manual: true })).toBe(idManual("Pan de molde"));
+    expect(idManual("Pan de molde", "s1").startsWith(idManual("Pan de molde"))).toBe(true);
+  });
+});

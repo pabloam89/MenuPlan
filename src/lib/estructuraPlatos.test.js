@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync, readdirSync } from "node:fs";
-import { estructuraDelGrupo, conEstructura, estructuraEfectiva } from "./estructuraPlatos.js";
+import { estructuraDelGrupo, conEstructura, estructuraEfectiva, conEstructuraDelMenu, estructuraCenaDelGrupo } from "./estructuraPlatos.js";
 import { PREGUNTAS_POR_ID } from "./wizardRegistry.js";
 
 // Una casa en modo experto: la familia con primero y segundo, puesto a mano.
@@ -51,5 +51,25 @@ describe("uno o dos platos (#958): lo que se escribe es lo que usa el motor", ()
       .filter((f) => f !== "src/lib/estructuraPlatos.js" && !f.startsWith("src/data/"))
       .filter((f) => lecturaAMano.test(readFileSync(new URL(f, raiz), "utf8")));
     expect(copias).toEqual([]);
+  });
+});
+
+describe("lo dicho para un solo menú (trozo 69)", () => {
+  const casa = { mealStructure: "primero_segundo", mealStructureCena: "1_plato", mealStructureByGroup: { g: "primero_segundo" }, mealStructureCenaByGroup: { g: "1_plato" } };
+
+  it("manda también sobre lo de cada grupo, y no cambia la casa", () => {
+    const antes = structuredClone(casa);
+    const r = conEstructuraDelMenu(casa, { estructura: "1_plato", estructuraCena: "primero_segundo" });
+    expect(estructuraDelGrupo(r, "g")).toBe("1_plato");
+    expect(estructuraCenaDelGrupo(r, "g")).toBe("primero_segundo");
+    expect(casa).toEqual(antes);
+  });
+
+  it("sin nada dicho, la casa tal cual", () => {
+    expect(conEstructuraDelMenu(casa, { estructura: null, estructuraCena: null })).toBe(casa);
+  });
+
+  it("solo la comida no toca la cena", () => {
+    expect(conEstructuraDelMenu(casa, { estructura: "1_plato" }).mealStructureCenaByGroup).toEqual({ g: "1_plato" });
   });
 });

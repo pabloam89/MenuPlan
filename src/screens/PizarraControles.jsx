@@ -2,8 +2,8 @@ import { useContext, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { HuecosVivosContext } from "../lib/huecosVivos.js";
 import {
-  Apple, ArrowRight, BarChart3, Check, ChevronRight, Coffee, CookingPot, Eraser,
-  Heart, IceCream, Minus, Moon, Package, Plus, Salad, Search, Share2, Sparkles, Sun, X,
+  Apple, ArrowRight, BarChart3, Check, ChevronRight, Coffee, CookingPot, Download, Eraser,
+  Heart, History, IceCream, Minus, Moon, Package, Plus, Salad, Search, Share2, Sparkles, Sun, X,
 } from "../components/icons.jsx";
 import { ingredientImageSrc, ingredientThumbSrc } from "../lib/ingredientImages.js";
 import { normalizePantryInput } from "../utils/normalizePantryInput.js";
@@ -14,6 +14,7 @@ import { GroupAvatarStack, groupAvatarFaces } from "../components/ui.jsx";
 import { membersOfGroup } from "../lib/groups.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { recuentoDelMenu } from "../lib/menuRecuento.js";
+import { avisoAlEmpezar } from "../lib/avisoNuevaPizarra.js";
 import { DAYS, getDayMeals } from "../lib/planner.js";
 import { LETRAS_DIA, DIA_LETRA } from "../lib/dias.js";
 import { MAX_MENU_WEEKS } from "../lib/menuArchive.js";
@@ -1568,12 +1569,15 @@ export function SelectorDeDias({ data, onAplicar }) {
  * que todavía no puedes tocar». Entran después, con el mismo gesto que cierra
  * la hoja.
  */
+// Lo que dura `mpArranqueOut` (index.css), atado por test.
+export const SALIDA_ARRANQUE_MS = 240;
+
 const PASOS_ARRANQUE = [
   { id: "dias", titulo: "¿Qué días quieres?" },
   { id: "cocina", titulo: "¿Qué tienes en la cocina?" },
 ];
 
-export function ArranqueDePizarra({ data, setData, onAplicar, onEmpezar }) {
+export function ArranqueDePizarra({ data, setData, onAplicar, onEmpezar, onSalir }) {
   // Dos pasos, deslizando: los días y luego los electrodomésticos, que
   // cambian las recetas y los minutos del Batch. Los dos pasos están siempre
   // montados y la hoja mide lo que el más alto —el calendario—: si cambiara
@@ -1601,7 +1605,15 @@ export function ArranqueDePizarra({ data, setData, onAplicar, onEmpezar }) {
     setTimeout(() => {
       setFase("montando");
       setTimeout(onEmpezar, 1150);
-    }, 240);
+    }, SALIDA_ARRANQUE_MS);
+  };
+
+  // Sale igual que entra a «Empezar»: la hoja sigue puesta durante la salida, y
+  // el segundo toque de un doble toque no cae en lo que hay debajo.
+  const salir = () => {
+    if (saliendo) return;
+    setFase("saliendo");
+    setTimeout(onSalir, SALIDA_ARRANQUE_MS);
   };
 
   if (fase === "montando") {
@@ -1656,12 +1668,34 @@ export function ArranqueDePizarra({ data, setData, onAplicar, onEmpezar }) {
         aria-label="¿Qué días pones?"
         className={saliendo ? "mp-arranque-out" : "mp-arranque-in"}
         style={{
+          position: "relative",
           width: "min(340px, 100%)", maxHeight: "calc(100dvh - 40px)", overflowY: "auto",
           background: "#f4f8f5", borderRadius: 24, padding: 18,
           boxShadow: "0 28px 70px -20px rgba(20,47,29,.5)",
           boxSizing: "border-box",
         }}
       >
+        <button
+          type="button"
+          onClick={salir}
+          aria-label="Cerrar"
+          className="mp-press"
+          style={{
+            position: "absolute", top: "var(--esp-8)", right: "var(--esp-8)", zIndex: 1,
+            width: 40, height: 40, padding: 0, background: "none", border: "none", cursor: "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}
+        >
+          <span
+            style={{
+              width: 32, height: 32, boxSizing: "border-box", borderRadius: "var(--radio-pildora)",
+              background: "var(--color-superficie)", border: "1px solid var(--color-linea)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}
+          >
+            <X size={16} color={VERDE} />
+          </span>
+        </button>
         {/* Sola y centrada. Debajo iba un «Luego rellenas los huecos a mano»
             que explicaba la pantalla siguiente a quien todavía no ha salido de
             esta. El título viaja con su paso (key) y entra deslizando igual. */}
@@ -1751,17 +1785,83 @@ const TITULOS = {
   tanda: "Batch Cooking",
 };
 
+/**
+ * Una pregunta antes de algo que cambia el tablero entero (vaciar, empezar en
+ * blanco): una tarjeta con «Déjalo» y la acción. Una sola para las dos, para
+ * que se vean y se comporten igual.
+ */
+function Confirmacion({ titulo, texto, si, colorSi, onSi, onNo }) {
+  return createPortal(
+    <div
+      onClick={onNo}
+      className="mp-overlay-in"
+      style={{
+        position: "fixed", inset: 0, zIndex: "var(--capa-hoja)",
+        background: "rgba(20,47,29,.45)",
+        display: "flex", alignItems: "center", justifyContent: "center", padding: 24,
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        style={{
+          width: "min(300px, 100%)", background: "#fff", borderRadius: 20,
+          padding: 18, boxSizing: "border-box",
+          boxShadow: "0 24px 60px -18px rgba(20,47,29,.45)",
+        }}
+      >
+        <p style={{ margin: "0 0 4px", fontSize: 16, fontWeight: 900, color: INK }}>
+          {titulo}
+        </p>
+        <p style={{ margin: "0 0 16px", fontSize: 12.5, fontWeight: 600, color: "#7a9485", lineHeight: 1.45 }}>
+          {texto}
+        </p>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button
+            type="button"
+            className="mp-press"
+            onClick={onNo}
+            style={{
+              flex: 1, height: 40, borderRadius: 13, cursor: "pointer",
+              border: "1.5px solid #dbe7df", background: "#fff",
+              color: "#5a7066", fontSize: 13.5, fontWeight: 800, fontFamily: "inherit",
+            }}
+          >
+            Déjalo
+          </button>
+          <button
+            type="button"
+            className="mp-press"
+            onClick={onSi}
+            style={{
+              flex: 1, height: 40, borderRadius: 13, cursor: "pointer",
+              border: "none", background: colorSi, color: "#fff",
+              fontSize: 13.5, fontWeight: 800, fontFamily: "inherit",
+            }}
+          >
+            {si}
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
 export function PizarraControles({
   data, setData, menuPlan, groups, onRellenar,
   despensa, onAddDespensa, onQuitarDespensa, onQtyDespensa,
   onNuevaPizarra, onVaciar, onFavorito, esFavorito = false,
-  tema = "claro", onTema, onCompartir,
+  onCompartir, onMenus, onDescargar, conCuenta = false, quienCome = null,
 }) {
   const [abierto, setAbierto] = useState(null);
   // Qué cara de la fila se ve. Arranca en las ACCIONES porque «Rellenar»
   // vive ahí y es lo que más se toca en un tablero recién montado.
   const [cara, setCara] = useState("acciones");
   const [confirmarVaciar, setConfirmarVaciar] = useState(false);
+  // Ya hay platos y se pulsa «Nueva»: antes de pisar el menú, se dice qué le pasa (lib/avisoNuevaPizarra.js).
+  const [avisoNueva, setAvisoNueva] = useState(null);
   const todayIdx = useMemo(() => todayDayIdx(), []);
 
   const diasDe = (offset) => diasDeSemana(data, offset, todayIdx);
@@ -1826,34 +1926,21 @@ export function PizarraControles({
           guardarlo) y lo que lo AJUSTA (balance, despensa, batch) nunca se
           necesitan a la vez: o estás montando la semana o estás haciendo algo
           con ella. Mismo gesto que la fila del menú generado (ControlRow): una
-          pestaña fija a la izquierda, y al tocarla una cara se pliega mientras
+          pestaña fija (aquí a la derecha), y al tocarla una cara se pliega mientras
           la otra crece. Se anima el reparto (`flex-grow`) y NO se desmonta
           ninguna: montarlas al vuelo daría el salto a mitad de animación. */}
       <div style={{ display: "flex", alignItems: "stretch", width: "100%", minWidth: 0 }}>
-        <button
-          type="button"
-          onClick={() => setCara((c) => (c === "acciones" ? "controles" : "acciones"))}
-          aria-label={cara === "acciones" ? "Ver los ajustes" : "Ver las acciones"}
+        {/* Quién come, a la izquierda (ver `QuienCome` en Menu.jsx), sin el tinte:
+            el tinte empieza en los mandos, que son lo que se toca del tablero. */}
+        {quienCome}
+
+        <div
+          data-franja-mandos=""
           style={{
-            flexShrink: 0, width: 38, border: "none", padding: "0 6px", cursor: "pointer",
-            background: "transparent", display: "flex", alignItems: "center",
-            justifyContent: "center", fontFamily: "inherit",
+            flex: 1, minWidth: 0, display: "flex", alignItems: "center",
+            background: "var(--pz-fondo-suave, #f1f5f9)",
           }}
         >
-          <span
-            style={{
-              width: 24, height: 24, borderRadius: 999,
-              background: "var(--pz-linea, rgba(45,90,61,.1))", color: "var(--pz-verde, #2d5a3d)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              // Gira al cambiar de cara: es la única pieza que se queda
-              // quieta, así que es la que tiene que decir que hay otra.
-              transform: cara === "acciones" ? "none" : "rotate(180deg)",
-              transition: "transform .28s cubic-bezier(.2,.9,.3,1)",
-            }}
-          >
-            <ChevronRight size={15} strokeWidth={2.8} />
-          </span>
-        </button>
 
         {/* Una ventana, y dentro un carril con las DOS caras puestas.
             Antes se cambiaba desmontando una y montando la otra: la que se iba
@@ -1905,17 +1992,23 @@ export function PizarraControles({
                   orden={1}
                   color={TEAL}
                   tinte="#fff"
-                  onClick={onNuevaPizarra}
+                  onClick={() => {
+                    const aviso = avisoAlEmpezar({ plan: menuPlan, conCuenta });
+                    if (aviso) setAvisoNueva(aviso);
+                    else onNuevaPizarra();
+                  }}
                 />
               )}
-              {onVaciar && (
+              {/* Los menús de otras semanas, y los favoritos. Antes vivían en
+                  el burger de la cabecera; con todo aquí, el burger sobra. */}
+              {onMenus && (
                 <BaldosaMando
-                  Icon={Eraser}
-                  label="Vaciar"
+                  Icon={History}
+                  label="Menús"
                   orden={2}
-                  color="#b45309"
-                  tinte="#fff"
-                  onClick={() => setConfirmarVaciar(true)}
+                  color={VERDE}
+                  tinte="var(--color-superficie)"
+                  onClick={onMenus}
                 />
               )}
               {/* La semana entera por un enlace. Va en las ACCIONES y no en los
@@ -1941,18 +2034,26 @@ export function PizarraControles({
                   onClick={onFavorito}
                 />
               )}
-              {/* Claro y oscuro. Vive aquí y no en los ajustes de la app
-                  porque solo viste el TABLERO: es una preferencia de esta
-                  pizarra, no del producto, y el resto de pantallas siguen en
-                  claro. El icono enseña adónde vas, no dónde estás. */}
-              {onTema && (
+              {onDescargar && (
                 <BaldosaMando
-                  Icon={tema === "oscuro" ? Sun : Moon}
-                  label={tema === "oscuro" ? "Claro" : "Oscuro"}
+                  Icon={Download}
+                  label="Descargar"
                   orden={5}
-                  color="#4b5d8f"
+                  color={NARANJA}
+                  tinte="var(--color-superficie)"
+                  onClick={onDescargar}
+                />
+              )}
+              {/* La última: borra la semana entera, que no quede a mano del
+                  pulgar por error. Pide confirmación igualmente. */}
+              {onVaciar && (
+                <BaldosaMando
+                  Icon={Eraser}
+                  label="Vaciar"
+                  orden={6}
+                  color="var(--color-aviso)"
                   tinte="#fff"
-                  onClick={onTema}
+                  onClick={() => setConfirmarVaciar(true)}
                 />
               )}
             </>
@@ -2005,6 +2106,32 @@ export function PizarraControles({
             </div>
           </div>
         </div>
+        {/* El chevron, a la derecha: la izquierda es de las caras. */}
+        <button
+          type="button"
+          onClick={() => setCara((c) => (c === "acciones" ? "controles" : "acciones"))}
+          aria-label={cara === "acciones" ? "Ver los ajustes" : "Ver las acciones"}
+          style={{
+            flexShrink: 0, width: 38, border: "none", padding: "0 6px", cursor: "pointer",
+            background: "transparent", display: "flex", alignItems: "center",
+            justifyContent: "center", fontFamily: "inherit",
+          }}
+        >
+          <span
+            style={{
+              width: 24, height: 24, borderRadius: 999,
+              background: "var(--pz-linea, rgba(45,90,61,.1))", color: "var(--pz-verde, #2d5a3d)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              // Gira al cambiar de cara: es la única pieza que se queda
+              // quieta, así que es la que tiene que decir que hay otra.
+              transform: cara === "acciones" ? "none" : "rotate(180deg)",
+              transition: "transform .28s cubic-bezier(.2,.9,.3,1)",
+            }}
+          >
+            <ChevronRight size={15} strokeWidth={2.8} />
+          </span>
+        </button>
+        </div>
       </div>
 
       {/* Vaciar sí pregunta: se lleva por delante todo lo que has puesto y no
@@ -2015,61 +2142,25 @@ export function PizarraControles({
           Rellenar tira siempre de lo que tienes, así que antes de hacerlo se
           enseña: apuntas lo que falte y le das. Por portal, como los paneles
           (un ancestro animado atraparía el `fixed`). */}
-      {confirmarVaciar && createPortal(
-        <div
-          onClick={() => setConfirmarVaciar(false)}
-          className="mp-overlay-in"
-          style={{
-            position: "fixed", inset: 0, zIndex: 300,
-            background: "rgba(20,47,29,.45)",
-            display: "flex", alignItems: "center", justifyContent: "center", padding: 24,
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            role="dialog"
-            aria-modal="true"
-            style={{
-              width: "min(300px, 100%)", background: "#fff", borderRadius: 20,
-              padding: 18, boxSizing: "border-box",
-              boxShadow: "0 24px 60px -18px rgba(20,47,29,.45)",
-            }}
-          >
-            <p style={{ margin: "0 0 4px", fontSize: 16, fontWeight: 900, color: INK }}>
-              ¿Vaciar la pizarra?
-            </p>
-            <p style={{ margin: "0 0 16px", fontSize: 12.5, fontWeight: 600, color: "#7a9485", lineHeight: 1.45 }}>
-              Se quitan los platos. Los huecos se quedan como están.
-            </p>
-            <div style={{ display: "flex", gap: 8 }}>
-              <button
-                type="button"
-                className="mp-press"
-                onClick={() => setConfirmarVaciar(false)}
-                style={{
-                  flex: 1, height: 40, borderRadius: 13, cursor: "pointer",
-                  border: "1.5px solid #dbe7df", background: "#fff",
-                  color: "#5a7066", fontSize: 13.5, fontWeight: 800, fontFamily: "inherit",
-                }}
-              >
-                Déjalo
-              </button>
-              <button
-                type="button"
-                className="mp-press"
-                onClick={() => { setConfirmarVaciar(false); onVaciar?.(); }}
-                style={{
-                  flex: 1, height: 40, borderRadius: 13, cursor: "pointer",
-                  border: "none", background: "#b45309", color: "#fff",
-                  fontSize: 13.5, fontWeight: 800, fontFamily: "inherit",
-                }}
-              >
-                Vaciar
-              </button>
-            </div>
-          </div>
-        </div>,
-        document.body,
+      {confirmarVaciar && (
+        <Confirmacion
+          titulo="¿Vaciar la pizarra?"
+          texto="Se quitan los platos. Los huecos se quedan como están."
+          si="Vaciar"
+          colorSi="var(--color-aviso)"
+          onNo={() => setConfirmarVaciar(false)}
+          onSi={() => { setConfirmarVaciar(false); onVaciar?.(); }}
+        />
+      )}
+      {avisoNueva && (
+        <Confirmacion
+          titulo={avisoNueva.titulo}
+          texto={avisoNueva.texto}
+          si="Empezar"
+          colorSi={TEAL}
+          onNo={() => setAvisoNueva(null)}
+          onSi={() => { setAvisoNueva(null); onNuevaPizarra?.(); }}
+        />
       )}
 
       {/* ── Por PORTAL, y no aquí dentro ──────────────────────────────────

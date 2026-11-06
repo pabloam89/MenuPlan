@@ -6,6 +6,12 @@ Verdict: viable y grande (41 trozos tras la ampliación del 30 oct por la tarde,
 
 **Ampliado el 1 nov 2026 con el tramo 9, «herramientas y manual» (trozos 42-54)**, tras la auditoría de `api/_bot/conocimiento.md` y de las herramientas de Lola (primer arreglo en el PR #1107): el riesgo y cómo se deshace de cada herramienta, en su ficha; lo que el manual dice de las herramientas, generado; lo que casi nunca hace falta, solo cuando hace falta; herramientas agrupadas; los 22 huecos de la app; y el manual reescrito una vez. Va detrás de los tramos que cambian esas mismas herramientas.
 
+**Ajustado el 4 nov 2026 (Pablo: opción A):** el manual reescrito se adelanta detrás del 44 y se parte en cuatro, en este orden: el 54 (una lista cerrada de reglas de forma y un revisor que mide cada mensaje de Lola), el 60 (los mensajes de hoy arreglados: los caminos, las fechas y la pregunta del camino en corto), el 58 (el orden fijo del manual) y el 59 (criterio sin mecánica). El 54 conserva su número y los otros van detrás del último, como el 39 y el 40. Desde entonces, **los trozos 45 a 53 no escriben a mano en el manual**: lo que cambia de una herramienta va en su ficha y su descripción, y el manual lo dice porque se genera de ahí (trozos 43 y 44). Lo único que tocan del manual es quitar una frase que nombre una herramienta que desaparece.
+
+**Ampliado el 5 nov 2026 con el tramo 10, «el pedido de menú» (trozos 62-73), a petición de Pablo:** Lola no llevaba la cuenta de un pedido: lo que falta se calcula cruzando camino, temas, ejes y lo que la casa ya dijo, y solo se guarda lo que no se puede deducir. Absorbe L2 hasta donde pide el camino, L3, L4 y L5 de #1210. Cuadre de ejes y plan en los comentarios de #1210.
+
+**Ampliado el 5 nov 2026 (noche) con los trozos 74 y 75, a petición de Pablo (opción 1):** al pedir ideas con palabras propias («algo de pasta o carne con patatas»), Lola solo miraba lo que encaja en un hueco con las reglas del menú, y lo que la persona elige no podía entrar si rompía alguna. El 74 deja entrar lo elegido con avisos (solo frena la seguridad) y el 75 junta las dos herramientas de recetas en una, la primera del tramo 9 en agruparse.
+
 Fecha: 30 oct 2026. Base leída: `origin/staging` en `5b9dbaed` (#1031). Escrito en la forma del estándar de planes de la Fábrica (`standards/plan.md`), sin pasar su comprobador (ver Not verified).
 
 Origen: #1029 (el menú cojo de la casa nueva de Pablo), #958 (auditoría de Lola, clase G «1 dato, 1 sitio»), #939 (un solo registro; fases 1-4 hechas) y la conversación con Pablo del 30 oct.
@@ -93,7 +99,7 @@ Todo dato de una ficha lleva el mismo **sobre**: `valor`, `origen` (es el estado
 - **Mínimos para generar** (decisión B): quién come, alergias dichas (o por silencio con aviso, #229) y días. Sin ellos, no se genera: se pregunta.
 - **La app se entera al momento** con Realtime de Supabase sobre `household_state.bot_rev` y `sobre` (trozo 20), y deja el sondeo de 20 s.
 - **Sin convivencia con lo viejo** (Pablo, 30 oct 2026: «no quiero migrar nada; si tienen que empezar de cero, es lo que hay»): cuando una ficha pasa a sus filas, el documento deja de leerse y de escribirse para esa ficha en el mismo trozo. Ni doble escritura, ni repoblado de datos viejos, ni leer la clave antigua «por si acaso». Las casas que ya existen estrenan cada ficha vacía: la app y Lola preguntan como a una casa nueva. Lo que ya está en tablas (semanas, compra, recetas propias, despensa) se queda. Nunca quedan dos sitios vivos para el mismo dato (hoy hay 10 copias por haberlo hecho a medias).
-- **Qué hace cada migración** (el único sitio que lo dice; la tabla de tramos solo dice si el tramo trae migración y cada trozo la construye): la 0105 da al sobre y al registro sus columnas y crea la tabla `operacion` (trozo 7); la 0106 crea `aplicar_operacion` y `escribir_dato` (trozo 39); la 0107 crea `ficha_casa` v2 y retira `sobre.ref` (trozo 40); la 0108 crea `escribir_persona` (definer: la única vía de escritura a `persona` y `persona_*`, porque ningún usuario puede tocarlas) y retira el trigger 0089 con sus funciones (trozo 10); la 0109 crea de una vez `preferencia`, `plan_preferencias`, señal e historiales (trozo 14), que usan los trozos 15, 22 y 31 sin migración propia; la 0110 amplía `bot_tareas` y retira `bot_reminders` (trozo 34); la 0111 deja a `aplicar_operacion` deshacer una operación con su inversa en la misma transacción (trozo 41); la 0114 da ámbito (grupo, semana, día, comida) al sobre y al registro (trozo 55), la 0115 escribe y deshace con él (trozo 56) y la 0116 lo lee en `ficha_casa` (trozo 57). Las tablas de salud por persona ya existen (0079). Si un trozo posterior necesita una columna más, es una migración pequeña aparte.
+- **Qué hace cada migración** (el único sitio que lo dice; la tabla de tramos solo dice si el tramo trae migración y cada trozo la construye): la 0105 da al sobre y al registro sus columnas y crea la tabla `operacion` (trozo 7); la 0106 crea `aplicar_operacion` y `escribir_dato` (trozo 39); la 0107 crea `ficha_casa` v2 y retira `sobre.ref` (trozo 40); la 0108 crea `escribir_persona` (definer: la única vía de escritura a `persona` y `persona_*`, porque ningún usuario puede tocarlas) y retira el trigger 0089 con sus funciones (trozo 10); la 0109 crea de una vez `preferencia`, `plan_preferencias`, señal e historiales (trozo 14), que usan los trozos 15, 22 y 31 sin migración propia; la 0110 amplía `bot_tareas` y retira `bot_reminders` (trozo 34); la 0111 deja a `aplicar_operacion` deshacer una operación con su inversa en la misma transacción (trozo 41); la 0114 da ámbito (grupo, semana, día, comida) al sobre y al registro (trozo 55), la 0115 escribe y deshace con él (trozo 56) y la 0116 lo lee en `ficha_casa` (trozo 57); la 0131 crea `descarte_menu` (un menú tirado, con su motivo) y añade a `receta_descartes` la columna `descarte_menu_id` (trozo 61). Las tablas de salud por persona ya existen (0079). Si un trozo posterior necesita una columna más, es una migración pequeña aparte.
 
 ## Entidades y campos nuevos, frente a los que ya hay
 
@@ -108,6 +114,7 @@ Comparados con las dos bases: la de la Fábrica (`.fabrica/entities.json` y `.fa
 | `sobre.operacion_id` | `sobre.ref` (0097) | mismo significado, más preciso: `operacion_id` nace en el trozo 7 y `ref_tipo`/`ref_id` se retiran en el trozo 40 |
 | campos de ámbito del sobre: `sobre.grupo_id`, `sobre.semana`, `sobre.dia`, `sobre.comida`, `registro_campo.ambito` y la lista `DIMENSIONES_AMBITO` (trozo 55) | el ámbito de la ficha Preferencia («días, comidas, desde, hasta, salvedad», «Las fichas»; trozo 14); `AMBITOS` (`todos`/`ninos`/`adultos`/`bebes`) y `SERVICIOS` (`ambos`/`comida`/`cena`) de la libreta (`src/lib/notepadFields.js:62-65`); `AMBITOS_TAREA` (`casa`/`personal`, `src/lib/vocabularios.js:254`); las claves `id\|dia\|comida` de `data.schedule` y `dia\|comida` de `data.slotType` | mismo significado que el día y la comida de la Preferencia y que las claves de `schedule`/`slotType`, que pasan a estas columnas (trozo 13) con los valores de `DIAS` y `COMIDAS`; la Preferencia (trozo 14) usa estas mismas dimensiones y listas, no unas suyas. Otra cosa: `AMBITOS` de la libreta es a quién aplica (un grupo de edad, que el trozo 14 pasa a sujeto), `SERVICIOS` es una lista de comidas con «ambos» (que aquí es «sin la dimensión comida») y `AMBITOS_TAREA` es de quién es una tarea; no se juntan. `semana` y `grupo` son nuevas como dimensión: hoy la semana va en las claves (`menuWeekDays` por lunes) y el grupo en el nombre del campo (`…ByGroup`) |
 | `version_catalogo` de la semana | `catalog_meta` (0006) guarda la versión del catálogo de la base, una para todas las casas | nueva por semana: dice con qué catálogo se hizo cada menú, que `catalog_meta` no puede decir |
+| entidad `descarte_menu` y campo `receta_descartes.descarte_menu_id` (trozo 61) | `receta_descartes` (0102: una fila por plato tirado, con `alcance` `plato`, `dia` o `menu` y sin motivo) y `household_recipe_discards` (por casa, con `cooldown_until` fijo: `src/App.jsx`, trozo 15) | nueva: ninguna guarda un menú tirado como una cosa con su motivo. Los platos siguen en `receta_descartes`, enlazados por `descarte_menu_id`, y `household_recipe_discards` no cambia. No entra en `ENTIDADES` (`src/lib/registroFicha.js:83`, `casa`, `persona`, `grupo`: de quién es un dato de ficha): es un hecho de historial, y lo que se deduce de él va a `preferencia` por señales o por `ajustar_gustos` |
 
 ## Tramos
 
@@ -119,14 +126,15 @@ Comparados con las dos bases: la de la Fábrica (`.fabrica/entities.json` y `.fa
 | 2c Turno de Lola | 28 | no | cancelar y rehacer sin escrituras, espera adaptativa, aclaraciones que caducan, deshacer por autor |
 | 3 Persona y salud | 10-11 | sí | salud y personas como fuente; fuera `members`, `groups` y el trigger 0089 |
 | 4 Casa y rutina | 12-13, 55-57 | sí | aparatos, súper, presupuesto, despensa, comidas, estructura, horario, tiempo, tanda |
-| 5 Preferencias, señales y motor | 14-15, 30-33 | sí | libreta, reglas, sesgos, topes y presupuesto → `preferencia`; contadores que olvidan; entrada única del motor; ejes compilados; preferencias cumplidas con informe; las 24 reglas como preferencias del sistema; método de choques |
+| 5 Preferencias, señales y motor | 14-15, 30-33, 61 | sí | libreta, reglas, sesgos, topes y presupuesto → `preferencia`; contadores que olvidan; el menú descartado con su motivo y lo que se deduce; entrada única del motor; ejes compilados; preferencias cumplidas con informe; las 24 reglas como preferencias del sistema; método de choques |
 | 6 Trato, preguntas y tareas | 16-17, 34-35 | sí | ficha Trato; una sola «siguiente pregunta»; tareas como entidad completa; un solo barrido de caducidades y referencias rotas |
 | 7 Semana, compra, tiempo real | 18-20 | no | sobre por hueco con motivo, versión de la semana, compra derivada + marcas, aperitivo, Realtime con una señal por casa, fin del guardado entero |
 | 8 Recetas, historiales, cierre | 21-22, 36 | no | fuera recetas y carpetas del documento; historiales con poda; `data` vacío; borrar persona y exportar |
-| 9 Herramientas y manual | 42-54 | no | riesgo y cómo se deshace en la ficha de cada herramienta; lo que el manual dice de las herramientas, generado de las fichas; Alta, preguntas frecuentes y fotos solo cuando hacen falta; herramientas agrupadas por objeto; los 22 huecos de la app en Lola; el manual reescrito una vez |
+| 9 Herramientas y manual | 42-54, 58-60, 74, 75 | no | riesgo y cómo se deshace en la ficha de cada herramienta; lo que el manual dice de las herramientas, generado de las fichas; Alta, preguntas frecuentes y fotos solo cuando hacen falta; la forma de cada mensaje de Lola medida contra una lista cerrada, y los mensajes de hoy arreglados; el manual reescrito una vez (orden fijo y criterio sin mecánica); herramientas agrupadas por objeto; los 22 huecos de la app en Lola |
+| 10 El pedido de menú | 62-73 | sí (70) | los ejes cuadrados con los caminos; qué falta se calcula; pedido en curso por casa; Lola no repite lo sabido; un solo reglamento; esta vez o siempre; cada menú sabe cómo se pidió; rehacer sin sustos |
 | Transversal (desde ya) | 29, 37, 38 | no | banco de frases que comprueba el estado guardado; prueba de punta a punta de la app; panel de cifras |
 
-Orden (lo fijan los «Depends on»; ningún par de trozos sin orden entre ellos toca el mismo fichero, comprobado con `check-plan` de la Fábrica): 0 → 1 (24, 25) → 2 (7, 39, 40, 8, 9, 26, 41, 27) → 2c (28) → 3 → 4 (12, 55, 56, 57, 13) → 5 (14, 15, 30, 31, 32, 33) → 6 (16, 17, 34, 35) → 7 → 8 → 9 (42-54, detrás de los tramos 6 a 8 que cambian las mismas herramientas). Sin dependencias, en paralelo desde ya: 29 y 37; el 38 va detrás del 37 y del 7.
+Orden (lo fijan los «Depends on»; ningún par de trozos sin orden entre ellos toca el mismo fichero, comprobado con `check-plan` de la Fábrica): 0 → 1 (24, 25) → 2 (7, 39, 40, 8, 9, 26, 41, 27) → 2c (28) → 3 → 4 (12, 55, 56, 57, 13) → 5 (14, 15, 30, 31, 32, 33) → 6 (16, 17, 34, 35) → 7 → 8 → 9 (42, 43, 44, 54, 60, 58, 59, 45-53, detrás de los tramos 6 a 8 que cambian las mismas herramientas; el 54 y los que salen de él, adelantados el 4 nov 2026). El 61 (el menú descartado con su motivo, añadido el 5 nov 2026) va el último, detrás del 53 y del 57, porque toca `agente.js`, `conocimiento.md`, `bot-evals.json`, `vocabularios.js` y `ESTADO.md`. Sin dependencias, en paralelo desde ya: 29 y 37; el 38 va detrás del 37 y del 7. Tramo 10: 63 → 64 → 65 → 66 → 67 → 68 → 69 → 70 → 71 → 72 → 73 → 75 → 45, así que los pendientes 45-53 y 61 van detrás. El 74 (motor) no tiene dependencias y va en paralelo desde ya; el 75 espera al 73 y al 74, y el 19 (aperitivo, bloqueado) va detrás del 74 porque los dos tocan `aiPlanner.js`.
 
 Cifras que bajan, medidas al cerrar cada tramo: claves vivas en `household_state.state.data` (hoy 113 registradas + 26 sin declarar → 0), `copia` (10 → 0), `sin_tabular` (54 → 0), `lola_no_lo_ve` (22 → 0), casas nuevas con alguien sin marca de alergias tras el alta (→ 0), semanas vivas con huecos esperados vacíos sin aviso (→ 0), respuestas de Lola que contradicen el estado (17 % en #958 → se mide con el banco de frases, trozo 29). Cifras nuevas: escrituras fuera de la tubería (→ 0, trozo 26), herramientas que escriben sin resultado (→ 0, trozo 27), analizadores de fechas y personas fuera del intérprete (hoy 3 → 0, trozo 27), claves `data.*` leídas por el motor (hoy 30 → 0, trozo 30), ejes sin consumidor (hoy 27 de 78, trozo 31), % de preferencias dichas cumplidas por semana (trozo 31), ficheros que hay que tocar para añadir un dato (hoy 19 para `cookLevel`, trozo 25), preguntas hasta el primer menú (trozo 34).
 
@@ -339,7 +347,7 @@ npx vitest run src/lib/compraMarcas.test.js src/lib/shoppingBuilder.test.js api/
 
 ### 19. El aperitivo es una franja que se puede planificar desde la pizarra y desde Lola
 Files: `src/lib/comidas.js`, `src/lib/planner.js`, `src/lib/aiPlanner.js`, `src/screens/PizarraControles.jsx`, `api/_bot/ajustes.js`, `src/lib/aperitivo.test.js`
-Depends on: 13, 18
+Depends on: 13, 18, 74
 Blocked by: none
 Existing: `Aperitivo` está en `COMIDAS` con `tipo: "futuro"` y sinónimos (`src/lib/comidas.js:35-37`), `COMIDAS_PLANIFICABLES` lo excluye (`:63`) y `ALL_DAY_MEALS` del motor es `Desayuno, Comida, Cena` (`src/lib/planner.js:13`). Pablo (30 oct): llegar desde la pizarra a un menú con aperitivos algún día.
 Not done: el aperitivo es una franja `extra` (como merienda o postre): un plato, pool de recetas con `mealRole` aperitivo, sin cuota. Si el catálogo estrella no tiene recetas de aperitivo, error y no relleno (regla `catalogo`). Solo los días que se pida (el ámbito del dato de Rutina lo permite tras el trozo 13). `extraMeals` (desayuno, merienda y postre, un objeto en el documento) se parte aquí en un dato por franja con ámbito día, con su fila en `registro_campo` y su migración.
@@ -625,15 +633,15 @@ Done:
 npx vitest run api/_bot/manualPorPartes.test.js && node scripts/bot-evals.mjs --nivel=pr
 ```
 
-### 45. Herramientas agrupadas, primer grupo: quién come dónde, con su línea base
+### 45. Herramientas agrupadas, primer grupo: quién come dónde
 Files: `api/_bot/agente.js`, `api/_bot/ajustes.js`, `api/_bot/router.js`, `api/_bot/routerEjemplos.js`, `api/_bot/ejemplosPrompt.test.js`, `api/_bot/promesas.test.js`, `api/_bot/fichas.test.js`, `src/lib/capacidades.js`, `api/_bot/conocimiento.md`, `scripts/bot-evals.json`, `api/_bot/herramientasAgrupadas.test.js`
-Depends on: 44
+Depends on: 59, 75
 Blocked by: none
 Existing: 46 herramientas (`grep -c 'name: "' api/_bot/agente.js` → 46): 8 empiezan por `ver_` y 11 por `ajustar_` (`grep -c 'name: "ver_'` → 8; `grep -c 'name: "ajustar_'` → 11). `fuera_de_casa` (un día) y `ajustar_horario` (siempre) tratan lo mismo, quién come dónde, con distinto alcance, y necesitan una regla del manual («Cómo se habla de verdad») y un test propio (`api/_bot/ejemplosPrompt.test.js`) para no confundirse. Anthropic recomienda herramientas de propósito claro y sin solapes, agrupadas con prefijos por recurso, y medir llamadas, tokens y errores ([Writing tools for agents](https://www.anthropic.com/engineering/writing-tools-for-agents)). `ls api/_bot/herramientasAgrupadas.test.js` → No such file or directory.
-Not done: antes de tocar nada se mide con el banco de frases la herramienta elegida, las llamadas por turno y los errores, y esa línea base queda en el cuerpo del PR para los trozos 46 y 47. Después, `fuera_de_casa` y `ajustar_horario` pasan a una sola herramienta de quién come dónde con alcance (un día o siempre), como ya los junta la ficha Rutina (trozo 13). No se fusiona si baja la herramienta acertada. El test nuevo falla si dos herramientas comparten objeto y verbo (hoy, esas dos).
+Not done: `fuera_de_casa` y `ajustar_horario` pasan a una sola herramienta de quién come dónde con alcance (un día o siempre), como ya los junta la ficha Rutina (trozo 13). El PR deja dos o tres frases para que Pablo lo pruebe a mano en staging (decisión del 6 nov 2026, en «Decisions taken»). El test nuevo falla si dos herramientas comparten objeto y verbo (hoy, esas dos). No escribe a mano en el manual (desde el 4 nov 2026): lo de la herramienta nueva va en su ficha y su descripción; del manual solo se quita la frase que nombre una herramienta que desaparece.
 Done:
 ```sh
-npx vitest run api/_bot/herramientasAgrupadas.test.js api/_bot/ejemplosPrompt.test.js api/_bot/promesas.test.js && node scripts/bot-evals.mjs --nivel=pr
+npx vitest run api/_bot/herramientasAgrupadas.test.js api/_bot/ejemplosPrompt.test.js api/_bot/promesas.test.js
 ```
 
 ### 46. Herramientas agrupadas, segundo grupo: las consultas en una sola
@@ -641,10 +649,10 @@ Files: `api/_bot/agente.js`, `api/_bot/menu.js`, `api/_bot/router.js`, `api/_bot
 Depends on: 45
 Blocked by: none
 Existing: las 8 `ver_*` (`grep -c 'name: "ver_' api/_bot/agente.js` → 8) son de solo lectura y cada una es una herramienta aparte. `herramientasAgrupadas.test.js` lo crea el trozo 45.
-Not done: las `ver_*` sin campos pasan a una herramienta `consultar` con `que` de lista cerrada; las que tienen campos propios se quedan aparte. Se mide contra la línea base del trozo 45 y no se fusiona si baja la herramienta acertada. El test comprueba que la lista de `que` sale del vocabulario y que no queda ninguna `ver_*` sin campos.
+Not done: las `ver_*` sin campos pasan a una herramienta `consultar` con `que` de lista cerrada; las que tienen campos propios se quedan aparte. El PR deja dos o tres frases para que Pablo lo pruebe a mano en staging (decisión del 6 nov 2026, en «Decisions taken»). El test comprueba que la lista de `que` sale del vocabulario y que no queda ninguna `ver_*` sin campos.
 Done:
 ```sh
-npx vitest run api/_bot/herramientasAgrupadas.test.js api/_bot/promesas.test.js api/_bot/fichas.test.js && node scripts/bot-evals.mjs --nivel=pr
+npx vitest run api/_bot/herramientasAgrupadas.test.js api/_bot/promesas.test.js api/_bot/fichas.test.js
 ```
 
 ### 47. Herramientas agrupadas, tercer grupo: los ajustes, uno por ficha
@@ -652,10 +660,10 @@ Files: `api/_bot/agente.js`, `api/_bot/ajustes.js`, `api/_bot/router.js`, `api/_
 Depends on: 46
 Blocked by: none
 Existing: 11 herramientas `ajustar_*` (`grep -c 'name: "ajustar_' api/_bot/agente.js` → 11), cada una para unos pocos campos. El registro de campos con su ficha lo hace el trozo 25.
-Not done: las `ajustar_*` de configuración pasan a una por ficha (Casa, Rutina), con `campo` de lista cerrada del registro (trozo 25). Alergias, salud y quitar personas se quedan aparte, porque su riesgo es `quita_proteccion` (trozo 42). Se mide contra la línea base del trozo 45 y no se fusiona si baja la herramienta acertada. Si el total sigue por encima de unas 30 herramientas, la búsqueda de herramientas de la API se estudia en un trozo aparte.
+Not done: las `ajustar_*` de configuración pasan a una por ficha (Casa, Rutina), con `campo` de lista cerrada del registro (trozo 25). Alergias, salud y quitar personas se quedan aparte, porque su riesgo es `quita_proteccion` (trozo 42). El PR deja dos o tres frases para que Pablo lo pruebe a mano en staging (decisión del 6 nov 2026, en «Decisions taken»). Si el total sigue por encima de unas 30 herramientas, la búsqueda de herramientas de la API se estudia en un trozo aparte.
 Done:
 ```sh
-npx vitest run api/_bot/herramientasAgrupadas.test.js api/_bot/promesas.test.js api/_bot/fichas.test.js && node scripts/bot-evals.mjs --nivel=pr
+npx vitest run api/_bot/herramientasAgrupadas.test.js api/_bot/promesas.test.js api/_bot/fichas.test.js
 ```
 
 ### 48. Los huecos de la app, primero: las recetas propias
@@ -724,15 +732,15 @@ Done:
 npx vitest run api/_bot/huecosCerrados.test.js src/lib/capacidades.test.js && npm run -s capacidades
 ```
 
-### 54. El manual, reescrito una vez sobre las fichas: principios, límites arriba, criterio sin mecánica y formato por canal
-Files: `api/_bot/conocimiento.md`, `api/_bot/manualEstructura.test.js`, `scripts/bot-evals.json`
-Depends on: 53
+### 54. La forma de los mensajes de Lola: una lista cerrada de reglas y un revisor que mide cada mensaje
+Files: `api/_bot/formatoMensaje.js`, `api/_bot/formatoMensaje.test.js`, `api/_bot/manual.js`, `api/_bot/conocimiento.md`, `api/_bot/agente.js`, `api/bot/telegram.js`, `api/_bot/usoDelTurno.test.js`
+Depends on: 44
 Blocked by: none
-Existing: tras el PR #1107, el manual sigue mezclando mecánica de herramientas con criterio (por ejemplo, nutrientes y «para quién» en «El menú», que repiten `ESQUEMA_EJES` y la descripción de `proponer_platos`). Tiene los errores y reintentos en tres sitios («Cómo trabajas» 10, «Nutrientes» y «Tono») y los límites («Lo que no haces») hacia el 60 % del texto, aunque la investigación ve un sesgo hacia las primeras instrucciones ([IFScale](https://arxiv.org/html/2507.11538v1)). El formato es solo de Telegram (HTML), con WhatsApp en camino. `ls api/_bot/manualEstructura.test.js` → No such file or directory.
-Not done: orden fijo (identidad, principios con su porqué, seguridad y límites, la ficha, situaciones con criterio y sin mecánica, ejemplos reales, formato por canal) y un recordatorio final corto de lo crítico. El test comprueba el orden de los apartados y que ningún nombre de parámetro de herramienta aparece en el manual, porque la mecánica vive en la herramienta. El formato de cada canal va en su bloque, que el código carga según el canal. Evals de nivel pr y la pasada completa antes de fusionar.
+Existing: medido sobre `origin/staging` en `5595fa3b`. Clase del fallo: una regla de salida que solo vive en prosa del manual, sin lector («Lo que no puede fallar va en la base o en código determinista», regla `lola`). El manual dice la forma a mano en «# Botones» y «# Formato de los mensajes» (`grep -n "^# Botones\|^# Formato" api/_bot/conocimiento.md` → `222:# Botones`, `231:# Formato de los mensajes`) y nada mide un mensaje antes ni después de mandarlo: `ls api/_bot/formatoMensaje.js` → No such file or directory, y la medida del turno (`api/bot/telegram.js:845-878`) no tiene `formato`. El mensaje que vio Pablo el 4 nov (la pregunta del camino) tenía 12 líneas, una fecha ISO («Desde 2026-11-09») y tres líneas que empiezan por «:». Cifra de antes, en lo guardado de Lola (solo lectura; la charla se borra a los 15 días): `npm run consulta -- "select count(*) total, count(*) filter (where content->>'texto' ~ '[0-9]{4}-[0-9]{2}-[0-9]{2}') con_iso, count(*) filter (where content->>'texto' ~ ']][ ]*:') boton_en_linea from bot_messages where role='assistant' and created_at > now() - interval '14 days'"` → `54 | 1 | 1`. Quién más escribe mensajes a la familia: la vía rápida (`api/_bot/rapido.js`, `api/_bot/turno.js`), los textos fijos (`api/bot/link.js`, la bienvenida de `api/bot/telegram.js`) y los avisos (`api/bot/recordatorios.js`, `api/_bot/caducidades.js`, `api/_bot/enlace.js`), de `grep -ln "enviar(\|sendMessage" api/bot/*.js api/_bot/*.js`.
+Not done: la lista cerrada `REGLAS_FORMATO` (en `formatoMensaje.js`: id, la frase para el manual y la función que la mide; constante + test, como «Pensar en datos») con este vocabulario de faltas: `prosa_larga` (más de 4 líneas que no son opción, lista ni botón), `varias_preguntas`, `pregunta_enterrada` (más de una línea de prosa detrás de la pregunta), `fecha_iso`, `puntuacion_huerfana` (una línea que, quitados los botones, empieza por «:», «;», «,» o «.»), `boton_en_linea` (un `[[…]]` con texto en su misma línea), `opcion_sin_negrita` (una línea que empieza por el texto de un botón sin `<b>`) y `markdown` (`**`, o «#» o «- » al empezar línea). Cada caso malo del test rompe una regla y dispara solo esa, y el mensaje de Pablo da las suyas. El revisor mide lo que escribe Lola en cada turno (donde hoy se mide el cuadre, `agente.js`) y apunta la lista de faltas en `bot_route` (`lola.formato`, vacía si no hay), que se cuenta por día con `npm run consulta` sobre `user_events`; un test con el turno de verdad y el modelo de mentira (`usoDelTurno.test.js`) lo comprueba. **Solo mide**: no reescribe ni frena ningún mensaje, y con la cifra un trozo aparte decide qué reglas pasan a corregirse. Mide lo de Lola; la vía rápida, los textos fijos y los avisos se quedan fuera (los escribe el código, no el modelo; aplicarles la misma lista en un test es otro trozo). El bloque de forma del manual sale de la misma lista (marca `{{FORMATO}}` en `manual.js`) y sustituye las frases escritas a mano que dicen lo mismo; cómo se pinta un día, una receta o la compra se queda hasta el 58. Los arreglos de los mensajes de hoy son del 60, para que este mida antes de arreglar. Las reglas no pasan como fuente a la sección P de `docs/diseno/META-DISENO.md`: este plan no cita ese documento, y unirlos es otro trozo. WhatsApp y el orden del manual son del 58. Cambia lo que Lola lee (el bloque de forma): evals de nivel pr antes de fusionar, que lanza Pablo.
 Done:
 ```sh
-npx vitest run api/_bot/manualEstructura.test.js api/_bot/ejemplosPrompt.test.js api/_bot/promesas.test.js && node scripts/bot-evals.mjs --nivel=pr
+npx vitest run api/_bot/formatoMensaje.test.js api/_bot/manual.test.js api/_bot/usoDelTurno.test.js && node scripts/bot-evals.mjs --nivel=pr
 ```
 
 ### 55. Migración 0114: el sobre gana ámbito (grupo, semana, día, comida) y el registro dice el de cada campo
@@ -766,6 +774,206 @@ Not done: sigue en `v: 2` (Lola y la app de `staging` aceptan solo 1 y 2). Cada 
 Done:
 ```sh
 npx vitest run supabase/datoConSobre.test.js supabase/fichaSobre.test.js
+```
+
+### 58. El manual en un orden fijo: identidad, principios, límites arriba, la ficha, situaciones, ejemplos, forma por canal y un recordatorio final
+Files: `api/_bot/conocimiento.md`, `api/_bot/manual.js`, `api/_bot/manualEstructura.test.js`
+Depends on: 60
+Blocked by: none
+Existing: `grep -n "^# " api/_bot/conocimiento.md` (sobre `5595fa3b`) → `1:# Quién eres`, `9:# Cómo trabajas`, `39:# La ficha de la casa`, `63:# Seguridad`, `76:# Después del primer menú`, `93:# El menú`, `113:# Configurar la casa hablando`, `122:# Recetas`, `128:# Fotos y voz`, `132:# Recordatorios`, `138:# Charla nueva, grupos y versión gratis`, `144:# Cómo se habla de verdad`, `154:# Cocina y nutrición`, `163:# Lo que no haces`, `179:# Preguntas frecuentes de HoMenu`, `209:# Qué sabes hacer`, `222:# Botones`, `231:# Formato de los mensajes`, `287:# Tono` (289 líneas): los límites («Lo que no haces») empiezan en la línea 163, al 56 % del texto, aunque la investigación ve un sesgo hacia las primeras instrucciones ([IFScale](https://arxiv.org/html/2507.11538v1)); los errores y reintentos están en tres sitios («Cómo trabajas», «Nutrientes» y «Tono»). `ls api/_bot/manualEstructura.test.js` → No such file or directory.
+Not done: solo mueve y junta apartados: identidad, principios con su porqué, seguridad y límites, la ficha, situaciones, ejemplos, forma por canal y un recordatorio final corto de lo crítico. El orden vive en una lista de `manual.js` y el test nuevo falla si los títulos «# » del manual no la siguen. La forma de Telegram va en su bloque, que el código carga según el canal; el de WhatsApp no se escribe hasta que haya WhatsApp. No quita mecánica ni cambia ejemplos (59). La forma de Telegram que mueve es la del 54 (marca `{{FORMATO}}`). Cambia lo que Lola lee: evals de nivel pr antes de fusionar (regla `lola`).
+Done:
+```sh
+npx vitest run api/_bot/manualEstructura.test.js api/_bot/manual.test.js && node scripts/bot-evals.mjs --nivel=pr
+```
+
+### 59. Criterio sin mecánica: fuera del manual lo que ya dicen las herramientas, y ejemplos reales en la forma nueva
+Files: `api/_bot/conocimiento.md`, `api/_bot/manualEstructura.test.js`, `scripts/bot-evals.json`
+Depends on: 58
+Blocked by: none
+Existing: tras el PR #1107, el manual sigue mezclando mecánica de herramientas con criterio (por ejemplo, nutrientes y «para quién» en «El menú», que repiten `ESQUEMA_EJES` y la descripción de `proponer_platos`). `grep -cE '(\`(fijos|desde|camino)\`|receta =|rehacer: true|en (ejes|perfil|plato|estilo|rasgos)\b)' api/_bot/conocimiento.md` (sobre `5595fa3b`) → `6` líneas que dicen en qué parámetro va cada cosa. Los ejemplos del manual son de antes de la lista del 54 y nadie comprueba que la cumplan.
+Not done: el test (el del 58) falla si un nombre de parámetro de una herramienta (de los `inputSchema` de sus fichas) sale en el manual como parámetro (entre comillas invertidas, o seguido de «=» o «:»), y si un ejemplo del manual tiene alguna falta de `REGLAS_FORMATO` (trozo 54). Los ejemplos nuevos salen de mensajes de verdad, sin nombres de familias. No cambia herramientas ni sus descripciones. Evals de nivel pr y, antes de fusionar, la pasada completa, que lanza Pablo.
+Done:
+```sh
+npx vitest run api/_bot/manualEstructura.test.js api/_bot/ejemplosPrompt.test.js api/_bot/promesas.test.js && node scripts/bot-evals.mjs --nivel=pr
+```
+
+### 60. Los mensajes de hoy, arreglados: los caminos sin «:» sueltos, las fechas en humano en lo que lee Lola y la pregunta del camino en corto
+Files: `api/_bot/manual.js`, `api/_bot/conocimiento.md`, `api/_bot/caminoMenu.js`, `api/_bot/caminoMenu.test.js`, `api/_bot/semanaPedida.js`, `api/_bot/semanaPedida.test.js`, `api/_bot/agente.js`, `src/lib/caminos.js`, `scripts/bot-evals.mjs`, `scripts/bot-evals.json`
+Depends on: 54
+Blocked by: none
+Existing: medido sobre `origin/staging` en `5595fa3b`. Los «:» sueltos, reproducidos por el código de verdad, sin modelo: `rellenos({ capacidades: [], fichas: new Map() }).CAMINOS` de `api/_bot/manual.js` con la regex de `sacarBotones` (`api/bot/telegram.js:1480`) encima → `: Me dices qué días coméis en casa y del resto me encargo yo (1 min). Ej.: «de lunes a viernes, solo cenas».` y dos líneas más igual: la marca `{{CAMINOS}}` escribe `[[Título]]: …` en mitad de la línea y el extractor se lleva el botón. En la misma función, `grep -n 'replace(/.\$/' api/_bot/manual.js` → `33:` (quería ser `/\.$/`; hoy no rompe porque todo resumen acaba en punto). Las fechas ISO que Lola lee y copia salen de lo que devuelven las herramientas: `caminoMenu.js:61` («desde (AAAA-MM-DD)»), `semanaPedida.js:67` («YA HAY MENÚ del ${existente.weekStart}…»), `menu.js:267`, `ajustes.js:198`, `ajustes.js:906` y `caducidades.js:166`, de `git grep -nE '\$\{[a-zA-Z.?]*(weekStart|weekEnd|lunes|desde|hasta|iso|fecha)\}' -- api/_bot` sin los de URL y comentarios; la ficha también las lleva (`ficha.js:110`, `cabeceraDia`). La pregunta del camino no dice qué semana falta: `git grep -n "preguntaDeCamino\|semanaPropuesta" -- api` → sin salida. Al pulsar un botón no queda nada a la vista (`api/bot/telegram.js:1567`, `editMessageReplyMarkup` con la lista vacía), así que parece que Lola pregunta dos veces.
+Not done: la línea de cada camino pasa a `<b>Título</b>: …` con un resumen corto para el chat (`enChat` en `caminos.js`; el `resumen` sigue siendo el subtítulo de la app) y los botones van solos al final; la regex, a `/\.$/` con su test. Las fechas de lo que devuelven las herramientas se pasan a humano en un solo paso del agente («lunes 9 de noviembre», con la ISO marcada al lado para los argumentos), en vez de arreglar cada texto; la ficha no se toca (su ISO va marcada para `ajustar_gustos`, y lo que mida el 54 dirá si hace falta). El NO GENERADO de `generar_menu` sin camino trae la pregunta corta entera (la semana sin menú y su lunes en humano, una línea por camino, «O cuéntamelo con tus palabras o en un audio.» y los tres botones), que pasa las reglas del 54 en un test. Las evals de mentira (`bot-evals.mjs`) devuelven lo mismo que el agente (fechas en humano y la pregunta corta), y un caso nuevo con esta conversación entra en `scripts/bot-evals.json`. La elección pulsada a la vista («✓ Solo los días») no entra: editar el texto pierde el HTML y un botón «✓» inerte pide tocar `pulsado`; queda en #1277. Cambia lo que Lola lee: evals de nivel pr antes de fusionar, que lanza Pablo.
+Done:
+```sh
+npx vitest run api/_bot/caminoMenu.test.js api/_bot/semanaPedida.test.js && node scripts/bot-evals.mjs --nivel=pr
+```
+
+### 61. Descartar un menú entero con su motivo: Lola lo apunta con un motivo de lista cerrada, y lo que se deduce va a la ficha como preferencia
+Files: `supabase/migrations/0131_descarte_de_menu.sql`, `supabase/ESTADO.md`, `src/lib/vocabularios.js`, `scripts/lib/columnasVocabulario.mjs`, `src/lib/senales.js`, `src/lib/senales.test.js`, `api/_bot/descarteMenu.js`, `api/_bot/descarteMenu.test.js`, `api/_bot/agente.js`, `api/_bot/conocimiento.md`, `scripts/bot-evals.json`
+Depends on: 15, 53, 57
+Blocked by: none
+Existing: la tabla ya acepta descartes de menú entero, pero sin motivo y solo desde la app: `receta_descartes` (0102) lleva `alcance` con CHECK `('plato', 'dia', 'menu')` y no tiene columna de motivo. La escribe solo `src/lib/descartes.js` (`registrarDescartes`, desde `src/App.jsx:4940` y `:5057`, plato y día); `src/App.jsx:2733` dice que los de menú entero «ya no se apuntan […] eso lo hacía este botón, y Lola aún no». `git grep -n "receta_descartes" -- api/_bot` → sin salida: Lola no apunta nada al rehacer. En la base (solo lectura, 5 nov 2026), `npm run consulta -- "select alcance, count(*), max(created_at)::date from receta_descartes group by 1"` → `plato 2`, `menu 22`, el último del 1 nov: los 22 de menú son una fila por plato del menú tirado, sin el porqué. Lola rehace menús: de 20 turnos de `bot_route` con `generar_menu` en 30 días, 3 llevan «rehac» (`npm run consulta` con `metadata::text like '%generar_menu%'` y `ilike '%rehac%'`; cuenta por texto, aproximada). Lo que la casa hace ya alimenta señales que olvidan (`src/lib/senales.js`, trozo 15: `senalesDePlato`, `UMBRAL_APRENDIDO = 3`, preferencia `visto` al pasar el umbral), pero un descarte de menú no entra.
+Not done: dos capas, cada dato en un solo sitio. **Lo que pasó**: la migración de este trozo crea `descarte_menu` (una fila por menú descartado: casa, quién, semana, `motivo` con CHECK contra `MOTIVOS_DESCARTE_MENU` y, si el motivo es `no_gusta`, el eje y el valor dichos) y añade a `receta_descartes` la columna nullable `descarte_menu_id`, que enlaza las filas de sus platos (el motivo no se copia en cada plato). Vocabulario cerrado (constante + CHECK + `columnasVocabulario.mjs` + test): `repetido`, `complicado`, `caro`, `no_gusta`, `poco_sano`, `otro`, `sin_decir`. **Lo que se deduce**: `no_gusta` con eje y valor es lo que la familia dice, y va a su ficha como preferencia `dicho` por el camino de `ajustar_gustos` (no por otro); `repetido`, `complicado`, `caro` y `poco_sano` restan una señal en el eje de cada plato del menú que dice `EJE_DE_MOTIVO` (en `senales.js`, junto a `senalesDePlato`), y al pasar `UMBRAL_APRENDIDO` sale la preferencia `visto` del trozo 15, que se ve y se corrige en la ficha; `otro` y `sin_decir` no deducen nada. En Lola: al pedir rehacer, la pregunta que ya hace antes de generar (conocimiento.md, «Generar») lleva los motivos como botones y «Rehazlo sin más» (`sin_decir`), en un solo mensaje que pasa las reglas del 54; `generar_menu` con `rehacer` recibe `motivo` (y eje y valor si es `no_gusta`) y `descarteMenu.js` apunta la fila y sus platos antes de generar. Si la tabla aún no está (la migración la aplica Pablo), no se apunta, se avisa con `avisarFallo` y el menú se rehace igual (plan B). No toca la app (el menú solo se hace desde Lola, y el asistente viejo sigue oculto), no rellena el motivo de los 22 de antes y no cambia cómo pesa `descartesPrioridad.js` los platos tirados. Cambia lo que Lola lee: evals de nivel pr, que lanza Pablo, con un caso nuevo en `scripts/bot-evals.json` («este menú no, mucho pescado»).
+Done:
+```sh
+npx vitest run api/_bot/descarteMenu.test.js src/lib/senales.test.js src/lib/vocabularios.test.js && node scripts/bot-evals.mjs --nivel=pr
+```
+
+### 62. La cifra de antes: cuántas veces Lola pregunta lo que ya sabía y dónde se abandona un menú
+Files: `scripts/pedidos-menu.mjs`, `scripts/pedidos-menu.test.js`, `package.json`
+Depends on: none
+Blocked by: none
+Existing: no hay cifra. `menu_generado` solo guarda casa y fecha, y la pregunta del camino va como texto en `bot_messages`.
+Not done: script de solo lectura con dos cifras y su definición cerrada: `pregunta_repetida` (la pregunta del camino sale otra vez en la misma charla sin menú generado entre medias) y `pedido_sin_menu` (sale la pregunta y no hay menú en 24 h). No cambia a Lola.
+Done:
+```sh
+npx vitest run scripts/pedidos-menu.test.js
+```
+
+### 63. Cada tema dice de verdad sus datos: los ejes del menú, en un solo sitio y sin huecos
+Files: `src/lib/caminos.js`, `src/lib/caminos.test.js`, `src/lib/registroFicha.js`
+Depends on: none
+Blocked by: none
+Existing: `TEMAS.campos` solo lo lee `caminos.test.js`, y exige que el campo esté en `REGISTRO_CAMPOS`; estilo y tiempos tienen `campos: []` y compra no lleva `presupuesto`. Cruce del 5 nov: de 11 ejes con `peso_menu`, `reparto`, `cocinas`, `sesgos` y `presupuesto` viven en `preferencia` y `cookTime` en el documento (comentario en #1210).
+Not done: cada tema declara sus datos con dónde viven (`sobre`, `preferencia` o `documento`) y cada dato su nivel en una lista cerrada (`bloquea`, `bloquea_salvo_forzar`, `del_camino`). El test falla si un dato con `peso_menu` no está en ningún tema ni trae su motivo. No cambia lo que pregunta Lola.
+Done:
+```sh
+npx vitest run src/lib/caminos.test.js api/_bot/caminoMenu.test.js
+```
+
+### 64. Qué sabe esta casa de cada eje, venga de donde venga
+Files: `src/lib/ejesDeCasa.js`, `src/lib/ejesDeCasa.test.js`
+Depends on: 63
+Blocked by: none
+Existing: `estadosDeFichas` y `leidoDe` dan el estado de lo que tiene sobre; `leerPreferencias` da las filas de `preferencia` con su `origen`; `cookTime` sigue en el documento hasta el trozo que lo pase a filas.
+Not done: función pura que une las tres fuentes y devuelve por eje `sabido`, `supuesto` o `falta`, con fecha y origen. La misma regla que `falta()` de `siguientePregunta.js`: lo dicho, supuesto o aprendido no se pregunta; lo vacío, por defecto o caducado, sí.
+Done:
+```sh
+npx vitest run src/lib/ejesDeCasa.test.js
+```
+
+### 65. El cruce: qué falta para este pedido
+Files: `src/lib/pedidoMenu.js`, `src/lib/pedidoMenu.test.js`, `api/_bot/caminoMenu.js`, `api/_bot/caminoMenu.test.js`
+Depends on: 64
+Blocked by: none
+Existing: `faltaParaGenerar` comprueba camino y fecha mirando solo este mensaje; `semanaPropuesta` y `resolverSemana` saben desde cuándo y si ya hay menú; `minimosQueFaltan` sabe de alergias.
+Not done: función pura `faltaDelPedido({ camino, desde, forzado, ejes, semanas, hoy })`: lo que bloquea, lo primero que preguntar, lo que se usa de la ficha para decirlo en el resumen y si pisa un menú. Lo de nivel `bloquea` no se salta aunque digan «sigue tú». `faltaParaGenerar` pasa a leerla.
+Done:
+```sh
+npx vitest run src/lib/pedidoMenu.test.js api/_bot/caminoMenu.test.js
+```
+
+### 66. El pedido en curso, por casa: sobrevive a que se cambie de tema
+Files: `api/_bot/pedidoMenu.js`, `api/_bot/pedidoMenu.test.js`, `api/_bot/tareas.js`, `api/_bot/caducidades.js`, `src/lib/vocabularios.js`
+Depends on: 65
+Blocked by: none
+Existing: la `propuesta` vive en el último mensaje y se pierde si la charla sigue por otro lado. `bot_tareas` es por casa, tiene clave única entre las abiertas y `TIPOS_TAREA` lleva `espera` y `decision`.
+Not done: una tarea abierta por casa con camino, días pedidos y `forzado`, y su caducidad en `CADUCA`. Dos adultos no abren dos pedidos. Si un tipo de tarea no encaja, se para y se decide en este trozo; sin migración si encaja.
+Done:
+```sh
+npx vitest run api/_bot/pedidoMenu.test.js api/_bot/tareas.test.js api/_bot/caducidades.test.js
+```
+
+### 67. Lola lo usa: cada mensaje rellena lo que pueda, pregunta solo lo que falte y genera con todo
+Files: `api/_bot/agente.js`, `api/_bot/caminoMenu.js`, `api/_bot/caminoMenu.test.js`, `api/_bot/conocimiento.md`, `scripts/bot-evals.json`
+Depends on: 66
+Blocked by: none
+Existing: «El menú» de `conocimiento.md` da los pasos como texto; contestar con quién come fuera a la pregunta del camino guarda las ausencias y vuelve a preguntar (5 nov 2026).
+Not done: con un pedido abierto, una respuesta con días cuenta como «Solo los días» y Lola lo dice en la línea de resumen. Guarda lo que sirva solo, propone la fecha y genera sin otra confirmación. «Sigue tú» cierra los ejes del camino con lo que haya. Generar fallido deja el pedido abierto. Es L3 y L4 de #1210, y L2 hasta donde pide el camino. Evals: las lanza Pablo y no frenan el PR.
+Done:
+```sh
+npx vitest run api/_bot/caminoMenu.test.js api/_bot/pedidoMenu.test.js api/_bot/manualEstructura.test.js
+```
+
+### 68. Un solo reglamento: manda el camino y el trato recuerda el habitual
+Files: `src/lib/siguientePregunta.js`, `src/lib/siguientePregunta.test.js`, `src/lib/wizardRegistry.js`, `api/_bot/agente.js`, `api/_bot/trato.js`
+Depends on: 67
+Blocked by: none
+Existing: `preguntasDeAfinar` elige por trato y peso, y los caminos por tema. La `siguientePregunta` de `wizardRegistry.js` no la llama nadie fuera de sus tests.
+Not done: la profundidad del trato pasa a ser el camino habitual, y «directo» es el pedido con `forzado`. Fuera la línea de afinar y la función sin uso. Las tareas `falta_saber` de seguridad siguen igual.
+Done:
+```sh
+npx vitest run src/lib/siguientePregunta.test.js src/lib/wizardRegistry.test.js api/_bot/trato.test.js
+```
+
+### 69. Esta vez o siempre: lo de un menú no pisa la ficha
+Files: `api/_bot/pedidoMenu.js`, `api/_bot/pedidoMenu.test.js`, `src/lib/preferencias.js`, `api/_bot/conocimiento.md`
+Depends on: 68
+Blocked by: none
+Existing: `preferencia` ya lleva `semanas`, `desde` y `hasta`, y `plan_preferencias` agrupa con nombre y fechas. Lo que está en `sobre` no tiene ámbito de semana salvo donde lo declara el registro.
+Not done: «esta semana un plato» vale solo para esa semana; «a partir de ahora», para siempre. Si no queda claro, solo este menú y Lola lo dice (L5 de #1210). Cubre también `mealStructureCena`, que hoy no tiene pregunta propia.
+Done:
+```sh
+npx vitest run api/_bot/pedidoMenu.test.js src/lib/preferencias.test.js
+```
+
+### 70. Migración 0130: cada menú sabe cómo se pidió
+Files: `supabase/migrations/0130_menu_generado_pedido.sql`, `supabase/ESTADO.md`, `api/_bot/menusGenerados.js`, `api/_bot/menusGenerados.test.js`, `api/_bot/generar.js`
+Depends on: 69
+Blocked by: Pablo aplica la migración
+Existing: `menu_generado` (0125) guarda `household_id` y `created_at`.
+Not done: gana `menu_id`, `week_start` y `camino`, con CHECK contra `CAMINOS`; `menu_id` y `week_start`, dentro de la casa, señalan la fila de `user_menu_weeks`, y el fin y los días se leen de ahí, sin copiarlos. Plan B: sin las columnas, se apunta como hoy. El número se confirma contra `origin/staging` al escribirla.
+Done:
+```sh
+npx vitest run api/_bot/menusGenerados.test.js supabase/cableado.test.js
+```
+
+### 71. «¿Como la última vez?»: un toque para la familia que vuelve
+Files: `api/_bot/caminoMenu.js`, `api/_bot/caminoMenu.test.js`, `api/_bot/conocimiento.md`, `scripts/bot-evals.json`
+Depends on: 70
+Blocked by: none
+Existing: `preguntaDeCamino` ofrece los tres caminos en cada pedido, y se quedan (Pablo, 5 nov 2026: cada uno elige, con sus ejemplos, y siempre hay un mínimo).
+Not done: con un menú anterior, junto a los tres caminos, un botón más que repite su camino y sus días, leídos de `user_menu_weeks` por casa, `menu_id` y `week_start`. Nunca los sustituye.
+Done:
+```sh
+npx vitest run api/_bot/caminoMenu.test.js
+```
+
+### 72. Rehacer un menú en uso: qué se conserva y qué se pierde
+Files: `src/lib/pedidoMenu.js`, `src/lib/pedidoMenu.test.js`, `api/_bot/generar.js`, `api/_bot/conocimiento.md`
+Depends on: 71
+Blocked by: none
+Existing: `conservarDiasPrevios` y `rehacer` existen; el motivo al descartar es del trozo 61, aún sin hacer.
+Not done: antes de pisar una semana, Lola dice qué días se quedan, qué se pierde y qué pasa con la compra. Los platos cambiados a mano no llevan marca: se dice por días. El motivo se coordina al hacer el trozo 61.
+Done:
+```sh
+npx vitest run src/lib/pedidoMenu.test.js api/_bot/generar.test.js
+```
+
+### 73. Un botón a la app solo si esa pantalla tiene algo que enseñar: la compra
+Files: `api/_bot/agente.js`, `api/_bot/botonSinMenu.test.js`
+Depends on: 72
+Blocked by: none
+Existing: #1316 lo arregló en `fuera_de_casa` con `nadaQueVer`; las herramientas que llevan a la compra no lo miran.
+Not done: comprobar cuáles pueden abrir la compra vacía y, en esas, sin botón.
+Done:
+```sh
+npx vitest run api/_bot/botonSinMenu.test.js
+```
+
+### 74. Lo que elige la persona entra en el menú: las reglas del menú pasan a avisos y solo frena la seguridad
+Files: `src/lib/aiPlanner.js`, `src/lib/aiPlanner.test.js`, `api/_bot/menu.js`, `api/_bot/menu.test.js`, `api/_bot/eligeTu.test.js`
+Depends on: none
+Blocked by: none
+Existing: medido sobre `origin/staging` en `a0b17f62`. Cuando cambia o propone un plato, el motor (`pickCatalogReplacement`, `src/lib/aiPlanner.js`) saca de la forma del hueco qué tipo de plato admite: en una comida con primero y segundo, solo `segundo` (`aiPlanner.js:3090`), y lo exige con `structuralFit` (`:3130`). Con `pedido` (la persona ha nombrado el plato) se suelta solo el tope de tiempo (`:3132`) y la variedad (`:3150`). El tipo de plato, el plato ya puesto en la semana y los platos de montaje siguen filtrando. En el catálogo estrella hay 59 recetas de pasta y solo 1 vale de segundo (`plato_unico` 55, `primero` 49, `cena` 7, `segundo` 1; recuento por `mainBase` y `mealRole` de `src/data/recipes/*.json` con `estrella`). Así que «pasta para la comida» no sale nunca si esa comida tiene primero y segundo. Con `parecido_a`, si ninguna receta del hueco lleva la primera palabra pedida, `proponerPlatos` devuelve las de siempre (`api/_bot/menu.js:749`, `lista.slice(0, n)`) bajo la frase «Ordenadas por parecido a…» (`:785`). Así contestó Lola el 5 nov 2026 a «algo más pasta o carne con patatas o salsa chula»: trucha, chuletas con ensalada y fritura de pescado. `cambiarPlato` con `receta` busca solo en ese mismo pool (`menu.js:1319`), y si no está dice «No hay nada parecido a…» (`:1326`, `SIN_CAMBIAR.NADA_PARECIDO`), aunque la receta exista en el catálogo. Los porqués del motor ya son una lista cerrada con palabras y test: `DESCARTE` y `DESCARTE_EN_PALABRAS` (`aiPlanner.js:2995`), con `vecinos` y `mismo_dia`. `ls api/_bot/eligeTu.test.js` → No such file or directory.
+Clase del fallo: una regla pensada para cuando elige la máquina se aplica también cuando elige la persona, y lo que filtra no se dice. Quién más usa lo mismo, buscado con `git grep -n "pickCatalogReplacement("` fuera de los tests: con `pedido: true`, `menu.js:1322` (aproximar el nombre en `cambiarPlato`) y `menu.js:1380` (si el plato elegido vale también para los otros grupos de la casa); con `forcedRecipe`, que ya salta tipo de plato, tiempo y variedad y solo frena por `chocaConElGrupo` (`aiPlanner.js:3061-3067`), `menu.js:1348` y `:1382`, `api/_bot/generar.js:136` (platos fijados al generar) y `src/App.jsx:5148` y `:5596`. Los de `forcedRecipe` no cambian: la regla nueva toca el pool de `pedido`, y la elegida ya entraba por `forcedRecipe` una vez encontrada. `menu.js:1380` sí cambia: con la regla nueva, el plato elegido pasa también a los otros grupos salvo por seguridad, y los que no lo reciben se dicen como hoy (`sinCambiar`). Los demás (`menu.js:731`, `:1224`, `:1318`, `:1330`, el resto de `App.jsx`) eligen sin `pedido` y no cambian.
+Not done: primero, el rojo por el motor: `eligeTu.test.js` reproduce el 5 nov con una casa de prueba (comida con primero y segundo, `proponerPlatos` con `parecido_a: "pasta"` → hoy ninguna pasta y la frase «Ordenadas por parecido»; `cambiarPlato` con una pasta del catálogo → hoy `NADA_PARECIDO`). Luego, con `pedido`, `pickCatalogReplacement` deja de filtrar por tipo de plato del hueco, tiempo, plato ya puesto en la semana, montaje y gustos «no». Cada candidata trae sus avisos con un motivo de `DESCARTE`, que suma `rol`, `tiempo`, `repetido`, `montaje` y `no_gusta` con sus palabras. Salen primero las que no rompen nada. Solo frena la seguridad: lo que `choquesDeReceta` (`src/lib/restriccionesReceta.js`) da para la casa (alergias, «puede contener», intolerancias, dietas, embarazo o lactancia, etapa del bebé). `proponerPlatos` con `parecido_a` o `tipo` busca en ese pool. Si ninguna se parece, lo dice con una línea de lista cerrada y nunca da otras como parecidas. `cambiarPlato` con `receta` pone la elegida aunque rompa reglas del menú, y el resultado dice cuáles. Si la elegida solo vale de plato único y la comida tenía primero y segundo, la comida pasa a plato único: se quita el primero y se dice. Si solo vale de primero, va de primero y el segundo se queda. Cuando elige la máquina (sin `pedido`: generar, rellenar, «elige tú»), nada cambia. No toca `agente.js` ni el manual: la descripción de `cambiar_plato` («pone esa») sigue siendo cierta y los avisos van en el resultado. El 75 lo cuenta en la herramienta.
+Done:
+```sh
+npx vitest run src/lib/aiPlanner.test.js api/_bot/menu.test.js api/_bot/eligeTu.test.js
+```
+
+### 75. Una sola herramienta de recetas: con las palabras de quien pide, en todo el catálogo, y con destino si lo hay
+Files: `api/_bot/agente.js`, `api/_bot/recetas.js`, `api/_bot/menu.js`, `api/_bot/router.js`, `api/_bot/routerEjemplos.js`, `api/_bot/conocimiento.md`, `scripts/bot-evals.json`, `scripts/bot-evals.mjs`, `scripts/lola-feedback.mjs`, `src/lib/papeles.js`, `src/lib/restriccionesReceta.js`, `api/_bot/recetas.test.js`, `api/_bot/fichas.test.js`, `api/_bot/__snapshots__/fichas.test.js.snap`, `api/_bot/papel.test.js`, `api/_bot/avisoLento.test.js`, `api/bot/canarioSoloLectura.test.js`, `api/bot/turnoRapido.test.js`
+Depends on: 73, 74
+Blocked by: none
+Existing: medido sobre `origin/staging` en `a0b17f62`. Hay dos herramientas para «recetas para quien pregunta». `proponer_platos` (`api/_bot/agente.js:1050`) da «recetas del catálogo que encajan en un hueco del menú». `buscar_recetas` (`agente.js:395`) busca en catálogo y recetas propias por palabras y por significado, y solo avisa de lo que la casa no puede comer (`api/_bot/recetas.js:115`). El manual manda «si piden ideas, dalas YA con proponer_platos» (`api/_bot/conocimiento.md:109`) y deja `buscar_recetas` para «ver recetas de algo» (`:145`). En 30 días de `bot_route` (`npm run consulta` sobre `user_events`, 5 nov 2026, 4 chats): 11 turnos con `proponer_platos` o modo `recomendar`; 5 seguidos de otro igual en el mismo chat en menos de 5 minutos; 0 con `buscar_recetas`. El 5 nov hubo 3 turnos y 3 llamadas a `proponer_platos` para «ideas para mañana» y «pasta o carne con patatas»; ninguna opción llevaba pasta ni patatas. `bot_route` guarda el nombre de cada herramienta y no sus argumentos. Desde el 4 nov, los trozos de herramientas no escriben a mano en el manual (trozos 43 y 44): sin contar este plan, `buscar_recetas` sale en 17 ficheros y `proponer_platos` en 29 (`git grep -c 'buscar_recetas\|buscarRecetas' | wc -l` → 18 y el de `proponer_platos` → 30, los dos con este plan).
+Clase del fallo: dos herramientas para lo mismo, y el manual manda al modelo a la que ata la búsqueda a un hueco; la persona pide con sus palabras y la herramienta busca con las reglas del hueco.
+Not done: antes de tocar nada, se mide con el banco de frases la herramienta elegida en los casos de recetas, y esa línea base va al cuerpo del PR, como en el 45. `proponer_platos` absorbe `buscar_recetas`: gana `consulta` (palabras o lo que digan tal cual, también por significado), `categoria`, `maxMinutos` y las recetas propias. El destino (día, comida, cuál, grupo) pasa a ser opcional. Sin destino y con `consulta`, busca en todo el catálogo, como hoy `buscar_recetas`. Con destino, devuelve lo mismo ordenado por encaje y con los avisos del 74, sin esconder nada salvo lo de seguridad. Se queda el nombre `proponer_platos` (17 ficheros que tocar en vez de 29) y `buscar_recetas` se retira de las fichas, el router, los casos y los tests. La vía rápida `recomendar` con palabras pasa la consulta tal cual. La descripción de la herramienta dice que lo elegido entra con `cambiar_plato` aunque rompa reglas del menú. Del manual solo se quita la frase de `buscar_recetas` (`:145`) y se ajusta la de `:109`. Casos nuevos en el banco: ideas con lo que pide la persona; pasta para una comida con primero y segundo; no volver a ofrecer lo que acaba de rechazar. Evals: las lanza Pablo y no frenan el PR.
+Done:
+```sh
+npx vitest run api/_bot/recetas.test.js api/_bot/menu.test.js api/_bot/fichas.test.js api/_bot/papel.test.js api/bot/turnoRapido.test.js api/bot/canarioSoloLectura.test.js
 ```
 
 ## Decisions for Pablo
@@ -827,6 +1035,13 @@ Por qué te lo pregunto: el 8 oct decidiste lo contrario (#107: se genera esquiv
 - principio 4 | eligió: el riesgo y cómo se deshace cada herramienta, en su ficha y en vocabulario cerrado, y de ahí el vigilante y el manual | descartó: los nombres de herramienta escritos a mano en el vigilante y la frase del manual sobre deshacer | motivo: decidido
 - principio 4 | eligió: lo que el manual dice de las herramientas (qué sabe hacer, qué solo en la app, qué se deshace), generado de las fichas y del mapa | descartó: listas escritas a mano en el manual, que se desfasan al cambiar una herramienta | motivo: decidido
 - principio 2 | eligió: medir con el banco de frases antes y después de agrupar herramientas, grupo a grupo | descartó: agrupar todas de una vez sin línea base, o varios grupos en un PR | motivo: decidido
+- principio 2 | eligió: adelantar el 54 tras el 44, partido en cuatro (54 el revisor, 60 los arreglos, 58 orden, 59 criterio sin mecánica), uno detrás de otro | descartó: esperarlo detrás del 53, que deja los mensajes rotos de hoy sin medir nueve PR más; o hacer los cuatro a la vez en paralelo, que chocan en `api/_bot/conocimiento.md` y no dejan saber qué cambio mueve cada cifra | motivo: decidido (Pablo, 4 nov 2026: opción A)
+- principio 5 | eligió: las reglas de forma de un mensaje en una lista cerrada en código (`REGLAS_FORMATO`, trozo 54), de la que salen el revisor y el bloque del manual | descartó: dejarlas solo en prosa del manual, donde nada cuenta cuántos mensajes las rompen | motivo: decidido
+- principio 2 | eligió: el revisor del 54 solo mide y apunta las faltas por turno; corregir o frenar un mensaje se decide con la cifra por día | descartó: reescribir los mensajes ya, sin saber qué regla se rompe ni cuántas veces | motivo: decidido
+- principio 4 | eligió: las fechas de lo que devuelven las herramientas, a humano en un solo paso del agente (trozo 60) | descartó: arreglar uno a uno los seis textos de herramientas con fecha ISO, que deja igual el siguiente texto nuevo | motivo: decidido
+- principio 4 | eligió: los trozos 45 a 53 escriben lo de sus herramientas solo en sus fichas, y del manual solo quitan la frase de una herramienta que desaparece | descartó: que cada uno escriba en el manual a mano, que vuelve a poner en prosa lo que el manual genera de las fichas desde el 43 | motivo: decidido
+- principio 4 | eligió: el 54 conserva su número y los nuevos son el 58, el 59 y el 60, detrás del último | descartó: renumerar los trozos 45 a 53, que deja con otro número las referencias que ya los citan (sesiones, PR y el issue #1037), dos nombres para el mismo trozo | motivo: decidido
+- principio 2 | eligió: el revisor (54) va antes que los arreglos (60), para medir los mensajes de hoy antes de cambiarlos | descartó: arreglar primero, que deja sin cifra de antes lo que el arreglo dice mejorar | motivo: decidido
 
 - principio 3 | eligió: un sobre por hueco: el ámbito (grupo, semana, día, comida) en columnas de `sobre` y en su clave única (trozo 55; Pablo, 2 nov 2026) | descartó: un tipo `mapa` con el horario entero en un solo sobre, donde quien escribe un día pisa sin decirlo lo que otro dijo de otro día | motivo: decidido
 - principio 5 | eligió: las dimensiones del ámbito en una lista cerrada (`DIMENSIONES_AMBITO`, CHECK de `registro_campo.ambito`) y el día y la comida con CHECK de `DIAS` y `COMIDAS` (trozo 55) | descartó: el ámbito como texto libre («Lun|Comida»), que la base no puede comprobar | motivo: decidido
@@ -835,10 +1050,42 @@ Por qué te lo pregunto: el 8 oct decidiste lo contrario (#107: se genera esquiv
 
 - principio 3 | eligió: `cookTime`, `extraMeals`, `kidDinnerConfig`, `schoolMenus`, `tanda`/`tandaPlatos` y `mealStyleByGroup` siguen en el documento hasta el trozo que los toca (14, 18, 19 y 30), sin migración nueva (trozo 13, 2 nov 2026) | descartó: registrarlos ahora con un tipo `objeto` en el sobre, que guarda el objeto entero en un sobre y hace que quien cambia una franja o un niño pise sin decirlo lo que otro dijo de otro | motivo: decidido
 
+- principio 4 | eligió: el menú descartado en su propia fila (`descarte_menu`, con el motivo) y sus platos en `receta_descartes` enlazados por `descarte_menu_id` (trozo 61) | descartó: una columna `motivo` en `receta_descartes`, que escribe el mismo motivo en cada plato del menú (los 22 de hoy serían 22 copias) | motivo: decidido
+- principio 4 | eligió: el motivo `no_gusta` con eje y valor va a la ficha por el camino de `ajustar_gustos`, como `dicho` (trozo 61) | descartó: una segunda forma de escribir una preferencia desde el descarte, al lado de la que ya usa Lola | motivo: decidido
+- principio 1 | eligió: los motivos sin eje dicho (repetido, complicado, caro, poco sano) solo restan señales, y la preferencia sale `visto` al pasar el umbral del trozo 15 (trozo 61) | descartó: escribir de un solo descarte una preferencia como si la familia la hubiera dicho, que la ficha enseñaría como confirmada sin que nadie la confirmara | motivo: decidido
+- principio 3 | eligió: si no se puede apuntar el descarte (la migración aún no está o falla), se avisa con `avisarFallo` y el menú se rehace igual (trozo 61) | descartó: rehacer sin decir que el descarte se perdió, o no rehacer por no poder apuntarlo | motivo: decidido
+
+- principio 4 | eligió: el pedido en curso como tarea de `bot_tareas` (trozo 66) | descartó: guardarlo en la `propuesta` del mensaje, que se pierde si la charla cambia de tema; y una tabla nueva, cuando la tarea ya es por casa y caduca | motivo: decidido
+- principio 4 | eligió: lo que falta se calcula en cada turno de la ficha, `preferencia` y el documento (trozos 64-65) | descartó: copiar los ejes en una ficha del pedido: dos verdades | motivo: decidido
+- principio 4 | eligió: `donde_come`, una herramienta con `plazo` (trozo 45) | descartó: dos herramientas para lo mismo con distinto alcance | motivo: decidido
+- principio 3 | eligió: con el plazo mal rellenado, «NO GUARDADO» y el motivo (trozo 45) | descartó: valores por defecto, que guardarían un horario que nadie dijo | motivo: decidido
+- principio 6 | eligió: los trozos 45 a 47 no se miden con evals de pago; Pablo los prueba a mano en staging. Fuente: su mensaje a la sesión que construye estos trozos, del 6 nov 2026, que no deja rastro en el repo: «respecto a a herramientas, pruebo y a mano y aprueba tú el 1345»; y el del 4 nov 2026: «Sin evals: los evals soy yo probando a mano, así que no te ralles» | descartó: quitar la medición sin preguntárselo, que sería un atajo sobre lo que pedía el plan | motivo: decidido
+- principio 1 | eligió: al rehacer, decir por días que lo cambiado se pierde (trozo 72) | descartó: nombrar los platos cambiados a mano, que afirmaría algo que los datos no guardan: no llevan marca | motivo: decidido
+- principio 4 | eligió: el aviso de rehacer en `avisoDeRehacer`, un solo sitio (trozo 72) | descartó: repetir el texto en la parada y en «YA HAY MENÚ» | motivo: decidido
+- principio 4 | eligió: la parada de rehacer en `generar_menu` de agente.js, donde está el pedido (trozo 72) | descartó: ponerla en `generarMenu` de generar.js, que no conoce el pedido y necesitaría una copia | motivo: decidido
+- principio 3 | eligió: con «sigue tú» se rehace sin parar y lo que se pierde se dice en el resumen (trozo 72) | descartó: callarlo, que perdería platos sin decirlo; y parar, que le pregunta a quien pidió que no preguntaran | motivo: decidido
+- principio 4 | eligió: `menu_generado` guarda `menu_id` y `week_start`, que señalan la fila de `user_menu_weeks` (trozo 70) | descartó: las columnas `desde` y `hasta`, que copiarían lo que esa fila ya dice | motivo: decidido
+- principio 1 | eligió: no guardar `forzado` en `menu_generado` (trozo 70) | descartó: una columna sin lector, que afirmaría un dato que nada usa ni comprueba | motivo: decidido
+- principio 3 | eligió: si no se puede apuntar el menú, se avisa y el menú sigue hecho (trozo 70) | descartó: dejar que caiga el turno, que diría que falló un menú ya guardado | motivo: decidido
+- principio 4 | eligió: los días se leen de `user_menu_weeks` por casa, menú y semana, y van al motor por `soloEste` (trozo 71) | descartó: copiar los días en `menu_generado`, una segunda verdad | motivo: decidido
+- principio 3 | eligió: si no se puede leer la última vez, se pregunta como siempre y queda en el log (trozo 71) | descartó: dejar que falle todo el pedido por un botón de más | motivo: decidido
+
+- principio 3 | eligió: cuando elige la persona, las reglas del menú salen como avisos con su motivo y la receta entra; solo frena la seguridad (trozo 74) | descartó: seguir filtrándolas, que da otras recetas como si fueran lo pedido sin decir que lo pedido existe (5 nov 2026: 59 pastas en el catálogo, 0 en la propuesta) | motivo: decidido (Pablo, 5 nov 2026: opción 1)
+- principio 3 | eligió: con `parecido_a` y ninguna receta parecida, la respuesta lo dice (trozo 74) | descartó: dar las de siempre bajo «ordenadas por parecido», que presenta como respuesta lo que no lo es | motivo: decidido
+- principio 3 | eligió: una elegida que solo vale de plato único deja esa comida en plato único, quita el primero y lo dice (trozo 74) | descartó: ponerla de segundo y dejar el primero al lado sin decirlo, dos platos completos en una comida y uno que nadie pidió | motivo: decidido
+- principio 1 | eligió: una elegida que solo vale de primero va de primero y el segundo se queda, y el resultado dice dónde fue (trozo 74) | descartó: ponerla en el sitio del segundo, que deja en el menú un primero apuntado como segundo | motivo: decidido
+- principio 4 | eligió: los motivos nuevos (`rol`, `tiempo`, `repetido`, `montaje`, `no_gusta`) en `DESCARTE` y `DESCARTE_EN_PALABRAS` de `aiPlanner.js`, que ya exigen palabras para cada motivo (trozo 74) | descartó: una lista nueva de avisos en `vocabularios.js`, otra lista con los mismos porqués | motivo: decidido
+- principio 4 | eligió: una sola herramienta de recetas, `proponer_platos` con destino opcional, que absorbe `buscar_recetas` (trozo 75) | descartó: dejar las dos, que dan lo mismo (recetas para quien pregunta) por dos puertas y obligan al modelo a elegir (0 de 11 veces eligió `buscar_recetas` en 30 días) | motivo: decidido
+- principio 4 | eligió: la herramienta que queda conserva el nombre `proponer_platos` (trozo 75) | descartó: un nombre nuevo, que obliga a cambiar los 29 ficheros que la nombran y, mientras tanto, deja dos nombres para la misma herramienta | motivo: decidido
+
 ## Not verified
 
+- Tramo 10: el reparto de `reparto`, `cocinas` y `sesgos` en el tema estilo y de `cookTime` en tiempos es lectura del 5 nov; lo cierra el trozo 63. Que `bot_tareas` sirva para el pedido lo cierra el trozo 66. Orden del tramo 10 comprobado solo contra los trozos pendientes, sin `check-plan`.
+
+- Trozos 74 y 75 (5 nov 2026): que el 5 nov Lola pasara «pasta» en `parecido_a` es deducción: `bot_route` guarda el nombre de la herramienta y no sus argumentos. Lo explica el código (la primera palabra pedida no está en ninguna receta de segundo), no lo prueba un registro. El recuento de pastas sale de `mainBase` y `mealRole` del JSON, no de pasar el motor por una casa real. La cifra de 5 de 11 propuestas seguidas de otra es pequeña (4 chats en 30 días) y cuenta repeticiones, no si la persona quedó contenta. El orden frente a otros trozos se comprobó con un script propio que cruza los «Files» de los trozos 42-75, no con `check-plan`.
+- Trozo 61 (5 nov 2026): el orden frente a otros trozos se comprobó con un script propio que sigue los «Depends on» y cruza los «Files», no con `check-plan` de la Fábrica (no se ejecuta desde esta carpeta). Quedan sin orden, compartiendo fichero, los trozos 2, 5, 16, 23, 24 y 25 (los mismos 2 y 16 que ya tiene el 59). Las cifras de Lola rehaciendo menús (3 de 20 turnos con `generar_menu` en 30 días) cuentan por texto en `metadata`, no por el argumento `rehacer`, que `bot_route` no guarda.
 - Trozos 55-57 (2 nov 2026): la forma del ámbito no se ha ensayado contra la base (el repo no tiene un Postgres de pruebas); la ensaya Pablo con cada migración. Que `nulls not distinct` exista sale de la versión (17.6), no de una prueba.
-- Tramo 9 (42-54): los 22 huecos salen del recorrido de pantallas del mapa de capacidades (28 oct 2026); la app puede haber cambiado. Las cifras del manual (caracteres por apartado) son del 1 nov 2026, tras el PR #1107. Que agrupar herramientas mejore la elección es una hipótesis que miden las evals de los trozos 45 a 47.
+- Tramo 9 (42-54, 58-60): los 22 huecos salen del recorrido de pantallas del mapa de capacidades (28 oct 2026); la app puede haber cambiado. Las cifras del manual (caracteres por apartado) son del 1 nov 2026, tras el PR #1107. Que agrupar herramientas mejore la elección es una hipótesis que miden las evals de los trozos 45 a 47. Los topes del trozo 54 (4 líneas de prosa, una pregunta y como mucho una línea de prosa tras ella) salen de las guías de diseño de conversación (Google, Nielsen Norman Group, Microsoft y Slack para bots), no de medir mensajes de Lola: la cifra por día que apunta el revisor dirá si sobran o faltan. La cifra de antes del 54 sale de 54 mensajes de Lola (la charla se borra a los 15 días), no de un mes.
 
 - Los trozos 24-38 y los cambios a 7, 8, 14, 15, 17, 18 y 20 se escribieron el 30 oct por la tarde desde una sesión en la nube que solo ve `staging` y las ramas subidas: si una sesión de terminal ya tiene trabajo local de los trozos 7, 8 o 14 con la forma vieja, este plan no lo sabe.
 - Los ficheros nuevos que nombran los trozos 24-38 (tests incluidos) no existen; los existentes se comprobaron con `ls` o `git grep` (`bot-evals.mjs`, `caducidades.js`, `idempotencia.js`, `resultado.js`, `interprete.js`, `operacion.js`, `cocinaTopes.js`, `turnos.js`).

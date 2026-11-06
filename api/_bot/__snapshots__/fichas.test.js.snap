@@ -104,6 +104,56 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
  },
  {
   "type": "custom",
+  "name": "por_que_plato",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "dia": {
+     "type": "string",
+     "description": "lunes…domingo, «hoy» o «mañana»."
+    },
+    "semana": {
+     "type": "string",
+     "enum": [
+      "esta",
+      "siguiente"
+     ],
+     "description": "Opcional: «esta» semana o la «siguiente», si lo dicen. Sin ella, el próximo día con ese nombre que tenga menú."
+    },
+    "comida": {
+     "type": "string",
+     "enum": [
+      "Desayuno",
+      "Comida",
+      "Merienda",
+      "Cena",
+      "Postre",
+      "Aperitivo"
+     ]
+    },
+    "grupo": {
+     "type": "string",
+     "description": "Opcional: para quién, si no es el menú de toda la familia."
+    },
+    "cual": {
+     "type": "string",
+     "enum": [
+      "primero",
+      "principal"
+     ],
+     "description": "Por defecto el principal."
+    }
+   },
+   "required": [
+    "dia",
+    "comida"
+   ],
+   "additionalProperties": false
+  },
+  "description": "Por qué hay un plato en el menú («¿por qué el martes pescado?», «¿quién ha puesto esto?»): quién lo puso (el menú automático, alguien a mano en la app o tú por el chat), cuándo y, si fue el menú automático, qué preferencias de la casa lo pidieron. Di eso tal cual; no inventes motivos que no traiga."
+ },
+ {
+  "type": "custom",
   "name": "ver_compra",
   "input_schema": {
    "type": "object",
@@ -181,7 +231,7 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
    },
    "additionalProperties": false
   },
-  "description": "Quita productos de la lista de la compra («quita el pan», «borra los yogures, que ya no hacen falta»). NO es marcarlos como comprados (eso es marcar_compra). manuales=true quita todo lo que se añadió a mano («borra lo que añadí»). Lo que sale del menú vuelve si se rehace la compra al cambiar el menú: dilo si preguntan. Usa los nombres como salen en la lista."
+  "description": "Quita productos de la lista de la compra («quita el pan», «borra los yogures, que ya no hacen falta»). NO es marcarlos como comprados (eso es marcar_compra). manuales=true quita todo lo que se añadió a mano («borra lo que añadí»). Lo quitado no vuelve aunque cambie el menú: dilo si preguntan. Usa los nombres como salen en la lista."
  },
  {
   "type": "custom",
@@ -234,6 +284,10 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
     "parecido_a": {
      "type": "string",
      "description": "Opcional: el plato que piden («salmón al horno con ensalada de mango»)."
+    },
+    "plato": {
+     "type": "string",
+     "description": "Opcional: un plato que YA está en el menú, por su nombre («el shakshuka», «las lentejas»): el hueco es el suyo, de hoy en adelante. Sin dia ni comida."
     },
     "estilo": {
      "type": "string",
@@ -438,24 +492,35 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
       "ricoHierro"
      ],
      "description": "Opcional: un perfil del plato entero, varios nutrientes a la vez. equilibrado = equilibrado; altoProteina = alto en proteína; despuesEntrenar = para después de entrenar; antesEntrenar = para antes de entrenar; ligeroQueSacie = ligero pero que sacie; bajoSal = bajo en sal; ricoHierro = rico en hierro. «Más completo», «que tenga de todo», «un compendio de proteína, grasa e hidratos» → equilibrado. Solo para el plato principal."
+    },
+    "repetir_vecinos": {
+     "type": "boolean",
+     "description": "Opcional: true si piden que valga repetir lo de los días de al lado (el botón «Repetir con los días de al lado»): entran las proteínas que la respuesta dio por EXCLUIDAS."
     }
    },
    "additionalProperties": false
   },
-  "description": "Recetas del catálogo que encajan en un hueco del menú (respetan alergias, gustos, tiempo y lo que ya hay en la semana), SIN cambiar nada. Para recomendar o dar a elegir; con parecido_a, las más parecidas a un plato que piden por su nombre. En la comida hay primero y segundo; «cual» dice cuál."
+  "description": "Recetas del catálogo que encajan en un hueco del menú (respetan alergias, gustos, tiempo y lo que ya hay en la semana), SIN cambiar nada. Para recomendar o dar a elegir; con parecido_a, las más parecidas a un plato que piden por su nombre. En la comida hay primero y segundo; «cual» dice cuál. Para cambiar un plato del menú dicho por su nombre («cámbiame el shakshuka»), pásalo en plato y no mires antes ver_menu: la herramienta encuentra su día y su comida. Devuelve también qué es el plato que hay ahora."
  },
  {
   "type": "custom",
-  "name": "fuera_de_casa",
+  "name": "donde_come",
   "input_schema": {
    "type": "object",
    "properties": {
+    "plazo": {
+     "type": "string",
+     "enum": [
+      "dias",
+      "siempre"
+     ],
+     "description": "dias: solo esos días. siempre: todas las semanas."
+    },
     "dias": {
      "type": "array",
      "items": {
       "type": "string"
      },
-     "minItems": 1,
      "description": "Como lo digan: hoy, mañana, pasado mañana, el jueves, el finde, el 15, 15 de noviembre, de lunes a miércoles o AAAA-MM-DD. Si dudas de qué día es, pregúntalo antes."
     },
     "semana": {
@@ -464,7 +529,7 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
       "esta",
       "siguiente"
      ],
-     "description": "siguiente si dicen «de la semana que viene» («el viernes de la que viene»)."
+     "description": "Con plazo dias, siguiente si dicen «de la semana que viene» («el viernes de la que viene»)."
     },
     "comidas": {
      "type": "array",
@@ -478,15 +543,24 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
        "Postre",
        "Aperitivo"
       ]
-     },
-     "minItems": 1
+     }
     },
     "quienes": {
      "type": "array",
      "items": {
       "type": "string"
      },
-     "description": "Nombres de la casa, «yo» (quien escribe), «los niños»; vacío = toda la casa."
+     "description": "Nombres de la casa, «yo» (quien escribe), «los niños», «adultos»; con plazo dias, vacío = toda la casa."
+    },
+    "donde": {
+     "type": "string",
+     "enum": [
+      "casa",
+      "tupper",
+      "fuera",
+      "cole",
+      "off"
+     ]
     },
     "de_nuevo": {
      "type": "boolean",
@@ -494,12 +568,11 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
     }
    },
    "required": [
-    "dias",
-    "comidas"
+    "plazo"
    ],
    "additionalProperties": false
   },
-  "description": "Días concretos en que alguien (o toda la casa) no come en casa, o esa comida no se hace: «hoy cenamos fuera», «el viernes Leo come con los abuelos», «Nat no está el finde», «el jueves comida no, que no tengo tiempo», «el 15 no comemos». Solo esos días; lo que se repite cada semana («los jueves comemos fuera») es ajustar_horario. Una llamada apunta todos los días × todas las comidas que le pases: «no come el finde» es dias [finde] con comidas [Comida, Cena]. Si los días no llevan las mismas comidas («el finde entero y hoy solo la cena»), una llamada por cada combinación. Si en el menú ya hecho todo un grupo queda fuera, se quita ese plato y la compra se rehace (sale pintado debajo); si solo falta alguien, el plato se queda para los demás. quienes: nombres de la casa (vacío = toda la casa)."
+  "description": "Quién come dónde, con su plazo. plazo dias: días concretos en que alguien (o toda la casa) no come en casa, o esa comida no se hace: «hoy cenamos fuera», «el viernes Leo come con los abuelos», «Nat no está el finde», «el jueves comida no, que no tengo tiempo», «el 15 no comemos». Una llamada apunta todos los días × todas las comidas que le pases: «no come el finde» es dias [finde] con comidas [Comida, Cena]. Si los días no llevan las mismas comidas («el finde entero y hoy solo la cena»), una llamada por cada combinación. Si en el menú ya hecho todo un grupo queda fuera, se quita ese plato y la compra se rehace (sale pintado debajo); si solo falta alguien, el plato se queda para los demás. plazo siempre: el horario FIJO, lo que se repite TODAS las semanas («los jueves comemos fuera», «los niños comen en el cole de lunes a jueves»), con donde y quienes obligatorios: dias lunes…domingo, «entre semana», «finde» o «de lunes a jueves» (vacío = todos); comidas vacío = Comida y Cena (con donde = cole, solo la Comida). Un día suelto («el jueves no comemos», «este viernes cenamos fuera») NUNCA es plazo siempre."
  },
  {
   "type": "custom",
@@ -906,6 +979,13 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
       "1_plato"
      ]
     },
+    "estructuraCena": {
+     "type": "string",
+     "enum": [
+      "primero_segundo",
+      "1_plato"
+     ]
+    },
     "esfuerzo": {
      "type": "string",
      "enum": [
@@ -1062,6 +1142,44 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
  },
  {
   "type": "custom",
+  "name": "ajustar_trato",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "ritmo": {
+     "type": "string",
+     "enum": [
+      "directo",
+      "guiado"
+     ]
+    },
+    "profundidad": {
+     "type": "string",
+     "enum": [
+      "nada",
+      "poco",
+      "mucho",
+      "preguntar"
+     ]
+    },
+    "fotos": {
+     "type": "boolean"
+    },
+    "largo": {
+     "type": "string",
+     "enum": [
+      "corto",
+      "largo"
+     ]
+    }
+   },
+   "required": [],
+   "additionalProperties": false
+  },
+  "description": "Cómo quiere quien escribe que le hables (solo a él o ella, no a toda la casa). ritmo: directo («no me preguntes tanto», «decide tú») o guiado («ve paso a paso», «pregúntame antes»). profundidad, cuánto afinar antes de hacer un menú: nada («hazlo ya»), poco, mucho («quiero afinarlo bien») o preguntar (preguntárselo cada vez). fotos: si quiere fotos de los platos. largo: corto («más corto», «al grano») o largo («explícame más»). Solo lo que diga; lo demás no se toca. Úsala cuando lo pida como algo para siempre, no por un mensaje suelto."
+ },
+ {
+  "type": "custom",
   "name": "ajustar_extras",
   "input_schema": {
    "type": "object",
@@ -1146,7 +1264,7 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
    "required": [],
    "additionalProperties": false
   },
-  "description": "Qué días entran en el menú de una semana concreta («esta semana solo hasta el jueves», «la que viene de lunes a viernes»), y cuánto se pueden repetir platos entre semanas: variedad strict (nada de ninguna semana anterior), moderate (nada de la semana anterior), relaxed (se pueden repetir). Para «nunca el finde» de siempre, ajustar_horario con donde = off. Después, generar_menu para esa semana si quieren el menú ya."
+  "description": "Qué días entran en el menú de una semana concreta («esta semana solo hasta el jueves», «la que viene de lunes a viernes»), y cuánto se pueden repetir platos entre semanas: variedad strict (nada de ninguna semana anterior), moderate (nada de la semana anterior), relaxed (se pueden repetir). Para «nunca el finde» de siempre, donde_come con plazo siempre con donde = off. Después, generar_menu para esa semana si quieren el menú ya."
  },
  {
   "type": "custom",
@@ -1233,50 +1351,6 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
    "additionalProperties": false
   },
   "description": "Batch cooking (día de hacer tuppers; a la familia nunca le digas «tanda»), como la pantalla de bases de la app. bases: lo que se deja hecho para usar en varios platos (claves: arroz, pasta, patatas, boniato, legumbre, quinoa, cuscus, sofrito, caldo, salsa_tomate, verdura_asada, pesto, bechamel, patatas_asadas, bolonesa), con veces = platos de la semana que lo usan (2-5; 0 lo quita). platos: platos que se dejan hechos o a medias (claves: croquetas-crudas, bunuelos-masa, falafel-crudo, empanadillas-cerradas, empanada-montada, lasana-montada, ravioli-cortados, quiche-sin-hornear, pastel-al-horno, huevos-rellenos, carne-empanada, verduras-rellenas, gazpacho, caldo-casero, crema, sopa), veces 1-4. minutos: el rato de manos que hay para la sesión (30-240). dia: el día en que se cocina (lunes…domingo). ninguna=true: deja de cocinar en tanda. Si una clave no vale, te devuelvo la lista buena: corrígela, no se lo preguntes a la familia."
- },
- {
-  "type": "custom",
-  "name": "ajustar_horario",
-  "input_schema": {
-   "type": "object",
-   "properties": {
-    "personas": {
-     "type": "array",
-     "items": {
-      "type": "string"
-     },
-     "minItems": 1
-    },
-    "dias": {
-     "type": "array",
-     "items": {
-      "type": "string"
-     }
-    },
-    "comidas": {
-     "type": "array",
-     "items": {
-      "type": "string"
-     }
-    },
-    "donde": {
-     "type": "string",
-     "enum": [
-      "casa",
-      "tupper",
-      "fuera",
-      "cole",
-      "off"
-     ]
-    }
-   },
-   "required": [
-    "personas",
-    "donde"
-   ],
-   "additionalProperties": false
-  },
-  "description": "El horario FIJO, lo que se repite TODAS las semanas: quién come dónde. personas: nombres, «yo», «todos», «niños», «los peques», «adultos». dias: lunes…domingo, «entre semana», «finde» o «de lunes a jueves» (vacío = todos). comidas: Desayuno/Comida/Merienda/Cena/Postre (vacío = Comida y Cena; con donde = cole, vacío = solo la Comida). donde: casa | tupper (se lleva comida de casa) | fuera | cole | off (esa comida no se hace). Un día suelto («el jueves no comemos», «este viernes cenamos fuera») NO es esto: es fuera_de_casa."
  },
  {
   "type": "custom",
@@ -1538,6 +1612,15 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
   "input_schema": {
    "type": "object",
    "properties": {
+    "camino": {
+     "type": "string",
+     "enum": [
+      "basico",
+      "medio",
+      "avanzado"
+     ],
+     "description": "El que eligieron con los botones (basico = Solo los días, medio = Unas preguntas, avanzado = A fondo). Sin él no se genera: pregúntalo siempre."
+    },
     "semana": {
      "type": "string",
      "enum": [
@@ -1547,7 +1630,27 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
     },
     "desde": {
      "type": "string",
-     "description": "AAAA-MM-DD: genera la semana de esa fecha (manda sobre semana)."
+     "description": "AAAA-MM-DD: para cuándo, lo que hayan contestado (manda sobre semana). Se pregunta siempre."
+    },
+    "estructura": {
+     "type": "string",
+     "enum": [
+      "primero_segundo",
+      "1_plato"
+     ],
+     "description": "Platos por comida solo para este menú («esta semana, un plato»). Si es para siempre, ajustar_cocina."
+    },
+    "estructuraCena": {
+     "type": "string",
+     "enum": [
+      "primero_segundo",
+      "1_plato"
+     ],
+     "description": "Platos en la cena solo para este menú. Si es para siempre, ajustar_cocina."
+    },
+    "forzado": {
+     "type": "boolean",
+     "description": "true si dicen que sigas sin preguntar más («sigue tú», «da igual», «me he cansado»): genera con lo que haya, salvo lo de seguridad."
     },
     "rehacer": {
      "type": "boolean",
@@ -2219,6 +2322,45 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
    "additionalProperties": false
   },
   "description": "Guarda la última receta preparada con preparar_receta en esta charla (la herramienta la tiene apartada: no hace falta volver a pedir ningún dato), en el recetario de la casa, y el motor ya puede ponerla en menús. Llámala en cuanto digan «Guardar» o «sí» al resumen, con confirmado = true y el nombre de la receta que han aprobado (si no es la última preparada, no se guarda)."
+ },
+ {
+  "type": "custom",
+  "name": "receta_propia",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "accion": {
+     "type": "string",
+     "enum": [
+      "favorita",
+      "no_favorita",
+      "borrar",
+      "nueva_carpeta",
+      "borrar_carpeta",
+      "a_carpeta",
+      "sacar_de_carpeta",
+      "recuperar"
+     ]
+    },
+    "receta": {
+     "type": "string",
+     "description": "El nombre de la receta, como lo dicen. Todas menos nueva_carpeta y borrar_carpeta."
+    },
+    "carpeta": {
+     "type": "string",
+     "description": "El nombre de la carpeta: para nueva_carpeta, borrar_carpeta, a_carpeta y sacar_de_carpeta."
+    },
+    "confirmado": {
+     "type": "boolean",
+     "description": "Solo para borrar y borrar_carpeta, tras su «sí»."
+    }
+   },
+   "required": [
+    "accion"
+   ],
+   "additionalProperties": false
+  },
+  "description": "Las recetas y las carpetas de quien escribe, como en «Mis recetas» de la app. Con una receta que nombran: favorita (la marca como favorita, del catálogo o vuestra), no_favorita (se la quita), borrar (solo las vuestras, no las del catálogo), a_carpeta o sacar_de_carpeta (con la carpeta), o recuperar (la saca de «Descartados», las que la casa descartó, y vuelve a poder salir en los menús). Con una carpeta: nueva_carpeta o borrar_carpeta (las cuatro fijas no se borran; las recetas de dentro no se borran). Borrar no se deshace: llámala primero sin confirmado, pregunta con el nombre que te devuelva y vuelve a llamarla con confirmado = true y ese nombre solo con su «sí»."
  }
 ]"
 `;

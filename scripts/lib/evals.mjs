@@ -473,7 +473,7 @@ export const MENCIONA_FECHA = /\b(hoy|manana|ayer|pasado|ahora|lunes|martes|mier
  * ellas (llama, llamaAlguna o args) depende del día de la ficha aunque no lo
  * nombre. Prohibirlas (noLlama) no ata al día.
  */
-export const HERRAMIENTAS_DEL_DIA = ["generar_menu", "cambiar_plato", "proponer_platos", "ver_menu", "fuera_de_casa"];
+export const HERRAMIENTAS_DEL_DIA = ["generar_menu", "cambiar_plato", "proponer_platos", "ver_menu", "donde_come"];
 const esperaHerramientaDelDia = (caso) => [...(caso.llama ?? []), ...(caso.llamaAlguna ?? []), ...Object.keys(caso.args ?? {}), ...(caso.espera ? [caso.espera.accion] : [])].some((n) => HERRAMIENTAS_DEL_DIA.includes(n));
 /**
  * Una fecha escrita a mano en lo que dice la familia o Lola («26 oct», «26 de

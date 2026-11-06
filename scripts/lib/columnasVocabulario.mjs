@@ -34,16 +34,25 @@ export const COLUMNAS_VOCABULARIO = Object.freeze({
   "bot_entradas.proveedor": { lista: "canales", comun: true },
   "bot_identities.channel": { lista: "canales", comun: true },
   "bot_chats.channel": { lista: "canales", comun: true },
+  // El registro de intentos de enlace (0126, #1238).
+  "bot_enlaces.camino_enlace": { lista: "caminos_enlace" },
+  "bot_enlaces.resultado_enlace": { lista: "resultados_enlace" },
+  // La prueba de cada identidad (0129, #1238): qué Telegram abre una cuenta que no nació en él.
+  "bot_identities.prueba_identidad": { lista: "pruebas_identidad" },
   "bot_codigos.channel": { lista: "canales", comun: true },
   "bot_messages.channel": { lista: "canales", comun: true },
-  "bot_reminders.channel": { lista: "canales", comun: true },
   "bot_tareas.channel": { lista: "canales", comun: true },
+  // Los recordatorios en tareas (0122, trozo 34). Comunes: «repite» y «aviso» son también claves de otros objetos.
+  "bot_tareas.repite": { lista: "repites_recordatorio", comun: true },
+  "bot_tareas.aviso": { lista: "avisos_recordatorio", comun: true },
   "bot_cola.channel": { lista: "canales", comun: true },
   "user_profiles.ui_lang": { lista: "idiomas" },
   "household_invites.lang": { lista: "idiomas", comun: true, rpc: { create_household_invite: "p_lang" } },
   "sobre.origen": { lista: "origen_dato", comun: true },
   "sobre.canal": { lista: "canales_dato", comun: true },
   "receta_descartes.alcance": { lista: "alcances_descarte" },
+  // Cómo se pidió cada menú (0130, trozo 70). Común: «camino» es también clave de objetos que no son filas.
+  "menu_generado.camino": { lista: "caminos_menu", comun: true },
   // Las columnas del eje de registro_campo (0105): listas del producto que registroFicha.js usa en cada dato.
   // Comunes: «ficha», «clase», «escribe» y «choque» son también claves de objetos que no son filas.
   "registro_campo.ficha": { lista: "fichas", comun: true },
@@ -87,6 +96,9 @@ export const COLUMNAS_VOCABULARIO = Object.freeze({
  * un `default '<valor>'` de las migraciones sobre una columna de arriba no está aquí.
  */
 export const ESCRITORES_SQL = Object.freeze({
+  "bot_tareas.aviso": "solo la autoprueba de la 0122 ('libre', en un bloque que se deshace); el código lo escribe con el PR 2 del trozo 34",
+  "bot_tareas.repite": "solo la autoprueba de la 0122 ('semanal', en un bloque que se deshace); el código lo escribe con el PR 2 del trozo 34",
+  "bot_tareas.channel": "la autoprueba de la 0122 (0122_recordatorios_en_tareas) inserta 'telegram' a mano, en un bloque que se deshace: no queda ninguna fila",
   "bot_cola.channel": "el default 'telegram' de la 0063 lo pondría la base si una fila llegara sin channel; encolar (api/_bot/turnos.js) lo pasa explícito por paraEscribir, así que hoy no actúa",
   "user_menu_weeks.active_days": "la RPC de guardar semana (0057, 0068) inserta el active_days de la fila que monta weekToRow (src/lib/menusSync.js), que ya pasa por listaParaEscribir",
   "household_invites.lang": "create_household_invite (0071) inserta su p_lang, que householdsSync.js pasa por paraEscribir",
@@ -105,8 +117,8 @@ export const ESCRITORES_SQL = Object.freeze({
   "grupo.tipo": "escribir_persona (0108) inserta el tipo de cada grupo de su operación; se lo pasa la tubería (src/lib/operaciones/), que lo saca de data.groups ya escrito por groups.js con TIPOS_GRUPO",
   "operacion.estado": "aplicar_operacion (0106) escribe pendiente, hecha o rechazada (de ESTADOS_OPERACION; datoConSobre.test.js lo comprueba), y escribir_persona (0108) y escribir_preferencias (0109) pendiente y hecha (personaFuente.test.js, preferencia.test.js); ningún JS escribe la tabla",
   "registro_eje.tipo": "los INSERT de la 0109 y la 0117, generados de EJES (axisRegistry.test.js comprueba que cada tipo está en TIPOS_EJE; preferencia.test.js, que los INSERT son EJES); ningún JS escribe la tabla",
-  "precio_observado.fuente": "solo la autoprueba de la 0109, que se deshace siempre, con un valor de FUENTES_PRECIO; la escribirá el trozo 22",
-  "precio_observado.tipo": "solo la autoprueba de la 0109, que se deshace siempre, con un valor de TIPOS_LINEA_TICKET; la escribirá el trozo 22",
+  "precio_observado.fuente": "api/_bot/historialCompra.js (guardarTicket, guardarPrecios), con filas de filaDePrecio (src/lib/historialCompra.js), que exige un valor de FUENTES_PRECIO; la autoprueba de la 0109 también, y se deshace",
+  "precio_observado.tipo": "api/_bot/historialCompra.js (guardarTicket, guardarPrecios), con filas de filaDePrecio (src/lib/historialCompra.js), que exige un valor de TIPOS_LINEA_TICKET; la autoprueba de la 0109 también, y se deshace",
   "cocinado.dia": "solo la autoprueba de la 0109, que se deshace siempre, con un día de DIAS; la escribirá el trozo 22",
   "cocinado.comida": "solo la autoprueba de la 0109, que se deshace siempre, con una comida de COMIDAS; la escribirá el trozo 22",
   "preferencia.nivel": "escribir_preferencias (0109), desde el jsonb que le pasa la tubería; y la autoprueba de la 0117, que se deshace siempre, con «semana» y «comida», de NIVELES_PREFERENCIA",

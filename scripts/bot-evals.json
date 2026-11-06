@@ -512,6 +512,21 @@
       "sinTexto": "\\*\\*|^#| · "
     },
     {
+      "id": "pregunta-del-camino-corta",
+      "tipo": "formato",
+      "dominio": "menu",
+      "origen": "conversacion_real",
+      "dependeDeFecha": true,
+      "dia": "miercoles",
+      "nombre": "pedir el menú de la semana que viene: la pregunta del camino en corto, sin fecha AAAA-MM-DD ni líneas que empiezan por «:» (Pablo, 4 nov 2026)",
+      "entrada": "prepárame el menú de la semana que viene",
+      "noLlama": [
+        "cambiar_plato"
+      ],
+      "texto": "<b>Solo los días</b>",
+      "sinTexto": "[0-9]{4}-[0-9]{2}-[0-9]{2}|^\\s*:|\\]\\]\\s*:"
+    },
+    {
       "id": "no-inventa-recetas-fuera-del-motor",
       "tipo": "herramienta",
       "dominio": "recetas",
@@ -713,6 +728,52 @@
       }
     },
     {
+      "id": "pedido-contesta-con-dias",
+      "tipo": "herramienta",
+      "dominio": "menu",
+      "origen": "escrito",
+      "dependeDeFecha": true,
+      "nombre": "con un pedido en curso, contestar con los días cuenta como Solo los días",
+      "entrada": "[Pedido de menú en curso: aún sin camino, desde 2026-11-09. No lo ha escrito la persona. Si lo que dicen contesta a esto, sigue con generar_menu. Si hablan de otra cosa, atiende eso y no insistas.]\n\nel martes no comemos en casa, lo demás normal",
+      "llama": [
+        "generar_menu"
+      ],
+      "args": {
+        "generar_menu": {
+          "camino": "basico"
+        }
+      }
+    },
+    {
+      "id": "pedido-sigue-tu",
+      "tipo": "herramienta",
+      "dominio": "menu",
+      "origen": "escrito",
+      "dependeDeFecha": true,
+      "nombre": "con un pedido en curso, «sigue tú» genera forzado",
+      "entrada": "[Pedido de menú en curso: camino «A fondo», desde 2026-11-09. No lo ha escrito la persona. Si lo que dicen contesta a esto, sigue con generar_menu. Si hablan de otra cosa, atiende eso y no insistas.]\n\nme he cansado, sigue tú",
+      "llama": [
+        "generar_menu"
+      ],
+      "args": {
+        "generar_menu": {
+          "forzado": "true"
+        }
+      }
+    },
+    {
+      "id": "pedido-como-la-ultima-vez",
+      "tipo": "herramienta",
+      "dominio": "menu",
+      "origen": "escrito",
+      "dependeDeFecha": true,
+      "nombre": "al pulsar «Como la última vez», llama a generar_menu",
+      "entrada": "Como la última vez",
+      "llama": [
+        "generar_menu"
+      ]
+    },
+    {
       "id": "alta-primer-menu-con-temas",
       "tipo": "multiturno",
       "dominio": "alta",
@@ -738,10 +799,18 @@
         },
         {
           "role": "assistant",
-          "content": "Ya os tengo: Ana, Pablo y Leo, sin alergias. ¿Te hago unas preguntas para afinarlo, te lo preparo ya y lo ajustamos sobre la marcha, o prefieres rellenarlo tú en la app?\n\n[[Hazme las preguntas]]\n[[Prepáralo ya]]\n[[Lo relleno yo en la app]]"
+          "content": "Ya os tengo: Ana, Pablo y Leo, sin alergias. ¿Para cuándo quieres el menú, y cuánto lo afinamos?\n\n[[Solo los días]]\n[[Unas preguntas]]\n[[A fondo]]"
+        },
+        {
+          "role": "user",
+          "content": "Solo los días"
+        },
+        {
+          "role": "assistant",
+          "content": "¡Vamos! Cuéntame, en un mensaje o en un audio: ¿para qué días lo quieres, qué días coméis en casa y tenéis el menú del cole de Leo?\n\n[[Ya está, genéralo]]"
         }
       ],
-      "entrada": "Prepáralo ya",
+      "entrada": "Desde el lunes 5, para toda la semana. Comemos todos en casa salvo Leo a mediodía, que come en el cole",
       "llama": [
         "generar_menu"
       ],
@@ -1303,7 +1372,7 @@
       "tipo": "multiturno",
       "dominio": "alta",
       "origen": "escrito",
-      "nombre": "alta: con quién come y alergias, deja elegir el camino",
+      "nombre": "alta: con quién come y alergias, y pregunta para cuándo y cómo de a fondo",
       "ficha": {
         "estable": "SEGURIDAD: SIN REVISAR · PARA EMPEZAR FALTA: quién come · alergias · comidas",
         "delDia": "jue 1 oct"
@@ -1325,7 +1394,24 @@
       "noLlama": [
         "generar_menu"
       ],
-      "texto": "Prepáralo ya"
+      "texto": "Solo los días"
+    },
+    {
+      "id": "menu-pregunta-antes-de-generar",
+      "tipo": "multiturno",
+      "dominio": "menu",
+      "origen": "escrito",
+      "dependeDeFecha": true,
+      "nombre": "pedido el menú, antes pregunta para cuándo y cómo de a fondo (#1210)",
+      "ficha": {
+        "estable": "SEGURIDAD\n- Ana, Pablo, Leo: ninguna.\nCASA\n- Ana 38 · Pablo 40 · Leo 6.",
+        "delDia": "jue 1 oct\nMENÚ: no hay menú la semana que viene"
+      },
+      "historia": [],
+      "entrada": "hazme el menú de la semana que viene",
+      "llama": [],
+      "noLlama": [],
+      "texto": "Unas preguntas"
     },
     {
       "id": "formato-dia-sin-icono",
@@ -1833,16 +1919,16 @@
       "nombre": "habla: «el jueves comida no xq no tengo tiempo» → no comen en casa, no cambia el plato",
       "entrada": "q el jueves comida no xq no tengo tiempo, cámbialo",
       "llama": [
-        "fuera_de_casa"
+        "donde_come"
       ],
       "args": {
-        "fuera_de_casa": {
+        "donde_come": {
+          "plazo": "dias",
           "dias": "jueves",
           "comidas": "comida"
         }
       },
       "noLlama": [
-        "ajustar_horario",
         "cambiar_plato",
         "proponer_platos"
       ]
@@ -1857,16 +1943,14 @@
       "nombre": "habla: «Leo no come en casa el finde ni cena hoy» → ausencias en lote, no una llamada por hueco (2 oct 2026: cinco a la vez)",
       "entrada": "Leo no come en casa el finde ni cena hoy",
       "llama": [
-        "fuera_de_casa"
+        "donde_come"
       ],
       "args": {
-        "fuera_de_casa": {
+        "donde_come": {
+          "plazo": "dias",
           "quienes": "leo"
         }
       },
-      "noLlama": [
-        "ajustar_horario"
-      ],
       "maxLlamadas": 2
     },
     {
@@ -1875,15 +1959,19 @@
       "dominio": "ficha",
       "origen": "escrito",
       "dependeDeFecha": true,
-      "nombre": "habla: «los jueves nunca comemos en casa» → es de cada semana: ajustar_horario, no fuera_de_casa",
+      "nombre": "habla: «los jueves nunca comemos en casa» → es de cada semana: donde_come con plazo siempre",
       "entrada": "los jueves nunca comemos en casa a mediodía",
       "llama": [
-        "ajustar_horario"
+        "donde_come"
       ],
       "noLlama": [
-        "fuera_de_casa",
         "cambiar_plato"
-      ]
+      ],
+      "args": {
+        "donde_come": {
+          "plazo": "siempre"
+        }
+      }
     },
     {
       "id": "habla-por-que-una-tortilla",
@@ -2110,14 +2198,12 @@
       "nombre": "un guardado falla: dice qué se guardó y qué no, sin inventar por qué",
       "entrada": "Leo no come en casa el fin de semana ni cena hoy",
       "respuestas": {
-        "fuera_de_casa": "No he podido guardarlo: se cruzó con otro cambio. No se ha cambiado nada.",
-        "ajustar_horario": "No he podido guardarlo: se cruzó con otro cambio. No se ha cambiado nada."
+        "donde_come": "No he podido guardarlo: se cruzó con otro cambio. No se ha cambiado nada."
       },
       "llamaAlguna": [
-        "fuera_de_casa",
-        "ajustar_horario"
+        "donde_come"
       ],
-      "texto": "^(?=[^]*(no (he podido|pude|se ha|se han|ha quedado)))(?=[^]*(Reinténtalo|reintent|otra vez|de nuevo))",
+      "texto": "^(?=[^]*(no (lo |la |los |las )?(he podido|pude|se ha|se han|ha quedado)))(?=[^]*(Reinténtalo|reintent|otra vez|de nuevo))",
       "sinTexto": "(porque|ya que|debido a|parece que|seguramente|probablemente)"
     },
     {
@@ -2130,20 +2216,21 @@
       "nombre": "rehacer el menú con condiciones: primero apunta, luego genera",
       "entrada": "rehazme el menú para lo que queda de semana, asume que mañana no comemos en casa",
       "llama": [
-        "fuera_de_casa",
+        "donde_come",
         "generar_menu"
       ],
       "args": {
         "generar_menu": {
           "semana": "esta"
         },
-        "fuera_de_casa": {
+        "donde_come": {
+          "plazo": "dias",
           "dias": "mañana"
         }
       },
       "antes": [
         [
-          "fuera_de_casa",
+          "donde_come",
           "generar_menu"
         ]
       ],
@@ -2785,7 +2872,7 @@
       ],
       "sinTexto": "✅|[Mm]añana (s[aá]bado|no com|nadie)",
       "respuestas": {
-        "fuera_de_casa": "No he guardado nada: eso ya se apuntó para el sábado 3 y el domingo 4, que ya pasó. Lo que lees en la charla es de otro día. Solo si la persona pide AHORA lo mismo para el sábado 10 y el domingo 11, confírmalo con ella y vuelve a llamar con de_nuevo = true."
+        "donde_come": "No he guardado nada: eso ya se apuntó para el sábado 3 y el domingo 4, que ya pasó. Lo que lees en la charla es de otro día. Solo si la persona pide AHORA lo mismo para el sábado 10 y el domingo 11, confírmalo con ella y vuelve a llamar con de_nuevo = true."
       }
     },
     {
@@ -3284,11 +3371,12 @@
       "dominio": "menu",
       "origen": "conversacion_real",
       "dependeDeFecha": true,
-      "nombre": "«este jueves no comemos en casa» es un día suelto (fuera_de_casa), no el horario fijo (#958 C)",
+      "nombre": "«este jueves no comemos en casa» es un día suelto (plazo dias), no el horario fijo (#958 C)",
       "entrada": "este jueves no comemos en casa, nos vamos a comer con mis padres",
       "espera": {
-        "accion": "fuera_de_casa",
+        "accion": "donde_come",
         "parametros": {
+          "plazo": "dias",
           "dias": [
             "jueves"
           ],
@@ -3296,10 +3384,63 @@
             "Comida"
           ]
         }
-      },
+      }
+    },
+    {
+      "id": "pregunta-y-pedido-contesta-primero",
+      "tipo": "herramienta",
+      "dominio": "menu",
+      "origen": "fallo_produccion",
+      "dependeDeFecha": true,
+      "nombre": "una pregunta y un pedido a la vez: contesta qué es el plato y propone, sin mirar el menú antes (4 nov 2026)",
+      "entrada": "me puedes cambiar la shakshuka esa? eso que es?",
+      "llama": [
+        "proponer_platos"
+      ],
       "noLlama": [
-        "ajustar_horario"
-      ]
+        "ver_menu",
+        "cambiar_plato",
+        "generar_menu"
+      ],
+      "args": {
+        "proponer_platos": {
+          "plato": "shakshuka"
+        }
+      },
+      "respuestas": {
+        "proponer_platos": "Opciones para la cena. Ahora mismo: Shakshuka (25 min, facil). Qué es (si lo preguntan, contéstalo antes de nada): Huevos escalfados hundidos en una salsa de tomate y pimiento especiada, para mojar pan.\n1. Merluza en salsa verde (25 min, facil)\n2. Crema de puerros con picatostes (30 min, facil)\n3. Pollo al horno con patatas (45 min, facil)\nNada está cambiado aún: para poner una, cambiar_plato con receta = su nombre."
+      },
+      "texto": "huevo[\\s\\S]*\\[\\[Elige tú\\]\\]"
+    },
+    {
+      "id": "alternativas-dicen-por-que-y-no-repiten",
+      "tipo": "multiturno",
+      "dominio": "menu",
+      "origen": "fallo_produccion",
+      "dependeDeFecha": true,
+      "nombre": "«más variado» tras unas opciones de huevo: dice el porqué real (los días de al lado), no las da por nuevas y ofrece soltarlo (4 nov 2026)",
+      "historia": [
+        {
+          "role": "user",
+          "content": "cámbiame la shakshuka del sábado por algo con más hidratos"
+        },
+        {
+          "role": "assistant",
+          "content": "👉 Para la <b>cena del sábado</b> te encajan:\n• <b>Lentejas con verduras</b>, 45 min\n• <b>Pisto con huevo y patatas fritas</b>, 40 min\n• <b>Ensalada de pasta mediterránea</b>, 15 min\n• <b>Arroz blanco con tomate frito, huevo frito y plátano</b>, 25 min\n\n¿Cuál te pongo?\n[[Lentejas con verduras]]\n[[Pisto con huevo]]\n[[Ensalada de pasta]]\n[[Elige tú]]"
+        }
+      ],
+      "entrada": "mmm algo más variado",
+      "llama": [
+        "proponer_platos"
+      ],
+      "noLlama": [
+        "cambiar_plato",
+        "generar_menu"
+      ],
+      "respuestas": {
+        "proponer_platos": "Opciones para el sábado 10, cena. Ahora mismo: Shakshuka de huevos poché en salsa de tomate (25 min, facil).\n1. Garbanzos especiados con espinacas y piñones (25 min, facil)\n2. Tortilla francesa rellena de queso y espinacas (10 min, facil)\n3. Pasta rápida con tomate cherry, ajo y albahaca (20 min, facil)\n4. Sopa de cocido con fideos finos (20 min, facil)\nEXCLUIDO (dilo en una frase, con estas palabras, sin inventar otro motivo): No repito lo de los días de al lado: el viernes hay pescado blanco y cerdo, y el domingo pollo. Ofrece el botón [[Repetir con los días de al lado]]: proponer_platos con repetir_vecinos.\nREPETIDA: casi todas eran las de tu último mensaje: estas son otras, sin las ya dadas. Dilo.\nNada está cambiado aún: para poner una, cambiar_plato con receta = su nombre."
+      },
+      "texto": "(d[ií]as de al lado|viernes)[\\s\\S]*\\[\\[Repetir con los d[ií]as de al lado\\]\\]"
     }
   ]
 }

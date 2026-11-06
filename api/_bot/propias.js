@@ -21,10 +21,11 @@
  * fuera de `state`: así no se escribe de vuelta en household_state.
  */
 
-import { select, insert, borrar, eq } from "./db.js";
+import { select, insert, update, borrar, eq } from "./db.js";
 import { quienesLlevanLaCasa } from "./papel.js";
 import { rowToRecipe } from "../../src/lib/userRecipesFila.js";
 import { recetaPropia } from "../../src/lib/ids.js";
+import { BUILT_IN_COLLECTIONS, carpetaParaEscribir, isBuiltInCollection, newFolderId } from "../../src/lib/carpetas.js";
 
 /**
  * Quita una receta propia que acaba de guardar Lola, al deshacerlo (#958).
@@ -85,8 +86,92 @@ async function lapidasDe(quienes, ids) {
   return parejas;
 }
 
-/** Las recetas propias de una casa ya cargada (sin consultas). */
-export const propiasDe = (casa) => casa?.recetasPropias ?? casa?.state?.data?.userRecipes ?? [];
+/** Las recetas propias de una casa ya cargada (sin consultas): las de su tabla (trozo 21). */
+export const propiasDe = (casa) => casa?.recetasPropias ?? [];
+
+// ── Lo que la app hace con las recetas y Lola no hacía (trozo 48, parte 1): favoritas y borrar una propia ──
+
+/**
+ * Marca o desmarca una receta (del catálogo o propia) como favorita de quien escribe, en `recipe_votes`, la misma
+ * fila que escribe la app (saveRecipeVote, src/lib/recipeVotes.js): por (user_id, recipe_id), sin tocar su voto. Sin
+ * ámbito (`scope` null): favorita para todos, como el corazón de la app sin elegir grupo.
+ */
+export async function marcarFavorita(userId, recetaId, favorita) {
+  if (favorita) {
+    await insert("recipe_votes?on_conflict=user_id,recipe_id", [{ user_id: userId, recipe_id: recetaId, is_favorite: true, scope: null }], { upsert: true });
+  } else {
+    await update("recipe_votes", `user_id=${eq(userId)}&recipe_id=${eq(recetaId)}`, { is_favorite: false, scope: null });
+  }
+}
+
+// ── Carpetas de recetas (trozo 48, parte 2): las de cada cuenta, las mismas filas que la app (recipeCollections.js) ──
+
+/** Las carpetas de una cuenta: las 4 fijas y las suyas (`recipe_folders`), como `{ id, nombre, fija }`. Lanza si la base falla. */
+export async function carpetasDe(userId) {
+  const suyas = await select("recipe_folders", `user_id=${eq(userId)}`, "id,name");
+  return [
+    ...BUILT_IN_COLLECTIONS.map((c) => ({ id: c.id, nombre: c.label, fija: true })),
+    ...suyas.map((f) => ({ id: f.id, nombre: f.name, fija: false })),
+  ];
+}
+
+/** Una carpeta nueva de la cuenta, con el id de la app (`fld_…`). Devuelve su id. */
+export async function crearCarpeta(userId, nombre) {
+  const id = newFolderId();
+  await insert("recipe_folders", [{ user_id: userId, id, name: nombre }]);
+  return id;
+}
+
+/**
+ * Como deleteRecipeFolder de la app: primero lo que había dentro (collection_id no tiene FK, 0026: nada lo borra en
+ * cascada y volvería en la carga siguiente) y luego la carpeta. Las fijas no se borran.
+ */
+export async function borrarCarpeta(userId, carpetaId) {
+  if (isBuiltInCollection(carpetaId)) throw new Error("las carpetas fijas no se borran");
+  await borrar("recipe_collections", `user_id=${eq(userId)}&collection_id=${eq(carpetaId)}`);
+  await borrar("recipe_folders", `user_id=${eq(userId)}&id=${eq(carpetaId)}`);
+}
+
+/**
+ * Mete una receta en una carpeta, en `recipe_collections`, con el id que se escribe (carpetaParaEscribir: una fija
+ * retirada sin sucesor no se escribe y lanza), o la saca con el id con que está guardada.
+ */
+export async function enCarpeta(userId, recetaId, carpetaId, meter) {
+  if (!meter) {
+    await borrar("recipe_collections", `user_id=${eq(userId)}&recipe_id=${eq(recetaId)}&collection_id=${eq(carpetaId)}`);
+    return;
+  }
+  if (carpetaParaEscribir(carpetaId) == null) throw new Error(`la carpeta ${carpetaId} ya no se usa`);
+  await insert("recipe_collections?on_conflict=user_id,recipe_id,collection_id", [{ user_id: userId, recipe_id: recetaId, collection_id: carpetaParaEscribir(carpetaId) }], { upsert: true });
+}
+
+/**
+ * Saca una receta de «Descartados» (la carpeta que la app pinta con los descartes de la casa): quita su fila de
+ * `household_recipe_discards`, como deleteHouseholdDiscard de la app, y el motor vuelve a poder ponerla. Devuelve
+ * false si la casa no la tenía descartada. Lanza si la base falla.
+ */
+export async function recuperarDescartada(householdId, recetaId) {
+  const filtro = `household_id=${eq(householdId)}&recipe_id=${eq(recetaId)}`;
+  const [fila] = await select("household_recipe_discards", filtro, "recipe_id");
+  if (!fila) return false;
+  await borrar("household_recipe_discards", filtro);
+  return true;
+}
+
+/**
+ * Borra una receta propia de la casa, la de quien la creó (cualquiera de los que llevan la casa): como
+ * quitarRecetaGuardada, primero la lápida y luego la fila. Devuelve false si no es una receta propia de esta casa.
+ * Si no puede leer quién lleva la casa, lanza: es el freno del borrado, y sin la lista una receta de la cotitular
+ * saldría «no es de esta casa» (no como autoresDeCasa, que sigue con las del dueño).
+ */
+export async function borrarRecetaDeCasa(householdId, dueno, recetaId) {
+  const autores = [...new Set([dueno, ...(await quienesLlevanLaCasa(householdId))].filter(Boolean))];
+  if (!autores.length) return false;
+  const [fila] = await select("user_recipes", `id=${eq(recetaId)}&owner_id=in.(${autores.map((u) => encodeURIComponent(u)).join(",")})`, "id,owner_id");
+  if (!fila) return false;
+  await quitarRecetaGuardada(fila.id, fila.owner_id);
+  return true;
+}
 
 /** Quién lleva la casa: el dueño y los de papel owner/editor (la cotitular). */
 async function autoresDeCasa(householdId, dueno) {
@@ -101,31 +186,27 @@ async function autoresDeCasa(householdId, dueno) {
 }
 
 /**
+ * Las recetas propias de una casa: solo las de `user_recipes` (trozo 21). La copia del documento
+ * (`state.data.userRecipes`) ya no se lee: el 3 nov 2026 ninguna de las 37 casas la tenía, y era la que traía de vuelta
+ * recetas borradas (#958 G). Sin poder leer la tabla, la casa no se lee (como sin las preferencias): sin sus recetas,
+ * Lola diría que no hay ninguna.
  * @param {string | null} householdId
  * @param {string | null} dueno  owner_user_id de la casa
- * @param {object[]} delJson     `state.data.userRecipes`, lo de antes
  */
-export async function recetasPropiasDeCasa(householdId, dueno, delJson = []) {
-  const json = Array.isArray(delJson) ? delJson.filter((r) => r?.id) : [];
+export async function recetasPropiasDeCasa(householdId, dueno) {
   const autores = await autoresDeCasa(householdId, dueno);
-  if (!autores.length) return json;
+  if (!autores.length) return [];
   const quienes = autores.map((u) => encodeURIComponent(u)).join(",");
-  let filas = null;
+  let filas;
   try {
     filas = await select("user_recipes", `owner_id=in.(${quienes})&order=created_at.desc&limit=${TOPE_PROPIAS}`, COLUMNAS);
   } catch (e) {
-    console.error("[propias] user_recipes", e?.message);
+    throw new Error(`no he podido leer las recetas propias de la casa (user_recipes): ${e?.message}`);
   }
-  const lapidas = await lapidasDe(quienes, [...(filas ?? []).map((f) => f.id), ...json.map((r) => r.id)]);
-  // Lo del JSON no dice de quién es: se va si lo borró cualquiera de los que
-  // llevan la casa (pueden editarla igual, no es más poder que el que tienen).
-  const vivaDelJson = (r) => !autores.some((a) => lapidas.has(pareja(a, r.id)));
-  if (!filas) return json.filter(vivaDelJson);
+  const lapidas = await lapidasDe(quienes, (filas ?? []).map((f) => f.id));
   // Cada fila, solo con las lápidas de SU dueño. Las más recientes bajo el
   // tope, pero en el orden de siempre (de la más antigua).
-  const deTabla = [...filas].reverse()
+  return [...(filas ?? [])].reverse()
     .filter((f) => !lapidas.has(pareja(f.owner_id, f.id)))
     .map(rowToRecipe);
-  const enTabla = new Set(deTabla.map((r) => r.id));
-  return [...deTabla, ...json.filter((r) => vivaDelJson(r) && !enTabla.has(r.id))];
 }

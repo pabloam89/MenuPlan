@@ -89,18 +89,6 @@
       "class": "identifier",
       "reason": "Id de chat del canal de mensajería, lo da Telegram o WhatsApp"
     },
-    "bot_reminders.chat_id": {
-      "class": "identifier",
-      "reason": "Id de chat del canal de mensajería, lo da Telegram o WhatsApp"
-    },
-    "bot_reminders.created_by": {
-      "class": "identifier",
-      "reason": "Id de una persona o cuenta en el canal de mensajería"
-    },
-    "bot_reminders.text": {
-      "class": "free_text",
-      "reason": "Mensaje, nota o descripción que escribe la persona"
-    },
     "bot_tareas.asignado_member": {
       "class": "identifier",
       "reason": "Id de miembro de la casa, referencia a otra entidad"
@@ -425,6 +413,10 @@
       "class": "identifier",
       "reason": "Id de una receta (del catálogo en git o de la persona)"
     },
+    "menu_generado.menu_id": {
+      "class": "identifier",
+      "reason": "Id de un menú guardado o compartido"
+    },
     "user_menu_weeks.menu_id": {
       "class": "identifier",
       "reason": "Id de un menú guardado o compartido"
@@ -624,6 +616,14 @@
     "ticket.super": {
       "class": "free_text",
       "reason": "Súper del ticket, como sale de la foto o lo escribe la familia"
+    },
+    "ticket.tachados": {
+      "class": "identifier",
+      "reason": "Claves de artículos de la lista que tachó el ticket (tachedKeys de la app, nombre|unidad o id del artículo): las destacha al borrarlo"
+    },
+    "ticket.despensa_ids": {
+      "class": "identifier",
+      "reason": "Ids de lo que el ticket creó en la despensa (pantryIds): borrarlo los quita"
     }
   }
 }

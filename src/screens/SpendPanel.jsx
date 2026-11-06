@@ -50,6 +50,7 @@ import { guessShoppingAisle } from "../lib/ingredientCategories.js";
 import { aisleImageSrc } from "../lib/ingredientImages.js";
 import { useAuth } from "../lib/useAuth.js";
 import { removePantryItem } from "../lib/pantry.js";
+import { useCompra } from "../lib/compraApp.js";
 import * as ids from "../lib/ids.js";
 import { isoDeCasa } from "../lib/dias.js";
 import { SUPERMERCADOS } from "../lib/supermercados.js";
@@ -480,18 +481,15 @@ function parseSize(text) {
 }
 
 /**
- * Append one manual spend entry to `data.priceObs`. Shared so the shopping
- * screen can record a gasto from the same "Añadir a mano" modal without
- * duplicating the mapping/shape logic.
+ * Apunta un gasto a mano en su tabla (compraApp.js, trozo 22 de #1037). La comparte la pantalla de la compra, con el
+ * mismo modal «Añadir a mano». Devuelve `{ ok }` de `compra.apuntar`.
  */
-export function appendManualSpend(setData, entry, dict, aliases = {}) {
+export function appendManualSpend(compra, entry, dict, aliases = {}) {
   const m = matchReceiptLine(entry.name, dict, aliases);
   const ingredientId = m.ingredientId ?? ingredientIdFor(entry.name);
   const id = ids.gasto.nuevo();
-  setData((d) => ({
-    ...d,
-    priceObs: [
-      ...(d.priceObs ?? []),
+  return compra.apuntar({
+    precios: [
       {
         id,
         ingredientId,
@@ -509,16 +507,15 @@ export function appendManualSpend(setData, entry, dict, aliases = {}) {
         kind: "food",
       },
     ],
-  }));
+  });
 }
 
 /**
- * Persist a confirmed receipt (store + date + reviewed lines) into `data`:
- * price observations, a receipt summary, and learned name→ingredient aliases.
- * Shared so the shopping-screen receipt wizard writes the exact same shape as
- * the Gasto tab's own review flow. Returns the number of saved observations.
+ * Apunta un ticket confirmado (súper, fecha y líneas revisadas) y sus precios en sus tablas (compraApp.js) y, si se
+ * guardó, los alias aprendidos (nombre del ticket → ingrediente) en la casa. La comparten la compra y la despensa.
+ * Devuelve cuántos precios se guardaron (0 si no se guardó nada).
  */
-export function appendReceiptSpend(setData, { store, date, lines, tachedKeys = [], tachedWeekStart = null, pantryIds = [] }, aliases = {}) {
+export async function appendReceiptSpend(compra, setData, { store, date, lines, tachedKeys = [], tachedWeekStart = null, pantryIds = [] }, aliases = {}) {
   const included = (lines ?? []).filter((l) => l.include && l.price > 0);
   if (included.length === 0) return 0;
 
@@ -552,38 +549,32 @@ export function appendReceiptSpend(setData, { store, date, lines, tachedKeys = [
     if (id && key) newAliases[key] = id;
   }
 
-  setData((d) => ({
-    ...d,
-    priceObs: [...(d.priceObs ?? []), ...newObs],
-    priceAliases: newAliases,
-    receipts: [
-      {
-        id: receiptId,
-        createdAt: Date.now(),
-        store: storeName,
-        purchasedAt,
-        total: newObs.reduce((s, o) => s + o.price, 0),
-        lineCount: newObs.length,
-        // Lets deleting this receipt undo exactly the tachados/despensa it
-        // caused, without touching anything else the user did separately.
-        // tachedWeekStart is the ONE real week this ticket's purchase landed
-        // on (null when unknown) — undo must stay scoped to it too, or it'd
-        // wipe out unrelated tachados in other weeks that share an ingredient.
-        tachedKeys,
-        tachedWeekStart,
-        pantryIds,
-      },
-      ...(d.receipts ?? []),
-    ],
-  }));
-
+  const r = await compra.apuntar({
+    precios: newObs,
+    ticket: {
+      id: receiptId,
+      store: storeName,
+      purchasedAt,
+      total: newObs.reduce((s, o) => s + o.price, 0),
+      lineCount: newObs.length,
+      // Lets deleting this receipt undo exactly the tachados/despensa it
+      // caused, without touching anything else the user did separately.
+      // tachedWeekStart is the ONE real week this ticket's purchase landed
+      // on (null when unknown) — undo must stay scoped to it too, or it'd
+      // wipe out unrelated tachados in other weeks that share an ingredient.
+      tachedKeys,
+      tachedWeekStart,
+      pantryIds,
+    },
+  });
+  if (!r.ok) return 0;
+  setData((d) => ({ ...d, priceAliases: newAliases }));
   return newObs.length;
 }
 
 /**
- * "Gasto" tab: spend history built from uploaded receipts (+ manual entries).
- * Everything persists in the local `data` blob via setData (priceObs, receipts,
- * priceAliases) — the SQL tables land later without changing this UI.
+ * "Gasto" tab: spend history built from uploaded receipts (+ manual entries). Los tickets y precios vienen de sus
+ * tablas (CompraContext, compraApp.js); los alias, del documento de la casa.
  */
 const PERIOD_OPTIONS = [
   { id: "30", label: "30 días" },
@@ -593,10 +584,11 @@ const PERIOD_OPTIONS = [
   { id: "custom", label: "Fechas" },
 ];
 
-export function SpendPanel({ data, setData, onUndoReceiptTachado, onToast, readOnly = false }) {
+export function SpendPanel({ onUndoReceiptTachado, onToast, readOnly = false }) {
   const { user } = useAuth();
-  const allObs = data.priceObs ?? [];
-  const allReceipts = data.receipts ?? [];
+  const compra = useCompra();
+  const allObs = compra.precios;
+  const allReceipts = compra.tickets;
   // "Resumen" (dashboard cards) vs "Histórico" (the ticket-by-ticket table) —
   // tickets used to live at the very bottom of Resumen, easy to miss; now
   // it's its own destination instead of one more card to scroll past.
@@ -671,9 +663,14 @@ export function SpendPanel({ data, setData, onUndoReceiptTachado, onToast, readO
   // multi-week write path the wizard used, so the undo persists and reaches
   // every week the ticket touched — see App.undoReceiptTachado) and removes
   // the pantry entries it created (leaves anything the user added separately).
-  const deleteReceipt = (receiptId) => {
-    if (readOnly || !setData) return;
+  const deleteReceipt = async (receiptId) => {
+    if (readOnly || !compra.leida) return;
     const receipt = allReceipts.find((r) => r.id === receiptId);
+    // Primero se borra de su tabla; si no se pudo, no se deshace nada más y se dice.
+    if (!(await compra.apuntar({ borrar_ticket: receiptId })).ok) {
+      onToast?.("No he podido borrar el ticket");
+      return;
+    }
     const tachedKeys = receipt?.tachedKeys ?? [];
     if (tachedKeys.length) onUndoReceiptTachado?.(tachedKeys, receipt?.tachedWeekStart ?? null);
     if (receipt?.pantryIds?.length && user) {
@@ -681,11 +678,6 @@ export function SpendPanel({ data, setData, onUndoReceiptTachado, onToast, readO
       // from the DB on open, so there's no local mirror to keep in step.
       Promise.all(receipt.pantryIds.map((id) => removePantryItem(user.id, id))).catch(() => {});
     }
-    setData((d) => ({
-      ...d,
-      receipts: (d.receipts ?? []).filter((r) => r.id !== receiptId),
-      priceObs: (d.priceObs ?? []).filter((o) => o.receiptId !== receiptId),
-    }));
     onToast?.(tachedKeys.length || receipt?.pantryIds?.length ? "Ticket eliminado · deshecho de la lista y de En casa" : "Ticket eliminado");
   };
 
@@ -698,7 +690,7 @@ export function SpendPanel({ data, setData, onUndoReceiptTachado, onToast, readO
         <div style={emptyCard}>
           <ShoppingBag size={30} color="#9bb0a3" strokeWidth={1.8} />
           <p style={{ fontSize: 14, fontWeight: 700, color: "#3d5245", margin: "10px 0 0" }}>
-            Aún no hay gasto registrado
+            {compra.leida ? "Aún no hay gasto registrado" : "No he podido cargar lo gastado"}
           </p>
           <p style={{ fontSize: 12.5, fontWeight: 600, color: "#7a8a7f", margin: "6px 0 0", lineHeight: 1.4 }}>
             Sube un ticket o añade un gasto desde <strong style={{ color: "#3d5245" }}>Tu compra</strong> y aquí verás la analítica.

@@ -6,11 +6,20 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const db = vi.hoisted(() => ({ select: vi.fn(), insert: vi.fn(), update: vi.fn() }));
 vi.mock("./db.js", () => ({ ...db, eq: (v) => `eq.${encodeURIComponent(v)}` }));
+// La casa entera la lee casa.js (cargarCasa): aquí, la que diga cada test.
+const casa = vi.hoisted(() => ({ cargarCasa: vi.fn() }));
+vi.mock("./casa.js", () => casa);
+// Lo que apunta cada cierre (embudo.js) no se mira aquí.
+const despensaNoche = vi.hoisted(() => ({ barrerDespensa: vi.fn(async () => ({ casas: 0 })) }));
+vi.mock("./barridoDespensa.js", () => despensaNoche);
+vi.mock("./embudo.js", () => ({ registrar: vi.fn(async () => {}), EVENTO: new Proxy({}, { get: (_, k) => String(k) }) }));
 
 const {
   COSAS_QUE_CADUCAN, CADUCA, EFECTOS, QUIENES, BARRIDOS, vigente, estadosVencidos, casasDeEstados, avisoDeCola, claveDeEstadoVencido,
-  barridosQueFaltan, PATRON_VENCIDO, barrer: barrerReal,
+  barridosQueFaltan, PATRON_VENCIDO, barrer: barrerReal, claveDeRota, textoDeRota, TOPE_CORRECCIONES_POR_CASA, VIDA_PREGUNTA_MS,
 } = await import("./caducidades.js");
+const { EJES } = await import("../../src/data/axisRegistry.js");
+const { ESTADO_TAREA } = await import("../../src/lib/vocabularios.js");
 
 const H = 3600000;
 // La cadencia del cron, de su único sitio (la misma que pasa api/bot/recordatorios.js).
@@ -250,5 +259,110 @@ describe("la cola sin dueño", () => {
 
   it("el aviso sin texto no se manda", () => {
     expect(avisoDeCola([{ texto: "" }])).toBeNull();
+  });
+});
+
+describe("referencias rotas: lo obvio se corrige solo y lo dudoso se pregunta (Pablo, 4 nov 2026)", () => {
+  // En punto: la primera pasada de la hora, cuando corre este barrido.
+  const ahoraMs = Date.parse("2026-11-05T09:00:00Z");
+  const eje = EJES.find((e) => Array.isArray(e.vocabulario) && e.vocabulario.length && e.tipo !== "booleano");
+  const CHAT = { household_id: "h1", channel: "telegram", chat_id: "7", kind: "private" };
+  const casaDe = ({ members = [{ id: "ana", name: "Ana" }], preferencias = [] } = {}) => ({ state: { members }, preferencias });
+  let tareas;
+  beforeEach(() => {
+    db.select.mockReset(); db.update.mockReset(); db.insert.mockReset(); casa.cargarCasa.mockReset();
+    db.update.mockResolvedValue([{}]);
+    db.insert.mockResolvedValue([{}]);
+    tareas = [];
+    db.select.mockImplementation(async (tabla, q) => {
+      if (tabla === "bot_chats") return [CHAT];
+      // Las vivas de la casa; la búsqueda por clave (¿ya se preguntó?) y la de estados vencidos, vacías.
+      if (tabla === "bot_tareas") return /clave=/.test(q) ? [] : tareas;
+      return [];
+    });
+  });
+  const updates = () => db.update.mock.calls.filter(([t]) => t === "bot_tareas");
+  const inserts = () => db.insert.mock.calls.filter(([t]) => t === "bot_tareas");
+
+  it("descarta la tarea de quien ya no está, quita el encargado que falta y pregunta por el valor que ya no existe", async () => {
+    tareas = [
+      { id: "t1", para_member: "marta" },
+      { id: "t2", para_member: "ana", asignado_member: "pedro" },
+      { id: "t3", para_member: "ana" },
+    ];
+    casa.cargarCasa.mockResolvedValue(casaDe({ preferencias: [{ id: "p1", eje: eje.id, valor: "ya-no-existe", persona_id: "ana" }] }));
+    const r = await barrer({ ahoraMs });
+    expect(r[CADUCA.REFERENCIA_ROTA]).toEqual({ casas: 1, sinLeer: 0, descartadas: 1, sinEncargado: 1, preguntas: 1, frenadas: 0 });
+    const [descarte, encargado] = updates();
+    expect(descarte[1]).toMatch(/id=eq\.t1/);
+    expect(descarte[2]).toMatchObject({ status: ESTADO_TAREA.DESCARTADA });
+    expect(encargado[1]).toMatch(/id=in\.\(t2\)/);
+    expect(encargado[2]).toMatchObject({ asignado_member: null });
+    expect(updates().some(([, q]) => /t3/.test(q))).toBe(false);
+    const [[, [fila]]] = inserts();
+    expect(fila).toMatchObject({ household_id: "h1", chat_id: "7", kind: "pregunta", clave: claveDeRota({ personaId: "ana", eje: eje.id, valor: "ya-no-existe" }) });
+    expect(Date.parse(fila.caduca_at) - ahoraMs).toBe(VIDA_PREGUNTA_MS);
+    expect(fila.texto).toMatch(/ya-no-existe/);
+    expect(fila.texto).toMatch(/Ana/);
+  });
+
+  it("la pregunta ya hecha no se repite", async () => {
+    casa.cargarCasa.mockResolvedValue(casaDe({ preferencias: [{ id: "p1", eje: eje.id, valor: "ya-no-existe", persona_id: "ana" }] }));
+    db.select.mockImplementation(async (tabla, q) => (tabla === "bot_chats" ? [CHAT] : tabla === "bot_tareas" && /clave=/.test(q) ? [{ id: "vieja" }] : []));
+    expect((await barrer({ ahoraMs }))[CADUCA.REFERENCIA_ROTA].preguntas).toBe(0);
+    expect(inserts()).toEqual([]);
+  });
+
+  it("con más correcciones que el tope en una casa no toca nada: avisa y la deja", async () => {
+    tareas = Array.from({ length: TOPE_CORRECCIONES_POR_CASA + 1 }, (_, i) => ({ id: `t${i}`, para_member: "marta" }));
+    casa.cargarCasa.mockResolvedValue(casaDe());
+    const espia = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      expect((await barrer({ ahoraMs }))[CADUCA.REFERENCIA_ROTA]).toMatchObject({ frenadas: 1, descartadas: 0 });
+    } finally {
+      espia.mockRestore();
+    }
+    expect(updates()).toEqual([]);
+  });
+
+  it("una casa que no se puede leer no se corrige; sin nadie en la familia no se mira la persona", async () => {
+    tareas = [{ id: "t1", para_member: "marta" }];
+    const espia = vi.spyOn(console, "error").mockImplementation(() => {});
+    casa.cargarCasa.mockRejectedValue(new Error("FamiliaSinLeer"));
+    try {
+      expect((await barrer({ ahoraMs }))[CADUCA.REFERENCIA_ROTA]).toMatchObject({ sinLeer: 1, descartadas: 0 });
+    } finally {
+      espia.mockRestore();
+    }
+    casa.cargarCasa.mockResolvedValue(casaDe({ members: [] }));
+    expect((await barrer({ ahoraMs }))[CADUCA.REFERENCIA_ROTA]).toMatchObject({ casas: 1, descartadas: 0 });
+    expect(updates()).toEqual([]);
+  });
+
+  it("una vez por hora: en otra pasada de la hora no corre", async () => {
+    casa.cargarCasa.mockResolvedValue(casaDe());
+    expect((await barrer({ ahoraMs: Date.parse("2026-11-05T09:33:00Z") }))[CADUCA.REFERENCIA_ROTA]).toBeUndefined();
+    expect(casa.cargarCasa).not.toHaveBeenCalled();
+  });
+
+  it("el texto de la pregunta dice el valor, el eje y de quién es", () => {
+    const t = textoDeRota({ eje: eje.id, valor: "raro", personaId: "ana" }, [{ id: "ana", name: "Ana" }]);
+    expect(t).toMatch(/«raro»/);
+    expect(t).toContain(eje.nombre);
+    expect(t).toMatch(/de Ana/);
+  });
+});
+
+describe("el día del menú en la pasada del cron", () => {
+  it("se barre una vez al día, con la primera pasada tras las 00:00 UTC, que en Madrid ya es el día siguiente", async () => {
+    db.select.mockResolvedValue([]);
+    despensaNoche.barrerDespensa.mockClear();
+    const noche = await barrer({ ahoraMs: Date.UTC(2026, 10, 6, 0, 1) });
+    expect(despensaNoche.barrerDespensa).toHaveBeenCalledWith({ hoy: "2026-11-06" });
+    expect(noche[CADUCA.DIA_DEL_MENU]).toEqual({ casas: 0 });
+    despensaNoche.barrerDespensa.mockClear();
+    await barrer({ ahoraMs: Date.UTC(2026, 10, 6, 0, 6) });
+    await barrer({ ahoraMs: Date.UTC(2026, 10, 6, 12, 0) });
+    expect(despensaNoche.barrerDespensa).not.toHaveBeenCalled();
   });
 });

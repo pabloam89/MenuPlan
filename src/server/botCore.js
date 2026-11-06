@@ -8,9 +8,9 @@
 // Comprobado el 29 sep 2026 con una casa real: la semana entera sale en ~1,8 s
 // en Node, sin red, y la compra de esa semana, completa.
 
-export { generateMenuWithAI, pickCatalogReplacement, chocaConElGrupo, choquesDelPlan } from "../lib/aiPlanner.js";
+export { generateMenuWithAI, pickCatalogReplacement, chocaConElGrupo, choquesDelPlan, DESCARTE, DESCARTE_EN_PALABRAS, platoDelHueco, platosDelPlan } from "../lib/aiPlanner.js";
 export { entradaDelMotor } from "../lib/entradaMotor.js";
-export { resumenCumplimiento } from "../lib/cumplimiento.js";
+export { resumenCumplimiento, preferenciasDelMotor, textoDe } from "../lib/cumplimiento.js";
 export { buildShoppingList } from "../lib/shoppingBuilder.js";
 export { registerRecipes, RECIPES_BY_ID } from "../data/recipes.js";
 export { DAYS, getDayMeals } from "../lib/planner.js";
@@ -37,6 +37,7 @@ export { EU_ALLERGEN_IDS } from "../data/ingredientSchema.js";
 export { aplicarAlergias, FAMILIA, marcarRevisadas, pendientesDeAlergias, conMiembroNuevo } from "../lib/alergias.js";
 export { SLOT_VALUES, slotKey } from "../lib/planner.js";
 export { mapRow as filaDeDespensa, COLUMNAS_DESPENSA } from "../lib/pantry.js";
+export { applyConsumption } from "../lib/cookPantry.js";
 
 // Fotos desde el chat: ticket o nevera → despensa; menú del cole → la casa.
 export { normalizePantryInput } from "../utils/normalizePantryInput.js";

@@ -85,8 +85,12 @@ export function preferenciasDelMotor(data, { hoy = null } = {}) {
   return Object.freeze(out);
 }
 
-/** Lo que saldría al azar: los platos de la semana por la parte del pool que cumple la preferencia. */
-function estadoDe(p, veces, platos, posibles, tamano) {
+/**
+ * El evaluador: cómo sale una preferencia con `veces` platos que casan con ella; `mas`/`menos`, frente a lo que
+ * saldría al azar (los platos de la semana por la parte del pool que la cumple). Lo usan también las reglas del
+ * validador (preferenciasSistema.js), que son topes y no necesitan el azar.
+ */
+export function estadoDePreferencia(p, veces, platos = 0, posibles = 0, tamano = 0) {
   const azar = tamano ? (posibles / tamano) * platos : 0;
   switch (p.operador) {
     case OP.MAS: return veces === 0 ? "no" : veces > azar ? "cumplida" : "parcial";
@@ -97,6 +101,9 @@ function estadoDe(p, veces, platos, posibles, tamano) {
   }
 }
 
+/** Pura. Los ids de las preferencias que piden un plato como `receta`: las de «más» o «al menos» que casan con él. */
+export const pidieronElPlato = (prefs, receta) => prefs.filter((p) => (p.operador === OP.MAS || p.operador === OP.AL_MENOS) && casaCon(p, receta)).map((p) => p.id);
+
 /** Pura. Cuánto cumple el menú de un grupo (`asignaciones`: { slotId, recipeId }) cada preferencia sobre `pool`; por hueco, las `mas`/`al_menos` del plato que salió. */
 export function cumplimientoDelGrupo(prefs, asignaciones, pool) {
   const porId = new Map((pool ?? []).map((r) => [r.id, r]));
@@ -104,14 +111,14 @@ export function cumplimientoDelGrupo(prefs, asignaciones, pool) {
   const preferencias = prefs.map((p) => {
     const veces = platos.filter((r) => casaCon(p, r)).length;
     const posibles = (pool ?? []).filter((r) => casaCon(p, r)).length;
-    const estado = estadoDe(p, veces, platos.length, posibles, pool?.length ?? 0);
+    const estado = estadoDePreferencia(p, veces, platos.length, posibles, pool?.length ?? 0);
     const motivo = estado === "cumplida" ? null : posibles === 0 && p.operador !== OP.MENOS ? "sin_candidatos" : "pesaba_menos";
     return { id: p.id, campo: p.campo, valor: p.valor, operador: p.operador, cantidad: p.cantidad, origen: p.origen, fuerza: p.fuerza, estado, motivo, veces };
   });
   const porHueco = {};
   for (const a of asignaciones ?? []) {
     const r = porId.get(a.recipeId);
-    const ids = prefs.filter((p) => (p.operador === OP.MAS || p.operador === OP.AL_MENOS) && casaCon(p, r)).map((p) => p.id);
+    const ids = pidieronElPlato(prefs, r);
     if (ids.length) porHueco[a.slotId] = ids;
   }
   return { preferencias, porHueco };

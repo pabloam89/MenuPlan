@@ -8,8 +8,9 @@
 
 import crypto from "node:crypto";
 import { enviarPendientes } from "../_bot/recordatorios.js";
+import { botonDeRecordatorio } from "../_bot/botonRecordatorio.js";
 import { enviar, escaparHtml } from "../_bot/telegram.js";
-import { VISPERA, TIPO_VISPERA, avisoDeVisperaDe } from "../_bot/vispera.js";
+import { TIPO_VISPERA, avisoDeVisperaDe } from "../_bot/vispera.js";
 import { rpc } from "../_bot/db.js";
 import { barrer } from "../_bot/caducidades.js";
 import { aprenderDeSenales } from "../_bot/aprender.js";
@@ -32,21 +33,17 @@ export default async function handler(req, res) {
   const enviados = await enviarPendientes(async (r) => {
     if (r.channel !== "telegram") return;
     // El aviso de la víspera (api/_bot/vispera.js): se monta ahora, con el menú
-    // de mañana, y si no hay nada que preparar no se manda nada. El texto queda
-    // de respaldo mientras haya una base sin la 0085 (sin columna tipo): fuera
-    // cuando esté aplicada en todas.
-    if (r.tipo === TIPO_VISPERA || r.text === VISPERA) {
+    // de mañana, y si no hay nada que preparar no se manda nada.
+    if (r.aviso === TIPO_VISPERA) {
       const hoy = isoDeCasa();
       const aviso = r.household_id ? await avisoDeVisperaDe(r.household_id, hoy) : null;
       if (aviso) await enviar(r.chat_id, aviso);
       return;
     }
-    // Con un botón que se lo pide a Lola tal cual: «Preparar el menú de la
-    // semana que viene» se convierte en prepararlo, sin tener que escribir.
-    const cabe = Buffer.byteLength(`t:${r.text}`) <= 64;
-    await enviar(r.chat_id, `⏰ <b>Recordatorio</b>: ${escaparHtml(r.text)}`, cabe
-      ? { botones: [[{ texto: "👉 Vamos", dato: `t:${r.text}` }]] }
-      : {});
+    // Con un botón que se lo pide a Lola: «Preparar el menú de la semana que
+    // viene» se convierte en prepararlo, sin tener que escribir. El botón lleva
+    // la tarea, no el texto: se hace en su casa (#1238), y vale para cualquier largo.
+    await enviar(r.chat_id, `⏰ <b>Recordatorio</b>: ${escaparHtml(r.texto)}`, { botones: [[botonDeRecordatorio(r.id)]] });
   });
   // Tareas caducadas y lo cerrado de hace más de 7 días (texto que puede llevar
   // salud o menores): fuera. Si falla, los recordatorios ya salieron.

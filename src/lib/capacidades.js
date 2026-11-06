@@ -64,6 +64,7 @@ export const PANTALLAS = Object.freeze({
 
 // Motivos de lo que está en el código y no se llega.
 const ASISTENTE = "el asistente de Inicio no sale con FRONTAL_BOT (Dashboard.jsx)";
+const SOLO_LOLA_GENERA = "el menú solo se genera desde Lola (#1210, 4 nov 2026): los botones de la app se lo piden a ella";
 const SIN_ENTRADA = "ningún botón lleva aquí";
 const EN_CASA_LECTURA = "En casa va dentro de Compra en solo lectura";
 // Decisiones de Pablo del 28 oct 2026.
@@ -95,7 +96,7 @@ const MAPA = [
   c("alergia_otra", "apuntar una alergia que no está en la lista", "casa", "anadir", "persona", { app: app("familia", { escribe: ["customAllergies"] }), salud: true }),
   c("salud", "marcar intolerancias, problemas de salud o un estado temporal", "casa", "cambiar", "persona", { app: app("familia", { escribe: ["members.intolerances", "members.healthProfiles", "members.dietaryStates"] }), salud: true }),
   c("menu_dieta_blanda", "aceptar un menú aparte para quien está a dieta blanda", "casa", "cambiar", "grupo", { app: app("familia", { escribe: ["groups"] }), salud: true }),
-  c("quien_soy", "decir cuál de la familia eres tú", "casa", "cambiar", "persona", { app: app("perfil", { escribe: ["accountMemberIdByUser"] }), aProposito: "Lola ya sabe quién escribe por su cuenta de Telegram" }),
+  c("quien_soy", "decir cuál de la familia eres tú", "casa", "cambiar", "persona", { app: app("perfil", { escribe: ["accountMemberIdByUser"] }), aProposito: "se marca en la app; Lola lo deduce por el nombre de Telegram si coincide con una sola persona y lo guarda (api/_bot/quienEscribe.js), y si no, lo pregunta" }),
   c("foto_perfil", "cambiar la foto de perfil", "casa", "cambiar", "casa", { app: app("perfil", { escribe: ["profilePhoto"] }), aProposito: "es de pintar la app" }),
   c("entrar", "entrar con Google o Apple, o sin cuenta", "casa", "conectar", "casa", { app: app("entrada"), aProposito: "Lola entra por su chat" }),
   c("conectar_lola", "conectar la casa con el chat de Lola", "casa", "conectar", "casa", { app: app("inicio"), aProposito: "se hace desde la app hacia Lola" }),
@@ -105,7 +106,7 @@ const MAPA = [
   c("vaciar_hogar", "vaciar el hogar (menú, compra y despensa)", "casa", "quitar", "casa", { app: app("hogares"), aProposito: "borra mucho de golpe: solo en la app, con confirmación" }),
 
   // ── Menú: generarlo, verlo y cambiarlo ──
-  c("generar_menu", "generar o rehacer el menú de una semana", "menu", "generar", "menu", { app: app("menu", { escribe: ["menus", "activeMenuId"] }) }),
+  c("generar_menu", "generar o rehacer el menú de una semana", "menu", "generar", "menu", { app: app("menu", { escribe: ["menus", "activeMenuId"], apagada: SOLO_LOLA_GENERA }), aProposito: "decisión de Pablo (4 nov 2026, #1210): generar es cosa de Lola, que pregunta antes; la app solo abre la pizarra en blanco" }),
   c("asistente_menu", "montar el menú respondiendo el asistente paso a paso", "menu", "generar", "menu", { app: app("asistente", { apagada: ASISTENTE }), aProposito: "el asistente es solo de la app (Pablo, 28 oct 2026); en Lola se hace hablando" }),
   c("regenerar_dia", "rehacer un día del menú", "menu", "generar", "menu", { app: app("menu") }),
   c("ver_menu", "ver el menú de un día, una semana o un grupo", "menu", "ver", "menu", { app: app("menu", { lee: ["menuWeek"] }) }),
@@ -148,6 +149,7 @@ const MAPA = [
 
   // ── Recetas ──
   c("buscar_receta", "buscar y filtrar recetas del catálogo", "recetas", "ver", "receta", { app: app("catalogo") }),
+  c("por_que_plato", "preguntar por qué hay un plato en el menú y quién lo puso", "menu", "ver", "menu", { app: app("menu") }),
   c("ver_receta", "ver los ingredientes y pasos de una receta", "recetas", "ver", "receta", { app: app("menu") }),
   c("crear_receta", "crear una receta propia (con su foto)", "recetas", "guardar", "receta", { app: app("crear_receta", { escribe: ["userRecipes"] }) }),
   c("editar_receta", "editar una receta propia", "recetas", "cambiar", "receta", { app: app("crear_receta", { escribe: ["userRecipes"] }) }),
@@ -178,13 +180,13 @@ const MAPA = [
   c("ver_despensa", "ver lo que hay en casa", "despensa", "ver", "despensa", { app: app("en_casa") }),
   c("anadir_despensa", "apuntar comida en casa (a mano, por foto o por ticket)", "despensa", "anadir", "despensa", { app: app("en_casa", { apagada: EN_CASA_LECTURA }), aProposito: DESPENSA_DESDE_COMPRA }),
   c("cambiar_despensa", "cambiar la cantidad o el sitio de algo en casa", "despensa", "cambiar", "despensa", { app: app("en_casa", { apagada: EN_CASA_LECTURA }), aProposito: DESPENSA_DESDE_COMPRA }),
-  c("cuando_gastado", "decidir cuándo se da algo por gastado", "despensa", "cambiar", "despensa", { app: app("compra", { escribe: ["pantryPrefs"] }) }),
   c("aprovechar_casa", "decir si el menú aprovecha lo que hay en casa", "despensa", "cambiar", "despensa", { app: app("asistente", { escribe: ["pantryMode"], apagada: ASISTENTE }) }),
 
   // ── La charla con Lola ──
   c("tareas", "apuntar, corregir o cerrar algo pendiente", "casa", "recordar", "charla", { aProposito: "es la memoria de la charla" }),
   c("recordatorios", "programar, ver o cancelar un recordatorio", "casa", "recordar", "charla", { aProposito: "un recordatorio llega por el chat" }),
   c("empezar_de_nuevo", "empezar una charla nueva", "casa", "deshacer", "charla", { aProposito: "es de la charla" }),
+  c("trato", "decir cómo quiere cada uno que le hable Lola: ritmo, cuánto afinar, fotos y largo", "casa", "cambiar", "charla", { aProposito: "es cómo habla Lola a cada cuenta: se dice en su chat (trozo 16)" }),
 ];
 
 export const CAPACIDADES = Object.freeze(MAPA.map(conLola));

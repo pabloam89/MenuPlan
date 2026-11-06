@@ -24,8 +24,9 @@ alimentos en JSON en git (`src/data/`). Escriben **Pablo** (`pabloam89`) y **Ál
   ```
   git -C C:/dev/MenuPlan fetch origin
   git -C C:/dev/MenuPlan worktree add -b bot/mi-tema C:/dev/MenuPlan-mi-tema origin/staging
-  cp C:/dev/MenuPlan/.env.local C:/dev/MenuPlan-mi-tema/ && cd C:/dev/MenuPlan-mi-tema && npm ci
+  cd C:/dev/MenuPlan-mi-tema && npm ci
   ```
+  Sin copiar `.env.local`: las direcciones de las claves salen de `ops/env.1password`, en git (skill `1password`).
   Primer push: `git push -u origin <rama>`. Un hook personal de Pablo borra solas las carpetas ya fusionadas y limpias. La app en local: `npm run dev -- --port 5176` (el login con Google solo vuelve a ese puerto).
 - Antes del PR, y de cada push de arreglo, `git fetch origin && git merge origin/staging` y resuelve (el ruleset exigirá estar al día). Añade los ficheros por nombre (nada de `git add .`) y nada de `git stash`: es común a todas las carpetas.
 - Tests: en local, los de lo que tocas (`npx vitest run <ficheros>`); la suite entera la corre el CI.
@@ -58,6 +59,7 @@ Solo lo irreversible o lo que sale fuera; lo demás se hace y se cuenta.
 
 - Reglas (`.claude/rules/`), saltan al leer o editar su zona: `lola` (`api/_bot/`, `api/bot/`), `catalogo` (`src/data/`, `src/utils/`, `src/lib/`), `ui` (`src/**/*.jsx`), `api` (`api/*.js`), `migraciones` (`supabase/`) y `tests`.
 - Skills (`.claude/skills/`), runbooks de cada servicio: `1password`, `alta-de-secreto`, `github`, `hetzner`, `pr-con-juez`, `supabase`, `tailscale`, `telegram` y `vercel`.
+- **Antes de usar un servicio por primera vez en la sesión, y siempre antes de un bucle o un reintento contra él, lee su skill entera**, también «Lo que falló»: ahí están sus cupos, sus límites y lo que no se hace. Vale para todas las de arriba y las que se añadan. Al arrancar solo se ve una línea de cada una, y sus avisos no. Si un servicio falla raro, se para y se lee la skill; no se reintenta. El encargo de un agente que use un servicio dice lo mismo. Pasó el 4 nov 2026: consultas en bucle sin leer `1password` agotaron el cupo de todas las sesiones.
 
 ## Código
 

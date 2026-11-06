@@ -14,6 +14,7 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { RestrictionConflictBanner } from "./RestrictionConflictBanner.jsx";
+import { PIDESELO_A_LOLA } from "../lib/frontalBot.js";
 
 let container = null;
 let root = null;
@@ -61,11 +62,12 @@ describe("RestrictionConflictBanner", () => {
     expect(container.textContent).toContain("1 plato del menú actual podría no respetar: Gluten.");
   });
 
-  it('calls onRegenerate exactly once when "Generar menú nuevo" is clicked', () => {
+  it("el botón se lo pide a Lola: la app ya no genera (#1210); onRegenerate, una vez", () => {
     const onRegenerate = vi.fn();
     mount(<RestrictionConflictBanner message="algo cambió" onRegenerate={onRegenerate} />);
 
-    clickButtonWithText("Generar menú nuevo");
+    expect(container.textContent).not.toContain("Generar menú nuevo");
+    clickButtonWithText(PIDESELO_A_LOLA);
 
     expect(onRegenerate).toHaveBeenCalledTimes(1);
   });
@@ -81,11 +83,11 @@ describe("RestrictionConflictBanner", () => {
     expect(onRegenerate).not.toHaveBeenCalled();
   });
 
-  it('omits the "Generar menú nuevo" button when onRegenerate is not provided', () => {
+  it("omits the Lola button when onRegenerate is not provided", () => {
     mount(<RestrictionConflictBanner message="algo cambió" />);
 
     const button = Array.from(container.querySelectorAll("button")).find((b) =>
-      b.textContent.includes("Generar menú nuevo"),
+      b.textContent.includes(PIDESELO_A_LOLA),
     );
     expect(button).toBeUndefined();
     // "Ahora no" must still be there so the user can dismiss it either way.

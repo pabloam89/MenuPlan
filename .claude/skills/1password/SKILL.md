@@ -31,9 +31,12 @@ metadata:
   - **`Private`**: lo personal de Pablo. Ninguna sesión escribe aquí, y la
     service account no la ve.
   - **`Shared`** («Compartida»): de la familia, no del proyecto.
-- **`.env.local` guarda direcciones, no claves.** La plantilla es
-  `ops/env.1password`. Al abrir una carpeta de trabajo se copia el `.env.local` de la
-  carpeta principal (CLAUDE.md), así que cada worktree hereda las direcciones.
+- **Las direcciones viven en git, en `ops/env.1password`**, y las lee
+  `direcciones()` de `scripts/lib/env.mjs`: ninguna carpeta copia nada. Un
+  `.env.local` es opcional y solo añade lo de un PC (un valor en claro de
+  prueba, las claves de administración de Pablo); una dirección suya distinta de
+  la plantilla se ignora con la línea `env-direcciones: …` (ver «Lo que falló»,
+  4 nov). En el CI y en Vercel no se usa la plantilla.
 - **Quién las resuelve**: `scripts/lib/env.mjs` (`leerEnv`, `cargarEnv`) en los
   scripts y `vite.config.js` en la app. En los tests no se resuelven: corren
   sin claves, como en el CI.
@@ -50,7 +53,10 @@ metadata:
   `HoMenu-sesiones` que no se lee se busca en `HoMenu` y al revés, con la
   línea `env-boveda clave: X de: A a: B motivo: respaldo`; Vite arranca sin las
   que no puede leer (`motivo: sin-acceso`, vacías). Un `.env.local` viejo
-  sigue sirviendo tras cambiar el token.
+  sigue sirviendo tras cambiar el token. La ruta que funcionó se apunta en
+  `~/.menuplan/op-rutas.json` (direcciones, sin valores) y la próxima vez se pide
+  directa: esa línea debe salir una vez por clave. Si sale en cada orden, se
+  están gastando tres lecturas por orden: mira ese fichero.
 - **Agente SSH de 1Password**: activo (alta en «Fechas» de Fuentes y comprobación). Guarda la llave
   `HoMenu - Hetzner Panel` (Ed25519, en `Private`); cada conexión pide
   aprobar **en la ventana de 1Password y con Pablo delante**: si nadie la contesta en
@@ -95,7 +101,8 @@ metadata:
 
 | Qué | Comando | Debe salir |
 |---|---|---|
-| Worktree nuevo sin `.env.local` | `cp ops/env.1password .env.local` | un `.env.local` con líneas `NOMBRE=op://…` |
+| Worktree nuevo | nada: las direcciones salen de `ops/env.1password` | los scripts leen sin `.env.local` |
+| Sale `env-direcciones: .env.local nombra otra dirección para …` | borra esas líneas de ese `.env.local` (o el fichero entero, si solo tenía direcciones) | sin la línea; cada clave, una lectura |
 | Leer una clave desde un script nuevo | `leerEnv("NOMBRE")` de `scripts/lib/env.mjs`; nunca un `readFileSync(".env.local")` propio | el valor en memoria; en pantalla nada |
 | Lanzar algo que lee `process.env` (`node --env-file`, `vercel`…) | `npm run op -- run --env-file=.env.local -- <comando>` | el comando corre; si imprime una clave, sale `<concealed by 1Password>` |
 | Comprobar que una clave está bien | comparar a ciegas (`valor === otro`) e imprimir solo el sí o el no | `COINCIDEN` o `NO COINCIDEN`, nunca el valor |
@@ -122,6 +129,28 @@ niega `guardia-minima.mjs`), están en `.claude/skills/1password/referencias/bov
 ábrelo antes de crear la bóveda o la service account.
 
 ## Lo que falló y por qué
+
+- **2026-11-04 · cupo de la cuenta agotado a las 18:16; sin base ni token nuevo de GitHub hasta el día siguiente.**
+  Causa, de `~/.menuplan/op-lecturas.jsonl`: 950 claves ese día, 848 de `consulta.mjs` y 496 de ellas reintentos, 509 desde las 17:30. Con un
+  `.env.local` que aún nombra HoMenu, cada consulta eran tres lecturas (`op inject`, la misma de una en una y la otra bóveda), y una sesión y su agente
+  lanzaron consultas en bucle con reintentos propios sin leer esta skill. Arreglo: `env.mjs` apunta la ruta en `~/.menuplan/op-rutas.json`. Antes: 3
+  lecturas por consulta; después: 1 (`scripts/lib/env.test.js`). Antes de un bucle contra la base, mira `npm run op -- service-account ratelimit` y, si falla
+  una lectura, para: reintentar gasta cupo de todas las sesiones.
+  La raíz, medida esa noche: todas las carpetas de `C:\dev\MenuPlan*` tenían un `.env.local` con las 17 direcciones a la bóveda de Pablo, porque
+  cada carpeta nueva copiaba el de la principal (CLAUDE.md) y la plantilla, que ya apuntaba a HoMenu-sesiones desde #328, no la leía nadie. El
+  respaldo entre bóvedas hacía que todo funcionara, así que el error solo se veía en el cupo. Arreglo: las direcciones salen de `ops/env.1password`
+  (`direcciones()`); una de `.env.local` distinta de la plantilla se ignora y se avisa, y CLAUDE.md ya no manda copiar nada. Medido el 4 nov a
+  las 21:40 con `node scripts/direcciones-carpetas.mjs` (sin llamar a `op`): carpetas que piden alguna clave de la plantilla a otra bóveda, antes
+  192 de 192, después 0, sin tocar ningún `.env.local`.
+
+- **2026-11-03 · cupo de la cuenta agotado (1000 lecturas al día) de madrugada; sin base ni GitHub hasta que se reinició, por la mañana.**
+  Causa, del registro `~/.menuplan/op-lecturas.jsonl`: el 2 nov (día de Madrid) este PC gastó 1015 claves en 823 lecturas; 612 de `vite.js` (arrancar o
+  compilar la app), casi todas reintentos de una en una: con una clave de administración en `.env.local` que la sesión no
+  puede leer, cada arranque pedía las 17 juntas, fallaba y las volvía a pedir una a una (y la mala, en las dos bóvedas),
+  unas 35 por arranque. Arreglo (`scripts/lib/env.mjs`): lo que no se puede leer se apunta en
+  `~/.menuplan/op-sin-acceso.json` (solo direcciones, sin valores) si 1Password dice que no existe o no la ve, y durante 24 h no se pide; un fallo de red, de token o de cupo no se apunta; sin cupo no se reintenta.
+  Antes: ~35 lecturas por arranque de Vite con una clave mala; después: 1. Si ya tienes acceso a una clave apuntada,
+  borra ese fichero. Tests en `scripts/lib/env.test.js`, vistos fallar.
 
 - **2026-10-10 · «Too many requests» de 1Password a las 19:10 (límite de lecturas por hora de la cuenta de servicio).**
   Causa: cada arranque de cada sesión leía el `.pem` de la App (dos lecturas si fallaba la primera bóveda), y un test

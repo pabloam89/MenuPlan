@@ -58,9 +58,44 @@ export const IDIOMAS = ["es", "en"];
  * se retira de la lista, su nombre desaparece de aquí, y vocabularios.test.js falla en cada
  * `CANAL.X` o `IDIOMA.X` del código que ya no existe.
  */
-const porNombre = (lista) => Object.freeze(Object.fromEntries(lista.map((v) => [v.toUpperCase(), v])));
+/** Una lista cerrada como mapa por nombre: ['a_b'] → { A_B: 'a_b' }. */
+export const porNombre = (lista) => Object.freeze(Object.fromEntries(lista.map((v) => [v.toUpperCase(), v])));
 export const CANAL = porNombre(CANALES);
 export const IDIOMA = porNombre(IDIOMAS);
+
+/**
+ * Por qué camino llega un intento de conectar un chat con una casa (bot_enlaces.camino_enlace, 0126; #1238):
+ * app (el código de Ajustes), grupo (el de /grupo, el de la app o el botón del grupo), email (el código por correo),
+ * alta_telegram (la cuenta nace en Telegram), invitacion (inv_…) y reenganche (un Telegram que ya es una cuenta).
+ */
+export const CAMINOS_ENLACE = ["app", "grupo", "email", "alta_telegram", "invitacion", "reenganche"];
+export const CAMINO_ENLACE = porNombre(CAMINOS_ENLACE);
+
+/**
+ * Cómo acaba ese intento (bot_enlaces.resultado_enlace, 0126). Enlazado: nuevo (el chat no tenía casa), ya_estaba (ya estaba
+ * en esa), casa_cambiada (estaba en otra y lo mueve quien lo enlazó), identidad_de_otra (se enlaza, pero ese Telegram ya
+ * es de otra cuenta y no se cambia). Rechazado: ocupado (el chat es de otra casa y otra cuenta), caducado (código
+ * vencido o ya usado), no_miembro (quien firmó ya no está en la casa o no puede enlazar un grupo), codigo_de_grupo
+ * (uno de grupo usado en un privado).
+ */
+export const RESULTADOS_ENLACE = ["nuevo", "ya_estaba", "casa_cambiada", "identidad_de_otra", "ocupado", "caducado", "no_miembro", "codigo_de_grupo"];
+export const RESULTADO_ENLACE = porNombre(RESULTADOS_ENLACE);
+/** Los que dejan el chat enlazado (los demás son rechazos). */
+export const ENLAZADOS = Object.freeze(new Set([RESULTADO_ENLACE.NUEVO, RESULTADO_ENLACE.YA_ESTABA, RESULTADO_ENLACE.CASA_CAMBIADA, RESULTADO_ENLACE.IDENTIDAD_DE_OTRA]));
+
+/**
+ * Con qué prueba se apuntó que un Telegram ES una cuenta (bot_identities.prueba_identidad, 0129; #1238): nacida (la
+ * cuenta se creó en ese Telegram), codigo_email (el código del correo de la cuenta, escrito en el chat), ajustes (el enlace de
+ * «Conectar Telegram» que sacó una sesión de la cuenta, pulsado en el privado de ese Telegram) y cambio (el mismo
+ * enlace, cuando ese Telegram era de otra cuenta y la persona lo confirmó en su privado).
+ */
+export const PRUEBAS_IDENTIDAD = ["nacida", "codigo_email", "ajustes", "cambio"];
+export const PRUEBA_IDENTIDAD = porNombre(PRUEBAS_IDENTIDAD);
+/**
+ * Las que abren sesión con «Entrar con Telegram» en una cuenta que no nació en Telegram (specs/auth.md §7, trozo 3):
+ * solo las que salen de una sesión de esa cuenta. El código del email no: prueba el correo, no la sesión.
+ */
+export const ABREN_SESION = Object.freeze(new Set([PRUEBA_IDENTIDAD.AJUSTES, PRUEBA_IDENTIDAD.CAMBIO]));
 
 // ── Los de la ficha de la casa (auditoría de tipos de menuplan-1e, 7 oct 2026).
 // Tal como se guardan hoy en producción: pasar a una forma canónica (minúscula,
@@ -125,6 +160,7 @@ export const MODOS_DESPENSA = ["strict", "only", "prefer", "off"];
 
 /** De dónde sale un dato de la ficha (registro «sobre»). */
 export const ORIGEN_DATO = ["dicho", "supuesto", "visto", "derivado", "por_defecto", "delegado", "no_quiere_decirlo"];
+export const ORIGEN = porNombre(ORIGEN_DATO);
 
 /**
  * De dónde sale el «ninguna» de las alergias de una persona (#229). `dicha`:
@@ -167,6 +203,7 @@ export const ORIGENES_DE_LA_FAMILIA = ["dicho", "delegado", "no_quiere_decirlo"]
 
 /** El estado de un dato de la ficha para quien la lee (ficha_casa v2, 0107): vacío, por defecto, supuesto, aprendido o dicho. */
 export const ESTADOS_DATO = ["vacio", "por_defecto", "supuesto", "aprendido", "dicho"];
+export const ESTADO_DATO = porNombre(ESTADOS_DATO);
 
 /** El estado que da ficha_casa v2 a un sobre vigente según su origen (ORIGEN_DATO); datoConSobre.test.js compara su case. */
 export const ESTADO_DE_ORIGEN = Object.freeze({
@@ -183,6 +220,25 @@ export const MOTIVOS_SIN_HACER_DATO = ["no_es_hecho", "persona_no_cuadra", "ambi
  * (un dato que tocó cambió después o ya no está: no se pisa). No van a ninguna tabla: vuelven en sin_hacer.
  */
 export const MOTIVOS_SIN_DESHACER = ["no_existe", "no_es_suya", "no_esta_hecha", "cambio_despues"];
+
+/**
+ * El riesgo de cada herramienta de Lola, en su ficha (api/_bot/agente.js, trozo 42). `lee`: no cambia nada;
+ * `escribe_reversible`: cambia algo que «deshaz» vuelve atrás; `escribe_irreversible`: cambia algo que «deshaz» no
+ * vuelve atrás (se cambia otra vez, a mano); `quita_proteccion`: puede quitar una alergia, una intolerancia, un estado
+ * o a alguien de la casa, y por eso el vigilante (api/_bot/supervisor.js) lo contrasta con lo que escribió la persona.
+ * No va a ninguna tabla.
+ */
+export const RIESGOS_HERRAMIENTA = ["lee", "escribe_reversible", "escribe_irreversible", "quita_proteccion"];
+export const RIESGO_HERRAMIENTA = porNombre(RIESGOS_HERRAMIENTA);
+
+/**
+ * Cómo deshace «deshaz» lo que escribe una herramienta de Lola (su ficha, trozo 42; deshacer en api/_bot/casa.js).
+ * `foto`: vuelve a la foto de la casa de antes del cambio (bot_deshacer), con lo que apuntó fuera de la casa;
+ * `operacion`: no deja foto de la casa, y deshace los pasos que apuntó su operación (la receta guardada); `no`: no
+ * lo deshace y lo dice. No va a ninguna tabla.
+ */
+export const FORMAS_DE_DESHACER = ["foto", "operacion", "no"];
+export const DESHACE = porNombre(FORMAS_DE_DESHACER);
 
 /**
  * Por qué escribirDato no guardó un dato (plan fichas con estado, trozo 8: src/lib/escribirDato.js y
@@ -204,6 +260,30 @@ export const FALLO_DATO = porNombre(FALLOS_DATO);
  */
 export const MOTIVOS_PUERTA = ["sin_permiso", "origen_no_vale", "salud_sin_familia"];
 export const MOTIVO_PUERTA = porNombre(MOTIVOS_PUERTA);
+
+// ── Los del método de choques (specs/arquitectura-objetivo.md, «Choques», su única fuente; trozo 33). Su orden y
+// sus respuestas, con su test, en src/lib/choques.js.
+
+/** Qué clase de cosa choca, de la que más manda a la que menos: la seguridad no se rompe nunca; el sistema cede ante lo dicho. */
+export const CLASES_CHOQUE = ["seguridad", "hecho", "deseo", "aprendido", "supuesto", "sistema"];
+export const CLASE_CHOQUE = porNombre(CLASES_CHOQUE);
+/** Los siete criterios que deciden un choque, en su orden: gana el primero que distingue a las dos cosas. */
+export const CRITERIOS_CHOQUE = ["riesgo", "clase", "fuerza", "autoridad", "alcance", "tiempo", "peso_aprendido"];
+export const CRITERIO_CHOQUE = porNombre(CRITERIOS_CHOQUE);
+/** Cómo se responde a un choque: aplicar sin decir nada, aplicar y avisar en una línea, preguntar, o una tarea de decisión. */
+export const RESPUESTAS_CHOQUE = ["aplicar_en_silencio", "aplicar_y_avisar", "preguntar", "tarea_de_decision"];
+export const RESPUESTA_CHOQUE = porNombre(RESPUESTAS_CHOQUE);
+/** Cuándo se ve un choque: al guardar (la puerta), al generar (el motor), al ejecutar (comprar, cocinar) o al pasar el tiempo. */
+export const MOMENTOS_CHOQUE = ["al_guardar", "al_generar", "al_ejecutar", "al_pasar_el_tiempo"];
+export const MOMENTO_CHOQUE = porNombre(MOMENTOS_CHOQUE);
+
+/**
+ * Las marcas de la familia sobre un artículo de la compra (trozo 18, src/lib/compraMarcas.js): la lista sale del menú
+ * y solo se guarda esto. `anadido`: apuntado a mano; `comprado`: tachado; `en_casa`: no hace falta comprarlo;
+ * `quitado`: el menú lo pide, pero la familia lo quitó de la lista.
+ */
+export const MARCAS_COMPRA = ["anadido", "comprado", "en_casa", "quitado"];
+export const MARCA_COMPRA = porNombre(MARCAS_COMPRA);
 
 // ── Los del eje de la ficha (plan fichas con estado, trozo 5): columnas de registroFicha.js; la 0105 los lleva a registro_campo.
 
@@ -284,8 +364,14 @@ export const KINDS_TAREA = ["seguimiento", "pregunta"];
 export const KIND_TAREA = porNombre(KINDS_TAREA);
 
 /** Tipo de una tarea (bot_tareas.tipo, 0080). */
-export const TIPOS_TAREA = ["espera", "falta_saber", "decision", "seguimiento"];
+export const TIPOS_TAREA = ["espera", "falta_saber", "decision", "seguimiento", "recordatorio"];
 export const TIPO_TAREA = porNombre(TIPOS_TAREA);
+/** Si un recordatorio (tarea de tipo recordatorio, 0122) se repite: cada día o cada semana; null, una vez. */
+export const REPITES_RECORDATORIO = ["diario", "semanal"];
+export const REPITE_RECORDATORIO = porNombre(REPITES_RECORDATORIO);
+/** Qué aviso es un recordatorio (0122; antes bot_reminders.tipo, 0085): el que pidió la familia o el de la víspera (vispera.js). */
+export const AVISOS_RECORDATORIO = ["libre", "vispera"];
+export const AVISO_RECORDATORIO = porNombre(AVISOS_RECORDATORIO);
 
 /** De quién es una tarea (bot_tareas.scope): de la casa, o personal si es algo suyo y en privado. */
 export const AMBITOS_TAREA = ["casa", "personal"];
@@ -300,8 +386,11 @@ export const ESTADO_TAREA = porNombre(ESTADOS_TAREA);
 /** Qué pasó con lo que la tarea proponía (bot_tareas.resultado, 0080). */
 export const RESULTADOS_TAREA = ["aceptada", "mantenida"];
 
+/** Cómo de a fondo se pidió un menú (menu_generado.camino, 0130): los ids de CAMINOS, src/lib/caminos.js. */
+export const CAMINOS_MENU = ["basico", "medio", "avanzado"];
 /** Para qué es una tarea de objetivo (bot_tareas.objetivo, 0080). */
 export const OBJETIVOS_TAREA = ["ideas_plato", "calorias", "generar_menu"];
+export const OBJETIVO_TAREA = porNombre(OBJETIVOS_TAREA);
 
 /** De qué va una pregunta en anotar_tarea (`sobre`); registroTareas.js SOBRE_A_CAMPO dice su campo de la ficha. */
 export const SOBRES_TAREA = ["alergias", "etapa_bebe", "otra"];
@@ -338,7 +427,7 @@ export const MOTIVO_FALLO = porNombre(MOTIVOS_FALLO);
  */
 export const SITIOS_FALLO = [
   // api/_bot/agente.js
-  "agente_casa", "agente_dueno", "agente_idioma", "agente_papel", "agente_segunda_semana", "apuntar_operacion", "uso_enrutador",
+  "agente_casa", "agente_dueno", "agente_huecos", "agente_idioma", "agente_papel", "agente_pedido", "generar_apuntar", "agente_segunda_semana", "agente_unir_cuenta", "apuntar_operacion", "uso_enrutador",
   // api/bot/telegram.js
   "aclarar_via_rapida", "alta_adjunto", "apuntar_falta_via_rapida", "aviso_de_espera",
   "aviso_del_enrutador", "aviso_del_modo", "borrarcuenta_identidad", "borrarcuenta_nacida_aqui",
@@ -346,20 +435,34 @@ export const SITIOS_FALLO = [
   "eleccion_via_rapida", "entregar_casa", "entregar_pintar", "escribiendo", "fallo_dueno", "fallo_tras_escribir",
   "grupo_casa", "grupo_nombre_del_bot", "idioma", "invitacion",
   "invitacion_cuentas", "lola", "lola_cancelada", "limite", "papel", "reconocer", "relevo", "relevo_llamar", "ruta",
-  "ruta_dueno", "ultima_de_lola", "uso", "vivo_borrar_aviso", "vivo_borrar_cortado", "vivo_editar", "vivo_enviar",
+  "reporte_charla", "reporte_espera", "reporte_ruta", "ruta_dueno", "ultima_de_lola", "uso", "vivo_borrar_aviso", "vivo_borrar_cortado", "vivo_editar", "vivo_enviar",
   // api/bot/entrar.js
   "bot_entrar",
   // el resto de api/_bot/
-  "borrar_tanda", "casa_deshacer", "compartir_llave", "cuentas_hogar", "cuentas_json", "cuentas_nacida_aqui",
+  "borrar_tanda", "cambio_de_cuenta", "casa_deshacer", "casa_del_turno", "compartir_llave", "cuentas_hogar", "cuentas_conectada_app", "cuentas_json", "cuentas_nacida_aqui",
   "caducidades_personas_ilegibles",
+  "despensa_noche",
+  // api/_bot/borrarPersona.js
+  "borrar_persona_fotos",
+  "caducidades_rotas_demasiadas",
   "db_usuario", "deshacer_paso", "deshacer_primer_menu", "embudo_dueno", "entradas_ya_vista", "ficharpc_casa", "generar_borrar_menu_a_medias",
   "generar_describir", "generar_despensa", "generar_recetas_propias", "generar_semanas_anteriores",
   "idempotencia_guardar_resultado", "idempotencia_soltar_la_llave", "invitacion_unirse", "invitacion_vigente",
-  "menu_describir", "menu_foto_de_la_receta", "menu_senales", "pintar_recetas", "pista_adelanto",
-  "receta_ya_estaba", "recetas_busqueda", "recetas_subir_foto", "recordatorios_reclamar", "recordatorios_soltar", "silencio_apuntar", "silencio_cerrar", "telegram_json",
-  "traducir_memoria", "turno_casa", "turno_tras_escribir", "turnos_mirar_cola", "turnos_soltar_candado", "uso_limite", "vispera_casa",
+  "menu_describir", "menu_foto_de_la_receta", "menu_senales", "pintar_huecos", "pintar_recetas", "pista_adelanto",
+  "enlace_apuntar", "enlace_prueba", "receta_ya_estaba", "recetas_borrar_propia", "recetas_busqueda", "recetas_carpetas", "recetas_descartes", "recetas_subir_foto", "recordatorios_reclamar", "recordatorios_soltar", "silencio_apuntar", "silencio_cerrar", "telegram_json",
+  "traducir_memoria", "turno_casa", "turno_tras_escribir", "turnos_mirar_cola", "turnos_soltar_candado", "uso_limite", "vispera_casa", "vispera_huecos",
   "voz_json",
 ];
+
+// ── Lo que apuntan los probadores con /fallo (api/_bot/reporte.js). No va a
+// ninguna columna: va en metadata.tipo del evento `bot_reporte` de user_events.
+
+/**
+ * Qué falló en un mensaje de Lola, según quien lo reporta: no le entendió,
+ * hizo otra cosa de la pedida, un dato mal (un plato, una cantidad, un día),
+ * el formato, tardó, u otro. Las etiquetas de los botones viven en reporte.js.
+ */
+export const TIPOS_REPORTE = ["no_entendio", "hizo_otra_cosa", "dato_mal", "formato", "lento", "otro"];
 
 // ── Los del vigía y el canario de Lola (#267). No van a ninguna tabla: van en
 // las líneas `vigia_aviso` y `canario` del log (scripts/vigia.mjs,
@@ -420,6 +523,20 @@ export const ACCIONES_ALERGIAS = ["apuntada", "recordada"];
  */
 export const MOTIVOS_TOPE_DIARIO = ["tope_alcanzado", "sin_redis", "error_redis"];
 
+// ── Los de la ficha Trato (plan fichas con estado, trozo 16): cómo quiere cada cuenta que le hable Lola.
+
+/** Ritmo con Lola: directo (decide y avisa, pregunta lo justo) o guiado (va paso a paso y pregunta más). */
+export const RITMOS_TRATO = ["directo", "guiado"];
+export const RITMO_TRATO = porNombre(RITMOS_TRATO);
+
+/** Cuánto se afina antes de generar un menú: nada (lo hace ya), poco, mucho, o preguntar cada vez (la pregunta del trozo 17). */
+export const PROFUNDIDADES_TRATO = ["nada", "poco", "mucho", "preguntar"];
+export const PROFUNDIDAD_TRATO = porNombre(PROFUNDIDADES_TRATO);
+
+/** Largo de los mensajes de Lola: corto (lo justo) o largo (con explicación). */
+export const LARGOS_TRATO = ["corto", "largo"];
+export const LARGO_TRATO = porNombre(LARGOS_TRATO);
+
 /**
  * Qué hizo la escritura con un valor en la línea de log `vocabulario_escritura` (paraEscribir,
  * más abajo, #539): `quitado`, un retirado sin sucesor que no se escribe.
@@ -441,6 +558,9 @@ export const VOCABULARIOS = Object.freeze({
   modo_despensa: MODOS_DESPENSA,
   tipos_grupo: TIPOS_GRUPO,
   canales: CANALES,
+  caminos_enlace: CAMINOS_ENLACE,
+  resultados_enlace: RESULTADOS_ENLACE,
+  pruebas_identidad: PRUEBAS_IDENTIDAD,
   idiomas: IDIOMAS,
   comidas: COMIDAS,
   estructura_platos: ESTRUCTURA_PLATOS,
@@ -457,8 +577,15 @@ export const VOCABULARIOS = Object.freeze({
   estados_operacion: ESTADOS_OPERACION,
   motivos_sin_hacer_dato: MOTIVOS_SIN_HACER_DATO,
   motivos_sin_deshacer: MOTIVOS_SIN_DESHACER,
+  riesgos_herramienta: RIESGOS_HERRAMIENTA,
+  formas_de_deshacer: FORMAS_DE_DESHACER,
   fallos_dato: FALLOS_DATO,
   motivos_puerta: MOTIVOS_PUERTA,
+  clases_choque: CLASES_CHOQUE,
+  criterios_choque: CRITERIOS_CHOQUE,
+  respuestas_choque: RESPUESTAS_CHOQUE,
+  momentos_choque: MOMENTOS_CHOQUE,
+  marcas_compra: MARCAS_COMPRA,
   origenes_de_la_familia: ORIGENES_DE_LA_FAMILIA,
   estados_dato: ESTADOS_DATO,
   fichas: FICHAS,
@@ -492,6 +619,13 @@ export const VOCABULARIOS = Object.freeze({
   motivos_sin_puerta: MOTIVOS_SIN_PUERTA,
   motivos_tope_diario: MOTIVOS_TOPE_DIARIO,
   acciones_escritura: ACCIONES_ESCRITURA,
+  ritmos_trato: RITMOS_TRATO,
+  profundidades_trato: PROFUNDIDADES_TRATO,
+  largos_trato: LARGOS_TRATO,
+  repites_recordatorio: REPITES_RECORDATORIO,
+  avisos_recordatorio: AVISOS_RECORDATORIO,
+  tipos_reporte: TIPOS_REPORTE,
+  caminos_menu: CAMINOS_MENU,
 });
 
 /** La lista de un vocabulario por su nombre, o null si no existe. */

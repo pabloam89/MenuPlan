@@ -27,7 +27,10 @@
  */
 
 import { DIAS, NOMBRES_DIA, DIAS_LABORABLES, DIAS_FINDE, indiceDeISO, diaDeISO, isoDeCasa, DIA_LARGO_MINUSCULAS } from "../../src/lib/dias.js";
-import { etapaDe, esMenor, esEtapaBebe, miembroDeCuentaId, findAccountMember } from "../../src/lib/stages.js";
+import { IDS_COMIDAS, comida } from "../../src/lib/comidas.js";
+import { EJE } from "./resultado.js";
+import { etapaDe, esMenor, esEtapaBebe, findAccountMember } from "../../src/lib/stages.js";
+import { personaDeLaCuenta } from "./trato.js";
 
 /** Sin tildes ni mayúsculas, con los espacios juntos. La única copia en api/_bot (#967, C8). */
 export const normal = (s) => String(s ?? "").normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/\s+/g, " ").trim();
@@ -83,8 +86,18 @@ export function diaDeSemana(texto) {
   return i < 0 ? null : DIAS[i];
 }
 
-const ES_LABORABLES = /^(entre ?semana|laborables|dias laborables|de lunes a viernes|lunes a viernes)$/;
-const ES_FINDE = /^((el|los|este) )?(finde|findes|fin de semana|fines de semana)$/;
+// Las formas de nombrar un grupo de días, ya normalizadas: las leen diasDe/fechasDe (estas regex) y valoresNombrados (formasDe).
+const FORMAS_LABORABLES = Object.freeze(["entre semana", "entresemana", "laborables", "dias laborables", "de lunes a viernes", "lunes a viernes"]);
+const FORMAS_FINDE = Object.freeze(["finde", "findes", "fin de semana", "fines de semana"]);
+// Hoy y mañana por su nombre. Hoy por la hora («esta noche», «a mediodía») solo lo entiende fechasDe: en una
+// confirmación, «a mediodía» es la comida, no el día.
+const FORMAS_HOY = Object.freeze(["hoy"]);
+const HOY_POR_LA_HORA = Object.freeze(["esta noche", "esta tarde", "este mediodia", "a mediodia", "ahora"]);
+const FORMAS_MANANA = Object.freeze(["manana", "mañana"]);
+const ES_LABORABLES = new RegExp(`^(${FORMAS_LABORABLES.join("|")})$`);
+const ES_FINDE = new RegExp(`^((el|los|este) )?(${FORMAS_FINDE.join("|")})$`);
+const ES_HOY = new RegExp(`^(${[...FORMAS_HOY, ...HOY_POR_LA_HORA].join("|")})$`);
+const ES_MANANA = new RegExp(`^(${FORMAS_MANANA.join("|")})$`);
 const ES_TODOS = /^(todos( los dias)?|toda la semana|cada dia|a diario|siempre)$/;
 // «de lunes a jueves», «del lunes al jueves», «lunes a jueves», «lunes-jueves».
 const RANGO_DIAS = /^(?:de |del )?(?:el |los )?([a-z]+)\s*(?:a|al|hasta(?: el)?|-)\s*(?:el |los )?([a-z]+)$/;
@@ -181,8 +194,8 @@ export function fechasDe(texto, { hoy = isoDeCasa(), semana = null } = {}) {
   const ya = (iso) => ({ fechas: [iso] });
   const pasado = (iso) => ({ duda: `El ${fechaCorta(iso)} ya ha pasado. ¿Te refieres al de la semana que viene (${fechaCorta(sumarDias(iso, 7))})?` });
 
-  if (/^(hoy|esta noche|esta tarde|este mediodia|a mediodia|ahora)$/.test(t)) return ya(hoy);
-  if (/^(manana|mañana)$/.test(t)) return ya(sumarDias(hoy, 1));
+  if (ES_HOY.test(t)) return ya(hoy);
+  if (ES_MANANA.test(t)) return ya(sumarDias(hoy, 1));
   if (t === "pasado manana") return ya(sumarDias(hoy, 2));
 
   // ISO tal cual.
@@ -376,25 +389,44 @@ export function miembrosDeGrupo(miembros, grupo) {
   return [];
 }
 
+/** ¿La cuenta ya dijo algo en la app? También vale un «no soy ninguno» (null): ese no se adivina por encima. */
+export const marcoLaCuenta = (data, userId) => Boolean(userId) && Object.prototype.hasOwnProperty.call(data?.accountMemberIdByUser ?? {}, userId);
+
+/**
+ * Pura. La persona de la casa que escribe, y si es deducida por el nombre.
+ * @param {object} data  household_state.data
+ * @param {{ userId?: string|null, autor?: string|null, papel?: string|null }} quien  autor: su nombre de Telegram
+ * @returns {{ persona: object|null, deducida: boolean }}
+ */
+export function personaQueEscribe(data, { userId = null, autor = null, papel = null } = {}) {
+  const miembros = data?.members ?? [];
+  const id = personaDeLaCuenta(data, userId, papel);
+  const marcada = id != null ? miembros.find((m) => String(m.id) === String(id)) : null;
+  if (marcada) return { persona: marcada, deducida: false };
+  if (marcoLaCuenta(data, userId) || !autor) return { persona: null, deducida: false };
+  const porNombre = findAccountMember(miembros, autor);
+  return { persona: porNombre ?? null, deducida: Boolean(porNombre) };
+}
+
 /**
  * Una persona de la casa por cómo la nombran: exacto, primer nombre exacto,
  * prefijo. Con varias candidatas en un paso, NO elige: `candidatas` («Nat»
  * con Natalia y Natxo). «Yo» es quien escribe: la persona que esa cuenta
  * marcó en la app (`accountMemberIdByUser`), o, si no marcó, la única cuyo
- * nombre coincide con su nombre de Telegram; si no, se pregunta.
+ * nombre coincide con su nombre de Telegram (personaQueEscribe, la misma regla
+ * que la línea «TE ESCRIBE» de la ficha); si no, se pregunta.
  * @param {object} data  household_state.data
  * @param {string} nombre
- * @param {{ userId?: string|null, autor?: string|null }} [quien]
+ * @param {{ userId?: string|null, autor?: string|null, papel?: string|null }} [quien]
  * @returns {{ persona: object|null, candidatas: object[], duda?: string }}
  */
-export function buscarPersona(data, nombre, { userId = null, autor = null } = {}) {
+export function buscarPersona(data, nombre, { userId = null, autor = null, papel = null } = {}) {
   const q = normal(nombre).replace(/^(a|para|de)\s+/, "");
   // Sin nombre no hay nadie: un startsWith("") casaría con el primero de la casa.
   if (!q) return { persona: null, candidatas: [] };
   const miembros = data?.members ?? [];
   if (ES_YO.test(q)) {
-    const id = miembroDeCuentaId(data, userId);
-    const p = (id && miembros.find((x) => String(x.id) === String(id))) || (autor ? findAccountMember(miembros, autor) : null);
+    const p = personaQueEscribe(data, { userId, autor, papel }).persona;
     return p ? { persona: p, candidatas: [] } : { persona: null, candidatas: [], duda: "¿Quién eres tú de la casa? Dímelo por tu nombre (o márcalo en la app, en Mi perfil)." };
   }
   const unica = (lista) => (lista.length === 1 ? { persona: lista[0], candidatas: [] } : lista.length > 1 ? { persona: null, candidatas: lista } : null);
@@ -431,13 +463,18 @@ export function personasDe(data, dichos, quien = {}) {
   const sel = new Map();
   const dudas = [];
   const grupos = [];
+  // De las dudas, los nombres que no son nadie de la casa (ni una candidata ni
+  // varias): no hay nada que preguntar, es que no está. Siguen en `dudas`.
+  const noEstan = [];
   for (const x of lista) {
     const g = grupoDePersonas(x);
     if (g) { grupos.push(g); miembrosDeGrupo(miembros, g).forEach((p) => sel.set(p.id, p)); continue; }
     const r = buscarPersona(data, x, quien);
-    if (r.persona) sel.set(r.persona.id, r.persona); else dudas.push(dudaDePersona(data, x, quien));
+    if (r.persona) { sel.set(r.persona.id, r.persona); continue; }
+    dudas.push(dudaDePersona(data, x, quien));
+    if (!r.duda && !r.candidatas.length) noEstan.push(x);
   }
-  return { personas: [...sel.values()], dudas, grupos };
+  return { personas: [...sel.values()], dudas, grupos, noEstan };
 }
 
 /** La primera persona de la casa nombrada (por su primer nombre) en un texto libre, o null. */
@@ -508,3 +545,66 @@ export const PIEZAS_FUERA = Object.freeze({
   fecha: "(^|[^A-Za-z_])(fechaDe|fechaConMenu)\\(",
   candidatas: "[A-Za-z_]\\??\\.candidatas([^A-Za-z_]|$)",
 });
+
+// ── Lo que nombra una frase (L1, cuadre.js) ─────────────────────────────────
+
+const LETRA = "a-z0-9ñ";
+
+/**
+ * Las formas de nombrar cada valor, sacadas del registro (dias.js, comidas.js)
+ * y de los nombres de la casa: [eje, forma normalizada, valores que nombra].
+ */
+function formasDe({ hoy = null, nombres = [] } = {}) {
+  const f = [];
+  for (const d of DIAS) {
+    const n = normal(DIA_LARGO_MINUSCULAS[d]);
+    f.push([EJE.DIA, n, [d]]);
+    if (!n.endsWith("s")) f.push([EJE.DIA, `${n}s`, [d]]);
+  }
+  const grupo = (formas, dias) => { for (const n of new Set(formas.map(normal))) f.push([EJE.DIA, n, [...dias]]); };
+  grupo(FORMAS_FINDE, DIAS_FINDE);
+  grupo(FORMAS_LABORABLES, DIAS_LABORABLES);
+  const i = DIAS.indexOf(hoy);
+  if (i >= 0) {
+    grupo(FORMAS_HOY, [hoy]);
+    grupo(FORMAS_MANANA, [DIAS[(i + 1) % 7]]);
+  }
+  for (const c of IDS_COMIDAS) {
+    const x = comida(c);
+    for (const s of new Set([x.nombre, x.plural, ...x.sinonimos].map(normal))) f.push([EJE.COMIDA, s, [c]]);
+  }
+  for (const n of new Set(nombres.map(String).filter(Boolean))) f.push([EJE.PERSONA, normal(n), [n]]);
+  // Las largas primero: «fin de semana» antes que «semana», «a mediodia» antes que «mediodia».
+  return f.sort((a, b) => b[1].length - a[1].length);
+}
+
+// «No el sábado», «salvo la cena», «menos el lunes»: lo nombra para dejarlo
+// fuera. «Ni» y «sin» no: en una ausencia son el contenido («ni comida ni cena»).
+// Tras «no», con artículo: «Leo no cena en casa» niega el comer, no la cena.
+const ART = "(?:el|la|los|las|de|del|en|para|a)\\s+";
+const NEGADO = new RegExp(`(?:^|[^${LETRA}])(?:no\\s+${ART}(?:${ART})?|(?:salvo|menos|excepto)\\s+(?:${ART}){0,2})$`);
+// «Mañana» que no es el día de mañana.
+const MANANA_NORMAL = new Set(FORMAS_MANANA.map(normal));
+const NO_ES_MANANA = /(?:pasado|la|esta|por la)\s+$/;
+
+/**
+ * Los valores cerrados que nombra una frase, por eje: { dia: Set, comida: Set,
+ * persona: Set } (L1: cuadre.js compara lo que confirma Lola con lo guardado).
+ * Días y comidas del registro (dias.js, comidas.js), personas de la casa;
+ * «hoy» y «mañana» con el día de hoy («Mar»).
+ */
+export function valoresNombrados(frase, opciones = {}) {
+  let t = normal(frase);
+  const out = {};
+  for (const [eje, forma, valores] of formasDe(opciones)) {
+    const re = new RegExp(`(?<![${LETRA}])${escapar(forma)}(?![${LETRA}])`, "g");
+    t = t.replace(re, (m, pos, todo) => {
+      const antes = todo.slice(0, pos);
+      if (MANANA_NORMAL.has(forma) && NO_ES_MANANA.test(antes)) return m;
+      if (!NEGADO.test(antes)) for (const v of valores) (out[eje] ??= new Set()).add(v);
+      // Tapada: «fin de semana» no vuelve a contar como otra cosa.
+      return " ".repeat(m.length);
+    });
+  }
+  return out;
+}

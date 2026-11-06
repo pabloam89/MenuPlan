@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
-import { planVacio, huecosDelPlan, conHuecosAlDia, conSemanasAlDia, conHuecoAnadido, sinHueco, franjasDelDia } from "./pizarra.js";
+import { planVacio, semanaEnBlanco, fotoAntesDePizarra, volverAntesDePizarra, huecosDelPlan, conHuecosAlDia, conSemanasAlDia, conHuecoAnadido, sinHueco, franjasDelDia } from "./pizarra.js";
 import { DAYS, getDayMeals, slotKey } from "./planner.js";
+import { compraQueSeVe, esCompraConMarcas } from "./compraMarcas.js";
 import { mondayISOForOffset } from "./weekCalendar.js";
 
 const ADULTOS = [
@@ -267,5 +268,50 @@ describe("las semanas marcadas se abren en el menú", () => {
     const r = conSemanasAlDia(antes, data, [grupo]);
     expect(r.menu).toBe(antes);
     expect(r.nuevas).toEqual({});
+  });
+});
+
+describe("salir de la hoja de arranque", () => {
+  const antes = {
+    data: { menus: { a: {} }, activeMenuId: "a", kitchenTools: ["horno"], pantryGenDeltas: {} },
+    menuPlan: { g1: {} },
+    shopping: { items: [{ id: "i1" }] },
+    aiRecipes: [{ id: "r1" }],
+    pantalla: "dashboard",
+  };
+
+  it("la foto guarda lo que abrir una pizarra cambia, y nada más", () => {
+    expect(Object.keys(fotoAntesDePizarra(antes).data).sort()).toEqual([
+      "activeMenuId", "extraMeals", "groups", "menuWeek", "menuWeekDays", "menuWeekOffsets", "menus",
+    ]);
+  });
+
+  it("devuelve el menú, la compra y la pantalla de antes", () => {
+    const abierta = { menus: { b: {} }, activeMenuId: "b", kitchenTools: ["horno"], pantryGenDeltas: {} };
+    const vuelta = volverAntesDePizarra(fotoAntesDePizarra(antes), abierta);
+    expect(vuelta.data.menus).toEqual({ a: {} });
+    expect(vuelta.data.activeMenuId).toBe("a");
+    expect(vuelta.menuPlan).toEqual({ g1: {} });
+    expect(vuelta.shopping.items).toHaveLength(1);
+    expect(vuelta.aiRecipes).toEqual([{ id: "r1" }]);
+    expect(vuelta.pantalla).toBe("dashboard");
+  });
+
+  it("no toca lo que no es del menú: los aparatos ni el consumo ya devuelto", () => {
+    const abierta = { kitchenTools: ["horno", "airfryer"], pantryGenDeltas: { sinM1: true } };
+    const { data } = volverAntesDePizarra(fotoAntesDePizarra(antes), abierta);
+    expect(data.kitchenTools).toEqual(["horno", "airfryer"]);
+    expect(data.pantryGenDeltas).toEqual({ sinM1: true });
+  });
+});
+
+// Desde #1210 la app no genera menús: la pizarra es lo único que los crea, y su compra tiene que salir de los platos
+// que se pongan. Con `{ items: [] }` la lista se quedaba vacía aunque el tablero estuviera lleno.
+describe("semanaEnBlanco: la compra sigue al menú", () => {
+  it("empieza sin marcas, así que la lista se saca de los platos", () => {
+    const { week } = semanaEnBlanco(casaBase(), [grupoCon(ADULTOS)], 0, true);
+    expect(esCompraConMarcas(week.shopping)).toBe(true);
+    const derivados = [{ id: "leche", name: "leche" }];
+    expect(compraQueSeVe(week.shopping, () => derivados).items).toEqual(derivados);
   });
 });

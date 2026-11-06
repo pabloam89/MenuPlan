@@ -67,6 +67,12 @@ describe("el papel de quien escribe", () => {
     expect((await de([], { esGrupo: true, chatId: "privado-viejo" })).papel).toBe("ajeno");
   });
 
+  it("en privado sin identidad, en otra casa suya (casaDelTurno, #1238): su papel en esa; en una ajena, nada", async () => {
+    base.miembros.push({ household_id: "otra", user_id: "pareja", role: "viewer" });
+    expect((await de([], { esGrupo: false, chatId: "privado-viejo", householdId: "otra" })).papel).toBe("viewer");
+    expect((await de([], { esGrupo: false, chatId: "privado-viejo", householdId: "ajena" })).papel).toBe("ajeno");
+  });
+
   it("si le quitan de la casa, al mensaje siguiente ya no", async () => {
     base.miembros = base.miembros.filter((m) => m.user_id !== "asistenta");
     expect((await de(["3"])).papel).toBe("ajeno");
@@ -74,7 +80,7 @@ describe("el papel de quien escribe", () => {
 });
 
 // La lista de la propuesta (specs/roles-de-la-casa-propuesta.md, apartado 4).
-const DEL_LECTOR = ["buscar_recetas", "marcar_compra", "proponer_platos", "ver_ajustes", "ver_casa", "ver_compra", "ver_despensa", "ver_menu", "ver_menu_cole", "ver_receta"];
+const DEL_LECTOR = ["buscar_recetas", "marcar_compra", "por_que_plato", "proponer_platos", "ver_ajustes", "ver_casa", "ver_compra", "ver_despensa", "ver_menu", "ver_menu_cole", "ver_receta"];
 const SOLO_EN_PRIVADO = ["aviso_vispera", "cancelar_recordatorio", "crear_recordatorio", "empezar_de_nuevo", "ver_recordatorios"];
 const nombres = async (chat) => (await herramientas({ householdId: "x", chatId: "1", channel: "telegram", fotos: [], ...chat })).map((t) => t.name).sort();
 
@@ -127,7 +133,7 @@ describe("la vía rápida según el papel", () => {
   });
 
   it("titular y cotitular, como siempre", () => {
-    expect(permitidoEn("generar", { papel: "editor" })).toBe(true);
+    expect(permitidoEn("cambiar", { papel: "editor" })).toBe(true);
     expect(permitidoEn("cambiar", { papel: "owner" })).toBe(true);
   });
 });

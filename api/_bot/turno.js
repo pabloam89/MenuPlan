@@ -16,19 +16,16 @@ import { BOTONES, esEligeTu } from "./botones.js";
 import { cargarCasa, deshacer, hoyISO } from "./casa.js";
 import { quitaProteccion } from "./supervisor.js";
 import {
-  proponerPlatos, cambiarPlato, anadirCompra, marcarCompra, normal, DIA_LARGO, grupos, quienesDe, cambiosDe,
+  proponerPlatos, cambiarPlato, anadirCompra, marcarCompra, normal, DIA_LARGO, grupos, quienesDe, cambiosDe, BOTON_REPETIR_VECINOS,
 } from "./menu.js";
-import { generarMenu } from "./generar.js";
-import { conRecordatorio } from "./silencio.js";
-import { respuestaCompra, respuestaMenu, rangoDeFechas } from "./rapido.js";
+import { respuestaCompra, respuestaMenu } from "./rapido.js";
 import { fechasDe } from "./cuando.js";
 import { pideTipo } from "./esquemas.js";
-import { filtrosTrasGenerar, filtrosTrasCambiar } from "./pintar.js";
+import { filtrosTrasCambiar } from "./pintar.js";
 import { rastro } from "./embudo.js";
 import { verReceta, calorias, queFalta, verDespensaRapido, huecoSinComida, preguntaComida } from "./plato.js";
 import { apuntarAusencia } from "./menu.js";
 import { RASTRO, MOTIVO_CAMBIO, idBase } from "../../src/lib/rastro.js";
-import { describirHuecos } from "../../src/lib/huecosDelPlan.js";
 
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 // Icono y artículo de cada comida, del catálogo (src/lib/comidas.js).
@@ -123,9 +120,11 @@ export async function recomendar(householdId, x) {
   const opciones = bloques.flatMap((b) => b.opciones);
   const aviso = (out.aviso || bloques.some((b) => b.aviso)) ? "\n\n<i>No había ninguna que cumpliera todo lo que pides: estas son las que más se acercan.</i>" : "";
   const pregunta = out.conMenu ? "¿Cuál te pongo?" : "¿Te paso la receta de alguna?";
-  const botones = [...botonesDe(opciones.slice(0, 3).map((r) => r.name)).map((b) => `[[${b}]]`), ...(out.conMenu ? [`[[${BOTONES.eligeTu.es}]]`] : [])].join("\n");
+  // El porqué de lo que no sale (lo dice el motor) y, si se puede soltar, su botón.
+  const porQue = out.porQue ? `\n\n<i>${esc(out.porQue)}</i>` : "";
+  const botones = [...botonesDe(opciones.slice(0, 3).map((r) => r.name)).map((b) => `[[${b}]]`), ...(out.conMenu ? [`[[${BOTONES.eligeTu.es}]]`] : []), ...(out.soltable ? [`[[${BOTON_REPETIR_VECINOS}]]`] : [])].join("\n");
   return {
-    texto: `${cabecera}\n\n${cuerpo}${aviso}\n\n${pregunta}\n${botones}`,
+    texto: `${cabecera}\n\n${cuerpo}${aviso}${porQue}\n\n${pregunta}\n${botones}`,
     fotos,
     deshacible: false,
     ir: null,
@@ -188,37 +187,6 @@ export async function tachar(householdId, x, autor = null) {
   };
 }
 
-// ── Generar ─────────────────────────────────────────────────────────────────
-
-export async function generar(householdId, x) {
-  const out = {};
-  await generarMenu(householdId, x.semana ?? "esta", x.fijos ?? [], out);
-  // Ya había menú en esa semana (out.aviso): no se ha tocado; lo pregunta Lola.
-  if (!out.ok) return null;
-  // Las líneas de dondeQuedaron (generar.js) están escritas para Lola: la
-  // instrucción del final se cambia por lo que se le diría a la persona.
-  const aPersona = (l) => l.replace(/: ofrece ponerlo con cambiar_plato$/, ". Si quieres, dime qué día y te lo pongo.");
-  // La semana sale pintada debajo con lo pedido destacado (✨): aquí solo lo
-  // que no ha cabido, que eso no se ve en la lista.
-  const sinSitio = (out.pedidos ?? []).filter((l) => /no ha cabido/.test(l));
-  const pedidos = sinSitio.length ? `\n\n${sinSitio.map((l) => `• ${esc(aPersona(l))}`).join("\n")}` : "";
-  const destacados = (out.colocados ?? []).length ? " Lo que pediste va marcado con ✨." : "";
-  // Con presupuesto, si cabe o no, siempre (src/lib/presupuesto.js, #958).
-  const presupuesto = out.presupuesto ? `\n\n💶 ${esc(out.presupuesto)}` : "";
-  // Lo que pidieron y no ha podido ser (src/lib/cumplimiento.js): una línea.
-  const incumplidas = (out.incumplidas ?? []).length ? `\n\n🤏 Esta vez no ha podido ser: ${esc(out.incumplidas.join(", "))}.` : "";
-  // Los huecos que se han quedado sin plato (#1029): se dicen, no se callan.
-  const vacios = (out.huecosVacios ?? []).length
-    ? `\n\n⚠️ <b>Se quedan sin plato:</b> ${esc(describirHuecos(out.huecosVacios))}. Dime si lo intento de otra forma o qué pongo ahí.`
-    : "";
-  return {
-    // El primer menú con alergias por silencio lo recuerda una vez (#229).
-    texto: conRecordatorio(`🎉 <b>¡Menú listo!</b> Del <b>${rangoDeFechas(out.desde, out.hasta)}</b>.${destacados}${vacios}${pedidos}${incumplidas}${presupuesto}`, out.recordarSilencio),
-    fotos: [], deshacible: false, ir: "semana",
-    pintar: filtrosTrasGenerar(out),
-  };
-}
-
 // ── Consultas y deshacer ────────────────────────────────────────────────────
 
 export async function consultar(householdId, x) {
@@ -278,7 +246,6 @@ export async function viaRapida(decision, householdId, { autor = null } = {}) {
     case "despensa": return verDespensaRapido(householdId);
     case "compra_anadir": return apuntar(householdId, x, autor);
     case "compra_marcar": return tachar(householdId, x, autor);
-    case "generar": return generar(householdId, x);
     case "deshacer": return deshacerRapido(householdId);
     default: return null;
   }

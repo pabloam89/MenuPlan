@@ -9,6 +9,8 @@
 // (alergias y salud incluidas) y solo tacha la compra.
 
 export const PAPELES = ["owner", "editor", "viewer"];
+/** Cada papel por su nombre (PAPEL.OWNER), para no escribir el texto a mano. */
+export const PAPEL = Object.freeze(Object.fromEntries(PAPELES.map((p) => [p.toUpperCase(), p])));
 
 /** Lo que llega de la base, a uno de los tres. Lo desconocido, lector: lo seguro. */
 export function papelDe(valor) {

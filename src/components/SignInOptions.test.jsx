@@ -38,6 +38,15 @@ afterEach(() => {
 });
 
 describe("SignInOptions", () => {
+  it("«Entrar con Telegram» lleva el azul de Telegram, no el verde de la marca", async () => {
+    await montar(false, { urlTelegram: "https://oauth.telegram.org/auth" });
+    const boton = [...container.querySelectorAll("button")].find((b) => b.textContent.includes("Telegram"));
+    const { color } = await import("../design/tokens.js");
+    const probe = document.createElement("div");
+    probe.style.background = color.telegram;
+    expect(boton.style.background).toBe(probe.style.background);
+  });
+
   it("en la web solo ofrece Google", async () => {
     vi.stubEnv("VITE_APPLE_WEB", "");
     const texto = await montar(false);
@@ -68,5 +77,73 @@ describe("SignInOptions", () => {
     act(() => root.unmount());
     container.remove();
     expect(await montar(true, { conApple: false })).not.toContain("Apple");
+  });
+
+  // «Entrar con Telegram» va primero (specs/auth.md §7), donde funciona el login de Telegram.
+  it("con el login de Telegram, «Entrar con Telegram» es el primer botón", async () => {
+    vi.stubEnv("VITE_APPLE_WEB", "on");
+    await montar(false, { urlTelegram: "https://oauth.telegram.org/auth?bot_id=1" });
+    const botones = [...container.querySelectorAll("button")].map((b) => b.textContent);
+    expect(botones).toEqual(["Entrar con Telegram", "Continuar con Apple", "Continuar con Google"]);
+  });
+
+  it("fuera del dominio del bot (aquí, localhost), no sale", async () => {
+    expect(await montar(false)).not.toContain("Telegram");
+  });
+});
+
+// Dentro de Telegram, Google y Apple no dejan entrar (trozo 5 de specs/auth.md §7): solo «Entrar con Telegram» y
+// dónde entrar con los otros.
+describe("SignInOptions dentro de Telegram", () => {
+  const URL_TG = "https://oauth.telegram.org/auth?bot_id=1";
+  const botones = () => [...container.querySelectorAll("button")].map((b) => b.textContent);
+
+  it("solo «Entrar con Telegram», y «Ábrelo en el navegador» para Google y Apple", async () => {
+    vi.stubEnv("VITE_APPLE_WEB", "on");
+    const texto = await montar(false, { urlTelegram: URL_TG, dentroDeTelegram: true });
+    expect(botones()).toEqual(["Entrar con Telegram"]);
+    expect(texto).toContain("Ábrelo en el navegador");
+  });
+
+  it("fuera de Telegram, igual que siempre", async () => {
+    vi.stubEnv("VITE_APPLE_WEB", "on");
+    const texto = await montar(false, { urlTelegram: URL_TG, dentroDeTelegram: false });
+    expect(botones()).toEqual(["Entrar con Telegram", "Continuar con Apple", "Continuar con Google"]);
+    expect(texto).not.toContain("Ábrelo en el navegador");
+  });
+});
+
+// «¿Ya hablas con Lola?» (trozo 4 de specs/auth.md §7): la pregunta antes de crear una cuenta de Google o Apple.
+describe("PreguntaDeCuenta: «¿Ya hablas con Lola?»", () => {
+  async function pregunta(props) {
+    vi.resetModules();
+    const { PreguntaDeCuenta } = await import("./ui.jsx");
+    const { PREGUNTA_ALTA } = await import("../lib/cuentaTelegram.js");
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    act(() => {
+      root.render(<PreguntaDeCuenta titulo={PREGUNTA_ALTA.titulo} principal={PREGUNTA_ALTA.telegram} secundario={PREGUNTA_ALTA.crear} conTelegram {...props} />);
+    });
+    return PREGUNTA_ALTA;
+  }
+  const boton = (texto) => [...container.querySelectorAll("button")].find((b) => b.textContent.includes(texto));
+
+  it("pregunta «¿Ya hablas con Lola?» con dos salidas: Telegram y crear la cuenta", async () => {
+    const onPrincipal = vi.fn(async () => ({ error: null }));
+    const onSecundario = vi.fn();
+    const P = await pregunta({ onPrincipal, onSecundario });
+    expect(container.textContent).toContain("¿Ya hablas con Lola?");
+    await act(async () => { boton(P.telegram).click(); });
+    expect(onPrincipal).toHaveBeenCalledTimes(1);
+    act(() => { boton(P.crear).click(); });
+    expect(onSecundario).toHaveBeenCalledTimes(1);
+  });
+
+  it("si entrar con Telegram falla, lo dice y la pregunta sigue", async () => {
+    const P = await pregunta({ onPrincipal: async () => ({ error: new Error("No se pudo. Inténtalo de nuevo.") }), onSecundario: () => {} });
+    await act(async () => { boton(P.telegram).click(); });
+    expect(container.querySelector("[role=alert]")?.textContent).toBe(P.noSePudo);
+    expect(container.textContent).toContain(P.crear);
   });
 });

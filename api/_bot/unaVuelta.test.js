@@ -4,6 +4,8 @@
  * dónde va la pista en la petición (detrás del punto de caché).
  */
 import { describe, it, expect, vi } from "vitest";
+import { readFileSync } from "node:fs";
+import { CANAL } from "../../src/lib/vocabularios.js";
 
 process.env.VITE_SUPABASE_URL ||= "https://sin-base.invalid";
 process.env.SUPABASE_SERVICE_ROLE_KEY ||= "sin-clave";
@@ -32,7 +34,7 @@ vi.mock("@anthropic-ai/sdk", () => {
   return { default: Anthropic };
 });
 
-const { ejecutar } = await import("./agente.js");
+const { ejecutar, sistema } = await import("./agente.js");
 const { usoParcialDe } = await import("./medidaTurno.js");
 const msg = (texto) => ({ content: texto ? [{ type: "text", text: texto }] : [{ type: "tool_use", id: "t1", name: "ver_menu", input: {} }], usage: { input_tokens: 1, output_tokens: 1 } });
 
@@ -69,6 +71,28 @@ describe("unaVuelta: progreso y pista", () => {
     expect(marcas).toEqual(["1h", "1h", "1h"]);
     // La API exige los de 1 h antes que los de 5 min: el del mensaje va sin ttl (5 min).
     expect(guion.params.messages.at(-1).content[0].cache_control).toEqual({ type: "ephemeral" });
+  });
+
+  it("una parte del manual entra detrás de lo fijo y sin caché, y lo fijo no cambia (trozo 44)", async () => {
+    guion.mensajes = [msg("Vale.")];
+    const ficha = { estable: "CASA", delDia: "HOY" };
+    await ejecutar({ entrada: "¿qué hay?", tools: [], modelos: ["claude-sonnet-5"], ficha, alEscribir: () => {} });
+    const sin = guion.params.system;
+    guion.mensajes = [msg("Vale.")];
+    await ejecutar({ entrada: "[nota de voz] ¿qué hay?", tools: [], modelos: ["claude-sonnet-5"], ficha, alEscribir: () => {} });
+    const con = guion.params.system;
+    expect(con).toHaveLength(sin.length + 1);
+    // Lo de caché, igual byte a byte y delante; la parte, justo detrás, sin punto de caché.
+    const fijos = sin.filter((b) => b.cache_control);
+    expect(con.slice(0, fijos.length)).toEqual(fijos);
+    expect(con[fijos.length]).toEqual({ type: "text", text: readFileSync(new URL("./manual/fotos.md", import.meta.url), "utf8") });
+  });
+
+  it("las instrucciones son el manual armado (manual.js, trozo 43), sin marcas", async () => {
+    guion.mensajes = [msg("Vale.")];
+    await ejecutar({ entrada: "hola", tools: [], modelos: ["claude-sonnet-5"], alEscribir: () => {} });
+    expect(guion.params.system[0].text).toBe(await sistema(CANAL.TELEGRAM));
+    expect(guion.params.system[0].text).not.toMatch(/{{[A-Z_]+}}/);
   });
 
   it("apunta cada llamada al modelo: ms, tokens de salida y primer trozo de texto", async () => {

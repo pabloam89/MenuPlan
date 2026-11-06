@@ -1,6 +1,11 @@
+import { porQueElPlato } from "../lib/sobreHueco.js";
+import { claveCocinado } from "../lib/cocinados.js";
+import { preferenciasDelMotor, textoDe } from "../lib/cumplimiento.js";
+import { color as colores, espaciado, tipografia } from "../design/tokens.js";
 import { cloneElement, createContext, Fragment, memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useZoomPellizco } from "../lib/useZoomPellizco.js";
 import { HuecosVivosContext } from "../lib/huecosVivos.js";
+import { CLAVE_CASA } from "../lib/estiloEnFilas.js";
 import { createPortal } from "react-dom";
 import {
   AlertTriangle,
@@ -124,10 +129,10 @@ import { BASES_UI } from "../lib/basesUI.js";
 import { mealTimeColor, mealTimeBg } from "../lib/mealTimes.js";
 import { kitchenHint, pantryPieceCountLabel } from "../lib/kitchenUnits.js";
 import { findMatchingPantryItem } from "../lib/shoppingBuilder.js";
-import { consumeFromPantry, restoreToPantry, pantryConsumeMode } from "../lib/cookPantry.js";
+import { restoreToPantry } from "../lib/cookPantry.js";
 import { addPantryItems, addLocalPantryItems, adjustCookedDishPortions, adjustLocalCookedDishPortions, loadPantry, loadLocalPantry } from "../lib/pantry.js";
 import { normalizePantryInput } from "../utils/normalizePantryInput.js";
-import { membersOfGroup, isBabyMenuGroup, adhocReasonLabel } from "../lib/groups.js";
+import { membersOfGroup, isBabyMenuGroup, adhocReasonLabel, opcionesDeMenu } from "../lib/groups.js";
 import { eatersForSlot } from "../lib/slotEaters.js";
 import { summarizeMenuRestrictionConflicts } from "../utils/menuConflicts.js";
 import { Avatar, BottomNav, Chip, EmptyIllustration, GroupAvatarStack, GroupScopePicker, WeekRangeBadge, WizardSheet, bottomNavSpacer, safeTop, groupAvatarFaces, APP_SHELL_MAX_WIDTH } from "../components/ui.jsx";
@@ -136,7 +141,7 @@ import { ShareMenuSheet } from "../components/ShareMenuSheet.jsx";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
 import { BasesPreferidas } from "../components/BasesPreferidas.jsx";
 import { MenuCoachTour, CoachHelpButton } from "../components/HomeCoachTour.jsx";
-import { FRONTAL_BOT, GUIAS_ACTIVAS, GENTE_ACTIVA, abrirLola } from "../lib/frontalBot.js";
+import { FRONTAL_BOT, GUIAS_ACTIVAS, GENTE_ACTIVA, PIDESELO_A_LOLA, abrirLola } from "../lib/frontalBot.js";
 import { pedidoCambiar, pedidoMenu } from "../lib/pedidoLola.js";
 import lolaFoto from "../assets/lola/lola-perfil.jpg";
 import { RestrictionConflictBanner } from "../components/RestrictionConflictBanner.jsx";
@@ -935,7 +940,7 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
   const [activeStyleGroupId, setActiveStyleGroupId] = useState(
     () => styleableGroups[0]?.id ?? null,
   );
-  const styleKey = activeStyleGroupId ?? "__global__";
+  const styleKey = activeStyleGroupId ?? CLAVE_CASA;
   const activeStyleGroup = styleableGroups.find((g) => g.id === activeStyleGroupId) ?? null;
   const slotBudget = useGroupSlotBudget(data, activeStyleGroup);
   const activeStyle = data.mealStyleByGroup?.[styleKey] ?? DEFAULT_MEAL_STYLE;
@@ -4572,55 +4577,108 @@ function ScopeCircle({ opt, active, size = 42, members }) {
 }
 
 /**
+ * Quién come, a la izquierda de la fila de la pizarra: hasta tres caras y un
+ * «+N». Con varios menús, tocarlo pasa a la opción siguiente (Todos → cada
+ * menú → Todos) y filtra el tablero con el mismo `scope` de la pantalla.
+ *
+ * Aquí antes había chips, y con razón: tocar las caras pasaba a la siguiente
+ * sin decir a cuál, y una pila de caras no explica que lo que se filtra es un
+ * menú y no una persona. Por eso el nombre de la opción va siempre bajo las
+ * caras, y el `aria-label` dice cuál viene después.
+ *
+ * Con un solo menú no hay nada que filtrar: son solo las caras y no es un
+ * botón, porque un botón que no hace nada parece roto.
+ */
+export function QuienCome({ groups, scope, onScopeChange, members }) {
+  const roster = members ?? [];
+  const { opciones, indice } = opcionesDeMenu(groups, scope);
+  const variosMenus = opciones.length > 2;
+  const i = variosMenus ? indice : 0;
+  const actual = opciones[i];
+  const siguiente = opciones[(i + 1) % opciones.length];
+  // Con un solo menú, quien come es quien está en él (o la casa, si el menú no
+  // dice quién).
+  const grupo = variosMenus ? actual.group : groups?.[0] ?? null;
+  const quienes = grupo?.memberIds ? roster.filter((m) => grupo.memberIds.includes(m.id)) : roster;
+  const caras = groupAvatarFaces(quienes, roster);
+
+  const contenido = (
+    <>
+      {caras.length > 0 && <GroupAvatarStack faces={caras} size={32} max={3} />}
+      {variosMenus && (
+        <span
+          style={{
+            fontSize: "var(--tipo-paso-10)", fontWeight: "var(--tipo-peso-800)", lineHeight: 1,
+            color: "var(--color-marca)", whiteSpace: "nowrap",
+          }}
+        >
+          {actual.label}
+        </span>
+      )}
+    </>
+  );
+  const caja = {
+    flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center",
+    justifyContent: "center", gap: "var(--esp-4)", minWidth: "var(--tam-tactil)",
+    padding: "0 var(--esp-8)",
+  };
+
+  if (!variosMenus) {
+    if (caras.length === 0) return null;
+    const nombres = quienes.map((m) => m.name).filter(Boolean).join(", ");
+    return (
+      <div role="img" aria-label={`Comen: ${nombres}`} style={caja}>
+        {contenido}
+      </div>
+    );
+  }
+  return (
+    <button
+      type="button"
+      className="deck-press"
+      data-coach="menu-filters"
+      onClick={() => onScopeChange(siguiente.id)}
+      aria-label={`Menú de ${actual.label}. Toca para ver ${siguiente.label}`}
+      style={{ ...caja, border: "none", background: "transparent", cursor: "pointer", fontFamily: "inherit" }}
+    >
+      {contenido}
+    </button>
+  );
+}
+
+/**
  * Deck filter — a circular chip (identical to the popup circles) that opens a
  * centered "liquid glass" modal to filter by menú (dieta/bebés/niños…) and by
  * persona. Only rendered when there are several menús.
  */
-function DeckFilter({ groups, scope, onScopeChange, members, interactivo = true, ciclar = false }) {
+export function DeckFilter({ groups, scope, onScopeChange, members }) {
   const [open, setOpen] = useState(false);
 
-  const scopeOptions = [{ id: "all", label: "Todos", group: null }, ...groups.map((g) => ({ id: g.id, label: g.label, group: g }))];
-  const activeOpt = scopeOptions.find((o) => o.id === scope) ?? scopeOptions[0];
+  const { opciones: scopeOptions, indice } = opcionesDeMenu(groups, scope);
+  const activeOpt = scopeOptions[indice];
 
   return (
     <>
-      {/* Con un solo menú las caras se ven igual, pero no abren nada: es un
-          recordatorio de para quién cocinas, y un filtro de una sola opción
-          sería un botón que no hace nada. */}
-      {interactivo ? (
-        <button
-          type="button"
-          className="deck-press"
-          data-coach="menu-filters"
-          // En la pizarra el toque pasa al siguiente menú (Todos → Adultos →
-          // Niños → …) en vez de abrir la hoja: con dos o tres opciones, un
-          // modal para elegir entre ellas cuesta más que recorrerlas. La hoja
-          // sigue estando en el menú generado, donde además filtra.
-          onClick={() => {
-            if (!ciclar) { setOpen(true); return; }
-            const i = scopeOptions.findIndex((o) => o.id === (scope ?? "all"));
-            onScopeChange(scopeOptions[(i + 1) % scopeOptions.length].id);
-          }}
-          aria-haspopup="dialog"
-          aria-label={`Filtrar menú (${activeOpt.label})`}
-          title={`Filtrar · ${activeOpt.label}`}
-          style={{
-            border: "none",
-            background: "transparent",
-            padding: 0,
-            cursor: "pointer",
-            fontFamily: "inherit",
-            flexShrink: 0,
-            display: "inline-flex",
-          }}
-        >
-          <ScopeCircle opt={activeOpt} active size={42} members={members} />
-        </button>
-      ) : (
-        <span style={{ flexShrink: 0, display: "inline-flex" }} title={activeOpt.label}>
-          <ScopeCircle opt={activeOpt} active size={42} members={members} />
-        </span>
-      )}
+      <button
+        type="button"
+        className="deck-press"
+        data-coach="menu-filters"
+        onClick={() => setOpen(true)}
+        aria-haspopup="dialog"
+        aria-label={`Filtrar menú (${activeOpt.label})`}
+        title={`Filtrar · ${activeOpt.label}`}
+        style={{
+          border: "none",
+          background: "transparent",
+          padding: 0,
+          cursor: "pointer",
+          fontFamily: "inherit",
+          flexShrink: 0,
+          display: "inline-flex",
+        }}
+      >
+        <ScopeCircle opt={activeOpt} active size={42} members={members} />
+      </button>
 
       {open && (
         <div
@@ -5099,9 +5157,6 @@ export const MenuScreen = memo(function MenuScreen({
   // sitio que la del asistente y por el mismo motivo: se lee como "esto de
   // aquí arriba controla lo de abajo".
   pizarraControles = null,
-  // "claro" | "oscuro". Solo pinta en la pizarra, y solo si se pide desde su
-  // baldosa: el resto de la app vive de ilustraciones sobre blanco.
-  temaPizarra = "claro",
   // Sube cada vez que "Rellenar" termina de colocar. Es lo que dispara el
   // reparto: no es un booleano porque dos rellenos seguidos tienen que volver
   // a animar, y un booleano que ya estaba a true no cambia nada.
@@ -5559,6 +5614,10 @@ export const MenuScreen = memo(function MenuScreen({
   const puedeActivar = Boolean(hasMenu && onActivateMenu && menuNeedsActivation);
   const puedeFavorito = Boolean(onToggleFavorite && user);
   const accionesEnLaFila = hasMenu && Boolean(wizardControls);
+  // En la pizarra las acciones también viven en su fila (PizarraControles):
+  // el corazón y el burger repetían lo de abajo y se van. El rayo (activar)
+  // también: el menú se activa solo (lib/activarSolo.js).
+  const cabeceraLimpia = accionesEnLaFila || Boolean(modoPizarra && hasMenu && pizarraControles);
   const menuWeeks = useMemo(() => orderedWeeks(activeMenu), [activeMenu]);
   const currentWeekIdx = useMemo(
     () => menuWeeks.findIndex((w) => w.offset === data.menuWeek?.offset),
@@ -5772,7 +5831,6 @@ export const MenuScreen = memo(function MenuScreen({
 
   return (
     <div
-      className={modoPizarra && temaPizarra === "oscuro" ? "mp-pizarra-oscura" : undefined}
       style={{ background: "var(--pz-fondo, #fff)", minHeight: "100dvh" }}
     >
       <style>{`
@@ -5961,7 +6019,7 @@ export const MenuScreen = memo(function MenuScreen({
                 Guardar como favorito solo tiene sentido con cuenta: sin ella no
                 hay histórico/favoritos persistentes donde recuperarlo, así que
                 no ofrecemos algo que no podemos cumplir. */}
-            {!accionesEnLaFila && hasMenu && onActivateMenu && menuNeedsActivation && (
+            {!cabeceraLimpia && hasMenu && onActivateMenu && menuNeedsActivation && (
               <button
                 type="button"
                 onClick={onActivateMenu}
@@ -5976,7 +6034,7 @@ export const MenuScreen = memo(function MenuScreen({
                 <Zap size={18} strokeWidth={2.5} color="#c9922a" fill="#f5d78a" />
               </button>
             )}
-            {!accionesEnLaFila && hasMenu && onToggleFavorite && user && (
+            {!cabeceraLimpia && hasMenu && onToggleFavorite && user && (
               <button
                 type="button"
                 onClick={onToggleFavorite}
@@ -6011,7 +6069,7 @@ export const MenuScreen = memo(function MenuScreen({
                 acciones en dos sitios obliga a mirar los dos para saber si
                 algo está hecho. Sin fila —hogar de solo lectura, o ningún
                 control visible— es la única puerta, así que no se borra. */}
-            {!accionesEnLaFila && (
+            {!cabeceraLimpia && (
               <button
                 type="button"
                 data-coach="menu-options"
@@ -6101,7 +6159,7 @@ export const MenuScreen = memo(function MenuScreen({
                     !FRONTAL_BOT && hasMenu && onPublishToFeed && { key: "feed", label: menuSharedInFeed ? "Menú publicado" : "Publicar en Gente", Icon: Users, action: () => setPublishSheetOpen(true), tint: "#e6efff", ink: "#4a6fd4" },
                     hasMenu && { key: "share", label: "Compartir fuera", Icon: Share2, action: handleShare, tint: "#e0f4f1", ink: "#0d9488" },
                     hasMenu && { key: "download", label: "Descargar PDF", Icon: Download, action: handleDownload, tint: "#fdf0e0", ink: "#d97706" },
-                    !isGenerating && !readOnly && onRegenerate && { key: "regen", label: "Regenerar menú", Icon: RotateCw, action: onRegenerate, tint: "#e6f6ec", ink: "#16a34a" },
+                    !isGenerating && !readOnly && onRegenerate && { key: "regen", label: PIDESELO_A_LOLA, Icon: RotateCw, action: onRegenerate, tint: "#e6f6ec", ink: "#16a34a" },
                   ]
                     .filter(Boolean)
                     .map((a, i, arr) => (
@@ -6137,8 +6195,8 @@ export const MenuScreen = memo(function MenuScreen({
       {/* ── Zona de navegación: cabecera clásica (fecha/perfil/chevron) o nav del deck ── */}
       {/* En la pizarra esta franja se queda pegada arriba al bajar.
           Los mandos de aquí no son decoración de cabecera: son con lo que
-          rellenas: el avatar dice para quién estás poniendo platos y las
-          baldosas abren días, balance, despensa, batch y rellenar. Con siete
+          rellenas: las caras dicen para qué menú estás poniendo platos y las
+          baldosas abren balance, despensa, batch y rellenar. Con siete
           días en pantalla, tocar un hueco del domingo y querer cambiar de
           comensal obligaba a subir hasta arriba, cambiar y volver a bajar.
           El que scrollea es el documento (la raíz solo pone minHeight), así
@@ -6163,40 +6221,41 @@ export const MenuScreen = memo(function MenuScreen({
 
         {/* View controls — deck: vistas (izq) · semana (centro) · filtro círculo (der) */}
         {/* ── La fila de la pizarra ─────────────────────────────────────
-            Dos secciones en una sola banda: quién come (avatares, en blanco,
-            porque son personas y van con el tablero) y con qué se maneja el
-            tablero (las baldosas, en el slate que esta app ya reserva para lo
-            logístico — ver la escala de Compra en DESIGN_SYSTEM §7). El tinte
-            llega hasta el borde derecho porque la franja es una zona, no una
-            tarjeta: cortarla antes del margen la convertiría en un recuadro
-            más de los que hay debajo. */}
+            A la izquierda, quién come y para qué menú (`QuienCome`). Al lado,
+            con qué se maneja el tablero, en el
+            slate que esta app ya reserva para lo logístico — ver la escala de
+            Compra en DESIGN_SYSTEM §7. El tinte llega de borde a borde porque
+            la franja es una zona, no una tarjeta. */}
         {/* `pizarraControles` manda: mientras la pizarra arranca llega vacío,
-            y entonces la franja ENTERA se va —avatares incluidos—. Una fila de
-            avatares sola, sin nada que hacer con ella, solo diría «hay cosas
-            que todavía no puedes tocar». */}
+            y entonces la franja ENTERA se va, caras incluidas: sin baldosas
+            solo dirían «hay cosas que todavía no puedes tocar». */}
         {hasMenu && modoPizarra && pizarraControles && (
           <div
             // Baja al montarse. La franja no existía hace un instante —llega
             // al cerrar la hoja de arranque— y entrar de golpe la haría
             // parecer algo que ya estaba y no habías visto.
             className="mp-franja-entra"
-            style={{ display: "flex", alignItems: "stretch", marginRight: -16, marginBottom: 14, minHeight: 78 }}
+            style={{ margin: "0 calc(-1 * var(--esp-16)) var(--esp-12)" }}
           >
-            <div style={{ background: "var(--pz-fondo, #fff)", display: "flex", alignItems: "center", paddingRight: 12, flexShrink: 0 }}>
-              {(data.groups?.length > 0) && (
-                <DeckFilter
-                  groups={data.groups}
-                  scope={scope}
-                  onScopeChange={setScope}
-                  members={data.members ?? []}
-                  interactivo={multiGroup}
-                  ciclar={multiGroup}
-                />
-              )}
-            </div>
-            <div style={{ flex: 1, minWidth: 0, background: "var(--pz-fondo-suave, #f1f5f9)", display: "flex", alignItems: "center" }}>
+            {/* Sin fondo aquí: el tinte es de los mandos y lo pone PizarraControles;
+                las caras de quién come van sobre el fondo de la página (Pablo, 4 nov 2026). */}
+            <div style={{ minHeight: 78, display: "flex", alignItems: "stretch" }}>
               <HuecosVivosContext.Provider value={huecosVivos}>
-                {pizarraControles}
+                {/* Llega como función para que esta pantalla le pase lo que
+                    solo ella sabe hacer: la hoja del PDF y, sin cuenta,
+                    compartir el menú como texto (el enlace pide sesión). */}
+                {typeof pizarraControles === "function"
+                  ? pizarraControles({
+                    onDescargar: handleDownload,
+                    ...(user ? null : { onCompartir: handleShare }),
+                    // Quién come, a la izquierda de la fila. Sustituye a los
+                    // chips que iban encima: dos mandos del mismo filtro
+                    // obligan a mirar los dos para saber cuál manda.
+                    quienCome: (
+                      <QuienCome groups={data.groups} scope={scope} onScopeChange={setScope} members={data.members ?? []} />
+                    ),
+                  })
+                  : pizarraControles}
               </HuecosVivosContext.Provider>
             </div>
           </div>
@@ -6870,6 +6929,11 @@ export function DishDetail({
   day = null,
   meal = null,
   cookWeekKey = null,
+  // Lo cocinado (trozo 22): el lunes de la semana abierta, sus claves (null mientras no se han leído) y cómo marcar
+  // (`onCocinado(fila, hecho)` → { ok, fallo }), en la tabla `cocinado` o, sin casa, en el móvil (App.jsx).
+  cookWeekMonday = null,
+  cocinados = null,
+  onCocinado = null,
   user = null,
   data = null,
   setData = null,
@@ -7175,14 +7239,16 @@ export function DishDetail({
   // Only when opened from the weekly menu with a real slot. Pantry is the single
   // source of truth: a tick means "you already have it in En casa"; "Marcar
   // cocinado" discounts the dish's ingredients from that stock (undo restores).
-  const cookable = !browse && day != null && meal != null && cookWeekKey != null && setData != null;
+  const cookable = !browse && day != null && meal != null && cookWeekKey != null && setData != null
+    && cookWeekMonday != null && cocinados != null && onCocinado != null;
   // Solo se calcula al navegar el catálogo, que es donde se pinta.
   const potentialSwaps = useMemo(
     () => (browse ? adaptationsNeededFor(recipe, "lactosa_fina") : []),
     [browse, recipe],
   );
   const cookedKey = cookable ? `${cookWeekKey}::${day}::${meal}::${recipe.id}` : null;
-  const isCooked = cookedKey ? (data?.cookedDishes ?? []).includes(cookedKey) : false;
+  const filaCocinada = cookable ? { semana: cookWeekMonday, dia: day, comida: meal, receta_id: String(recipe.id) } : null;
+  const isCooked = filaCocinada ? cocinados.has(claveCocinado(filaCocinada)) : false;
   const [pantryStock, setPantryStock] = useState([]);
   const [cookBusy, setCookBusy] = useState(false);
   useEffect(() => {
@@ -7239,13 +7305,6 @@ export function DishDetail({
   // (catálogo curado) usan nombres de campo distintos; se comprueban los dos.
   const usedAppliance = recipe.requiredAppliances?.[0] ?? recipe.requiredAppliance ?? null;
   const UsedApplianceIcon = usedAppliance ? (REQUIRED_APPLIANCE_ICONS[usedAppliance] ?? UtensilsCrossed) : null;
-  const cookIngredients = () =>
-    ingredients.map((ing) => ({
-      name: ing.name,
-      qty: ing.qtyScaled,
-      unit: ing.unit,
-      adapted: ing.adapted,
-    }));
 
   // ── Congelador (parte que depende del stock real) ──────────────────────────
   // Lo de arriba lee el reparto que YA trae el slot; esto mira qué hay ahora en
@@ -7396,16 +7455,18 @@ export function DishDetail({
       else addLocalPantryItems([revived]);
     }
   };
-  // Cuándo se descuenta: "Marcar cocinado" solo resta de la despensa real si el
-  // usuario eligió "Al marcarlo cocinado". Si eligió "Al crear el menú" o "Al
-  // final del día", esa resta ya ocurrió (o la hará el barrido diario) y marcar
-  // cocinado aquí es solo un tick informativo. Vía pantryConsumeMode para
-  // respetar el modo básico, que fuerza "onGenerate".
-  const shouldConsumeOnCook = pantryConsumeMode(data) === "onCook";
+  // Los ingredientes los descuenta el barrido del final del día: marcar cocinado
+  // solo apunta el plato y saca lo que venga del congelador o la nevera.
   const handleMarkCooked = async () => {
     if (!cookable || isCooked || cookBusy) return;
     setCookBusy(true);
     try {
+      // Primero se apunta lo cocinado; si no se guarda, no se toca la despensa.
+      const apuntado = await onCocinado(filaCocinada, true);
+      if (!apuntado.ok) {
+        onToast?.("No se ha podido marcar como cocinado. Prueba otra vez.");
+        return;
+      }
       // Slot del congelador: lo que se "gasta" son raciones del tupper, no
       // ingredientes. En un slot mixto se hacen las dos cosas — salen las
       // raciones congeladas Y se descuentan los ingredientes de las frescas
@@ -7413,25 +7474,16 @@ export function DishDetail({
       const preparedDelta = slotFromPrepared
         ? await consumePreparedPortions()
         : null;
-      const consumeIngredients = shouldConsumeOnCook && ingredients.length > 0;
-      const { deltas, decremented } = consumeIngredients
-        ? await consumeFromPantry(cookIngredients(), pantryStock, { user })
-        : { deltas: [], decremented: 0 };
-      setData((d) => ({
-        ...d,
-        cookedDishes: [...(d?.cookedDishes ?? []), cookedKey],
-        cookedDeltas: { ...(d?.cookedDeltas ?? {}), [cookedKey]: deltas },
-        ...(preparedDelta
-          ? { cookedFreezerDeltas: { ...(d?.cookedFreezerDeltas ?? {}), [cookedKey]: preparedDelta } }
-          : {}),
-      }));
-      if (consumeIngredients || preparedDelta) await reloadCookStock();
+      if (preparedDelta) {
+        setData((d) => ({ ...d, cookedFreezerDeltas: { ...(d?.cookedFreezerDeltas ?? {}), [cookedKey]: preparedDelta } }));
+        await reloadCookStock();
+      }
       // Lo cocinado, en un registro que no se borra con el menú (src/lib/rastro.js).
       trackEvent(user, RASTRO.COCINADO, "menu", { canal: "app", recipeId: idBase(recipe.id), day, meal, semana: cookWeekKey ?? null });
       if (preparedDelta) {
         onToast?.(`¡Listo! ${portionsLabel(preparedDelta.portions)} ${preparedDelta.fromFridge ? "de la nevera" : "del congelador"}`);
       } else {
-        onToast?.(decremented ? `¡Cocinado! Stock en casa actualizado (${decremented})` : "¡Cocinado!");
+        onToast?.("¡Cocinado!");
       }
     } finally {
       setCookBusy(false);
@@ -7441,6 +7493,11 @@ export function DishDetail({
     if (!cookable || !isCooked || cookBusy) return;
     setCookBusy(true);
     try {
+      const quitado = await onCocinado(filaCocinada, false);
+      if (!quitado.ok) {
+        onToast?.("No se ha podido deshacer. Prueba otra vez.");
+        return;
+      }
       const deltas = data?.cookedDeltas?.[cookedKey] ?? [];
       const restored = await restoreToPantry(deltas, { user });
       const preparedDelta = data?.cookedFreezerDeltas?.[cookedKey] ?? null;
@@ -7452,7 +7509,6 @@ export function DishDetail({
         delete nextFreezer[cookedKey];
         return {
           ...d,
-          cookedDishes: (d?.cookedDishes ?? []).filter((k) => k !== cookedKey),
           cookedDeltas: nextDeltas,
           cookedFreezerDeltas: nextFreezer,
         };
@@ -7869,6 +7925,14 @@ export function DishDetail({
               }}
               onClose={() => setScopeOpen(false)}
             />
+          )}
+
+          {/* Por qué está este plato (trozo 18): quién lo puso, cuándo y, si fue el menú automático, qué lo pidió. Solo
+              desde un hueco del menú: en el recetario no hay hueco. */}
+          {!browse && slot?.sobre && (
+            <p style={{ margin: 0, marginBottom: espaciado["esp-12"], fontSize: tipografia["paso-12"], color: colores["tinta-tenue"] }}>
+              {porQueElPlato(slot, preferenciasDelMotor(data ?? {}), textoDe)}
+            </p>
           )}
 
           {/* Ficha rápida: comensales · minutos · dificultad · alérgenos. Sin

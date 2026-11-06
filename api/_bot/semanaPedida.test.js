@@ -4,7 +4,7 @@
  * la semana en curso no toca hoy ni lo pasado.
  */
 import { describe, it, expect } from "vitest";
-import { resolverSemana, conservarDiasPrevios, TOPE_SEMANAS } from "./semanaPedida.js";
+import { resolverSemana, conservarDiasPrevios, TOPE_SEMANAS, diaYNumero, fechaHumana, fechasParaLola } from "./semanaPedida.js";
 import { DIAS } from "../../src/lib/dias.js";
 
 // Sábado 24 oct 2026, con la semana del 26 oct ya generada (el caso de #905).
@@ -74,5 +74,29 @@ describe("desdeDelBoton", () => {
     expect(desdeDelBoton("Rehacer la del 26 oct", hoy)).toBe("2026-10-26");
     expect(desdeDelBoton("Rehacer la del 4 ene", "2026-12-30")).toBe("2027-01-04");
     expect(desdeDelBoton("rehazlo", hoy)).toBeNull();
+  });
+});
+
+describe("las fechas de lo que lee Lola, en humano (trozo 60)", () => {
+  it("cada AAAA-MM-DD, como se dice, con la de máquina marcada para las herramientas", () => {
+    expect(fechaHumana("2026-11-09")).toBe("lunes 9 de noviembre");
+    expect(diaYNumero("2026-11-04")).toBe("miércoles 4");
+    expect(fechasParaLola("YA HAY MENÚ del 2026-11-09 al 2026-11-15.")).toBe(
+      "YA HAY MENÚ del lunes 9 de noviembre (en herramientas: 2026-11-09) al domingo 15 de noviembre (en herramientas: 2026-11-15).",
+    );
+  });
+
+  it("lo que no es una fecha no se toca, y lo que no es texto pasa tal cual", () => {
+    expect(fechasParaLola("pedido 2026-13-40 y 12-11-2026")).toBe("pedido 2026-13-40 y 12-11-2026");
+    const objeto = { a: 1 };
+    expect(fechasParaLola(objeto)).toBe(objeto);
+    expect(fechasParaLola(null)).toBe(null);
+  });
+});
+
+describe("YA HAY MENÚ dice qué se perdería (trozo 72)", () => {
+  it("con el día desde el que se rehace", () => {
+    const semanas = [{ weekStart: "2026-11-02", weekEnd: "2026-11-08", plan: { g1: { "Lun-comida": {}, "Mié-comida": {}, "Vie-comida": {} } } }];
+    expect(resolverSemana({ semanas, hoy: "2026-11-04" }).aviso).toContain("Si la rehacen: Se quedan Lun, Mié. Se rehacen Vie:");
   });
 });

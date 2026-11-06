@@ -3,6 +3,7 @@
  * Antes se activaba con dos PATCH sueltos y, si la foto de la casa no entraba,
  * se respondía igual «generado y activado».
  */
+import { MARCA_COMPRA } from "../../src/lib/vocabularios.js";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("./db.js", () => ({ select: vi.fn(), insert: vi.fn(), borrar: vi.fn(), eq: (v) => `eq.${v}` }));
@@ -107,10 +108,37 @@ describe("generar menú: todo o nada", () => {
     expect(cambios.activar).toBe("menu-nuevo");
     expect(cambios.state.data.activeMenuId).toBe("menu-nuevo");
     expect(cambios.state.shopping.items.map((i) => i.name)).toEqual(["huevos", "pan"]);
-    expect(cambios.semana.shopping.items.map((i) => i.name)).toEqual(["huevos", "pan"]);
+    // La semana guarda solo marcas (trozo 18): lo apuntado a mano; los huevos salen del plan al leerla.
+    expect(cambios.semana.shopping.marcas.map((m) => [m.nombre, m.marcas])).toEqual([["pan", [MARCA_COMPRA.ANADIDO]]]);
     expect(out.ok).toBe(true);
     expect(texto).toMatch(/generado y activado/);
     expect(borrar).not.toHaveBeenCalled();
+  });
+
+  it("apunta de qué semana es y por qué camino se pidió (trozo 70)", async () => {
+    conCasa.mockResolvedValue({ ok: true });
+    const out = {};
+    await generarMenu("h1", "esta", [], out, { comoSePidio: { camino: "medio" } });
+    const fila = insert.mock.calls.find(([tabla]) => tabla === "menu_generado")[1][0];
+    expect(fila).toEqual({ household_id: "h1", menu_id: "menu-nuevo", week_start: out.desde, camino: "medio" });
+  });
+
+  it("los días de la última vez mandan sobre los de la casa (trozo 71)", async () => {
+    conCasa.mockResolvedValue({ ok: true });
+    const pedidos = [];
+    motor.mockResolvedValue({ ...m, computeWeekRange: (...a) => { pedidos.push(a[2]); return m.computeWeekRange(...a); } });
+    await generarMenu("h1", "siguiente", [], {}, { soloEste: { dias: ["Lun", "Mar"] } });
+    expect(pedidos[0]).toEqual(["Lun", "Mar"]);
+  });
+
+  it("si no se puede apuntar, el menú sigue hecho (trozo 70)", async () => {
+    const aviso = vi.spyOn(console, "error").mockImplementation(() => {});
+    conCasa.mockResolvedValue({ ok: true });
+    insert.mockImplementation(async (tabla) => { if (tabla === "menu_generado") throw new Error("500"); return []; });
+    const out = {};
+    await generarMenu("h1", "esta", [], out);
+    expect(out.ok).toBe(true);
+    aviso.mockRestore();
   });
 
   it("si la casa no se guarda, no dice «activado»: borra el menú a medias y lo dice", async () => {
@@ -202,12 +230,14 @@ describe("colocarPedidos", () => {
     const { colocarPedidos } = await import("./generar.js");
     const { isoDeCasa } = await import("../../src/lib/dias.js");
     const receta = { id: "lentejas", name: "Lentejas", time: 30, mealRole: ["main"] };
-    const pick = vi.fn(() => ({ recipeId: "lentejas", frontendRecipe: receta }));
+    // Como el de verdad, trae lo que se escribe en el hueco (#1246).
+    const pick = vi.fn(() => ({ recipeId: "lentejas", frontendRecipe: receta, hueco: { recipeId: "lentejas", garnishId: null, sauceId: null, platoDe: "lentejas" } }));
     const motorFalso = { recipeCatalogById: { lentejas: receta }, pickCatalogReplacement: pick, registerRecipes: () => {} };
     const planDeSemana = { g1: { "Lun-Comida": { recipeId: "otra" } } };
     const pedidos = [{ pedido: "lentejas", fijo: { catalogId: "lentejas", meals: ["Comida"] } }];
     expect(colocarPedidos(motorFalso, {}, planDeSemana, [], pedidos, ["Lun"])).toEqual(["lentejas"]);
     expect(pick.mock.calls[0][2].hoy).toBe(isoDeCasa());
+    expect(planDeSemana.g1["Lun-Comida"]).toMatchObject({ recipeId: "lentejas", platoDe: "lentejas", garnishId: null });
   });
 });
 
@@ -521,12 +551,14 @@ describe("el resultado de generar", () => {
     expect(recibo([r])).not.toMatch(/✅/);
   });
 
-  it("sin saber las alergias: no generado, con su motivo", async () => {
+  it("sin saber las alergias: no generado, y es una pregunta: sin ⚠️ en el recibo", async () => {
     cargarCasa.mockResolvedValue({ ...structuredClone(casaVieja), state: { data: { members: [{ id: "p1", name: "Ana" }], groups: [{ id: "g1", label: "Todos" }] } } });
     const out = {};
     const r = resultadoDeGenerar(out, await generarMenu("h1", "esta", [], out));
     expect(r.estado).toBe(ESTADO.NADA);
-    expect(r.sinHacer[0].motivo).toBe(SIN_GENERAR.MINIMOS);
+    expect(r.sinHacer).toEqual([]);
+    expect(recibo([r])).toBe("");
+    expect(r.nota).toMatch(/NO GENERADO/);
   });
 
   it("los huecos vacíos y lo quitado por seguridad van a «sin hacer»: parcial", () => {

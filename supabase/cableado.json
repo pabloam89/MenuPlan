@@ -19,6 +19,10 @@
     "api/bot/link.js",
     "api/bot/telegram.js"
   ],
+  "bot_enlaces": [
+    "api/_bot/enlace.js",
+    "scripts/bot-enlaces.mjs"
+  ],
   "bot_codigos": [
     "api/_bot/enlace.js",
     "api/bot/entrar.js",
@@ -29,6 +33,7 @@
     "api/_bot/turnos.js"
   ],
   "bot_deshacer": [
+    "api/_bot/borrarPersona.js",
     "api/_bot/casa.js"
   ],
   "bot_entradas": [
@@ -58,17 +63,14 @@
     "api/_bot/chats.js",
     "api/_bot/rapido.js",
     "api/_bot/recetas.js",
+    "api/_bot/reporte.js",
     "api/bot/telegram.js"
-  ],
-  "bot_reminders": [
-    "api/_bot/chats.js",
-    "api/_bot/ficha.js",
-    "api/_bot/recordatorios.js",
-    "api/_bot/vispera.js"
   ],
   "bot_tareas": [
     "api/_bot/caducidades.js",
     "api/_bot/chats.js",
+    "api/_bot/pedidoMenu.js",
+    "api/_bot/recordatorios.js",
     "api/_bot/tareas.js"
   ],
   "bot_usage": [
@@ -91,12 +93,14 @@
     "api/_bot/invitacion.js"
   ],
   "household_members": [
+    "api/_bot/enlace.js",
     "api/_bot/papel.js",
     "api/bot/link.js",
     "api/bot/telegram.js"
   ],
   "household_recipe_discards": [
     "api/_bot/casa.js",
+    "api/_bot/propias.js",
     "src/lib/householdDiscardsSync.js"
   ],
   "household_state": [
@@ -115,19 +119,25 @@
   "menu_share_links": [
     "api/_bot/compartir.js"
   ],
+  "persona": [
+    "api/_bot/enlace.js"
+  ],
   "persona_estado": [
     "api/_bot/caducidades.js"
   ],
   "recipe_collections": [
+    "api/_bot/propias.js",
     "src/lib/recipeCollections.js"
   ],
   "recipe_folders": [
+    "api/_bot/propias.js",
     "src/lib/recipeCollections.js"
   ],
   "recipe_share_links": [
     "api/_bot/compartir.js"
   ],
   "recipe_votes": [
+    "api/_bot/propias.js",
     "src/lib/recipeVotes.js"
   ],
   "senal": [
@@ -156,6 +166,7 @@
   "user_events": [
     "api/_bot/agente.js",
     "api/_bot/embudo.js",
+    "api/_bot/reporte.js",
     "src/lib/analytics.js"
   ],
   "user_follows": [
@@ -170,14 +181,17 @@
   "user_menu_weeks": [
     "api/_bot/casa.js",
     "api/_bot/generar.js",
+    "api/_bot/menusGenerados.js",
     "src/lib/menusSync.js"
   ],
   "user_menus": [
+    "api/_bot/barridoDespensa.js",
     "api/_bot/casa.js",
     "api/_bot/generar.js",
     "src/lib/menusSync.js"
   ],
   "user_pantry": [
+    "api/_bot/barridoDespensa.js",
     "api/_bot/despensa.js",
     "api/_bot/ficha.js",
     "api/_bot/generar.js",
@@ -208,5 +222,17 @@
   ],
   "user_state": [
     "src/lib/userState.js"
+  ],
+  "cocinado": [
+    "api/_bot/cocinados.js"
+  ],
+  "ticket": [
+    "api/_bot/historialCompra.js"
+  ],
+  "precio_observado": [
+    "api/_bot/historialCompra.js"
+  ],
+  "menu_generado": [
+    "api/_bot/menusGenerados.js"
   ]
 }

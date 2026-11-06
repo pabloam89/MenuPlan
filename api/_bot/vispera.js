@@ -9,32 +9,29 @@
  * ruido, y el ruido hace que se quite.
  *
  * Solo para quien lo acepta (como cualquier recordatorio: Lola lo OFRECE y lo
- * crea con su sí). Vive en bot_reminders como uno diario con tipo
- * TIPO_VISPERA (y el texto VISPERA, que es lo que miraba el bot de antes); al
- * vencer, api/bot/recordatorios.js monta el mensaje con avisoDeVispera en vez
+ * crea con su sí). Es un recordatorio diario (una tarea de tipo recordatorio,
+ * 0122) con aviso TIPO_VISPERA; al vencer, api/bot/recordatorios.js monta el mensaje con avisoDeVispera en vez
  * de mandar el texto.
  *
- * Sin el motor: las recetas salen de las guardadas con el menú (aiRecipes).
+ * Las recetas salen de las guardadas con el menú (aiRecipes), sin el motor, salvo
+ * los platos que salen de su hueco (#1246): esos los trae `platoDe`.
  */
 
 import { fallaCon } from "./avisar.js";
 import { cargarCasa } from "./casa.js";
-import { select, update } from "./db.js";
-import { crearRecordatorio } from "./recordatorios.js";
+import { crearRecordatorio, pendientesDeAviso, descartarDeAviso } from "./recordatorios.js";
+import { AVISO_RECORDATORIO, REPITE_RECORDATORIO } from "../../src/lib/vocabularios.js";
 import { batchCooking } from "./ficha.js";
 import { IDS_COMIDAS, comida as delCatalogo } from "../../src/lib/comidas.js";
 import { diaDeISO } from "../../src/lib/dias.js";
 import { slotUsesFreezer } from "../../src/lib/freezer.js";
+import { apuntaSuPlato, planApuntaPlatos } from "../../src/lib/apuntaSuPlato.js";
+import { resolverHuecos } from "./menu.js";
 
-/**
- * El texto con el que se guarda el aviso en bot_reminders. Ya no lo identifica
- * (eso es TIPO_VISPERA), pero se sigue escribiendo igual: el bot desplegado
- * antes de la 0085 lo reconoce por el texto, y el disparador de la 0085 pone
- * el tipo a los que él crea sin tipo.
- */
+/** El texto con el que se guarda el aviso (lo que se ve al listar los recordatorios). No lo identifica: eso es el aviso. */
 export const VISPERA = "Aviso de la víspera";
-/** bot_reminders.tipo del aviso (uno de TIPOS_RECORDATORIO). */
-export const TIPO_VISPERA = "vispera";
+/** bot_tareas.aviso del aviso de la víspera (AVISOS_RECORDATORIO, 0122). */
+export const TIPO_VISPERA = AVISO_RECORDATORIO.VISPERA;
 
 const diaDeFecha = diaDeISO;
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -49,9 +46,10 @@ const quitarTildes = (s) => String(s).normalize("NFD").replace(/\p{Diacritic}/gu
  * Lo que hay que hacer esta noche para mañana, o null si nada. Pura.
  * @param {object} casa  la de cargarCasa (state, semanas)
  * @param {string} manana  fecha ISO de mañana
+ * @param {{platoDe?: Function}} [opciones]  el plato de un hueco (resolverHuecos, menu.js)
  * @returns {string | null}  HTML de Telegram
  */
-export function avisoDeVispera(casa, manana) {
+export function avisoDeVispera(casa, manana, { platoDe } = {}) {
   const data = casa?.state?.data ?? {};
   const dia = diaDeFecha(manana);
   const recetas = new Map();
@@ -70,8 +68,9 @@ export function avisoDeVispera(casa, manana) {
     for (const c of IDS_COMIDAS) {
       const hueco = plan[`${dia}-${c}`];
       if (!hueco) continue;
-      for (const id of [hueco.firstRecipeId, hueco.recipeId].filter(Boolean)) {
-        const r = receta(id);
+      for (const [curso, id] of [["primero", hueco.firstRecipeId], ["principal", hueco.recipeId]]) {
+        if (!id) continue;
+        const r = apuntaSuPlato(hueco, curso) ? platoDe?.(hueco, curso, semana.weekStart) : receta(id);
         if (!r) continue;
         if (slotUsesFreezer(hueco, id)) { congelador.add(r.name); continue; }
         for (const ing of r.ingredients ?? []) {
@@ -102,7 +101,10 @@ export async function avisoDeVisperaDe(householdId, hoyISO) {
   if (!casa) return null;
   const d = new Date(`${hoyISO}T12:00:00Z`);
   d.setUTCDate(d.getUTCDate() + 1);
-  return avisoDeVispera(casa, d.toISOString().slice(0, 10));
+  const manana = d.toISOString().slice(0, 10);
+  const semana = (casa.semanas ?? []).find((w) => w.weekStart <= manana && manana <= w.weekEnd);
+  const platoDe = planApuntaPlatos(semana?.plan) ? await resolverHuecos(casa).catch(fallaCon("vispera_huecos", null)) : null;
+  return avisoDeVispera(casa, manana, { platoDe });
 }
 
 /**
@@ -113,11 +115,11 @@ export async function avisoVispera(chat, { activar = true, hora = "20:30" } = {}
   // La hora se mira ANTES de quitar el que había: con una hora mal escrita se
   // quedaba sin aviso y sin decirlo.
   if (activar && !/^([01]\d|2[0-3]):[0-5]\d$/.test(hora)) return "Dime la hora como HH:MM (por ejemplo 20:30).";
-  const enChat = `chat_id=eq.${encodeURIComponent(String(chat.chatId))}&status=eq.pending&tipo=eq.${TIPO_VISPERA}`;
-  const ya = await select("bot_reminders", enChat, "id");
+  // El aviso de la víspera es un recordatorio (una tarea de tipo recordatorio, 0122) con aviso «vispera».
+  const ya = await pendientesDeAviso(chat.chatId, TIPO_VISPERA);
   // Si quitar el de antes falla, lanza: mejor un error que dos avisos cada noche.
   if (!activar) {
-    if (ya.length) await update("bot_reminders", enChat, { status: "cancelled" });
+    if (ya.length) await descartarDeAviso(chat.chatId, TIPO_VISPERA);
     return ya.length ? "Quitado: ya no te aviso la víspera." : "No tenías el aviso de la víspera puesto.";
   }
   // La próxima vez que toque esa hora en España: hoy si aún no ha pasado.
@@ -127,8 +129,8 @@ export async function avisoVispera(chat, { activar = true, hora = "20:30" } = {}
   if (horaAhora >= hora) d.setUTCDate(d.getUTCDate() + 1);
   // Primero el nuevo y luego fuera los de antes, por su id: al revés, si crear
   // fallaba (tope de pendientes, la base) se quedaba sin ninguno (#958).
-  const r = await crearRecordatorio(chat, { texto: VISPERA, cuando: `${d.toISOString().slice(0, 10)}T${hora}`, repite: "diario", tipo: TIPO_VISPERA });
+  const r = await crearRecordatorio(chat, { texto: VISPERA, cuando: `${d.toISOString().slice(0, 10)}T${hora}`, repite: REPITE_RECORDATORIO.DIARIO, aviso: TIPO_VISPERA });
   if (!/^Recordatorio creado/.test(r)) return r;
-  if (ya.length) await update("bot_reminders", `${enChat}&id=in.(${ya.map((x) => Number(x.id)).join(",")})`, { status: "cancelled" });
+  if (ya.length) await descartarDeAviso(chat.chatId, TIPO_VISPERA, ya);
   return `Hecho: cada noche a las ${hora} miro el menú de mañana y, si hay algo que preparar (remojo, sacar algo del congelador, tu día de batch cooking), te aviso. Si no hay nada, no te escribo.`;
 }

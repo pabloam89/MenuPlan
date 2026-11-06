@@ -49,7 +49,7 @@ vi.mock("./menu.js", async (original) => ({
 const { ajustarHorario, ajustarCocina, aplicarCompra, aplicarModoDespensa, ajustarPersona, anadirInvitado, listaAjustada } = await import("./ajustes.js");
 const { MODOS_DESPENSA_MOTOR, MODOS_DESPENSA_TEXTO } = await import("../../src/lib/modoDespensa.js");
 const { guardarMenuCole, diasSinClase } = await import("./cole.js");
-const { apuntarAusencia } = await import("./menu.js");
+const { apuntarAusencia, usarMotor } = await import("./menu.js");
 const datos = () => guardada?.state?.data ?? {};
 const limpio = (extra = null) => { guardada = null; base = extra; };
 
@@ -66,7 +66,7 @@ describe("ajustar_horario", () => {
   it("«Nat» con Natalia y Natxo pregunta y no toca nada", async () => {
     limpio();
     const t = await ajustarHorario("h", { personas: ["Nat"], donde: "fuera" });
-    expect(t).toMatch(/Natalia o a Natxo/);
+    expect(t.nota).toMatch(/Natalia o a Natxo/);
     expect(guardada).toBe(null);
   });
   it("«yo» es la persona de la cuenta, no el nombre de Telegram", async () => {
@@ -78,6 +78,13 @@ describe("ajustar_horario", () => {
 });
 
 describe("trastos y súper: sumar y quitar, no sustituir (#958)", () => {
+  it("la estructura de la cena se guarda aparte de la de la comida (trozo 69)", async () => {
+    limpio();
+    await ajustarCocina("h", { estructuraCena: "primero_segundo" });
+    expect(datos().mealStructureCena).toBe("primero_segundo");
+    expect(datos().mealStructure).toBeUndefined();
+  });
+
   it("«tenemos airfryer» no borra el horno ni la Thermomix", async () => {
     limpio();
     await ajustarCocina("h", { trastosMas: ["Airfryer"] });
@@ -195,6 +202,17 @@ describe("fuera_de_casa (#958)", () => {
   it("un día que no se entiende es una pregunta", async () => {
     const r = await apuntarAusencia("h", { dias: ["cuando pueda"], comidas: ["Comida"] });
     expect(r.error).toBe("dia");
+  });
+  it("dice si hay menú en esos días: de eso sale el botón a la app", async () => {
+    const apuntar = () => apuntarAusencia("h", { dias: ["hoy"], comidas: ["Comida"] });
+    const conSemana = (weekStart, weekEnd) => { limpio(); guardada = { ...casa(), semanas: [{ weekStart, weekEnd, plan: {} }] }; };
+    usarMotor({ nuevaRegla: (x) => ({ ...x }), podarReglasVencidas: (reglas) => ({ reglas }) });
+    limpio();
+    expect((await apuntar()).hayMenu).toBe(false);
+    conSemana("2026-11-02", "2026-11-08");
+    expect((await apuntar()).hayMenu).toBe(false);
+    conSemana("2026-10-26", "2026-11-01");
+    expect((await apuntar()).hayMenu).toBe(true);
   });
 });
 

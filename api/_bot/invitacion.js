@@ -13,10 +13,10 @@
 
 import { select, rpc, eq } from "./db.js";
 import { crearCuentaTelegram } from "./cuentas.js";
-import { enlazarChat, idDePersona, chatOcupado } from "./enlace.js";
+import { enlazarChat, idDePersona, chatOcupado, apuntarEnlace } from "./enlace.js";
 import { avisarFallo, contesto, SIN_LEER } from "./avisar.js";
 import { noPude } from "./noPude.js";
-import { IDIOMA, IDIOMAS } from "../../src/lib/vocabularios.js";
+import { IDIOMA, IDIOMAS, CAMINO_ENLACE, RESULTADO_ENLACE, PRUEBA_IDENTIDAD } from "../../src/lib/vocabularios.js";
 
 export const ES_INVITACION = /^inv_([0-9a-f]{32})$/;
 
@@ -86,7 +86,10 @@ export async function unirsePorInvitacion({ from, chatId, token, nombre = null }
   // Sin identidad pero con su privado enlazado por una cuenta (chats de antes
   // de las identidades): es esa cuenta, no una nueva.
   let userId = ident?.user_id ?? (String(chatId) === yo ? chat?.linked_by ?? null : null);
-  if (chatOcupado(chat, destino.householdId, userId)) return { texto: TEXTOS[lang].ocupado, householdId: null, lang };
+  if (chatOcupado(chat, destino.householdId, userId)) {
+    await apuntarEnlace({ camino: CAMINO_ENLACE.INVITACION, resultado: RESULTADO_ENLACE.OCUPADO, householdId: destino.householdId, userId });
+    return { texto: TEXTOS[lang].ocupado, householdId: null, lang };
+  }
   let nacida = false;
   if (!userId) {
     const cuenta = await crearCuentaTelegram({ telegramId: from.id, nombre });
@@ -111,6 +114,7 @@ export async function unirsePorInvitacion({ from, chatId, token, nombre = null }
   if (IDIOMAS.includes(perfil?.ui_lang)) lang = perfil.ui_lang;
 
   const enlace = await enlazarChat({
+    camino: CAMINO_ENLACE.INVITACION,
     chatId,
     kind: "private",
     householdId: r.householdId,
@@ -119,7 +123,7 @@ export async function unirsePorInvitacion({ from, chatId, token, nombre = null }
     nombre,
     lang: from?.language_code,
     // La cuenta nacida aquí sí apunta identidad; una que ya lo era, ya la tiene.
-    identidad: nacida ? "nacida" : null,
+    identidad: nacida ? PRUEBA_IDENTIDAD.NACIDA : null,
   });
   if (enlace.ocupado) return { texto: TEXTOS[lang].ocupado, householdId: r.householdId, lang };
 

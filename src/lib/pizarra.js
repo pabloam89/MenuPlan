@@ -39,6 +39,32 @@ import {
 import { isBabyMenuGroup, membersOfGroup } from "./groups.js";
 import { esNino } from "./stages.js";
 import { computeWeekRange, explicitDaysForOffset, horarioDeSemana } from "./menuArchive.js";
+import { compraNueva } from "./compraMarcas.js";
+
+/**
+ * Lo que abrir una pizarra cambia en `data`; salir de su hoja lo devuelve.
+ * El consumo no: a un invitado se le devuelve a la despensa al abrir (no guarda
+ * histórico), y tiene que quedar devuelto aunque cierre la app con la hoja
+ * delante. Su menú vuelve sin consumo, y nada se descuenta dos veces.
+ */
+const CAMPOS_DE_ABRIR_PIZARRA = [
+  "groups", "menus", "activeMenuId", "menuWeek", "menuWeekDays", "menuWeekOffsets", "extraMeals",
+];
+
+export function fotoAntesDePizarra({ data, menuPlan, shopping, aiRecipes, pantalla }) {
+  return {
+    data: Object.fromEntries(CAMPOS_DE_ABRIR_PIZARRA.map((campo) => [campo, data[campo]])),
+    menuPlan,
+    shopping,
+    aiRecipes,
+    pantalla,
+  };
+}
+
+/** `data` sobre la casa de ahora: lo que cambió en la hoja y no es del menú se queda. */
+export function volverAntesDePizarra(foto, dataActual) {
+  return { ...foto, data: { ...dataActual, ...foto.data } };
+}
 
 /**
  * ¿Está encendida? Apagada por defecto, igual que el solver y por el mismo
@@ -222,7 +248,8 @@ export function semanaEnBlanco(data, groups, offset, esAncla) {
     week: {
       offset, startDayIdx, days, startISO, endISO,
       plan: planVacio({ ...data, groups, schedule }, groups),
-      shopping: { items: [] },
+      // La compra sale de los platos que se vayan poniendo (compraMarcas.js).
+      shopping: compraNueva(),
       schedule,
     },
   };

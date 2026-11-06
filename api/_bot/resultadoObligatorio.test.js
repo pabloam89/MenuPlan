@@ -33,7 +33,7 @@ const { resultado, exigeResultado, ESTADO } = await import("./resultado.js");
 // Las que escribían datos de la ficha sin devolver resultado al empezar el
 // trozo 27 (31 oct 2026). La lista solo baja: una herramienta nueva que
 // escribe nace con su resultado.
-const LINEA_BASE = 19;
+const LINEA_BASE = 17;
 
 const charla = (mas = {}) => ({ householdId: "casa", chatId: "1", channel: "telegram", fotos: [], papel: "owner", esGrupo: false, texto: "venga", resultados: [], ...mas });
 const correr = async (chat, nombre, args) => {
@@ -78,7 +78,7 @@ describe("la puerta, con las herramientas de verdad", () => {
     const spy = vi.spyOn(generar, "resultadoDeGenerar").mockImplementation((_out, texto) => texto);
     generar.generarMenu.mockResolvedValue("Menú nuevo generado y activado.");
     const chat = charla();
-    const r = await correr(chat, "generar_menu", { semana: "esta" });
+    const r = await correr(chat, "generar_menu", { semana: "esta", camino: "basico", desde: "2026-11-02" });
     spy.mockRestore();
     expect(r).toMatch(/generado y activado/);
     expect(r).toMatch(/no consta como hecho/);
@@ -90,7 +90,7 @@ describe("la puerta, con las herramientas de verdad", () => {
   it("generar devuelve su resultado: el modelo lee «RESULTADO», cuenta como guardado y va al recibo", async () => {
     generar.generarMenu.mockImplementation(async (_h, _s, _f, out) => { Object.assign(out, { ok: true, desde: "2026-11-02", hasta: "2026-11-08", platos: 14 }); return "Menú nuevo generado y activado."; });
     const chat = charla();
-    const r = await correr(chat, "generar_menu", { semana: "siguiente" });
+    const r = await correr(chat, "generar_menu", { semana: "siguiente", camino: "medio", desde: "2026-11-02" });
     expect(leido(r)).toMatchObject({ accion: "menu", estado: ESTADO.HECHO });
     expect(chat.guardados).toBe(1);
     expect(chat.resultados).toHaveLength(1);

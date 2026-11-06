@@ -29,7 +29,7 @@ import {
 } from "../../src/lib/registroTareas.js";
 import { unaVez, tareasV2 } from "./idempotencia.js";
 import { esDuplicado } from "./entradas.js";
-import { CANAL, paraEscribir } from "../../src/lib/vocabularios.js";
+import { CANAL, TIPO_TAREA, paraEscribir } from "../../src/lib/vocabularios.js";
 
 export const LIMITE_ABIERTAS = 8;
 // Lo que se trae de la base es una cota, no el recorte: el recorte lo hace
@@ -39,6 +39,8 @@ const TEXTO_MAX = 240;
 const DIA = 86400000;
 const MAX_DIAS = 90;
 const EVENTO = { CREADA: "bot_task_created", CERRADA: "bot_task_closed", DUPLICADA: "bot_task_duplicate", AUTO: "bot_task_auto_closed", APLAZADA: "bot_task_postponed" };
+/** tipo null (filas del bot de antes) cuenta como «no es recordatorio»: un neq solo las dejaría fuera. */
+export const SIN_RECORDATORIOS = `and=(or(tipo.is.null,tipo.neq.${TIPO_TAREA.RECORDATORIO}))`;
 const COLUMNAS = "id,kind,scope,texto,falta,clave,chat_id,para_member,asignado_member,vence,caduca_at,created_at";
 const COLUMNAS_V2 = `${COLUMNAS},tipo,campo,persona_id,status,vuelve_at`;
 
@@ -51,7 +53,7 @@ export const campoDe = (t) => t?.campo ?? campoDeClave(t?.clave);
 export const personaDe = (t) => t?.persona_id ?? personaDeClave(t?.clave) ?? t?.para_member ?? null;
 
 // Con v2, lo vivo es abierta o aplazada (una aplazada vuelve sola al llegar su vuelve_at).
-const filtroVivas = () => (tareasV2() ? "status=in.(abierta,aplazada)" : "status=eq.abierta");
+export const filtroVivas = () => (tareasV2() ? "status=in.(abierta,aplazada)" : "status=eq.abierta");
 
 /** Las columnas v2 de una fila nueva: nada sin BOT_TAREAS_V2 (la fila es la de siempre). */
 const columnasV2 = ({ tipo, campo = null, persona_id = null }) =>
@@ -88,7 +90,8 @@ export function filtroDeLectura({ householdId, userId = null, privado = false, a
   const ver = privado && userId
     ? `or=(scope.eq.casa,and(scope.eq.personal,owner_user_id.eq.${userId}))`
     : "scope=eq.casa";
-  return `household_id=${eq(householdId)}&${filtroVivas()}&caduca_at=gt.${encodeURIComponent(ahora.toISOString())}&${ver}&order=created_at.desc&limit=${LIMITE_LECTURA}`;
+  // Sin los recordatorios (tareas de tipo recordatorio, 0122): tienen su lectura (recordatorios.js) y no son algo que preguntar.
+  return `household_id=${eq(householdId)}&${filtroVivas()}&${SIN_RECORDATORIOS}&caduca_at=gt.${encodeURIComponent(ahora.toISOString())}&${ver}&order=created_at.desc&limit=${LIMITE_LECTURA}`;
 }
 
 const importanciaDe = (t) => (CAMPOS[campoDe(t)]?.seguridad ? 0 : tipoDe(t) === "falta_saber" ? 1 : 2);
@@ -187,7 +190,9 @@ export function separarPorEstado(tareas = [], data = {}) {
 }
 
 /** Pura. El bloque para el modelo: referencia corta, tipo, para quién, quién, fecha y de qué chat. */
-export function bloqueDeTareas(tareas = [], { data = {}, chatId = null } = {}) {
+export function bloqueDeTareas(todas = [], { data = {}, chatId = null } = {}) {
+  // Una espera (el pedido de menú, pedidoMenu.js) no es algo que Lola cierre a mano: tiene su propia lectura.
+  const tareas = todas.filter((t) => tipoDe(t) !== TIPO_TAREA.ESPERA);
   if (!tareas.length) return "";
   const nombre = (id) => (data.members ?? []).find((m) => String(m.id ?? m.name) === String(id))?.name ?? null;
   const lineas = tareas.map((t) => {

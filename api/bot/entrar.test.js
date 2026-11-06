@@ -4,7 +4,7 @@
  * firma de un botón de login de Telegram, entra quien lo pulsó.
  */
 import crypto from "node:crypto";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 const t = vi.hoisted(() => ({ codigos: {}, viejos: [], deOtra: false, nacida: null }));
 
@@ -16,7 +16,10 @@ vi.mock("../_bot/db.js", () => ({
   eq: (x) => x,
 }));
 vi.mock("../_bot/enlace.js", () => ({ gastarCodigo: vi.fn(async (c, tipo) => t.codigos[`${tipo}:${c}`] ?? null) }));
-vi.mock("../_bot/cuentas.js", () => ({
+// cuentaConectadaDesdeLaApp es la de verdad: lee la fila de bot_identities (el select de arriba, t.viejos) y la
+// cuenta de auth (el fetch de abajo). Es la regla que se prueba en «una persona, una cuenta, varias llaves».
+vi.mock("../_bot/cuentas.js", async (original) => ({
+  ...(await original()),
   tokenHashDe: vi.fn(async (email) => `hash-${email}`),
   emailSintetico: (id) => `tg${id}@bot`,
   cuentaNacidaAqui: vi.fn(async () => t.nacida),
@@ -30,8 +33,8 @@ process.env.TELEGRAM_BOT_TOKEN = "123:abc";
 const { default: handler } = await import("./entrar.js");
 const { cuentaYChat } = await import("../_bot/altaTelegram.js");
 
-// La cuenta que devuelve auth: la nacida del Telegram 7.
-globalThis.fetch = vi.fn(async (url) => ({ json: async () => ({ id: url.split("/").pop(), email: "tg7@bot" }) }));
+// La cuenta que devuelve auth: la nacida del Telegram 7, o la que diga el caso (t.auth).
+globalThis.fetch = vi.fn(async (url) => ({ json: async () => t.auth ?? ({ id: url.split("/").pop(), email: "tg7@bot" }) }));
 
 function llama(body) {
   const res = { json: (j) => { res.cuerpo = j; return res; }, status: (c) => { res.code = c; return res; } };
@@ -45,7 +48,7 @@ function firmado(datos, token = "123:abc") {
 }
 const ahora = () => String(Math.floor(Date.now() / 1000));
 
-beforeEach(() => { t.codigos = {}; t.viejos = []; t.deOtra = false; t.nacida = null; vi.clearAllMocks(); });
+beforeEach(() => { t.codigos = {}; t.viejos = []; t.deOtra = false; t.nacida = null; t.auth = null; vi.clearAllMocks(); });
 
 describe("entrar con la llave de Lola", () => {
   it("`alta`: crea la cuenta de ese Telegram, enlaza su chat y abre sesión", async () => {
@@ -111,9 +114,93 @@ describe("entrar con el botón de login de Telegram", () => {
     expect(res.cuerpo.token_hash).toBeUndefined();
   });
 
-  it("Telegram sin cuenta: 404 y a Lola", async () => {
-    const res = await llama({ telegram: firmado({ id: "7", auth_date: ahora() }) });
-    expect(res.code).toBe(404);
+});
+
+// «Entrar con Telegram» en la pantalla de entrada (specs/auth.md §7): la misma firma, y la cuenta de ese Telegram.
+// Con el reloj fijo: la firma vale una hora (loginTelegram.js) y el caso no depende de cuándo se corre.
+describe("«Entrar con Telegram»: una cuenta por Telegram, la que ya tiene Lola", () => {
+  const AHORA_S = 1_793_800_000; // 4 nov 2026, en segundos
+  beforeEach(() => { vi.useFakeTimers({ toFake: ["Date"] }); vi.setSystemTime(AHORA_S * 1000); });
+  afterEach(() => vi.useRealTimers());
+  const entra = (datos) => llama({ telegram: firmado({ auth_date: String(AHORA_S), ...datos }) });
+
+  it("entra en la cuenta que ya tiene ese Telegram, sin crear otra", async () => {
+    t.nacida = { id: "u7", email: "tg7@bot" };
+    const res = await entra({ id: "7", first_name: "Ana" });
+    expect(res.cuerpo).toEqual({ token_hash: "hash-tg7@bot", user_id: "u7" });
+    expect(cuentaYChat).not.toHaveBeenCalled();
+  });
+
+  it("un Telegram sin cuenta recibe la que crea Lola, con su chat privado (mismo id)", async () => {
+    const res = await entra({ id: "7", first_name: "Ana" });
+    expect(cuentaYChat).toHaveBeenCalledTimes(1);
+    expect(cuentaYChat).toHaveBeenCalledWith({ telegramId: "7", chatId: "7", nombre: "Ana" });
+    expect(res.code).toBe(200);
+    expect(res.cuerpo).toEqual({ token_hash: "hash-tg7@bot", user_id: "nueva" });
+  });
+
+  it("un Telegram ya atado a una cuenta de Google: 403 y ninguna cuenta nueva", async () => {
+    t.deOtra = true;
+    const res = await entra({ id: "7" });
+    expect(res.code).toBe(403);
+    expect(cuentaYChat).not.toHaveBeenCalled();
+    expect(res.cuerpo.token_hash).toBeUndefined();
+  });
+
+  it("una firma mala se rechaza antes de mirar cuentas", async () => {
+    const res = await llama({ telegram: { ...firmado({ id: "7", auth_date: String(AHORA_S) }), hash: "0".repeat(64) } });
+    expect(res.code).toBe(403);
+    expect(cuentaYChat).not.toHaveBeenCalled();
+    expect(res.cuerpo.token_hash).toBeUndefined();
+  });
+
+  // Una persona, una cuenta, varias llaves (trozo 3 de specs/auth.md §7): el Telegram 7 está atado a la cuenta de
+  // Google g1 (deOtra); lo que decide es con qué prueba se apuntó esa fila (prueba_identidad, 0129).
+  describe("la cuenta a la que se conectó desde la app", () => {
+    const atado = (fila) => { t.deOtra = true; t.viejos = [{ user_id: "g1", ...fila }]; t.auth = { id: "g1", email: "ana@gmail.com" }; };
+
+    it("con «Conectar Telegram» desde esa cuenta (ajustes): abre la cuenta a la que se conectó desde la app", async () => {
+      atado({ prueba_identidad: "ajustes" });
+      const res = await entra({ id: "7" });
+      expect(res.code).toBe(200);
+      expect(res.cuerpo).toEqual({ token_hash: "hash-ana@gmail.com", user_id: "g1" });
+      expect(cuentaYChat).not.toHaveBeenCalled();
+    });
+
+    it("con el cambio confirmado en su privado (cambio): también la abre", async () => {
+      atado({ prueba_identidad: "cambio" });
+      const res = await entra({ id: "7" });
+      expect(res.cuerpo).toEqual({ token_hash: "hash-ana@gmail.com", user_id: "g1" });
+    });
+
+    it("atado por el código del email (codigo_email): 403, sin sesión", async () => {
+      atado({ prueba_identidad: "codigo_email" });
+      const res = await entra({ id: "7" });
+      expect(res.code).toBe(403);
+      expect(res.cuerpo.token_hash).toBeUndefined();
+    });
+
+    it("una fila de antes de la 0129, sin prueba: 403, sin sesión", async () => {
+      atado({});
+      const res = await entra({ id: "7" });
+      expect(res.code).toBe(403);
+      expect(res.cuerpo.token_hash).toBeUndefined();
+    });
+
+    it("si la cuenta de auth no es la de la fila: 403, sin sesión", async () => {
+      atado({ prueba_identidad: "ajustes" });
+      t.auth = { id: "otra", email: "otra@gmail.com" };
+      const res = await entra({ id: "7" });
+      expect(res.code).toBe(403);
+      expect(res.cuerpo.token_hash).toBeUndefined();
+    });
+
+    it("una firma mala no llega a mirar la fila, aunque la prueba sea buena", async () => {
+      atado({ prueba_identidad: "ajustes" });
+      const res = await llama({ telegram: { ...firmado({ id: "7", auth_date: String(AHORA_S) }), hash: "0".repeat(64) } });
+      expect(res.code).toBe(403);
+      expect(res.cuerpo.token_hash).toBeUndefined();
+    });
   });
 });
 

@@ -8,7 +8,10 @@ import { escribirDato, falloDeMotivo } from "./datos.js";
 import { RPC_OPERACION, RPC_DESHACER, SUFIJO_CLAVE_PERSONA, RPC_PREFERENCIAS } from "../../src/lib/operaciones/tuberia.js";
 import { ACCION_LIBRETA } from "../../src/lib/libretaCasa.js";
 import handler from "../operacion.js";
+import { MENUS_QUE_SE_LEEN } from "../../src/lib/menusGenerados.js";
+import { filaDeTicket, filaDePrecio, COLUMNAS_TICKET, COLUMNAS_PRECIO, DE_LA_0124 } from "../../src/lib/historialCompra.js";
 import { HTTP_DE_FALLO } from "../../src/lib/escribirDato.js";
+import { TABLAS_EXPORTADAS } from "../../src/lib/exportarCasa.js";
 import { FALLO_DATO, MOTIVOS_FALLO, FALLOS_DATO, ESTADO_OPERACION, SEXO, CANAL_DATO, REF_OPERACION } from "../../src/lib/vocabularios.js";
 
 const CASA = "3f2b8c1e-7a4d-4e0b-9c5a-1d2e3f4a5b6c";
@@ -299,6 +302,8 @@ describe("api/operacion.js: un cambio de la libreta (trozo 14) va a escribir_pre
   const { dato: _sinDato, ...sinDato } = CUERPO;
   beforeEach(() => {
     responde(/^\/auth\/v1\/user/, { status: 200, cuerpo: { id: "u1" } });
+    // Antes de escribir se leen las preferencias de la casa (choques al guardar, trozo 33): una casa sin ninguna.
+    responde(/rpc\/preferencias_de_casa/, { status: 200, cuerpo: { v: 1, preferencias: [], planes: [] } });
   });
 
   it("por la misma puerta y con el autor de la sesión, a escribir_preferencias y nunca al documento", async () => {
@@ -333,7 +338,7 @@ describe("api/operacion.js: un cambio de la libreta (trozo 14) va a escribir_pre
 
 describe("api/operacion.js: la app lee los datos de la ficha Casa (trozo 12)", () => {
   const DATO_CASA = { campo: "wantsPriceEstimates", sujeto: { tipo: "casa", id: null }, estado: "dicho", valor: true, origen: "dicho" };
-  const COMUN = { casa: { id: CASA, rev: 3 }, personas: [], faltan: [], tareas: [], callados: [] };
+  const COMUN = { casa: { id: CASA, rev: 3 }, personas: [{ id: "p1" }], faltan: [], tareas: [], callados: [] };
   const ALERGIAS = { campo: "alergias", sujeto: { tipo: "persona", id: "p1" }, estado: "vacio", valor: null, origen: null };
   const FICHA_V2 = { v: 2, ...COMUN, fichas: { casa: [DATO_CASA], persona: [ALERGIAS] } };
   async function leerGet({ token = "tok", casa = CASA } = {}) {
@@ -343,6 +348,16 @@ describe("api/operacion.js: la app lee los datos de la ficha Casa (trozo 12)", (
   }
   beforeEach(() => {
     responde(/^\/auth\/v1\/user/, { status: 200, cuerpo: { id: "u1" } });
+  });
+
+  it("en una casa sin personas la app recibe la base de los datos por persona, y la carga sigue", async () => {
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "owner" }] });
+    responde(/rpc\/ficha_casa/, { status: 200, cuerpo: { ...FICHA_V2, personas: [] } });
+    const res = await leerGet();
+    expect(res.codigo).toBe(200);
+    expect(res.body.datos.filter((d) => d.campo === "schedule")).toEqual([
+      { campo: "schedule", sujeto: { tipo: "casa", id: null }, ambito: null, estado: "vacio", valor: null, origen: null },
+    ]);
   });
 
   it("quien es de la casa (también un lector) recibe solo la ficha Casa de ficha_casa v2", async () => {
@@ -473,5 +488,294 @@ describe("api/operacion.js: las señales de la app (trozo 15) se suman en senal"
     const res = await pedir({ body: { casa: CASA, senales: SENALES } });
     expect(res.codigo).toBe(HTTP_DE_FALLO[FALLO_DATO.SERVIDOR]);
     expect(log.mock.calls.map((c) => JSON.parse(c[0])).find((l) => l.evento === "senales_sin_contar")).toMatchObject({ fallo: FALLO_DATO.SERVIDOR });
+  });
+});
+
+describe("api/operacion.js: lo cocinado (trozo 22) va a su tabla, cocinado", () => {
+  const FILA = { semana: "2026-11-02", dia: "Mar", comida: "Cena", receta_id: "lentejas" };
+  const leer = async (query) => {
+    const res = resFalso();
+    await handler({ method: "GET", headers: { host: "prueba.invalid", authorization: "Bearer tok" }, query }, res);
+    return res;
+  };
+  beforeEach(() => {
+    responde(/^\/auth\/v1\/user/, { status: 200, cuerpo: { id: "u1" } });
+  });
+
+  it("quien edita la casa lo marca: una fila en cocinado, sin clave, nunca en el documento ni por una RPC", async () => {
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "editor" }] });
+    const res = await pedir({ body: { casa: CASA, cocinado: { ...FILA, hecho: true } } });
+    expect(res).toMatchObject({ codigo: 200, body: { guardado: true, hecho: true } });
+    const aTabla = llamadas.filter((l) => l.ruta.startsWith("/rest/v1/cocinado"));
+    expect(aTabla.map((l) => l.metodo)).toEqual(["POST"]);
+    expect(aTabla[0].cuerpo).toEqual([{ household_id: CASA, ...FILA }]);
+    expect(llamadas.filter((l) => DEL_DOCUMENTO.test(l.ruta) || l.ruta.includes("rpc/"))).toEqual([]);
+  });
+
+  it("marcarlo otra vez no falla (el índice único dice que ya estaba); desmarcar borra esa fila y solo esa", async () => {
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "owner" }] });
+    responde(/^\/rest\/v1\/cocinado$/, { status: 409, cuerpo: { code: "23505", message: "duplicate key value violates unique constraint cocinado_unico" } });
+    expect(await pedir({ body: { casa: CASA, cocinado: { ...FILA, hecho: true } } })).toMatchObject({ codigo: 200, body: { hecho: true } });
+    expect(await pedir({ body: { casa: CASA, cocinado: { ...FILA, hecho: false } } })).toMatchObject({ codigo: 200, body: { hecho: false } });
+    const borrado = llamadas.find((l) => l.metodo === "DELETE");
+    expect(borrado.ruta).toBe(`/rest/v1/cocinado?household_id=eq.${CASA}&semana=eq.2026-11-02&dia=eq.Mar&comida=eq.Cena&receta_id=eq.lentejas`);
+  });
+
+  it("un lector no marca; una fila que no es de la tabla (una fecha que no existe como semana, una comida que no existe) es inválida y no se pide", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "viewer" }] });
+    expect((await pedir({ body: { casa: CASA, cocinado: { ...FILA, hecho: true } } })).codigo).toBe(HTTP_DE_FALLO[FALLO_DATO.SIN_PERMISO]);
+    respuestas.length = 0;
+    responde(/^\/auth\/v1\/user/, { status: 200, cuerpo: { id: "u1" } });
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "owner" }] });
+    for (const cocinado of [{ ...FILA, semana: "2026-02-30", hecho: true }, { ...FILA, comida: "Cena tardía", hecho: true }, { ...FILA }]) {
+      expect((await pedir({ body: { casa: CASA, cocinado } })).codigo, JSON.stringify(cocinado)).toBe(HTTP_DE_FALLO[FALLO_DATO.INVALIDO]);
+    }
+    expect((await pedir({ body: { ...CUERPO, cocinado: { ...FILA, hecho: true } } })).codigo).toBe(HTTP_DE_FALLO[FALLO_DATO.INVALIDO]);
+    expect(llamadas.filter((l) => l.ruta.startsWith("/rest/v1/cocinado"))).toEqual([]);
+  });
+
+  it("si la base falla, se dice (servidor) y queda en el log", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "owner" }] });
+    responde(/^\/rest\/v1\/cocinado/, { status: 500, cuerpo: { code: "XX000", message: "roto" } });
+    expect((await pedir({ body: { casa: CASA, cocinado: { ...FILA, hecho: true } } })).codigo).toBe(HTTP_DE_FALLO[FALLO_DATO.SERVIDOR]);
+    expect(log.mock.calls.map((c) => JSON.parse(c[0])).find((l) => l.evento === "cocinado_sin_apuntar")).toMatchObject({ fallo: FALLO_DATO.SERVIDOR });
+  });
+
+  it("sin red al apuntar no es una fila mala: sin_red, y queda en el log", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "owner" }] });
+    const conRed = globalThis.fetch;
+    vi.stubGlobal("fetch", vi.fn(async (url, init) => {
+      if (String(url).includes("/rest/v1/cocinado")) throw new TypeError("fetch failed");
+      return conRed(url, init);
+    }));
+    expect((await pedir({ body: { casa: CASA, cocinado: { ...FILA, hecho: true } } })).codigo).toBe(HTTP_DE_FALLO[FALLO_DATO.SIN_RED]);
+    expect(log.mock.calls.map((c) => JSON.parse(c[0])).find((l) => l.evento === "cocinado_sin_apuntar")).toMatchObject({ fallo: FALLO_DATO.SIN_RED });
+  });
+
+  it("GET ?cocinados=<primer día del menú>: las filas de esa semana, empiece el día que empiece, a quien es de la casa (también a un lector)", async () => {
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "viewer" }] });
+    responde(/^\/rest\/v1\/cocinado/, { status: 200, cuerpo: [FILA] });
+    const res = await leer({ casa: CASA, cocinados: "2026-11-02" });
+    expect(res).toMatchObject({ codigo: 200, body: { cocinados: [FILA] } });
+    expect(llamadas.find((l) => l.ruta.startsWith("/rest/v1/cocinado")).ruta).toContain(`household_id=eq.${CASA}&semana=eq.2026-11-02`);
+    expect((await leer({ casa: CASA, cocinados: "2026-02-30" })).codigo).toBe(HTTP_DE_FALLO[FALLO_DATO.INVALIDO]);
+    expect((await leer({ casa: CASA, cocinados: "2026-11-05" })).codigo).toBe(200);
+  });
+});
+
+describe("api/operacion.js: lo gastado (trozo 22) va a ticket y precio_observado", () => {
+  const TICKET = {
+    id: "tk_1", store: "Mercadona", purchasedAt: "2026-11-03T10:00:00.000Z", total: 3.5, lineCount: 2,
+    tachedKeys: ["leche|l"], tachedWeekStart: "2026-11-02", pantryIds: ["p1"],
+  };
+  const LINEA = (i, precio) => ({
+    id: `tk_1-${i}`, receiptId: "tk_1", ingredientId: "leche", name: "Leche", brand: null, store: "Mercadona",
+    price: precio, qty: 1, unit: "l", purchasedAt: "2026-11-03T10:00:00.000Z", source: "receipt", kind: "food",
+  });
+  const GASTO = { ...LINEA(0, 2), id: "g_1", receiptId: null, source: "manual" };
+  const leer = async (query) => {
+    const res = resFalso();
+    await handler({ method: "GET", headers: { host: "prueba.invalid", authorization: "Bearer tok" }, query }, res);
+    return res;
+  };
+  beforeEach(() => {
+    responde(/^\/auth\/v1\/user/, { status: 200, cuerpo: { id: "u1" } });
+  });
+
+  it("un ticket con sus precios: una fila en ticket (con lo que lo deshace) y las suyas en precio_observado, nunca en el documento", async () => {
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "editor" }] });
+    const res = await pedir({ body: { casa: CASA, compra: { ticket: TICKET, precios: [LINEA(0, 1.5), LINEA(1, 2)] } } });
+    expect(res).toMatchObject({ codigo: 200, body: { guardado: true, precios: 2 } });
+    const t = llamadas.find((l) => l.ruta === "/rest/v1/ticket");
+    expect(t.cuerpo).toEqual([{ household_id: CASA, id: "tk_1", super: "Mercadona", comprado_at: "2026-11-03T10:00:00.000Z", total: 3.5, lineas: 2, tachados: ["leche|l"], tachados_semana: "2026-11-02", despensa_ids: ["p1"] }]);
+    const p = llamadas.find((l) => l.ruta === "/rest/v1/precio_observado");
+    expect(p.cuerpo.map((x) => [x.id, x.ticket_id, x.precio, x.fuente, x.tipo])).toEqual([["tk_1-0", "tk_1", 1.5, "receipt", "food"], ["tk_1-1", "tk_1", 2, "receipt", "food"]]);
+    expect(llamadas.filter((l) => DEL_DOCUMENTO.test(l.ruta) || l.ruta.includes("rpc/"))).toEqual([]);
+  });
+
+  it("sin la 0124 (PGRST204), el ticket se guarda sin lo que lo deshace y se dice en el log", async () => {
+    const aviso = vi.spyOn(console, "warn").mockImplementation(() => {});
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "owner" }] });
+    let primera = true;
+    const conRed = globalThis.fetch;
+    vi.stubGlobal("fetch", vi.fn(async (url, init) => {
+      if (String(url).endsWith("/rest/v1/ticket") && primera) {
+        primera = false;
+        llamadas.push({ ruta: "/rest/v1/ticket", metodo: "POST", cuerpo: JSON.parse(init.body) });
+        return new Response(JSON.stringify({ code: "PGRST204", message: "Could not find the 'tachados' column of 'ticket' in the schema cache" }), { status: 400 });
+      }
+      return conRed(url, init);
+    }));
+    expect((await pedir({ body: { casa: CASA, compra: { ticket: TICKET, precios: [LINEA(0, 1.5)] } } })).codigo).toBe(200);
+    const intentos = llamadas.filter((l) => l.ruta === "/rest/v1/ticket");
+    expect(intentos).toHaveLength(2);
+    expect(Object.keys(intentos[1].cuerpo[0]).sort()).toEqual(["comprado_at", "household_id", "id", "lineas", "super", "total"]);
+    expect(aviso.mock.calls.map((c) => JSON.parse(c[0]))).toContainEqual({ evento: "ticket_sin_deshacer", motivo: "sin la 0124", ticket: "tk_1" });
+  });
+
+  it("un gasto a mano va solo a precio_observado; borrar un ticket borra esa fila (sus precios, por cascade)", async () => {
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "owner" }] });
+    expect(await pedir({ body: { casa: CASA, compra: { precios: [GASTO] } } })).toMatchObject({ codigo: 200, body: { precios: 1 } });
+    expect(llamadas.filter((l) => l.ruta === "/rest/v1/ticket")).toEqual([]);
+    expect(await pedir({ body: { casa: CASA, compra: { borrar_ticket: "tk_1" } } })).toMatchObject({ codigo: 200, body: { borrado: "tk_1" } });
+    expect(llamadas.find((l) => l.metodo === "DELETE").ruta).toBe(`/rest/v1/ticket?household_id=eq.${CASA}&id=eq.tk_1`);
+  });
+
+  it("un lector no guarda; filas que no son de la tabla, o precios de otro ticket, son inválidos y no se pide nada", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "viewer" }] });
+    expect((await pedir({ body: { casa: CASA, compra: { precios: [GASTO] } } })).codigo).toBe(HTTP_DE_FALLO[FALLO_DATO.SIN_PERMISO]);
+    respuestas.length = 0;
+    responde(/^\/auth\/v1\/user/, { status: 200, cuerpo: { id: "u1" } });
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "owner" }] });
+    const malos = [
+      { precios: [{ ...GASTO, source: "foto" }] },
+      { precios: [{ ...GASTO, kind: "comida" }] },
+      { precios: [{ ...GASTO, price: -1 }] },
+      { ticket: { ...TICKET, purchasedAt: "ayer" } },
+      { ticket: TICKET, precios: [{ ...LINEA(0, 1), receiptId: "otro" }] },
+      { borrar_ticket: "tk_1", precios: [GASTO] },
+      {},
+    ];
+    for (const compra of malos) expect((await pedir({ body: { casa: CASA, compra } })).codigo, JSON.stringify(compra)).toBe(HTTP_DE_FALLO[FALLO_DATO.INVALIDO]);
+    expect(llamadas.filter((l) => /\/rest\/v1\/(ticket|precio_observado)/.test(l.ruta))).toEqual([]);
+  });
+
+  it("si la base falla, se dice (servidor) y queda en el log", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "owner" }] });
+    responde(/^\/rest\/v1\/precio_observado/, { status: 500, cuerpo: { code: "XX000", message: "roto" } });
+    expect((await pedir({ body: { casa: CASA, compra: { precios: [GASTO] } } })).codigo).toBe(HTTP_DE_FALLO[FALLO_DATO.SERVIDOR]);
+    expect(log.mock.calls.map((c) => JSON.parse(c[0])).find((l) => l.evento === "compra_sin_apuntar")).toMatchObject({ fallo: FALLO_DATO.SERVIDOR });
+  });
+
+  it("un precio de un ticket que ya no está (409 por clave ajena, 23503) no es «ya estaba»: no se da por guardado", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "owner" }] });
+    responde(/^\/rest\/v1\/precio_observado/, { status: 409, cuerpo: { code: "23503", message: "insert or update on table precio_observado violates foreign key constraint" } });
+    const res = await pedir({ body: { casa: CASA, compra: { precios: [{ ...GASTO, receiptId: "tk_borrado" }] } } });
+    expect(res.codigo).toBe(HTTP_DE_FALLO[FALLO_DATO.SERVIDOR]);
+    expect(res.body?.guardado).not.toBe(true);
+  });
+
+  it("las columnas que se leen son las de la fila que se escribe; sin la 0124, la lectura lo dice en el log", async () => {
+    expect(Object.keys(filaDeTicket(TICKET))).toEqual(COLUMNAS_TICKET);
+    expect(Object.keys(filaDePrecio(GASTO))).toEqual(COLUMNAS_PRECIO);
+    const aviso = vi.spyOn(console, "warn").mockImplementation(() => {});
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "viewer" }] });
+    responde(/^\/rest\/v1\/ticket\?.*tachados/, { status: 400, cuerpo: { code: "42703", message: "column ticket.tachados does not exist" } });
+    const res = await leer({ casa: CASA, compra: "1" });
+    expect(res.codigo).toBe(200);
+    const lecturas = llamadas.filter((l) => l.ruta.startsWith("/rest/v1/ticket?"));
+    const sin0124 = COLUMNAS_TICKET.filter((c) => !DE_LA_0124.includes(c));
+    expect(lecturas.map((l) => decodeURIComponent(l.ruta).split("select=")[1].split("&")[0])).toEqual([COLUMNAS_TICKET.join(","), sin0124.join(",")]);
+    expect(aviso.mock.calls.map((c) => JSON.parse(c[0]))).toContainEqual({ evento: "ticket_sin_deshacer", motivo: "sin la 0124", lectura: true });
+  });
+
+  it("GET ?compra=1: los tickets y precios en la forma de la app, a quien es de la casa", async () => {
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "viewer" }] });
+    responde(/^\/rest\/v1\/ticket/, { status: 200, cuerpo: [{ id: "tk_1", super: "Mercadona", comprado_at: "2026-11-03T10:00:00.000Z", total: "3.5", lineas: 2, tachados: ["leche|l"], tachados_semana: "2026-11-02", despensa_ids: ["p1"] }] });
+    responde(/^\/rest\/v1\/precio_observado/, { status: 200, cuerpo: [{ id: "g_1", ticket_id: null, ingrediente_id: "leche", nombre: "Leche", marca: null, super: "Mercadona", precio: "2", cantidad: "1", unidad: "l", tamano_cantidad: null, tamano_unidad: null, fuente: "manual", tipo: "food", comprado_at: "2026-11-03T10:00:00.000Z" }] });
+    const res = await leer({ casa: CASA, compra: "1" });
+    expect(res.codigo).toBe(200);
+    expect(res.body.tickets).toEqual([{ ...TICKET }]);
+    expect(res.body.precios).toEqual([{ ...GASTO, qty: 1, sizeQty: null, sizeUnit: null }]);
+  });
+});
+
+describe("api/operacion.js: los menús generados (trozo 22) van a menu_generado", () => {
+  const leer = async (query) => {
+    const res = resFalso();
+    await handler({ method: "GET", headers: { host: "prueba.invalid", authorization: "Bearer tok" }, query }, res);
+    return res;
+  };
+  beforeEach(() => {
+    responde(/^\/auth\/v1\/user/, { status: 200, cuerpo: { id: "u1" } });
+  });
+
+  it("quien edita apunta un menú en su tabla, nunca en el documento; un lector no; otra forma es inválida", async () => {
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "editor" }] });
+    expect(await pedir({ body: { casa: CASA, menu_generado: true } })).toMatchObject({ codigo: 200, body: { guardado: true, apuntado: true } });
+    expect(llamadas.filter((l) => l.metodo === "POST" && l.ruta.startsWith("/rest/v1/"))).toEqual([
+      { ruta: "/rest/v1/menu_generado", metodo: "POST", cuerpo: [{ household_id: CASA }] },
+    ]);
+    expect((await pedir({ body: { casa: CASA, menu_generado: { grupos: 2 } } })).codigo).toBe(HTTP_DE_FALLO[FALLO_DATO.INVALIDO]);
+    respuestas.length = 0;
+    responde(/^\/auth\/v1\/user/, { status: 200, cuerpo: { id: "u1" } });
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "viewer" }] });
+    expect((await pedir({ body: { casa: CASA, menu_generado: true } })).codigo).toBe(HTTP_DE_FALLO[FALLO_DATO.SIN_PERMISO]);
+    expect(llamadas.filter((l) => DEL_DOCUMENTO.test(l.ruta))).toEqual([]);
+  });
+
+  it("si la base falla, se dice (servidor) y queda en el log", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "owner" }] });
+    responde(/^\/rest\/v1\/menu_generado/, { status: 500, cuerpo: { code: "XX000", message: "roto" } });
+    expect((await pedir({ body: { casa: CASA, menu_generado: true } })).codigo).toBe(HTTP_DE_FALLO[FALLO_DATO.SERVIDOR]);
+    expect(log.mock.calls.map((c) => JSON.parse(c[0])).find((l) => l.evento === "menu_sin_apuntar")).toMatchObject({ fallo: FALLO_DATO.SERVIDOR });
+  });
+
+  it("GET ?menus=1: los últimos, del más viejo al más nuevo, a quien es de la casa", async () => {
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "viewer" }] });
+    responde(/^\/rest\/v1\/menu_generado/, { status: 200, cuerpo: [{ created_at: "2026-11-04T10:00:00+00:00" }, { created_at: "2026-10-28T10:00:00+00:00" }] });
+    const res = await leer({ casa: CASA, menus: "1" });
+    expect(res.codigo).toBe(200);
+    expect(res.body).toEqual({ menus: ["2026-10-28T10:00:00+00:00", "2026-11-04T10:00:00+00:00"] });
+    const ruta = decodeURIComponent(llamadas.find((l) => l.ruta.startsWith("/rest/v1/menu_generado")).ruta);
+    expect(ruta).toContain(`household_id=eq.${CASA}`);
+    expect(ruta).toContain(`limit=${MENUS_QUE_SE_LEEN}`);
+  });
+});
+
+describe("api/operacion.js: exportar la casa (trozo 36)", () => {
+  const leer = async (query) => {
+    const res = resFalso();
+    await handler({ method: "GET", headers: { host: "prueba.invalid", authorization: "Bearer tok" }, query }, res);
+    return res;
+  };
+  beforeEach(() => {
+    responde(/^\/auth\/v1\/user/, { status: 200, cuerpo: { id: "u1" } });
+  });
+
+  it("a quien es de la casa (también con papel de ver), todas sus tablas en un JSON", async () => {
+    responde(/household_members\?select=role/, { status: 200, cuerpo: [{ role: "viewer" }] });
+    responde(/^\/rest\/v1\/persona\?/, { status: 200, cuerpo: [{ id: "ana" }] });
+    responde(/^\/rest\/v1\/households\?/, { status: 200, cuerpo: [{ id: CASA, name: "Casa", invite_token: "secreto" }] });
+    // u1 es la identidad de Telegram 111; el 222 es el privado de otra persona de la casa.
+    responde(/^\/rest\/v1\/bot_identities\?/, { status: 200, cuerpo: [{ channel: "telegram", external_id: "111" }] });
+    responde(/^\/rest\/v1\/bot_chats\?/, { status: 200, cuerpo: [{ channel: "telegram", chat_id: "111", kind: "private" }, { channel: "telegram", chat_id: "222", kind: "private" }] });
+    responde(/^\/rest\/v1\/bot_messages\?/, { status: 200, cuerpo: [{ channel: "telegram", chat_id: "111", content: "lo mío" }, { channel: "telegram", chat_id: "222", content: "lo de otra" }] });
+    const res = await leer({ casa: CASA, exportar: "1" });
+    expect(res.codigo).toBe(200);
+    // Ni a quien solo ve la casa le llega el enlace para entrar en ella.
+    expect(JSON.stringify(res.body)).not.toContain("secreto");
+    expect(res.body.tablas.households.filas).toEqual([{ id: CASA, name: "Casa" }]);
+    // Ni el chat a solas de otra persona con Lola.
+    expect(res.body.tablas.bot_messages.filas.map((m) => m.content)).toEqual(["lo mío"]);
+    expect(JSON.stringify(res.body)).not.toContain("lo de otra");
+    expect(Object.keys(res.body.tablas)).toEqual([...TABLAS_EXPORTADAS]);
+    expect(res.body.tablas.persona.filas).toEqual([{ id: "ana" }]);
+    // Ninguna lectura sale de la casa pedida.
+    const tablas = llamadas.filter((l) => TABLAS_EXPORTADAS.some((x) => l.ruta.startsWith(`/rest/v1/${x}?`)) && !l.ruta.includes("select=role"));
+    expect(tablas.every((l) => l.ruta.includes(`=eq.${CASA}`))).toBe(true);
+  });
+
+  it("a quien no es de la casa, sin permiso y sin leer ninguna tabla", async () => {
+    responde(/household_members/, { status: 200, cuerpo: [] });
+    const res = await leer({ casa: CASA, exportar: "1" });
+    expect(res.codigo).toBe(HTTP_DE_FALLO[FALLO_DATO.SIN_PERMISO]);
+    expect(llamadas.filter((l) => l.ruta.startsWith("/rest/v1/persona?"))).toEqual([]);
+  });
+
+  it("si una tabla no se puede leer, no hay exportación a medias: se dice", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    responde(/household_members\?select=role/, { status: 200, cuerpo: [{ role: "owner" }] });
+    responde(/^\/rest\/v1\/sobre\?/, { status: 503, cuerpo: { message: "no" } });
+    const res = await leer({ casa: CASA, exportar: "1" });
+    expect(res.codigo).toBe(HTTP_DE_FALLO[FALLO_DATO.SERVIDOR]);
+    expect(res.body?.tablas).toBeUndefined();
   });
 });

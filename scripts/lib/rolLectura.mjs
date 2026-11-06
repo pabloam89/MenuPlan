@@ -16,6 +16,7 @@
 import { createHash, createHmac, pbkdf2Sync, randomBytes } from "node:crypto";
 import { BOVEDA_COPIAS } from "./copias.mjs";
 import { BOVEDA_SESIONES } from "./env.mjs";
+import { NO_EXISTE_FICHA } from "./erroresOp.mjs";
 
 export const ROL_LECTURA = "consulta_lectura";
 export const VAR_LECTURA = "SUPABASE_DB_URL_LECTURA";
@@ -86,7 +87,7 @@ export const direccionOp = (p) => `op://${p.boveda}/${p.ficha}/${p.variable}`;
 export function estadoFicha(r) {
   if (r.error) return "error";
   if (r.status === 0) return "existe";
-  return /isn't an item in the "[^"]+" vault/.test(String(r.stderr ?? "")) ? "no-existe" : "error";
+  return NO_EXISTE_FICHA.test(String(r.stderr ?? "")) ? "no-existe" : "error";
 }
 
 /** La ficha de 1Password de un perfil, en JSON para `op item create --vault <bóveda> -`. */

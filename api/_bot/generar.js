@@ -24,6 +24,8 @@
 process.env.TZ = "Europe/Madrid";
 
 import { fallaCon } from "./avisar.js";
+import { apuntarMenuGenerado } from "./menusGenerados.js";
+import { conEstructuraDelMenu } from "../../src/lib/estructuraPlatos.js";
 import { select, insert, borrar, eq } from "./db.js";
 import { cargarCasa, conCasa } from "./casa.js";
 import { datosDelMotor } from "../../src/lib/recetasDeLaCasa.js";
@@ -42,6 +44,7 @@ import { conRecordatorioDeSilencio } from "../../src/lib/alergiasBase.js";
 import { apuntarRecordatorio } from "./silencio.js";
 import { listaParaEscribir } from "../../src/lib/vocabularios.js";
 import { conMarcas, claveArticulo } from "../../src/lib/compraIdentidad.js";
+import { compraParaGuardar, articulosDe } from "../../src/lib/compraMarcas.js";
 import { modoDespensaAlGenerar, usaDespensa } from "../../src/lib/modoDespensa.js";
 import { resultado, NO_GUARDADO } from "./resultado.js";
 
@@ -134,7 +137,8 @@ export function colocarPedidos(m, data, plan, recipes, pedidos, activeDays) {
         const course = h.firstRecipeId && roles.includes("primero") && !roles.includes("segundo") ? "first" : "main";
         const el = m.pickCatalogReplacement(data, plan, { groupId: gid, day: d, meal: franja, course, forcedRecipe: receta, hoy: hoyISO() });
         if (!el?.recipeId) continue;
-        plan[gid][clave] = { ...h, [course === "first" ? "firstRecipeId" : "recipeId"]: el.recipeId, warnings: [] };
+        // Con su guarnición, su salsa y para qué receta son (#1246): el plato sale del hueco.
+        plan[gid][clave] = { ...h, ...el.hueco, warnings: [] };
         m.registerRecipes([el.frontendRecipe]);
         recipes.push(el.frontendRecipe);
         puesto = true;
@@ -272,9 +276,16 @@ export const SIN_GENERAR = Object.freeze({
   CASA: "faltan datos de la casa",
   SEMANA: "esa semana ya tiene menú o no se puede generar",
   MINIMOS: "falta saber algo de la casa antes (alergias)",
+  PREGUNTAR: "falta preguntar para cuándo y cómo de a fondo",
   VACIO: "no ha salido ningún plato",
   NO_GUARDADO,
 });
+
+/**
+ * Los motivos de no generar que son una pregunta pendiente, no un fallo: la familia no ve «⚠️ Sin hacer» por ellos
+ * (4 nov 2026: salió «⚠️ Sin hacer: el menú (falta preguntar para cuándo y cómo de a fondo)» mientras Lola preguntaba).
+ */
+export const SIN_GENERAR_ES_PREGUNTA = new Set([SIN_GENERAR.PREGUNTAR, SIN_GENERAR.MINIMOS]);
 
 /**
  * El RESULTADO de generar_menu (resultado.js, trozo 27 de #1037), de lo que
@@ -283,6 +294,9 @@ export const SIN_GENERAR = Object.freeze({
  * `texto`, lo que devolvió, va de nota para el modelo.
  */
 export function resultadoDeGenerar(out, texto) {
+  // Falta preguntar algo antes (fecha y camino, alergias): es una duda, no un fallo. Va como cualquier duda (resultado.js,
+  // ESTADO.NADA sin «sin hacer»): sin línea ⚠️ en el recibo, y al modelo, «pregúntalo» con lo que falta en la nota.
+  if (!out?.ok && SIN_GENERAR_ES_PREGUNTA.has(out?.motivo)) return resultado({ accion: "menu", nota: texto });
   if (!out?.ok) return resultado({ accion: "menu", sinHacer: [{ que: "el menú", motivo: out?.motivo ?? SIN_GENERAR.NO_GUARDADO }], nota: texto });
   const sinHacer = [
     ...(out.huecosVacios ?? []).map((h) => ({ que: describirHuecos([h]), motivo: "ningún plato encaja" })),
@@ -302,7 +316,7 @@ const modeloElegido = (casa) => {
 };
 
 // `out` se rellena siempre (ok, motivo y lo generado): de ahí sale el resultado.
-export async function generarMenu(householdId, cual = "esta", fijos = [], out = null, { desde = null, rehacer = false } = {}) {
+export async function generarMenu(householdId, cual = "esta", fijos = [], out = null, { desde = null, rehacer = false, soloEste = {}, comoSePidio = null } = {}) {
   out ??= {};
   // Una salida sin generar: el motivo para el recibo y el texto para Lola.
   const noGenerado = (motivo, texto, extra = {}) => { Object.assign(out, { ok: false, motivo, ...extra }); return texto; };
@@ -320,7 +334,8 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   if (fijos.length) await prepararRecetas(casa).catch(fallaCon("generar_recetas_propias"));
 
   // Las propias de user_recipes, no las del JSON: la app las quita de ahí.
-  const base = m.resolveModeData({ ...datosDelMotor(casa), userRecipes: propiasDe(casa) });
+  // `soloEste`: lo dicho para este menú (pedidoMenu.js). Va al motor y no se guarda en la casa.
+  const base = conEstructuraDelMenu(m.resolveModeData({ ...datosDelMotor(casa), userRecipes: propiasDe(casa) }), soloEste);
   const pedidos = platosPedidos(m, casa, fijos);
   const working = pedidos.length ? { ...base, fixedDishes: [...(base.fixedDishes ?? []), ...pedidos.map((p) => p.fijo)] } : base;
   const miembros = working.members ?? [];
@@ -354,7 +369,7 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   // «Esta semana» empieza hoy (no tiene sentido planificar el lunes pasado),
   // o mañana si se rehace; las demás, desde su lunes y enteras.
   const { offset, startDayIdx } = pedida;
-  const days = diasQueQuedan(m.explicitDaysForOffset(working, offset), offset, startDayIdx);
+  const days = diasQueQuedan(soloEste.dias ?? m.explicitDaysForOffset(working, offset), offset, startDayIdx);
   const { startISO: inicioGenerado, endISO, activeDays } = m.computeWeekRange(offset, startDayIdx, days);
   // Rehaciendo la semana en curso, se guarda entera desde donde empezaba: lo
   // de hoy y lo pasado vuelve del plan viejo (conservarDiasPrevios, abajo).
@@ -401,7 +416,7 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
     return "NO GUARDADO: el motor no ha podido poner ningún plato en esa semana (revisa los días elegidos y quién come). Sigue el menú de antes.";
   }
   const sh = m.buildShoppingList(plan, groups, m.getDayMeals(weekData), despensa);
-  const generados = [...sh.byCategory.flatMap((c) => c.items), ...(sh.pantryItems ?? [])];
+  const generados = articulosDe(sh);
   let shopping = { items: generados };
   // Rehaciendo la semana en curso, hoy y lo pasado vuelven del plan viejo
   // DESPUÉS de la compra: lo de días que ya pasaron no se vuelve a comprar.
@@ -438,7 +453,9 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   // de hoy (se ha pedido la siguiente): entonces lo apuntado a mano sigue
   // siendo de la de hoy, y solo de ella (compraDeLaSemanaNueva).
   const ponerSemanaNueva = !semanasQueSeQuedan.some((w) => w.week_start <= hoy && hoy <= w.week_end) || (startISO <= hoy && hoy <= endISO);
-  week.shopping = shopping = { items: compraDeLaSemanaNueva(generados, casa, { startISO, endISO, ponerSemanaNueva }) };
+  shopping = { items: compraDeLaSemanaNueva(generados, casa, { startISO, endISO, ponerSemanaNueva }) };
+  // La semana guarda solo las marcas (trozo 18): la lista sale del plan al leerla (compraDeSemana.js).
+  week.shopping = compraParaGuardar(shopping);
 
   try {
     await insert("user_menus", [m.menuToRow(menu, dueno, householdId)]);
@@ -490,7 +507,7 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
       // para «deshaz» lleva esa misma semana: deshacer reactiva el menú de
       // antes y deja la nueva como estaba.
       casa: { ...fresca, semana: { menuId: menu.id, weekStart: startISO, plan, shopping: compraFinal } },
-      semana: { shopping: compraFinal },
+      semana: { shopping: compraParaGuardar(compraFinal) },
       activar: menu.id,
       state: {
         ...fresca.state,
@@ -533,6 +550,8 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   // menú con salmón un día» tardaba casi un minuto en seis vueltas.
   const semana = await describirMenu({ ...casa, menu: null, semanas: null, semana: { plan, weekStart: startISO, weekEnd: endISO, activeDays, startDayIdx, shopping } }).catch(fallaCon("generar_describir", ""));
   // Para la vía rápida del enrutador (api/_bot/turno.js): lo generado, en datos.
+  // Un menú ya hecho no falla por no apuntarlo: se avisa y sigue (racha y «como la última vez» lo notan).
+  await apuntarMenuGenerado(householdId, { menu_id: menu.id, week_start: startISO, camino: comoSePidio?.camino ?? null }).catch(fallaCon("generar_apuntar", null));
   Object.assign(out, {
     ok: true, desde: startISO, hasta: endISO, platos, avisos, conservadas, recordarSilencio, presupuesto, quitados, incumplidas,
     pedidos: pedidos.length ? dondeQuedaron(pedidos, plan, activeDays) : [],

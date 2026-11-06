@@ -4,29 +4,43 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 let filas;
 vi.mock("./db.js", () => ({
   eq: (v) => `eq.${v}`,
-  update: vi.fn(),
+  // Solo lo usa apuntarPrueba (0129): cambia las filas de bot_identities de ese Telegram y esa cuenta.
+  update: vi.fn(async (tabla, filtro, cambios) => {
+    const [, ext, user] = filtro.match(/external_id=eq\.([^&]+)&user_id=eq\.([^&]+)/) ?? [];
+    for (const f of filas[tabla] ?? []) if (f.external_id === ext && f.user_id === user) Object.assign(f, cambios);
+    return [];
+  }),
   select: vi.fn(async (tabla, filtro) => {
     const id = filtro.match(/(?:chat_id|external_id)=eq\.([^&]+)/)?.[1];
     const t = filas[tabla] ?? [];
     return t.filter((f) => String(f.chat_id ?? f.external_id) === id);
   }),
+  // Upsert como el de db.js (merge-duplicates): las columnas que no lleva la fila nueva se quedan como estaban.
   insert: vi.fn(async (tabla, nuevas) => {
     filas[tabla] = filas[tabla] ?? [];
+    // El registro de enlaces es de solo añadir.
+    if (tabla === "bot_enlaces") { filas[tabla].push(...nuevas); return; }
     for (const n of nuevas) {
       const clave = n.chat_id ?? n.external_id;
-      filas[tabla] = filas[tabla].filter((f) => (f.chat_id ?? f.external_id) !== clave).concat(n);
+      const antes = filas[tabla].find((f) => (f.chat_id ?? f.external_id) === clave);
+      filas[tabla] = filas[tabla].filter((f) => f !== antes).concat({ ...antes, ...n });
     }
   }),
 }));
 vi.mock("./telegram.js", () => ({ enviar: vi.fn(), escaparHtml: (s) => s, TECLADO: {} }));
 vi.mock("./embudo.js", () => ({ registrar: vi.fn(), EMBUDO: {} }));
 
-const { enlazarChat, idDePersona, codigoDeGrupo, codigoNuevo, esCodigoDeGrupo } = await import("./enlace.js");
+const { enlazarChat, idDePersona, codigoDeGrupo, codigoNuevo, esCodigoDeGrupo, apuntarEnlace, resultadoDeEnlace, pideCambioDeCuenta, preguntaDeCambio, personasDeCasa, CAMBIO, escribePrueba } = await import("./enlace.js");
+const { update } = await import("./db.js");
+const { CAMINO_ENLACE, RESULTADO_ENLACE, PRUEBA_IDENTIDAD } = await import("../../src/lib/vocabularios.js");
+const { readFileSync, readdirSync } = await import("node:fs");
+const { join, resolve } = await import("node:path");
 
 const TITULAR = "u-titular";
 const ASISTENTA = "u-asistenta";
 const identidadDe = (tg) => filas.bot_identities?.find((f) => f.external_id === String(tg))?.user_id ?? null;
-const enlazar = (args) => enlazarChat({ chatId: "c1", householdId: "h1", nombre: "x", ...args });
+const enlazar = (args) => enlazarChat({ camino: CAMINO_ENLACE.APP, chatId: "c1", householdId: "h1", nombre: "x", ...args });
+const resultados = () => (filas.bot_enlaces ?? []).map((f) => f.resultado_enlace);
 
 beforeEach(() => {
   filas = {};
@@ -59,7 +73,7 @@ describe("C-3: un Telegram es una cuenta solo con prueba", () => {
 
   it("ni con el código del correo", async () => {
     filas.bot_identities = [{ channel: "telegram", external_id: "777", user_id: ASISTENTA }];
-    await enlazar({ kind: "private", userId: TITULAR, externalId: "777", identidad: "email" });
+    await enlazar({ kind: "private", userId: TITULAR, externalId: "777", identidad: PRUEBA_IDENTIDAD.CODIGO_EMAIL });
     expect(identidadDe("777")).toBe(ASISTENTA);
   });
 
@@ -103,5 +117,164 @@ describe("códigos de /grupo", () => {
       }
     }
     expect(malos).toEqual([]);
+  });
+});
+
+// La prueba de cada identidad (bot_identities.prueba_identidad, 0129; trozo 3 de specs/auth.md §7): de ella sale si
+// «Entrar con Telegram» abre una cuenta que no nació en Telegram (cuentaConectadaDesdeLaApp, cuentas.js).
+describe("la prueba con la que se apuntó cada Telegram (prueba_identidad)", () => {
+  const pruebaDe = (tg) => filas.bot_identities?.find((f) => f.external_id === String(tg))?.prueba_identidad ?? null;
+  const privado = (identidad, userId = TITULAR) => enlazar({ chatId: "555", kind: "private", userId, externalId: "555", identidad });
+
+  it("«Conectar Telegram» desde la app, en privado: ajustes", async () => {
+    await privado("ajustes");
+    expect(pruebaDe("555")).toBe("ajustes");
+  });
+
+  it("el código del email: codigo_email (no abre sesión)", async () => {
+    await privado(PRUEBA_IDENTIDAD.CODIGO_EMAIL);
+    expect(pruebaDe("555")).toBe(PRUEBA_IDENTIDAD.CODIGO_EMAIL);
+  });
+
+  it("el código del email no le quita a la fila el «se conectó desde la app»", async () => {
+    await privado("ajustes");
+    await privado(PRUEBA_IDENTIDAD.CODIGO_EMAIL);
+    expect(pruebaDe("555")).toBe("ajustes");
+  });
+
+  it("conectarlo desde la app sube una fila del email a ajustes", async () => {
+    await privado(PRUEBA_IDENTIDAD.CODIGO_EMAIL);
+    await privado("ajustes");
+    expect(pruebaDe("555")).toBe("ajustes");
+  });
+
+  it("el cambio confirmado deja la fila en la cuenta nueva, con cambio", async () => {
+    filas.bot_identities = [{ channel: "telegram", external_id: "555", user_id: ASISTENTA, prueba_identidad: "ajustes" }];
+    await privado(CAMBIO);
+    expect(identidadDe("555")).toBe(TITULAR);
+    expect(pruebaDe("555")).toBe("cambio");
+  });
+
+  it("sin la 0129 (el update falla), el enlace sigue y la fila queda sin prueba", async () => {
+    update.mockRejectedValueOnce(new Error("column bot_identities.prueba_identidad does not exist"));
+    const r = await privado("ajustes");
+    expect(r).toEqual({ ok: true, identidad: "nueva" });
+    expect(identidadDe("555")).toBe(TITULAR);
+    expect(pruebaDe("555")).toBe(null);
+  });
+
+  it("en la misma cuenta, solo se escribe una prueba que abre sesión", () => {
+    expect(escribePrueba({ identidad: PRUEBA_IDENTIDAD.CODIGO_EMAIL, estado: "igual" })).toBe(false);
+    expect(escribePrueba({ identidad: "ajustes", estado: "igual" })).toBe(true);
+    expect(escribePrueba({ identidad: PRUEBA_IDENTIDAD.CODIGO_EMAIL, estado: "nueva" })).toBe(true);
+  });
+});
+
+// Cambiar de cuenta, confirmado en el privado (#1238, recorrido 4): el Telegram 777 era de ANTES, que enlazó su
+// privado a su casa; la persona entra con la cuenta de la app (APP) y confirma.
+describe("cambiar de cuenta con confirmación (#1238)", () => {
+  const ANTES = "u-antes";
+  const APP = "u-app";
+  const conAntes = (linkedBy = ANTES) => {
+    filas.bot_identities = [{ channel: "telegram", external_id: "777", user_id: ANTES }];
+    filas.bot_chats = [{ chat_id: "777", household_id: "h-antes", linked_by: linkedBy }];
+  };
+
+  it("con la prueba del cambio, el Telegram pasa a la cuenta de la app y el chat a su casa", async () => {
+    conAntes();
+    const r = await enlazarChat({ chatId: "777", kind: "private", householdId: "h-app", userId: APP, externalId: "777", identidad: CAMBIO });
+    expect(r).toEqual({ ok: true, identidad: "nueva" });
+    expect(identidadDe("777")).toBe(APP);
+    expect(filas.bot_chats[0]).toMatchObject({ household_id: "h-app", linked_by: APP });
+  });
+
+  it("sin confirmar (el enlace a secas), el chat sigue ocupado", async () => {
+    conAntes();
+    const r = await enlazarChat({ chatId: "777", kind: "private", householdId: "h-app", userId: APP, externalId: "777", identidad: "ajustes" });
+    expect(r).toEqual({ ok: false, ocupado: true });
+    expect(identidadDe("777")).toBe(ANTES);
+  });
+
+  it("el cambio no mueve un chat que enlazó una tercera cuenta", async () => {
+    conAntes("u-otra");
+    const r = await enlazarChat({ chatId: "777", kind: "private", householdId: "h-app", userId: APP, externalId: "777", identidad: CAMBIO });
+    expect(r).toEqual({ ok: false, ocupado: true });
+    expect(identidadDe("777")).toBe(ANTES);
+  });
+
+  it("se pregunta solo en privado y si el Telegram es de otra cuenta", () => {
+    expect(pideCambioDeCuenta({ esGrupo: false, deAntes: ANTES, userId: APP })).toBe(true);
+    expect(pideCambioDeCuenta({ esGrupo: false, deAntes: APP, userId: APP })).toBe(false);
+    expect(pideCambioDeCuenta({ esGrupo: false, deAntes: null, userId: APP })).toBe(false);
+    expect(pideCambioDeCuenta({ esGrupo: true, deAntes: ANTES, userId: APP })).toBe(false);
+  });
+
+  it("la pregunta dice cuántas personas tiene cada casa: dos «Mi casa» no se distinguen por el nombre (#1302)", () => {
+    const p = preguntaDeCambio({ casaAntes: "Mi casa", casaApp: "Mi casa", personasAntes: 4, personasApp: 0 });
+    expect(p).toContain("<b>Mi casa</b>, con 4 personas");
+    expect(p).toContain("<b>Mi casa</b>, sin nadie");
+    expect(preguntaDeCambio({ casaAntes: "A", casaApp: "B", personasAntes: 1, personasApp: 2 })).toContain("<b>A</b>, con 1 persona");
+  });
+
+  it("personasDeCasa: una casa sin leer o sin saber no cuenta como vacía", () => {
+    const filas = [{ household_id: "a" }, { household_id: "a" }];
+    expect(personasDeCasa(filas, "a")).toBe(2);
+    expect(personasDeCasa(filas, "b")).toBe(0);
+    expect(personasDeCasa(filas, null)).toBeNull();
+    expect(personasDeCasa(null, "a")).toBeNull();
+  });
+
+  it("sin saber cuántas, no dice que no hay nadie", () => {
+    expect(preguntaDeCambio({ casaAntes: "A", casaApp: "B" })).not.toContain("sin nadie");
+  });
+
+  it("la pregunta nombra las dos casas y dice que lo de la otra cuenta no se pasa", () => {
+    const p = preguntaDeCambio({ casaAntes: "Casa Telegram", casaApp: "Casa App" });
+    expect(p).toMatch(/la de <b>Casa Telegram<.b>/);
+    expect(p).toMatch(/(<b>Casa App<.b>)/);
+    expect(p).toMatch(/no se pasa/);
+  });
+});
+
+describe("cada intento de enlace queda apuntado (bot_enlaces, #1238)", () => {
+  it("nuevo, ya estaba y casa cambiada, según cómo estaba el chat", async () => {
+    await enlazar({ chatId: "p1", kind: "private", userId: TITULAR, externalId: "555", identidad: null });
+    await enlazar({ chatId: "p1", kind: "private", userId: TITULAR, externalId: "555", identidad: null });
+    await enlazar({ chatId: "p1", kind: "private", householdId: "h2", userId: TITULAR, externalId: "555", identidad: null });
+    expect(resultados()).toEqual([RESULTADO_ENLACE.NUEVO, RESULTADO_ENLACE.YA_ESTABA, RESULTADO_ENLACE.CASA_CAMBIADA]);
+    expect(filas.bot_enlaces[0]).toEqual({ camino_enlace: "app", resultado_enlace: "nuevo", household_id: "h1", user_id: TITULAR });
+  });
+
+  it("un chat de otra casa y otra cuenta: rechazado como ocupado, y también se apunta", async () => {
+    await enlazar({ chatId: "p1", kind: "private", userId: TITULAR, externalId: "555", identidad: null });
+    const r = await enlazar({ chatId: "p1", kind: "private", householdId: "h2", userId: ASISTENTA, externalId: "556", identidad: null });
+    expect(r.ocupado).toBe(true);
+    expect(resultados()).toEqual([RESULTADO_ENLACE.NUEVO, RESULTADO_ENLACE.OCUPADO]);
+  });
+
+  it("si el Telegram ya es de otra cuenta, el enlace se hace y se apunta como identidad_de_otra", () => {
+    expect(resultadoDeEnlace(null, "h1", "de-otra")).toBe(RESULTADO_ENLACE.IDENTIDAD_DE_OTRA);
+    expect(resultadoDeEnlace(null, "h1", "nueva")).toBe(RESULTADO_ENLACE.NUEVO);
+  });
+
+  it("sin camino no se apunta nada y el enlace sigue (se avisa del fallo)", async () => {
+    const r = await enlazarChat({ chatId: "p9", kind: "private", householdId: "h1", userId: TITULAR, externalId: "557", identidad: null });
+    expect(r.ok).toBe(true);
+    expect(filas.bot_enlaces ?? []).toEqual([]);
+    await apuntarEnlace({ camino: "otro", resultado: RESULTADO_ENLACE.NUEVO });
+    expect(filas.bot_enlaces ?? []).toEqual([]);
+  });
+
+  it("toda llamada a enlazarChat en api/ dice su camino", () => {
+    const raiz = resolve(import.meta.dirname, "..");
+    const llamadas = [];
+    for (const d of ["_bot", "bot"]) {
+      for (const f of readdirSync(join(raiz, d)).filter((x) => x.endsWith(".js") && !x.endsWith(".test.js"))) {
+        const texto = readFileSync(join(raiz, d, f), "utf8");
+        for (const m of texto.matchAll(/(?<!function )enlazarChat\(\{([\s\S]*?)\}\)/g)) llamadas.push({ f: `${d}/${f}`, camino: /\bcamino\b/.test(m[1]) });
+      }
+    }
+    expect(llamadas.length).toBeGreaterThanOrEqual(6);
+    expect(llamadas.filter((l) => !l.camino).map((l) => l.f)).toEqual([]);
   });
 });

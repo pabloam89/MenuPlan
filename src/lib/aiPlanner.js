@@ -3,17 +3,21 @@ import { isBabyMenuGroup, membersOfGroup, resolveMemberAge, tipoDeGrupo } from "
 import { DAYS, modeForGroupSlot, slotKey } from "./planner.js";
 import { ordenarPorSesgo, preferirPorSesgo } from "./sesgos.js";
 import { resolverConReintentos, solverActivo, REGLAS_RELAJABLES, familiasDe } from "./solver.js";
+import { ESCALONES_RELAJAR } from "./preferenciasSistema.js";
 import { DEFAULT_FREQS } from "./defaultFreqs.js";
 import { HOLGURA_TOPES } from "./reparto.js";
 import { esNino } from "./stages.js";
 import { racionesDe } from "./raciones.js";
 import { topePorRacion } from "./presupuesto.js";
-import { cumplimientoDelGrupo, delGrupo } from "./cumplimiento.js";
+import { cumplimientoDelGrupo, delGrupo, pidieronElPlato } from "./cumplimiento.js";
+import { sobreDelMotor } from "./sobreHueco.js";
 import { filterRecipes, filterGarnishes, decisionCatalog, filterOffMenuRecipes, recipeMatchesPreferType, recipeViolatesHardSafety } from "../utils/filterRecipes.js";
+import { platoVetado } from "./vetos.js";
 import { esAnadido, topeDe } from "./cocinaTopes.js";
 import { ajustarCuota } from "./cuotaCocinas.js";
 import { descartadasVigentes, sinDescartadas } from "./descartesPrioridad.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
+import { recetaEnGrupo } from "./ids.js";
 import { isMontaje, PROTEIN_GROUP_BY_MAIN_PROTEIN } from "../data/recipeSchema.js";
 import {
   validateMenu,
@@ -28,6 +32,11 @@ import {
 import { NUTRIENTES, CAMPOS_SECUNDARIOS } from "../data/nutrientes.js";
 import guarnicionesData from "../data/recipes/guarniciones.json" with { type: "json" };
 import salsasData from "../data/recipes/salsas.json" with { type: "json" };
+import { apuntaSuPlato } from "./apuntaSuPlato.js";
+
+// Las guarniciones y salsas del catálogo, por id: un solo índice para el motor y para platoDelHueco.
+const GUARNICION_POR_ID = Object.fromEntries(guarnicionesData.map((g) => [g.id, g]));
+const SALSA_POR_ID = Object.fromEntries(salsasData.map((x) => [x.id, x]));
 import { formatFixedDishesForAI, pinnedGarnishMap, pinnedSalsaMap, enforceFixedDishes, catalogMatchesForFixedDish } from "./fixedDishes.js";
 import { applySeasonalFruit, filterPostrePool } from "./postres.js";
 import { pairGarnishes } from "../utils/pairGarnishes.js";
@@ -50,6 +59,19 @@ import { computeRecipeNutrition } from "./ingredients.js";
 import { isoLocalDate } from "./weekCalendar.js";
 import { DIA_SLUG as DAY_SLUG, DIA_LARGO_MINUSCULAS, diaDeSlug, tipoDeComida, comidaDeTipo, huecoMotor } from "./dias.js";
 import { HUECO_EN_AVISO } from "./huecosDelPlan.js";
+
+/** Cada regla relajable (REGLAS_RELAJABLES) en palabras, para el aviso: qué se salta el plato que se puso. */
+export const REGLA_EN_PALABRAS = Object.freeze({
+  segundo_sin_proteina_principal: "la proteína en el segundo",
+  guarnicion_legumbre: "la guarnición sin legumbre",
+  freq_max_exceeded: "el reparto semanal",
+  health_profile_conflict: "el perfil de salud",
+});
+for (const r of REGLAS_RELAJABLES) if (!REGLA_EN_PALABRAS[r]) throw new Error(`aiPlanner: la regla relajable ${r} no tiene palabras para el aviso`);
+/** Lo que se cede en cada escalón (ESCALONES_RELAJAR): sus reglas en palabras, sacadas de la declaración. */
+const saltarse = (reglas) => `saltarse ${reglas.map((r) => REGLA_EN_PALABRAS[r]).join(" ni ")}`;
+const CEDIDO = Object.freeze(Object.fromEntries(ESCALONES_RELAJAR.map(({ clase, reglas }) => [clase, saltarse(reglas)])));
+const cuentaPorClase = (por) => Object.values(por ?? {}).reduce((n, c) => ({ ...n, [c]: (n[c] ?? 0) + 1 }), {});
 
 /**
  * Los nombres por ración de los 24 micronutrientes. Los cuatro macros
@@ -325,6 +347,8 @@ export function createPlannerStats() {
     solverMs: 0,
     solverCompleto: null,
     solverRelajados: 0,
+    // Los relajados por la clase de lo que se cedió (CLASES_CHOQUE): sistema, supuesto, deseo.
+    solverRelajadosPorClase: {},
     solverSemilla: null,
   };
 }
@@ -397,7 +421,7 @@ export function compactCatalogTable(catalog) {
 // `format`: "json" (task "planner") or "compact" (task "planner-compact").
 const DIA_LARGO_TANDA = DIA_LARGO_MINUSCULAS;
 
-export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay, fixedDishes = [], pantryNames = [], pantryMode = "prefer", frozenDishes = [], recipeMode = "preferred", fridgeDishes = [], cocinas = null, format = "json", bases = null) {
+export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay, fixedDishes = [], pantryNames = [], pantryMode = "prefer", frozenDishes = [], fridgeDishes = [], cocinas = null, format = "json", bases = null) {
   const catalog = decisionCatalog(filteredRecipes);
   // How a boolean catalog flag reads in each format, for the instructions below.
   const flagText = (field) => (format === "compact" ? `${field} = 1` : `"${field}": true`);
@@ -523,11 +547,9 @@ INSTRUCCIÓN ADICIONAL (PRIORIDAD ALTA): GASTA esta lista. Coloca platos que use
   }
 
   const ownRecipes = catalog.filter((r) => r.own);
-  if (ownRecipes.length > 0 && recipeMode !== "catalog") {
+  if (ownRecipes.length > 0) {
     parts.push(
-      recipeMode === "only"
-        ? `\nRECETAS PROPIAS DEL USUARIO: las marcadas con ${flagText("own")}. El menú DEBE usar EXCLUSIVAMENTE estas recetas (${ownRecipes.length} disponibles). Repite las que hagan falta para cubrir todos los huecos, respetando tipo de plato, tiempo, variedad y todas las demás reglas.`
-        : `\nRECETAS PROPIAS DEL USUARIO: las marcadas con ${flagText("own")} en el catálogo. Cuando encajen en un hueco (respetando tipo de plato, tiempo, variedad y todas las demás reglas), PRIORÍZALAS sobre las del catálogo. Es una preferencia fuerte: incluye al menos una receta propia en la semana si alguna encaja, y no las ignores sistemáticamente a favor del catálogo.`,
+      `\nRECETAS PROPIAS DEL USUARIO: las marcadas con ${flagText("own")} en el catálogo. Cuando encajen en un hueco (respetando tipo de plato, tiempo, variedad y todas las demás reglas), PRIORÍZALAS sobre las del catálogo. Es una preferencia fuerte: incluye al menos una receta propia en la semana si alguna encaja, y no las ignores sistemáticamente a favor del catálogo.`,
     );
   }
 
@@ -985,6 +1007,8 @@ function asignarConSolver({
       semilla,
       // El presupuesto de la casa como preferencia (lib/presupuesto.js).
       topeRacion,
+      // Las preferencias de la casa que tocan a este grupo, con su peso (cumplimiento.js).
+      preferencias: delGrupo(entrada.preferencias, group),
     },
   );
   for (const [cocina, cuantos] of Object.entries(res.cocinasSinSitio)) {
@@ -998,6 +1022,8 @@ function asignarConSolver({
     stats.solverMs = res.ms;
     stats.solverCompleto = res.completo;
     stats.solverRelajados = res.relajados.length;
+    // Choques al generar, por la clase de lo que se cedió (método de choques, trozo 33).
+    stats.solverRelajadosPorClase = cuentaPorClase(res.relajadoPor);
     // La que GANÓ, para poder reproducir el menú; y cuántos intentos costó.
     stats.solverSemilla = res.semilla;
     stats.solverIntentos = res.intentos;
@@ -1010,10 +1036,14 @@ function asignarConSolver({
       `${group.label}: no se encontró una combinación que cumpla todas las reglas a la vez; ${res.sinCombinacion.length} plato(s) se quedan ${HUECO_EN_AVISO.sin_asignar} (${res.sinCombinacion.join(", ")}).`,
     );
   }
+  // Aplicar y avisar en una línea (método de choques): qué se cedió, de lo que menos manda a lo que más. Un hueco
+  // sin clase (no debería: el solver la pone a todos) va con el texto de siempre, no se calla.
   if (res.relajados.length > 0) {
-    warnings.push(
-      `${group.label}: en ${res.relajados.join(", ")} no cabía ningún plato sin pasarse del reparto semanal o del perfil de salud; se ha puesto el mejor disponible.`,
-    );
+    const partes = [...ESCALONES_RELAJAR.map(({ clase }) => clase), null].map((clase) => {
+      const huecos = res.relajados.filter((id) => (CEDIDO[res.relajadoPor?.[id]] ? res.relajadoPor[id] : null) === clase);
+      return huecos.length ? `en ${huecos.join(", ")} no cabía ningún plato sin ${clase ? CEDIDO[clase] : saltarse([...REGLAS_RELAJABLES])}` : null;
+    }).filter(Boolean);
+    warnings.push(`${group.label}: ${partes.join("; ")}; se ha puesto el mejor disponible.`);
   }
   // La regla 11 culpa del exceso al ÚLTIMO plato de esa familia en orden de
   // comidas, no al que se relajó. Así que la revalidación no puede ignorar el
@@ -1172,7 +1202,6 @@ export async function generateGroupMenu(dataOEntrada, group, signal, pantryIngre
       .map((p) => p.ingredientName),
     pantryMode,
     frozenDishes,
-    ctx.filterOpts.recipeMode ?? "preferred",
     fridgeDishes,
     ctx.filterOpts.cocinas,
     format,
@@ -1492,8 +1521,8 @@ function masaDeRacion(r) {
 // (src/lib/raciones.js). Las cantidades siguen a las raciones; `servings`
 // sigue siendo cuántas personas son. Sin peso ni altura de nadie, raciones =
 // eaters y nada cambia.
-export function catalogToFrontendRecipe(catalogRecipe, eaters, restrictions = [], raciones = null) {
-  const r = applySeasonalFruit(catalogRecipe);
+export function catalogToFrontendRecipe(catalogRecipe, eaters, restrictions = [], raciones = null, fecha = new Date()) {
+  const r = applySeasonalFruit(catalogRecipe, fecha);
   const servings = Math.max(1, eaters);
   const racionesReales = raciones > 0 ? raciones : servings;
   const factor = racionesReales / r.baseServings;
@@ -1948,8 +1977,8 @@ export async function generateMenuWithAI(dataOEntrada, { signal, pantryIngredien
   const seenRecipeIds = new Set();
   let placedSlots = 0;
 
-  const guarnicionById = Object.fromEntries(guarnicionesData.map((g) => [g.id, g]));
-  const salsaById = Object.fromEntries(salsasData.map((s) => [s.id, s]));
+  const guarnicionById = GUARNICION_POR_ID;
+  const salsaById = SALSA_POR_ID;
   // Raciones de un hueco: las de quienes comen en él (en casa o con tupper,
   // el mismo criterio que `eaters`), cada uno con su factor.
   const racionesEn = (miembros, day, meal) => racionesDe(
@@ -2041,10 +2070,16 @@ export async function generateMenuWithAI(dataOEntrada, { signal, pantryIngredien
           firstRecipeId: null,
           eaters: eaters,
           raciones,
+          restricciones: restrictions,
           mode: modeBySlot[slotId] ?? "casa",
           warnings: [],
         };
       }
+      // La guarnición y la salsa del plato, en el hueco (#1246): con ellas, el plato sale del catálogo (platoDelHueco).
+      // `platoDe`/`primeroDe`: la receta para la que son. Quien cambia la receta sin cambiarlas no las hereda.
+      const decisiones = (curso) => (curso === "primero"
+        ? { firstGarnishId: garnishId ?? null, firstSauceId: sauceId ?? null, primeroDe: frontendId }
+        : { garnishId: garnishId ?? null, sauceId: sauceId ?? null, platoDe: frontendId });
 
       // Una cena de un plato no trae posición y es el plato de la noche. Una de
       // DOS la trae, y entonces se reparte igual que una comida: el primero al
@@ -2052,6 +2087,7 @@ export async function generateMenuWithAI(dataOEntrada, { signal, pantryIngredien
       // ya sabe pintar como dos platos.
       if (mealType === "cena" && !position) {
         byDayMeal[planKey].recipeId = frontendId;
+        Object.assign(byDayMeal[planKey], decisiones("principal"));
       } else if (position === "1") {
         // ¿Es el plato único de la comida o el primero de dos? Lo dice el
         // hueco. Antes se miraba si la RECETA podía ser plato único, y 106 de
@@ -2067,11 +2103,14 @@ export async function generateMenuWithAI(dataOEntrada, { signal, pantryIngredien
         if (isPlatoUnico) {
           byDayMeal[planKey].recipeId = frontendId;
           byDayMeal[planKey].firstRecipeId = null;
+          Object.assign(byDayMeal[planKey], decisiones("principal"));
         } else {
           byDayMeal[planKey].firstRecipeId = frontendId;
+          Object.assign(byDayMeal[planKey], decisiones("primero"));
         }
       } else if (position === "2") {
         byDayMeal[planKey].recipeId = frontendId;
+        Object.assign(byDayMeal[planKey], decisiones("principal"));
       }
     }
 
@@ -2107,6 +2146,12 @@ export async function generateMenuWithAI(dataOEntrada, { signal, pantryIngredien
       const kidsMembers = membersOfGroup(kids, entrada.personas);
       // Clona un plato del menú de los adultos al espacio de nombres de los
       // niños (prefijo de grupo si hay varios menús), arrastrando su guarnición.
+      // Es el plato de la olla de los mayores: con sus mismos recambios (si un mayor es celíaco, la pasta de todos es
+      // sin gluten) y los de los niños. Con [] la copia de los niños compraba pasta normal.
+      const restriccionesOlla = [...new Set([
+        ...(results.find((x) => x.group.id === adults.id)?.restrictions ?? []),
+        ...(results.find((x) => x.group.id === kids.id)?.restrictions ?? []),
+      ])];
       const cloneForKids = (adultFrontendId, eaters, raciones) => {
         if (!adultFrontendId) return null;
         const baseId = adultFrontendId.includes("__")
@@ -2117,20 +2162,13 @@ export async function generateMenuWithAI(dataOEntrada, { signal, pantryIngredien
         const kidsFrontendId = multi ? `${kids.id}__${baseId}` : baseId;
         if (!seenRecipeIds.has(kidsFrontendId)) {
           seenRecipeIds.add(kidsFrontendId);
-          // Es el plato de la olla de los mayores: con sus mismos recambios
-          // (si un mayor es celíaco, la pasta de todos es sin gluten) y los de
-          // los niños. Con [] la copia de los niños compraba pasta normal.
-          const restriccionesCopia = [...new Set([
-            ...(results.find((x) => x.group.id === adults.id)?.restrictions ?? []),
-            ...(results.find((x) => x.group.id === kids.id)?.restrictions ?? []),
-          ])];
-          const fr = catalogToFrontendRecipe(catalogRecipe, eaters, restriccionesCopia, raciones);
+          const fr = catalogToFrontendRecipe(catalogRecipe, eaters, restriccionesOlla, raciones);
           if (multi) fr.id = kidsFrontendId;
           fr.baseRecipeId = baseId;
           const adultFr = allRecipes.find((r) => r.id === adultFrontendId);
           if (adultFr?.garnishId) {
             const garnish = guarnicionById[adultFr.garnishId];
-            if (garnish) applyGarnishToRecipe(fr, garnish, raciones, restriccionesCopia);
+            if (garnish) applyGarnishToRecipe(fr, garnish, raciones, restriccionesOlla);
           }
           allRecipes.push(fr);
         }
@@ -2160,8 +2198,15 @@ export async function generateMenuWithAI(dataOEntrada, { signal, pantryIngredien
           plan[kids.id][`${day}-${meal}`] = {
             recipeId: mainId ?? firstId,
             firstRecipeId: mainId ? firstId : null,
+            garnishId: (mainId ? src.garnishId : src.firstGarnishId) ?? null,
+            sauceId: null,
+            firstGarnishId: mainId && firstId ? src.firstGarnishId ?? null : null,
+            firstSauceId: null,
+            platoDe: mainId ?? firstId,
+            primeroDe: mainId ? firstId : null,
             eaters,
             raciones,
+            restricciones: restriccionesOlla,
             mode: mode.mode,
             warnings: [],
             fromAdultLunch: action === "adultLunch",
@@ -2205,6 +2250,10 @@ export async function generateMenuWithAI(dataOEntrada, { signal, pantryIngredien
         recipeId: frontendId,
         firstRecipeId: null,
         eaters: a.eaters,
+        restricciones: [],
+        garnishId: null,
+        sauceId: null,
+        platoDe: frontendId,
         mode: "casa",
         warnings: [],
         extraMeal: a.mealKey,
@@ -2234,7 +2283,30 @@ export async function generateMenuWithAI(dataOEntrada, { signal, pantryIngredien
     throw new AIPlannerError("La IA devolvió slots sin recetas asociadas.");
   }
 
+  sellarDelMotor(plan, entrada, results);
   return { plan, recipes: allRecipes, cumplimiento: cumplimientoDeLaSemana(entrada, results) };
+}
+
+/**
+ * Cada hueco que puso el motor lleva su sobre (sobreHueco.js, trozo 18): canal sistema, el día de la entrada y las
+ * preferencias del grupo que pidieron sus platos (pidieronElPlato, la misma regla que el informe). El bebé no lleva
+ * preferencias de la casa: solo canal y día.
+ */
+function sellarDelMotor(plan, entrada, results) {
+  for (const r of results) {
+    const huecos = plan[r.group.id];
+    if (!huecos) continue;
+    const prefs = entrada.contexto[r.group.id]?.isBabyGroup ? [] : delGrupo(entrada.preferencias, r.group);
+    const porId = new Map((r.filteredPool ?? []).map((x) => [x.id, x]));
+    for (const [k, h] of Object.entries(huecos)) {
+      const motivo = new Set();
+      for (const id of [h?.firstRecipeId, h?.recipeId]) {
+        const receta = id ? porId.get(catalogIdOfPlanRecipe(id)) : null;
+        if (receta) for (const p of pidieronElPlato(prefs, receta)) motivo.add(p);
+      }
+      huecos[k] = { ...h, sobre: sobreDelMotor(entrada.hoy, [...motivo]) };
+    }
+  }
 }
 
 /**
@@ -2271,18 +2343,12 @@ export function applyPreparedGarnishes(plan, allRecipes, guarnicionById, groupRe
       if (!garnish) continue;
       const frIdx = allRecipes.findIndex((r) => r.id === slot.recipeId);
       if (frIdx < 0) continue;
-      const fr = allRecipes[frIdx];
-      if (fr.garnishId === garnishId) continue;
-      const baseId = fr.baseRecipeId ?? catalogIdOfPlanRecipe(slot.recipeId);
-      const catalogRecipe = recipeCatalogById[baseId];
-      if (!catalogRecipe) continue;
-      const eaters = slot.eaters ?? 2;
-      const restrictions = restrictionsByGroup[groupId] ?? [];
-      const base = catalogToFrontendRecipe(catalogRecipe, eaters, restrictions);
-      base.id = fr.id;
-      base.baseRecipeId = baseId;
-      applyGarnishToRecipe(base, garnish, eaters, restrictions);
-      allRecipes[frIdx] = base;
+      if (allRecipes[frIdx].garnishId === garnishId) continue;
+      // La guarnición del tupper pasa a ser la del hueco (#1246), y el plato sale de él: con sus raciones y su salsa.
+      slot.garnishId = garnishId;
+      slot.restricciones ??= restrictionsByGroup[groupId] ?? [];
+      const plato = platoDelHueco(slot);
+      if (plato) allRecipes[frIdx] = plato;
     }
   }
 }
@@ -2372,6 +2438,86 @@ function scaleSideIngredients(side, eaters, renameByName, idPrefix) {
 // data/recipes.js pueda usarla sin cerrar un ciclo de imports.
 export { mergeIngredientLines };
 
+/**
+ * El plato de un hueco del menú, sacado del catálogo con lo que el hueco apunta (#1246): la receta, su guarnición y su
+ * salsa, para quién (`eaters`, `raciones`) y con qué recambios (`restricciones`). Es la misma receta que hoy guarda la
+ * copia (`aiRecipes`, `user_menu_recipes`): no hay que copiarla. `curso`: «principal» (`recipeId`) o «primero»
+ * (`firstRecipeId`). `fecha`: la de la semana del plato (la fruta de temporada). `propias`: las recetas de la casa
+ * por id. Sin receta en el hueco, o con una que ya no está en el catálogo, null (quien lo pinta dice «receta que ya
+ * no está»). Un hueco sin `restricciones` o sin `eaters` (los de antes de #1246) lanza: no da el plato sin recambios.
+ * La guarnición y la salsa son campos cerrados (ids de guarniciones.json y salsas.json): una que no está, lanza.
+ */
+export function platoDelHueco(hueco, curso = "principal", { fecha = new Date(), propias = {} } = {}) {
+  const primero = curso === "primero";
+  const id = primero ? hueco?.firstRecipeId : hueco?.recipeId;
+  if (!id) return null;
+  const baseId = recetaEnGrupo.leer(id).receta;
+  const receta = recipeCatalogById[baseId] ?? propias[baseId];
+  if (!receta) return null;
+  if (!apuntaSuPlato(hueco, curso)) {
+    throw new Error(`hueco: ${id} no apunta sus recambios, para cuántos o su guarnición (un hueco de antes de #1246, o con la receta cambiada, se lee de su copia)`);
+  }
+  const { restricciones, eaters } = hueco;
+  const raciones = hueco.raciones || eaters;
+  const fr = catalogToFrontendRecipe(receta, eaters, restricciones, raciones, fecha);
+  if (id !== baseId) fr.id = id;
+  fr.baseRecipeId = baseId;
+  const guarnicionId = primero ? hueco.firstGarnishId : hueco.garnishId;
+  const salsaId = primero ? hueco.firstSauceId : hueco.sauceId;
+  if (guarnicionId && !GUARNICION_POR_ID[guarnicionId]) throw new Error(`hueco: la guarnición «${guarnicionId}» no está en el catálogo`);
+  if (salsaId && !SALSA_POR_ID[salsaId]) throw new Error(`hueco: la salsa «${salsaId}» no está en el catálogo`);
+  if (guarnicionId) applyGarnishToRecipe(fr, GUARNICION_POR_ID[guarnicionId], raciones, restricciones);
+  if (salsaId) applySauceToRecipe(fr, SALSA_POR_ID[salsaId], raciones, restricciones);
+  return fr;
+}
+
+export { apuntaSuPlato };
+
+/**
+ * Lo que un cambio de plato escribe en el hueco (#1246, paso 2b): la receta de ese curso, su guarnición y su salsa, y
+ * para qué receta son (`platoDe`, `primeroDe`); y los recambios y para cuántos, si el hueco es de antes y no los tiene.
+ * Con eso el plato sale del hueco (`platoDelHueco`), como los que pone el motor.
+ */
+export function huecoDelCambio(hueco, course, recipeId, { garnishId = null, sauceId = null, restricciones = [] } = {}) {
+  const base = { restricciones: hueco?.restricciones ?? restricciones, eaters: hueco?.eaters ?? 2 };
+  return course === "first"
+    ? { ...base, firstRecipeId: recipeId, firstGarnishId: garnishId, firstSauceId: sauceId, primeroDe: recipeId }
+    : { ...base, recipeId, garnishId, sauceId, platoDe: recipeId };
+}
+
+/** El plato de un cambio, sacado del hueco ya cambiado. `receta` vale aunque no sea del catálogo (una propia). */
+function platoDelCambio(hueco, cambio, course, receta) {
+  return platoDelHueco({ ...hueco, ...cambio }, course === "first" ? "primero" : "principal", { propias: { [receta.id]: receta } });
+}
+
+/**
+ * Los platos de un plan de una semana (`plan[grupo][hueco]`), sacados de sus huecos con `platoDelHueco`: los dos
+ * cursos de cada hueco que apunta su plato (`apuntaSuPlato`). Los que no, no salen: su plato es aún su copia
+ * (`aiRecipes`), hasta que se retire. Las claves que empiezan por «_» no son grupos (`_warnings`).
+ */
+export function platosDelPlan(plan, opciones = {}) {
+  const platos = [];
+  for (const [grupo, huecos] of Object.entries(plan ?? {})) {
+    if (grupo.startsWith("_")) continue;
+    for (const hueco of Object.values(huecos ?? {})) {
+      for (const curso of ["principal", "primero"]) {
+        if (!apuntaSuPlato(hueco, curso)) continue;
+        const plato = platoDelHueco(hueco, curso, opciones);
+        if (plato) platos.push(plato);
+      }
+    }
+  }
+  return platos;
+}
+
+/**
+ * Los platos de todas las semanas de los menús de la casa (`data.menus[id].weeks[lunes].plan`), cada semana con su
+ * fecha (la fruta de temporada). Es lo que la app registra al leer los menús, en vez de guardar copias.
+ */
+export function platosDeMenus(menus, { propias = {} } = {}) {
+  return Object.values(menus ?? {}).flatMap((menu) => Object.entries(menu?.weeks ?? {})
+    .flatMap(([lunes, semana]) => platosDelPlan(semana?.plan, { fecha: new Date(lunes), propias })));
+}
 export function applyGarnishToRecipe(fr, garnish, eaters, restrictions = []) {
   if (!fr || !garnish) return fr;
 
@@ -2842,7 +2988,30 @@ export function choquesDelPlan(dataOEntrada, plan, { antes = null } = {}) {
   return choques;
 }
 
-export function pickCatalogReplacement(dataOEntrada, menuPlan, { groupId, day, meal, course = "main", forcedRecipe = null, sameCategory = false, candidatos = 0, admiteMontaje = false, pedido = false, hoy = null, usadosEnOtrasSemanas = null }) {
+/**
+ * Por qué una receta no encaja en un hueco (vocabulario cerrado). Dos usos, el mismo porqué:
+ * - Cuando elige la máquina, VECINOS y MISMO_DIA dejan fuera candidatas (`descartes` de
+ *   pickCatalogReplacement con `candidatos`). VECINOS se puede saltar (`repetirVecinos`); MISMO_DIA no.
+ * - Cuando elige la persona (`pedido`), ROL, TIEMPO, REPETIDO, MONTAJE y NO_GUSTA no quitan nada:
+ *   van de aviso en cada candidata (`avisos`), y la receta entra si la eligen (trozo 74 de #1037).
+ */
+export const DESCARTE = Object.freeze({
+  VECINOS: "vecinos", MISMO_DIA: "mismo_dia",
+  ROL: "rol", TIEMPO: "tiempo", REPETIDO: "repetido", MONTAJE: "montaje", NO_GUSTA: "no_gusta",
+});
+/** Cada motivo, en palabras. Los dos primeros, tras «no repito»; los avisos, tras «ojo:». */
+export const DESCARTE_EN_PALABRAS = Object.freeze({
+  [DESCARTE.VECINOS]: "lo de los días de al lado",
+  [DESCARTE.MISMO_DIA]: "lo de la otra comida del mismo día",
+  [DESCARTE.ROL]: "no es el tipo de plato de ese hueco",
+  [DESCARTE.TIEMPO]: "tarda más del tiempo que tenéis ese día",
+  [DESCARTE.REPETIDO]: "ya está en el menú de esta semana",
+  [DESCARTE.MONTAJE]: "es de montar (bocadillo, tosta…) y ese hueco no es de cena rápida",
+  [DESCARTE.NO_GUSTA]: "lleva algo que alguien de la casa ha dicho que no",
+});
+for (const d of Object.values(DESCARTE)) if (!DESCARTE_EN_PALABRAS[d]) throw new Error(`aiPlanner: el descarte ${d} no tiene palabras`);
+
+export function pickCatalogReplacement(dataOEntrada, menuPlan, { groupId, day, meal, course = "main", forcedRecipe = null, sameCategory = false, candidatos = 0, admiteMontaje = false, pedido = false, hoy = null, usadosEnOtrasSemanas = null, repetirVecinos = false }) {
   // Los vetos de la libreta se leen con fecha (lib/vetos.js): un cambio de
   // plato es HOY, salvo que quien llama diga otra cosa (el bot pasa la de
   // Madrid). Sin esto, un «sin X hasta el día 31» seguía vetando en noviembre.
@@ -2892,12 +3061,10 @@ export function pickCatalogReplacement(dataOEntrada, menuPlan, { groupId, day, m
       ? frescos[Math.floor(Math.random() * frescos.length)]
       : pool[Math.floor(Math.random() * pool.length)];
     const pref = entrada.activos.length > 1 ? `${groupId}__` : "";
-    const comensales = currentSlot.eaters ?? 2;
-    const receta = catalogToFrontendRecipe(elegido, comensales, ctx.filterOpts.intolerances ?? []);
-    receta.id = pref + elegido.id;
-    receta.baseRecipeId = elegido.id;
     // Sin emparejar guarnición: un desayuno no lleva arroz de acompañamiento.
-    return { frontendRecipe: receta, recipeId: receta.id, course, reusedDuplicate: false };
+    const hueco = huecoDelCambio(currentSlot, course, pref + elegido.id, { restricciones: ctx.filterOpts.intolerances ?? [] });
+    const receta = platoDelCambio(currentSlot, hueco, course, elegido);
+    return { frontendRecipe: receta, recipeId: receta.id, course, reusedDuplicate: false, hueco };
   }
 
   let picked;
@@ -2976,6 +3143,35 @@ export function pickCatalogReplacement(dataOEntrada, menuPlan, { groupId, day, m
     (pedido || r.time <= slotMaxTime) &&
     (isCenaRapida || !isMontaje(r)) &&
     (!restrictCategory || r.category === restrictCategory);
+
+  // `pedido` (con `candidatos`): la persona ha nombrado un plato («pasta», «salmón al horno»). Las
+  // reglas del menú (tipo de plato del hueco, tiempo, ya puesto en la semana, montaje, gustos «no») no
+  // quitan nada: cada candidata trae sus `avisos` (DESCARTE) y salen antes las que no rompen ninguna.
+  // Solo frena la seguridad: alergias, intolerancias, dietas, alcohol con niños, bebé (filterRecipes).
+  // Todas, sin cortar en `candidatos`: cortar dejaba fuera justo lo pedido (5 nov 2026: 59 pastas en el
+  // catálogo, 0 en la propuesta para una comida con primero y segundo).
+  if (pedido && candidatos > 0) {
+    const fo = ctx.filterOpts;
+    const { recipes: seguras } = filterRecipes({ ...fo, dislikes: [], excludeIds: [], maxTime: Infinity });
+    const descartadas = new Set(fo.excludeIds ?? []);
+    const avisosDe = (r) => [
+      !roleMatch(r) && DESCARTE.ROL,
+      (r.time > slotMaxTime || r.time > (fo.maxTime ?? Infinity)) && DESCARTE.TIEMPO,
+      usedBaseIds.has(r.id) && DESCARTE.REPETIDO,
+      !isCenaRapida && isMontaje(r) && DESCARTE.MONTAJE,
+      (descartadas.has(r.id) || platoVetado(r, fo.dislikes ?? [])) && DESCARTE.NO_GUSTA,
+    ].filter(Boolean);
+    const lista = seguras
+      .filter((r) => r.id !== currentBaseId && (!restrictCategory || r.category === restrictCategory))
+      .map((r) => ({ r, avisos: avisosDe(r) }));
+    const limpias = lista.filter((x) => x.avisos.length === 0);
+    const conAviso = lista.filter((x) => x.avisos.length > 0);
+    return {
+      candidatos: [...limpias, ...conAviso].map((x) => x.r),
+      avisos: Object.fromEntries(conAviso.map((x) => [x.r.id, x.avisos])),
+    };
+  }
+
   const { candidates: selected, reusedDuplicate: rdup } = selectReplacementCandidates(
     pool,
     structuralFit,
@@ -2985,13 +3181,6 @@ export function pickCatalogReplacement(dataOEntrada, menuPlan, { groupId, day, m
   reusedDuplicate = rdup;
   let candidates = selected;
   if (candidates.length === 0) return null;
-
-  // `pedido` (con `candidatos`): el usuario ha nombrado un plato («salmón al
-  // horno») y se busca el más parecido. Valen las reglas duras de arriba
-  // —alergias, rol del hueco, no repetir plato; el tiempo no— pero no las
-  // preferencias de variedad de abajo, que son para cuando elige la máquina:
-  // dejaban el pool en una docena de platos y sin rastro del salmón.
-  if (pedido && candidatos > 0) return { candidatos: candidates.slice(0, candidatos) };
 
   // School-menu avoidance: this swap path (manual "cambiar plato") is a
   // separate code path from the main generator and never runs through
@@ -3026,15 +3215,23 @@ export function pickCatalogReplacement(dataOEntrada, menuPlan, { groupId, day, m
   const siblingHasProtein =
     proteinGroupsOf(recipeCatalogById[stripGroupPrefix(siblingRecipeId)]).size > 0;
 
-  const collectGroups = (into, dayName, skipMeal = null) => {
+  // Las proteínas (mainProtein y extraProteins, sin repetir) de los platos de un día. De aquí salen a la vez
+  // los grupos que filtran (collectGroups) y lo que se le cuenta a la persona (descartes): un solo recorrido,
+  // para que el porqué no pueda separarse de la regla.
+  const proteinasDelDia = (dayName, skipMeal = null) => {
+    const out = new Set();
     for (const m of entrada.comidas) {
       if (skipMeal && m === skipMeal) continue;
       const s = menuPlan[groupId]?.[`${dayName}-${m}`];
-      if (!s) continue;
-      for (const rid of [s.firstRecipeId, s.recipeId]) {
-        for (const g of proteinGroupsOf(recipeCatalogById[stripGroupPrefix(rid)])) into.add(g);
+      for (const rid of [s?.firstRecipeId, s?.recipeId]) {
+        const r = recipeCatalogById[stripGroupPrefix(rid)];
+        for (const p of [r?.mainProtein, ...(r?.extraProteins ?? [])]) if (PROTEIN_GROUP_BY_MAIN_PROTEIN[p]) out.add(p);
       }
     }
+    return [...out];
+  };
+  const collectGroups = (into, dayName, skipMeal = null) => {
+    for (const p of proteinasDelDia(dayName, skipMeal)) into.add(PROTEIN_GROUP_BY_MAIN_PROTEIN[p]);
   };
 
   // Same day, other meal (comida <-> cena) — the slot being replaced is excluded.
@@ -3054,7 +3251,9 @@ export function pickCatalogReplacement(dataOEntrada, menuPlan, { groupId, day, m
     for (const g of gs) if (sameDayGroups.has(g)) return false;
     return true;
   };
+  // `repetirVecinos`: lo ha pedido la persona («repetir con los días de al lado»).
   const neighborDayOk = (r) => {
+    if (repetirVecinos) return true;
     for (const g of proteinGroupsOf(r)) if (neighborDayGroups.has(g)) return false;
     return true;
   };
@@ -3068,6 +3267,20 @@ export function pickCatalogReplacement(dataOEntrada, menuPlan, { groupId, day, m
   // relaxed first.
   const strict = candidates.filter((r) => sameDayOk(r) && neighborDayOk(r));
   const relaxed = strict.length > 0 ? strict : candidates.filter(sameDayOk);
+  // Lo que cada escalón ha dejado fuera, con las proteínas de qué día (DESCARTE). Solo si el escalón se
+  // aplicó: el de los vecinos se suelta solo cuando no queda nada, y entonces no ha quitado nada.
+  const descartes = [];
+  if (relaxed.length > 0) {
+    const porVecinos = strict.length > 0 ? candidates.filter((r) => sameDayOk(r) && !neighborDayOk(r)) : [];
+    const porMismoDia = candidates.filter((r) => !sameDayOk(r));
+    const vecinos = [DAYS[dayIdx - 1], DAYS[dayIdx + 1]].filter(Boolean).map((d) => [d, null]);
+    for (const [motivo, quitadas, dias] of [[DESCARTE.VECINOS, porVecinos, vecinos], [DESCARTE.MISMO_DIA, porMismoDia, [[day, meal]]]]) {
+      const grupos = new Set(quitadas.flatMap((r) => [...proteinGroupsOf(r)]));
+      const donde = dias.map(([d, sin]) => ({ dia: d, proteinas: proteinasDelDia(d, sin).filter((p) => grupos.has(PROTEIN_GROUP_BY_MAIN_PROTEIN[p])) }))
+        .filter((x) => x.proteinas.length > 0);
+      if (donde.length > 0) descartes.push({ motivo, dias: donde });
+    }
+  }
   if (relaxed.length > 0) candidates = relaxed;
 
   // ── La base del día, una vez ────────────────────────────────────────────
@@ -3154,18 +3367,13 @@ export function pickCatalogReplacement(dataOEntrada, menuPlan, { groupId, day, m
   // exactamente lo que hace que una sugerencia sea buena. Calcularlas por otro
   // camino sería tener dos ideas distintas de "qué cabe aquí", y la que ve el
   // usuario acabaría proponiéndole platos que el botón de al lado descarta.
-  if (candidatos > 0) return { candidatos: candidates.slice(0, candidatos) };
+  if (candidatos > 0) return { candidatos: candidates.slice(0, candidatos), descartes };
   picked = candidates[Math.floor(Math.random() * candidates.length)];
   }
 
   // Match the generator's prefixing: only prefix when several groups are active.
   const activeGroups = entrada.activos;
   const prefix = activeGroups.length > 1 ? `${groupId}__` : "";
-
-  const eaters = currentSlot.eaters ?? 2;
-  const fr = catalogToFrontendRecipe(picked, eaters, ctx.filterOpts.intolerances ?? []);
-  fr.id = prefix + picked.id;
-  fr.baseRecipeId = picked.id;
 
   // Pair a garnish exactly like the generator does. Many "principal" dishes only
   // have dish+garnish combo photos, so without this the photo would show a side
@@ -3206,12 +3414,12 @@ export function pickCatalogReplacement(dataOEntrada, menuPlan, { groupId, day, m
   const safeGarnishes = filterGarnishes(ctx.filterOpts);
   const paired = pairGarnishes(dayAssignments, recipeCatalogById, {}, safeGarnishes);
   const targetGarnishId = paired.find((a) => a.slotId === targetSlotId)?.garnishId;
-  if (targetGarnishId) {
-    const garnish = guarnicionesData.find((g) => g.id === targetGarnishId);
-    if (garnish) applyGarnishToRecipe(fr, garnish, eaters, ctx.filterOpts.intolerances ?? []);
-  }
+  const garnishId = GUARNICION_POR_ID[targetGarnishId] ? targetGarnishId : null;
 
-  return { frontendRecipe: fr, recipeId: fr.id, course, reusedDuplicate };
+  // El plato sale del hueco ya cambiado, con sus recambios y para cuántos: lo mismo que se pinta al leerlo luego.
+  const hueco = huecoDelCambio(currentSlot, course, prefix + picked.id, { garnishId, restricciones: ctx.filterOpts.intolerances ?? [] });
+  const fr = platoDelCambio(currentSlot, hueco, course, picked);
+  return { frontendRecipe: fr, recipeId: fr.id, course, reusedDuplicate, hueco };
 }
 
 /**

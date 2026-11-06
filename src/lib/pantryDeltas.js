@@ -100,6 +100,39 @@ export function collectMenuPantryDeltas(data, menuId) {
 }
 
 /**
+ * Lo de casa se da por gastado al final del día, sin elegir. Una casa que aún guarda `pantryPrefs.consume` eligió
+ * antes otro momento, y hay que pasarla una vez sin descontar dos veces lo que su modo ya descontó:
+ *  - "endOfDay": ya iba así, basta con olvidar el campo.
+ *  - "onCook": lo cocinado ya bajó y se queda. El barrido empieza mañana (`mananaISO`), porque hoy pudo cocinarse algo.
+ *  - "onGenerate": el menú activo bajó entero al crearlo, así que se devuelve y el barrido empieza en su primer día:
+ *    lo ya comido vuelve a bajar en la primera pasada y el resto, día a día.
+ *
+ * Devuelve { deltas, patch } (lo que hay que devolver a la despensa y el cambio de `data`), o null si no hay nada que
+ * pasar.
+ */
+export function estrenoFinDelDia(data, mananaISO) {
+  const { consume, ...pantryPrefs } = data?.pantryPrefs ?? {};
+  if (!consume) return null;
+  if (consume === "onGenerate") {
+    const { deltas, genOut, dayOut, cookedOut } = collectMenuPantryDeltas(data, data.activeMenuId);
+    const semanas = Object.values(data.menus?.[data.activeMenuId]?.weeks ?? {});
+    const [primerDia] = semanas.map((s) => s?.startISO).filter(Boolean).sort();
+    return {
+      deltas,
+      patch: {
+        pantryPrefs,
+        pantryGenDeltas: genOut,
+        pantryDayDeltas: dayOut,
+        cookedDeltas: cookedOut,
+        ...(primerDia ? { pantryEndOfDaySince: primerDia } : null),
+      },
+    };
+  }
+  if (consume === "onCook") return { deltas: [], patch: { pantryPrefs, pantryEndOfDaySince: mananaISO } };
+  return { deltas: [], patch: { pantryPrefs } };
+}
+
+/**
  * Igual que collectMenuPantryDeltas pero para varios menús a la vez (p. ej. el
  * invitado que reemplaza su menú y pierde todos los anteriores del histórico).
  */
@@ -116,17 +149,4 @@ export function reconcileMenusRemoval(data, menuIds) {
     cur = { pantryGenDeltas: r.genOut, pantryDayDeltas: r.dayOut, cookedDeltas: r.cookedOut };
   }
   return { deltas, genOut: cur.pantryGenDeltas, dayOut: cur.pantryDayDeltas, cookedOut: cur.cookedDeltas };
-}
-
-/** Quita de la lista de platos cocinados los que pertenecían a un menú. */
-export function stripCookedDishesForMenu(cookedDishes, menuId) {
-  if (!Array.isArray(cookedDishes)) return [];
-  return cookedDishes.filter((k) => cookedKeyMenuId(k) !== menuId);
-}
-
-/** Igual, para varios menús. */
-export function stripCookedDishesForMenuList(cookedDishes, menuIds) {
-  if (!Array.isArray(cookedDishes)) return [];
-  const set = new Set(menuIds ?? []);
-  return cookedDishes.filter((k) => !set.has(cookedKeyMenuId(k)));
 }

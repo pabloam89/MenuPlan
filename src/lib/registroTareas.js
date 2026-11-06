@@ -11,7 +11,7 @@
  */
 import { REGISTRO_CAMPOS, CAMPOS_PREGUNTABLES } from "./registroCampos.js";
 import {
-  KINDS_TAREA, KIND_TAREA, TIPOS_TAREA, TIPO_TAREA, AMBITOS_TAREA, CIERRES_TAREA, ESTADOS_TAREA, ESTADO_TAREA,
+  KINDS_TAREA, KIND_TAREA, TIPOS_TAREA, TIPO_TAREA, REPITES_RECORDATORIO, AVISOS_RECORDATORIO, AMBITOS_TAREA, CIERRES_TAREA, ESTADOS_TAREA, ESTADO_TAREA,
   RESULTADOS_TAREA, OBJETIVOS_TAREA, SOBRES_TAREA, SOBRE_TAREA, RPCS_IDEMPOTENCIA,
 } from "./vocabularios.js";
 
@@ -34,6 +34,9 @@ export const ENUMS = {
   "bot_tareas.status": ESTADOS_TAREA,
   // v2 (0080): conviven con kind mientras el bot viejo siga desplegado.
   "bot_tareas.tipo": TIPOS_TAREA,
+  // Los recordatorios en tareas (0122, trozo 34).
+  "bot_tareas.repite": REPITES_RECORDATORIO,
+  "bot_tareas.aviso": AVISOS_RECORDATORIO,
   "bot_tareas.resultado": RESULTADOS_TAREA,
   "bot_tareas.objetivo": OBJETIVOS_TAREA,
   // De qué va una pregunta (anotar_tarea.sobre) y cómo se cierra una tarea (cerrar_tarea.estado).

@@ -4,7 +4,7 @@ Auditoría del 9 oct 2026 (issue #239) sobre la rama `ux/239-auditoria-ui`.
 Lo mantiene el agente `diseno`: cuando una cifra cambie, se actualiza aquí
 con su fecha. `DESIGN_SYSTEM.md` describe criterio y voz; este fichero dice
 qué falta y en qué orden. **Desde el PR del encargo #258 (9 oct 2026) existen
-`src/design/tokens.js` (los 77 valores, fuente única), `src/design/tokens.css`
+`src/design/tokens.js` (los 78 valores, fuente única), `src/design/tokens.css`
 (generado, `npm run tokens:css`), la regla `local/no-valor-suelto` en aviso y
 `lint-tokens-base.json`; ninguna pantalla está migrada todavía.** Los valores
 de «Tokens propuestos» son los que quedaron en el módulo; los marcados
@@ -163,9 +163,9 @@ tokens de `ui.md`.
 5. **Lean.** Sin bibliotecas nuevas. Un token sin uso se borra. Entra al sistema
    solo lo que usan ≥ 3 sitios.
 
-## Tokens propuestos (77 valores)
+## Tokens propuestos (78 valores)
 
-Los 77 valores y su reparto por familia los fija `src/design/tokens.test.js` (el
+Los 78 valores y su reparto por familia los fija `src/design/tokens.test.js` (el
 reparto no se copia aquí). Los alias (`acento`, `exito`) y los roles de texto no
 cuentan: no añaden valor. Los alias (`acento`, `exito`) y los roles de
 texto no cuentan: no añaden valor.
@@ -375,7 +375,7 @@ WebP en el pipeline (no se ha convertido nada para comprobar el peso resultante)
 | `foto-plato` | WebP | 1.035 en Vercel Blob; originales (~2,5 GB) fuera del repo | pendiente de medir en Blob |
 | `avatar` | WebP | grandes 1024 px: 69 png, 31,8 MB, mediana por rol de 366 a 649 KB, máx 691 KB · miniaturas 192 px: 69 png, máx 15 KB · `lola-perfil.jpg` | miniatura 15 KB; grande a decidir tras exportar (hoy se sirven 1024 px a pantallas de 30–130 px) |
 | `logo` (HoMenu y tiendas) | SVG | `brand/homenu-teal.*`, `public/logo-homenu.svg`, tiendas: `src/assets/store-logos` 17 ficheros con svg y png a la vez | 10 KB; un solo formato por logo |
-| `marca` (derivados de plataforma del logo) | SVG / PNG | `favicon.svg`, `pwa-icons` 6, `splash.jpg`, `splash.mp4` (2,3 MB) | según plataforma; el vídeo queda fuera de la regla de peso |
+| `marca` (derivados de plataforma del logo) | SVG / PNG | `favicon.svg`, `pwa-icons` 6, `portada-familia.jpg` (foto de la portada, 155 KB) | según plataforma |
 
 **El logo de HoMenu está en la familia `logo`** (maestro único en `diseno/marca/`,
 D12); `marca` son sus derivados que exige el navegador o la tienda.
@@ -408,8 +408,8 @@ nuevos son propuesta. `public/` solo recibe derivados; los originales van a
 | `src/assets/lola/lola-perfil.jpg` | se queda donde está (`avatar`, `raiz: src`) | Lo importan `Dashboard.jsx:12`, `Menu.jsx:140`, `Shopping.jsx:3` |
 | `brand/lola-perfil.jpg` (sin seguimiento) | no se versiona | Idéntico por hash a `src/assets/lola/lola-perfil.jpg`; no entra en `diseno/` para no duplicar. `brand/chef-mateo-perfil.jpg` y el `.png` de Midjourney, también sin seguimiento: los decide quien los creó |
 | `public/avatares/hogares/` (4 jpg) | `public/img/ilustracion/hogares/` | |
-| `public/avatares/cards/<subcarpeta>/` (69) | `public/img/ilustracion/tarjetas/<tema>/` | `cuando_se_sirve`→`cuando-se-sirve`, `foto_recetas`→`foto-recetas`, `pantry_mode`→`modo-despensa`, `pantry_prefs`→`preferencias-despensa`, `scope_picker`→`selector-ambito`, `wizard_picker`→`selector-asistente`, `wizard_timing`→`ritmo-asistente`; `bebe`, `electrodomesticos`, `familia`, `tandas` igual. Rutas con plantilla: `ModeSheets.jsx:16`, `applianceMethods.js:27`, `ScopePickerScreen.jsx:52` |
-| `public/avatares/cards/*.{png,jpg,webp}` sueltos (84) | `public/img/ilustracion/tarjetas/<tema>/`, reparto por prefijo: `casa/` 4 (`casa_*`) · `cocinero/` 14 (`cook_*`) · `comidas/` 19 (`desayuno_*`, `merienda_*`, `postre_*`, `comemos_*`, `estructura_*`, `mismo/distinto_menu_ninos`, `yogur_fruta`, `comidas`) · `ninos/` 10 (`ninos_*`) · `despensa/` 6 (`despensa*`, `nevera`, `congelador`) · `vacios/` 6 (`empty_*`) · `recetas-y-compartir/` 8 (`recetas_*`, `share_*`, `vis_*`) · `ajustes/` 17 (`ajustes_generales`, `cerrar_sesion`, `eliminar_cuenta`, `empezar_de_cero*`, `reiniciar_menu`, `escanear`, `subir_*`, `modo_*`, `inspirate`, `otros`, `otro_grupo_familiar`, `sin_compra`, `continuar_donde_lo_deje`, `aun_no_menu_generado`) | 4+14+19+10+6+6+8+17 = 84. Rutas con plantilla: `ModeSheets.jsx:340` (`/avatares/cards/${slug}.png`), `wizardRegistry.js:464` (`cook_${id}.png`) |
+| `public/avatares/cards/<subcarpeta>/` (69) | `public/img/ilustracion/tarjetas/<tema>/` | `cuando_se_sirve`→`cuando-se-sirve`, `foto_recetas`→`foto-recetas`, `pantry_mode`→`modo-despensa`, `pantry_prefs`→`preferencias-despensa`, `scope_picker`→`selector-ambito`, `wizard_picker`→`selector-asistente`, `wizard_timing`→`ritmo-asistente`; `bebe`, `electrodomesticos`, `familia`, `tandas` igual. Rutas con plantilla: `applianceMethods.js:27`, `ScopePickerScreen.jsx:52` |
+| `public/avatares/cards/*.{png,jpg,webp}` sueltos (84) | `public/img/ilustracion/tarjetas/<tema>/`, reparto por prefijo: `casa/` 4 (`casa_*`) · `cocinero/` 14 (`cook_*`) · `comidas/` 19 (`desayuno_*`, `merienda_*`, `postre_*`, `comemos_*`, `estructura_*`, `mismo/distinto_menu_ninos`, `yogur_fruta`, `comidas`) · `ninos/` 10 (`ninos_*`) · `despensa/` 6 (`despensa*`, `nevera`, `congelador`) · `vacios/` 6 (`empty_*`) · `recetas-y-compartir/` 8 (`recetas_*`, `share_*`, `vis_*`) · `ajustes/` 17 (`ajustes_generales`, `cerrar_sesion`, `eliminar_cuenta`, `empezar_de_cero*`, `reiniciar_menu`, `escanear`, `subir_*`, `modo_*`, `inspirate`, `otros`, `otro_grupo_familiar`, `sin_compra`, `continuar_donde_lo_deje`, `aun_no_menu_generado`) | 4+14+19+10+6+6+8+17 = 84. Rutas con plantilla: `wizardRegistry.js:464` (`cook_${id}.png`) |
 | `public/categories/*.png` y `*.webp` | `public/img/ilustracion/categorias/<slug>.webp` | 4 pares idénticos por hash: `carne`=`carnes`, `pescado`=`pescados`, `pasta_arroz`=`pasta_arroces`, `verduras`=`ensaladas_verduras`. Rutas con plantilla: `ingredientImages.js:492,506`, `menuExport.js:808` |
 | `public/categories/cut/**` (40 png) | `public/img/ilustracion/categorias/recorte/…` | `SliderCocinas.jsx:61` construye la ruta |
 | `public/ingredients/` (502 png) | **se queda en png** hasta el paso de conversión; luego `public/img/ilustracion/ingredientes/<slug>@200.webp` | Si cambia el formato hay que reescribir `src/lib/ingredientImages.js:20`, `ingredientImages.test.js:14-20` y `scripts/build-ingredient-catalog.mjs:122-124` (todos asumen `/ingredients/<id>.png`) |

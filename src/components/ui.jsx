@@ -1,8 +1,10 @@
 import { FRONTAL_BOT } from "../lib/frontalBot.js";
-import { isNativeApp } from "../lib/apiUrl.js";
+import { seOfreceApple, enTelegram } from "../lib/apiUrl.js";
 import { useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
-import { BookOpen, Calendar, ChevronDown, ClipboardList, CookingPot, Home, ShoppingCart, Sparkles, UserCircle, Users, X } from "./icons.jsx";
+import { BookOpen, Calendar, ChevronDown, ClipboardList, CookingPot, Home, Send, ShoppingCart, Sparkles, UserCircle, Users, X } from "./icons.jsx";
+import { color as tono, tipografia, espaciado, radio, sombra, capa } from "../design/tokens.js";
+import { urlEntrarConTelegram, PREGUNTA_ALTA } from "../lib/cuentaTelegram.js";
 import { initialsOf, memberAvatarColor, memberAvatarThumbSrc } from "../lib/stages.js";
 import { formatWeekRangeLabel, getWeekDates } from "../lib/weekCalendar.js";
 import { adhocReasonLabel } from "../lib/groups.js";
@@ -172,13 +174,13 @@ export function SegmentedTabButton({
   // acento dice ademas CUAL es, que es lo que se mira al volver a la pantalla.
   // Es el mismo trato que el Chip seleccionado del sistema (6.1) y la variante
   // `activeDark` del segmented (6.2).
-  const iconColor = selected ? "#fff" : "#9ab0a1";
+  const iconColor = selected ? "#fff" : "#67806f";
   const surface = selected
     ? { background: accent, color: "#fff", boxShadow: "none" }
-    : { background: "transparent", color: "#7a9485", boxShadow: "none" };
+    : { background: "transparent", color: "#4f655b", boxShadow: "none" };
   const badgeTone = selected
     ? { color: accent, background: "rgba(255,255,255,.92)" }
-    : { color: "#7a9485", background: "#dce8de" };
+    : { color: "#4f655b", background: "#dce8de" };
 
   if (Icon) {
     return (
@@ -409,7 +411,7 @@ export function EmptyIllustration({
 // size="sm" is an opt-in compact variant (e.g. inline next to a segmented
 // control where there's no room for the full-size 48×28 switch) — default
 // stays exactly as before for every existing caller.
-export function ToggleSwitch({ checked, onChange, label, size = "md" }) {
+export function ToggleSwitch({ checked, onChange, label, size = "md", disabled = false, ariaLabel }) {
   const sm = size === "sm";
   const trackW = sm ? 34 : 48;
   const trackH = sm ? 20 : 28;
@@ -432,6 +434,8 @@ export function ToggleSwitch({ checked, onChange, label, size = "md" }) {
         type="button"
         role="switch"
         aria-checked={checked}
+        aria-label={ariaLabel}
+        disabled={disabled}
         onClick={() => onChange(!checked)}
         style={{
           width: trackW,
@@ -440,7 +444,8 @@ export function ToggleSwitch({ checked, onChange, label, size = "md" }) {
           border: "none",
           padding: 2,
           background: checked ? "#2d5a3d" : "#d4e0d8",
-          cursor: "pointer",
+          cursor: disabled ? "default" : "pointer",
+          opacity: disabled ? 0.5 : 1,
           flexShrink: 0,
           transition: "background .2s",
         }}
@@ -711,7 +716,7 @@ export function SliderInput({ label, value, min, max, step, suffix, valueLabel, 
   );
 }
 
-function GoogleGlyph({ size = 18 }) {
+export function GoogleGlyph({ size = 18 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 48 48" aria-hidden="true" style={{ flexShrink: 0 }}>
       <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
@@ -722,7 +727,18 @@ function GoogleGlyph({ size = 18 }) {
   );
 }
 
-function AppleGlyph({ size = 18, color = "#fff" }) {
+export function TelegramGlyph({ size = 18, color = tono.telegram }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" style={{ flexShrink: 0 }}>
+      <path
+        fill={color}
+        d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"
+      />
+    </svg>
+  );
+}
+
+export function AppleGlyph({ size = 18, color = "#fff" }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" style={{ flexShrink: 0 }}>
       <path
@@ -895,7 +911,30 @@ export function AppleButton({ onClick, label = "Continuar con Apple", variant = 
 }
 
 /**
- * Las formas de entrar, juntas y con el mismo peso.
+ * «Entrar con Telegram» (specs/auth.md §7): lleva al login oficial de Telegram en
+ * la misma pestaña, y la vuelta la recoge BotEnlace.jsx como la llave de Lola.
+ */
+export function TelegramButton({ url, variant = "light" }) {
+  return (
+    <OAuthButton
+      onClick={() => { window.location.href = url; }}
+      label="Entrar con Telegram"
+      variant={variant}
+      glyph={<Send size={18} />}
+      background={tono.telegram}
+      color={tono.superficie}
+      border={`1.5px solid ${tono.telegram}`}
+      spinnerTrack={tono["linea-fuerte"]}
+      spinnerArc={tono.superficie}
+      failMessage="No se pudo abrir Telegram."
+    />
+  );
+}
+
+/**
+ * Las formas de entrar, juntas y con el mismo peso. Telegram va primero
+ * (Pablo, 4 nov 2026: «tu chat con Lola es tu llave»), solo donde el login
+ * de Telegram funciona (`urlEntrarConTelegram`).
  *
  * En la app de iOS van siempre las dos: ofrecer Google a solas es rechazo de
  * App Store por la Guideline 4.8. Por eso existe este componente y no se pinta
@@ -910,13 +949,31 @@ export function SignInOptions({
   onGoogle,
   onApple,
   variant = "light",
-  conApple = isNativeApp || import.meta.env.VITE_APPLE_WEB === "on",
+  conApple = seOfreceApple(),
+  urlTelegram = typeof window === "undefined" ? null : urlEntrarConTelegram(window.location),
+  dentroDeTelegram = enTelegram(),
 }) {
   const dark = variant === "dark";
   return (
     <div style={{ display: "grid", gap: 10 }}>
-      {conApple && <AppleButton onClick={onApple} variant={variant} />}
-      <GoogleButton onClick={onGoogle} variant={variant} />
+      {urlTelegram && <TelegramButton url={urlTelegram} variant={variant} />}
+      {/* Dentro de Telegram, Google y Apple no dejan entrar (trozo 5 de specs/auth.md §7): solo se dice dónde sí. */}
+      {dentroDeTelegram ? (
+        <p style={{
+          margin: 0,
+          textAlign: "center",
+          fontSize: tipografia["paso-12"],
+          fontWeight: tipografia["peso-700"],
+          color: dark ? tono.superficie : tono["tinta-suave"],
+        }}>
+          ¿Con Google o Apple? Ábrelo en el navegador.
+        </p>
+      ) : (
+        <>
+          {conApple && <AppleButton onClick={onApple} variant={variant} />}
+          <GoogleButton onClick={onGoogle} variant={variant} />
+        </>
+      )}
       {/* La aceptación de los términos vive aquí y no en cada pantalla porque
           aquí es donde nace la cuenta, y porque App Store exige, en apps con
           contenido de usuarios, que el usuario acepte unas condiciones con
@@ -942,15 +999,65 @@ export function SignInOptions({
   );
 }
 
+/**
+ * Una pregunta de cuenta, encima de todo, con dos salidas (specs/auth.md §7, trozo 4): «¿Ya hablas con Lola?» al
+ * nacer una cuenta de Google o Apple, y «¿Añades este Google a tu cuenta?» al volver de Telegram. `onPrincipal`
+ * devuelve `{ error }` como los botones de entrar: si falla, el botón lo dice y la pregunta sigue.
+ */
+export function PreguntaDeCuenta({ titulo, principal, onPrincipal, conTelegram = false, secundario, onSecundario }) {
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={titulo}
+      style={{
+        position: "fixed", inset: 0, zIndex: capa["capa-emergente"],
+        background: tono.scrim,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: `0 ${espaciado["esp-24"]}px`,
+      }}
+    >
+      <div style={{
+        width: "100%", maxWidth: 360,
+        background: tono.superficie,
+        borderRadius: radio["radio-modal"],
+        boxShadow: sombra["sombra-3"],
+        padding: espaciado["esp-24"],
+        display: "grid", gap: espaciado["esp-12"],
+      }}>
+        <h2 style={{ margin: 0, textAlign: "center", color: tono.tinta, fontSize: tipografia["paso-20"], fontWeight: tipografia["peso-900"] }}>
+          {titulo}
+        </h2>
+        <OAuthButton
+          onClick={onPrincipal}
+          label={principal}
+          variant="light"
+          glyph={conTelegram ? <Send size={18} /> : null}
+          background={tono.marca}
+          color={tono.superficie}
+          border={`1.5px solid ${tono.marca}`}
+          spinnerTrack={tono["marca-viva"]}
+          spinnerArc={tono.superficie}
+          failMessage={PREGUNTA_ALTA.noSePudo}
+        />
+        <GhostPillButton onClick={onSecundario} tone="borde">{secundario}</GhostPillButton>
+      </div>
+    </div>
+  );
+}
+
 export function GhostPillButton({ onClick, children, tone = "light" }) {
   const [pressed, setPressed] = useState(false);
   const light = tone === "light";
   // "solid" es el CTA principal: relleno verde, alto contraste, se ve igual
   // sobre la foto del splash que sobre un fondo claro (cuando la foto no
   // carga). Los otros tonos son secundarios (ghost translúcido / borde claro).
-  const solid = tone === "solid";
+  const telegram = tone === "telegram";
+  const solid = tone === "solid" || telegram;
 
-  const styles = solid
+  const styles = telegram
+    ? { border: "none", background: tono.telegram, color: tono.superficie, boxShadow: sombra["sombra-2"] }
+    : solid
     ? {
         border: "none",
         background: pressed

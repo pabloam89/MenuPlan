@@ -34,7 +34,7 @@ select count(*) from public.bot_tareas
 `bot_tareas_tipo_check`
 ```sql
 select count(*) from public.bot_tareas
- where tipo is not null and tipo not in ('espera','falta_saber','decision','seguimiento');
+ where tipo is not null and tipo not in ('espera','falta_saber','decision','seguimiento','recordatorio');
 ```
 
 `bot_tareas_campo_check`
@@ -73,13 +73,8 @@ select count(*) from public.bot_tareas
    and (pedido is null or length(pedido) <= 240), true);
 ```
 
-`bot_reminders_tarea_fk` (tabla `bot_reminders`)
-```sql
-select count(*) from public.bot_reminders r
- where r.tarea_id is not null and r.household_id is not null
-   and not exists (select 1 from public.bot_tareas t
-                    where t.household_id = r.household_id and t.id = r.tarea_id);
-```
+`bot_reminders_tarea_fk` (tabla `bot_reminders`): **ya no existe**, se fue con la tabla en la 0123 (aplicada el 3 nov
+2026). Nada que validar.
 
 ## 0083 · tareas → persona (aplicada el 8 oct 2026)
 
@@ -152,18 +147,16 @@ Aún no está en esta rama; se apuntan para que no se pierdan al entrar.
 Condición: 0085 aplicada y el bot nuevo una semana sin errores.
 
 `bot_messages_channel_check`, `bot_reminders_channel_check`,
-`bot_tareas_channel_check`, `bot_cola_channel_check`
+`bot_tareas_channel_check`, `bot_cola_channel_check` (`bot_reminders_channel_check` **ya no existe**: se fue con la
+tabla en la 0123, aplicada el 3 nov 2026)
 ```sql
 select 'bot_messages' t, count(*) from public.bot_messages where channel not in ('telegram','whatsapp')
-union all select 'bot_reminders', count(*) from public.bot_reminders where channel not in ('telegram','whatsapp')
 union all select 'bot_tareas',    count(*) from public.bot_tareas    where channel not in ('telegram','whatsapp')
 union all select 'bot_cola',      count(*) from public.bot_cola      where channel not in ('telegram','whatsapp');
 ```
 
-`bot_reminders_tipo_check`
-```sql
-select count(*) from public.bot_reminders where tipo not in ('libre','vispera');
-```
+`bot_reminders_tipo_check`: **ya no existe**, se fue con la tabla en la 0123 (aplicada el 3 nov 2026). Nada que
+validar.
 
 # Transiciones declaradas (no son constraints)
 

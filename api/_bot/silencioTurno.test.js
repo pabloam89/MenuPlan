@@ -95,20 +95,20 @@ describe("responder y las alergias por silencio", () => {
   });
 
   it("al cerrar el turno pasa lo que contestó Lola; dentro de generar_menu, todavía nada", async () => {
-    t.herramientas = [{ nombre: "generar_menu", args: { semana: "esta" } }];
+    t.herramientas = [{ nombre: "generar_menu", args: { semana: "esta", camino: "basico", desde: "2026-11-02" } }];
     await turno();
     expect(t.vistas.map((v) => v.respuestaDeLola ?? null)).toEqual([null, "Vale."]);
   });
 
   it("(b) generar_menu aplica el silencio ANTES de generar", async () => {
-    t.herramientas = [{ nombre: "generar_menu", args: { semana: "esta" } }];
+    t.herramientas = [{ nombre: "generar_menu", args: { semana: "esta", camino: "basico", desde: "2026-11-02" } }];
     await turno();
     expect(t.orden.slice(0, 2)).toEqual(["silencio:generar_menu", "generarMenu"]);
   });
 
   it("bloque en paralelo [generar_menu, ajustar_alergias]: nada se marca antes de generar (seguridad alimentaria)", async () => {
     t.herramientas = [
-      { nombre: "generar_menu", args: { semana: "esta" } },
+      { nombre: "generar_menu", args: { semana: "esta", camino: "basico", desde: "2026-11-02" } },
       { nombre: "ajustar_alergias", args: { persona: "Ana", alergenos: ["huevos"], confirmado: true } },
     ];
     await turno();
@@ -123,7 +123,7 @@ describe("responder y las alergias por silencio", () => {
   it("(c) si en el turno Lola llamó a ajustar_alergias, lo que llega a decidir no marca", async () => {
     t.herramientas = [
       { nombre: "ajustar_alergias", args: { persona: "Ana", ninguna: true, confirmado: true } },
-      { nombre: "generar_menu", args: { semana: "esta" } },
+      { nombre: "generar_menu", args: { semana: "esta", camino: "basico", desde: "2026-11-02" } },
     ];
     await turno("Ana no tiene nada, hazme el menú");
     expect(apuntarSilencio).toHaveBeenCalled();

@@ -1,8 +1,9 @@
 import { FRONTAL_BOT, GUIAS_ACTIVAS, GENTE_ACTIVA, abrirLola, avisarAltaALola } from "./lib/frontalBot.js";
+import { pedidoMenu } from "./lib/pedidoLola.js";
 import { cerrarAlta, MOTIVO } from "./lib/altaGuardada.js";
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { LogOut, RotateCcw, AlertTriangle, Trash2, Check, Play, Eraser, X } from "./components/icons.jsx";
-import { BottomNav, APP_SHELL_MAX_WIDTH, SignInOptions, GhostPillButton } from "./components/ui.jsx";
+import { BottomNav, APP_SHELL_MAX_WIDTH, SignInOptions, GhostPillButton, PreguntaDeCuenta } from "./components/ui.jsx";
 import {
   OnboardingMembers,
   OnboardingRestrictions,
@@ -60,24 +61,24 @@ const HouseholdsScreen = lazy(() => import("./screens/HouseholdsScreen.jsx").the
 const BibliotecaScreen = lazy(() => import("./screens/BibliotecaScreen.jsx").then(m => ({ default: m.BibliotecaScreen })));
 const UserStatsScreen = lazy(() => import("./screens/UserStatsScreen.jsx").then(m => ({ default: m.UserStatsScreen })));
 const MenuPeek = lazy(() => import("./screens/FeedScreen.jsx").then(m => ({ default: m.MenuPeek })));
-import { generateMenuWithAI, pickCatalogReplacement, motivoDelChoque, catalogToFrontendRecipe, createPlannerStats } from "./lib/aiPlanner.js";
+import { generateMenuWithAI, pickCatalogReplacement, motivoDelChoque, catalogToFrontendRecipe, createPlannerStats, platosDeMenus } from "./lib/aiPlanner.js";
 import { activeDiscardIds } from "./lib/entradaMotor.js";
 import { sugerenciasDeHueco } from "./lib/sugerenciasDeHueco.js";
 import { minimosQueFaltan } from "./lib/minimosParaGenerar.js";
 import { resolvePlannerModel, resolvePlannerFormat } from "./lib/aiModels.js";
-import { apiUrl } from "./lib/apiUrl.js";
+import { apiUrl, seOfreceApple } from "./lib/apiUrl.js";
+import { pedirExportacion, nombreDelFichero } from "./lib/descargarCasa.js";
 import { findMenuRestrictionConflicts } from "./utils/menuConflicts.js";
 import { GeneratingScreen } from "./screens/GeneratingScreen.jsx";
 // Wizard generativo (experimento local, rama wizard/generativo). Todo lo suyo
 // vive detrás de este hook: la fila de mandos sobre el menú, la burbuja del
 // bot y el modal que sale al dar a "Generar menú". Quitarlo es borrar sus
 // cuatro usos de aquí.
-import { useWizardMenu } from "./components/wizard/useWizardMenu.jsx";
 import { FeedScreen } from "./screens/FeedScreen.jsx";
 import { buildShoppingList } from "./lib/shoppingBuilder.js";
 import { clearPreparedFromSlot } from "./lib/freezer.js";
 import { normalizeIngredientKey } from "./lib/ingredientCategories.js";
-import { conMarcas } from "./lib/compraIdentidad.js";
+import { compraQueSeVe, compraParaGuardar, cambiarCompra, compraAlGenerar, compraNueva, articulosDe } from "./lib/compraMarcas.js";
 import { getDayMeals, getMeals, ALL_DAY_MEALS, DAYS } from "./lib/planner.js";
 import { estructuraDelGrupo } from "./lib/estructuraPlatos.js";
 import { estimarSemana, frasePresupuesto } from "./lib/presupuesto.js";
@@ -102,6 +103,9 @@ import {
 import { normalizeKidDinnerConfig } from "./lib/kidsMenu.js";
 import { loadState, saveState, clearState } from "./lib/storage.js";
 import { semanaDeHoy } from "./lib/menuArchive.js";
+import { menuPorActivar, devolucionAlActivar } from "./lib/activarSolo.js";
+import { usaTablero } from "./lib/modoMenu.js";
+import { puedeRegenerarDia } from "./lib/regenerarDia.js";
 import {
   clampWeekCount,
   computeWeekRange,
@@ -124,9 +128,14 @@ import {
   orderedWeeks,
   MAX_MENU_WEEKS,
 } from "./lib/menuArchive.js";
-import { todayDayIdx, getWeekDatesByMenuWeek } from "./lib/weekCalendar.js";
-import { diaDeFecha, indiceDeFecha } from "./lib/dias.js";
-import { pizarraActiva, huecosDelPlan, conHuecosAlDia, conSemanasAlDia, semanaEnBlanco, conHuecoAnadido, sinHueco, franjasDelDia } from "./lib/pizarra.js";
+import { todayDayIdx, getWeekDatesByMenuWeek, mondayISOForOffset } from "./lib/weekCalendar.js";
+import { diaDeFecha } from "./lib/dias.js";
+import { claveCocinado, cocinadosLocales, ponerCocinadoLocal, sinCocinados } from "./lib/cocinados.js";
+import { CompraContext, cambiarCompraLocal, compraLocal, conCambio, leerCompra, mandarCompra, sinCompra } from "./lib/compraApp.js";
+import { leerCocinados, mandarCocinado } from "./lib/cocinadosApp.js";
+import { apuntarMenuLocal, menusLocales, sinHistorialDeMenus } from "./lib/menusGenerados.js";
+import { leerMenusGenerados, mandarMenuGenerado } from "./lib/menusGeneradosApp.js";
+import { pizarraActiva, fotoAntesDePizarra, volverAntesDePizarra, huecosDelPlan, conHuecosAlDia, conSemanasAlDia, semanaEnBlanco, conHuecoAnadido, sinHueco, franjasDelDia } from "./lib/pizarra.js";
 import { aplicarDiasDeSemana, diasPorDefecto, buildCalendarWeeks } from "./lib/semanaDias.js";
 import { reglaDeInvitado, invitadosPorHueco, sinInvitadosDelHueco } from "./lib/reglas.js";
 import {
@@ -135,6 +144,7 @@ import {
   loadMenuWeekRanges as loadMenuWeekRangesRemote,
   loadMenuDetail as loadMenuDetailRemote,
   activateMenu as activateMenuRemote,
+  descartarMenuNuevo,
   deleteMenu as deleteMenuRemote,
   deactivateMenu as deactivateMenuRemote,
   toggleMenuFavorite as toggleMenuFavoriteRemote,
@@ -177,7 +187,10 @@ import { loadUserState, saveUserState, clearUserState } from "./lib/userState.js
 import { loadHouseholdState, saveHouseholdState, loadHouseholdBotRev, empezarCasaVacia, CASA_VACIA } from "./lib/householdState.js";
 import { leerBotRevVisto, guardarBotRevVisto } from "./lib/botRevVisto.js";
 import { guardandoCasa, guardadosDeCasa } from "./lib/versionCasa.js";
-import { leerFamiliaDeCasa, conFamiliaLeida, sinFamilia, familiaDeCasa, cargaSinSeguir, guardarFamiliaYDocumento, MODO_FAMILIA, contarSenales } from "./lib/familiaCasa.js";
+import { sinRecetasDeTabla } from "./lib/recetasFuente.js";
+import { marcaLocal, ponerMarcaLocal, sinMarcasDePantalla } from "./lib/marcasLocales.js";
+import { vigilarCasa, EVENTO_SENAL } from "./lib/realtimeCasa.js";
+import { leerFamiliaDeCasa, conFamiliaLeida, sinFamilia, familiaDeCasa, queNoCargo, guardarFamiliaYDocumento, MODO_FAMILIA, contarSenales } from "./lib/familiaCasa.js";
 import { senalesDeCambio, senalesDePlato } from "./lib/senales.js";
 import { leerDatosDeCasa, conCasaLeida, sinCasa, casaDeCasa, guardarCasaEnCola, colaDeLaApp } from "./lib/casaDatos.js";
 import { leerLibretaDeCasa, conLibretaLeida, sinLibretaLeida, libretaDeCasa, guardarLibretaEnCola } from "./lib/libretaCasa.js";
@@ -214,9 +227,9 @@ import { suggestHomeRole, migrateHomeRole, resolveAccountMember, miembroDeCuenta
 import { migrateCookTime, COOK_TIME_DEFAULTS } from "./lib/cookTime.js";
 import { navDirection } from "./lib/motion.js";
 import { useAuth } from "./lib/useAuth.js";
+import { formasDeEntrar, NO_SE_PUDO_ANADIR, NO_SE_PUDO_QUITAR, urlEntrarConTelegram, PREGUNTA_ALTA, OFERTA_ANADIR } from "./lib/cuentaTelegram.js";
 import { FeedbackFAB } from "./components/FeedbackFAB.jsx";
 import { HomeCoachTour, RecipesCoachTour, MenuCoachTour, FeedCoachTour } from "./components/HomeCoachTour.jsx";
-import { RecipePrefsWizard } from "./components/ModeSheets.jsx";
 import { trackEvent, upsertUserProfile, APP_VERSION } from "./lib/analytics.js";
 import { EMBUDO, PANTALLA_EMBUDO } from "./lib/embudo.js";
 import { leerDestino, olvidarDestino } from "./lib/destinoBot.js";
@@ -225,15 +238,15 @@ import { RASTRO, MOTIVO_CAMBIO, ORIGEN_RECETA, idBase } from "./lib/rastro.js";
 
 /** La receta de un hueco, para las señales (trozo 15): la registrada o, sin ella, la del catálogo por su id. */
 const recetaDelPlato = (id) => (id ? RECIPES_BY_ID[id] ?? recipeCatalogById[idBase(id)] ?? null : null);
-import { registrarDescartes, recetasDelPlan, refrescarDescartadas } from "./lib/descartes.js";
-import { ALCANCE_DESCARTE } from "./lib/vocabularios.js";
-import { barrerDias } from "./lib/barridoDia.js";
+import { registrarDescartes, refrescarDescartadas } from "./lib/descartes.js";
+import { ALCANCE_DESCARTE, CANAL_DATO } from "./lib/vocabularios.js";
+import { barrerDias, diasPorBarrer, podarMarcas } from "./lib/barridoDia.js";
 import { loadPantry, loadLocalPantry, mergeLocalPantryIntoCloud, clearLocalPantry, clearHouseholdPantry, addPantryItems, addLocalPantryItems, removePantryItem, removeLocalPantryItem, setPantryItemQty, setLocalPantryItemQty } from "./lib/pantry.js";
 import { toCanonicalStockQty } from "./lib/kitchenUnits.js";
 import { normalizePantryInput } from "./utils/normalizePantryInput.js";
 import { basesDeReceta } from "./lib/bases.js";
 import { findMatchingPantryItem } from "./lib/shoppingBuilder.js";
-import { applyConsumption, consumeFromPantry, restoreToPantry, pantryConsumeMode } from "./lib/cookPantry.js";
+import { applyConsumption, consumeFromPantry, restoreToPantry } from "./lib/cookPantry.js";
 import { modoDespensaAlGenerar, modoDespensaAlCargar, usaDespensa, sinUseHomeStock } from "./lib/modoDespensa.js";
 import { useStatusBarSobreFondo } from "./lib/statusBar.js";
 import {
@@ -241,9 +254,8 @@ import {
   makeDeltaBucket,
   bucketDeltas,
   collectMenuPantryDeltas,
+  estrenoFinDelDia,
   reconcileMenusRemoval,
-  stripCookedDishesForMenu,
-  stripCookedDishesForMenuList,
 } from "./lib/pantryDeltas.js";
 import demoState from "./dev/demoState.json";
 import * as ids from "./lib/ids.js";
@@ -396,27 +408,15 @@ const INITIAL_DATA = {
   // ocultamos los controles avanzados. true = modo avanzado: el usuario ve y
   // controla todo. La elección se pide una vez, tras el spotlight de Inicio.
   expertMode: false,
-  // Si ya se ha mostrado el selector básico/avanzado (para no repetirlo).
-  modePrompted: false,
-  // Preferencia de despensa: la ÚNICA que el usuario elige (cuándo se da por
-  // gastado lo de casa que usa el menú). Ver el mini-cuestionario en «En casa».
-  //   consume: "onGenerate" (descuenta el menú de golpe al generar)
-  //          | "onCook"     (descuenta al marcar el plato como cocinado)
-  //          | "endOfDay"   (barrido diferido: da por comido lo de cada día ya
-  //                          pasado la próxima vez que abres la app)
-  // multiWeek/lifecycle ya NO se preguntan: en multisemana la despensa va a la
-  // semana más cercana y el ciclo interno se resetea solo (defaults internos).
-  // Default "onCook" (2026-08-26, era "onGenerate"): no descuenta comida que
-  // aún no has cocinado de verdad — el más honesto de los tres sin preguntar.
-  pantryPrefs: { consume: "onCook" },
-  // Si el usuario ya respondió el cuestionario de despensa (modo avanzado).
-  pantryPrefsSet: false,
+  // Lo de casa que usa el menú se da por gastado al final del día (barrido
+  // diferido: lo de cada día ya pasado, la próxima vez que se abre la app).
+  pantryPrefs: {},
   // Si el cuestionario ya salió solo una vez no es de la casa sino de este
   // móvil: lo recuerda marcasLocales.js (trozo 12 de #1037).
   // Deltas reversibles de la bajada "al generar el menú" (decisión D), por
   // semana — ver migración arriba para la explicación completa.
   pantryGenDeltas: {},
-  // Deltas del barrido "al final del día" (consume === "endOfDay"), por fecha
+  // Deltas del barrido "al final del día", por fecha
   // (clave = ISO del día ya consumido). Solo contabilidad interna.
   pantryDayDeltas: {},
   // Fecha (ISO local) desde la que aplica "al final del día". Se pone al
@@ -529,16 +529,10 @@ const INITIAL_DATA = {
   menus: {},
   activeMenuId: null,
   // ── Precios / Gasto (lib/priceHistory.js) ──
-  // Individual price observations, one per receipt/manual line that mapped to a
-  // canonical ingredient: { id, ingredientId, name, brand, store, price, qty,
-  // unit, purchasedAt, source: "receipt"|"manual", receiptId }.
-  priceObs: [],
+  // Los tickets y los precios viven en sus tablas (compraApp.js, trozo 22 de #1037), no aquí.
   // Learned mappings so a cryptic receipt line only needs confirming once:
   // { [normalizedReceiptLine]: ingredientId }.
   priceAliases: {},
-  // Uploaded receipts (the "facturas" inbox): { id, createdAt, store,
-  // purchasedAt, total, lineCount }.
-  receipts: [],
   // Ya no hay varios rosters (8 oct 2026): la familia es una, la de arriba.
   // Las casas viejas pueden traer data.rosters / data.activeRosterId; se
   // conservan tal cual y nadie los lee.
@@ -767,28 +761,16 @@ function migrate(state) {
   // Lola, #958) del viejo, y el que nadie eligió lo arregla el sobre: con la
   // 0112 se lee de ahí, y sin decir es "only" (modoDespensaAlCargar).
   d.pantryMode = modoDespensaAlCargar(d.pantryMode);
-  if (typeof d.pantryHasItems !== "boolean") d.pantryHasItems = false;
   // ── Modo básico / avanzado ──
-  const looksEstablished =
-    (Array.isArray(d.members) && d.members.length > 0) ||
-    (d.menus && Object.keys(d.menus).length > 0) ||
-    planHasDishes(state.menuPlan);
   if (typeof d.expertMode !== "boolean") d.expertMode = false;
   if (typeof d.kidDinnerMatchesAdultLunch !== "boolean") d.kidDinnerMatchesAdultLunch = false;
   d.kidDinnerConfig = normalizeKidDinnerConfig(d.kidDinnerConfig);
   if (!["off", "week", "weekdays", "weekend"].includes(d.garnishRepeat)) d.garnishRepeat = "off";
-  if (typeof d.modePrompted !== "boolean") {
-    // Cuentas ya en marcha no deben ver de repente el selector de modo: se da
-    // por respondido (quedan en básico). Los usuarios nuevos lo verán una vez.
-    d.modePrompted = Boolean(looksEstablished);
-  }
   if (!d.pantryPrefs || typeof d.pantryPrefs !== "object") d.pantryPrefs = {};
-  // Una sola preferencia real. Los valores antiguos "none" (y cualquier campo
-  // apply/multiWeek/lifecycle heredado) se colapsan al default seguro.
-  d.pantryPrefs = {
-    consume: ["endOfDay", "onGenerate", "onCook"].includes(d.pantryPrefs.consume) ? d.pantryPrefs.consume : "onCook",
-  };
-  if (typeof d.pantryPrefsSet !== "boolean") d.pantryPrefsSet = false;
+  // Lo de casa se da por gastado al final del día. Solo se conserva un modo
+  // antiguo, para pasar la casa una vez (estrenoFinDelDia); lo demás que
+  // trajera ("none", apply, multiWeek, lifecycle) se olvida.
+  d.pantryPrefs = ["endOfDay", "onGenerate", "onCook"].includes(d.pantryPrefs.consume) ? { consume: d.pantryPrefs.consume } : {};
   // Deltas reversibles de la última bajada "al generar el menú", por semana
   // (clave = startISO). Permiten deshacer al regenerar la misma semana sin
   // descontar dos veces. Nunca se muestran en UI, es solo contabilidad interna.
@@ -796,7 +778,7 @@ function migrate(state) {
   // al borrar/reemplazar el menú (ver lib/pantryDeltas.js). normalizeDeltaBucketMap
   // convierte los buckets legacy (array pelado, sin menú) a la nueva forma.
   d.pantryGenDeltas = normalizeDeltaBucketMap(d.pantryGenDeltas);
-  // Deltas del barrido "al final del día" (consume === "endOfDay"), por fecha
+  // Deltas del barrido "al final del día", por fecha
   // (clave = ISO yyyy-mm-dd del día ya consumido). Evita restar dos veces el
   // mismo día y permite prunear días viejos. Solo contabilidad interna.
   d.pantryDayDeltas = normalizeDeltaBucketMap(d.pantryDayDeltas);
@@ -833,9 +815,7 @@ function migrate(state) {
   d.menus = d.menus && typeof d.menus === "object" && !Array.isArray(d.menus) ? d.menus : {};
   d.activeMenuId = typeof d.activeMenuId === "string" ? d.activeMenuId : null;
   // Precios / Gasto
-  d.priceObs = Array.isArray(d.priceObs) ? d.priceObs : [];
   d.priceAliases = d.priceAliases && typeof d.priceAliases === "object" && !Array.isArray(d.priceAliases) ? d.priceAliases : {};
-  d.receipts = Array.isArray(d.receipts) ? d.receipts : [];
   // Legacy shape: a single consecutive count from week 1 → [0, 1, ..., n-1].
   if (!Array.isArray(d.menuWeekOffsets) || d.menuWeekOffsets.length === 0) {
     const legacyCount = clampWeekCount(d.menuWeekCount ?? 1);
@@ -901,19 +881,7 @@ function migrate(state) {
   return { ...state, data: sinUseHomeStock({ ...INITIAL_DATA, ...d }) };
 }
 
-// ── Barrido "al final del día" (consume === "endOfDay") ─────────────────────
-// Sin backend que corra a medianoche, el consumo diario se resuelve de forma
-// perezosa la próxima vez que abres la app: para cada día del menú activo que
-// YA pasó y no se haya contabilizado, se da por comido lo que ese día planificó
-// y se resta de la despensa real. Reutiliza la MISMA lógica que "al generar"
-// (buildShoppingList → pantryItems) pero recortada a un solo día.
-
-// Ventana única del barrido: solo se barren (y solo se guardan) los días de los
-// últimos N días. Las dos cosas DEBEN usar el mismo límite: si prunearamos la
-// marca de un día que todavía es "barrible", el siguiente arranque lo volvería a
-// descontar una y otra vez.
-const PANTRY_DAY_WINDOW_DAYS = 45;
-
+// ── Barrido "al final del día" ─────────────────────────────────────────────
 // yyyy-mm-dd en hora local (no UTC) para casar con el día natural del usuario.
 /**
  * Lo que se guarda de la casa en household_state: todo menos lo que va por
@@ -924,10 +892,10 @@ const PANTRY_DAY_WINDOW_DAYS = 45;
 function snapshotDeCasa({ data, menuPlan, shopping, aiRecipes, onbStep }, modoFamilia, cargaCasa, cargaLibreta) {
   // La familia, si vive en sus filas (trozo 10), los datos de la casa con sobre (trozo 12) y la libreta, si vive en
   // sus filas de preferencia (trozo 14), van por api/operacion.js y no aquí (lib/familiaCasa.js, casaDatos.js, libretaCasa.js).
-  const profile = { ...sinLibretaLeida(sinCasa(sinFamilia(data, modoFamilia), cargaCasa), cargaLibreta) };
-  delete profile.userRecipes;
-  delete profile.recipeVotes;
-  delete profile.discards;
+  // Las recetas, votos, descartes, colecciones y carpetas viven en sus tablas (recetasFuente.js, trozo 21); las marcas
+  // de pantalla, en el móvil o en ningún sitio (marcasLocales.js, trozo 22); lo cocinado, lo gastado y los menús
+  // generados, en sus tablas (cocinados.js, compraApp.js, menusGenerados.js).
+  const profile = { ...sinHistorialDeMenus(sinCompra(sinCocinados(sinMarcasDePantalla(sinRecetasDeTabla(sinLibretaLeida(sinCasa(sinFamilia(data, modoFamilia), cargaCasa), cargaLibreta)))))) };
   delete profile.menus;
   return { data: profile, menuPlan, shopping, aiRecipes, onbStep };
 }
@@ -937,81 +905,6 @@ function isoLocalDate(date) {
   const m = String(date.getMonth() + 1).padStart(2, "0");
   const d = String(date.getDate()).padStart(2, "0");
   return `${y}-${m}-${d}`;
-}
-
-// "yyyy-mm-dd" → medianoche LOCAL. new Date(iso) lo interpretaría como UTC, que
-// según el huso desplaza el día y descuadra la comparación con la ventana.
-function parseLocalISODate(iso) {
-  const [y, m, d] = String(iso).split("-").map(Number);
-  if (!y || !m || !d) return new Date(NaN);
-  return new Date(y, m - 1, d);
-}
-
-// Medianoche local del día más antiguo que sigue dentro de la ventana.
-function pantryDayWindowStart() {
-  const cutoff = new Date();
-  cutoff.setHours(0, 0, 0, 0);
-  cutoff.setDate(cutoff.getDate() - PANTRY_DAY_WINDOW_DAYS);
-  return cutoff;
-}
-
-// Las marcas de días barridos no se guardan para siempre: fuera de la ventana
-// se descartan (los días de fuera tampoco se vuelven a barrer). Es interno.
-function prunePantryDayDeltas(map) {
-  const cutoff = pantryDayWindowStart();
-  const out = {};
-  for (const [k, v] of Object.entries(map ?? {})) {
-    const dt = parseLocalISODate(k);
-    if (Number.isNaN(dt.getTime()) || dt >= cutoff) out[k] = v;
-  }
-  return out;
-}
-
-// Devuelve, para el menú activo, la lista de días ya pasados y aún sin barrer,
-// cada uno con su plan recortado a ese solo día. No toca estado ni BD.
-// `since` (ISO local) es la fecha desde la que aplica el modo: nunca se barre
-// nada anterior, para no re-descontar lo que ya se descontó de otra forma.
-function pendingEndOfDaySweep(data, since) {
-  const menu = data?.menus?.[data?.activeMenuId];
-  if (!menu?.weeks || !since) return [];
-  const already = data?.pantryDayDeltas ?? {};
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const windowStart = pantryDayWindowStart();
-  const pending = [];
-  for (const wk of Object.values(menu.weeks)) {
-    if (!wk?.plan || !wk.startISO) continue;
-    // parseLocalISODate y no new Date(iso): este último interpreta la fecha como
-    // UTC y en husos negativos desplazaría toda la semana un día.
-    const start = parseLocalISODate(wk.startISO);
-    if (Number.isNaN(start.getTime())) continue;
-    const firstDayIdx = indiceDeFecha(start);
-    const end = wk.endISO ? parseLocalISODate(wk.endISO) : null;
-    const span = end && !Number.isNaN(end.getTime())
-      ? Math.round((end - start) / 86400000) + 1
-      : 7;
-    for (let pos = 0; pos < span; pos++) {
-      const dayDate = new Date(start);
-      dayDate.setDate(start.getDate() + pos);
-      dayDate.setHours(0, 0, 0, 0);
-      if (dayDate >= today) continue; // solo días ya cerrados
-      if (dayDate < windowStart) continue; // fuera de ventana: ni se barre ni se marca
-      const dayISO = isoLocalDate(dayDate);
-      if (dayISO < since) continue; // antes de activar el modo: no es nuestro
-      if (already[dayISO]) continue; // ya barrido
-      const dayName = DAYS[(firstDayIdx + pos) % 7];
-      const dayPlan = {};
-      for (const [gid, slots] of Object.entries(wk.plan)) {
-        const kept = {};
-        for (const [sk, val] of Object.entries(slots ?? {})) {
-          if (sk.startsWith(`${dayName}-`)) kept[sk] = val;
-        }
-        if (Object.keys(kept).length) dayPlan[gid] = kept;
-      }
-      pending.push({ dayISO, dayPlan });
-    }
-  }
-  return pending;
 }
 
 /**
@@ -1064,6 +957,10 @@ export default function App() {
   // Bumps after mergeLocalPantryIntoCloud so Pantry/Shopping/onboarding reload
   // stock once the local→cloud fold finishes (avoids a stale empty list).
   const [pantryEpoch, setPantryEpoch] = useState(0);
+  // Lo cocinado de la semana abierta (cocinados.js, trozo 22): su lunes y sus claves, de la tabla o, sin casa, del móvil.
+  const [cocinados, setCocinados] = useState(() => ({ semana: null, claves: new Set() }));
+  // Sube al cambiar una marca de este móvil (marcasLocales.js), que no está en el estado: repinta para leerla.
+  const [, setMarcasVistas] = useState(0);
   // Cross-screen intents fired from "En casa": open the receipt capture flow in
   // Tu compra, and land on Análisis → Gasto. Cleared by the target once consumed.
   const [shoppingCaptureIntent, setShoppingCaptureIntent] = useState(false);
@@ -1203,10 +1100,9 @@ export default function App() {
   // "Elegir manualmente" (rosco): the slot we're filling from the catalog.
   const [slotPicker, setSlotPicker] = useState(null);
 
-  // El menú activo nació en blanco. Se pregunta al menú y no a un estado
-  // suelto para que sobreviva a recargar la app: la pizarra que dejaste a
-  // medias ayer sigue siendo una pizarra hoy.
-  const esPizarra = data.menus?.[data.activeMenuId]?.origin === "pizarra";
+  // Un solo modo de menú: el tablero, venga el menú de donde venga (ver
+  // lib/modoMenu.js).
+  const esPizarra = usaTablero(data);
   // El día cuyo "+" está abierto, o null.
   const [addSlotDay, setAddSlotDay] = useState(null);
   const [toast, setToast] = useState(null);
@@ -1289,7 +1185,18 @@ export default function App() {
   }, [persisted]);
   const [aiRecipes, setAiRecipes] = useState(persisted?.aiRecipes ?? []);
 
-  const { user, session, loading: authLoading, signInWithGoogle, signInWithApple, signOut } = useAuth();
+  // La compra que se ve (trozo 18 de #1037): lo guardado (`shopping`, cada semana de `data.menus` y la nube) son las
+  // marcas de la familia sobre la lista que sale del menú (src/lib/compraMarcas.js); la vista la saca del menú con
+  // ellas encima. Quien cambia la lista lo hace sobre la vista (`setCompra`), y se guarda como marcas. Sin despensa: la
+  // pantalla de la compra la cruza con la de ahora (applyPantryCoverage), no con la de cuando se generó.
+  const gruposCompra = useMemo(() => gruposVigentes(data), [data.groups, data.members, data.menuModel]);
+  const comidasCompra = getDayMeals(data).join("|");
+  const vistaDeCompra = useCallback(
+    (guardada, plan) => compraQueSeVe(guardada, () => articulosDe(buildShoppingList(plan ?? {}, gruposCompra, comidasCompra.split("|").filter(Boolean), []))),
+    [gruposCompra, comidasCompra],
+  );
+
+  const { user, session, loading: authLoading, signInWithGoogle, signInWithApple, anadirFormaDeEntrar, quitarFormaDeEntrar, avisoAlEntrar, olvidarAvisoAlEntrar, signOut, altaPendiente, crearCuentaNueva, entrarConTelegramEnVez, ofertaAnadir, responderOferta } = useAuth();
   const {
     households,
     activeHousehold,
@@ -1372,6 +1279,28 @@ export default function App() {
     registerRecipes(ownUserRecipes.map((r) => catalogToFrontendRecipe(r, eaters)));
   }, [ownUserRecipes, data.members]);
 
+  // Los platos de cada semana de los menús salen de sus huecos (#1246, paso 2), sin copia: se registran al leer los
+  // menús, antes de pintar, con la fecha de su semana (la fruta de temporada). Los huecos de antes siguen con su copia.
+  const platosDeLosMenus = useMemo(() => {
+    const platos = platosDeMenus(data.menus, { propias: Object.fromEntries(ownUserRecipes.map((r) => [r.id, r])) });
+    registerRecipes(platos);
+    return platos;
+  }, [data.menus, ownUserRecipes]);
+
+  // La compra se saca del menú con RECIPES_BY_ID: va después de registrar los platos, y cambia con ellos
+  // (platosDeLosMenus) y con los que se registran de una copia (aiRecipes).
+  const compra = useMemo(() => vistaDeCompra(shopping, menuPlan), [vistaDeCompra, shopping, menuPlan, platosDeLosMenus, aiRecipes]);
+  // Las semanas del menú activo para la pantalla de la compra, cada una con su lista que se ve.
+  const semanasDeCompra = useMemo(
+    () => (data.activeMenuId ? orderedWeeks(data.menus?.[data.activeMenuId]).map((w) => ({ ...w, shopping: vistaDeCompra(w.shopping, w.plan) })) : null),
+    [data.activeMenuId, data.menus, vistaDeCompra, platosDeLosMenus, aiRecipes],
+  );
+  const vistaActualRef = useRef(null);
+  vistaActualRef.current = (guardada) => vistaDeCompra(guardada, menuPlan);
+  const setCompra = useCallback((cambio) => {
+    setShopping((guardada) => cambiarCompra(guardada, cambio, vistaActualRef.current));
+  }, []);
+
   // De qué casa es el estado que hay en memoria (y en localStorage): se apunta
   // al terminar de cargar una casa de la nube. Al cargar otra, si no coincide,
   // manda la nube (soloNubeAlCargar, en profileMerge.js). null = sin apuntar.
@@ -1389,15 +1318,8 @@ export default function App() {
         setData((d) => {
           const menusShrunk =
             Object.keys(prunedData?.menus ?? {}).length < Object.keys(d.menus ?? {}).length;
-          const obsShrunk = (prunedData?.priceObs?.length ?? 0) < (d.priceObs?.length ?? 0);
-          const receiptsShrunk = (prunedData?.receipts?.length ?? 0) < (d.receipts?.length ?? 0);
-          if (!menusShrunk && !obsShrunk && !receiptsShrunk) return d;
-          return {
-            ...d,
-            menus: prunedData.menus ?? d.menus,
-            priceObs: prunedData.priceObs ?? d.priceObs,
-            receipts: prunedData.receipts ?? d.receipts,
-          };
+          if (!menusShrunk) return d;
+          return { ...d, menus: prunedData.menus ?? d.menus };
         });
         const prunedAi = result.saved.aiRecipes ?? [];
         setAiRecipes((cur) => (prunedAi.length < cur.length ? prunedAi : cur));
@@ -1525,11 +1447,8 @@ export default function App() {
     const localFolders = data.recipeFolders ?? [];
     const localDiscards = data.discards ?? { forever: [], cooldownUntil: {} };
     const localMenus = data.menus ?? {};
-    // Spend history is NOT part of the winner-takes-all profile adoption below:
-    // it's merged as a union both ways so a guest's tickets survive login and a
-    // returning user keeps the spend recorded on other devices.
-    const localPriceObs = data.priceObs ?? [];
-    const localReceipts = data.receipts ?? [];
+    // Los alias de los tickets NO entran en la adopción de abajo (gana uno): se suman. Los tickets y precios ya no
+    // van en el documento (compraApp.js).
     const localAliases = data.priceAliases ?? {};
     let cancelled = false;
 
@@ -1580,9 +1499,11 @@ export default function App() {
       // enseñar ni que subir. Se queda sin marcar como cargada (no se guarda
       // nada) y se reintenta al volver a abrirla.
       // La familia sin leer no es una casa sin nadie: con ella a medias, un guardado borraría a quien no salió.
-      if (cargaSinSeguir({ soloNube, remoteState, cargaFamilia, cargaCasa, cargaLibreta })) {
+      const piezasSinLeer = queNoCargo({ soloNube, remoteState, cargaFamilia, cargaCasa, cargaLibreta });
+      if (piezasSinLeer.length) {
         hydratedUserRef.current = null;
         recargandoRef.current = false;
+        trackEvent(user, RASTRO.CASA_SIN_CARGAR, "app", { piezas: piezasSinLeer });
         showToast("No se pudo cargar la casa. Revisa la conexión y vuelve a abrirla.");
         return;
       }
@@ -1674,20 +1595,6 @@ export default function App() {
             remoteData?.discards ?? { forever: [], cooldownUntil: {} },
           );
 
-      // Union spend by id so neither side's tickets/observations are dropped by
-      // the profile adoption (which otherwise picks one whole `data` blob).
-      const unionById = (a = [], b = []) => {
-        const m = new Map();
-        for (const x of a) if (x && x.id != null) m.set(x.id, x);
-        for (const x of b) if (x && x.id != null) m.set(x.id, x);
-        return Array.from(m.values());
-      };
-      const mergedPriceObs = justEmptied || soloNube
-        ? (remoteData?.priceObs ?? [])
-        : unionById(localPriceObs, remoteData?.priceObs);
-      const mergedReceipts = justEmptied || soloNube
-        ? (remoteData?.receipts ?? [])
-        : unionById(localReceipts, remoteData?.receipts);
       const mergedAliases = justEmptied || soloNube
         ? (remoteData?.priceAliases ?? {})
         : { ...(remoteData?.priceAliases ?? {}), ...localAliases };
@@ -1709,8 +1616,6 @@ export default function App() {
           recipeCollections: mergedCollections,
           recipeFolders: mergedFolders,
           discards: mergedDiscards,
-          priceObs: mergedPriceObs,
-          receipts: mergedReceipts,
           priceAliases: mergedAliases,
         };
       });
@@ -2022,8 +1927,12 @@ export default function App() {
   // menú, no el de quien edita (ver rowToMenuSummary).
   useEffect(() => {
     if (householdReadOnly || (user?.id && !cloudReadyRef.current)) return;
-    const r = semanaVivaPorGuardar(data.menus, data.activeMenuId, data.menuWeek?.offset, menuPlan, shopping);
+    // Un plato cambiado a mano lleva su sobre: la app, quién y cuándo (sobreHueco.js, trozo 18).
+    const sobre = { canal: CANAL_DATO.APP, cuando: new Date().toISOString(), quien: user?.id ?? null };
+    const r = semanaVivaPorGuardar(data.menus, data.activeMenuId, data.menuWeek?.offset, menuPlan, shopping, sobre);
     if (!r) return;
+    // Si se selló algún hueco, el plan vivo pasa a ser el sellado (la vuelta siguiente ya no ve diferencia).
+    if (r.week.plan !== menuPlan) setMenuPlan(r.week.plan);
     const menuId = data.activeMenuId;
     setData((d) => (d.activeMenuId === menuId && d.menus === data.menus ? { ...d, menus: r.menus } : d));
     // Sin sesión basta con el archivo local: al cambiar de semana el plan se
@@ -2034,7 +1943,7 @@ export default function App() {
 
   // Al volver a la app (desde Telegram, típicamente) se mira si alguien ha
   // escrito. Es una lectura de un número; la recarga solo si ha cambiado.
-  // Y mientras está a la vista, cada BOT_REV_SONDEO_MS: si tu pareja tacha en
+  // Y mientras está a la vista, al llegar la señal de la casa (o cada BOT_REV_SONDEO_MS si no hay): si tu pareja tacha en
   // la lista, o Lola cambia un plato, se ve sin salir y volver. Con un
   // guardado nuestro en marcha no se mira: el número que llega podría ser el
   // nuestro, todavía sin apuntar, y recargaríamos por un cambio propio.
@@ -2048,57 +1957,38 @@ export default function App() {
       if (rev != null && botRevRef.current != null && rev > botRevRef.current) recargarDesdeNubeRef.current();
     };
     document.addEventListener("visibilitychange", mirar);
-    const sondeo = window.setInterval(mirar, BOT_REV_SONDEO_MS);
+    // Con la señal de la casa por Realtime (trozo 20, 0121) se mira al momento; el sondeo, cada 20 s sin señal y cada 2 min con ella.
+    const dejar = vigilarCasa(syncHouseholdId, {
+      mirar,
+      cadaMs: BOT_REV_SONDEO_MS,
+      anotar: (estado, motivo) => trackEvent(user, EVENTO_SENAL, "app", { estado, motivo: motivo ?? null }),
+    });
     return () => {
       document.removeEventListener("visibilitychange", mirar);
-      window.clearInterval(sondeo);
+      dejar();
     };
   }, [user?.id, syncHouseholdId]);
 
-  // Reconcilia el modo de consumo saliente cuando el usuario lo cambia con un
-  // menú ya activo. Ejemplo: modo "onGenerate" → "endOfDay". El stock se
-  // descontó al generar; sin esta reconciliación el barrido diario lo volvería
-  // a descontar. Restauramos exactamente lo que el modo saliente aplicó y lo
-  // borramos de los buckets para que el nuevo modo arranque con stock limpio.
-  const prevConsumeRef = useRef(pantryConsumeMode(data));
-  useEffect(() => {
-    const prev = prevConsumeRef.current;
-    const next = pantryConsumeMode(data);
-    prevConsumeRef.current = next;
-    if (prev === next) return; // sin cambio real en el modo efectivo
-    const menuId = data.activeMenuId;
-    if (!menuId) return; // sin menú activo, no hay nada que reconciliar
-    const recon = collectMenuPantryDeltas(data, menuId);
-    if (!recon.deltas.length) return; // el modo saliente no dejó nada aplicado
-    setData((d) => ({
-      ...d,
-      pantryGenDeltas: recon.genOut,
-      pantryDayDeltas: recon.dayOut,
-      cookedDeltas: recon.cookedOut,
-    }));
-    restoreToPantry(recon.deltas, { user }).then(() => setPantryEpoch((n) => n + 1));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data.pantryPrefs?.consume]);
-
-  // Barrido "al final del día" (consume === "endOfDay"): al montar / cambiar de
+  // Barrido "al final del día", solo sin casa en la nube (a esa la barre el
+  // servidor cada noche, api/_bot/barridoDespensa.js): al montar / cambiar de
   // menú, resta de la despensa lo que el menú activo planificó para cada día ya
-  // pasado y aún no contabilizado. Perezoso (no hay backend a medianoche) y en
-  // serie recargando stock entre días para que la resta encadene sin duplicar.
+  // pasado y aún no contabilizado, en serie y recargando stock entre días para
+  // que la resta encadene sin duplicar.
   // Solo cuenta a partir de pantryEndOfDaySince (la fecha en que se activó el
   // modo): así estrenarlo con un menú en marcha no vuelve a descontarlo.
   const endOfDaySweepRef = useRef(false);
   useEffect(() => {
     if (user?.id && !cloudReadyRef.current) return; // esperar hidratación cloud
-    const isEndOfDay = pantryConsumeMode(data) === "endOfDay";
-    // Al desactivar el modo se olvida la fecha, así que si se vuelve a activar
-    // más adelante empieza a contar de nuevo desde ese momento.
-    if (!isEndOfDay) {
-      if (data.pantryEndOfDaySince) {
-        setData((d) => (d.pantryEndOfDaySince ? { ...d, pantryEndOfDaySince: null } : d));
-      }
+    // Una casa con un modo antiguo se pasa una vez antes de barrer.
+    if (data.pantryPrefs?.consume) {
+      const manana = new Date();
+      manana.setDate(manana.getDate() + 1);
+      const estreno = estrenoFinDelDia(data, isoLocalDate(manana));
+      setData((d) => ({ ...d, ...estreno.patch }));
+      if (estreno.deltas.length) restoreToPantry(estreno.deltas, { user }).then(() => setPantryEpoch((n) => n + 1));
       return;
     }
-    // Primera vez que se activa el modo: se marca desde HOY (solo con menú activado).
+    // Primera vez: se marca desde HOY (solo con menú activado).
     if (!data.pantryEndOfDaySince) {
       const activeMenuEntry = data.menus?.[data.activeMenuId];
       if (!activeMenuEntry?.activatedAt) return;
@@ -2109,7 +1999,14 @@ export default function App() {
     const activeMenuEntry = data.menus?.[data.activeMenuId];
     if (!activeMenuEntry?.activatedAt) return;
     if (endOfDaySweepRef.current) return;
-    const pending = pendingEndOfDaySweep(data, data.pantryEndOfDaySince);
+    if (syncHouseholdId) return;
+    const hoyLocal = isoLocalDate(new Date());
+    const pending = diasPorBarrer({
+      semanas: Object.values(activeMenuEntry.weeks ?? {}),
+      ya: data.pantryDayDeltas,
+      desde: data.pantryEndOfDaySince,
+      hoy: hoyLocal,
+    });
     if (!pending.length) return;
 
     const groups = gruposVigentes(data);
@@ -2138,7 +2035,7 @@ export default function App() {
         if (Object.keys(newDeltas).length) {
           setData((d) => ({
             ...d,
-            pantryDayDeltas: prunePantryDayDeltas({ ...(d.pantryDayDeltas ?? {}), ...newDeltas }),
+            pantryDayDeltas: podarMarcas({ ...(d.pantryDayDeltas ?? {}), ...newDeltas }, hoyLocal),
           }));
         }
       } catch (err) {
@@ -2154,6 +2051,7 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     user?.id,
+    syncHouseholdId,
     data.activeMenuId,
     data.menus,
     data.pantryPrefs?.consume,
@@ -2206,6 +2104,54 @@ export default function App() {
     // 1,8 s no daba para leer una frase entera (WCAG 2.2.1): 3,5 s.
     toastTimer.current = window.setTimeout(() => setToast(null), action ? 5000 : 3500);
   }, []);
+  // Al volver de añadir Google a una cuenta nacida en Telegram (#1238): si salió mal, qué hacer; y la URL, limpia.
+  useEffect(() => {
+    if (!avisoAlEntrar) return;
+    showToast(avisoAlEntrar);
+    window.history.replaceState(null, "", window.location.pathname);
+    olvidarAvisoAlEntrar();
+  }, [avisoAlEntrar, olvidarAvisoAlEntrar, showToast]);
+  const handleAnadirFormaDeEntrar = useCallback(async (forma) => {
+    const { error } = await anadirFormaDeEntrar(forma);
+    if (error) showToast(NO_SE_PUDO_ANADIR[forma]);
+  }, [anadirFormaDeEntrar, showToast]);
+  const handleQuitarFormaDeEntrar = useCallback(async (forma) => {
+    const { error } = await quitarFormaDeEntrar(forma);
+    if (error) showToast(NO_SE_PUDO_QUITAR);
+  }, [quitarFormaDeEntrar, showToast]);
+  // Los menús generados (la racha), de su tabla (menusGenerados.js, trozo 22); sin casa, del móvil. Sin leer no es
+  // «ningún menú»: `leidos: false`, Ajustes no enseña la racha y no cuenta como primer menú.
+  const [menusHechos, setMenusHechos] = useState(() => ({ casa: null, leidos: false, lista: [] }));
+  useEffect(() => {
+    let vivo = true;
+    if (!activeHouseholdId) {
+      try { setMenusHechos({ casa: null, leidos: true, lista: menusLocales() }); } catch (e) {
+        console.error("[menus]", e.message);
+        setMenusHechos({ casa: null, leidos: false, lista: [] });
+      }
+      return undefined;
+    }
+    setMenusHechos({ casa: activeHouseholdId, leidos: false, lista: [] });
+    leerMenusGenerados(activeHouseholdId).then((r) => {
+      if (vivo && r.ok) setMenusHechos({ casa: activeHouseholdId, leidos: true, lista: r.menus });
+    });
+    return () => { vivo = false; };
+  }, [activeHouseholdId]);
+  // Un menú generado: primero en su sitio (tabla o móvil) y, si se guardó, en la racha; si no, se dice.
+  const apuntarMenu = useCallback(async () => {
+    if (!activeHouseholdId) {
+      try { setMenusHechos({ casa: null, leidos: true, lista: apuntarMenuLocal() }); } catch (e) {
+        console.error("[menus]", e.message);
+      }
+      return;
+    }
+    const r = await mandarMenuGenerado(activeHouseholdId);
+    if (!r.ok) {
+      showToast("No he podido apuntar este menú en tu racha");
+      return;
+    }
+    setMenusHechos((m) => (m.casa === activeHouseholdId && m.leidos ? { ...m, lista: [...m.lista, { at: Date.now() }] } : m));
+  }, [activeHouseholdId, showToast]);
   showToastRef.current = showToast;
 
   // Las recetas del titular no se han podido leer (#958): no es lo mismo que
@@ -2379,11 +2325,6 @@ export default function App() {
       const pantryMultiWeek = ["nearest", "all", "spread"].includes(working.pantryPrefs?.multiWeek)
         ? working.pantryPrefs.multiWeek
         : "nearest";
-      // Consumo: cuándo se baja el stock real. "onGenerate" se resuelve aquí
-      // mismo (bloque tras la generación); "onCook" lo gestiona DishDetail/
-      // "Marcar cocinado"; "endOfDay" lo hace el barrido diario. `working` ya
-      // viene por resolveModeData, así que el modo básico queda respetado.
-      const consumeMode = pantryConsumeMode(working);
       const varietyPref = ["strict", "moderate", "relaxed"].includes(working.menuVarietyPref)
         ? working.menuVarietyPref
         : "strict";
@@ -2450,14 +2391,13 @@ export default function App() {
         if (pantryMultiWeek === "spread" && pantryMode !== "off") {
           // Proyección en memoria únicamente (nunca escribe en BD): lo que esta
           // semana cubrió con despensa deja de estar disponible para la
-          // siguiente. La resta real en BD (si consumeMode === "onGenerate")
-          // se hace más abajo, después de que todas las semanas terminen.
+          // siguiente. La resta real la hace el barrido diario.
           spreadPantry = applyConsumption(
             sh.pantryItems.map((it) => ({ name: it.name, qty: it.qty, unit: it.unit })),
             spreadPantry
           ).workingStock;
         }
-        const weekShopping = { items: [...sh.byCategory.flatMap((c) => c.items), ...sh.pantryItems] };
+        const weekShopping = { items: articulosDe(sh) };
         return {
           offset, startDayIdx, days, startISO, endISO, plan, weekShopping, weekSchedule, recipes,
           pantryItems: sh.pantryItems, vacios,
@@ -2476,17 +2416,6 @@ export default function App() {
       // Id del menú nuevo, creado ya aquí para poder etiquetar sus deltas de
       // consumo (F1) antes de construir el objeto menú más abajo.
       const newMenuId = createMenuId();
-      const genDeltasPatch = {};
-      // Logged-in users activate explicitly from Tu menú (see activateActiveMenu).
-      if (consumeMode === "onGenerate" && !user) {
-        for (const res of weekResults) {
-          const used = (res.pantryItems ?? []).map((it) => ({ name: it.name, qty: it.qty, unit: it.unit }));
-          if (!used.length) continue;
-          const freshStock = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
-          const { deltas } = await consumeFromPantry(used, freshStock, { user });
-          if (deltas.length) genDeltasPatch[res.startISO] = makeDeltaBucket(newMenuId, deltas);
-        }
-      }
       // Decisión C (ciclo de vida): en "weekly" no arrastramos indefinidamente
       // el historial de deshacer de semanas ya terminadas — solo afecta a esta
       // contabilidad interna, nunca borra ni toca el stock real.
@@ -2496,7 +2425,6 @@ export default function App() {
       const nextGenDeltas = { ...(working.pantryGenDeltas ?? {}) };
       for (const key of restoreKeys) delete nextGenDeltas[key];
       for (const m of weekMeta) delete nextGenDeltas[m.startISO];
-      Object.assign(nextGenDeltas, genDeltasPatch);
       if (lifecycleMode === "weekly") {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -2512,7 +2440,6 @@ export default function App() {
       const weeks = {};
       const allRecipes = [];
       let firstWeekPlan = null;
-      let firstWeekShopping = null;
       weekResults.forEach((res, w) => {
         weeks[res.startISO] = {
           offset: res.offset,
@@ -2521,19 +2448,20 @@ export default function App() {
           startISO: res.startISO,
           endISO: res.endISO,
           plan: res.plan,
-          shopping: res.weekShopping,
+          // Solo las marcas (trozo 18): la lista sale del plan al verla.
+          shopping: compraParaGuardar(res.weekShopping),
           schedule: res.weekSchedule,
         };
         allRecipes.push(...res.recipes);
         if (w === 0) {
           firstWeekPlan = res.plan;
-          firstWeekShopping = res.weekShopping;
         }
       });
 
       registerRecipes(allRecipes);
       setMenuPlan(firstWeekPlan);
-      const isFirstMenu = (data.menuHistory ?? []).length === 0;
+      const isFirstMenu = menusHechos.leidos && menusHechos.lista.length === 0;
+      apuntarMenu();
       trackEvent(user, "menu_generated", "menu", {
         groupCount: groups.length,
         memberCount: working.members.length,
@@ -2568,11 +2496,8 @@ export default function App() {
       const foldedMenus = foldInNewMenu(data.menus, newMenu, { keepHistory });
       const keepRecipeIds = collectMenuRecipeIds(foldedMenus);
 
-      setAiRecipes((cur) => {
-        const byId = new Map(cur.map((r) => [r.id, r]));
-        for (const r of allRecipes) byId.set(r.id, r);
-        return pruneAiRecipes(Array.from(byId.values()), keepRecipeIds);
-      });
+      // Los platos del menú nuevo no se copian en la casa: salen de sus huecos (platosDelPlan, #1246).
+      setAiRecipes((cur) => pruneAiRecipes(cur, keepRecipeIds));
 
       // F2: al reemplazar el menú de un invitado (keepHistory=false) los menús
       // anteriores desaparecen del archivo con su consumo ya aplicado. Recogemos
@@ -2596,13 +2521,11 @@ export default function App() {
           // la primera): sin esto el puntero se quedaba en null o en el del
           // menú anterior, y la compra leía la copia archivada (#1063).
           menuWeek: punteroDeSemana(weeks[weekResults[0].startISO]),
-          menuHistory: [...(d.menuHistory ?? []), { at: Date.now(), groups: groups.length }].slice(-60),
           pantryGenDeltas: droppedMenuIds.length ? recon.genOut : nextGenDeltas,
         };
         if (droppedMenuIds.length) {
           base.pantryDayDeltas = recon.dayOut;
           base.cookedDeltas = recon.cookedOut;
-          base.cookedDishes = stripCookedDishesForMenuList(d.cookedDishes, droppedMenuIds);
         }
         return base;
       });
@@ -2629,9 +2552,7 @@ export default function App() {
           }
         });
       }
-      setShopping((prev) => {
-        return { items: conMarcas(firstWeekShopping.items, prev.items) };
-      });
+      setShopping((prev) => compraAlGenerar(prev));
       // plan._warnings still collects non-blocking issues from generation, but
       // we no longer surface their raw internal text as a toast — it read as a
       // confusing "toast rarísimo" on success. Always show the plain success
@@ -2675,37 +2596,13 @@ export default function App() {
       if (generateAbortRef.current === ctrl) generateAbortRef.current = null;
       setIsGeneratingMenu(false);
     }
-  }, [data, showToast, pararSiFaltanMinimos]);
+  }, [data, showToast, pararSiFaltanMinimos, apuntarMenu, menusHechos]);
 
-  // El último plan ya apuntado como descartado: dos pulsaciones seguidas sobre el mismo plan
-  // no cuentan dos veces lo que solo se tira una.
-  const planDescartadoRef = useRef(null);
-  const handleRegenerate = useCallback(async () => {
-    const antes = menuPlan;
-    // regenerateMenu devuelve true solo si el menú nuevo llegó a generarse: si falla o se
-    // aborta, el menú de antes sigue ahí y no se ha tirado nada.
-    const generado = await regenerateMenu();
-    if (generado !== true || planDescartadoRef.current === antes) return;
-    planDescartadoRef.current = antes;
-    registrarDescartes({ user, householdId: casaActivaRef.current, recetaIds: recetasDelPlan(antes), ambito: ALCANCE_DESCARTE.MENU });
-  }, [regenerateMenu, user, menuPlan]);
+  // El menú solo se genera desde Lola (#1210, Pablo, 4 nov 2026): «Regenerar», el aviso de restricciones y
+  // «Platos nuevos» se lo piden a ella, que pregunta para cuándo y cómo de a fondo. Los platos del menú que se
+  // tira ya no se apuntan como descartes (ALCANCE_DESCARTE.MENU): eso lo hacía este botón, y Lola aún no.
+  const handleRegenerate = useCallback(() => abrirLola(pedidoMenu("esta")), []);
 
-  // Wizard generativo: el modal de entrada, la fila de mandos y la burbuja del
-  // bot. `onRegenerar` recibe el `data` ya actualizado porque `setData` no ha
-  // llegado todavía al render cuando esto se dispara — regenerar con el `data`
-  // viejo pintaría el menú de antes del ajuste.
-  const wizard = useWizardMenu({
-    data,
-    setData,
-    menuPlan,
-    onRegenerar: (nextData) => {
-      setScreen("menu");
-      regenerateMenu(nextData);
-    },
-    // Con el frontal del bot siguen aquí: se puede cambiar desde la app Y
-    // hablando con Lola (Pablo, 30 sep 2026), y los dos escriben en la casa.
-    habilitado: !householdReadOnly,
-  });
 
   // ── Ad-hoc individual menus ──────────────────────────────────────────────
   // Auto-offer a separate 3-day menu when a member gets a heavy, hard-to-share
@@ -2844,7 +2741,6 @@ export default function App() {
   const recipePlannerOriginRef = useRef("dashboard");
   // When set, the recipe planner opens in "edit" mode for this user recipe.
   const [editingRecipe, setEditingRecipe] = useState(null);
-  const [recipePrefsOpen, setRecipePrefsOpen] = useState(false);
   const [acceptingInvite, setAcceptingInvite] = useState(false);
   const pendingInviteNavRef = useRef(false);
   const fwd  = (fn) => { dirRef.current = "forward";  fn(); };
@@ -2862,13 +2758,9 @@ export default function App() {
     }
   }, [pendingInvite, user?.id, screen]);
 
-  // `destino`: el fin del alta deja en Inicio (el menú se genera igual, por
-  // detrás, y el «Hoy toca» se rellena al llegar); el resto, al Menú.
-  // `generar: false`: el alta que vino de Lola. El menú se le pide a ella
-  // (lo ofrece en su chat), no sale solo sin esperarlo.
-  // `datos`: la casa con la que se genera, si el clic que trae aquí acaba de
-  // cambiarla (el setData de ese clic aún no ha llegado a `data`).
-  const goToMenu = async (destino = "menu", { generar = true, datos } = {}) => {
+  // `destino`: el fin del alta deja en Inicio; el resto, al Menú. Aquí ya no se
+  // genera nada: el menú se le pide a Lola (#1210), también tras el alta.
+  const goToMenu = async (destino = "menu") => {
     // Hard gate: no menu without at least one family member. The family step's
     // "Siguiente" is already blocked, but the progress-dot jump skips it (and any
     // later step's "Generar menú" would otherwise reach the planner), so the AI
@@ -2891,7 +2783,6 @@ export default function App() {
         onboarding_step_max: onbStep,
       });
     }
-    if (generar) await regenerateMenu(datos);
   };
 
   const goToDashboard = useCallback(() => fwd(() => setScreen("dashboard")), []);
@@ -3073,6 +2964,7 @@ export default function App() {
   // siguientes, y desmarcar dejaba semanas sin días.
   const empezarPizarra = useCallback(() => {
     setPizarraArrancando(false);
+    antesDePizarraRef.current = null;
     const menuId = data.activeMenuId;
     const actual = data.menus?.[menuId];
     if (actual?.origin !== "pizarra") return;
@@ -3109,23 +3001,9 @@ export default function App() {
   // Mientras es `true`, la pizarra recién creada enseña el tablero vacío con
   // la hoja de «¿Qué días?» delante y sin franja de mandos.
   const [pizarraArrancando, setPizarraArrancando] = useState(false);
-
-  // Claro u oscuro, SOLO para el tablero de la pizarra. No es el tema de la
-  // app: el resto de pantallas se quedan en claro a propósito, porque el
-  // oscuro se lleva por delante el tono cartoon de las ilustraciones. Vive en
-  // localStorage y no en `data` porque es del aparato, no de la casa: si lo
-  // pones oscuro en el móvil, el portátil del otro no tiene por qué cambiar.
-  const [temaPizarra, setTemaPizarra] = useState(() => {
-    try { return localStorage.getItem("mp_tema_pizarra") === "oscuro" ? "oscuro" : "claro"; }
-    catch { return "claro"; }
-  });
-  const alternarTemaPizarra = useCallback(() => {
-    setTemaPizarra((t) => {
-      const otro = t === "oscuro" ? "claro" : "oscuro";
-      try { localStorage.setItem("mp_tema_pizarra", otro); } catch { /* modo incógnito */ }
-      return otro;
-    });
-  }, []);
+  // Cómo estaba todo antes de abrirla: mientras la hoja sigue delante, cerrarla
+  // devuelve el menú de antes. El nuevo ya ha sustituido al activo.
+  const antesDePizarraRef = useRef(null);
 
   // Sube cada vez que caen varios platos de golpe: es la señal para que el
   // tablero los reparta como cartas en vez de enseñarlos ya puestos.
@@ -3203,6 +3081,8 @@ export default function App() {
     });
     const firstWeekPlan = primeraSemana.plan;
 
+    antesDePizarraRef.current = fotoAntesDePizarra({ data, menuPlan, shopping, aiRecipes, pantalla: screen });
+
     const newMenu = {
       id: createMenuId(),
       createdAt: Date.now(),
@@ -3216,9 +3096,10 @@ export default function App() {
       origin: "pizarra",
       weeks,
     };
+    antesDePizarraRef.current.menuNuevoId = newMenu.id;
 
     setMenuPlan(firstWeekPlan);
-    setShopping({ items: [] });
+    setShopping(compraNueva());
 
     const keepHistory = Boolean(user);
     const foldedMenus = foldInNewMenu(data.menus, newMenu, { keepHistory });
@@ -3250,7 +3131,6 @@ export default function App() {
         base.pantryGenDeltas = recon.genOut;
         base.pantryDayDeltas = recon.dayOut;
         base.cookedDeltas = recon.cookedOut;
-        base.cookedDishes = stripCookedDishesForMenuList(d.cookedDishes, droppedMenuIds);
       }
       return base;
     });
@@ -3268,14 +3148,33 @@ export default function App() {
       weekCount: weekOffsets.length,
       huecos: huecosDelPlan(firstWeekPlan),
     });
-    // El tablero entra DESNUDO —sin avatares ni baldosas— y encima aparece la
+    // El tablero entra DESNUDO —sin chips ni baldosas— y encima aparece la
     // hoja de arranque preguntando los días. Los mandos llegan al darle a
     // «Empezar». Es transitorio a propósito: no es un estado del menú sino un
     // momento de esta sesión, y guardarlo dejaría una pizarra a medio arrancar
     // esperándote mañana.
     setPizarraArrancando(true);
     fwd(() => setScreen("menu"));
-  }, [data, user, householdReadOnly, showToast, syncHouseholdId, pararSiFaltanMinimos]);
+  }, [data, menuPlan, shopping, aiRecipes, screen, user, householdReadOnly, showToast, syncHouseholdId, pararSiFaltanMinimos]);
+
+  // La X de la hoja de arranque: el menú en blanco desaparece y vuelve el de antes.
+  const salirDePizarra = useCallback(() => {
+    const antes = antesDePizarraRef.current;
+    antesDePizarraRef.current = null;
+    setPizarraArrancando(false);
+    if (antes) {
+      setMenuPlan(antes.menuPlan);
+      setShopping(antes.shopping);
+      setAiRecipes(antes.aiRecipes);
+      setData((d) => volverAntesDePizarra(antes, d).data);
+      if (user) {
+        descartarMenuNuevo(user.id, antes.menuNuevoId, antes.data.activeMenuId, syncHouseholdId).then((res) => {
+          if (!res.ok) showToast("No se pudo deshacer en la nube. Puede reaparecer al recargar.");
+        });
+      }
+    }
+    back(() => setScreen(antes?.pantalla ?? "dashboard"));
+  }, [user, showToast, syncHouseholdId]);
 
   // Switches which week of the ACTIVE menú is displayed (menús spanning
   // several weeks) — materializes that week's plan/shopping into the live
@@ -3293,8 +3192,11 @@ export default function App() {
   // authoritative (Compra can view/edit several weeks). Mirrors into the live
   // `shopping` state when the edited week is the one currently active, so the
   // Menú/Compra views and the archive never drift apart.
-  const updateWeekShopping = useCallback((weekStart, nextShopping) => {
+  const updateWeekShopping = useCallback((weekStart, vistaNueva) => {
+    // Llega la lista que se ve; se guardan sus marcas (trozo 18), frente a lo que el menú de esa semana pide.
     const menuId = data.activeMenuId;
+    const semana = data.menus?.[menuId]?.weeks?.[weekStart];
+    const nextShopping = cambiarCompra(semana?.shopping, vistaNueva, (g) => vistaDeCompra(g, semana?.plan));
     setData((d) => {
       const m = d.menus?.[menuId];
       if (!m?.weeks?.[weekStart]) return d;
@@ -3321,7 +3223,7 @@ export default function App() {
     // + fire-and-forget inside queueSaveMenuWeek; local blob is still the belt.
     // El lector no guarda la semana: solo viajan sus tachados (0072).
     if (user && menuId && wk && householdReadOnly && syncHouseholdId) {
-      const marcas = marcasEntre(wk.shopping?.items ?? [], nextShopping?.items ?? []);
+      const marcas = marcasEntre(vistaDeCompra(wk.shopping, wk.plan).items, vistaNueva?.items ?? []);
       queueMarcarCompra(syncHouseholdId, menuId, weekStart, marcas, {
         version: versionDeCasa(syncHouseholdId),
         onError: () => recargarDesdeNubeRef.current({ choque: true }),
@@ -3329,7 +3231,7 @@ export default function App() {
     } else if (user && menuId && wk) {
       subirSemana(data.menus?.[menuId]?.userId ?? user.id, menuId, weekStart, { ...wk, shopping: nextShopping });
     }
-  }, [data.menus, data.activeMenuId, data.menuWeek?.offset, user, syncHouseholdId, versionDeCasa, householdReadOnly]);
+  }, [data.menus, data.activeMenuId, data.menuWeek?.offset, user, syncHouseholdId, versionDeCasa, householdReadOnly, vistaDeCompra]);
 
   // Undo a confirmed ticket's tachado. Deleting a ticket in Análisis → Gasto
   // must reverse the exact "have: true" the receipt wizard set — and through
@@ -3352,25 +3254,26 @@ export default function App() {
     const menuId = data.activeMenuId;
     const weeks = data.menus?.[menuId]?.weeks ?? null;
     const weekEntries = weeks ? Object.entries(weeks) : [];
-    const hasArchive = weekEntries.some(([, wk]) => wk?.shopping?.items?.length);
+    const hasArchive = weekEntries.some(([, wk]) => vistaDeCompra(wk?.shopping, wk?.plan).items.length);
     if (hasArchive) {
       const scoped = weekStart && weekEntries.some(([ws]) => ws === weekStart)
         ? weekEntries.filter(([ws]) => ws === weekStart)
         : weekEntries;
       for (const [ws, wk] of scoped) {
-        const items = wk?.shopping?.items;
-        if (!items?.length) continue;
+        const vista = vistaDeCompra(wk?.shopping, wk?.plan);
+        const items = vista.items;
+        if (!items.length) continue;
         const next = untacha(items);
         // Only write weeks that actually held one of the tached keys, so we
         // don't churn cloud rows for untouched weeks.
         if (next.some((it, i) => it !== items[i])) {
-          updateWeekShopping(ws, { ...wk.shopping, items: next });
+          updateWeekShopping(ws, { ...vista, items: next });
         }
       }
     } else {
-      setShopping((s) => ({ ...s, items: untacha(s?.items) }));
+      setCompra((s) => ({ ...s, items: untacha(s?.items) }));
     }
-  }, [data.activeMenuId, data.menus, updateWeekShopping]);
+  }, [data.activeMenuId, data.menus, updateWeekShopping, vistaDeCompra, setCompra]);
 
   // Keep the active week's archived shopping in sync with the live list, so
   // switching weeks (or reloading) never loses the check-offs/edits made in
@@ -3422,7 +3325,6 @@ export default function App() {
         pantryGenDeltas: recon.genOut,
         pantryDayDeltas: recon.dayOut,
         cookedDeltas: recon.cookedOut,
-        cookedDishes: stripCookedDishesForMenu(d.cookedDishes, menuIdToDelete),
       };
     });
     if (recon.deltas.length) {
@@ -3467,13 +3369,7 @@ export default function App() {
     }
   }, [data.activeMenuId, data.menus, data.menuWeek?.offset, menuPlan, user, showToast, syncHouseholdId, versionDeCasa]);
 
-  const ACTIVATE_MENU_TOAST = {
-    onGenerate: "Menú activo · En casa actualizado",
-    onCook: "Menú activo · En casa bajará al cocinar",
-    endOfDay: "Menú activo · En casa se ajusta al fin del día",
-  };
-
-  const activateActiveMenu = useCallback(async () => {
+  const activateActiveMenu = useCallback(async ({ silencioso = false } = {}) => {
     if (householdReadOnly) return;
     const menuId = data.activeMenuId;
     const menu = data.menus?.[menuId];
@@ -3482,32 +3378,10 @@ export default function App() {
     const otherActivatedIds = Object.values(data.menus ?? {})
       .filter((m) => m.id !== menuId && m.activatedAt)
       .map((m) => m.id);
-    const recon = reconcileMenusRemoval(data, otherActivatedIds);
+    // Solo (sin el rayo), no se devuelve lo de los otros menús: ver lib/activarSolo.js.
+    const recon = devolucionAlActivar(data, otherActivatedIds, { automatica: silencioso, reconcile: reconcileMenusRemoval });
     if (recon.deltas.length) {
       await restoreToPantry(recon.deltas, { user });
-    }
-
-    const consumeMode = pantryConsumeMode(data);
-    const groups = gruposVigentes(data);
-    const genDeltasPatch = {};
-    if (consumeMode === "onGenerate") {
-      const weekEntries = Object.values(menu.weeks ?? {}).sort((a, b) =>
-        String(a.startISO ?? "").localeCompare(String(b.startISO ?? "")),
-      );
-      for (const week of weekEntries) {
-        if (!week?.plan || !week.startISO) continue;
-        const weekData = {
-          ...data,
-          schedule: week.schedule ?? data.schedule,
-          menuWeek: { offset: week.offset ?? 0, startDayIdx: week.startDayIdx ?? 0, days: week.days ?? null },
-        };
-        const freshStock = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
-        const sh = buildShoppingList(week.plan, groups, getDayMeals(weekData), freshStock);
-        const used = (sh.pantryItems ?? []).map((it) => ({ name: it.name, qty: it.qty, unit: it.unit }));
-        if (!used.length) continue;
-        const { deltas } = await consumeFromPantry(used, freshStock, { user });
-        if (deltas.length) genDeltasPatch[week.startISO] = makeDeltaBucket(menuId, deltas);
-      }
     }
 
     const activatedAt = Date.now();
@@ -3517,16 +3391,31 @@ export default function App() {
         ...d.menus,
         [menuId]: { ...d.menus[menuId], activatedAt },
       },
-      pantryGenDeltas: { ...recon.genOut, ...genDeltasPatch },
+      pantryGenDeltas: recon.genOut,
       pantryDayDeltas: recon.dayOut,
       cookedDeltas: recon.cookedOut,
-      ...(consumeMode === "endOfDay" && !d.pantryEndOfDaySince
-        ? { pantryEndOfDaySince: isoLocalDate(new Date()) }
-        : null),
+      ...(d.pantryEndOfDaySince ? null : { pantryEndOfDaySince: isoLocalDate(new Date()) }),
     }));
     setPantryEpoch((n) => n + 1);
-    showToast(ACTIVATE_MENU_TOAST[consumeMode] ?? "Menú activado");
+    if (!silencioso) showToast("Menú activo · En casa se ajusta al fin del día");
   }, [data, householdReadOnly, user, showToast]);
+
+  // El menú de la semana se activa solo, sin el rayo (ver lib/activarSolo.js).
+  // Una vez por menú: el ref evita repetirlo mientras `activatedAt` llega al
+  // estado. En silencio: nadie pidió nada, así que no hay aviso que dar.
+  const activadoSoloRef = useRef(null);
+  const porActivar = menuPorActivar({ data, conCuenta: Boolean(user), soloLectura: householdReadOnly, nubeLista });
+  useEffect(() => {
+    if (!porActivar || activadoSoloRef.current === porActivar) return;
+    activadoSoloRef.current = porActivar;
+    // Si falla, se dice, y el ref se suelta para que se vuelva a intentar en
+    // cuanto cambie algo (la nube, el menú): no se queda sin activar callado.
+    activateActiveMenu({ silencioso: true }).catch((e) => {
+      console.error("[activar solo]", e?.message);
+      activadoSoloRef.current = null;
+      showToast("No he podido activar el menú de esta semana; lo vuelvo a intentar");
+    });
+  }, [porActivar, activateActiveMenu, showToast]);
 
   /**
    * Desactivar: lo contrario de activar, y ya existía a medias.
@@ -3556,7 +3445,8 @@ export default function App() {
       ...d,
       menus: {
         ...d.menus,
-        [menuId]: { ...d.menus[menuId], activatedAt: null },
+        // `desactivadoAt`: que la activación automática no lo vuelva a activar (lib/activarSolo.js).
+        [menuId]: { ...d.menus[menuId], activatedAt: null, desactivadoAt: Date.now() },
       },
       pantryGenDeltas: recon.genOut,
       pantryDayDeltas: recon.dayOut,
@@ -3586,7 +3476,6 @@ export default function App() {
         pantryGenDeltas: recon.genOut,
         pantryDayDeltas: recon.dayOut,
         cookedDeltas: recon.cookedOut,
-        cookedDishes: stripCookedDishesForMenu(d.cookedDishes, menuId),
       };
     });
     if (recon.deltas.length) {
@@ -3679,18 +3568,11 @@ export default function App() {
         menus: foldedMenus,
         activeMenuId: newMenu.id,
         menuWeek: punteroDeSemana(weeks[firstKey]),
-        // "Repetir → Mismos platos" still generates and activates a real
-        // menú for the week — it just clones dishes instead of asking the AI
-        // for new ones. Without this it never appended to menuHistory, so
-        // the streak (computeStreak) and the Dashboard's "menús generados"
-        // counter silently undercounted a week the user did have a menú for.
-        menuHistory: [...(d.menuHistory ?? []), { at: Date.now(), groups: (d.groups ?? []).length }].slice(-60),
         };
         if (droppedMenuIds.length) {
           base.pantryGenDeltas = recon.genOut;
           base.pantryDayDeltas = recon.dayOut;
           base.cookedDeltas = recon.cookedOut;
-          base.cookedDishes = stripCookedDishesForMenuList(d.cookedDishes, droppedMenuIds);
         }
         return base;
       });
@@ -3712,21 +3594,16 @@ export default function App() {
           }
         });
       }
+      // «Repetir → Mismos platos» también es un menú de la semana: cuenta en la racha.
+      apuntarMenu();
       showToast("Menú repetido con los mismos platos");
       fwd(() => setScreen("menu"));
       return;
     }
 
-    // Fresh dishes: reuse only the logistics, regenerate for the new dates.
-    await regenerateMenu({
-      ...data,
-      schedule: oldSchedule,
-      menuWeekOffsets: Array.from({ length: count }, (_, i) => i),
-      menuScheduleSameForAllWeeks: true,
-      menuWeek: { offset: 0, startDayIdx },
-    });
-    fwd(() => setScreen("menu"));
-  }, [data, regenerateMenu, showToast, user, pararSiFaltanMinimos]);
+    // Platos nuevos: un menú generado, y eso solo lo hace Lola (#1210).
+    handleRegenerate();
+  }, [data, showToast, user, pararSiFaltanMinimos, apuntarMenu, handleRegenerate]);
 
   // Opens a history entry in the read-only viewer — same lazy-detail fetch as
   // reuseMenu, since a history row hydrated from the cloud read-preference may
@@ -3797,10 +3674,7 @@ export default function App() {
     setPantryEpoch((n) => n + 1);
 
     if (result.householdId) {
-      const profile = { ...emptyProfile };
-      delete profile.userRecipes;
-      delete profile.recipeVotes;
-      delete profile.discards;
+      const profile = { ...sinRecetasDeTabla(emptyProfile) };
       delete profile.menus;
       // Solo si la que queda está vacía, y con su versión (householdState.js, #958).
       const vacia = await empezarCasaVacia(result.householdId, {
@@ -3902,10 +3776,10 @@ export default function App() {
     if (householdReadOnly) return;
     const activeMenu = data.activeMenuId ? data.menus?.[data.activeMenuId] : null;
     if (activeMenu) return;
-    if ((shopping.items?.length ?? 0) === 0 && Object.keys(menuPlan).length === 0) return;
+    if (compra.items.length === 0 && Object.keys(menuPlan).length === 0) return;
     setShopping({ items: [] });
     setMenuPlan({});
-  }, [data.activeMenuId, data.menus, shopping.items, menuPlan, householdReadOnly]);
+  }, [data.activeMenuId, data.menus, compra.items, menuPlan, householdReadOnly]);
 
   // Al entrar se pregunta que menus tienes ya en el feed: sin esto, el boton
   // de compartir decia "Compartir" aunque hubieras publicado ayer, y solo se
@@ -4346,7 +4220,7 @@ export default function App() {
     if (!falloLlave) return;
     // Con otra sesión en este navegador, el aviso y se sigue donde se esté.
     if (user) { showToast(falloLlave); return; }
-    // Sin sesión: en el splash, que ya ofrece «Habla con Lola en Telegram».
+    // Sin sesión: en el splash, que ya ofrece Telegram («Entrar con Telegram» o «Habla con Lola»).
     // El destino se olvida: sin cuenta no hay qué enseñar.
     avisoEntrarRef.current = true;
     setDestinoBot(null);
@@ -4813,8 +4687,6 @@ export default function App() {
     });
 
     const delta = n - antes;
-    const grupos = gruposVigentes(data);
-    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const key = `${day}-${meal}`;
       const prev = plan[groupId]?.[key];
@@ -4826,12 +4698,6 @@ export default function App() {
           [key]: { ...prev, eaters: Math.max(1, (Number(prev.eaters) || 1) + delta) },
         },
       };
-      const sh = buildShoppingList(next, grupos, getDayMeals(data), pantryIngredients);
-      setShopping((prevSh) => {
-        // Se conservan las marcas de "ya lo tengo": tocar los comensales no
-        // puede desmarcar media compra.
-        return { items: conMarcas([...sh.byCategory.flatMap((c) => c.items), ...sh.pantryItems], prevSh.items) };
-      });
       return next;
     });
 
@@ -4881,16 +4747,14 @@ export default function App() {
       return Array.from(byId.values());
     });
 
-    const groups = gruposVigentes(data);
     // Fetched before the state updater (which must stay synchronous) so the
     // rebuilt shopping list still discounts pantry ingredients after a swap.
-    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const slotKey = `${day}-${meal}`;
       const prevSlot = plan[groupId]?.[slotKey] ?? {};
       const nextSlot = {
         ...prevSlot,
-        ...(course === "first" ? { firstRecipeId: recipeId } : { recipeId }),
+        ...result.hueco,
         warnings: [],
       };
       const next = {
@@ -4900,10 +4764,6 @@ export default function App() {
           [slotKey]: nextSlot,
         },
       };
-      const sh = buildShoppingList(next, groups, getDayMeals(data), pantryIngredients);
-      setShopping((prev) => {
-        return { items: conMarcas([...sh.byCategory.flatMap((c) => c.items), ...sh.pantryItems], prev.items) };
-      });
       return next;
     });
     setSelectedSlot(null);
@@ -4942,8 +4802,6 @@ export default function App() {
       return;
     }
 
-    const groups = gruposVigentes(data);
-    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
 
     setMenuPlan((plan) => {
       const next = { ...plan };
@@ -4954,10 +4812,6 @@ export default function App() {
       writeField(sGroup, sKey, sField, tRecipeId);
       writeField(tGroup, tKey, tField, sRecipeId);
 
-      const sh = buildShoppingList(next, groups, getDayMeals(data), pantryIngredients);
-      setShopping((prev) => {
-        return { items: conMarcas([...sh.byCategory.flatMap((c) => c.items), ...sh.pantryItems], prev.items) };
-      });
       return next;
     });
     showToast("Platos intercambiados");
@@ -4967,21 +4821,13 @@ export default function App() {
     });
   }, [data, menuPlan, showToast, user]);
 
-  // Shared shopping-list rebuild for the rosco actions (clear / duplicate /
-  // manual pick). Preserves the user's have/atHome flags across the rebuild.
-  const applyShoppingFor = useCallback((next, groups, pantryIngredients) => {
-    const sh = buildShoppingList(next, groups, getDayMeals(data), pantryIngredients);
-    setShopping((prev) => {
-      return { items: conMarcas([...sh.byCategory.flatMap((c) => c.items), ...sh.pantryItems], prev.items) };
-    });
-  }, [data]);
 
   // Regenerate every dish of a single day (all active groups) in one tap — the
   // deck day header exposes this so users can reroll a day (or two) they don't
   // like without touching the rest of the week. Deterministic + free: reuses the
   // same per-slot catalog picker as the single-dish "Regenerar", applied slot by
   // slot on a working clone so carb/protein dedup stays correct within the day.
-  // Defined AFTER applyShoppingFor since it depends on it (const TDZ).
+  // (La compra ya no se rehace aquí: la vista sale del menú, trozo 18.)
   const handleRegenerateDay = useCallback(async (day, { groupIds = null } = {}) => {
     if (pararSiCasaSinConfirmar()) return;
     if (householdReadOnly) return;
@@ -5021,9 +4867,7 @@ export default function App() {
           newRecipes.push(result.frontendRecipe);
           working[g.id][key] = {
             ...working[g.id][key],
-            ...(course === "first"
-              ? { firstRecipeId: result.recipeId }
-              : { recipeId: result.recipeId }),
+            ...result.hueco,
             warnings: [],
           };
           changed++;
@@ -5043,15 +4887,13 @@ export default function App() {
       return Array.from(byId.values());
     });
 
-    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan(() => {
-      applyShoppingFor(working, groups, pantryIngredients);
       return working;
     });
     showToast("Día regenerado");
     trackEvent(user, "day_regenerated", "menu", { day });
     registrarDescartes({ user, householdId: casaActivaRef.current, recetaIds: descartadas, ambito: ALCANCE_DESCARTE.DIA });
-  }, [data, menuPlan, showToast, user, applyShoppingFor, pararSiFaltanMinimos]);
+  }, [data, menuPlan, showToast, user, pararSiFaltanMinimos]);
 
   // Vaciar hueco: keep the slot (flagged `cleared`) so the deck renders a
   // tappable placeholder to refill it; offer an undo that restores the dishes.
@@ -5169,8 +5011,6 @@ export default function App() {
         }
       }
     }
-    const groups = gruposVigentes(data);
-    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     // Los platos de las OTRAS semanas del menú: rellenar solo mira la semana
     // abierta, y sin esto cada semana salía con los mismos platos.
     const usadosEnOtrasSemanas = recipeIdsDeOtrasSemanas(data.menus?.[data.activeMenuId], data.menuWeek?.offset);
@@ -5236,7 +5076,7 @@ export default function App() {
           nuevas.push(r.frontendRecipe);
           trabajo[gid][key] = {
             ...trabajo[gid][key],
-            ...(course === "first" ? { firstRecipeId: r.recipeId } : { recipeId: r.recipeId }),
+            ...r.hueco,
             cleared: false,
             warnings: [],
           };
@@ -5254,7 +5094,6 @@ export default function App() {
       return Array.from(byId.values());
     });
     setMenuPlan(() => {
-      applyShoppingFor(trabajo, groups, pantryIngredients);
       return trabajo;
     });
     // Un solo hueco no se reparte: la carta cae sola y el resto del tablero
@@ -5262,7 +5101,7 @@ export default function App() {
     if (puestos > 1) setRepartoKey((k) => k + 1);
     showToast(puestos === 1 ? "Hueco rellenado" : `${puestos} huecos rellenados`);
     trackEvent(user, "pizarra_autorelleno", "menu", { puestos, ambito: marcados ? "seleccion" : ambito?.day ? "dia" : ambito?.meal ? "hueco" : "semana" });
-  }, [data, menuPlan, user, householdReadOnly, showToast, applyShoppingFor, despensaPizarra]);
+  }, [data, menuPlan, user, householdReadOnly, showToast, despensaPizarra]);
 
   /**
    * La burbuja de la pizarra: una frase → cambios en el tablero.
@@ -5312,8 +5151,7 @@ export default function App() {
     });
     if (hechos === 0) return { reply: noHechos[0] ?? "No he podido cambiar nada", hechos, noHechos: noHechos.slice(1) };
 
-    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
-    deshacerPizarra.current = { plan, groups, pantryIngredients };
+    deshacerPizarra.current = { plan };
     if (nuevas.length) {
       registerRecipes(nuevas);
       setAiRecipes((cur) => {
@@ -5323,22 +5161,20 @@ export default function App() {
       });
     }
     setMenuPlan(() => {
-      applyShoppingFor(trabajo, groups, pantryIngredients);
       return trabajo;
     });
     trackEvent(user, "pizarra_burbuja", "menu", { ops: ops.length, hechos, fallos: noHechos.length });
     return { reply, hechos, noHechos, tocados };
-  }, [data, menuPlan, user, householdReadOnly, applyShoppingFor]);
+  }, [data, menuPlan, user, householdReadOnly]);
 
   const handleDeshacerPizarra = useCallback(() => {
     const antes = deshacerPizarra.current;
     if (!antes) return;
     deshacerPizarra.current = null;
     setMenuPlan(() => {
-      applyShoppingFor(antes.plan, antes.groups, antes.pantryIngredients);
       return antes.plan;
     });
-  }, [applyShoppingFor]);
+  }, []);
 
   /**
    * Soltar un plato en otro hueco (arrastre de la pizarra).
@@ -5365,8 +5201,6 @@ export default function App() {
     if (!sRecipe) return;
     const tRecipe = menuPlan[target.groupId]?.[tKey]?.[tField] ?? null;
 
-    const groups = gruposVigentes(data);
-    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
 
     setMenuPlan((plan) => {
       const next = { ...plan };
@@ -5380,12 +5214,11 @@ export default function App() {
       };
       escribir(source.groupId, sKey, sField, tRecipe);
       escribir(target.groupId, tKey, tField, sRecipe);
-      applyShoppingFor(next, groups, pantryIngredients);
       return next;
     });
     showToast(tRecipe ? "Platos intercambiados" : "Plato movido");
     trackEvent(user, "pizarra_slot_dragged", "menu", { intercambio: Boolean(tRecipe) });
-  }, [data, menuPlan, user, householdReadOnly, showToast, applyShoppingFor]);
+  }, [data, menuPlan, user, householdReadOnly, showToast]);
 
   const handlePlaceRecipeInSlot = useCallback(async (recipeId, target) => {
     if (householdReadOnly || !recipeId || !target) return;
@@ -5420,19 +5253,16 @@ export default function App() {
     const tGroup = target.groupId;
     const tKey = `${target.day}-${target.meal}`;
     const tField = target.course === "first" ? "firstRecipeId" : "recipeId";
-    const groups = gruposVigentes(data);
-    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const prevSlot = plan[tGroup]?.[tKey] ?? {};
       const nextSlot = { ...prevSlot, [tField]: baseId, cleared: false, warnings: [] };
       const next = { ...plan, [tGroup]: { ...(plan[tGroup] ?? {}), [tKey]: nextSlot } };
-      applyShoppingFor(next, groups, pantryIngredients);
       return next;
     });
     setPendingDish(null);
     showToast("Plato añadido a tu menú");
     trackEvent(user, "dish_copied_from_feed", "menu", { to: tKey });
-  }, [householdReadOnly, data, showToast, user, applyShoppingFor]);
+  }, [householdReadOnly, data, showToast, user]);
 
   /**
    * "A mis recetas" desde el menu de otra persona.
@@ -5473,18 +5303,15 @@ export default function App() {
     const tGroup = target.groupId;
     const tKey = `${target.day}-${target.meal}`;
     const tField = target.course === "first" ? "firstRecipeId" : "recipeId";
-    const groups = gruposVigentes(data);
-    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const prevSlot = plan[tGroup]?.[tKey] ?? {};
       const nextSlot = { ...prevSlot, [tField]: srcRecipeId, cleared: false, warnings: [] };
       const next = { ...plan, [tGroup]: { ...(plan[tGroup] ?? {}), [tKey]: nextSlot } };
-      applyShoppingFor(next, groups, pantryIngredients);
       return next;
     });
     showToast("Plato duplicado");
     trackEvent(user, "dish_duplicated", "menu", { from: sKey, to: tKey });
-  }, [data, menuPlan, showToast, user, applyShoppingFor]);
+  }, [data, menuPlan, showToast, user]);
 
   /**
    * Cambia la ESTRUCTURA de una comida: de primero+segundo a plato único, o al
@@ -5524,7 +5351,7 @@ export default function App() {
       const first = pickCatalogReplacement(data, planForPick, { groupId, day, meal, course: "first" });
       if (!first) { showToast("No hay ningún primero para este hueco"); return; }
       picks.push({ course: "first", ...first });
-      const withFirst = { ...shaped, firstRecipeId: first.recipeId };
+      const withFirst = { ...shaped, ...first.hueco };
       planForPick = { ...planForPick, [groupId]: { ...planForPick[groupId], [slotKey]: withFirst } };
       const second = pickCatalogReplacement(data, planForPick, { groupId, day, meal, course: "main" });
       if (second) picks.push({ course: "main", ...second });
@@ -5543,22 +5370,16 @@ export default function App() {
       slotType: { ...(d.slotType ?? {}), [`${day}|${meal}`]: toUnico ? "unico" : undefined },
     }));
 
-    const groups = gruposVigentes(data);
-    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const base = { ...(plan[groupId]?.[slotKey] ?? {}), warnings: [], cleared: false };
       if (toUnico) base.firstRecipeId = null;
-      for (const p of picks) {
-        if (p.course === "first") base.firstRecipeId = p.recipeId;
-        else base.recipeId = p.recipeId;
-      }
+      for (const p of picks) Object.assign(base, p.hueco);
       const next = { ...plan, [groupId]: { ...(plan[groupId] ?? {}), [slotKey]: base } };
-      applyShoppingFor(next, groups, pantryIngredients);
       return next;
     });
     showToast(toUnico ? "Ahora es plato único" : "Ahora hay primero y segundo");
     trackEvent(user, "slot_structure_changed", "menu", { day, meal, structure });
-  }, [data, menuPlan, showToast, user, applyShoppingFor, householdReadOnly]);
+  }, [data, menuPlan, showToast, user, householdReadOnly]);
 
   /**
    * Vaciar un hueco. Solo quita el plato que has tocado: en una comida con
@@ -5583,8 +5404,6 @@ export default function App() {
    */
   const handleVaciarPizarra = useCallback(async () => {
     if (householdReadOnly) return;
-    const groups = gruposVigentes(data);
-    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const next = { ...plan };
       let tocados = 0;
@@ -5601,19 +5420,16 @@ export default function App() {
         next[gid] = copia;
       }
       if (tocados === 0) return plan;
-      applyShoppingFor(next, groups, pantryIngredients);
       return next;
     });
     showToast("Pizarra vaciada");
-  }, [data, householdReadOnly, user, syncHouseholdId, showToast, applyShoppingFor]);
+  }, [data, householdReadOnly, user, syncHouseholdId, showToast]);
 
   const handleClearSlot = useCallback(async (sel) => {
     if (householdReadOnly || !sel) return;
     const { groupId, day, meal, course } = sel;
     const key = `${day}-${meal}`;
     const field = course === "first" ? "firstRecipeId" : "recipeId";
-    const groups = gruposVigentes(data);
-    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const prevSlot = plan[groupId]?.[key];
       if (!prevSlot) return plan;
@@ -5627,12 +5443,11 @@ export default function App() {
       }
       nextSlot.cleared = !nextSlot.recipeId;
       const next = { ...plan, [groupId]: { ...(plan[groupId] ?? {}), [key]: nextSlot } };
-      applyShoppingFor(next, groups, pantryIngredients);
       return next;
     });
     showToast("Hueco vaciado");
     trackEvent(user, "dish_cleared", "menu", { day, meal, course });
-  }, [data, showToast, user, applyShoppingFor, householdReadOnly]);
+  }, [data, showToast, user, householdReadOnly]);
 
   /**
    * Marca (o desmarca) un hueco como cubierto por un plato ya cocinado del
@@ -5647,8 +5462,6 @@ export default function App() {
     if (householdReadOnly) return;
     const { groupId, day, meal } = sel;
     const key = `${day}-${meal}`;
-    const groups = gruposVigentes(data);
-    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const prevSlot = plan[groupId]?.[key];
       if (!prevSlot) return plan;
@@ -5656,11 +5469,10 @@ export default function App() {
         ? { ...prevSlot, ...patch }
         : clearPreparedFromSlot(prevSlot);
       const next = { ...plan, [groupId]: { ...(plan[groupId] ?? {}), [key]: nextSlot } };
-      applyShoppingFor(next, groups, pantryIngredients);
       return next;
     });
     trackEvent(user, patch ? "slot_from_freezer" : "slot_freezer_cleared", "menu", { day, meal });
-  }, [data, user, applyShoppingFor]);
+  }, [data, user]);
 
   // Elegir manualmente: open the catalog picker for a slot. A reason (from the
   // "Regenerar → Elegir a mano" flow) discards the outgoing dish first.
@@ -5734,8 +5546,6 @@ export default function App() {
           : null),
       }));
     }
-    const groups = gruposVigentes(data);
-    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const next = { ...plan };
       // Cada destino escribe en SU casilla: con una selección de varios huecos
@@ -5748,7 +5558,7 @@ export default function App() {
           ...(next[c.gid] ?? {}),
           [key]: {
             ...prevSlot,
-            ...(c.course === "first" ? { firstRecipeId: c.recipeId } : { recipeId: c.recipeId }),
+            ...c.hueco,
             // Plato único merges the two courses into one → drop the primero.
             ...(kind === "plato_unico" ? { firstRecipeId: null } : null),
             cleared: false,
@@ -5756,7 +5566,6 @@ export default function App() {
           },
         };
       }
-      applyShoppingFor(next, groups, pantryIngredients);
       return next;
     });
     setSlotPicker(null);
@@ -5767,7 +5576,7 @@ export default function App() {
     );
     trackEvent(user, "dish_manual_pick", "menu", { day, meal, kind, menus: colocados.length });
     contarSenales(casaActivaRef.current, senalesDeCambio({ sale: recetaDelPlato(platoAntes), entra: frontendRecipe, motivo: MOTIVO_CAMBIO.MANUAL }));
-  }, [slotPicker, data, menuPlan, showToast, user, applyShoppingFor]);
+  }, [slotPicker, data, menuPlan, showToast, user]);
 
   // Reset intents: "soft" keeps the profile (family, recipes, preferences) and
   // only wipes the active menu/session; "hard" nukes everything (used by
@@ -5861,6 +5670,23 @@ export default function App() {
     back(() => setScreen("dashboard"));
   }, []);
 
+  // Descargar los datos de la casa (trozo 36): todo lo que la base guarda de ella, en un fichero JSON. Si no llega
+  // entero, no se baja nada y se dice.
+  const handleExportarCasa = useCallback(async () => {
+    try {
+      const texto = await pedirExportacion({ casa: syncHouseholdId, token: session?.access_token });
+      const enlace = document.createElement("a");
+      enlace.href = URL.createObjectURL(new Blob([texto], { type: "application/json" }));
+      enlace.download = nombreDelFichero();
+      enlace.click();
+      URL.revokeObjectURL(enlace.href);
+      showToast("Tus datos se han descargado.");
+    } catch (err) {
+      console.error("[exportar] failed", err);
+      showToast("No se han podido descargar tus datos. Inténtalo de nuevo.");
+    }
+  }, [syncHouseholdId, session, showToast]);
+
   // Deletes the actual Supabase Auth account (not just app data) via
   // api/delete-account — required for App Store 5.1.1(v). Every user-scoped
   // table cascades from auth.users(id), so this one call is enough; there's
@@ -5938,14 +5764,87 @@ export default function App() {
   // equilibrado) y "Extras" (10-11, la estructura de plato se pregunta ya en
   // "¿Qué comidas quieres organizar?") se ocultan.
   const basicMode = !data.expertMode;
+  // La semana abierta, por su lunes: la del archivo del menú, o la de hoy más el offset con la misma cuenta que pone
+  // las claves del archivo (mondayISOForOffset, weekCalendar.js).
+  const semanaAbierta = semanaPorOffset(data.menus?.[data.activeMenuId]?.weeks, data.menuWeek?.offset ?? 0)?.[0]
+    ?? mondayISOForOffset(data.menuWeek?.offset ?? 0);
+  useEffect(() => {
+    let vivo = true;
+    if (!activeHouseholdId) {
+      setCocinados({ semana: semanaAbierta, claves: cocinadosLocales(semanaAbierta) });
+      return undefined;
+    }
+    // Otra casa u otra semana: hasta leer la suya no hay claves (la ficha no deja marcar), ni las de la anterior.
+    setCocinados({ semana: null, claves: new Set() });
+    leerCocinados(activeHouseholdId, semanaAbierta).then((r) => {
+      if (!vivo) return;
+      // Sin leer no es «nada cocinado»: se queda sin claves de esa semana (la ficha no deja marcar) y se avisa.
+      if (r.ok) setCocinados({ semana: semanaAbierta, claves: r.claves });
+      else showToast("No he podido leer qué hay cocinado esta semana");
+    });
+    return () => { vivo = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeHouseholdId, semanaAbierta]);
+  // Marca o desmarca un plato cocinado: primero en su sitio (tabla o móvil) y, si se guardó, en pantalla.
+  const marcarCocinado = useCallback(async (fila, hecho) => {
+    if (activeHouseholdId) {
+      const r = await mandarCocinado(activeHouseholdId, fila, hecho);
+      if (!r.ok) return r;
+    } else {
+      ponerCocinadoLocal(fila, hecho);
+    }
+    setCocinados((c) => {
+      if (c.semana !== fila.semana) return c;
+      const claves = new Set(c.claves);
+      if (hecho) claves.add(claveCocinado(fila));
+      else claves.delete(claveCocinado(fila));
+      return { ...c, claves };
+    });
+    return { ok: true };
+  }, [activeHouseholdId]);
+  // Lo gastado de la casa abierta, de sus tablas (compraApp.js); sin casa, del móvil. Sin leer no es «nada gastado»:
+  // `leida: false`, la pantalla de gasto lo dice y no deja borrar.
+  const [gasto, setGasto] = useState(() => ({ casa: null, leida: false, tickets: [], precios: [] }));
+  useEffect(() => {
+    let vivo = true;
+    if (!activeHouseholdId) {
+      try { setGasto({ casa: null, leida: true, ...compraLocal() }); } catch (e) {
+        console.error("[compra]", e.message);
+        setGasto({ casa: null, leida: false, tickets: [], precios: [] });
+        showToast("No he podido cargar lo gastado");
+      }
+      return undefined;
+    }
+    setGasto({ casa: activeHouseholdId, leida: false, tickets: [], precios: [] });
+    leerCompra(activeHouseholdId).then((r) => {
+      if (!vivo) return;
+      if (r.ok) setGasto({ casa: activeHouseholdId, leida: true, tickets: r.tickets, precios: r.precios });
+      else showToast("No he podido cargar lo gastado");
+    });
+    return () => { vivo = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeHouseholdId]);
+  // Un ticket, un gasto o borrar un ticket: primero en su sitio (tabla o móvil) y, si se guardó, en pantalla.
+  const apuntarCompra = useCallback(async (cambio) => {
+    if (!activeHouseholdId) {
+      try { setGasto({ casa: null, leida: true, ...cambiarCompraLocal(cambio) }); return { ok: true }; } catch (e) {
+        console.error("[compra]", e.message);
+        return { ok: false };
+      }
+    }
+    const r = await mandarCompra(activeHouseholdId, cambio);
+    if (r.ok) setGasto((c) => (c.casa === activeHouseholdId && c.leida ? { ...c, ...conCambio(c, cambio) } : c));
+    return r;
+  }, [activeHouseholdId]);
+  const valorCompra = useMemo(() => ({ ...gasto, apuntar: apuntarCompra }), [gasto, apuntarCompra]);
   // Presupuesto semanal / Tu compra (paso 6): ya cableado (toggle, cards y precios Mercadona).
   const skipBudgetStep = false;
   // "¿Cuánto tiramos de lo de casa?" (13) solo si hay algo en casa. Con la
   // nevera vacía es la pregunta más tonta del asistente, y encima bloquearía
   // el Continuar por una respuesta que no significa nada. Lo apunta la pantalla
-  // anterior (ver `apuntarCuantos` en OnboardingPantryInventory): la despensa
-  // no vive en `data`, así que sin ese rastro aquí no hay forma de saberlo.
-  const skipPantryMode = data.pantryHasItems !== true;
+  // anterior (ver `apuntarCuantos` en OnboardingPantryInventory) en este
+  // móvil (marcasLocales.js, trozo 22 de #1037): es de la pantalla, no de la casa.
+  const skipPantryMode = !marcaLocal("pantryHasItems", activeHouseholdId);
   // El perfil (quién come + qué evitáis) ya está hecho: se rellenó en el alta.
   const profileAlreadySetUp = (data.members?.length ?? 0) > 0;
   // Pasos que ha pedido ajustar el picker (paso 0). Vacío = no ha pedido
@@ -6063,7 +5962,7 @@ export default function App() {
     // simplificados (sin desayunos en "¿Dónde coméis?", tiempos compartidos,
     // sin cenas rápidas del asistente — ver resolveModeData). Sin modo (vía
     // rápida, sin ajustar nada), básico.
-    setData((d) => ({ ...d, expertMode: expert ?? topicIds.length > 0, modePrompted: true }));
+    setData((d) => ({ ...d, expertMode: expert ?? topicIds.length > 0 }));
     setMenuScope(topicIds);
     const steps = [...new Set(topicIds.flatMap((id) => SCOPE_TOPIC_STEPS[id] ?? []))]
       .sort((a, b) => a - b)
@@ -6139,9 +6038,8 @@ export default function App() {
                 if (desdeLola && !r.avisado) showToast("Guardado. Si Lola no te escribe, dile «ya está» en Telegram");
                 altaDesdeLolaRef.current = false;
                 setFirstRunOnboarding(false);
-                // Con la casa ya revisada, no con `data`: es de antes del
-                // clic y el motor esquivaría los 14 alérgenos.
-                fwd(() => goToMenu("dashboard", { generar: !desdeLola, datos: revisada }));
+                // Sin menú: se le pide a Lola desde Inicio (#1210).
+                fwd(() => goToMenu("dashboard"));
               }
             : nextOf(2)
       }
@@ -6155,7 +6053,7 @@ export default function App() {
           ? () => back(() => { setScreen(editPreferencesOrigin); setEditPreferencesOrigin(null); })
           : firstRunOnboarding
             ? undefined
-            : (revisada) => fwd(() => goToMenu("menu", { datos: revisada }))
+            : () => fwd(() => goToMenu("menu"))
       }
       onReset={handleAbandonOnboarding}
       {...(editPreferencesOrigin ? { finishLabel: "Guardar" } : {})}
@@ -6235,13 +6133,19 @@ export default function App() {
     <OnboardingPantryInventory
       user={user}
       pantryHouseholdId={activeHouseholdId}
-      priceObs={data.priceObs ?? []}
+      priceObs={gasto.precios}
       pantryEpoch={pantryEpoch}
       onToast={showToast}
       data={data}
       setData={setData}
-      shopping={shopping}
-      setShopping={setShopping}
+      onHayEnCasa={(hay) => {
+        // Marca de este móvil (marcasLocales.js), no de la casa: se repinta para que el paso siguiente la vea.
+        if (marcaLocal("pantryHasItems", activeHouseholdId) === hay) return;
+        ponerMarcaLocal("pantryHasItems", activeHouseholdId, hay);
+        setMarcasVistas((n) => n + 1);
+      }}
+      shopping={compra}
+      setShopping={setCompra}
       onNext={nextOf(12)}
       onBack={backOf(12)}
       onFinish={() => fwd(goToMenu)}
@@ -6298,6 +6202,7 @@ export default function App() {
   const animDir = dirRef.current;
 
   return (
+    <CompraContext.Provider value={valorCompra}>
     <div
       style={{
         maxWidth: APP_SHELL_MAX_WIDTH,
@@ -6409,7 +6314,7 @@ export default function App() {
               onDishPlace={householdReadOnly ? undefined : handlePlaceRecipeInSlot}
               onIncomingCancel={() => setPendingDish(null)}
               onDishManualPick={householdReadOnly ? undefined : handleManualPickSlot}
-              onRegenerateDay={householdReadOnly ? undefined : handleRegenerateDay}
+              onRegenerateDay={puedeRegenerarDia({ soloLectura: householdReadOnly, esPizarra }) ? handleRegenerateDay : undefined}
               onNav={handleNav}
               onRegenerate={householdReadOnly ? undefined : handleRegenerate}
               onRetry={retryGenerateMenu}
@@ -6428,22 +6333,17 @@ export default function App() {
                 fwd(() => setScreen("analytics"));
               }}
               onDeleteActive={householdReadOnly ? undefined : deleteActiveMenu}
-              shoppingItems={shopping.items}
-              // En la pizarra no se pinta la fila de mandos: los mandos
-              // ajustan lo que el motor decidirá en la próxima generación, y
-              // en un menú que montas a mano no hay próxima generación que
-              // ajustar. Y la burbuja tampoco: el asistente entero sobra en un
-              // menú que no genera nadie.
-              wizardControls={esPizarra ? null : wizard.controls}
-              wizardBubble={esPizarra
-                ? (!householdReadOnly && (
-                  <Suspense fallback={null}>
-                    <PizarraBurbuja onOrden={handleOrdenPizarra} onDeshacer={handleDeshacerPizarra} />
-                  </Suspense>
-                ))
-                : wizard.bubble}
+              shoppingItems={compra.items}
+              // La fila de mandos del asistente antiguo (proporciones y
+              // estilos) ya no se pinta: lo mismo se le pide a Lola
+              // (ajustar_gustos, ajustar_cocina), y la pizarra trae su fila.
+              wizardControls={null}
+              wizardBubble={esPizarra && !householdReadOnly && (
+                <Suspense fallback={null}>
+                  <PizarraBurbuja onOrden={handleOrdenPizarra} onDeshacer={handleDeshacerPizarra} />
+                </Suspense>
+              )}
               modoPizarra={esPizarra}
-              temaPizarra={esPizarra ? temaPizarra : "claro"}
               repartoKey={esPizarra ? repartoKey : 0}
               onAddSlot={esPizarra ? setAddSlotDay : null}
               onRemoveSlot={esPizarra ? handleRemoveSlot : null}
@@ -6451,9 +6351,10 @@ export default function App() {
               onFillSlots={esPizarra ? handleFillSlots : null}
               // La fila de mandos de la pizarra. Va como prop y no importada
               // dentro de MenuScreen para que esa pantalla siga sin saber que
-              // la pizarra existe: recibe nodos, no modos.
+              // la pizarra existe: recibe nodos, no modos. Es una función
+              // porque Menu le añade lo que solo él abre (la hoja del PDF).
               pizarraControles={
-                esPizarra && !householdReadOnly && !pizarraArrancando ? (
+                esPizarra && !householdReadOnly && !pizarraArrancando ? (extra) => (
                   <Suspense fallback={null}>
                     <PizarraControles
                       data={data}
@@ -6466,13 +6367,14 @@ export default function App() {
                       onAddDespensa={handleAddDespensa}
                       onQuitarDespensa={handleQuitarDespensa}
                       onQtyDespensa={handleQtyDespensa}
-                      onNuevaPizarra={() => handleStartPizarra()}
+                      onNuevaPizarra={householdReadOnly ? undefined : () => handleStartPizarra()}
+                      conCuenta={Boolean(user)}
                       onVaciar={handleVaciarPizarra}
                       onFavorito={householdReadOnly ? undefined : toggleActiveFavorite}
                       esFavorito={Boolean(data.menus?.[data.activeMenuId]?.isFavorite)}
-                      tema={temaPizarra}
-                      onTema={alternarTemaPizarra}
                       onCompartir={householdReadOnly ? undefined : handleShareMenuLink}
+                      onMenus={openMenusScreen}
+                      {...extra}
                     />
                   </Suspense>
                 ) : null
@@ -6523,6 +6425,7 @@ export default function App() {
               setData={setData}
               onAplicar={aplicarCambioPizarra}
               onEmpezar={empezarPizarra}
+              onSalir={salirDePizarra}
             />
           </Suspense>
         )}
@@ -6586,8 +6489,8 @@ export default function App() {
             <Suspense fallback={null}>
               <ShoppingScreen
                 canTick={puede(activeHousehold?.role, "tachar")}
-                shopping={shopping}
-                setShopping={householdReadOnly ? null : setShopping}
+                shopping={compra}
+                setShopping={householdReadOnly ? null : setCompra}
                 data={data}
                 setData={householdReadOnly ? null : setData}
                 readOnly={householdReadOnly}
@@ -6596,7 +6499,7 @@ export default function App() {
                 onNav={handleNav}
                 onToast={showToast}
                 menuWeek={data.menuWeek}
-                menuWeeks={data.activeMenuId ? orderedWeeks(data.menus?.[data.activeMenuId]) : null}
+                menuWeeks={semanasDeCompra}
                 activeOffset={data.menuWeek?.offset ?? null}
                 onUpdateWeek={updateWeekShopping}
                 openCaptureOnMount={shoppingCaptureIntent}
@@ -6617,10 +6520,8 @@ export default function App() {
             <Suspense fallback={null}>
               <AnalyticsScreen
                 data={data}
-                setData={householdReadOnly ? null : setData}
                 menuPlan={menuPlan}
-                shopping={shopping}
-                setShopping={householdReadOnly ? null : setShopping}
+                shopping={compra}
                 readOnly={householdReadOnly}
                 readOnlyLabel={householdReadOnlyLabel}
                 onUndoReceiptTachado={householdReadOnly ? undefined : undoReceiptTachado}
@@ -6664,6 +6565,7 @@ export default function App() {
               <AccountScreen
                 user={user}
                 data={data}
+                menusHechos={menusHechos}
                 setData={setData}
                 menuPlan={menuPlan}
                 setMenuPlan={setMenuPlan}
@@ -6754,7 +6656,6 @@ export default function App() {
                   if (user?.id) updateRecipeVisibility(user.id, recipeId, visibility);
                 }}
                 onDeleteRecipe={handleDeleteRecipe}
-                onOpenRecipePrefs={() => setRecipePrefsOpen(true)}
               />
             </Suspense>
           </div>
@@ -6807,18 +6708,6 @@ export default function App() {
 
         {screen === "feed" && (GUIAS_ACTIVAS || FORCE_TOUR) && !feedCoachSeen && (
           <FeedCoachTour onClose={markFeedCoachSeen} />
-        )}
-
-        {recipePrefsOpen && (
-          <RecipePrefsWizard
-            initial={data.recipeMode ?? "preferred"}
-            onComplete={(mode) => {
-              setData((d) => ({ ...d, recipeMode: mode }));
-              setRecipePrefsOpen(false);
-              showToast("Preferencias de recetas guardadas");
-            }}
-            onClose={() => setRecipePrefsOpen(false)}
-          />
         )}
 
         {screen === "households" && (
@@ -6931,7 +6820,6 @@ export default function App() {
                   if (!garnishId && !sauceId) return;
                   handleOpenCatalogRecipe(recipe, { garnishId, sauceId, initialCourse: "combinado" });
                 }}
-                onOpenRecipePrefs={() => setRecipePrefsOpen(true)}
               />
             </Suspense>
           </div>
@@ -6953,6 +6841,10 @@ export default function App() {
                 onAppleSignIn={signInWithApple}
                 onSignOut={signOut}
                 onDeleteAccount={handleDeleteAccount}
+                onExportData={user && syncHouseholdId ? handleExportarCasa : null}
+                formasDeEntrar={user ? formasDeEntrar(user, { conApple: seOfreceApple() }) : null}
+                onAnadirFormaDeEntrar={handleAnadirFormaDeEntrar}
+                onQuitarFormaDeEntrar={handleQuitarFormaDeEntrar}
                 onEditMembers={() => fwd(() => setScreen("members"))}
                 onEditPreferences={() => openEditPreferences("profile")}
                 onOpenHouseholds={() => fwd(() => setScreen("households"))}
@@ -7077,6 +6969,9 @@ export default function App() {
           day={selectedSlot.day ?? null}
           meal={selectedSlot.meal ?? null}
           cookWeekKey={`${data.activeMenuId ?? "live"}:${data.menuWeek?.offset ?? 0}`}
+          cookWeekMonday={semanaAbierta}
+          cocinados={cocinados.semana === semanaAbierta ? cocinados.claves : null}
+          onCocinado={marcarCocinado}
           user={user}
           data={householdReadOnly ? null : data}
           setData={householdReadOnly ? null : setData}
@@ -7121,6 +7016,27 @@ export default function App() {
           sugerencias={sugerenciasDelHueco}
           contextoHueco={contextoDelHueco}
           onPickSugerencia={(id) => { if (id) handleChooseRecipeForSlot(id); }}
+        />
+      )}
+
+      {/* Una persona, una cuenta (specs/auth.md §7, trozo 4): antes de crear la de Google o Apple, y al volver de Telegram. */}
+      {altaPendiente && (
+        <PreguntaDeCuenta
+          titulo={PREGUNTA_ALTA.titulo}
+          principal={PREGUNTA_ALTA.telegram}
+          onPrincipal={entrarConTelegramEnVez}
+          conTelegram
+          secundario={PREGUNTA_ALTA.crear}
+          onSecundario={crearCuentaNueva}
+        />
+      )}
+      {ofertaAnadir && (
+        <PreguntaDeCuenta
+          titulo={OFERTA_ANADIR.titulo(ofertaAnadir)}
+          principal={OFERTA_ANADIR.si(ofertaAnadir)}
+          onPrincipal={() => responderOferta(true)}
+          secundario={OFERTA_ANADIR.no}
+          onSecundario={() => responderOferta(false)}
         />
       )}
 
@@ -7353,7 +7269,6 @@ export default function App() {
                       // Rosters de antes (ya no se usan): no se borran.
                       ...(d.rosters ? { rosters: d.rosters, activeRosterId: d.activeRosterId } : {}),
                       expertMode: d.expertMode,
-                      modePrompted: false,
                     }));
                     startQuickMenu();
                   },
@@ -7511,6 +7426,7 @@ export default function App() {
         </div>
       )}
     </div>
+    </CompraContext.Provider>
   );
 }
 
@@ -7565,7 +7481,7 @@ function FlipCaseLetter({ upper, lower, active, activeColor, inactiveColor, dela
 function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle, onApple, abriendoCasa = false }) {
   const handleEnter = () => (hasSaved ? onResume() : onNext());
 
-  // La foto de bienvenida ocupa casi toda la pantalla sobre negro verdoso, y el
+  // La foto de bienvenida ocupa toda la pantalla sobre negro verdoso, y el
   // reloj cae encima: en oscuro desapareceria.
   useStatusBarSobreFondo("oscuro");
 
@@ -7620,15 +7536,13 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle, onApple,
           0%   { transform: translateX(-120%) skewX(-18deg); }
           100% { transform: translateX(320%) skewX(-18deg); }
         }
-        .portada-foto { object-position: center 35%; }
         .portada-titulo { padding: 56px 32px 0; }
         .portada-logo { width: 84px; height: 84px; }
         .portada-letras { font-size: clamp(58px, 17vw, 84px); margin: 0 0 10px; }
         .portada-lema { font-size: 20px; }
-        /* Móvil con las barras del navegador: el título encoge y la foto baja el
-           encuadre para que las cuatro caras quepan entre él y los botones. */
+        /* Móvil con las barras del navegador: el título encoge para que las
+           caras quepan entre él y los botones. */
         @media (max-height: 800px) {
-          .portada-foto { object-position: center 72%; }
           .portada-titulo { padding-top: 28px; }
           .portada-logo { width: 52px; height: 52px; }
           .portada-letras { font-size: 48px; margin-bottom: 4px; }
@@ -7675,22 +7589,19 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle, onApple,
         }}
       />
 
-      {/* Foto fija de fondo. */}
+      {/* La familia en la cocina (Gemini, 5 nov 2026): vertical, llena la pantalla. Arriba hay techo para
+          el logo y abajo encimera para los botones. */}
       <img
-        className="portada-foto"
-        src="/portada.jpg"
+        src="/portada-familia.jpg"
         alt=""
         aria-hidden="true"
         style={{
           position: "absolute",
-          top: 0,
-          left: 0,
+          inset: 0,
           width: "100%",
-          // Más corta que la pantalla: su borde inferior se funde con el fondo.
-          height: "78%",
+          height: "100%",
           objectFit: "cover",
-          WebkitMaskImage: "linear-gradient(180deg, #000 82%, transparent 100%)",
-          maskImage: "linear-gradient(180deg, #000 82%, transparent 100%)",
+          objectPosition: "50% 45%",
           zIndex: 1,
           pointerEvents: "none",
           animation: "fadeIn 1.2s ease-out",
@@ -7704,7 +7615,7 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle, onApple,
           inset: 0,
           zIndex: 1,
           pointerEvents: "none",
-          background: `linear-gradient(180deg, ${veloFoto(.62)} 0%, ${veloFoto(.12)} 42%, ${veloFoto(.12)} 58%, ${veloFoto(.72)} 100%)`,
+          background: `linear-gradient(180deg, ${veloFoto(.68)} 0%, ${veloFoto(.45)} 27%, ${veloFoto(.08)} 44%, ${veloFoto(.08)} 58%, ${veloFoto(.72)} 100%)`,
         }}
       />
 
@@ -7814,8 +7725,9 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle, onApple,
           </GhostPillButton>
         ) : (
           <>
-            {FRONTAL_BOT && (
-              <GhostPillButton onClick={abrirLola} tone="solid">
+            {/* Donde se entra con Telegram (SignInOptions, primero), sobra otro botón de Telegram. */}
+            {FRONTAL_BOT && !urlEntrarConTelegram(window.location) && (
+              <GhostPillButton onClick={abrirLola} tone="telegram">
                 Habla con Lola en Telegram
               </GhostPillButton>
             )}

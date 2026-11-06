@@ -7,6 +7,7 @@
 import { select, eq } from "./db.js";
 import { crearCuentaTelegram, cuentaNacidaAqui } from "./cuentas.js";
 import { enlazarChat, casaPropia } from "./enlace.js";
+import { CAMINO_ENLACE, PRUEBA_IDENTIDAD } from "../../src/lib/vocabularios.js";
 import { sembrarCasa } from "./ajustes.js";
 
 /**
@@ -25,6 +26,7 @@ export async function cuentaYChat({ telegramId, chatId, nombre = null, lang = nu
   if (!cuenta.householdId) throw new Error("cuenta sin casa");
 
   await enlazarChat({
+    camino: CAMINO_ENLACE.ALTA_TELEGRAM,
     chatId,
     kind: "private",
     householdId: cuenta.householdId,
@@ -32,7 +34,7 @@ export async function cuentaYChat({ telegramId, chatId, nombre = null, lang = nu
     externalId: String(telegramId),
     nombre,
     lang,
-    identidad: "nacida",
+    identidad: PRUEBA_IDENTIDAD.NACIDA,
   });
   await sembrarCasa(cuenta.householdId);
   return cuenta;

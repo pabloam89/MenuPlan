@@ -154,6 +154,7 @@ import { importSchoolMenuFile, selectBestWeek } from "../lib/schoolMenuImport.js
 import { SchoolMenuDeck } from "./SchoolMenuDeck.jsx";
 import { estructuraDelGrupo, estructuraCenaDelGrupo, conEstructura } from "../lib/estructuraPlatos.js";
 import { conInterruptor, conPresupuesto, leerPresupuesto, PRESUPUESTO_DE_PARTIDA } from "../lib/presupuestoCasa.js";
+import { CLAVE_CASA } from "../lib/estiloEnFilas.js";
 
 const MEAL_STRUCTURE_CARDS = [
   {
@@ -7335,8 +7336,9 @@ const GOAL_ICON_MAP = {
   variado: Shuffle,
 };
 
+// La casa entera va con la misma clave que el estilo de comida (CLAVE_CASA, estiloEnFilas.js).
 function goalsManualKey(subjectId) {
-  return subjectId ?? "__global__";
+  return subjectId ?? CLAVE_CASA;
 }
 
 const BASE_KCAL = 2000;
@@ -7771,7 +7773,7 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
   }, [styleableGroups, activeGroupId]);
 
   const subjectId = activeGroupId;
-  const styleKey = subjectId ?? "__global__";
+  const styleKey = subjectId ?? CLAVE_CASA;
   const activeStyle = data.mealStyleByGroup?.[styleKey] ?? DEFAULT_MEAL_STYLE;
   const isCustom = activeStyle === "personalizado";
 
@@ -7876,11 +7878,11 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
   const customOverBudget = useMemo(() => {
     const subjects = styleableGroups.length > 0
       ? styleableGroups.map((g) => ({ key: g.id, group: g }))
-      : [{ key: "__global__", group: null }];
+      : [{ key: CLAVE_CASA, group: null }];
     return subjects.some(({ key, group }) => {
       const style = data.mealStyleByGroup?.[key] ?? DEFAULT_MEAL_STYLE;
       if (style !== "personalizado") return false;
-      const freqs = (key === "__global__" ? data.freqs : data.freqsByGroup?.[key]) ?? {};
+      const freqs = (key === CLAVE_CASA ? data.freqs : data.freqsByGroup?.[key]) ?? {};
       const used = FOOD_ORDER.reduce((s, k) => s + Math.max(0, freqs[k] ?? 0), 0);
       const budget = computeGroupSlotBudget(data, group);
       return used > budget.total;
@@ -8992,7 +8994,6 @@ export function OnboardingMode({ data, setData, onNext, onBack, onFinish, onRese
                 // si no, la de cada grupo del modo experto seguía mandando.
                 ...(t.id === "basic" ? conEstructura(d, "1_plato") : d),
                 expertMode: t.id === "expert",
-                modePrompted: true,
               }))
             }
           />
@@ -9016,28 +9017,22 @@ export function OnboardingMode({ data, setData, onNext, onBack, onFinish, onRese
 // una respuesta — y la de la mayoría la primera vez.
 //
 // Es la pantalla "En casa" de siempre (pestañas Añadir/Inventario,
-// foto/ticket/a mano), no una versión apilada/simplificada. "¿Cuándo se da
-// por gastado?" vivió aquí al lado un día (2026-08-25) como paso condicional
-// — se quitó del wizard al día siguiente: esa pregunta se entiende mejor
-// mirando la despensa real que a mitad del asistente, así que ahora es un
-// sheet contextual en Compra → En casa (ver PantryPrefsSheet en
-// components/ModeSheets.jsx), no un paso de este flujo.
+// foto/ticket/a mano), no una versión apilada/simplificada.
 export function OnboardingPantryInventory({
   onNext, onBack, onFinish, onReset, nextLabel,
-  user, pantryHouseholdId, priceObs, pantryEpoch, onToast, data, setData, shopping, setShopping,
+  user, pantryHouseholdId, priceObs, pantryEpoch, onToast, data, setData, onHayEnCasa, shopping, setShopping,
 }) {
-  // Cuántas cosas hay en casa, apuntado en `data` para que lo pueda leer el
-  // paso siguiente. La despensa vive en Supabase/localStorage, no en `data`, y
+  // Si hay algo en casa, apuntado en este móvil (onHayEnCasa → marcasLocales.js)
+  // para que lo pueda leer el paso siguiente. La despensa vive en Supabase/localStorage, no en `data`, y
   // quien sabe cuánto hay es esta pantalla — que lo cuenta y avisa por
   // `onItemsCount`. Sin este dato, "¿cuánto tiramos de lo de casa?" se
   // preguntaría con la nevera vacía, que es la pregunta más tonta del
   // asistente.
   const apuntarCuantos = useCallback(
     (count) => {
-      const hay = count > 0;
-      setData((d) => (d.pantryHasItems === hay ? d : { ...d, pantryHasItems: hay }));
+      onHayEnCasa?.(count > 0);
     },
-    [setData],
+    [onHayEnCasa],
   );
 
   return (

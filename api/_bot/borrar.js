@@ -20,8 +20,10 @@
 import { seguirCon } from "./avisar.js";
 import { select, eq, config, rpc } from "./db.js";
 import { llamar } from "./telegram.js";
+import { RECORDATORIOS } from "./recordatorios.js";
+import { ADMIN_POR_DEFECTO } from "./reporte.js";
 
-const ADMINS = (process.env.BOT_ADMINS || "491628449").split(",").map((s) => s.trim()).filter(Boolean);
+const ADMINS = (process.env.BOT_ADMINS || ADMIN_POR_DEFECTO).split(",").map((s) => s.trim()).filter(Boolean);
 
 /**
  * ¿Puede este usuario de Telegram borrar su cuenta desde aquí?
@@ -81,7 +83,9 @@ export async function borrarLoDelBot(userId, { chatIds = [], telegramId = null, 
   const borrados = [];
   if (chats.size) {
     const enChats = `chat_id=${lista([...chats])}`;
-    for (const tabla of ["bot_messages", "bot_cola", "bot_candados", "bot_codigos", "bot_reminders", "bot_chats"]) borrados.push(borrarFilas(tabla, enChats));
+    for (const tabla of ["bot_messages", "bot_cola", "bot_candados", "bot_codigos", "bot_chats"]) borrados.push(borrarFilas(tabla, enChats));
+    // Sus recordatorios (tareas de tipo recordatorio, 0122): las demás tareas son de la casa y se van con ella.
+    borrados.push(borrarFilas("bot_tareas", `${enChats}&${RECORDATORIOS}`));
   }
   if (externos.size) {
     if (conIdentidades) borrados.push(borrarFilas("bot_identities", `external_id=${lista([...externos])}`));

@@ -15,8 +15,12 @@ import { insert, select, eq } from "./db.js";
 import { fallaCon, SIN_LEER } from "./avisar.js";
 import { paraEscribir } from "../../src/lib/vocabularios.js";
 
-/** ¿El error es que la fila ya estaba (clave única)? Uno solo para todo el bot (#958). */
-export const esDuplicado = (e) => /\b409\b|23505|duplicate key/i.test(String(e?.message ?? e));
+/** ¿La fila ya estaba (clave única, 23505)? Uno solo para todo el bot (#958). Un 409 por clave ajena (23503), no. */
+export const esDuplicado = (e) => {
+  if (e?.codigo) return e.codigo === "23505";
+  const m = String(e?.message ?? e);
+  return /23505|duplicate key/i.test(m) || (/\b409\b/.test(m) && !/23503|foreign key/i.test(m));
+};
 
 /**
  * ¿Es la primera vez que llega esta entrada? `true` = atiéndela; `false` = ya
