@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { fichaMercadona, listaParaMercadona } from "./mercadonaList.js";
+import { enlaceDeLista, fichaMercadona, listaParaMercadona } from "./mercadonaList.js";
 
 const merca = (id, packs, precio = 1) => ({
   storeProductId: id,
@@ -109,6 +109,12 @@ describe("listaParaMercadona", () => {
     const { lista, sinProducto } = listaParaMercadona(items, map, "x");
     expect(lista.products).toEqual([{ merca_code: "2", quantity: 1 }]);
     expect(sinProducto).toEqual([]);
+  });
+});
+
+describe("enlaceDeLista", () => {
+  it("va a la lista", () => {
+    expect(enlaceDeLista("7")).toBe("https://tienda.mercadona.es/shopping-lists/7");
   });
 });
 

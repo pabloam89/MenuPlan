@@ -391,6 +391,17 @@ export const RESULTADOS_TAREA = ["aceptada", "mantenida"];
 
 /** Cómo de a fondo se pidió un menú (menu_generado.camino, 0130): los ids de CAMINOS, src/lib/caminos.js. */
 export const CAMINOS_MENU = ["basico", "medio", "avanzado"];
+/** Cómo está la cuenta de Mercadona de una casa (mercadona_cuenta.estado, 0131). */
+export const ESTADOS_CUENTA_MERCADONA = ["conectada", "caducada"];
+export const ESTADO_CUENTA_MERCADONA = porNombre(ESTADOS_CUENTA_MERCADONA);
+/** Por dónde se pidió rellenar la lista (mercadona_encargo.canal, 0131). */
+export const CANALES_ENCARGO = ["app", ...CANALES];
+/** Por dónde va un encargo de Mercadona (mercadona_encargo.status, 0131). */
+export const ESTADOS_ENCARGO_MERCADONA = ["pendiente", "rellenando", "hecho", "fallido"];
+export const ESTADO_ENCARGO_MERCADONA = porNombre(ESTADOS_ENCARGO_MERCADONA);
+/** Por qué falló un encargo de Mercadona (mercadona_encargo.fallo, 0131). */
+export const FALLOS_ENCARGO_MERCADONA = ["sin_cuenta", "sesion_caducada", "bloqueado", "lista_no_valida", "caducado", "error"];
+export const FALLO_ENCARGO_MERCADONA = porNombre(FALLOS_ENCARGO_MERCADONA);
 /** Para qué es una tarea de objetivo (bot_tareas.objetivo, 0080). */
 export const OBJETIVOS_TAREA = ["ideas_plato", "calorias", "generar_menu"];
 export const OBJETIVO_TAREA = porNombre(OBJETIVOS_TAREA);
@@ -429,6 +440,8 @@ export const MOTIVO_FALLO = porNombre(MOTIVOS_FALLO);
  * que no está.
  */
 export const SITIOS_FALLO = [
+  "mercadona",
+  "mercadona_aviso",
   // api/_bot/agente.js
   "agente_casa", "agente_dueno", "agente_huecos", "agente_idioma", "agente_papel", "agente_pedido", "generar_apuntar", "agente_segunda_semana", "agente_unir_cuenta", "apuntar_operacion", "uso_enrutador",
   // api/bot/telegram.js
@@ -630,6 +643,10 @@ export const VOCABULARIOS = Object.freeze({
   avisos_recordatorio: AVISOS_RECORDATORIO,
   tipos_reporte: TIPOS_REPORTE,
   caminos_menu: CAMINOS_MENU,
+  estados_cuenta_mercadona: ESTADOS_CUENTA_MERCADONA,
+  canales_encargo: CANALES_ENCARGO,
+  estados_encargo_mercadona: ESTADOS_ENCARGO_MERCADONA,
+  fallos_encargo_mercadona: FALLOS_ENCARGO_MERCADONA,
 });
 
 /** La lista de un vocabulario por su nombre, o null si no existe. */

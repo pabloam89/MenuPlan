@@ -4,7 +4,7 @@ import { recipeToRow, rowToRecipe, esRecetaDelTitular, marcarDelTitular, subible
 import { mergeUserRecipesAfterCloudLoad } from "./profileMerge.js";
 import { withoutDeletedRecipes } from "./deletedRecipeIds.js";
 import { recetaPropia } from "./ids.js";
-import { PGRST_SIN_FUNCION, PG_SIN_FUNCION } from "./postgrest.js";
+import { NO_EXISTE } from "./postgrest.js";
 
 
 /**
@@ -83,7 +83,6 @@ export const TOPE_LAPIDAS = 2000;
 // Sin la 0094 aplicada, PostgREST contesta que la tabla o la función no
 // existen. Eso no es un fallo de red: es «todavía no hay lápidas en la nube»,
 // y todo sigue como antes (plan B).
-const NO_EXISTE = new Set(["PGRST205", PGRST_SIN_FUNCION, "42P01", PG_SIN_FUNCION]);
 const noExiste = (error) => NO_EXISTE.has(error?.code);
 
 /**
