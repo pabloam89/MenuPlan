@@ -4,13 +4,29 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
 "[
  {
   "type": "custom",
-  "name": "ver_casa",
+  "name": "consultar",
   "input_schema": {
    "type": "object",
-   "properties": {},
+   "properties": {
+    "que": {
+     "type": "string",
+     "enum": [
+      "casa",
+      "ajustes",
+      "despensa",
+      "compra",
+      "cole",
+      "recordatorios"
+     ],
+     "description": "Qué mirar."
+    }
+   },
+   "required": [
+    "que"
+   ],
    "additionalProperties": false
   },
-  "description": "Quién vive en la casa (nombres, edades, alergias, intolerancias, lo que no les gusta), los grupos de menú, qué comidas se planifican y qué día es hoy."
+  "description": "Mira un dato de la casa, sin cambiar nada. que: casa = quién vive en la casa (nombres, edades, alergias, intolerancias, lo que no les gusta), los grupos de menú, qué comidas se planifican y qué día es hoy; ajustes = cómo está configurada la casa: estructura de comidas, nivel de cocina, trastos, gustos anotados (con su estado: fijado/inferido/delegado), quién come fuera y reglas/invitados; despensa = lo que hay apuntado en la despensa de la casa (nevera, despensa, congelador); compra = la lista de la compra de la semana activa: lo que falta por comprar, por secciones; cole = el menú del cole guardado (lo que comen los niños en el comedor); recordatorios = los recordatorios pendientes de este chat, con su id."
  },
  {
   "type": "custom",
@@ -151,16 +167,6 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
    "additionalProperties": false
   },
   "description": "Por qué hay un plato en el menú («¿por qué el martes pescado?», «¿quién ha puesto esto?»): quién lo puso (el menú automático, alguien a mano en la app o tú por el chat), cuándo y, si fue el menú automático, qué preferencias de la casa lo pidieron. Di eso tal cual; no inventes motivos que no traiga."
- },
- {
-  "type": "custom",
-  "name": "ver_compra",
-  "input_schema": {
-   "type": "object",
-   "properties": {},
-   "additionalProperties": false
-  },
-  "description": "La lista de la compra de la semana activa: lo que falta por comprar, por secciones."
  },
  {
   "type": "custom",
@@ -814,17 +820,6 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
    "additionalProperties": false
   },
   "description": "Cambia el plato de un hueco del menú y rehace la compra. Con «receta» pone esa o, si no está tal cual en el catálogo, la más parecida que encaje en el hueco (la respuesta dice si es aproximada); sin ella, el motor elige otra respetando alergias y preferencias. Con «rasgos», «ejes» (más/menos de cualquier nutriente) o «perfil» (equilibrado, para entrenar…) elige solo entre las que cumplen; si ninguna cumple, NO cambia nada y lo dice. En la comida y la cena hay primero (entrante) y segundo; «cual» dice cuál. Un entrante, primero o tapa para una comida o cena que no lo tenía se AÑADE con cual: primero, y el principal no se toca: nunca cambies el principal para poner un entrante."
- },
- {
-  "type": "custom",
-  "name": "ver_ajustes",
-  "input_schema": {
-   "type": "object",
-   "properties": {},
-   "required": [],
-   "additionalProperties": false
-  },
-  "description": "Cómo está configurada la casa: estructura de comidas, nivel de cocina, trastos, gustos anotados (con su estado: fijado/inferido/delegado), quién come fuera y reglas/invitados."
  },
  {
   "type": "custom",
@@ -1687,7 +1682,7 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
    ],
    "additionalProperties": false
   },
-  "description": "Genera un menú NUEVO con el motor de HoMenu (respeta toda la configuración) y lo deja activo: «esta» semana desde hoy, la «siguiente» (la primera semana SIN menú a partir del lunes que viene) o, con desde, la semana de esa fecha («a partir del 2 de noviembre» → desde 2026-11-02). Una semana que ya tiene menú NO se rehace sin rehacer: true, que solo va cuando piden rehacer esa semana («rehaz», «cambia el menú de…», el botón «Rehacer la del…»); si no, la herramienta avisa sin tocar nada y tú preguntas. Rehacer la semana en curso empieza mañana: hoy y lo pasado no cambian. Tarda unos segundos. fijos: los platos que piden por su nombre para esa semana («un día salmón al horno», «otro pollo con patatas»); se ponen al generar, una vez cada uno, con la receta exacta o la más parecida. Con fijos NO hace falta cambiar_plato después. Solo si piden generar o rehacer, o si no hay menú: una pregunta sobre lo ya generado («¿y las recetas?», «¿y la compra?», «¿y el domingo?») se contesta con ver_receta, ver_compra o ver_menu y NUNCA regenera, porque rehacerlo cambia los platos que ya han visto."
+  "description": "Genera un menú NUEVO con el motor de HoMenu (respeta toda la configuración) y lo deja activo: «esta» semana desde hoy, la «siguiente» (la primera semana SIN menú a partir del lunes que viene) o, con desde, la semana de esa fecha («a partir del 2 de noviembre» → desde 2026-11-02). Una semana que ya tiene menú NO se rehace sin rehacer: true, que solo va cuando piden rehacer esa semana («rehaz», «cambia el menú de…», el botón «Rehacer la del…»); si no, la herramienta avisa sin tocar nada y tú preguntas. Rehacer la semana en curso empieza mañana: hoy y lo pasado no cambian. Tarda unos segundos. fijos: los platos que piden por su nombre para esa semana («un día salmón al horno», «otro pollo con patatas»); se ponen al generar, una vez cada uno, con la receta exacta o la más parecida. Con fijos NO hace falta cambiar_plato después. Solo si piden generar o rehacer, o si no hay menú: una pregunta sobre lo ya generado («¿y las recetas?», «¿y la compra?», «¿y el domingo?») se contesta con ver_receta, consultar o ver_menu y NUNCA regenera, porque rehacerlo cambia los platos que ya han visto."
  },
  {
   "type": "custom",
@@ -1751,17 +1746,6 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
  },
  {
   "type": "custom",
-  "name": "ver_recordatorios",
-  "input_schema": {
-   "type": "object",
-   "properties": {},
-   "required": [],
-   "additionalProperties": false
-  },
-  "description": "Los recordatorios pendientes de este chat, con su id."
- },
- {
-  "type": "custom",
   "name": "cancelar_recordatorio",
   "input_schema": {
    "type": "object",
@@ -1775,7 +1759,7 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
    ],
    "additionalProperties": false
   },
-  "description": "Cancela un recordatorio pendiente por su id (míralo antes con ver_recordatorios)."
+  "description": "Cancela un recordatorio pendiente por su id (míralo antes con consultar, que=recordatorios)."
  },
  {
   "type": "custom",
@@ -1901,17 +1885,6 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
    "additionalProperties": false
   },
   "description": "Corrige una tarea abierta («no, era para el sábado», «mejor que lo haga Pablo»): texto, fecha, para quién o quién se encarga."
- },
- {
-  "type": "custom",
-  "name": "ver_despensa",
-  "input_schema": {
-   "type": "object",
-   "properties": {},
-   "required": [],
-   "additionalProperties": false
-  },
-  "description": "Lo que hay apuntado en la despensa de la casa (nevera, despensa, congelador)."
  },
  {
   "type": "custom",
@@ -2104,17 +2077,6 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
    "additionalProperties": false
   },
   "description": "Guarda el menú del comedor escolar (leído de una foto o PDF, o dictado). Por días de lunes a viernes con primero, segundo y postre; sinClase=true si ese día no hay cole. Solo lo que has leído de verdad: de un PDF o una foto de otro mensaje no queda nada, así que lo que no esté en tu resumen anterior ni en lo que han escrito no se guarda. Una semana con menos de 3 días no se guarda (pisaría la que hay). Varias semanas si el cole rota, empezando por la que toca la semana que se planifica. para: «todos» o el nombre de un niño si es solo suyo. Solo tras enseñar el resumen y que digan que sí."
- },
- {
-  "type": "custom",
-  "name": "ver_menu_cole",
-  "input_schema": {
-   "type": "object",
-   "properties": {},
-   "required": [],
-   "additionalProperties": false
-  },
-  "description": "El menú del cole guardado (lo que comen los niños en el comedor)."
  },
  {
   "type": "custom",
