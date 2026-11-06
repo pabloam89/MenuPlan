@@ -2,7 +2,7 @@ import { ArrowUpRight } from "./icons.jsx";
 import { Conectar } from "./ConectarMercadona.jsx";
 import { BOTON, TEXTO } from "./mercadonaEstilos.js";
 import { enlaceDeLista } from "../lib/mercadonaList.js";
-import { textoDeEncargo } from "../lib/mercadonaApp.js";
+import { PASO_COMPRAR, textoDeEncargo } from "../lib/mercadonaApp.js";
 
 /** La parte de la hoja de Comprar que rellena la lista. Si el servicio no está, no pinta nada. */
 export function RellenarMercadona({ m }) {
@@ -25,7 +25,7 @@ export function RellenarMercadona({ m }) {
           {esperando && sinNoticias ? (
             <>
               <p style={TEXTO}>Sigue en marcha, pero ahora mismo no sé cómo va.</p>
-              <button type="button" onClick={m.mirar} style={BOTON}>Mirar cómo va</button>
+              <button type="button" onClick={m.mirar} style={BOTON}>{PASO_COMPRAR.MIRAR}</button>
             </>
           ) : (
             <button type="button" onClick={rellenar} disabled={esperando} style={{ ...BOTON, opacity: esperando ? 0.6 : 1 }}>

@@ -6,6 +6,14 @@ import { apiUrl } from "./apiUrl.js";
 import { tokenDeSesion } from "./familiaCasa.js";
 import { ESTADO_ENCARGO_MERCADONA, FALLO_ENCARGO_MERCADONA, NO_ENCARGADO } from "./vocabularios.js";
 
+/** Lo que dice el botón de comprar en cada paso. */
+export const PASO_COMPRAR = Object.freeze({
+  COMPRAR: "Comprar",
+  RELLENANDO: "Rellenando…",
+  ABRIR: "Abrir lista",
+  MIRAR: "Mirar cómo va",
+});
+
 /** Cada cuánto mira la app cómo va un encargo, y cuánto espera antes de dejar de mirar. */
 export const CADA_MS = 4000;
 export const ESPERA_MAX_MS = 5 * 60 * 1000;

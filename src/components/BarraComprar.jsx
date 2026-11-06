@@ -1,4 +1,5 @@
 import { bottomNavSpacer } from "./ui.jsx";
+import { PASO_COMPRAR } from "../lib/mercadonaApp.js";
 import lolaFoto from "../assets/lola/lola-perfil.jpg";
 
 const FALTA_ALGO = "¿Falta algo? Díselo a Lola";
@@ -90,8 +91,8 @@ const botonComprar = {
  * sitio y no tapa la última fila. `onLola` es opcional: sin él no hay foto.
  * `paso` es lo que dice el botón (`pasoDeComprar`); el total abre el detalle.
  */
-export default function BarraComprar({ total, productos, paso = { texto: "Comprar" }, onComprar, onDetalle, onLola }) {
-  const nombre = paso.texto === "Comprar" ? `Comprar · ${total}` : paso.texto;
+export default function BarraComprar({ total, productos, paso = { texto: PASO_COMPRAR.COMPRAR }, onComprar, onDetalle, onLola }) {
+  const nombre = paso.texto === PASO_COMPRAR.COMPRAR ? `Comprar · ${total}` : paso.texto;
   return (
     <div style={pie}>
       {onLola && (
