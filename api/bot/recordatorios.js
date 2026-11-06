@@ -14,6 +14,8 @@ import { TIPO_VISPERA, avisoDeVisperaDe } from "../_bot/vispera.js";
 import { rpc } from "../_bot/db.js";
 import { barrer } from "../_bot/caducidades.js";
 import { aprenderDeSenales } from "../_bot/aprender.js";
+import { barrerCaducados } from "../_bot/mercadonaEncargos.js";
+import { fallaCon } from "../_bot/avisar.js";
 import { isoDeCasa } from "../../src/lib/dias.js";
 // Cada cuánto llama el cron a este endpoint: la misma cifra con la que lo
 // programa scripts/bot-cron.mjs.
@@ -53,5 +55,7 @@ export default async function handler(req, res) {
   const caducado = await barrer({ enviar, cadaMs: CADA_MS }).catch((e) => { console.error("[caducidades]", e?.message); return null; });
   // Lo que se aprende de las señales (api/_bot/aprender.js, trozo 15): lo último; si falla, lo de arriba ya salió.
   const aprendido = await aprenderDeSenales({ cadaMs: CADA_MS }).catch((e) => { console.error("[senales]", e?.message); return null; });
-  return res.status(200).json({ ok: true, enviados, tareas, caducado, aprendido });
+  // Encargos de Mercadona que lleva demasiado: sin esto, si el trabajador cae, quien lo pidió por Lola no se entera.
+  const mercadona = await barrerCaducados().catch(fallaCon("mercadona", null));
+  return res.status(200).json({ ok: true, enviados, tareas, caducado, aprendido, mercadona });
 }
