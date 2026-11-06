@@ -111,7 +111,7 @@ import {
 import { shareShoppingList } from "../lib/menuExport.js";
 import { priceShoppingList } from "../lib/listPricing.js";
 import { listaFrenteAPresupuesto } from "../lib/presupuesto.js";
-import { fichaMercadona, listaParaMercadona } from "../lib/mercadonaList.js";
+import { fichaMercadona, NOMBRE_LISTA_MERCADONA, listaParaMercadona } from "../lib/mercadonaList.js";
 
 // Lazy (not a top-level import): Pantry.jsx already imports SwipePurchaseShell
 // from this very file, so a plain top-level import here would be circular.
@@ -796,7 +796,7 @@ export function ShoppingScreen({
   // Lo que se compraría: sale de las líneas por comprar, así que al quitar una
   // baja el total del botón. En «Comprado» no hay nada que comprar.
   const paraComprar = useMemo(
-    () => (buyTab === "bought" ? null : listaParaMercadona(visibleItems, linePrices, "Compra HoMenu")),
+    () => (buyTab === "bought" ? null : listaParaMercadona(visibleItems, linePrices, NOMBRE_LISTA_MERCADONA)),
     [buyTab, visibleItems, linePrices],
   );
   const [comprarAbierto, setComprarAbierto] = useState(false);

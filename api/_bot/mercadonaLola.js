@@ -6,10 +6,9 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { encargar } from "./mercadonaEncargos.js";
 import { lineasPorComprar, motor } from "./menu.js";
-import { listaParaMercadona } from "../../src/lib/mercadonaList.js";
+import { NOMBRE_LISTA_MERCADONA, listaParaMercadona } from "../../src/lib/mercadonaList.js";
 import { NO_ENCARGADO } from "../../src/lib/vocabularios.js";
 
-const NOMBRE_LISTA = "Compra HoMenu";
 const TIENDA = "Mercadona";
 
 /** Lo que Lola dice si no se ha encolado. */
@@ -41,7 +40,7 @@ export async function pasarAMercadona({ householdId, userId, chatId, canal }, { 
   const { fijarCatalogo, priceShoppingList } = await motor();
   fijarCatalogo(TIENDA, await leerCatalogo());
   const { map } = await priceShoppingList(TIENDA, items, []);
-  const { lista, lineas, sinProducto } = listaParaMercadona(items, map, NOMBRE_LISTA);
+  const { lista, lineas, sinProducto } = listaParaMercadona(items, map, NOMBRE_LISTA_MERCADONA);
   if (!lineas.length) return "No he encontrado ningún producto de la lista en Mercadona.";
   const r = await encargar({ casa: householdId, por: userId, canal, chat_id: chatId ?? null, lista });
   if (r.fallo) return TEXTO_SIN_ENCARGO[r.fallo];

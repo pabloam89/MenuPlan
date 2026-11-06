@@ -12,6 +12,7 @@ const { TEXTO_SIN_ENCARGO, pasarAMercadona } = await import("./mercadonaLola.js"
 const { encargar } = await import("./mercadonaEncargos.js");
 const { resetStoreCatalogCache } = await import("../../src/lib/storeCatalog.js");
 const { NO_ENCARGADO } = await import("../../src/lib/vocabularios.js");
+const { NOMBRE_LISTA_MERCADONA } = await import("../../src/lib/mercadonaList.js");
 
 const CATALOGO = {
   store: "Mercadona",
@@ -45,7 +46,7 @@ describe("pasarAMercadona", () => {
     const texto = await pasarAMercadona(QUIEN, { leerCatalogo });
     expect(encargar).toHaveBeenCalledWith({
       casa: "h", por: "u", canal: "telegram", chat_id: "7",
-      lista: { name: "Compra HoMenu", products: [{ merca_code: "10379", quantity: 1 }] },
+      lista: { name: NOMBRE_LISTA_MERCADONA, products: [{ merca_code: "10379", quantity: 1 }] },
     });
     expect(texto).toContain("con 1 producto.");
     expect(texto).toContain("Unicornio");
