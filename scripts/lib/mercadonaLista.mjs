@@ -5,6 +5,8 @@
 
 /** Tope de líneas del prototipo: una compra grande de una familia cabe de sobra. */
 const MAX_LINEAS = 80;
+/** Tope del nombre: sobra para «Compra HoMenu» y frena un texto enorme. */
+const MAX_NOMBRE = 80;
 
 /**
  * @param {{ name?: string, products?: { merca_code: string, quantity: number }[] }} lista
@@ -12,7 +14,8 @@ const MAX_LINEAS = 80;
  */
 export function erroresDeLista(lista) {
   const errores = [];
-  if (!lista?.name?.trim()) errores.push("la lista no tiene nombre");
+  if (typeof lista?.name !== "string" || !lista.name.trim()) errores.push("la lista no tiene nombre");
+  else if (lista.name.length > MAX_NOMBRE) errores.push(`nombre de más de ${MAX_NOMBRE} letras`);
   const productos = lista?.products;
   if (!Array.isArray(productos) || productos.length === 0) {
     errores.push("la lista no tiene productos");
@@ -20,7 +23,8 @@ export function erroresDeLista(lista) {
   }
   if (productos.length > MAX_LINEAS) errores.push(`más de ${MAX_LINEAS} líneas`);
   for (const p of productos) {
-    if (!/^\d+(\.\d+)?$/.test(String(p?.merca_code ?? ""))) errores.push(`código raro: ${p?.merca_code}`);
+    const codigoBueno = ["string", "number"].includes(typeof p?.merca_code) && /^\d+(\.\d+)?$/.test(String(p.merca_code));
+    if (!codigoBueno) errores.push(`código raro: ${p?.merca_code}`);
     if (!Number.isInteger(p?.quantity) || p.quantity < 1 || p.quantity > 24) {
       errores.push(`cantidad rara: ${p?.merca_code}`);
     }
