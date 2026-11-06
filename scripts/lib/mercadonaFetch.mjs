@@ -11,6 +11,41 @@ export const NON_FOOD_TOP_IDS = new Set([
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+// De dos en dos y con pausas: con 8 a la vez cortaba categorías enteras.
+const CONCURRENCIA = 2;
+const PAUSA_MS = 300;
+const INTENTOS = 4;
+const ESPERA_BASE_MS = 2000;
+
+/**
+ * Baja cada categoría, con reintentos y esperas crecientes. Si alguna sigue
+ * fallando, lanza: un catálogo incompleto parece bueno y borra productos.
+ * @param {(id: number) => Promise<any>} leer
+ * @returns {Promise<Map<number, any>>} id → página, con todas las pedidas
+ */
+export async function bajarCategorias(ids, leer, { pausa = sleep, esperaBaseMs = ESPERA_BASE_MS } = {}) {
+  const paginas = new Map();
+  const leerConReintentos = async (id) => {
+    for (let intento = 1; ; intento++) {
+      try {
+        paginas.set(id, await leer(id));
+        return null;
+      } catch (e) {
+        if (intento === INTENTOS) return `${id}: ${e.message}`;
+        await pausa(esperaBaseMs * 2 ** (intento - 1));
+      }
+    }
+  };
+  const fallos = [];
+  for (let i = 0; i < ids.length; i += CONCURRENCIA) {
+    const tanda = await Promise.all(ids.slice(i, i + CONCURRENCIA).map(leerConReintentos));
+    fallos.push(...tanda.filter(Boolean));
+    if (i + CONCURRENCIA < ids.length) await pausa(PAUSA_MS);
+  }
+  if (fallos.length) throw new Error(`catálogo incompleto, ${fallos.length} categorías sin bajar: ${fallos.join("; ")}`);
+  return paginas;
+}
+
 async function fetchJson(url) {
   const res = await fetch(url, {
     headers: { Accept: "application/json", "User-Agent": "MenuPlan-StoreSync/1.0" },
@@ -60,20 +95,9 @@ export async function downloadMercadonaCatalog({ foodOnly = true } = {}) {
     }
   }
 
+  const paginas = await bajarCategorias(leafIds, (id) => fetchJson(`${API}/categories/${id}/`));
   const products = [];
-  const concurrency = 8;
-  for (let i = 0; i < leafIds.length; i += concurrency) {
-    const batch = leafIds.slice(i, i + concurrency);
-    const pages = await Promise.all(
-      batch.map((id) => fetchJson(`${API}/categories/${id}/`).catch(() => null)),
-    );
-    for (let j = 0; j < pages.length; j++) {
-      const page = pages[j];
-      if (!page) continue;
-      extractProducts(page, sectionByLeaf.get(batch[j]) ?? {}, products);
-    }
-    if (i + concurrency < leafIds.length) await sleep(120);
-  }
+  for (const id of leafIds) extractProducts(paginas.get(id), sectionByLeaf.get(id) ?? {}, products);
 
   const byId = new Map();
   for (const p of products) {
