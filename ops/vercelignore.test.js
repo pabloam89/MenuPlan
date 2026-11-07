@@ -14,10 +14,18 @@ import { fileURLToPath } from "node:url";
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const leer = (f) => readFileSync(join(RAIZ, f), "utf8");
 
-/** Imports relativos de un fichero, como rutas del repo con barras normales. */
+/**
+ * Imports relativos de un fichero, como rutas del repo con barras normales: `import … from`, `export … from`
+ * e `import("…")` con la ruta escrita tal cual (una ruta calculada no se puede seguir).
+ */
+const IMPORTS = [
+  /^\s*import\s[^'"]*['"](\.{1,2}\/[^'"]+)['"]/gm,
+  /^\s*export\s[^'"]*\sfrom\s*['"](\.{1,2}\/[^'"]+)['"]/gm,
+  /\bimport\(\s*['"](\.{1,2}\/[^'"]+)['"]\s*\)/g,
+];
 function importsRelativos(fichero) {
   const texto = leer(fichero);
-  const rutas = [...texto.matchAll(/^\s*import\s[^'"]*['"](\.{1,2}\/[^'"]+)['"]/gm)].map((m) => m[1]);
+  const rutas = IMPORTS.flatMap((re) => [...texto.matchAll(re)].map((m) => m[1]));
   return rutas.map((r) => posix.normalize(posix.join(posix.dirname(fichero), r)));
 }
 
@@ -89,5 +97,11 @@ describe("ninguna función de api/ carga de scripts/ algo que no viaja", () => {
     const todo = loQueCarganLasFunciones();
     expect(todo).toContain("api/_bot/mercadonaEncargos.js");
     expect(todo).toContain("src/lib/mercadonaLista.js");
+  });
+
+  it("sigue también `import(\"…\")` y `export … from`", () => {
+    // caducidades.js carga barridoDespensa.js solo con import("…"); familiaDePrueba.js trae tuberia.js solo con export … from.
+    expect(importsRelativos("api/_bot/caducidades.js")).toContain("api/_bot/barridoDespensa.js");
+    expect(importsRelativos("api/_bot/familiaDePrueba.js")).toContain("src/lib/operaciones/tuberia.js");
   });
 });
