@@ -3,7 +3,7 @@
  * y para el trabajador (scripts/mercadona-trabajador.mjs). Solo lista: no toca el carrito ni el pago.
  * Sin disfraces: si Mercadona bloquea, se para y se cuenta.
  */
-import { compararLista, leerGuardada } from "./mercadonaLista.mjs";
+import { compararLista, leerGuardada } from "../../src/lib/mercadonaLista.js";
 
 export const TIENDA = "https://tienda.mercadona.es/";
 const ESPERA_CARGA_MS = 3000;

@@ -12,7 +12,7 @@
 import { select, insert, update, borrar, rpc, eq } from "./db.js";
 import { enviar } from "./telegram.js";
 import { avisarFallo } from "./avisar.js";
-import { erroresDeLista } from "../../scripts/lib/mercadonaLista.mjs";
+import { erroresDeLista } from "../../src/lib/mercadonaLista.js";
 import { CANAL, ESTADO_CUENTA_MERCADONA, ESTADO_ENCARGO_MERCADONA, FALLO_ENCARGO_MERCADONA, NO_ENCARGADO, paraEscribir } from "../../src/lib/vocabularios.js";
 import { enlaceDeLista } from "../../src/lib/mercadonaList.js";
 import { NO_EXISTE } from "../../src/lib/postgrest.js";

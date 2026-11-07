@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, join, posix, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -56,5 +56,38 @@ describe(".vercelignore re-incluye lo que carga el build (#284)", () => {
 
   it("un fichero sin su línea se ve", () => {
     expect(fueraDeVercel(["scripts/lib/nuevo.mjs", "scripts/lib/env.mjs"], "scripts/*\n!scripts/lib/\nscripts/lib/*\n!scripts/lib/env.mjs\n")).toEqual(["scripts/lib/nuevo.mjs"]);
+  });
+});
+
+/** Las funciones de api/ (sin tests) y todo lo que importan, en el repo. */
+function loQueCarganLasFunciones() {
+  const funciones = readdirSync(join(RAIZ, "api"), { recursive: true })
+    .map((f) => posix.join("api", String(f).split("\\").join("/")))
+    .filter((f) => /.(m?js)$/.test(f) && !/.test./.test(f));
+  const pendientes = [...funciones];
+  const vistos = new Set();
+  while (pendientes.length) {
+    const f = pendientes.pop();
+    if (vistos.has(f) || !existsSync(join(RAIZ, f))) continue;
+    vistos.add(f);
+    pendientes.push(...importsRelativos(f));
+  }
+  return [...vistos];
+}
+
+/**
+ * Lo mismo en tiempo de ejecución: el 6 nov 2026 (#1361) api/_bot/mercadonaEncargos.js importó
+ * scripts/lib/mercadonaLista.mjs, que no viaja, y el canario y Lola dejaron de cargar en staging.
+ */
+describe("ninguna función de api/ carga de scripts/ algo que no viaja", () => {
+  it("todo lo de scripts/ que importan tiene su `!scripts/…`", () => {
+    const deScripts = loQueCarganLasFunciones().filter((f) => f.startsWith("scripts/"));
+    expect(fueraDeVercel(deScripts, leer(".vercelignore")), "muévelo a src/lib (lo que importa una función no vive en scripts/)").toEqual([]);
+  });
+
+  it("recorre de verdad lo que importan las funciones", () => {
+    const todo = loQueCarganLasFunciones();
+    expect(todo).toContain("api/_bot/mercadonaEncargos.js");
+    expect(todo).toContain("src/lib/mercadonaLista.js");
   });
 });

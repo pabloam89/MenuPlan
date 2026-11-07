@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { compararLista, erroresDeLista, leerGuardada } from "./mercadonaLista.mjs";
+import { compararLista, erroresDeLista, leerGuardada } from "./mercadonaLista.js";
 
 describe("erroresDeLista", () => {
   it("acepta una lista normal, también con código con punto", () => {
