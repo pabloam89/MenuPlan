@@ -6,7 +6,7 @@ import { SUPERMERCADOS_CASA } from "../../src/lib/vocabularios.js";
 // El súper y el presupuesto se preguntan en Lola y la app los enseña: con
 // Mercadona en data.supermarkets, la lista de la compra lleva los precios
 // (Shopping.jsx mira esa misma clave).
-describe("ajustar_compra: el súper y el presupuesto", () => {
+describe("ajustar_casa: el súper y el presupuesto", () => {
   it("el súper se guarda con el nombre de la lista, aunque lo escriban en minúsculas o sin tilde", () => {
     expect(supermercadoDe("mercadona")).toBe("Mercadona");
     expect(supermercadoDe("el corte ingles")).toBe("El Corte Inglés");
