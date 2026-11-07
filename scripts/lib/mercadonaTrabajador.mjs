@@ -5,7 +5,7 @@
  *
  * Nunca se imprime la sesión, ni se guarda en disco: vive en memoria lo que dura un encargo.
  */
-import { erroresDeLista } from "./mercadonaLista.mjs";
+import { erroresDeLista } from "../../src/lib/mercadonaLista.js";
 import { crearLista, entrarEnTienda } from "./mercadonaPagina.mjs";
 import { FALLO_ENCARGO_MERCADONA as FALLO } from "../../src/lib/mercadonaFallos.js";
 
