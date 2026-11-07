@@ -20,7 +20,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { chromium } from "@playwright/test";
-import { erroresDeLista } from "./lib/mercadonaLista.mjs";
+import { erroresDeLista } from "../src/lib/mercadonaLista.js";
 import { abrirPortada, crearLista, enPagina, entrarEnTienda, TIENDA } from "./lib/mercadonaPagina.mjs";
 
 const ESPERA_LOGIN_MS = 5 * 60 * 1000;
