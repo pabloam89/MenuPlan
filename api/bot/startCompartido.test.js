@@ -12,7 +12,7 @@ process.env.TELEGRAM_WEBHOOK_SECRET = "secreto";
 process.env.VITE_SUPABASE_URL ||= "https://sin-base.invalid";
 process.env.SUPABASE_SERVICE_ROLE_KEY ||= "sin-clave";
 
-const t = vi.hoisted(() => ({ deAntes: null, deGrupo: false, tablas: {}, enviados: [], trabajo: [] }));
+const t = vi.hoisted(() => ({ deAntes: null, deGrupo: false, nacida: null, tablas: {}, enviados: [], trabajo: [] }));
 
 vi.mock("@vercel/functions", () => ({ waitUntil: (p) => t.trabajo.push(p) }));
 vi.mock("../_bot/db.js", () => ({
@@ -29,7 +29,7 @@ vi.mock("../_bot/embudo.js", () => ({ registrar: vi.fn(), rastro: vi.fn(), EMBUD
 vi.mock("../_bot/router.js", () => ({ clasificar: vi.fn(), vaPorLaRapida: () => false, permitidoEn: () => true }));
 vi.mock("../_bot/turno.js", () => ({ viaRapida: vi.fn(), eleccionDe: () => null, repiteLaPropuesta: () => false, aplicarEleccion: vi.fn(), contextoDe: vi.fn() }));
 vi.mock("../_bot/uso.js", () => ({ fueraDeLimite: vi.fn(), contarUso: vi.fn() }));
-vi.mock("../_bot/papel.js", () => ({ papelDeQuien: vi.fn(), idiomaDe: vi.fn(), casaActivaDe: vi.fn(async () => "hAntes") }));
+vi.mock("../_bot/papel.js", () => ({ papelDeQuien: vi.fn(), idiomaDe: vi.fn(), casaActivaDe: vi.fn(async () => "hAntes"), papelDeUsuario: vi.fn(async () => "owner") }));
 vi.mock("../_bot/rapido.js", () => ({ respuestaHoy: vi.fn(), respuestaSemana: vi.fn(), respuestaCompra: vi.fn(), recordar: vi.fn() }));
 vi.mock("../_bot/pintar.js", () => ({ pintarMenuEntero: vi.fn() }));
 vi.mock("../_bot/voz.js", () => ({ transcribir: vi.fn() }));
@@ -51,7 +51,7 @@ vi.mock("../_bot/invitacion.js", () => ({ unirsePorInvitacion: vi.fn(), ES_INVIT
 vi.mock("../_bot/traducir.js", () => ({ traducir: vi.fn(async (xs) => xs) }));
 vi.mock("../_bot/casa.js", () => ({ hoyISO: () => "2026-10-06", cargarCasa: vi.fn() }));
 vi.mock("../_bot/borrar.js", () => ({ puedeBorrar: () => false, borrarCuenta: vi.fn(), limpiarPantalla: vi.fn() }));
-vi.mock("../_bot/cuentas.js", () => ({ enviarAcceso: vi.fn(), verificarCodigoEmail: vi.fn(), crearCuentaTelegram: vi.fn(), cuentaNacidaAqui: vi.fn() }));
+vi.mock("../_bot/cuentas.js", () => ({ enviarAcceso: vi.fn(), verificarCodigoEmail: vi.fn(), crearCuentaTelegram: vi.fn(), cuentaNacidaAqui: vi.fn(), cuentaNacidaDe: vi.fn(async () => t.nacida) }));
 
 const { default: handler } = await import("./telegram.js");
 const { enlazarChat, apuntarEnlace } = await import("../_bot/enlace.js");
@@ -75,7 +75,7 @@ const codigoValido = (token) => ({
 });
 
 beforeEach(() => {
-  t.tablas = {}; t.atrapa = false; t.deAntes = null; t.deGrupo = false; t.enviados.length = 0; t.trabajo.length = 0;
+  t.tablas = {}; t.atrapa = false; t.deAntes = null; t.deGrupo = false; t.nacida = null; t.enviados.length = 0; t.trabajo.length = 0;
   vi.clearAllMocks();
 });
 
@@ -191,6 +191,28 @@ describe("/start: cambiar de cuenta, con confirmación (#1238)", () => {
     t.deAntes = "u1";
     await escribe(`/start ${TOKEN}`);
     expect(enlazarChat).toHaveBeenCalledWith(expect.objectContaining({ identidad: "ajustes" }));
+  });
+});
+
+// /cuentadeantes (#1238): lo que hace que cambiar sin preguntar no deje una casa sin entrada.
+describe("/cuentadeantes: volver a la cuenta nacida en este Telegram", () => {
+  const enlazado = (extra = {}) => ({ bot_chats: [{ household_id: "h1", kind: "private", linked_by: "u1" }], ...extra });
+
+  it("con una cuenta nacida aquí y la identidad en otra, vuelve a ella y a su casa", async () => {
+    t.tablas = enlazado({ bot_identities: [{ user_id: "u1" }], households: [{ id: "hN", name: "Mi casa" }] });
+    t.nacida = { id: "uN" };
+    await escribe("/cuentadeantes");
+    expect(enlazarChat).toHaveBeenCalledWith(expect.objectContaining({ chatId: "7", kind: "private", userId: "uN", householdId: "hN", identidad: "nacida" }));
+    expect(t.enviados.at(-1).texto).toMatch(/vuelvo a tu cuenta de antes/);
+  });
+
+  it("sin cuenta nacida aquí, o ya en ella, no toca nada", async () => {
+    t.tablas = enlazado({ bot_identities: [{ user_id: "uN" }] });
+    await escribe("/cuentadeantes");
+    t.nacida = { id: "uN" };
+    await escribe("/cuentadeantes");
+    expect(enlazarChat).not.toHaveBeenCalled();
+    expect(t.enviados.at(-1).texto).toMatch(/no hay otra de antes/);
   });
 });
 
