@@ -1,6 +1,6 @@
 /**
  * El trabajador de Comprar: coge un encargo, abre la sesión sellada en un navegador limpio, crea la lista y, si la casa
- * ha encendido «Reservar» o «Pagar» (`alcance`, trozo 15 de #1407), la suma al carro; y cuenta qué pasó (0131, skill
+ * ha encendido «Reservar» o «Pagar» (`llega_hasta`, trozo 15 de #1407), la suma al carro; y cuenta qué pasó (0131, skill
  * `mercadona`). Aquí la lógica; el navegador y la API se le pasan, para probarla sin ninguno de los
  * dos y para cambiar de navegador sin tocarla.
  *
@@ -8,7 +8,7 @@
  */
 import { erroresDeLista } from "../../src/lib/mercadonaLista.js";
 import { crearLista, entrarEnTienda, llenarCarro } from "./mercadonaPagina.mjs";
-import { ALCANCE_MERCADONA, llegaA } from "../../src/lib/mercadonaAlcance.js";
+import { LLEGA_HASTA, llegaA } from "../../src/lib/mercadonaLlegaHasta.js";
 import { FALLO_ENCARGO_MERCADONA as FALLO } from "../../src/lib/mercadonaFallos.js";
 
 /** Lo que se permite por encargo: pasado esto, lo da por fallido y sigue. Menor que CADUCA_RELLENANDO_MIN; un test los ata. */
@@ -42,12 +42,12 @@ export function resultadoDeCarro(c) {
   return { lleno: false, motivo };
 }
 
-async function trabajar(pagina, lista, alcance) {
+async function trabajar(pagina, lista, llega_hasta) {
   const portada = await entrarEnTienda(pagina);
   if (portada.resultado) return resultadoDeEncargo(portada);
   const hecho = resultadoDeEncargo(await crearLista(pagina, lista));
   // Sin la lista no se toca el carro; y solo si la casa ha encendido «Reservar» o «Pagar».
-  if (hecho.fallo || !llegaA(alcance, ALCANCE_MERCADONA.RESERVAR)) return hecho;
+  if (hecho.fallo || !llegaA(llega_hasta, LLEGA_HASTA.RESERVAR)) return hecho;
   return { ...hecho, carro: resultadoDeCarro(await llenarCarro(pagina, lista)) };
 }
 
@@ -61,10 +61,10 @@ function conTope(promesa, ms) {
 
 /**
  * Atiende un encargo y devuelve lo que hay que cerrar.
- * @param {{ encargo: { id: string, lista: object }, sesion_cifrada: string, alcance?: string }} siguiente  sin `alcance`, solo la lista
+ * @param {{ encargo: { id: string, lista: object }, sesion_cifrada: string, llega_hasta?: string }} siguiente  sin `llega_hasta`, solo la lista
  * @param {{ abrirSesion: (sello: string) => Promise<string>, abrirNavegador: (estado: object) => Promise<{ pagina: object, cerrar: () => Promise<void> }> }} d
  */
-export async function atender({ encargo, sesion_cifrada, alcance }, { abrirSesion, abrirNavegador, log = () => {}, topeMs = TOPE_ENCARGO_MS }) {
+export async function atender({ encargo, sesion_cifrada, llega_hasta }, { abrirSesion, abrirNavegador, log = () => {}, topeMs = TOPE_ENCARGO_MS }) {
   if (erroresDeLista(encargo.lista).length) return { fallo: FALLO.LISTA_NO_VALIDA };
   let estado;
   try {
@@ -77,7 +77,7 @@ export async function atender({ encargo, sesion_cifrada, alcance }, { abrirSesio
   }
   const { pagina, cerrar } = await abrirNavegador(estado);
   try {
-    return await conTope(trabajar(pagina, encargo.lista, alcance), topeMs);
+    return await conTope(trabajar(pagina, encargo.lista, llega_hasta), topeMs);
   } finally {
     await cerrar();
   }

@@ -96,22 +96,22 @@ describe("llenarCarro", () => {
 });
 
 const dep = (p) => ({ abrirSesion: async () => '{"cookies":[]}', abrirNavegador: async () => ({ pagina: p, cerrar: async () => {} }) });
-const encargo = (alcance) => ({ encargo: { id: "e1", lista: LISTA }, sesion_cifrada: "sellada", ...(alcance ? { alcance } : {}) });
+const encargo = (llega_hasta) => ({ encargo: { id: "e1", lista: LISTA }, sesion_cifrada: "sellada", ...(llega_hasta ? { llega_hasta } : {}) });
 
 describe("atender: hasta dónde llega", () => {
-  it("con «lista», o sin alcance, no toca el carro", async () => {
-    for (const alcance of ["lista", undefined, "otra_cosa"]) {
+  it("con «lista», o sin llega_hasta, no toca el carro", async () => {
+    for (const llega_hasta of ["lista", undefined, "otra_cosa"]) {
       const p = pagina();
-      const r = await atender(encargo(alcance), dep(p));
+      const r = await atender(encargo(llega_hasta), dep(p));
       expect(r).toEqual({ lista_xid: "7", entraron: 2, faltan: [] });
       expect(p.escrituras).toHaveLength(0);
     }
   });
 
   it("con «reservar» o «pagar», la lista y además el carro", async () => {
-    for (const alcance of ["reservar", "pagar"]) {
+    for (const llega_hasta of ["reservar", "pagar"]) {
       const p = pagina();
-      expect(await atender(encargo(alcance), dep(p))).toEqual({ lista_xid: "7", entraron: 2, faltan: [], carro: { lleno: true, total: 64.1, faltan: [] } });
+      expect(await atender(encargo(llega_hasta), dep(p))).toEqual({ lista_xid: "7", entraron: 2, faltan: [], carro: { lleno: true, total: 64.1, faltan: [] } });
       expect(p.escrituras).toHaveLength(1);
     }
   });
