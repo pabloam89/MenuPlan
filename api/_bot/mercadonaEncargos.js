@@ -15,7 +15,8 @@ import { avisarFallo } from "./avisar.js";
 import { erroresDeLista } from "../../src/lib/mercadonaLista.js";
 import { CANAL, ESTADO_CUENTA_MERCADONA, ESTADO_ENCARGO_MERCADONA, FALLO_ENCARGO_MERCADONA, NO_ENCARGADO, paraEscribir } from "../../src/lib/vocabularios.js";
 import { enlaceDeLista } from "../../src/lib/mercadonaList.js";
-import { NO_EXISTE } from "../../src/lib/postgrest.js";
+import { NO_EXISTE, PG_SIN_COLUMNA } from "../../src/lib/postgrest.js";
+import { deUnaCuenta } from "../../src/lib/mercadonaLlegaHasta.js";
 import { esSello } from "../../src/lib/mercadonaSello.js";
 
 const { PENDIENTE, RELLENANDO, HECHO, FALLIDO } = ESTADO_ENCARGO_MERCADONA;
@@ -96,15 +97,36 @@ export async function barrerCaducados({ casa = null, ahora = Date.now() } = {}) 
   }
 }
 
-/** Cómo está la casa: `{ disponible, cuenta, encargo }`; `cuenta` es su estado o null, nunca la sesión. */
+/** Lo de la cuenta que se enseña (0133): sin la sesión ni el teléfono, solo si lo hay. */
+const DE_LA_CUENTA = "estado,llega_hasta,tiene_direccion,tiene_pago,telefono_sellado";
+
+/**
+ * La cuenta de la casa, o undefined. Sin las columnas de la 0133 (42703), solo `estado`: el resto sale como una fila de
+ * antes, `lista` y sin mirar. Otro fallo, lanza.
+ */
+async function leerCuenta(casa) {
+  try {
+    const [cuenta] = await select("mercadona_cuenta", `household_id=${eq(casa)}`, DE_LA_CUENTA);
+    return cuenta;
+  } catch (e) {
+    if (e?.codigo !== PG_SIN_COLUMNA) throw e;
+    const [cuenta] = await select("mercadona_cuenta", `household_id=${eq(casa)}`, "estado"); // a propósito: plan B de la 0133
+    return cuenta;
+  }
+}
+
+/**
+ * Cómo está la casa: `{ disponible, cuenta, encargo, llega_hasta, tiene_direccion, tiene_pago, tiene_telefono }`. `cuenta`
+ * es su estado o null, nunca la sesión; del teléfono, solo si está.
+ */
 export async function estadoDeCasa(casa, ahora = Date.now()) {
-  const nada = { disponible: false, cuenta: null, encargo: null };
+  const nada = { disponible: false, cuenta: null, encargo: null, ...deUnaCuenta(undefined) };
   if (!casaPermitida(casa)) return nada;
   try {
     await barrerCaducados({ casa, ahora });
-    const [cuenta] = await select("mercadona_cuenta", `household_id=${eq(casa)}`, "estado");
+    const cuenta = await leerCuenta(casa);
     const [encargo] = await select("mercadona_encargo", `household_id=${eq(casa)}&order=created_at.desc&limit=1`, VISIBLES);
-    return { disponible: true, cuenta: cuenta?.estado ?? null, encargo: encargo ?? null };
+    return { disponible: true, cuenta: cuenta?.estado ?? null, encargo: encargo ?? null, ...deUnaCuenta(cuenta) };
   } catch (e) {
     return conPlanB(nada)(e); // a propósito: sin la 0131, sin servicio; otro fallo, conPlanB lo relanza
   }
