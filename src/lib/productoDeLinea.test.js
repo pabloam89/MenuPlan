@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 import { ESTADO_PRODUCTO_LINEA, ESTADOS_PRODUCTO_LINEA, filaDeLinea, productoDeLinea } from "./productoDeLinea.js";
@@ -81,5 +81,30 @@ describe("productoDeLinea con la tabla y el catálogo de verdad", () => {
   });
   it("«Pollo» no acaba en un pollo cocinado (teriyaki, asado)", () => {
     expect(productoDeLinea("Pollo", catalogo).product.name).not.toMatch(/teriyaki|asado/i);
+  });
+});
+
+// Un dato, un sitio: el producto de un ingrediente lo decide la tabla, y el
+// emparejador por nombre solo se llama desde aquí, para lo que no tiene fila.
+// Si otro módulo vuelve a emparejar por su cuenta, dos sitios pueden elegir dos
+// productos para el mismo ingrediente (pasó con la compra y el coste por ración).
+describe("nadie empareja productos fuera de productoDeLinea", () => {
+  const PERMITIDOS = new Set([
+    "src/lib/productMatcher.js",
+    "src/lib/productoDeLinea.js",
+    "src/lib/derive/coste.js", // pasa el emparejador a productoDeLinea como respaldo, no lo llama
+  ]);
+  const raiz = fileURLToPath(new URL("../../", import.meta.url));
+  const ficheros = (dir) =>
+    readdirSync(raiz + dir, { withFileTypes: true }).flatMap((d) => {
+      const ruta = `${dir}/${d.name}`;
+      if (d.isDirectory()) return ficheros(ruta);
+      return /\.(m?js|jsx)$/.test(d.name) && !/\.test\./.test(d.name) && !d.name.endsWith("core.mjs") ? [ruta] : [];
+    });
+  it("ningún otro fichero de src ni api llama a matchProductForIngredient o matchProductsForIngredient", () => {
+    const fuera = [...ficheros("src"), ...ficheros("api")]
+      .filter((f) => !PERMITIDOS.has(f))
+      .filter((f) => /\bmatchProducts?ForIngredient\b/.test(readFileSync(raiz + f, "utf8")));
+    expect(fuera).toEqual([]);
   });
 });
