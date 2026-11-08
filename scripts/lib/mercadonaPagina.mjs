@@ -1,16 +1,18 @@
 /**
  * Lo que un navegador hace en la web de Mercadona: la misma para el prototipo a mano (scripts/mercadona-navegador.mjs)
- * y para el trabajador (scripts/mercadona-trabajador.mjs). Rellena la lista y mira si la cuenta tiene dirección y medio
- * de pago (referencias/pedido.md de la skill); no toca el carrito ni el pago.
+ * y para el trabajador (scripts/mercadona-trabajador.mjs). La lista, si la cuenta tiene dirección y medio de pago
+ * (trozo 16) y, si la casa lo ha encendido, el carro (trozo 19 de #1407): nunca el pago.
  * Sin disfraces: si Mercadona bloquea, se para y se cuenta.
  */
 import { compararLista, leerGuardada } from "../../src/lib/mercadonaLista.js";
+import { faltanEnCarro, sumarAlCarro, totalDelCarro } from "./mercadonaCarro.mjs";
 
 export const TIENDA = "https://tienda.mercadona.es/";
 const ESPERA_CARGA_MS = 3000;
 
-// Corre dentro de su página, y la sesión no sale nunca de ahí. Sin lista, solo
-// dice si hay sesión; con lista, la crea y la relee.
+// Corre dentro de su página, y la sesión no sale nunca de ahí. Sin orden, solo
+// dice si hay sesión; con `{ carro: null }` lee el carro y con `{ carro }` lo
+// escribe entero; con una lista, la crea y la relee.
 export const enPagina = async (lista) => {
   const leer = (k) => {
     try {
@@ -25,6 +27,11 @@ export const enPagina = async (lista) => {
   if (!lista) return Boolean(u);
   if (!u) return { paso: "sesion", status: 0 };
   const cabeceras = { "content-type": "application/json", authorization: `Bearer ${u.token}` };
+  if ("carro" in lista) {
+    const url = `/api/customers/${u.uuid}/cart/?lang=es`;
+    const r = lista.carro ? await fetch(url, { method: "PUT", headers: cabeceras, body: JSON.stringify(lista.carro) }) : await fetch(url, { headers: cabeceras });
+    return { paso: lista.carro ? "escribir_carro" : "leer_carro", status: r.status, carro: r.ok ? await r.json() : null };
+  }
   const base = `/api/customers/${u.uuid}/shopping-lists/`;
   const r = await fetch(`${base}create-with-products/?lang=es`, {
     method: "POST",
@@ -98,4 +105,21 @@ export async function crearLista(pagina, lista) {
   if (!r.guardada) return { resultado: "lista_sin_releer", id: r.id, status: r.status };
   const { entraron, faltan } = compararLista(lista.products, leerGuardada(r.guardada));
   return { resultado: faltan.length ? "faltan_productos" : "productos_completos", id: r.id, entraron, faltan };
+}
+
+/**
+ * Suma la lista al carro: lo lee, le suma la lista (mercadonaCarro.mjs) y lo escribe una vez con la `version` leída.
+ * `{ resultado, total?, faltan?, status? }`: `carro_lleno` (con el total que dice Mercadona, null si no se lee, y los
+ * productos que no quedaron como se mandaron), `fallo_carro` o `fallo_sesion`. Una sola pasada: si el carro cambió
+ * entre leer y escribir, Mercadona lo rechaza y se cuenta, sin reintentar.
+ */
+export async function llenarCarro(pagina, lista) {
+  const leido = await pagina.evaluate(enPagina, { carro: null });
+  if (leido.paso === "sesion") return { resultado: "fallo_sesion", status: leido.status };
+  if (!leido.carro) return { resultado: "fallo_carro", status: leido.status };
+  const nuevo = sumarAlCarro(leido.carro, lista.products);
+  const escrito = await pagina.evaluate(enPagina, { carro: nuevo });
+  if (escrito.paso === "sesion") return { resultado: "fallo_sesion", status: escrito.status };
+  if (!escrito.carro) return { resultado: "fallo_carro", status: escrito.status };
+  return { resultado: "carro_lleno", total: totalDelCarro(escrito.carro), faltan: faltanEnCarro(nuevo, escrito.carro) };
 }
