@@ -1,6 +1,7 @@
 import { defineConfig, globalIgnores } from 'eslint/config'
 import globals from 'globals'
 import reactHooks from 'eslint-plugin-react-hooks'
+import reactRefresh from 'eslint-plugin-react-refresh'
 import { noTdzInBody } from './eslint-rules/no-tdz-in-body.js'
 import { noUndefJsx } from './eslint-rules/no-undef-jsx.js'
 
@@ -26,11 +27,13 @@ export default defineConfig([
       // `window`, `console` o `setTimeout` como si fueran errores.
       globals: { ...globals.browser, ...globals.node },
     },
-    // react-hooks se registra pero sin activar ninguna de sus reglas: el
-    // codigo tiene comentarios eslint-disable que la nombran, y sin el plugin
-    // cargado ESLint falla con "Definition for rule not found".
+    // react-hooks y react-refresh se registran pero sin activar ninguna de sus
+    // reglas: el codigo tiene comentarios eslint-disable que las nombran
+    // (react-refresh: `safeTop` en ui.jsx), y sin el plugin cargado ESLint
+    // falla con "Definition for rule not found".
     plugins: {
       'react-hooks': reactHooks,
+      'react-refresh': reactRefresh,
       local: { rules: { 'no-tdz-in-body': noTdzInBody, 'no-undef-jsx': noUndefJsx } },
     },
     rules: {

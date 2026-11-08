@@ -18,15 +18,22 @@ import {
   BottomNav,
   GroupAvatarStack,
   bottomNavSpacer,
-  GoogleButton,
+  safeTop,
+  SignInOptions,
   groupAvatarFaces,
 } from "../components/ui.jsx";
 import {
   buildInviteUrl,
   canShareHouseholdInvite,
+  createHouseholdInvite,
   extractInviteToken,
   loadHouseholdMembers,
+  setHouseholdMemberRole,
+  esTitular,
+  casaPropia,
 } from "../lib/householdsSync.js";
+import { NOMBRE_PAPEL, papelDe, puede } from "../lib/papeles.js";
+import { BOT_URL } from "../lib/frontalBot.js";
 import { HouseholdsCoachTour, CoachHelpButton } from "../components/HomeCoachTour.jsx";
 
 const GREEN = "#2d5a3d";
@@ -44,8 +51,11 @@ const CARD_ASPECT = "32/37";
 /** Member list + hero illustration share the same width as the household card photo. */
 const CARD_CONTENT_WIDTH = "min(310px, 88vw)";
 
-function RoleIllustration({ roleLabel }) {
-  const isProp = roleLabel === "Propietario";
+const PAPEL_CORTO = { owner: "Tit", editor: "Cot", viewer: "Lec" };
+
+function RoleIllustration({ role }) {
+  const isProp = role === "owner";
+  const edita = role !== "viewer";
   return (
     <div
       style={{
@@ -71,8 +81,8 @@ function RoleIllustration({ roleLabel }) {
           border: "1px solid #e3ebe6",
         }}
       />
-      <span style={{ fontSize: 9, fontWeight: 800, color: isProp ? GREEN : VIEWER_BLUE, lineHeight: 1 }}>
-        {isProp ? "Prop" : "Vis"}
+      <span style={{ fontSize: 9, fontWeight: 800, color: edita ? GREEN : VIEWER_BLUE, lineHeight: 1 }}>
+        {PAPEL_CORTO[papelDe(role)]}
       </span>
     </div>
   );
@@ -93,14 +103,17 @@ function HouseholdAccessList({
   householdId,
   userId,
   householdCreatedAt,
-  isOwner,
+  myRole,
   onRemoveMember,
+  onChangeRole,
   coachHighlight = false,
 }) {
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [removingId, setRemovingId] = useState(null);
   const [removeConfirm, setRemoveConfirm] = useState(null);
+  const [roleConfirm, setRoleConfirm] = useState(null);
+  const [changingRole, setChangingRole] = useState(false);
 
   useEffect(() => {
     if (!householdId || !userId) {
@@ -121,6 +134,15 @@ function HouseholdAccessList({
   }, [householdId, userId]);
 
   if (!householdId) return null;
+
+  const confirmRole = async () => {
+    if (!roleConfirm || !onChangeRole) return;
+    setChangingRole(true);
+    const ok = await onChangeRole(householdId, roleConfirm.id, roleConfirm.to);
+    setChangingRole(false);
+    setRoleConfirm(null);
+    if (ok) setAccounts(await loadHouseholdMembers(householdId, userId));
+  };
 
   const confirmRemove = async () => {
     if (!removeConfirm || !householdId || !onRemoveMember) return;
@@ -189,7 +211,7 @@ function HouseholdAccessList({
                     >
                       {acc.name}
                     </span>
-                    {(acc.roleLabel === "Propietario" ? householdCreatedAt : acc.joinedAt) ? (
+                    {(acc.role === "owner" ? householdCreatedAt : acc.joinedAt) ? (
                       <span
                         style={{
                           fontSize: 12,
@@ -201,13 +223,27 @@ function HouseholdAccessList({
                         }}
                       >
                         {formatHouseholdCreatedAt(
-                          acc.roleLabel === "Propietario" ? householdCreatedAt : acc.joinedAt,
+                          acc.role === "owner" ? householdCreatedAt : acc.joinedAt,
                         )}
                       </span>
                     ) : null}
                   </div>
-                  <RoleIllustration roleLabel={acc.roleLabel} />
-                  {isOwner && acc.roleLabel === "Visitante" && !acc.isYou && onRemoveMember ? (
+                  {puede(myRole, "cambiar_papel") && acc.role !== "owner" && !acc.isYou && onChangeRole ? (
+                    <button
+                      type="button"
+                      aria-label={`Cambiar el papel de ${acc.name}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setRoleConfirm({ id: acc.id, name: acc.name, to: acc.role === "editor" ? "viewer" : "editor" });
+                      }}
+                      style={{ border: "none", background: "transparent", padding: 0, cursor: "pointer" }}
+                    >
+                      <RoleIllustration role={acc.role} />
+                    </button>
+                  ) : (
+                    <RoleIllustration role={acc.role} />
+                  )}
+                  {acc.role !== "owner" && !acc.isYou && puede(myRole, `quitar:${acc.role}`) && onRemoveMember ? (
                     <button
                       type="button"
                       aria-label={`Quitar a ${acc.name}`}
@@ -258,22 +294,48 @@ function HouseholdAccessList({
         onConfirm={confirmRemove}
         onClose={() => !removingId && setRemoveConfirm(null)}
       />
+
+      <ConfirmSheet
+        open={Boolean(roleConfirm)}
+        title={roleConfirm?.to === "editor" ? "¿Hacer cotitular?" : "¿Pasar a lector?"}
+        message={
+          roleConfirm
+            ? roleConfirm.to === "editor"
+              ? `${roleConfirm.name} podrá cambiar el menú, la compra, la despensa y la familia, como tú.`
+              : `${roleConfirm.name} solo podrá ver la casa y tachar la compra.`
+            : ""
+        }
+        confirmLabel={roleConfirm?.to === "editor" ? "Hacer cotitular" : "Pasar a lector"}
+        cancelLabel="Cancelar"
+        busy={changingRole}
+        onConfirm={confirmRole}
+        onClose={() => !changingRole && setRoleConfirm(null)}
+      />
     </>
   );
 }
 
 function buildSlots(households, activeHousehold, user) {
   let owner =
-    households.find((h) => h.role === "owner" && h.isOwn) ??
+    casaPropia(households) ??
     households.find((h) => h.role === "owner");
   if (!owner && user && activeHousehold?.role === "owner") {
     owner = activeHousehold;
   }
-  const viewers = households.filter((h) => h.role === "viewer");
+  // Las casas de otros, como cotitular o como lector. Y una heredada (0075):
+  // también es suya, pero no la que le nació, y si no va aquí no sale.
+  const ajenas = households.filter((h) => h !== owner && h.id !== owner?.id);
+  const hueco = (h, i) => ({
+    kind: "viewer",
+    household: h ?? null,
+    label: `Hogar compartido ${i}`,
+    roleLabel: h ? NOMBRE_PAPEL.es[h.role] : NOMBRE_PAPEL.es.viewer,
+  });
   return [
-    { kind: "owner", household: owner ?? null, label: "Tu hogar", roleLabel: "Propietario" },
-    { kind: "viewer", household: viewers[0] ?? null, label: "Hogar visitante 1", roleLabel: "Visitante" },
-    { kind: "viewer", household: viewers[1] ?? null, label: "Hogar visitante 2", roleLabel: "Visitante" },
+    { kind: "owner", household: owner ?? null, label: "Tu hogar", roleLabel: NOMBRE_PAPEL.es.owner },
+    hueco(ajenas[0], 1),
+    hueco(ajenas[1], 2),
+    ...ajenas.slice(2).map((h, i) => hueco(h, i + 3)),
   ];
 }
 
@@ -601,10 +663,13 @@ export function HouseholdInviteBanner({ pendingInvite, accepting, onAccept, onDi
             Invitación
           </p>
           <p style={{ margin: "4px 0 0", fontSize: 15, fontWeight: 900, color: INK, lineHeight: 1.25 }}>
-            Te han invitado a <span style={{ color: GREEN }}>{pendingInvite.householdName}</span>
+            {pendingInvite.role === "editor" ? "Te invitan como cotitular de " : "Te han invitado a "}
+            <span style={{ color: GREEN }}>{pendingInvite.householdName}</span>
           </p>
           <p style={{ margin: "6px 0 0", fontSize: 12, fontWeight: 600, color: MUTED, lineHeight: 1.4 }}>
-            Podrás ver menú, compra y despensa en solo lectura.
+            {pendingInvite.role === "editor"
+              ? "Podrás cambiar el menú, la compra, la despensa y la familia, como quien te invita."
+              : "Podrás ver menú, compra y despensa, y tachar la compra."}
           </p>
         </div>
       </div>
@@ -767,6 +832,8 @@ function SlotCard({
   onDestroy,
   onOpenJoinSheet,
   onRemoveMember,
+  onChangeRole,
+  onCreateInvite,
   onEditMembers,
   onAdvanceSetup,
   onRetry,
@@ -784,8 +851,8 @@ function SlotCard({
   const img = slot.kind === "owner" ? IMG_OWNER : IMG_VIEWER;
   const ownerPending = slot.kind === "owner" && userLoggedIn && empty;
   const slotInviteUrl = h?.inviteToken ? buildInviteUrl(h.inviteToken) : null;
-  const slotCanShare = Boolean(h && h.role === "owner" && h.isOwn && canShareHouseholdInvite(h));
-  const needsSetup = Boolean(h && h.role === "owner" && h.isOwn && h.setupStatus === "dormant");
+  const slotCanShare = Boolean(h && canShareHouseholdInvite(h));
+  const needsSetup = Boolean(h && esTitular(h) && h.setupStatus === "dormant");
 
   let emptyHint = null;
   if (empty && !userLoggedIn) {
@@ -805,15 +872,22 @@ function SlotCard({
   const menuActions = useMemo(() => {
     if (!h) return [];
     const items = [];
-    if (h.role === "owner" && h.isOwn && isGlobalActive && slotCanShare && slotInviteUrl) {
+    if (isGlobalActive && slotCanShare && slotInviteUrl) {
       items.push({
         id: "share",
         icon: inviteCopied ? Check : Share2,
-        label: inviteCopied ? "Enlace copiado" : "Invitar",
+        label: inviteCopied ? "Enlace copiado" : "Invitar lector",
         onClick: onCopyInvite,
       });
     }
-    if (h.role === "owner" && h.isOwn && isGlobalActive) {
+    // Enlaces de un solo uso con papel (y con idioma): caducan a los 7 días.
+    if (isGlobalActive && onCreateInvite && puede(h.role, "invitar_cotitular")) {
+      items.push({ id: "invite-editor", icon: Share2, label: "Invitar cotitular", onClick: () => onCreateInvite(h.id, "editor") });
+    }
+    if (isGlobalActive && onCreateInvite && puede(h.role, "invitar_lector")) {
+      items.push({ id: "invite-viewer-en", icon: Share2, label: "Invitar lector en inglés", onClick: () => onCreateInvite(h.id, "viewer", "en") });
+    }
+    if (esTitular(h) && isGlobalActive) {
       items.push({
         id: "destroy",
         icon: Trash2,
@@ -833,7 +907,7 @@ function SlotCard({
         },
       });
     }
-    if (h.role === "viewer") {
+    if (puede(h.role, "salir")) {
       items.push({
         id: "leave",
         icon: LogOut,
@@ -863,6 +937,7 @@ function SlotCard({
     onCopyInvite,
     onDestroy,
     onLeave,
+    onCreateInvite,
   ]);
 
   const cardTitleNode = h && renamingId === h.id ? (
@@ -892,7 +967,7 @@ function SlotCard({
       type="button"
       onClick={(e) => {
         e.stopPropagation();
-        if (h?.role === "owner" && h.isOwn) startRename(h);
+        if (h && puede(h.role, "renombrar")) startRename(h);
       }}
       style={{
         margin: 0,
@@ -903,7 +978,7 @@ function SlotCard({
         fontSize: 20,
         fontWeight: 900,
         color: empty && !ownerPending ? "rgba(255,255,255,.72)" : "#fff",
-        cursor: h?.role === "owner" && h.isOwn ? "pointer" : "default",
+        cursor: h && puede(h.role, "renombrar") ? "pointer" : "default",
         lineHeight: 1.15,
         letterSpacing: "-.3px",
         width: "100%",
@@ -1030,8 +1105,9 @@ function SlotCard({
           householdId={h.id}
           userId={user?.id}
           householdCreatedAt={h.createdAt}
-          isOwner={Boolean(h.role === "owner" && h.isOwn)}
+          myRole={h.role}
           onRemoveMember={onRemoveMember}
+          onChangeRole={onChangeRole}
           coachHighlight={coachOwner}
         />
       )}
@@ -1166,6 +1242,8 @@ function HouseholdCarousel({
   onDestroy,
   onOpenJoinSheet,
   onRemoveMember,
+  onChangeRole,
+  onCreateInvite,
   onEditMembers,
   onAdvanceSetup,
   onRetry,
@@ -1273,6 +1351,8 @@ function HouseholdCarousel({
                   onDestroy={onDestroy}
                   onOpenJoinSheet={onOpenJoinSheet}
                   onRemoveMember={onRemoveMember}
+                  onChangeRole={onChangeRole}
+                  onCreateInvite={onCreateInvite}
                   onEditMembers={onEditMembers}
                   onAdvanceSetup={onAdvanceSetup}
                   onRetry={onRetry}
@@ -1319,6 +1399,7 @@ export function HouseholdsScreen({
   onRemoveMember,
   onRenameHousehold,
   onSignIn,
+  onAppleSignIn,
   onToast,
   showCoach = false,
   onCoachClose,
@@ -1343,7 +1424,7 @@ export function HouseholdsScreen({
   const effectiveActiveId =
     activeHouseholdId ??
     activeHousehold?.id ??
-    households.find((h) => h.role === "owner" && h.isOwn)?.id ??
+    casaPropia(households)?.id ??
     households[0]?.id ??
     null;
 
@@ -1387,6 +1468,34 @@ export function HouseholdsScreen({
       window.prompt("Copia este enlace:", inviteUrl);
     }
   };
+
+  // Una invitación con papel: se crea, y su enlace va al portapapeles.
+  const handleCreateInvite = useCallback(async (householdId, role, lang = null) => {
+    const r = await createHouseholdInvite(householdId, role, lang);
+    const url = r.token ? buildInviteUrl(r.token) : null;
+    if (!url) {
+      onToast?.("No se pudo crear la invitación. Inténtalo de nuevo.");
+      return;
+    }
+    const quien = role === "editor" ? "cotitular" : lang === "en" ? "lector en inglés" : "lector";
+    // Dos puertas con la misma invitación: Telegram (Lola le recibe y no
+    // necesita la app, api/_bot/invitacion.js) o la app. Vale la primera que se use.
+    const texto = lang === "en"
+      ? `Join our home on HoMenu.\nTelegram (Lola): ${BOT_URL}?start=inv_${r.token}\nApp: ${url}`
+      : `Te invito a nuestra casa en HoMenu.\nPor Telegram (Lola): ${BOT_URL}?start=inv_${r.token}\nEn la app: ${url}`;
+    try {
+      await navigator.clipboard.writeText(texto);
+      onToast?.(`Invitación de ${quien} copiada: sirve una vez y caduca en 7 días`);
+    } catch {
+      window.prompt(`Invitación de ${quien} (una vez, 7 días):`, texto);
+    }
+  }, [onToast]);
+
+  const handleChangeRole = useCallback(async (householdId, userId, role) => {
+    const ok = await setHouseholdMemberRole(householdId, userId, role);
+    onToast?.(ok ? "Papel cambiado" : "No se pudo cambiar el papel");
+    return ok;
+  }, [onToast]);
 
   const handleJoinFromSheet = async (token) => {
     setJoining(true);
@@ -1437,6 +1546,7 @@ export function HouseholdsScreen({
         <div
           style={{
             padding: "20px 16px 14px",
+            paddingTop: safeTop(20),
             maxWidth: 440,
             margin: "0 auto",
             width: "100%",
@@ -1535,7 +1645,7 @@ export function HouseholdsScreen({
             <p style={{ margin: "0 0 10px", fontSize: 13.5, lineHeight: 1.45 }}>
               Inicia sesión para sincronizar hogares entre dispositivos.
             </p>
-            <GoogleButton onClick={onSignIn} />
+            <SignInOptions onGoogle={onSignIn} onApple={onAppleSignIn} />
           </div>
         )}
 
@@ -1572,6 +1682,8 @@ export function HouseholdsScreen({
                 setJoinSheetOpen(true);
               }}
               onRemoveMember={onRemoveMember}
+              onChangeRole={handleChangeRole}
+              onCreateInvite={handleCreateInvite}
               onEditMembers={onEditMembers}
               onAdvanceSetup={onAdvanceSetup}
               onRetry={() => onRefresh?.()}

@@ -1,7 +1,8 @@
 import { supabase } from "./supabase.js";
-import { uid } from "./groups.js";
+import * as ids from "./ids.js";
 import { convertStockAmount } from "./kitchenUnits.js";
 import { resolveIngredientId } from "./ingredients.js";
+import { paraEscribir } from "./vocabularios.js";
 
 /**
  * Data access for user_pantry (see supabase/migrations/0002_user_pantry.sql +
@@ -88,21 +89,22 @@ function omitPackFromRows(rows) {
   return rows.map(({ pack_count: _c, pack_kind: _k, pack_size: _s, pack_size_unit: _u, ...rest }) => rest);
 }
 
-function packDbFields(pack) {
-  if (!pack?.kind || !(Number(pack.sizeQty) > 0)) {
-    return {
-      pack_count: null,
-      pack_kind: null,
-      pack_size: null,
-      pack_size_unit: null,
-    };
-  }
-  return {
+/**
+ * Las columnas de envase de una fila nueva. El envase pasa por la lista viva (#539): uno
+ * retirado se escribe como su sucesor; uno retirado sin sucesor deja el alimento sin envase
+ * (las cuatro columnas a null, como si no lo tuviera); uno desconocido lanza
+ * FueraDeVocabulario, como lo habría rechazado el CHECK. Exportada para su test.
+ */
+export function packDbFields(pack) {
+  const sinEnvase = { pack_count: null, pack_kind: null, pack_size: null, pack_size_unit: null };
+  if (!pack?.kind || !(Number(pack.sizeQty) > 0)) return sinEnvase;
+  const fila = {
     pack_count: Number(pack.count) > 0 ? Number(pack.count) : 1,
-    pack_kind: pack.kind,
+    pack_kind: paraEscribir("envases", pack.kind),
     pack_size: Number(pack.sizeQty),
     pack_size_unit: pack.sizeUnit ?? "g",
   };
+  return fila.pack_kind == null ? sinEnvase : fila;
 }
 
 /**
@@ -152,6 +154,10 @@ async function insertPantryRows(userId, toInsert, itemsForLegacy) {
   return [];
 }
 
+// Lo que va por `id` (la clave de la tabla) no filtra además por `user_id`:
+// las filas de una casa están a nombre de su titular (0071), y el cotitular
+// que las edita tiene otro id. Qué filas puede tocar cada uno lo dice la RLS.
+
 /** Applies a top-up patch, degrading when optional columns aren't migrated yet. */
 async function patchPantryRow(userId, id, patch) {
   const { location, frozen, ...base } = patch;
@@ -162,7 +168,6 @@ async function patchPantryRow(userId, id, patch) {
   let result = await supabase
     .from("user_pantry")
     .update(withLoc)
-    .eq("user_id", userId)
     .eq("id", id)
     .select(RETURN_COLS);
 
@@ -170,7 +175,6 @@ async function patchPantryRow(userId, id, patch) {
     result = await supabase
       .from("user_pantry")
       .update(withLoc)
-      .eq("user_id", userId)
       .eq("id", id)
       .select(`${BASE_COLS}, ${UPDATED_AT_COL}, ${FREEZER_COLS}, ${GARNISH_COL}, ${LOCATION_COLS}`);
   }
@@ -179,7 +183,6 @@ async function patchPantryRow(userId, id, patch) {
     result = await supabase
       .from("user_pantry")
       .update(withFrozen)
-      .eq("user_id", userId)
       .eq("id", id)
       .select(RETURN_COLS);
   }
@@ -187,7 +190,6 @@ async function patchPantryRow(userId, id, patch) {
     result = await supabase
       .from("user_pantry")
       .update(base)
-      .eq("user_id", userId)
       .eq("id", id)
       .select(RETURN_COLS);
   }
@@ -221,9 +223,15 @@ const RETURN_SELECT_TIERS = [
   BASE_COLS,
 ];
 
-/** @returns {Promise<{ id: string, ingredientName: string, ingredientNormalized: string, qty: number, unit: string, source: string, updatedAt: string|null }[]>} */
+/**
+ * La despensa. Si la lectura falla, `data` es null y `error` lo dice (#317):
+ * «la despensa está vacía» no es lo mismo que «no se ha podido leer». Con
+ * `[]`, el barrido del día marcaba el día como hecho sin descontar nada y no
+ * se reintentaba. Quien solo pinta usa `data ?? []`.
+ * @returns {Promise<{ data: { id: string, ingredientName: string, ingredientNormalized: string, qty: number, unit: string, source: string, updatedAt: string|null }[]|null, error: object|null }>}
+ */
 export async function loadPantry(userId, householdId = null) {
-  if (!supabase || !userId) return [];
+  if (!supabase || !userId) return { data: [], error: null };
   const run = (cols) => {
     let q = supabase
       .from("user_pantry")
@@ -248,13 +256,13 @@ export async function loadPantry(userId, householdId = null) {
   let lastError = null;
   for (const cols of tiers) {
     const { data, error } = await run(cols);
-    if (!error) return (data ?? []).map(mapRow);
+    if (!error) return { data: (data ?? []).map(mapRow), error: null };
     lastError = error;
     if (!isMissingColumn(error)) break;
   }
 
   console.error("[pantry] load failed", lastError);
-  return [];
+  return { data: null, error: lastError };
 }
 
 /**
@@ -283,7 +291,7 @@ export async function addPantryItems(userId, items, householdId = null) {
     const { data: existing, error: fetchError } = await supabase
       .from("user_pantry")
       .select("id, ingredient_normalized, qty, unit, frozen")
-      .eq("user_id", userId)
+      .eq(householdId ? "household_id" : "user_id", householdId ?? userId)
       .eq("item_type", "ingredient")
       .in("ingredient_normalized", normalizedKeys);
     // A DB that hasn't run 0014 has no item_type/frozen columns — degrade to the
@@ -431,7 +439,6 @@ async function addPantryItemsLegacy(userId, items) {
       supabase
         .from("user_pantry")
         .update({ qty: u.qty })
-        .eq("user_id", userId)
         .eq("id", u.id)
         .select(BASE_COLS),
     ),
@@ -452,7 +459,7 @@ export async function setPantryItemQty(userId, id, qty, unit, location) {
   if (!(qty > 0)) return removePantryItem(userId, id);
   const base = unit != null ? { qty, unit } : { qty };
   const update = (patch) =>
-    supabase.from("user_pantry").update(patch).eq("user_id", userId).eq("id", id);
+    supabase.from("user_pantry").update(patch).eq("id", id);
 
   if (location == null) {
     const { error } = await update(base);
@@ -490,7 +497,6 @@ export async function adjustCookedDishPortions(userId, id, delta) {
   const { data: row, error: readError } = await supabase
     .from("user_pantry")
     .select("portions, qty")
-    .eq("user_id", userId)
     .eq("id", id)
     .maybeSingle();
   if (readError || !row) {
@@ -506,7 +512,6 @@ export async function adjustCookedDishPortions(userId, id, delta) {
   const { error } = await supabase
     .from("user_pantry")
     .update({ portions: next, qty: next })
-    .eq("user_id", userId)
     .eq("id", id);
   if (error) {
     console.error("[pantry] cooked portions update failed", error);
@@ -539,7 +544,6 @@ export async function removePantryItem(userId, id) {
   const { error } = await supabase
     .from("user_pantry")
     .delete()
-    .eq("user_id", userId)
     .eq("id", id);
   if (error) {
     console.error("[pantry] remove failed", error);
@@ -625,7 +629,7 @@ export function addLocalPantryItems(items) {
     if (isCooked) {
       const portions = Number(it.portions ?? it.qty) > 0 ? Number(it.portions ?? it.qty) : 1;
       next.push({
-        id: `local_${uid()}`,
+        id: ids.despensaLocal.nuevo(),
         ingredientName: it.name,
         ingredientNormalized: it.normalized,
         qty: portions,
@@ -654,7 +658,7 @@ export function addLocalPantryItems(items) {
       }
     } else {
       const row = {
-        id: `local_${uid()}`,
+        id: ids.despensaLocal.nuevo(),
         ingredientName: it.name,
         ingredientNormalized: it.normalized,
         qty,
@@ -716,7 +720,7 @@ export async function mergeLocalPantryIntoCloud(userId, householdId = null) {
   if (!supabase || !userId) return false;
   const local = readLocalPantry();
   if (local.length === 0) return false;
-  await addPantryItems(
+  const guardadas = await addPantryItems(
     userId,
     local.map((it) => ({
       name: it.ingredientName,
@@ -734,6 +738,11 @@ export async function mergeLocalPantryIntoCloud(userId, householdId = null) {
     })),
     householdId,
   );
-  writeLocalPantry([]);
-  return true;
+  // Solo se borra de aquí lo que de verdad ha subido. En una casa que no es
+  // tuya la base rechaza la subida (0067: las filas de una casa van a nombre
+  // de su dueño), y vaciar la copia local entonces era perder la despensa.
+  const subidas = new Set((guardadas ?? []).map((r) => r.ingredientNormalized).filter(Boolean));
+  const quedan = local.filter((it) => !subidas.has(it.ingredientNormalized));
+  writeLocalPantry(quedan);
+  return quedan.length < local.length;
 }

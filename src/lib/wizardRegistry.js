@@ -38,9 +38,15 @@
  */
 
 import { estadoDe, valorDe } from "./notepad.js";
+import { alergiasRevisadas } from "./alergiasBase.js";
+import { APARATOS_EN_ORDEN } from "./electrodomesticos.js";
+import { conEstructura } from "./estructuraPlatos.js";
 import { COOK_LEVELS, COOK_TIME_DEFAULTS, cookLevelForMinutes, cookLevelMinutes } from "./cookTime.js";
 import { rutaDeReparto } from "./reparto.js";
 import { KID_DINNER_DEFAULTS, kidMembers, normalizeKidDinnerConfig } from "./kidsMenu.js";
+import { datoDe } from "./registroFicha.js";
+import { leidoDe, estadoParaLibreta } from "./estadoDeDato.js";
+import { leerPresupuesto, presupuestoGuardado } from "./presupuestoCasa.js";
 
 /** Los ocho controles. Un control nuevo es trabajo; una fila nueva no. */
 export const CONTROLES = [
@@ -87,15 +93,19 @@ export const TEMAS = [
 /**
  * El registro.
  *
+ * Una pregunta es la vista de un DATO del registro de la ficha
+ * (registroFicha.js): `dato` es su clave («members.allergies» para los de la
+ * persona). De ahí salen dos cosas que antes llevaba cada fila: el orden del
+ * recorrido (`peso_menu`: cuánto cambia el menú, de más a menos) y si el
+ * sistema puede suponer la respuesta (`suposicion`). Lo que no se puede suponer
+ * va a "necesita aclaración" en cuanto se infiere, nunca a "aclarado"; hoy
+ * solo las alergias, y es a propósito.
+ *
  * Columnas de dependencia, con el significado que fija el motor:
  *   requiere  sin lo otro la pregunta no tiene sentido
  *   activa    aparece sola cuando un dato la hace relevante
  *   refina    ajuste fino de algo más grueso
  *   anula     contestarla deja otra sin sentido
- *
- * `suposicion: false` marca las preguntas donde el sistema NO puede inventarse
- * la respuesta: van a "necesita aclaración" en cuanto se infieren, nunca a
- * "aclarado". Hoy solo las alergias, y es a propósito.
  *
  * ── Las columnas de la fila de controles ──────────────────────────────────
  * `enControles` saca la fila al panel de botones que vive sobre el menú.
@@ -129,6 +139,7 @@ export const PREGUNTAS = [
   // ── Cimientos ───────────────────────────────────────────────────────────
   {
     id: "cole",
+    dato: "schoolMenus",
     tema: "calendario",
     label: "¿Coméis del comedor del cole?",
     control: "cards-ab",
@@ -147,10 +158,10 @@ export const PREGUNTAS = [
     anula: [],
     delegable: false,
     parser: false,
-    orden: 5,
   },
   {
     id: "members",
+    dato: "members",
     tema: "cimientos",
     label: "¿Quiénes coméis en casa?",
     control: "por-persona",
@@ -162,10 +173,10 @@ export const PREGUNTAS = [
     anula: [],
     delegable: false,
     parser: false,
-    orden: 10,
   },
   {
     id: "alergias",
+    dato: "members.allergies",
     tema: "cimientos",
     label: "¿Alergias o intolerancias?",
     control: "chips",
@@ -173,22 +184,30 @@ export const PREGUNTAS = [
     // "Ninguna" es una respuesta, y por eso se lee el flag y no la lista: un
     // array vacío no distingue "no tenemos" de "no lo hemos mirado", y esa
     // diferencia es justo la que no se puede suponer.
-    lee: (data) => (data?.allergiesReviewed ? (data.allergies ?? []) : null),
+    // Las alergias viven en cada persona (members[].allergies, con su
+    // alergiasRevisadas); `data.allergies` es el dato de antes de que fueran
+    // por persona (#958). Contestado cuando todas están revisadas; el valor,
+    // las de toda la casa juntas.
+    lee: (data) => {
+      const personas = data?.members ?? [];
+      if (!personas.length || !personas.every((m) => alergiasRevisadas(data, m))) return null;
+      return [...new Set(personas.flatMap((m) => m.allergies ?? []))];
+    },
     requiere: ["members"],
     activa: null,
     refina: null,
     anula: [],
     delegable: false,
     // Nunca se da por buena una alergia inferida del texto: se pinta para que
-    // la confirmes. Es la única fila con `suposicion: false`, y el motivo es
-    // que el fallo peligroso no es no entenderte — es entenderte, decir "vale,
-    // te lo quito", y que te quedes creyendo que estás cubierto.
-    suposicion: false,
+    // la confirmes. Lo dice el registro (`suposicion: false` en el dato
+    // members.allergies), y el motivo es que el fallo peligroso no es no
+    // entenderte — es entenderte, decir "vale, te lo quito", y que te quedes
+    // creyendo que estás cubierto.
     parser: false,
-    orden: 20,
   },
   {
     id: "comidas",
+    dato: "meals",
     tema: "cimientos",
     label: "¿Qué comidas planificamos?",
     control: "chips",
@@ -200,12 +219,12 @@ export const PREGUNTAS = [
     anula: [],
     delegable: true,
     parser: false,
-    orden: 30,
   },
 
   // ── Gustos ──────────────────────────────────────────────────────────────
   {
     id: "ninos",
+    dato: "kidDinnerConfig",
     tema: "cimientos",
     label: "¿Cómo comen los niños?",
     corto: "Niños",
@@ -274,10 +293,10 @@ export const PREGUNTAS = [
     delegable: true,
     parser: false,
     enControles: true,
-    orden: 35,
   },
   {
     id: "reparto",
+    dato: "reparto",
     tema: "gustos",
     label: "¿Cuánto de cada cosa?",
     corto: "Reparto",
@@ -295,10 +314,10 @@ export const PREGUNTAS = [
     delegable: true,
     parser: true,
     enControles: true,
-    orden: 40,
   },
   {
     id: "cocina",
+    dato: "cocinas",
     tema: "gustos",
     label: "¿Añadimos algo de fuera?",
     corto: "Cocina",
@@ -314,10 +333,10 @@ export const PREGUNTAS = [
     delegable: true,
     parser: true,
     enControles: true,
-    orden: 50,
   },
   {
     id: "estructura",
+    dato: "mealStructure",
     tema: "gustos",
     label: "¿Uno o dos platos?",
     corto: "Platos",
@@ -326,7 +345,10 @@ export const PREGUNTAS = [
     control: "cards-ab",
     fuente: "data",
     lee: (data) => data?.mealStructure ?? null,
-    escribe: (data, valor) => ({ ...data, mealStructure: valor }),
+    // Para toda la casa, también los grupos que tenían la suya: si no, en modo
+    // experto el cambio no se notaba (estructuraPlatos.js, #958). Lo usan la
+    // app y Lola (ajustes.js, ajustar_cocina).
+    escribe: (data, valor) => conEstructura(data, valor),
     // Los dos valores que el planner entiende de VERDAD. Ojo con "1_plato":
     // parece un histórico y no lo es — es el valor que compara aiPlanner.js
     // (`mealStructure === "1_plato"`). Ofrecer "unico" aquí dejaba el control
@@ -352,10 +374,10 @@ export const PREGUNTAS = [
     delegable: true,
     parser: false,
     enControles: true,
-    orden: 60,
   },
   {
     id: "tecnica",
+    dato: "sesgos",
     tema: "gustos",
     label: "¿Cómo os gustan hechos?",
     corto: "Cómo",
@@ -391,12 +413,12 @@ export const PREGUNTAS = [
     delegable: true,
     parser: true,
     enControles: false,
-    orden: 70,
   },
 
   // ── Tiempo y maña ───────────────────────────────────────────────────────
   {
     id: "tiempo",
+    dato: "cookTime",
     tema: "tiempo",
     label: "¿Cuánto tiempo tienes para cocinar?",
     corto: "Tiempo",
@@ -480,10 +502,10 @@ export const PREGUNTAS = [
     delegable: true,
     parser: false,
     enControles: true,
-    orden: 80,
   },
   {
     id: "esfuerzo",
+    dato: "cookLevel",
     tema: "tiempo",
     label: "¿Qué tal se te da cocinar?",
     corto: "Esfuerzo",
@@ -499,15 +521,10 @@ export const PREGUNTAS = [
     control: "cards-ab",
     fuente: "data",
     lee: (data) => data?.cookLevel ?? null,
-    // Se marca `cookLevelManual` al escribir, y no es cosmetico: en modo
-    // basico —el de por defecto— `resolveModeData` (App.jsx) fuerza
-    // `cookLevel: "normal"` antes de generar, asi que este mando se pintaba,
-    // se guardaba, se marcaba con su aro teal... y el menu salia igual.
-    //
-    // Es el mismo trato que ya tenia `manualSlotType` ahi mismo: lo que eliges
-    // A MANO desde el menu sobrevive al modo basico, porque el modo basico
-    // simplifica lo que NO has contestado, no lo que acabas de decidir.
-    escribe: (data, valor) => ({ ...data, cookLevel: valor, cookLevelManual: true }),
+    // Sin marca aparte (fuera `cookLevelManual`, trozo 12 de #1037): el modo
+    // basico (`resolveModeData`) ya no fuerza el nivel, porque el que llega es
+    // el dicho o el defecto del registro. Lo que eliges aqui cambia el menu.
+    escribe: (data, valor) => ({ ...data, cookLevel: valor }),
     // Mismos tres niveles, mismas tarjetas y mismos textos que el wizard
     // clásico (Onboarding.jsx): es la misma pregunta.
     opciones: [
@@ -535,12 +552,12 @@ export const PREGUNTAS = [
     delegable: true,
     parser: false,
     enControles: true,
-    orden: 90,
   },
 
   // ── Cocina y compra ─────────────────────────────────────────────────────
   {
     id: "trastos",
+    dato: "kitchenTools",
     tema: "cocina",
     label: "¿Qué tenéis en la cocina?",
     corto: "Trastos",
@@ -568,7 +585,7 @@ export const PREGUNTAS = [
     control: "multi",
     fuente: "data",
     // `kitchenTools` y NO `appliances`, que es donde escribía esto y no lo leía
-    // nadie: el motor cruza `data.kitchenTools` (+ customKitchenTools) contra
+    // nadie: el motor cruza `data.kitchenTools` contra
     // `requiredAppliance` en filterRecipes, y `data.appliances` no existe en
     // ninguna otra parte del proyecto. El control se pintaba, se marcaba y se
     // guardaba en un campo huérfano — marcar "Airfryer" no metía ni un plato de
@@ -579,7 +596,7 @@ export const PREGUNTAS = [
     // El vocabulario de APPLIANCES de Onboarding.jsx, que es lo que
     // filterRecipes cruza contra `requiredAppliance`. Inventar uno nuevo aquí
     // lo dejaría sin consumidor.
-    opciones: ["Airfryer", "Horno", "Microondas", "Thermomix", "Olla rápida", "Vaporera"],
+    opciones: [...APARATOS_EN_ORDEN],
     requiere: [],
     activa: null,
     refina: null,
@@ -587,25 +604,26 @@ export const PREGUNTAS = [
     delegable: true,
     parser: false,
     enControles: true,
-    orden: 100,
   },
   {
     id: "presupuesto",
+    dato: "presupuesto",
     tema: "compra",
     label: "¿Cuánto quieres gastar?",
     control: "slider",
     fuente: "data",
-    lee: (data) => data?.budget ?? null,
+    // «Sin presupuesto» (null) también es una respuesta: se lee su estado; sin decir nada, null.
+    lee: (data) => (presupuestoGuardado(data) === undefined ? null : leerPresupuesto(data)),
     requiere: [],
     activa: null,
     refina: null,
     anula: [],
     delegable: true,
     parser: false,
-    orden: 110,
   },
   {
     id: "despensa",
+    dato: "pantryMode",
     tema: "compra",
     label: "¿Aprovechamos lo que ya hay en casa?",
     control: "cards-ab",
@@ -617,32 +635,58 @@ export const PREGUNTAS = [
     anula: [],
     delegable: true,
     parser: false,
-    orden: 120,
   },
 ];
 
 export const PREGUNTAS_POR_ID = Object.fromEntries(PREGUNTAS.map((p) => [p.id, p]));
 
-/** El registro ordenado. El `orden` deja hueco entre filas a propósito. */
+/** El dato del registro de la ficha del que la pregunta es vista. Sin él, la pregunta no existe. */
+function datoDePregunta(pregunta) {
+  const d = datoDe(pregunta?.dato);
+  if (!d) throw new Error(`la pregunta «${pregunta?.id}» apunta a «${pregunta?.dato}», que no está en el registro de la ficha`);
+  return d;
+}
+
+/**
+ * El registro ordenado: de más a menos `peso_menu` de su dato. Dos preguntas
+ * con el mismo peso no tienen orden, y un dato sin pesar tampoco: se dice.
+ */
 export function registroOrdenado(registro = PREGUNTAS) {
-  return [...registro].sort((a, b) => a.orden - b.orden);
+  const peso = new Map(registro.map((p) => {
+    const w = datoDePregunta(p).peso_menu;
+    if (w === null) throw new Error(`«${p.dato}» no tiene peso_menu en el registro: la pregunta «${p.id}» no se puede ordenar`);
+    return [p.id, w];
+  }));
+  if (new Set(peso.values()).size !== peso.size) {
+    throw new Error(`dos preguntas con el mismo peso_menu: ${[...peso].map(([id, w]) => `${id}=${w}`).join(", ")}`);
+  }
+  return [...registro].sort((a, b) => peso.get(b.id) - peso.get(a.id));
 }
 
 /**
  * El estado de un campo de la libreta para una pregunta, o el que deduce de
  * `data` cuando la pregunta no vive en la libreta.
  *
- * Las preguntas de `data` no tienen los cuatro estados —`data` no guarda
- * procedencia— así que solo distinguen contestado de vacío. Es una pérdida
- * real y conocida: hasta que esos ejes migren a la libreta, una alergia
- * inferida del texto no se puede marcar como "sin confirmar" en `data`, y por
- * eso el parser no escribe ahí (ver `parser: false` en esas filas).
+ * `data` no guarda procedencia: solo distingue contestado de vacío. La
+ * procedencia está en el sobre de cada dato, y llega en `estados` (los de
+ * ficha_casa v2, de `estadosDeFichas` en estadoDeDato.js): con ellos, una
+ * alergia supuesta sale "inferido" y no "fijado". Sin ellos (la app aún no lee
+ * la ficha), como siempre. El parser sigue sin escribir en `data` (ver
+ * `parser: false` en esas filas).
  */
-export function estadoDelCampo(pregunta, notepad, data) {
+export function estadoDelCampo(pregunta, notepad, data, estados = null) {
   if (!pregunta) return "vacio";
   if (pregunta.fuente === "libreta") return estadoAgregado(pregunta, notepad);
   const valor = pregunta.lee?.(data, notepad);
-  return valor === null || valor === undefined ? "vacio" : "fijado";
+  const base = valor === null || valor === undefined ? "vacio" : "fijado";
+  return estados ? estadoParaLibreta(leidosDe(pregunta, data, estados), base) : base;
+}
+
+/** Los datos leídos de la ficha v2 para una pregunta: uno por persona si el dato es de cada una, o el de la casa. */
+function leidosDe(pregunta, data, estados) {
+  const { campo, entidad } = datoDePregunta(pregunta);
+  if (!campo) return [];
+  return entidad === "persona" ? (data?.members ?? []).map((m) => leidoDe(estados, campo, m.id)) : [leidoDe(estados, campo)];
 }
 
 /**
@@ -723,13 +767,13 @@ export function valorDePregunta(pregunta, notepad, data) {
  * datos, no sobre otra pregunta. `refina` NO bloquea: una pregunta fina puede
  * contestarse antes que la gruesa, solo se ordena detrás.
  */
-export function dependenciasCumplidas(pregunta, notepad, data, registro = PREGUNTAS) {
+export function dependenciasCumplidas(pregunta, notepad, data, registro = PREGUNTAS, estados = null) {
   if (!pregunta) return false;
 
   for (const id of pregunta.requiere ?? []) {
     const otra = registro.find((p) => p.id === id);
     if (!otra) continue;
-    if (estadoDelCampo(otra, notepad, data) === "vacio") return false;
+    if (estadoDelCampo(otra, notepad, data, estados) === "vacio") return false;
   }
 
   if (typeof pregunta.activa === "function" && !pregunta.activa(data, notepad)) return false;
@@ -742,12 +786,12 @@ export function dependenciasCumplidas(pregunta, notepad, data, registro = PREGUN
  * sentido "¿cuánto tiempo tienes entre semana?", y preguntarlo igual sería
  * pedirle al usuario que se contradiga.
  */
-export function anulada(pregunta, notepad, data, registro = PREGUNTAS) {
+export function anulada(pregunta, notepad, data, registro = PREGUNTAS, estados = null) {
   return registro.some(
     (otra) =>
       otra.id !== pregunta?.id &&
       (otra.anula ?? []).includes(pregunta?.id) &&
-      estadoDelCampo(otra, notepad, data) !== "vacio",
+      estadoDelCampo(otra, notepad, data, estados) !== "vacio",
   );
 }
 
@@ -758,38 +802,23 @@ export function anulada(pregunta, notepad, data, registro = PREGUNTAS) {
  * texto libre. Van a "aclaracion" aunque tengan valor, porque contar más no
  * solo rellena: también genera ocasiones de contradecirse.
  */
-export function estadoDePregunta(pregunta, notepad, data, dudas = []) {
+export function estadoDePregunta(pregunta, notepad, data, dudas = [], estados = null) {
   if (!pregunta) return "por-tocar";
-  const estado = estadoDelCampo(pregunta, notepad, data);
+  const estado = estadoDelCampo(pregunta, notepad, data, estados);
 
   if (estado === "vacio") return "por-tocar";
   if (dudas.includes(pregunta.id)) return "aclaracion";
   if (estado === "fijado" || estado === "delegado") return "aclarado";
 
   // Inferido: aclarado CON la suposición a la vista, salvo donde suponer sería
-  // ponerle al usuario un criterio en la boca (hoy, solo las alergias).
-  return pregunta.suposicion === false ? "aclaracion" : "aclarado";
+  // ponerle al usuario un criterio en la boca (el registro lo dice: hoy, la salud).
+  return datoDePregunta(pregunta).suposicion ? "aclarado" : "aclaracion";
 }
 
 /** Las preguntas que hoy tienen sentido, en orden. Ni anuladas ni inactivas. */
-export function preguntasVisibles(notepad, data, registro = PREGUNTAS) {
+export function preguntasVisibles(notepad, data, registro = PREGUNTAS, estados = null) {
   return registroOrdenado(registro).filter(
-    (p) => dependenciasCumplidas(p, notepad, data, registro) && !anulada(p, notepad, data, registro),
-  );
-}
-
-/**
- * La siguiente que hay que hacerse, o null si no queda ninguna.
- *
- * Primero lo que necesita aclaración —es lo único que puede permitirse gritar—
- * y después lo que está por tocar, en el orden del registro.
- */
-export function siguientePregunta(notepad, data, { registro = PREGUNTAS, dudas = [] } = {}) {
-  const visibles = preguntasVisibles(notepad, data, registro);
-  return (
-    visibles.find((p) => estadoDePregunta(p, notepad, data, dudas) === "aclaracion") ??
-    visibles.find((p) => estadoDePregunta(p, notepad, data, dudas) === "por-tocar") ??
-    null
+    (p) => dependenciasCumplidas(p, notepad, data, registro, estados) && !anulada(p, notepad, data, registro, estados),
   );
 }
 
@@ -799,9 +828,9 @@ export function siguientePregunta(notepad, data, { registro = PREGUNTAS, dudas =
  * bajando. Un wizard que se acorta mientras hablas se siente lo contrario de
  * pesado, aunque tenga un paso más que el de hoy.
  */
-export function cuantasQuedan(notepad, data, { registro = PREGUNTAS, dudas = [] } = {}) {
-  return preguntasVisibles(notepad, data, registro).filter(
-    (p) => estadoDePregunta(p, notepad, data, dudas) !== "aclarado",
+export function cuantasQuedan(notepad, data, { registro = PREGUNTAS, dudas = [], estados = null } = {}) {
+  return preguntasVisibles(notepad, data, registro, estados).filter(
+    (p) => estadoDePregunta(p, notepad, data, dudas, estados) !== "aclarado",
   ).length;
 }
 
@@ -810,16 +839,16 @@ export function cuantasQuedan(notepad, data, { registro = PREGUNTAS, dudas = [] 
  * dejarla intacta tiraría el dato — y es justo lo que deja decidir si merece
  * la pena abrirla.
  */
-export function coberturaDeTema(temaId, notepad, data, { registro = PREGUNTAS, dudas = [] } = {}) {
-  const suyas = preguntasVisibles(notepad, data, registro).filter((p) => p.tema === temaId);
-  const hechas = suyas.filter((p) => estadoDePregunta(p, notepad, data, dudas) === "aclarado");
+export function coberturaDeTema(temaId, notepad, data, { registro = PREGUNTAS, dudas = [], estados = null } = {}) {
+  const suyas = preguntasVisibles(notepad, data, registro, estados).filter((p) => p.tema === temaId);
+  const hechas = suyas.filter((p) => estadoDePregunta(p, notepad, data, dudas, estados) === "aclarado");
   return {
     tema: temaId,
     de: suyas.length,
     hechas: hechas.length,
     // Una tarjeta con una aclaración pendiente no es "casi hecha": es la única
     // que tiene que levantar la voz, y su recuento lo diría al revés.
-    aclaraciones: suyas.filter((p) => estadoDePregunta(p, notepad, data, dudas) === "aclaracion").length,
+    aclaraciones: suyas.filter((p) => estadoDePregunta(p, notepad, data, dudas, estados) === "aclaracion").length,
   };
 }
 
@@ -831,14 +860,14 @@ export function coberturaDeTema(temaId, notepad, data, { registro = PREGUNTAS, d
  * Añadir un mando al menú es, por tanto, poner `enControles: true` en una fila
  * — no escribir un componente.
  */
-export function controlesVisibles(notepad, data, registro = PREGUNTAS) {
-  return preguntasVisibles(notepad, data, registro).filter((p) => p.enControles);
+export function controlesVisibles(notepad, data, registro = PREGUNTAS, estados = null) {
+  return preguntasVisibles(notepad, data, registro, estados).filter((p) => p.enControles);
 }
 
 /** Las tarjetas que tienen sentido para esta casa, con su cobertura. */
 export function temasVisibles(notepad, data, opciones = {}) {
   const registro = opciones.registro ?? PREGUNTAS;
-  const conPreguntas = new Set(preguntasVisibles(notepad, data, registro).map((p) => p.tema));
+  const conPreguntas = new Set(preguntasVisibles(notepad, data, registro, opciones.estados ?? null).map((p) => p.tema));
   return TEMAS.filter((t) => conPreguntas.has(t.id)).map((t) => ({
     ...t,
     ...coberturaDeTema(t.id, notepad, data, opciones),

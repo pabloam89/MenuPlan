@@ -1,5 +1,6 @@
 import { supabase } from "./supabase.js";
 import { ROW_TTL_MS } from "./cookings.js";
+import * as ids from "./ids.js";
 
 /**
  * Capa de datos de las cocinadas (ver 0050_cookings.sql).
@@ -98,7 +99,7 @@ export async function publishCooking({
   if (!ok() || !ownerId) return null;
   if (!recipeId || !recipeName) throw new Error("Una cocinada necesita una receta debajo");
 
-  const id = crypto.randomUUID();
+  const id = ids.cocinada.nuevo();
   const photoUrl = await uploadPhoto(ownerId, id, photo);
 
   const { data, error } = await supabase

@@ -1,0 +1,148 @@
+/**
+ * Lo que Lola ve de sus herramientas (nombre, descripción, esquema y orden),
+ * exactamente como sale hacia la API. Si esta foto cambia, cambia lo que lee
+ * el modelo: eso pide pasar bot-evals antes de mergear. Una reorganización
+ * del código no puede moverla ni un carácter.
+ */
+import { describe, it, expect, vi } from "vitest";
+
+process.env.VITE_SUPABASE_URL ||= "https://sin-base.invalid";
+process.env.SUPABASE_SERVICE_ROLE_KEY ||= "sin-clave";
+// dominiosGustos.json no está en git (lo genera build-bot-core): sin esto la
+// foto dependería de la máquina.
+vi.mock("./ajustes.js", async (original) => ({ ...(await original()), dominiosDeGustos: async () => "DOMINIOS" }));
+
+const { herramientas, FICHAS, SOLO_LECTURA, AVISO_LENTO, pantallaDe } = await import("./agente.js");
+// Detrás de agente.js: el mapa de capacidades deriva su lado de Lola de FICHAS.
+const { CAPACIDADES } = await import("../../src/lib/capacidades.js");
+const { datoDe } = await import("../../src/lib/registroFicha.js");
+// Como titular: lo que ve quien gestiona la casa, todas (el filtro por papel
+// se prueba en papel.test.js).
+const charla = { householdId: "x", chatId: "1", channel: "telegram", fotos: [], papel: "owner" };
+
+describe("lo que Lola ve de sus herramientas", () => {
+  it("no cambia sin querer", async () => {
+    const tools = await herramientas(charla);
+    expect(JSON.stringify(tools, null, 1)).toMatchSnapshot();
+  });
+
+  it("la ficha no viaja a la API", async () => {
+    expect(JSON.stringify(await herramientas(charla))).not.toMatch(/"(soloLectura|riesgo|deshace|pantalla|avisoLento|lector|capacidades|lee|escribe)":/);
+  });
+});
+
+describe("una ficha por herramienta", () => {
+  it("todas las que ve Lola tienen la suya, completa", async () => {
+    const nombres = (await herramientas(charla)).map((t) => t.name);
+    expect(nombres.filter((n) => !FICHAS.has(n))).toEqual([]);
+    expect(FICHAS.size).toBe(nombres.length);
+    for (const [n, f] of FICHAS) {
+      expect(typeof f.soloLectura, n).toBe("boolean");
+      expect(Object.hasOwn(f, "pantalla"), n).toBe(true);
+    }
+  });
+
+  // Trozo 23 del plan de fichas: qué datos del registro lee y escribe, y qué
+  // capacidad del mapa hace. De aquí sale el lado de Lola de capacidades.js.
+  it("cada una dice qué lee, qué escribe y qué capacidad hace, con claves que existen", () => {
+    const ids = new Set(CAPACIDADES.map((c) => c.id));
+    for (const [n, f] of FICHAS) {
+      expect(Array.isArray(f.lee) && Array.isArray(f.escribe), `${n}: lee y escribe`).toBe(true);
+      expect(f.capacidades?.length, `${n}: capacidades`).toBeGreaterThan(0);
+      for (const id of f.capacidades) expect(ids.has(id), `${n} → capacidad ${id}`).toBe(true);
+      for (const clave of [...f.lee, ...f.escribe]) expect(datoDe(clave), `${n} → ${clave} no está en el registro`).toBeTruthy();
+    }
+  });
+
+  // ESCRIBE_LA_LIBRETA (agente.js) nombra lo que escribe dataConLibreta: se coteja con ella.
+  it("lo que escribe la libreta en su ficha es lo que escribe de verdad dataConLibreta", async () => {
+    const { dataConLibreta } = await import("../../src/lib/libretaEnData.js");
+    const { normalizar } = await import("../../src/lib/notepad.js");
+    const escritas = Object.keys(dataConLibreta({}, normalizar(undefined))).sort();
+    expect([...FICHAS.get("descartar_supuesto").escribe].sort()).toEqual(escritas);
+    for (const c of escritas) expect(FICHAS.get("ajustar_gustos").escribe, c).toContain(c);
+  });
+
+  // Trozo 25: el parámetro que es un dato del registro sale de él (esquemaDato), no se copia.
+  it("ningún enum repite a mano el vocabulario de un dato que la herramienta lee o escribe", async () => {
+    const { DEL_REGISTRO } = await import("../../src/lib/esquemaHerramienta.js");
+    const { vocabulario } = await import("../../src/lib/vocabularios.js");
+    const llave = (l) => JSON.stringify([...l].sort());
+    const repetidos = [];
+    // Los items de una lista generada salen con ella: heredan la marca.
+    const anda = (nombre, vocabs, s, ruta, generado = false) => {
+      if (!s || typeof s !== "object") return;
+      const del = generado || Boolean(s[DEL_REGISTRO]);
+      if (Array.isArray(s.enum) && vocabs.has(llave(s.enum)) && !del) repetidos.push(`${nombre}.${ruta}`);
+      for (const [k, v] of Object.entries(s.properties ?? {})) anda(nombre, vocabs, v, ruta ? `${ruta}.${k}` : k);
+      if (s.items) anda(nombre, vocabs, s.items, `${ruta}[]`, del);
+    };
+    for (const t of await herramientas(charla)) {
+      const f = FICHAS.get(t.name);
+      const vocabs = new Set([...f.lee, ...f.escribe].map((c) => datoDe(c)?.vocabulario).filter(Boolean).map(vocabulario).filter(Boolean).map(llave));
+      anda(t.name, vocabs, t.input_schema, "");
+    }
+    expect(repetidos).toEqual([]);
+  });
+
+  it("las de solo leer dicen que no escriben ningún dato: escribe []", () => {
+    const vacia = (l) => Array.isArray(l) && l.length === 0;
+    expect([...SOLO_LECTURA].filter((n) => !vacia(FICHAS.get(n).escribe))).toEqual([]);
+  });
+
+  it("las de solo leer son las de antes, una a una (cambiarlo es a propósito: es la puerta de pista.js)", () => {
+    expect([...SOLO_LECTURA].sort()).toEqual([
+      "buscar_recetas", "compartir", "consultar", "por_que_plato", "proponer_platos", "ver_menu", "ver_receta",
+    ]);
+  });
+
+  it("los avisos de lo que tarda, los de antes", () => {
+    expect(Object.keys(AVISO_LENTO).sort()).toEqual(["buscar_recetas", "generar_menu", "preparar_receta"]);
+    expect(AVISO_LENTO.buscar_recetas({ conFotos: true })).toBeNull();
+  });
+
+  it("la pantalla de la app de cada una, como antes", () => {
+    expect(pantallaDe("ver_menu", {})).toBe("semana");
+    expect(pantallaDe("ver_menu", { cuando: "hoy" })).toBe("hoy");
+    expect(pantallaDe("ver_menu", { dia: "hoy" })).toBe("hoy");
+    expect(pantallaDe("ver_menu", { dia: "jueves" })).toBe("dia:Jue");
+    expect(pantallaDe("ver_menu", { cuando: "manana" })).toMatch(/^dia:/);
+    expect(pantallaDe("cambiar_plato", { dia: "lunes" })).toBe("dia:Lun");
+    expect(pantallaDe("cambiar_plato", {})).toBeNull();
+    expect(pantallaDe("buscar_recetas", { categoria: "legumbres" })).toBe("recetas:legumbres");
+    expect(pantallaDe("buscar_recetas", { categoria: "mias" })).toBe("recetas");
+    expect(pantallaDe("buscar_recetas")).toBe("recetas");
+    expect(pantallaDe("guardar_receta")).toBe("recetas:mias");
+    expect(pantallaDe("receta_propia")).toBe("recetas:mias");
+    // La compra de ajustar_casa lleva a la compra: ahí se ven los precios del súper.
+    expect(pantallaDe("ajustar_casa", { presupuesto: 80 })).toBe("compra");
+    expect(pantallaDe("ajustar_casa", { esfuerzo: "pro" })).toBeNull();
+    expect(pantallaDe("consultar", { que: "compra" })).toBe("compra");
+    expect(pantallaDe("consultar", { que: "casa" })).toBeNull();
+    for (const n of ["marcar_compra", "anadir_compra", "quitar_compra", "pasar_a_mercadona", "pasar_a_mercadona"]) expect(pantallaDe(n)).toBe("compra");
+    for (const n of ["generar_menu", "donde_come"]) expect(pantallaDe(n)).toBe("semana");
+    const conPantalla = new Set(["ver_menu", "cambiar_plato", "buscar_recetas", "guardar_receta", "receta_propia", "ver_compra", "marcar_compra", "anadir_compra", "quitar_compra", "pasar_a_mercadona", "generar_menu", "donde_come"]);
+    for (const n of FICHAS.keys()) if (!conPantalla.has(n)) expect(pantallaDe(n, {}), n).toBeNull();
+    expect(pantallaDe("no_existe")).toBeNull();
+  });
+});
+
+describe("BOT_TAREAS_V2 solo cambia cerrar_tarea, y solo encendido", () => {
+  it("encendido, cerrar_tarea también aplaza; apagado, es la de la foto", async () => {
+    const cerrar = async () => (await herramientas(charla)).find((t) => t.name === "cerrar_tarea");
+    const antes = await cerrar();
+    expect(JSON.stringify(antes)).not.toContain("\"aplazada\"");
+    process.env.BOT_TAREAS_V2 = "1";
+    try {
+      const v2 = JSON.stringify(await cerrar());
+      expect(v2).toContain("\"aplazada\"");
+      expect(v2).toMatch(/ahora te digo/);
+      // El resto de herramientas, igual.
+      const resto = (await herramientas(charla)).filter((t) => t.name !== "cerrar_tarea");
+      delete process.env.BOT_TAREAS_V2;
+      expect(JSON.stringify(resto)).toBe(JSON.stringify((await herramientas(charla)).filter((t) => t.name !== "cerrar_tarea")));
+    } finally {
+      delete process.env.BOT_TAREAS_V2;
+    }
+  });
+});

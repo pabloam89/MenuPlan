@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   Search,
@@ -35,6 +35,7 @@ import {
   ChevronDown,
   Trash2,
   Pencil,
+  MoreHorizontal,
   Ban,
   RotateCcw,
   BookOpen,
@@ -50,6 +51,7 @@ import {
 } from "../components/icons.jsx";
 import { recipeCatalog, recipeCatalogById } from "../data/recipeCatalog.js";
 import { loadRecipeStats } from "../lib/social.js";
+import { esRecetaDelTitular } from "../lib/userRecipesFila.js";
 import { isMontaje } from "../data/recipeSchema.js";
 import { isCompatibleWith } from "../lib/substitutions.js";
 import guarnicionesData from "../data/recipes/guarniciones.json";
@@ -58,6 +60,8 @@ import { dishImageUrl, dishImageForRecipe } from "../assets/dishes/dishImages.js
 import { deckImg } from "../lib/dishPhotoOptimize.js";
 import { allFolders, collectionRecipeIds, collectionCounts, DISCARDED_ID } from "../lib/recipeCollections.js";
 import { carpetasDelHueco, facetasDelHueco } from "../lib/carpetasDelHueco.js";
+import { DishActionBar } from "../components/DishActionBar.jsx";
+import { GENTE_ACTIVA } from "../lib/frontalBot.js";
 
 
 // Carpeta virtual: todo lo que has guardado, sin filtrar por carpeta.
@@ -77,6 +81,20 @@ const COLLECTION_ART = {
 };
 
 const CUSTOM_FOLDER_ART = { Icon: FolderIcon, img: "/avatares/cards/otros.jpg" };
+
+// Momentos de «¿Cuándo se sirve?» (RecipePlanner): «Comida» no se guarda como
+// tal, sino como su posición en la comida (primero, segundo o plato único).
+const MEAL_FILTERS = [
+  { id: "comida", label: "Comida" },
+  { id: "cena", label: "Cena" },
+  { id: "merienda", label: "Merienda" },
+  { id: "postre", label: "Postre" },
+];
+const COMIDA_ROLES = ["plato_unico", "primero", "segundo"];
+function servesAt(recipe, meal) {
+  const roles = recipe?.mealRole ?? [];
+  return meal === "comida" ? roles.some((r) => COMIDA_ROLES.includes(r)) : roles.includes(meal);
+}
 
 export const folderArt = (id) => COLLECTION_ART[id] ?? CUSTOM_FOLDER_ART;
 import { favoriteRecipeIds, getFavoriteScope, isRecipeFavorite, applyFavoriteScopePick } from "../lib/recipeVotes.js";
@@ -391,6 +409,12 @@ export function CatalogBrowserSheet({
   initialCategory = null,
   // Abrir directamente en «Mis recetas» (un enlace del bot tras guardar una).
   initialMine = false,
+  // Pestañas de Recetas (Para ti / Mis recetas / Favoritos, review de UX,
+  // lámina 27). `hideMineTile`: sin la teja «Mis recetas», que ya es una
+  // pestaña. `soloMias`: la vista se queda en Mis recetas («Volver» no sale al
+  // catálogo) y sin las favoritas, que tienen su propia pestaña.
+  hideMineTile = false,
+  soloMias = false,
   // Catálogo tab: set of catalog ids the user already discarded (para siempre).
   // Shows a toggle button on each card; onDiscardRecipe marks one, onRecoverRecipe clears it.
   discardedIds = null,
@@ -437,12 +461,12 @@ export function CatalogBrowserSheet({
     // significa "restringe TODO el catálogo a solo favoritas". Aquí solo
     // queremos la lista de favoritas para construir "Mis recetas", sin tocar
     // ese comportamiento — se calcula aparte, directo de `recipeVotes`.
-    const favIds = new Set(favoriteRecipeIds(recipeVotes));
+    const favIds = soloMias ? new Set() : new Set(favoriteRecipeIds(recipeVotes));
     if (favIds.size === 0) return extraRecipes;
     const seen = new Set(extraRecipes.map((r) => r.id));
     const favorited = recipeCatalog.filter((r) => favIds.has(r.id) && !seen.has(r.id));
     return [...extraRecipes, ...favorited];
-  }, [extraRecipes, recipeVotes]);
+  }, [extraRecipes, recipeVotes, soloMias]);
 
   // La tile "Mis recetas" del grid de categorías filtra al vuelo por tuyas +
   // favoritas, mismo mecanismo que una categoría pero sin tocar `cats`.
@@ -457,7 +481,8 @@ export function CatalogBrowserSheet({
   // existian y reventaba la pantalla entera con "Cannot access ... before
   // initialization". El build no lo ve: es correcto sintacticamente.
   useEffect(() => {
-    if (!viewingMine) return;
+    // [GENTE-APAGADA] Los 👍 y 💬 de lo que publicaste son de Gente.
+    if (!viewingMine || !GENTE_ACTIVA) return;
     const ids = mineRecipes
       .filter((r) => r.source === "user" && (r.visibility ?? "private") !== "private")
       .map((r) => r.id);
@@ -565,9 +590,14 @@ export function CatalogBrowserSheet({
   // Carpeta de Inspíranos que se está viendo (o null). Un solo id en vez de un
   // booleano por carpeta: son mutuamente excluyentes al navegar.
   const [viewingCollection, setViewingCollection] = useState(null);
+  // Filtro por momento en «Mis recetas» (review de UX, lámina 30): lo mismo
+  // que se marca al crear la receta en «¿Cuándo se sirve?». null = todas.
+  const [mealFilter, setMealFilter] = useState(null);
   // Raíz de "Mis recetas": solo carpetas, ninguna receta suelta. Las recetas
   // viven dentro de una carpeta — "Todas" es la que las contiene a todas.
-  const inMineRoot = viewingMine && !viewingCollection;
+  // Escribir en el buscador sí enseña platos (review de UX, lámina 34): antes
+  // contaba «1 plato» y seguía pintando las carpetas.
+  const inMineRoot = viewingMine && !viewingCollection && !query.trim();
 
   const collectionIds = useMemo(() => {
     if (!viewingCollection || viewingCollection === ALL_ID) return null;
@@ -579,6 +609,17 @@ export function CatalogBrowserSheet({
     () => collectionCounts(recipeCollections, recipeFolders),
     [recipeCollections, recipeFolders],
   );
+  // Portada de una carpeta tuya: la foto de su primer plato con foto. Todas
+  // las carpetas nuevas compartían la misma ilustración y no se distinguían
+  // sin leer el nombre (review de UX, lámina 34). Vacía, la genérica.
+  const folderCover = (folderId) => {
+    for (const id of collectionRecipeIds(recipeCollections, folderId)) {
+      const r = mineRecipes.find((x) => x.id === id) ?? fullCatalog.find((x) => x.id === id);
+      const photo = r ? dishImageForRecipe(r) : null;
+      if (photo) return deckImg(photo, 280);
+    }
+    return null;
+  };
   const [creatingFolder, setCreatingFolder] = useState(false);
   // Receta cuyo selector de carpetas está abierto.
   const [folderPickerFor, setFolderPickerFor] = useState(null);
@@ -646,7 +687,10 @@ export function CatalogBrowserSheet({
     const q = norm(query);
     const filtered = platoCatalog.filter((r) => {
       if (restrictToIds && !restrictToIds.has(r.id)) return false;
-      if (viewingMine && (!viewingCollection || viewingCollection === ALL_ID) && !mineIds.has(r.id)) return false;
+      // Buscando desde la raíz de «Mis recetas» también vale lo que tienes
+      // guardado en tus carpetas, que es lo que se ve al entrar en ellas.
+      if (viewingMine && (!viewingCollection || viewingCollection === ALL_ID) && !mineIds.has(r.id)
+        && !(!viewingCollection && (recipeCollections[r.id] ?? []).length > 0)) return false;
       if (collectionIds && !collectionIds.has(r.id)) return false;
       if (!matchesQuery(r, q)) return false;
       if (cats.size && !cats.has(catKeyOf(r))) return false;
@@ -662,7 +706,7 @@ export function CatalogBrowserSheet({
       return true;
     });
     return sortByNameQuery(filtered, q);
-  }, [query, cats, proteins, maxTime, difficulties, kidOnly, gourmetOnly, rapidoOnly, seasonFilter, sinLactosaOnly, cocina, platoCatalog, restrictToIds, viewingMine, mineIds, collectionIds]);
+  }, [query, cats, proteins, maxTime, difficulties, kidOnly, gourmetOnly, rapidoOnly, seasonFilter, sinLactosaOnly, cocina, platoCatalog, restrictToIds, viewingMine, mineIds, collectionIds, viewingCollection, recipeCollections]);
 
   const garnishResults = useMemo(() => {
     const q = norm(query);
@@ -723,8 +767,12 @@ export function CatalogBrowserSheet({
       // filtraba en ESTA lista — platoResults sí lo aplicaba, pero no es la
       // que se pinta aquí — así que salía el catálogo entero, como si fuera
       // una categoría más.
-      if (viewingMine && (!viewingCollection || viewingCollection === ALL_ID) && !mineIds.has(r.id)) return false;
+      // Buscando desde la raíz de «Mis recetas» también vale lo que tienes
+      // guardado en tus carpetas, que es lo que se ve al entrar en ellas.
+      if (viewingMine && (!viewingCollection || viewingCollection === ALL_ID) && !mineIds.has(r.id)
+        && !(!viewingCollection && (recipeCollections[r.id] ?? []).length > 0)) return false;
       if (collectionIds && !collectionIds.has(r.id)) return false;
+      if (viewingMine && mealFilter && !servesAt(r, mealFilter)) return false;
       if (restrictToIds && !restrictToIds.has(r.id)) return false;
       // La cocina, exactamente por el mismo motivo que "Mis recetas" ahí
       // arriba: la teja encendía el filtro, `platoResults` lo aplicaba, y esta
@@ -765,7 +813,7 @@ export function CatalogBrowserSheet({
       }
     }
     return sortByNameQuery(out, q);
-  }, [gatePick, typeFilter, platoResults, garnishResults, query, cats, proteins, maxTime, difficulties, kidOnly, gourmetOnly, rapidoOnly, seasonFilter, sinLactosaOnly, cocina, fullCatalog, favoriteIds, restrictToIds, catalogGarnishBrowseList, catalogSalsaBrowseList, sourceRecipes, viewingMine, mineIds, collectionIds]);
+  }, [gatePick, typeFilter, platoResults, garnishResults, query, cats, proteins, maxTime, difficulties, kidOnly, gourmetOnly, rapidoOnly, seasonFilter, sinLactosaOnly, cocina, fullCatalog, favoriteIds, restrictToIds, catalogGarnishBrowseList, catalogSalsaBrowseList, sourceRecipes, viewingMine, mineIds, collectionIds, mealFilter, viewingCollection, recipeCollections]);
 
   const gatePickMinePlatoCount = useMemo(
     () => mineRecipes.filter(isGatePickPlato).length,
@@ -833,7 +881,20 @@ export function CatalogBrowserSheet({
       return;
     }
     setQuery("");
-    clearFilters();
+    // En la pestaña «Mis recetas» la raíz es esa: no se vuelve al catálogo.
+    if (soloMias) {
+      setShowFilters(false);
+      return;
+    }
+    // Sale de la teja (categoría, faceta, cocina, Mis recetas) pero conserva
+    // los filtros de la hoja —tiempo, dificultad, proteína, niños—: antes se
+    // perdían al volver (review de UX, lámina 27). Siguen a la vista en el
+    // contador del botón «Filtros», y desde ahí se quitan.
+    setCats(new Set());
+    setViewingMine(false);
+    setViewingCollection(null);
+    setActiveFacets(new Set());
+    setCocina(null);
     setShowFilters(false);
   };
 
@@ -863,18 +924,30 @@ export function CatalogBrowserSheet({
   // Cuántas recetas hay de cada cocina. Solo se pintan las teselas con al
   // menos una: peruana tiene 3 y sale, pero si un día se queda en cero, la
   // tesela desaparece sola en vez de invitar a un callejón vacío.
+  // Los números de las tejas cuentan lo que verías al entrar: con los filtros
+  // de la hoja puestos (tiempo, dificultad, proteína, niños). Antes contaban
+  // el catálogo entero y no cambiaban hasta entrar (review de UX, lámina 27).
+  const pasaFiltros = useCallback(
+    (r) =>
+      (!maxTime || (r.time ?? 999) <= maxTime) &&
+      (difficulties.size === 0 || difficulties.has(r.difficulty)) &&
+      (proteins.size === 0 || proteins.has(r.mainProtein)) &&
+      (!kidOnly || r.kidFriendly),
+    [maxTime, difficulties, proteins, kidOnly],
+  );
+
   const cocinaCounts = useMemo(() => {
     const counts = {};
     for (const r of fullCatalog) {
-      if (r.cocina && !isGuarnicionRecipe(r)) counts[r.cocina] = (counts[r.cocina] ?? 0) + 1;
+      if (r.cocina && !isGuarnicionRecipe(r) && pasaFiltros(r)) counts[r.cocina] = (counts[r.cocina] ?? 0) + 1;
     }
     return counts;
-  }, [fullCatalog]);
+  }, [fullCatalog, pasaFiltros]);
 
   const categoryCounts = useMemo(() => {
     const counts = {};
     for (const r of fullCatalog) {
-      if (r.category && !isGuarnicionRecipe(r)) {
+      if (r.category && !isGuarnicionRecipe(r) && pasaFiltros(r)) {
         // Por clave de TEJA, no por categoría: si no, las 19 de bebé se cuentan
         // bajo "bebes" y la teja "Cremas de bebé" sale con el contador vacío
         // aunque estén todas ahí dentro.
@@ -888,13 +961,13 @@ export function CatalogBrowserSheet({
     counts.bebes_cremas ??= 0;
     counts.bebes_solidos ??= 0;
     if (catalogGarnishBrowseList.length > 0) {
-      counts.guarniciones = catalogGarnishBrowseList.length;
+      counts.guarniciones = catalogGarnishBrowseList.filter(pasaFiltros).length;
     }
     if (catalogSalsaBrowseList.length > 0) {
-      counts.salsas = catalogSalsaBrowseList.length;
+      counts.salsas = catalogSalsaBrowseList.filter(pasaFiltros).length;
     }
     return counts;
-  }, [fullCatalog, catalogGarnishBrowseList.length, catalogSalsaBrowseList.length]);
+  }, [fullCatalog, catalogGarnishBrowseList, catalogSalsaBrowseList, pasaFiltros]);
 
   // Sobre platoCatalog (no fullCatalog): es la misma base que filtran los
   // resultados reales al tocar la faceta, así el número de la esquina
@@ -902,6 +975,7 @@ export function CatalogBrowserSheet({
   const facetCounts = useMemo(() => {
     const counts = { ninos: 0, rapido: 0, gourmet: 0, verano: 0, invierno: 0 };
     for (const r of platoCatalog) {
+      if (!pasaFiltros(r)) continue;
       if (r.kidFriendly) counts.ninos++;
       if (esCenaRapida(r)) counts.rapido++;
       if (r.apetecible) counts.gourmet++;
@@ -909,7 +983,7 @@ export function CatalogBrowserSheet({
       if (r.season === "invierno") counts.invierno++;
     }
     return counts;
-  }, [platoCatalog]);
+  }, [platoCatalog, pasaFiltros]);
 
   const styleBlock = (
     <style>{`
@@ -1045,7 +1119,7 @@ export function CatalogBrowserSheet({
             </button>
           )}
         </div>
-        {isBrowseCatalog && !showCategoryGrid ? (
+        {isBrowseCatalog && !showCategoryGrid && !(soloMias && !viewingCollection) ? (
           <button
             type="button"
             onClick={goBackToCategories}
@@ -1093,8 +1167,32 @@ export function CatalogBrowserSheet({
     </>
   );
 
-  const countRow = results.length === 0 ? null : (
-    <div style={{ padding: `10px ${px}px 6px`, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+  const showMealChips = viewingMine && !inMineRoot && !gatePick;
+  const countRow = results.length === 0 && !(showMealChips && mealFilter) ? null : (
+    <div style={{ padding: `10px ${px}px 6px`, flexShrink: 0 }}>
+      {showMealChips && (
+        <div style={{ display: "flex", gap: 6, overflowX: "auto", marginBottom: 8 }}>
+          {MEAL_FILTERS.map((m) => {
+            const on = mealFilter === m.id;
+            return (
+              <button
+                key={m.id}
+                type="button"
+                onClick={() => setMealFilter(on ? null : m.id)}
+                aria-pressed={on}
+                style={{
+                  flexShrink: 0, padding: "6px 14px", borderRadius: 20, cursor: "pointer",
+                  border: `1.5px solid ${on ? GREEN : "rgba(45,90,61,.2)"}`,
+                  background: on ? GREEN : "rgba(45,90,61,.08)", color: on ? "#fff" : GREEN,
+                  fontFamily: "inherit", fontSize: 13, fontWeight: 700,
+                }}
+              >
+                {m.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
       <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: "#7a9485", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
         {gatePick
           ? `${results.length} ${results.length === 1 ? "resultado" : "resultados"}`
@@ -1137,7 +1235,7 @@ export function CatalogBrowserSheet({
   // todas, porque esconder «Legumbres» en una cena sería decidir por el
   // usuario qué se cena.
   const gridTiles = [
-    { kind: "mine", id: "__mine__" },
+    ...(hideMineTile ? [] : [{ kind: "mine", id: "__mine__" }]),
     ...facetasDelHueco(["rapido"], contextoHueco).map((id) => ({ kind: "facet", id })),
     ...carpetasDelHueco(allCats, contextoHueco).map((catId) => ({ kind: "category", id: catId })),
     ...cocinaTiles.map((id) => ({ kind: "cocina", id })),
@@ -1299,6 +1397,7 @@ export function CatalogBrowserSheet({
           key={f.id}
           label={f.label}
           {...folderArt(f.id)}
+          {...(f.builtIn ? {} : { img: folderCover(f.id) ?? folderArt(f.id).img })}
           count={folderCounts[f.id] ?? 0}
           onClick={() => setViewingCollection(f.id)}
           onDelete={f.builtIn || !onDeleteFolder ? null : () => onDeleteFolder(f.id)}
@@ -1370,11 +1469,19 @@ export function CatalogBrowserSheet({
                     ? () => onDeleteRecipe(r.id)
                     : undefined
                 }
+                // Editar, igual: solo lo tuyo. Antes solo estaba en la vista
+                // de lista y desde la rejilla no había forma (lámina 33).
+                onEdit={
+                  viewingMine && onEditRecipe && r.source === "user"
+                    ? () => onEditRecipe(r)
+                    : undefined
+                }
                 animDelay={i < 12 ? i * 18 : 0}
                 // Lo social solo tiene sentido sobre lo TUYO: en el catalogo
                 // no hay nada que publicar ni retirar.
+                // [GENTE-APAGADA] Sin Gente no hay chapitas de 👍/💬.
                 social={
-                  viewingMine && r.source === "user"
+                  GENTE_ACTIVA && viewingMine && r.source === "user"
                     ? { stats: socialStats[r.id] ?? null }
                     : null
                 }
@@ -1398,8 +1505,9 @@ export function CatalogBrowserSheet({
                 scopeGroups={scopeGroups}
                 onOpenScopePicker={() => setScopeFor(r)}
                 onChangeVisibility={onChangeVisibility}
-                onDelete={onDeleteRecipe && r.source === "user" ? () => onDeleteRecipe(r.id) : undefined}
-                onEdit={onEditRecipe && r.source === "user" ? () => onEditRecipe(r) : undefined}
+                // Las del titular que ve un cotitular, sin borrar ni editar (#958).
+                onDelete={onDeleteRecipe && r.source === "user" && !esRecetaDelTitular(r) ? () => onDeleteRecipe(r.id) : undefined}
+                onEdit={onEditRecipe && r.source === "user" && !esRecetaDelTitular(r) ? () => onEditRecipe(r) : undefined}
                 ownView={ownRecipesView || viewingMine}
                 onCombine={onBrowseGarnishCombo && r.type === "principal" && r.source !== "user" ? () => setCombineFor(r) : undefined}
                 animDelay={i < 12 ? i * 18 : 0}
@@ -2858,19 +2966,43 @@ const socialPin = {
 
 function RecipeGridCard({
   recipe, favorite, onSetFavoriteScope, hasScopeChoice, onOpenScopePicker, onOpenRecipe, onDelete,
-  onOpenFolders, inFolders = 0, animDelay = 0, social = null,
+  onOpenFolders, inFolders = 0, animDelay = 0, social = null, onEdit,
 }) {
   const color = categoryColor(recipe.category);
   const photo = dishImageForRecipe(recipe);
   const diffLabel = DIFFICULTY_LABEL[recipe.difficulty];
   const diffColor = DIFFICULTY_BADGE_COLOR[recipe.difficulty] ?? GREEN;
-  // Dos toques para borrar: el primero pide confirmación en el propio icono.
-  // Sin diálogo, pero tampoco un borrado irreversible a un solo toque.
+  // Carpeta, editar y borrar salen del «⋯» con la misma barra que los platos
+  // de Menú (DishActionBar): fondo apagado, el plato enmarcado y los botones
+  // debajo. Borrar pide un segundo toque en la propia barra.
+  const [mandos, setMandos] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const fotoRef = useRef(null);
+  const hasMenu = Boolean(onOpenFolders || onEdit || onDelete);
+  const closeMenu = () => { setMandos(null); setConfirmDelete(false); };
+  const openMenu = () => {
+    const r = fotoRef.current?.getBoundingClientRect();
+    setConfirmDelete(false);
+    setMandos(r ? { tile: { top: r.top, left: r.left, width: r.width, height: r.height }, radius: 14 } : {});
+  };
+  const acciones = confirmDelete
+    ? [
+        { id: "borrar-si", label: "Sí, borrar", Icon: Trash2, tint: "#fdecea", color: "#c0392b", onPick: () => { closeMenu(); onDelete(); } },
+        { id: "cancelar", label: "Cancelar", Icon: X, onPick: () => setConfirmDelete(false) },
+      ]
+    : [
+        onEdit && { id: "editar", label: "Editar", Icon: Pencil, onPick: () => { closeMenu(); onEdit(); } },
+        onOpenFolders && {
+          id: "carpeta", label: inFolders > 0 ? `Carpetas (${inFolders})` : "Carpeta", Icon: FolderIcon,
+          onPick: () => { closeMenu(); onOpenFolders(); },
+        },
+        onDelete && { id: "borrar", label: "Borrar", Icon: Trash2, tint: "#fdecea", color: "#c0392b", onPick: () => setConfirmDelete(true) },
+      ].filter(Boolean);
 
   return (
-    <div className="catalog-card-enter" style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 0, animationDelay: `${animDelay}ms` }}>
+    <div className="catalog-card-enter" style={{ position: "relative", display: "flex", flexDirection: "column", gap: 6, minWidth: 0, animationDelay: `${animDelay}ms` }}>
       <button
+        ref={fotoRef}
         type="button"
         onClick={onOpenRecipe ? () => onOpenRecipe(recipe) : undefined}
         disabled={!onOpenRecipe}
@@ -2925,65 +3057,46 @@ function RecipeGridCard({
             onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.click(); }}
             aria-label={favorite ? "Quitar de favoritas" : "Añadir a favoritas"}
             style={{
-              position: "absolute", top: 6, right: 6, width: 24, height: 24, borderRadius: "50%",
+              position: "absolute", top: 0, right: 0, width: 44, height: 44,
+              display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1,
+            }}
+          >
+            <span style={{
+              width: 30, height: 30, borderRadius: "50%",
               border: "1.5px solid #fff", background: favorite ? "#e0405a" : "rgba(255,255,255,.92)",
               display: "flex", alignItems: "center", justifyContent: "center",
-              boxShadow: "0 1px 3px rgba(0,0,0,.2)", zIndex: 1,
-            }}
-          >
-            <Heart size={12} color={favorite ? "#fff" : "#c9b8ae"} fill={favorite ? "#fff" : "none"} strokeWidth={2.4} />
+              boxShadow: "0 1px 3px rgba(0,0,0,.2)",
+            }}>
+              <Heart size={15} color={favorite ? "#fff" : "#c9b8ae"} fill={favorite ? "#fff" : "none"} strokeWidth={2.4} />
+            </span>
           </span>
         )}
-        {onOpenFolders && (
+        {hasMenu && (
           <span
             role="button"
             tabIndex={0}
-            onClick={(e) => { e.stopPropagation(); onOpenFolders(); }}
+            onClick={(e) => { e.stopPropagation(); openMenu(); }}
             onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.click(); }}
-            aria-label={`Guardar ${recipe.name} en una carpeta`}
-            title="Guardar en una carpeta"
+            aria-label={`Acciones de ${recipe.name}`}
+            className="deck-tile-actions"
             style={{
-              position: "absolute", bottom: 6, left: 6, height: 24, minWidth: 24,
-              padding: inFolders ? "0 7px" : 0, borderRadius: 999,
-              border: "1.5px solid #fff",
-              background: inFolders ? GREEN : "rgba(255,255,255,.92)",
-              display: "flex", alignItems: "center", justifyContent: "center", gap: 3,
-              boxShadow: "0 1px 3px rgba(0,0,0,.2)", zIndex: 1,
-              fontSize: 10.5, fontWeight: 800, color: "#fff",
+              position: "absolute", bottom: 0, right: 0, width: 44, height: 44,
+              display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1,
             }}
           >
-            <FolderIcon size={12} color={inFolders ? "#fff" : "#8aa294"} strokeWidth={2.4} />
-            {inFolders > 0 && inFolders}
-          </span>
-        )}
-        {onDelete && (
-          <span
-            role="button"
-            tabIndex={0}
-            onClick={(e) => {
-              e.stopPropagation();
-              if (confirmDelete) onDelete();
-              else setConfirmDelete(true);
-            }}
-            onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.click(); }}
-            aria-label={confirmDelete ? `Confirmar borrado de ${recipe.name}` : `Borrar ${recipe.name}`}
-            title={confirmDelete ? "Toca otra vez para borrar" : "Borrar receta"}
-            style={{
-              position: "absolute", bottom: 6, right: 6,
-              height: 24, minWidth: 24, padding: confirmDelete ? "0 8px" : 0,
-              borderRadius: 999,
-              border: "1.5px solid #fff",
-              background: confirmDelete ? "#c0392b" : "rgba(255,255,255,.92)",
-              display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
-              boxShadow: "0 1px 3px rgba(0,0,0,.2)", zIndex: 1,
-              fontSize: 10.5, fontWeight: 800, color: "#fff",
-            }}
-          >
-            <Trash2 size={12} color={confirmDelete ? "#fff" : "#c0392b"} strokeWidth={2.4} />
-            {confirmDelete && "Borrar"}
+            {/* El mismo «⋯» que los platos de Menú: círculo oscuro translúcido
+                con los puntos en blanco, con 44 px de zona táctil alrededor. */}
+            <span style={{
+              width: 26, height: 26, borderRadius: 999,
+              background: "rgba(12,22,15,.45)", backdropFilter: "blur(3px)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              <MoreHorizontal size={14} color="#fff" strokeWidth={2.8} />
+            </span>
           </span>
         )}
       </button>
+      {mandos && acciones.length > 0 && (<DishActionBar anchor={mandos} actions={acciones} onClose={closeMenu} />)}
       <div>
         <p
           style={{

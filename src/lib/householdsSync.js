@@ -1,11 +1,13 @@
 import { supabase } from "./supabase.js";
+import { NOMBRE_PAPEL, papelDe, puede } from "./papeles.js";
+import { paraEscribir } from "./vocabularios.js";
 
 /**
  * Cloud access for shared households (see HOUSEHOLDS.md + 0017_households.sql).
  * All functions no-op without Supabase / session.
  */
 
-/** @typedef {'owner' | 'viewer'} HouseholdRole */
+/** @typedef {'owner' | 'editor' | 'viewer'} HouseholdRole */
 /** @typedef {'dormant' | 'invite_ready' | 'active'} HouseholdSetupStatus */
 
 /**
@@ -19,6 +21,7 @@ import { supabase } from "./supabase.js";
  * @property {string} joinedAt
  * @property {string} createdAt
  * @property {boolean} isOwn
+ * @property {boolean|null} propia
  */
 
 /**
@@ -32,32 +35,63 @@ export function parseHouseholdRow(row) {
   return {
     id: String(r.id),
     name: String(r.name ?? "Mi casa"),
-    role: r.role === "owner" ? "owner" : "viewer",
+    role: papelDe(r.role),
     setupStatus: /** @type {HouseholdSetupStatus} */ (r.setupStatus ?? r.setup_status ?? "dormant"),
     ownerUserId: String(r.ownerUserId ?? r.owner_user_id ?? ""),
     inviteToken: r.inviteToken != null ? String(r.inviteToken) : r.invite_token != null ? String(r.invite_token) : null,
     joinedAt: String(r.joinedAt ?? r.joined_at ?? ""),
     createdAt: String(r.createdAt ?? r.created_at ?? ""),
     isOwn: Boolean(r.isOwn ?? r.is_own),
+    // La casa que le nació (households.propia, 0075). null mientras
+    // ensure_user_household no lo devuelva.
+    propia: r.propia == null ? null : Boolean(r.propia),
   };
+}
+
+/**
+ * ¿Soy el titular de esta casa? Un solo criterio para toda la app.
+ *
+ * La titularidad estaba en cuatro sitios: households.owner_user_id,
+ * household_members.role = 'owner', households.propia y el `isOwn` que calcula
+ * ensure_user_household. MANDA households.owner_user_id: es lo que mira la RLS
+ * (is_household_owner) y de él sale `isOwn`. `role` es su espejo (lo mantiene
+ * _transfer_household_ownership) y `propia` no dice quién manda, sino cuál de
+ * sus casas le nació (ver casaPropia).
+ * @param {HouseholdSummary|null|undefined} household
+ */
+export function esTitular(household) {
+  return Boolean(household?.isOwn);
+}
+
+/**
+ * Su casa propia: la que le nació, no cualquiera de la que sea titular. Tras
+ * heredar (0075) tiene dos, y la heredada suele ser la más antigua. Si
+ * ensure_user_household aún no manda `propia`, la primera de las suyas.
+ * @param {HouseholdSummary[]} households
+ * @returns {HouseholdSummary|null}
+ */
+export function casaPropia(households) {
+  const suyas = (households ?? []).filter(esTitular);
+  return suyas.find((h) => h.propia === true) ?? suyas.find((h) => h.propia !== false) ?? suyas[0] ?? null;
 }
 
 /**
  * @param {unknown} row
  * @param {string} [currentUserId]
- * @returns {{ id: string, name: string, photo: string|null, roleLabel: string, joinedAt: string, isYou: boolean }|null}
+ * @returns {{ id: string, name: string, photo: string|null, role: HouseholdRole, roleLabel: string, joinedAt: string, isYou: boolean }|null}
  */
 export function parseHouseholdMemberRow(row, currentUserId) {
   if (!row || typeof row !== "object") return null;
   const r = /** @type {Record<string, unknown>} */ (row);
   const id = String(r.userId ?? r.user_id ?? "");
   if (!id) return null;
-  const role = r.role === "owner" ? "owner" : "viewer";
+  const role = papelDe(r.role);
   return {
     id,
     name: String(r.name ?? "Usuario"),
     photo: r.photo != null && String(r.photo).trim() ? String(r.photo) : null,
-    roleLabel: role === "owner" ? "Propietario" : "Visitante",
+    role,
+    roleLabel: NOMBRE_PAPEL.es[role],
     joinedAt: String(r.joinedAt ?? r.joined_at ?? ""),
     isYou: currentUserId ? id === currentUserId : false,
   };
@@ -81,22 +115,35 @@ export async function loadHouseholdMembers(householdId, currentUserId) {
 }
 
 /**
+ * Qué casa abre una invitación. `data` es null si la invitación no vale
+ * (caducada, revocada, no existe); si es que no se pudo preguntar, viene
+ * además `error` (#317): con un corte de red, useHousehold daba la invitación
+ * por mala y la borraba del perfil.
  * @param {string} token
- * @returns {Promise<{ householdId: string, householdName: string }|null>}
+ * @returns {Promise<{ data: { householdId: string, householdName: string, role: HouseholdRole, ownerName: string|null, lang: string|null }|null, error: object|null }>}
  */
 export async function previewHouseholdInvite(token) {
-  if (!supabase || !token?.trim()) return null;
+  if (!supabase || !token?.trim()) return { data: null, error: null };
   const { data, error } = await supabase.rpc("preview_household_invite", {
     p_token: token.trim(),
   });
-  if (error || !data) {
-    console.warn("[householdsSync] preview invite failed", error?.message);
-    return null;
+  if (error) {
+    console.warn("[householdsSync] preview invite failed", error.message);
+    return { data: null, error };
   }
-  const id = data.householdId ?? data.household_id;
-  const name = data.householdName ?? data.household_name;
-  if (!id || !name) return null;
-  return { householdId: String(id), householdName: String(name) };
+  const id = data?.householdId ?? data?.household_id;
+  const name = data?.householdName ?? data?.household_name;
+  if (!id || !name) return { data: null, error: null };
+  return {
+    data: {
+      householdId: String(id),
+      householdName: String(name),
+      role: papelDe(data.role),
+      ownerName: data.ownerName ? String(data.ownerName) : null,
+      lang: data.lang ?? null,
+    },
+    error: null,
+  };
 }
 
 /**
@@ -164,7 +211,7 @@ export async function setActiveHousehold(householdId) {
 
 /**
  * @param {string} token
- * @returns {Promise<{ householdId: string, alreadyMember: boolean }|null>}
+ * @returns {Promise<{ householdId: string, alreadyMember: boolean, role: HouseholdRole }|{ error: string }|null>}
  */
 export async function joinHouseholdByToken(token) {
   if (!supabase || !token?.trim()) return null;
@@ -178,6 +225,7 @@ export async function joinHouseholdByToken(token) {
   return {
     householdId: data?.householdId ?? data?.household_id,
     alreadyMember: Boolean(data?.alreadyMember ?? data?.already_member),
+    role: papelDe(data?.role),
   };
 }
 
@@ -325,7 +373,7 @@ export function resolveActiveHousehold(households, activeId) {
     const hit = households.find((h) => h.id === activeId);
     if (hit) return hit;
   }
-  return households.find((h) => h.role === "owner") ?? households[0];
+  return casaPropia(households) ?? households.find((h) => h.role === "owner") ?? households[0];
 }
 
 /**
@@ -333,7 +381,9 @@ export function resolveActiveHousehold(households, activeId) {
  * @returns {boolean}
  */
 export function isHouseholdReadOnly(household) {
-  return household?.role === "viewer";
+  // Sin casa no hay nada que proteger; con casa, solo el titular y el
+  // cotitular la editan.
+  return Boolean(household) && !puede(household.role, "editar_casa");
 }
 
 /**
@@ -342,8 +392,90 @@ export function isHouseholdReadOnly(household) {
  */
 export function canShareHouseholdInvite(household) {
   return (
-    household?.role === "owner"
+    puede(household?.role, "invitar_lector")
     && (household.setupStatus === "invite_ready" || household.setupStatus === "active")
     && Boolean(household.inviteToken)
   );
+}
+
+// ── Invitaciones con papel y cambios de papel (0071) ──────────────────────
+
+/**
+ * @param {string} householdId
+ * @param {'editor'|'viewer'} role
+ * @param {'es'|'en'|null} [lang]
+ * @returns {Promise<{ token: string, role: HouseholdRole, expiresAt: string }|{ error: string }>}
+ */
+export async function createHouseholdInvite(householdId, role, lang = null) {
+  if (!supabase || !householdId) return { error: "sin conexión" };
+  // Un idioma que no es de IDIOMAS devuelve el error, como antes lo hacía la RPC, en vez de lanzar.
+  let idioma;
+  try {
+    idioma = paraEscribir("idiomas", lang);
+  } catch (e) {
+    console.warn("[householdsSync] create invite failed", e.message);
+    return { error: e.message };
+  }
+  const { data, error } = await supabase.rpc("create_household_invite", {
+    p_household_id: householdId,
+    p_role: role,
+    p_lang: idioma,
+  });
+  if (error) {
+    console.warn("[householdsSync] create invite failed", error.message);
+    return { error: error.message };
+  }
+  return { token: String(data.token), role: papelDe(data.role), expiresAt: String(data.expiresAt) };
+}
+
+/**
+ * Las invitaciones vivas de una casa; en error, `data` null y `error` (#317).
+ * @param {string} householdId
+ */
+export async function listHouseholdInvites(householdId) {
+  if (!supabase || !householdId) return { data: [], error: null };
+  const { data, error } = await supabase.rpc("list_household_invites", { p_household_id: householdId });
+  if (error) {
+    console.warn("[householdsSync] list invites failed", error.message);
+    return { data: null, error };
+  }
+  return {
+    data: (Array.isArray(data) ? data : []).map((i) => ({
+      token: String(i.token),
+      role: papelDe(i.role),
+      lang: i.lang ?? null,
+      expiresAt: String(i.expiresAt),
+    })),
+    error: null,
+  };
+}
+
+/** @param {string} token */
+export async function revokeHouseholdInvite(token) {
+  if (!supabase || !token) return false;
+  const { error } = await supabase.rpc("revoke_household_invite", { p_token: token });
+  if (error) {
+    console.warn("[householdsSync] revoke invite failed", error.message);
+    return false;
+  }
+  return true;
+}
+
+/**
+ * @param {string} householdId
+ * @param {string} userId
+ * @param {'editor'|'viewer'} role
+ */
+export async function setHouseholdMemberRole(householdId, userId, role) {
+  if (!supabase || !householdId || !userId) return false;
+  const { error } = await supabase.rpc("set_household_member_role", {
+    p_household_id: householdId,
+    p_user_id: userId,
+    p_role: role,
+  });
+  if (error) {
+    console.warn("[householdsSync] set role failed", error.message);
+    return false;
+  }
+  return true;
 }

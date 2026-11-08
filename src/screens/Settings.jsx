@@ -1,5 +1,4 @@
-import { useMemo, useRef, useState } from "react";
-import { supabase } from "../lib/supabase.js";
+import { useMemo, useRef } from "react";
 import {
   ChevronRight,
   ChevronLeft,
@@ -18,17 +17,20 @@ import {
   Wrench,
   Pencil,
   LayoutDashboard,
-  Send,
 } from "../components/icons.jsx";
 import {
   BottomNav,
   Avatar,
-  GoogleButton,
+  SignInOptions,
   bottomNavSpacer,
+  safeTop,
 } from "../components/ui.jsx";
 import { memberAvatarColor, memberAvatarThumbSrc, stageLabel, migrateHomeRole } from "../lib/stages.js";
 import { computeStreak } from "../lib/menuStats.js";
 import { INTOLERANCE_RULES } from "../lib/intolerances.js";
+import { vetosDe } from "../lib/vetos.js";
+import { isoLocalDate } from "../lib/weekCalendar.js";
+import { aparatosParaEnsenar } from "../lib/aparatosDeCasa.js";
 
 const PAGE_BG = "#f7f9f7";
 const GREEN = "#2d5a3d";
@@ -189,25 +191,12 @@ export function SettingsScreen({
   onOpenDashboard,
   onEditPreferences,
   onSignIn,
+  onAppleSignIn,
   onReset,
 }) {
   const g = googleInfo(user);
-  // «Conectar Telegram»: pide a api/bot/link un enlace t.me con código de un
-  // solo uso y abre Telegram, que enlaza ese chat con la casa (0057).
-  const [telegram, setTelegram] = useState(null);
-  const conectarTelegram = async () => {
-    setTelegram("cargando");
-    try {
-      const token = (await supabase?.auth.getSession())?.data?.session?.access_token;
-      const res = await fetch("/api/bot/link", { method: "POST", headers: { Authorization: `Bearer ${token}` } });
-      const body = await res.json().catch(() => ({}));
-      if (!res.ok || !body.privado) throw new Error(body.error || "No se pudo crear el enlace.");
-      setTelegram(null);
-      window.location.href = body.privado;
-    } catch (err) {
-      setTelegram(err.message);
-    }
-  };
+  // Conectar Telegram ya no vive aquí: es el botón de Lola en Inicio
+  // («Conecta con Lola» / «Pídeselo a Lola», src/lib/frontalBot.js).
   const rowStyle = {
     display: "flex",
     alignItems: "center",
@@ -227,6 +216,7 @@ export function SettingsScreen({
       <div
         style={{
           padding: "20px 16px 0",
+          paddingTop: safeTop(20),
           paddingBottom: `calc(${bottomNavSpacer()} + 12px)`,
         }}
       >
@@ -298,7 +288,7 @@ export function SettingsScreen({
             <p style={{ margin: "0 0 14px", fontSize: 13, color: "#7a8a7f", lineHeight: 1.5 }}>
               Inicia sesión para sincronizar tu familia y tus menús en todos tus dispositivos.
             </p>
-            <GoogleButton onClick={onSignIn} />
+            <SignInOptions onGoogle={onSignIn} onApple={onAppleSignIn} />
           </div>
         )}
 
@@ -326,20 +316,6 @@ export function SettingsScreen({
               <User size={19} color={GREEN} />
               <span style={{ flex: 1, fontSize: 15, fontWeight: 600, color: INK }}>
                 Mi cuenta y perfil
-              </span>
-              <ChevronRight size={18} color="#9ab0a1" />
-            </button>
-          )}
-          {user && (
-            <button type="button" style={rowStyle} onClick={conectarTelegram} disabled={telegram === "cargando"}>
-              <Send size={19} color={GREEN} />
-              <span style={{ flex: 1, fontSize: 15, fontWeight: 600, color: INK }}>
-                Conectar Telegram
-                {telegram && telegram !== "cargando" && (
-                  <span style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#c0392b", marginTop: 2 }}>
-                    {telegram}
-                  </span>
-                )}
               </span>
               <ChevronRight size={18} color="#9ab0a1" />
             </button>
@@ -394,6 +370,7 @@ export function SettingsScreen({
 
 export function AccountScreen({
   user,
+  menusHechos = { leidos: false, lista: [] },
   data,
   setData,
   menuPlan,
@@ -403,6 +380,7 @@ export function AccountScreen({
   onEditMembers,
   onEditPreferences,
   onSignIn,
+  onAppleSignIn,
   onSignOut,
   onToast,
 }) {
@@ -411,13 +389,13 @@ export function AccountScreen({
   const pendingMemberId = useRef(null);
 
   const members = data.members ?? [];
-  const history = data.menuHistory ?? [];
+  const history = menusHechos.lista;
   const streak = useMemo(() => computeStreak(history), [history]);
   const lastMenuAt = history.length ? history[history.length - 1].at : null;
 
   const kitchenTools = useMemo(
-    () => [...(data.kitchenTools ?? []), ...(data.customKitchenTools ?? [])],
-    [data.kitchenTools, data.customKitchenTools],
+    () => aparatosParaEnsenar({ kitchenTools: data.kitchenTools, kitchenToolsNota: data.kitchenToolsNota }),
+    [data.kitchenTools, data.kitchenToolsNota],
   );
   const allergies = useMemo(
     () => Array.from(new Set(members.flatMap((m) => m.allergies ?? []))),
@@ -434,9 +412,11 @@ export function AccountScreen({
         .map((id) => INTOLERANCE_RULES[id]?.label ?? id),
     [members],
   );
+  // Los vetos de la casa y de cada persona, de la misma fuente que el menú
+  // (lib/vetos.js): antes aquí no salía lo dicho en la libreta.
   const dislikes = useMemo(
-    () => Array.from(new Set([...(data.dislikes ?? []), ...members.flatMap((m) => m.dislikes ?? [])])),
-    [data.dislikes, members],
+    () => vetosDe({ notepad: data.notepad, dislikes: data.dislikes, members }, { hoy: isoLocalDate(new Date()) }),
+    [data.notepad, data.dislikes, members],
   );
 
   const menuDays = Object.keys(menuPlan ?? {}).length
@@ -503,6 +483,7 @@ export function AccountScreen({
       <div
         style={{
           padding: "16px 16px 0",
+          paddingTop: safeTop(16),
           paddingBottom: `calc(${bottomNavSpacer()} + 12px)`,
         }}
       >
@@ -573,7 +554,7 @@ export function AccountScreen({
             <p style={{ margin: "0 0 12px", fontSize: 14, color: "#7a8a7f", lineHeight: 1.5 }}>
               Inicia sesión para guardar tu perfil y tus menús.
             </p>
-            <GoogleButton onClick={onSignIn} />
+            <SignInOptions onGoogle={onSignIn} onApple={onAppleSignIn} />
           </Card>
         )}
 
@@ -706,14 +687,16 @@ export function AccountScreen({
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 16, fontWeight: 800, color: INK }}>
-                {streak > 0
-                  ? `${streak} ${streak === 1 ? "semana" : "semanas"} seguidas`
-                  : "Sin racha todavía"}
+                {!menusHechos.leidos
+                  ? "No he podido cargar tu racha"
+                  : streak > 0
+                    ? `${streak} ${streak === 1 ? "semana" : "semanas"} seguidas`
+                    : "Sin racha todavía"}
               </div>
-              <div style={{ fontSize: 13, color: "#7a8a7f", marginTop: 2 }}>
+              {menusHechos.leidos && <div style={{ fontSize: 13, color: "#7a8a7f", marginTop: 2 }}>
                 {history.length} {history.length === 1 ? "menú generado" : "menús generados"} ·
                 último {formatDate(lastMenuAt)}
-              </div>
+              </div>}
             </div>
           </Card>
         </div>
@@ -836,6 +819,32 @@ export function AccountScreen({
               }}
             >
               <ShieldCheck size={16} /> Política de privacidad
+            </a>
+            <a
+              href="/terminos.html"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+                width: "100%",
+                marginTop: 8,
+                padding: "14px",
+                borderRadius: 14,
+                border: "1.5px solid #e3e8e4",
+                background: "#fff",
+                color: INK,
+                fontSize: 14,
+                fontWeight: 800,
+                cursor: "pointer",
+                fontFamily: "inherit",
+                textDecoration: "none",
+                boxSizing: "border-box",
+              }}
+            >
+              <ShieldCheck size={16} /> Términos de uso
             </a>
             <button
               type="button"

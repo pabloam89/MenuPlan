@@ -1,6 +1,7 @@
 import { supabase } from "./supabase.js";
 import { isoLocalDate } from "./weekCalendar.js";
 import { FIXTURES_ENABLED, FIXTURE_PROFILES, FIXTURE_MENUS, FIXTURE_SUGGESTED, fixtureFeed } from "./socialFixtures.js";
+import { reviewText } from "./moderation.js";
 
 /**
  * Capa de datos de Gente social (ver supabase/migrations/0027_social_feed.sql).
@@ -58,16 +59,22 @@ export function hideRecipe(userId, id) {
 
 // ── Perfil propio ───────────────────────────────────────────────────────────
 
-/** Fila de social_profiles del usuario, o null si aún no ha hecho opt-in. */
+/**
+ * Tu perfil público: la fila de social_profiles. `data` null si aún no has
+ * hecho opt-in; si es que no se pudo leer,
+ * además `error` (#317): ensureSocialProfile creaba un perfil nuevo encima
+ * del que ya tenías (otro @) cuando la lectura fallaba.
+ * @returns {Promise<{ data: object|null, error: object|null }>}
+ */
 export async function loadMyProfile(userId) {
-  if (!ok() || !userId) return null;
+  if (!ok() || !userId) return { data: null, error: null };
   const { data, error } = await supabase
     .from("social_profiles")
     .select("user_id, username, display_name, avatar_url, bio, visibility")
     .eq("user_id", userId)
     .maybeSingle();
-  if (warn("loadMyProfile", error)) return null;
-  return data ?? null;
+  if (warn("loadMyProfile", error)) return { data: null, error };
+  return { data: data ?? null, error: null };
 }
 
 /**
@@ -204,7 +211,10 @@ export async function suggestUsername(name) {
  */
 export async function ensureSocialProfile(userId, fallbackName = "", avatar = null) {
   if (!userId) return null;
-  const current = ok() ? await loadMyProfile(userId) : null;
+  const carga = ok() ? await loadMyProfile(userId) : { data: null, error: null };
+  // Sin saber si ya tienes perfil no se crea otro encima (#317).
+  if (carga.error) return null;
+  const current = carga.data;
   if (current?.username) {
     if (current.avatar_url || !avatar || !ok()) return current;
     const filled = await saveMyProfile(userId, { avatar_url: avatar });
@@ -502,6 +512,13 @@ export async function toggleCommentLike(userId, commentId, on) {
 export async function postComment(userId, { targetType, targetId, targetOwnerId = null, body, parentId = null }) {
   const text = (body ?? "").trim();
   if (!ok() || !userId || !targetId || !text) return null;
+
+  // El filtro va ANTES del insert, no despues: un comentario que llega a la
+  // tabla ya se lo ha llevado la notificacion a quien iba dirigido, y
+  // retirarlo luego no le quita a nadie el mal rato. Ver src/lib/moderation.js
+  // — falla abierto, asi que una caida del filtro no cierra los comentarios.
+  const veredicto = await reviewText(text);
+  if (!veredicto.ok) return { error: "moderation", message: veredicto.message };
   const { data, error } = await supabase
     .from("social_comments")
     .insert({
@@ -649,7 +666,7 @@ export async function loadProfileCounts(userId) {
 
 /**
  * Me gusta / no me gusta / veces incluida en un menú, para una tanda de
- * recetas. Vía RPC porque las políticas de recipe_votes y user_menu_recipes
+ * recetas. Vía RPC porque las políticas de recipe_votes y user_menu_weeks
  * solo dejan ver TUS filas: contado desde el cliente daría 0 o 1 siempre.
  *
  * Devuelve agregados, nunca quién votó qué.

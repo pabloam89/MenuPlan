@@ -7,12 +7,9 @@
 // Lee TELEGRAM_BOT_TOKEN de .env.local, como telegram-webhook.mjs. La foto de
 // perfil y el GIF de la descripción no tienen API: van a mano en @BotFather.
 
-import fs from "node:fs";
-import path from "node:path";
+import { leerEnv } from "./lib/env.mjs";
 
-const env = fs.readFileSync(path.resolve(import.meta.dirname, "..", ".env.local"), "utf8");
-const token = env.match(/^TELEGRAM_BOT_TOKEN="?([^"\r\n]+)"?/m)?.[1];
-if (!token) throw new Error("Falta TELEGRAM_BOT_TOKEN en .env.local");
+const token = leerEnv("TELEGRAM_BOT_TOKEN", { obligatoria: true });
 
 const llamar = async (metodo, cuerpo = {}) => {
   const res = await fetch(`https://api.telegram.org/bot${token}/${metodo}`, {
@@ -53,11 +50,11 @@ const COMANDOS = [
   { command: "ayuda", description: "Qué sé hacer" },
 ];
 
-// El botón fijo junto al campo de texto de los chats privados: abre la semana
-// en la Mini App (api/bot/miniapp.js). Contra el despliegue de APP_URL, o
-// staging mientras el bot viva allí.
-const APP = (env.match(/^APP_URL="?([^"\r\n]+)"?/m)?.[1] ?? "https://homenu-staging.vercel.app").replace(/\/$/, "");
-const BOTON_MENU = { type: "web_app", text: "Semana", web_app: { url: `${APP}/?mini=semana` } };
+// El botón fijo junto al campo de texto: la lista de comandos. (Hubo una Mini
+// App de Telegram con la semana y la compra; se quitó el 30 sep 2026: la app
+// de verdad está mucho mejor, y /app o los botones de cada respuesta llevan a
+// ella.)
+const BOTON_MENU = { type: "commands" };
 
 if ([...NOMBRE].length > 64) throw new Error(`Nombre: ${[...NOMBRE].length} > 64`);
 if ([...ABOUT].length > 120) throw new Error(`About: ${[...ABOUT].length} > 120`);

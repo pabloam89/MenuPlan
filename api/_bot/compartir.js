@@ -18,21 +18,61 @@
  *   m_<llave>    una semana compartida
  */
 
-import crypto from "node:crypto";
+import { fallaCon } from "./avisar.js";
+import { COMIDAS_PRINCIPALES } from "../../src/lib/comidas.js";
+import * as ids from "../../src/lib/ids.js";
+import { menuActivoDe } from "../../src/lib/menuActivo.js";
 import { select, insert, update, eq } from "./db.js";
-import { cargarCasa, conCasa } from "./casa.js";
-import { motor, prepararRecetas, grupos, DIAS } from "./menu.js";
-import { duenoDe } from "./embudo.js";
+import { cargarCasa, olvidarCasa } from "./casa.js";
+import { motor, prepararRecetas, grupos, recetasDeCasa, deSerieDelMotor, diasDeLaSemana } from "./menu.js";
+import { duenoDe, duenoDeEstricto, rastro } from "./embudo.js";
+import { RASTRO, ORIGEN_RECETA } from "../../src/lib/rastro.js";
 import { nombreDelBot } from "./telegram.js";
+import { DIA_LARGO } from "../../src/lib/dias.js";
+import { filaCopiada } from "../../src/lib/userRecipesFila.js";
 
-const nuevaLlave = () => crypto.randomBytes(16).toString("hex");
+// 32 hex, como gen_invite_token() en SQL: la llave que crea la app y la del bot son iguales.
+const nuevaLlave = () => ids.llave.nuevo();
+
+/**
+ * Una receta del catálogo común o de serie, con la forma de la app. Nunca una
+ * receta propia: el registro del motor es de toda la instancia y puede tener
+ * las recetas privadas que registró otra casa (rc_ es para el catálogo).
+ */
+export function recetaComun(m, deSerie, id) {
+  const vista = recetasDeCasa(m, deSerie, new Set()).RECIPES_BY_ID;
+  if (vista[id]) return vista[id];
+  const c = m.recipeCatalogById?.[id];
+  return c ? m.catalogToFrontendRecipe(c, c.baseServings ?? 2) : null;
+}
+
+/** ¿Bloqueo, en cualquier dirección, entre el dueño y alguna de estas cuentas? */
+export async function hayBloqueo(ownerId, usuarios = []) {
+  const otros = [...new Set(usuarios.filter((u) => u && u !== ownerId))];
+  if (!ownerId || !otros.length) return false;
+  for (const u of otros) {
+    const [a] = await select("blocked_users", `blocker_id=${eq(ownerId)}&blocked_id=${eq(u)}`, "blocker_id");
+    const [b] = await select("blocked_users", `blocker_id=${eq(u)}&blocked_id=${eq(ownerId)}`, "blocker_id");
+    if (a || b) return true;
+  }
+  return false;
+}
+
+/** Las cuentas detrás de quien escribe: su identidad de Telegram y el dueño de la casa del chat. */
+export async function cuentasDeQuien({ fromId, householdId }) {
+  const [ident] = fromId
+    ? await select("bot_identities", `channel=eq.telegram&external_id=${eq(String(fromId))}`, "user_id")
+    : [];
+  // El dueño, sin tragarse el error (duenoDe sí lo hace): sin él no se puede
+  // comprobar el bloqueo, y quien llama tiene que saberlo para decirlo (#208).
+  const dueno = householdId ? await duenoDeEstricto(householdId) : null;
+  return [ident?.user_id, dueno].filter(Boolean);
+}
 
 /** Una receta del catálogo con la forma de la app (ingredientes y pasos). */
 async function recetaDelCatalogo(id) {
   const m = await motor();
-  if (m.RECIPES_BY_ID[id]) return m.RECIPES_BY_ID[id];
-  const c = m.recipeCatalogById[id];
-  return c ? m.catalogToFrontendRecipe(c, c.baseServings ?? 2) : null;
+  return recetaComun(m, deSerieDelMotor(), id);
 }
 const idBase = (id) => String(id ?? "").split("__").pop();
 
@@ -52,7 +92,7 @@ export async function enlacesReceta(householdId, recetaId, base) {
   if (!fila) return null;
   let [llave] = await select("recipe_share_links", `recipe_id=${eq(id)}`, "token");
   if (!llave) {
-    await insert("recipe_share_links", [{ recipe_id: id, owner_id: dueno, token: nuevaLlave() }], { upsert: true }).catch(() => {});
+    await insert("recipe_share_links", [{ recipe_id: id, owner_id: dueno, token: nuevaLlave() }], { upsert: true }).catch(fallaCon("compartir_llave"));
     [llave] = await select("recipe_share_links", `recipe_id=${eq(id)}`, "token");
   }
   if (!llave?.token) return null;
@@ -72,7 +112,9 @@ export async function enlacesReceta(householdId, recetaId, base) {
 export async function enlacesSemana(householdId, base) {
   const casa = await cargarCasa(householdId);
   const data = casa?.state?.data ?? {};
-  const menuId = data.activeMenuId ?? casa?.menu?.id;
+  // El de la tabla (cargarCasa lee user_menus.is_active), que es del que sale
+  // `casa.semana`; data.activeMenuId es solo caché y puede ir por detrás.
+  const menuId = menuActivoDe(casa?.menu ? [{ id: casa.menu.id, isActive: true }] : [], data.activeMenuId);
   if (!casa?.semana?.plan || !menuId) return null;
   const dueno = await duenoDe(householdId);
   const m = await prepararRecetas(casa);
@@ -81,11 +123,11 @@ export async function enlacesSemana(householdId, base) {
     menuPlan: casa.semana.plan,
     groups: grupos(casa),
     members: data.members ?? [],
-    meals: ["Comida", "Cena"],
+    meals: COMIDAS_PRINCIPALES,
     weekStart: casa.semana.weekStart ?? null,
-    // Solo los días del menú: uno que empezó el miércoles no enseña el lunes.
-    onlyDays: (casa.semana.activeDays?.length ? casa.semana.activeDays : DIAS)
-      .filter((d) => DIAS.indexOf(d) >= (casa.semana.startDayIdx ?? 0)),
+    // Solo los días del menú, los mismos que planificó el motor: uno que
+    // empezó el miércoles no enseña el lunes.
+    onlyDays: diasDeLaSemana(casa.semana),
     dishName: nombre,
     // Las recetas propias no se abren desde una semana compartida (solo su
     // nombre); las del catálogo, sí.
@@ -98,7 +140,7 @@ export async function enlacesSemana(householdId, base) {
   if (!compartido?.id) return null;
   let [llave] = await select("menu_share_links", `shared_menu_id=${eq(compartido.id)}`, "token");
   if (!llave) {
-    await insert("menu_share_links", [{ shared_menu_id: compartido.id, owner_id: dueno, token: nuevaLlave() }], { upsert: true }).catch(() => {});
+    await insert("menu_share_links", [{ shared_menu_id: compartido.id, owner_id: dueno, token: nuevaLlave() }], { upsert: true }).catch(fallaCon("compartir_llave"));
     [llave] = await select("menu_share_links", `shared_menu_id=${eq(compartido.id)}`, "token");
   }
   if (!llave?.token) return null;
@@ -127,8 +169,10 @@ export function botonesCompartir(enlaces, tipo = "receta") {
  * la llave ya no vale.
  * @returns {Promise<null | { tipo: "receta", receta: object, deQuien: string|null, propia: boolean }
  *   | { tipo: "semana", payload: object, deQuien: string|null }>}
+ * @param {{ usuarios?: string[] }} [quien]  las cuentas de quien abre el enlace
+ *   (su identidad de Telegram y el dueño de su casa): con bloqueo, no llega.
  */
-export async function resolverInvitacion(param) {
+export async function resolverInvitacion(param, { usuarios = [] } = {}) {
   const p = String(param ?? "");
   if (p.startsWith("rc_")) {
     const r = await recetaDelCatalogo(p.slice(3));
@@ -139,6 +183,8 @@ export async function resolverInvitacion(param) {
     if (!llave) return null;
     const [fila] = await select("user_recipes", `id=${eq(llave.recipe_id)}`, "*");
     if (!fila) return null;
+    // Como is_blocked en la web (0033, 0055): ni con llave.
+    if (await hayBloqueo(fila.owner_id, usuarios)) return null;
     return { tipo: "receta", receta: fila, deQuien: fila.owner_snapshot?.name ?? null, propia: true };
   }
   if (p.startsWith("m_")) {
@@ -153,8 +199,9 @@ export async function resolverInvitacion(param) {
 /**
  * «Guardar en mi recetario» una receta propia de otra persona: una copia a
  * nombre de quien la recibe, privada y firmada «de …» (copied_from_*, 0027),
- * en user_recipes (de donde la carga la app) y en la casa (de donde la usa el
- * motor al generar desde el chat).
+ * en user_recipes: de ahí la cargan la app y Lola (casa.js → propias.js). Ya
+ * no se copia en `data.userRecipes` (#958: dos sitios para un dato, y la app
+ * lo quitaba en cada guardado).
  */
 export async function copiarReceta(householdId, fila) {
   const dueno = await duenoDe(householdId);
@@ -162,27 +209,12 @@ export async function copiarReceta(householdId, fila) {
   if (fila.owner_id === dueno) return { ya: true, nombre: fila.name };
   const [ya] = await select("user_recipes", `owner_id=${eq(dueno)}&copied_from_recipe_id=${eq(fila.id)}`, "id,name");
   if (ya) return { ya: true, nombre: ya.name };
-  const copia = {
-    ...fila,
-    id: `user_${Date.now().toString(36)}${crypto.randomBytes(3).toString("hex")}`,
-    owner_id: dueno,
-    visibility: "private",
-    copied_from_recipe_id: fila.id,
-    copied_from_owner_id: fila.owner_id,
-    owner_snapshot: null,
-    created_at: undefined,
-    updated_at: undefined,
-  };
-  for (const k of Object.keys(copia)) if (copia[k] === undefined) delete copia[k];
+  // Las columnas de la copia las decide el dueño de la fila (userRecipesFila.js), no este módulo.
+  const copia = filaCopiada(fila, { id: ids.recetaPropia.nuevo(), dueno });
   await insert("user_recipes", [copia]);
-  const m = await motor();
-  const receta = m.rowToRecipe(copia);
-  const r = await conCasa(householdId, (casa) => {
-    const data = casa.state?.data ?? {};
-    const propias = (data.userRecipes ?? []).filter((x) => x.id !== receta.id);
-    return { state: { ...casa.state, data: { ...data, userRecipes: [...propias, receta] } } };
-  });
-  if (!r.ok) console.error("[compartir] copiar en la casa", r.error);
+  // Para que «ponerla en mi menú», justo después, ya la vea.
+  olvidarCasa(householdId);
+  await rastro(householdId, RASTRO.RECETA_GUARDADA, { recipeId: copia.id, origen: ORIGEN_RECETA.RECIBIDA_ENLACE, baseDishId: null, copiadaDe: fila.id });
   return { ok: true, nombre: copia.name };
 }
 
@@ -204,11 +236,10 @@ export function recetaEnTexto(r) {
 
 /** Una semana compartida (payload de buildSharedMenuPayload) en HTML de Telegram. */
 export function semanaEnTexto(payload) {
-  const DIA = { Lun: "Lunes", Mar: "Martes", "Mié": "Miércoles", Jue: "Jueves", Vie: "Viernes", "Sáb": "Sábado", Dom: "Domingo" };
   const dias = payload?.weeks?.[0]?.days ?? [];
   return dias.map((d) => {
     const comidas = d.meals.map((e) => `${e.slot === "Cena" ? "🌙" : "🍽️"} ${esc(e.dishes.map((x) => x.name).join(", "))}`);
-    return `<b>${DIA[d.day] ?? d.day}</b>\n${comidas.join("\n")}`;
+    return `<b>${DIA_LARGO[d.day] ?? d.day}</b>\n${comidas.join("\n")}`;
   }).join("\n\n");
 }
 

@@ -9,11 +9,9 @@
 // y api/bot/telegram.js rechaza todo lo que no lo traiga: tiene que ser el
 // MISMO valor que la variable de entorno del despliegue.
 
-import fs from "node:fs";
-import path from "node:path";
+import { leerEnv } from "./lib/env.mjs";
 
-const env = fs.readFileSync(path.resolve(import.meta.dirname, "..", ".env.local"), "utf8");
-const leer = (k) => env.match(new RegExp(`^${k}="?([^"\\r\\n]+)"?`, "m"))?.[1];
+const leer = leerEnv;
 const token = leer("TELEGRAM_BOT_TOKEN");
 if (!token) throw new Error("Falta TELEGRAM_BOT_TOKEN en .env.local");
 
@@ -33,7 +31,8 @@ if (cmd === "set") {
   console.log(await llamar("setWebhook", {
     url,
     secret_token: secreto,
-    allowed_updates: ["message", "callback_query"],
+    // my_chat_member: la echan de un grupo o la bloquean (api/_bot/chats.js, #958).
+    allowed_updates: ["message", "callback_query", "my_chat_member"],
     drop_pending_updates: true,
   }));
 } else if (cmd === "delete") {

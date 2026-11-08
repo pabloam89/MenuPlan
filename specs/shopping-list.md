@@ -45,3 +45,24 @@ Ninguna directa. `buildShoppingList` es una función pura sin `fetch`/`supabase`
 3. **Tabla de packs de supermercado hardcodeada** con 20 reglas regex — no escala con el catálogo sin mantenimiento manual continuo.
 4. **Sin manejo de cantidades parciales en despensa**, documentado como decisión de producto, no bug — pero vale la pena verificarlo con negocio dado que puede sorprender al usuario ("tengo un huevo, dice que no me falta comprar huevos" cuando la receta necesita 6).
 5. **Ítems de menús históricos con receta eliminada del catálogo se omiten en silencio** de la lista de la compra recalculada.
+
+## 6. La lista viva en el chat (decidido el 2 oct 2026, sin implementar)
+
+Que Lola tache productos sin mandar un mensaje nuevo. La decisión se toma por
+canal, sacando el máximo de cada plataforma en vez de un único mecanismo
+apañado para los dos:
+
+- **Telegram:** el mensaje nativo de tipo checklist del Bot API 9.1
+  (`sendChecklist` / `editMessageChecklist`). El tachado es el de Telegram,
+  no uno simulado, y la persona puede marcar un producto tocándolo, sin
+  escribirle a Lola. Sustituye al plan anterior de guardar un `message_id` y
+  reescribir el texto con `editMessageText`.
+- **WhatsApp:** un mensaje enviado no se puede editar. Lo máximo son mensajes
+  interactivos nativos (lista o botones) que se repintan enteros en cada
+  cambio. Límite de 10 elementos por lista: en compras grandes, paginar por
+  pasillo. Si algún día se quieren casillas múltiples en una sola pantalla,
+  WhatsApp Flows (`CheckboxGroup`), pero exige un endpoint propio firmado:
+  va con la migración a WhatsApp, no como parche.
+- **Diseño:** una sola función de dominio («marcar comprado y repintar la
+  lista del chat») con un formateador por canal, el mismo patrón que el resto
+  de mensajes del bot.

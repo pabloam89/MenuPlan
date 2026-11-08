@@ -1,6 +1,7 @@
 output/
+# Proyecto nativo de iOS (Capacitor): solo se compila en un Mac, Vercel no lo necesita.
+ios/
 public/dishes/
-dish-gallery/
 # scripts/ (not scripts) so the negation below can still re-include one file —
 # gitignore/vercelignore semantics don't let you un-ignore a file whose parent
 # directory itself is excluded, only its contents via a glob.
@@ -11,3 +12,16 @@ scripts/*
 !scripts/validate-catalog.mjs
 # El motor del bot se empaqueta en `npm run build` (scripts/build-bot-core.mjs).
 !scripts/build-bot-core.mjs
+# Los ejes de receta en números (src/data/derived/recipeEjes.json) se escriben en el prebuild.
+!scripts/compilar-ejes.mjs
+# vite.config.js resuelve las direcciones op:// de .env.local con este lector
+# (en Vercel no hay .env.local, pero el import tiene que existir).
+!scripts/lib/
+scripts/lib/*
+!scripts/lib/botCoreConfig.mjs
+!scripts/lib/env.mjs
+!scripts/lib/erroresOp.mjs
+# Prioridad baja de tests y build en local (#284); en Vercel no hace nada, pero el import tiene que existir.
+!scripts/lib/prioridad.mjs
+# Las banderas de la app por rama (motor, pizarra, guías, Apple en la web): vite.config.js las saca de aquí.
+!scripts/lib/banderas.mjs

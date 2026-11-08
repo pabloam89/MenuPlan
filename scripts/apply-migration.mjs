@@ -18,16 +18,27 @@
  *
  * El ensayo abre la transacción, ejecuta la migración y hace ROLLBACK: sirve
  * para ver si el SQL es válido contra el esquema real sin dejar rastro.
+ *
+ * `--si` se niega salvo que la migración esté ya en origin/staging, idéntica,
+ * y tenga un ensayo de ese mismo contenido de hace menos de una hora (ver
+ * scripts/lib/permisoAplicar.mjs). Con eso, una sesión puede aplicarla sin
+ * Pablo; lo decidió él el 8 oct 2026, porque no hay otra base donde aplicar.
  */
 import { readFileSync, readdirSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
 import pg from "pg";
+import { cargarEnv } from "./lib/env.mjs";
+import { horaMadrid } from "./lib/hora.mjs";
+import { VIGENCIA_MS, apuntarEnsayo, deStaging, leerEnsayo, motivosParaNoAplicar, olvidarEnsayo } from "./lib/permisoAplicar.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DIR = join(__dirname, "..", "supabase", "migrations");
 const CONFIRMA = process.argv.includes("--si");
+// Solo para lo que es de Pablo (CONTRAE, RLS o permisos de lo existente). La
+// guardia niega `--pablo` a cualquier sesión: lo lanza él con `!`.
+const PABLO = process.argv.includes("--pablo");
 const nombre = process.argv.slice(2).find((a) => !a.startsWith("--"));
 
 if (!nombre) {
@@ -35,19 +46,33 @@ if (!nombre) {
   for (const f of readdirSync(DIR).sort().slice(-5)) console.error(`   ${f.replace(/\.sql$/, "")}`);
   process.exit(1);
 }
+cargarEnv(["SUPABASE_DB_URL"]);
 if (!process.env.SUPABASE_DB_URL) {
-  console.error("Falta SUPABASE_DB_URL. Carga el entorno:  set -a; . ./.env.local; set +a");
+  console.error("Falta SUPABASE_DB_URL en .env.local o en el entorno");
   process.exit(1);
 }
 
 const file = nombre.endsWith(".sql") ? nombre : `${nombre}.sql`;
 const sql = readFileSync(join(DIR, file), "utf8");
+const base = file.replace(/\.sql$/, "");
+const RAIZ = join(__dirname, "..");
+
+if (CONFIRMA) {
+  const no = motivosParaNoAplicar({ nombre: base, local: sql, enStaging: deStaging(RAIZ, base), ensayo: leerEnsayo(RAIZ, base), pablo: PABLO });
+  if (no.length) {
+    console.error(`No aplico ${base} en producción:\n  - ${no.join("\n  - ")}`);
+    process.exit(1);
+  }
+}
 
 const client = new pg.Client({
   connectionString: process.env.SUPABASE_DB_URL,
   ssl: { rejectUnauthorized: false },
 });
 await client.connect();
+// Lo que la migración cuenta con `raise notice` (filas tocadas, comprobaciones)
+// sale aquí; sin esto, el ensayo solo decía «válido».
+client.on("notice", (n) => console.log(`   [${n.severity ?? "NOTICE"}] ${n.message}`));
 
 const uno = async (q) => (await client.query(q)).rows[0];
 const antes = await uno("select count(*)::int n from information_schema.columns where table_name = 'recipes'");
@@ -64,11 +89,15 @@ try {
   await client.query(sql);
   if (CONFIRMA) {
     await client.query("commit");
+    olvidarEnsayo(RAIZ, base);
     console.log("✅ aplicada y confirmada");
+    console.log(`   Ahora: márcala aplicada en supabase/ESTADO.md con su testigo y compruébalo con \`node scripts/verificar-estado.mjs --solo ${base.slice(0, 4)}\`.`);
   } else {
     await client.query("rollback");
+    apuntarEnsayo(RAIZ, base, sql);
     console.log("🔎 ENSAYO: el SQL es válido contra el esquema real. No se ha cambiado nada.");
-    console.log("   Para aplicarla de verdad, repite el comando con --si");
+    // La hora límite, calculada aquí y en hora de Madrid: a mano salía mal (#210).
+    console.log(`   Para aplicarla de verdad (si ya está en staging), repite el comando con --si antes de las ${horaMadrid(new Date(Date.now() + VIGENCIA_MS))} (hora de Madrid).`);
   }
 } catch (err) {
   await client.query("rollback");

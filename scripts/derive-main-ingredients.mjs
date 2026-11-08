@@ -33,6 +33,7 @@
 import { readFileSync, writeFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
+import { MAIN_INGREDIENTS } from "../src/data/recipeSchema.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const RECIPES_DIR = join(__dirname, "..", "src", "data", "recipes");
@@ -130,7 +131,7 @@ function tagsFor(recipe) {
   }
   // Orden estable: el del enum MAIN_INGREDIENTS, para que dos pasadas del
   // script no generen diffs por reordenar.
-  const ORDER = ["verdura", "lacteo", "seta", "fruta", "frutos_secos", "encurtido"];
+  const ORDER = MAIN_INGREDIENTS;
   return ORDER.filter((t) => found.has(t));
 }
 

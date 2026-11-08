@@ -1,4 +1,6 @@
 import { supabase } from "./supabase.js";
+import { guardarConVersion } from "./versionCasa.js";
+import { listaParaEscribir } from "./vocabularios.js";
 
 /**
  * Cloud persistence for multi-week menús (see 0005_multiweek_menus.sql:
@@ -35,6 +37,10 @@ export function menuToRow(menu, userId, householdId = null) {
 export function rowToMenuSummary(row) {
   return {
     id: row.id,
+    // Quién lo generó. Sus semanas se guardan con este user_id (la FK
+    // (user_id, menu_id) → user_menus), no con el de quien las toca: en una
+    // casa, un cotitular edita menús del titular o de Lola.
+    userId: row.user_id ?? null,
     varietyPref: row.variety_pref ?? "strict",
     isFavorite: Boolean(row.is_favorite),
     isActive: Boolean(row.is_active),
@@ -56,7 +62,7 @@ export function weekToRow(userId, menuId, startISO, week, householdId = null) {
     // "desde el miércoles", no "lunes, miércoles y viernes". Sin esta columna
     // una semana no contigua releída desde la tabla volvía como semana entera.
     // NULL cuando no se marcó nada, que es el comportamiento de siempre.
-    active_days: Array.isArray(week.days) && week.days.length > 0 ? week.days : null,
+    active_days: listaParaEscribir("dias", Array.isArray(week.days) && week.days.length > 0 ? week.days : null),
     plan: week.plan ?? {},
     shopping: week.shopping ?? { items: [] },
     schedule: week.schedule ?? {},
@@ -102,6 +108,12 @@ export function rowToWeek(row) {
 export async function saveMenu(userId, menu, recipes = [], householdId = null) {
   if (!supabase || !userId || !menu?.id) return { ok: false, error: "no-op" };
 
+  // Las semanas se montan antes de guardar el menú: si una lanza (un día fuera de DIAS), no
+  // queda un menú sin semanas.
+  const weekRows = Object.entries(menu.weeks ?? {}).map(([startISO, week]) =>
+    weekToRow(userId, menu.id, startISO, week, householdId),
+  );
+
   const { error: menuError } = await supabase
     .from("user_menus")
     .upsert(menuToRow(menu, userId, householdId), { onConflict: "user_id,id" });
@@ -110,9 +122,6 @@ export async function saveMenu(userId, menu, recipes = [], householdId = null) {
     return { ok: false, error: menuError.message };
   }
 
-  const weekRows = Object.entries(menu.weeks ?? {}).map(([startISO, week]) =>
-    weekToRow(userId, menu.id, startISO, week, householdId),
-  );
   if (weekRows.length > 0) {
     const { error: weeksError } = await supabase
       .from("user_menu_weeks")
@@ -152,10 +161,12 @@ export async function saveMenu(userId, menu, recipes = [], householdId = null) {
  * schedule — cheap enough to fetch eagerly for the whole history list
  * (date range + week count), leaving the heavy per-week JSON to be fetched
  * on demand via loadMenuDetail only for the menú actually being opened.
- * @returns {Promise<Record<string, Record<string, {offset:number, startDayIdx:number, startISO:string, endISO:string}>>>}
+ * Si la lectura falla, `data` es null y `error` lo dice (#317): App.jsx deja
+ * entonces a cada menú las semanas que ya tenía.
+ * @returns {Promise<{ data: Record<string, Record<string, {offset:number, startDayIdx:number, startISO:string, endISO:string}>>|null, error: object|null }>}
  */
 export async function loadMenuWeekRanges(userId, householdId = null) {
-  if (!supabase || !userId) return {};
+  if (!supabase || !userId) return { data: {}, error: null };
   let q = supabase
     .from("user_menu_weeks")
     .select("menu_id, week_start, week_end, week_offset, start_day_idx")
@@ -164,7 +175,7 @@ export async function loadMenuWeekRanges(userId, householdId = null) {
   const { data, error } = await q;
   if (error) {
     console.warn("[menusSync] load week ranges failed", error.message);
-    return {};
+    return { data: null, error };
   }
   const byMenu = {};
   for (const row of data ?? []) {
@@ -176,32 +187,39 @@ export async function loadMenuWeekRanges(userId, householdId = null) {
       endISO: row.week_end,
     };
   }
-  return byMenu;
+  return { data: byMenu, error: null };
 }
 
-/** Lightweight list for a history screen: metadata only, no weeks/recipes. */
+/**
+ * Lightweight list for a history screen: metadata only, no weeks/recipes.
+ * Si la lectura falla, `data` es null y `error` lo dice (#317): con `[]`,
+ * App.jsx creía que la nube no tenía menús y subía los del blob encima.
+ * @returns {Promise<{ data: object[]|null, error: object|null }>}
+ */
 export async function loadMenuSummaries(userId, householdId = null) {
-  if (!supabase || !userId) return [];
+  if (!supabase || !userId) return { data: [], error: null };
   let q = supabase
     .from("user_menus")
-    .select("id, variety_pref, is_favorite, is_active, created_at, updated_at")
+    .select("id, user_id, variety_pref, is_favorite, is_active, created_at, updated_at")
     .order("created_at", { ascending: false });
   q = householdId ? q.eq("household_id", householdId) : q.eq("user_id", userId);
   const { data, error } = await q;
   if (error) {
     console.warn("[menusSync] load summaries failed", error.message);
-    return [];
+    return { data: null, error };
   }
-  return (data ?? []).map(rowToMenuSummary);
+  return { data: (data ?? []).map(rowToMenuSummary), error: null };
 }
 
 /**
  * Full menú (every week + every recipe snapshot) for opening one history
- * entry. Returns null if not found or on any read failure.
- * @returns {Promise<{ menu: Object, recipes: Object[] } | null>}
+ * entry. `data` es null si no existe o si falló alguna lectura; en el
+ * segundo caso `error` lo dice (#317): «no hay menú» y «no se ha podido
+ * leer» no se tratan igual.
+ * @returns {Promise<{ data: { menu: Object, recipes: Object[] } | null, error: object|null }>}
  */
 export async function loadMenuDetail(userId, menuId, householdId = null) {
-  if (!supabase || !userId || !menuId) return null;
+  if (!supabase || !userId || !menuId) return { data: null, error: null };
 
   const userScope = (q) => (householdId ? q.eq("household_id", householdId) : q.eq("user_id", userId));
 
@@ -211,19 +229,24 @@ export async function loadMenuDetail(userId, menuId, householdId = null) {
     userScope(supabase.from("user_menu_recipes").select("recipe_id, recipe_snapshot").eq("menu_id", menuId)),
   ]);
 
-  if (menuRes.error || weeksRes.error || recipesRes.error || !menuRes.data) {
+  const error = menuRes.error || weeksRes.error || recipesRes.error || null;
+  if (error) {
     if (menuRes.error) console.warn("[menusSync] load menu failed", menuRes.error.message);
     if (weeksRes.error) console.warn("[menusSync] load weeks failed", weeksRes.error.message);
     if (recipesRes.error) console.warn("[menusSync] load recipes failed", recipesRes.error.message);
-    return null;
+    return { data: null, error };
   }
+  if (!menuRes.data) return { data: null, error: null };
 
   const weeks = {};
   for (const row of weeksRes.data ?? []) weeks[row.week_start] = rowToWeek(row);
 
   return {
-    menu: { ...rowToMenuSummary(menuRes.data), weeks },
-    recipes: (recipesRes.data ?? []).map((r) => r.recipe_snapshot),
+    data: {
+      menu: { ...rowToMenuSummary(menuRes.data), weeks },
+      recipes: (recipesRes.data ?? []).map((r) => r.recipe_snapshot),
+    },
+    error: null,
   };
 }
 
@@ -279,18 +302,74 @@ export async function activateMenu(menuId) {
 // them to resolve in the order they were issued.
 const activationQueues = new Map();
 
-export function saveAndActivateMenu(userId, menu, recipes, householdId = null) {
+/**
+ * Lo que está subiendo saveAndActivateMenu para esa casa,
+ * o ese usuario sin casa. En una casa, por prefijo: la semana se guarda con el
+ * user_id de quien generó el menú, y la cola va por el de quien lo sube.
+ */
+function subidasPendientes(userId, householdId) {
+  const colas = householdId
+    ? [...activationQueues].filter(([k]) => k.startsWith(`${householdId}:`)).map(([, p]) => p)
+    : [activationQueues.get(userId)].filter(Boolean);
+  return Promise.all(colas.map((p) => p.catch(() => {})));
+}
+
+function enCola(userId, householdId, tarea) {
   const queueKey = householdId ? `${householdId}:${userId}` : userId;
   const prev = activationQueues.get(queueKey) ?? Promise.resolve();
   const next = prev
     .catch(() => {}) // an earlier failure must never block this call
     .then(async () => {
-      const res = await saveMenu(userId, menu, recipes, householdId);
-      if (res.ok) await activateMenu(menu.id);
-      return res;
+      // Nunca rechaza: quien llama avisa con `ok: false`, y un fallo al montar
+      // las filas no puede acabar en una promesa rota que nadie mira.
+      try {
+        return await tarea();
+      } catch (err) {
+        console.warn("[menusSync] save menu failed", err);
+        return { ok: false, error: String(err?.message ?? err) };
+      }
     });
   activationQueues.set(queueKey, next);
   return next;
+}
+
+export function saveAndActivateMenu(userId, menu, recipes, householdId = null) {
+  return enCola(userId, householdId, async () => {
+    const res = await saveMenu(userId, menu, recipes, householdId);
+    return res.ok ? await activateMenu(menu.id) : res;
+  });
+}
+
+/**
+ * Deshace un menú recién abierto: reactiva el de antes y borra el nuevo. Va en
+ * la misma cola que su subida, porque borrarlo antes de que suba lo dejaría
+ * activo en la nube. El borrado va aunque falle la activación: un menú en
+ * blanco no puede quedarse como el activo de la casa.
+ */
+export function descartarMenuNuevo(userId, menuId, anteriorId, householdId = null) {
+  return enCola(userId, householdId, async () => {
+    const activado = anteriorId ? await activateMenu(anteriorId) : { ok: true };
+    const borrado = await deleteMenu(userId, menuId, householdId);
+    return activado.ok ? borrado : activado;
+  });
+}
+
+/**
+ * Deja la casa sin menú activo en la nube («Reiniciar menú»). El menú sigue en
+ * el histórico. Sin esto la fila seguía activa y volvía al recargar. Espera a
+ * las subidas pendientes: un menú a medio subir se activaría después.
+ */
+export async function deactivateMenu(userId, menuId, householdId = null) {
+  if (!supabase || !userId || !menuId) return { ok: false, error: "no-op" };
+  await subidasPendientes(userId, householdId);
+  let q = supabase.from("user_menus").update({ is_active: false });
+  q = householdId ? q.eq("household_id", householdId) : q.eq("user_id", userId);
+  const { error } = await q.eq("id", menuId);
+  if (error) {
+    console.warn("[menusSync] deactivate failed", error.message);
+    return { ok: false, error: error.message };
+  }
+  return { ok: true };
 }
 
 // ── Live per-week upsert (shopping edits) ────────────────────────────────
@@ -306,36 +385,28 @@ export function saveAndActivateMenu(userId, menu, recipes, householdId = null) {
 // Fire-and-forget; the user_state blob is still the belt-and-suspenders copy.
 const weekSaveTimers = new Map();
 
-// En un hogar, la semana se guarda condicionada al `bot_rev` que la app vio al
-// cargar (0057): si el bot de Telegram ha escrito entretanto, no se pisa y se
-// avisa con `onConflict` para que la app recargue. `botRev` se fija al
-// encolar: la semana que se guarda es la de ese momento, y si la nube se ha
-// recargado entretanto, es vieja y no debe pasar con la versión nueva.
-export function queueSaveMenuWeek(userId, menuId, startISO, week, delay = 1200, householdId = null, { botRev = null, onConflict = null } = {}) {
+// En un hogar, la semana se guarda condicionada a la versión de la casa
+// (0057/0068): si otro (Lola, otro dispositivo) ha escrito entretanto, no se
+// pisa y se avisa con `onConflict` para que la app recargue. Va por la cola de
+// versionCasa.js, que lee la versión al salir y apunta la que deja este
+// guardado; `version.vigente` dice si la nube se recargó desde que se encoló
+// (entonces la semana es vieja y no sale).
+export function queueSaveMenuWeek(userId, menuId, startISO, week, delay = 1200, householdId = null, { version = null, onConflict = null } = {}) {
   if (!supabase || !userId || !menuId || !startISO || !week) return;
   const key = `${householdId ?? userId}:${menuId}:${startISO}`;
   const existing = weekSaveTimers.get(key);
   if (existing) clearTimeout(existing);
   const timer = setTimeout(async () => {
     weekSaveTimers.delete(key);
+    // Detrás de lo que esté subiendo saveAndActivateMenu: recién generado, la
+    // fila del menú puede no existir aún (la semana fallaría por FK) y saveMenu
+    // pisaría lo tachado con la lista de cuando se generó.
+    await subidasPendientes(userId, householdId);
     const row = weekToRow(userId, menuId, startISO, week, householdId);
-    if (householdId) {
-      const { data, error } = await supabase.rpc("save_menu_week", {
-        p_row: row,
-        p_bot_rev: botRev,
-      });
-      if (!error) {
-        // Mismo contador que el enviado = no es el bot, es que no se pudo
-        // escribir (permisos): recargar no lo arreglaría y entraría en bucle.
-        if (data?.ok === false && Number(data.bot_rev) !== botRev) onConflict?.(Number(data.bot_rev));
-        else if (data?.ok === false) console.warn("[menusSync] save week (live) rejected");
-        return;
-      }
-      // Base sin la 0057: se guarda como antes.
-      if (error.code !== "PGRST202") {
-        console.warn("[menusSync] save week (live) failed", error.message);
-        return;
-      }
+    if (householdId && version) {
+      const r = await guardarConVersion(version, (botRev) => saveMenuWeekRpc(row, botRev));
+      if (r.conflict) onConflict?.(r.botRev);
+      return;
     }
     const { error } = await supabase
       .from("user_menu_weeks")
@@ -343,4 +414,66 @@ export function queueSaveMenuWeek(userId, menuId, startISO, week, delay = 1200, 
     if (error) console.warn("[menusSync] save week (live) failed", error.message);
   }, delay);
   weekSaveTimers.set(key, timer);
+}
+
+async function saveMenuWeekRpc(row, botRev) {
+  const { data, error } = await supabase.rpc("save_menu_week", { p_row: row, p_bot_rev: botRev });
+  if (error) {
+    console.warn("[menusSync] save week (live) failed", error.message);
+    return { ok: false };
+  }
+  if (data?.ok === false) {
+    // Mismo contador que el enviado = nadie ha escrito, es que no se pudo
+    // (permisos): recargar no lo arreglaría y entraría en bucle.
+    if (Number(data.bot_rev) === botRev) {
+      console.warn("[menusSync] save week (live) rejected");
+      return { ok: false };
+    }
+    return { ok: false, conflict: true, botRev: Number(data.bot_rev) };
+  }
+  return { ok: true, botRev: data?.bot_rev == null ? botRev : Number(data.bot_rev) };
+}
+
+// ── El lector tacha (0072) ───────────────────────────────────────────────
+// El lector no puede guardar la semana: solo cambiar «comprado» por
+// household_shopping_mark. Los tachados de un rato (en el súper van seguidos)
+// se juntan en una sola llamada, y la última marca de cada artículo gana. Va
+// por la cola de versionCasa.js para apuntar la versión que deja y que el
+// sondeo no tome el tachado propio por un cambio ajeno.
+const marcasPendientes = new Map();
+
+/**
+ * @param {string} householdId
+ * @param {string} menuId
+ * @param {string} weekStart
+ * @param {{ id?: string, name: string, unit: string, have: boolean }[]} marcas
+ * @param {{ version?: object, onError?: () => void }} [opts]
+ */
+export function queueMarcarCompra(householdId, menuId, weekStart, marcas, { version = null, onError = null, delay = 1200 } = {}) {
+  if (!supabase || !householdId || !menuId || !weekStart || !marcas?.length) return;
+  const key = `${householdId}:${menuId}:${weekStart}`;
+  const pendiente = marcasPendientes.get(key) ?? { marcas: new Map(), timer: null };
+  // Por id (el del artículo, compraMarcas.js): un derivado y un añadido a mano con el mismo nombre son dos.
+  for (const m of marcas) pendiente.marcas.set(m.id ?? `${m.name}|${m.unit}`, m);
+  clearTimeout(pendiente.timer);
+  pendiente.timer = setTimeout(async () => {
+    marcasPendientes.delete(key);
+    const lote = [...pendiente.marcas.values()];
+    const enviar = async () => {
+      const { data, error } = await supabase.rpc("household_shopping_mark", {
+        p_household_id: householdId,
+        p_menu_id: menuId,
+        p_week_start: weekStart,
+        p_marcas: lote,
+      });
+      if (error || data?.ok === false) {
+        console.warn("[menusSync] marcar compra failed", error?.message ?? data?.error);
+        return { ok: false };
+      }
+      return { ok: true, botRev: data?.bot_rev == null ? null : Number(data.bot_rev) };
+    };
+    const r = version ? await guardarConVersion(version, enviar) : await enviar();
+    if (!r.ok && !r.descartado) onError?.();
+  }, delay);
+  marcasPendientes.set(key, pendiente);
 }

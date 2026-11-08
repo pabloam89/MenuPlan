@@ -42,7 +42,7 @@
  */
 
 import { FAMILIA_DIMENSIONES } from "../../data/alimentoSchema.js";
-import alimentos from "../../data/alimentos.json";
+import alimentos from "../../data/alimentos.json" with { type: "json" };
 
 const norm = (s) => String(s ?? "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 

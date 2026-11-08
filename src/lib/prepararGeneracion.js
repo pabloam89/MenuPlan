@@ -8,12 +8,13 @@
 // de comportamiento; solo `hoy` entra como parámetro en vez de leer el reloj.
 
 import { COOK_TIME_DEFAULTS } from "./cookTime.js";
-import { weekEntry } from "./menuArchive.js";
+import { horarioDeSemana } from "./menuArchive.js";
 import { schoolMenusForWeekIndex } from "./schoolMenu.js";
 import { proyectarReglas } from "./reglas.js";
 import { deriveKidDinnerMatchesAdultLunch } from "./kidsMenu.js";
 import { weeklySlotBudget } from "./planner.js";
 import { freqsEfectivos, presupuestoDeTopes } from "./reparto.js";
+import { dataVigente } from "./libretaEnData.js";
 
 // Devuelve una copia de `data` con los ajustes del modo básico forzados.
 // En modo avanzado (expertMode) devuelve `data` tal cual.
@@ -37,16 +38,21 @@ export function resolveModeData(data) {
   };
   return {
     ...data,
-    // Solo comidas y cenas: sin desayuno, merienda ni postre.
-    extraMeals: { desayuno: "off", merienda: "off", postre: "off", postreTipo: "inmediato", postreInmediato: "mix" },
+    // Desayuno, merienda y postre YA NO se apagan aquí (28 oct 2026, #939): el
+    // modo básico simplifica lo que no has contestado, no lo que has pedido
+    // (como cookLevel y manualSlotType, abajo). Una casa nueva los trae
+    // apagados (extras.js), y Lola los enciende si se lo piden. Ese día
+    // ninguna casa en básico tenía uno encendido, así que no cambió ningún menú.
     // Sin cenas rápidas.
     slotType: cleanedSlotType,
-    // Nivel de cocina normal... salvo que lo hayas elegido tu desde la fila de
-    // mandos del menu (`cookLevelManual`, ver el mando "Esfuerzo" en
-    // lib/wizardRegistry.js). Mismo trato que `manualSlotType` aqui arriba: el
-    // modo basico simplifica lo que NO has contestado, no lo que acabas de
-    // decidir. Sin esto el mando se pintaba y no cambiaba el menu.
-    cookLevel: data.cookLevelManual ? (data.cookLevel ?? "normal") : "normal",
+    // El nivel de cocina no se fuerza (trozo 12 de #1037): el que llega ya es
+    // el dicho o, si nadie lo dijo, el defecto del registro («normal»), que es
+    // lo que antes forzaba aquí el modo básico salvo con la marca
+    // cookLevelManual, que sale. Con la 0112 lo dice el sobre (registro_campo:
+    // solo lo escribe la familia, así que un sobre es «dicho»); sin ella, el
+    // documento, y lo que haya en él lo dijo alguien (el 2 nov 2026 ninguna
+    // casa en básico tenía un nivel distinto de «normal» sin la marca).
+    cookLevel: data.cookLevel ?? "normal",
     // La despensa NO se toca aquí, y es un cambio respecto a antes: el modo
     // básico forzaba `pantryMode: "off"`, o sea que a casi todo el mundo —el
     // básico es el defecto— la despensa no le contaba para nada.
@@ -61,8 +67,9 @@ export function resolveModeData(data) {
     // Ahora el modo de despensa es de quien lo elige, no del modo básico, y
     // manda igual sobre ingredientes y sobre platos hechos: quien sube algo
     // quiere que entre en el menú, y lo que se gradúa es cuánto pesa.
-    // Multisemana: cosas distintas cada semana (sin repetir platos).
-    menuVarietyPref: "strict",
+    // La variedad entre semanas tampoco se fuerza ya: «strict» es el valor de
+    // una casa nueva y Lola la cambia si se lo piden (mismo día y misma cuenta:
+    // todas las casas en básico la tenían en «strict»).
     // Estilo de comida: equilibrado, sin diferenciar por grupo.
     mealStyleByGroup: {},
     // Estructura de plato única para todos (la global elegida en «¿Qué comidas
@@ -73,9 +80,6 @@ export function resolveModeData(data) {
     mealStructureCenaByGroup: {},
     // Tiempo de cocina igual para comida y cena.
     cookTime: { mode: "shared", weekday: syncBlock(ct.weekday), weekend: syncBlock(ct.weekend) },
-    // pantryPrefs NO se fuerza: "cuándo damos por gastado lo de casa" se
-    // pregunta también en sencillo, así que forzarlo aquí sería preguntar y
-    // luego ignorar la respuesta.
   };
 }
 
@@ -85,11 +89,12 @@ export function resolveModeData(data) {
  */
 export function prepararSemana(working, {
   groups, offset, w, startDayIdx, days, activeDays, startISO, endISO,
-  weekOffsets, sameForAllWeeks, varietyPref, weekCount, hoy,
+  weekOffsets, varietyPref, weekCount, hoy,
 }) {
-  const weekSchedule = sameForAllWeeks || offset === weekOffsets[0]
-    ? working.schedule
-    : (weekEntry(working.menuWeekOverrides, offset) ?? working.schedule);
+  // Lo que vale «hasta el 31» o caduca por viejo se mira con la fecha de ESTA
+  // semana, no con la del día en que se escribió (lib/libretaEnData.js).
+  working = dataVigente(working, startISO ?? hoy);
+  const weekSchedule = horarioDeSemana(working, offset, offset === weekOffsets[0]);
   // Each generated week pulls its own school week (positional mapping:
   // 1st menú week → 1st selected school week, …, cycling when there are
   // fewer school weeks than menú weeks). Passed as a plain single-week
@@ -101,6 +106,9 @@ export function prepararSemana(working, {
     schedule: weekSchedule,
     menuWeek: { offset, startDayIdx, days },
     schoolMenus: schoolMenusForWeekIndex(working.schoolMenus, w),
+    // La fecha con la que se leen los vetos de la libreta (lib/vetos.js): la
+    // de ESTA semana, como `dataVigente` arriba. Vive lo que la generación.
+    vigenteEn: startISO ?? hoy,
   };
 
   // ── Las reglas, justo antes de generar ──────────────────────────

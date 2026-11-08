@@ -1,0 +1,269 @@
+/**
+ * La tubería de operaciones (plan fichas con estado, trozo 26; arquitectura
+ * objetivo, [3], D1 y D3): la única vía por la que se escribe una ficha,
+ * igual para Lola y para la app, en el servidor. Lola y las pantallas
+ * proponen; esto entiende, comprueba, aplica, apunta, cuenta y deshace:
+ *
+ *   entender   el pedido, a la operación cerrada que espera aplicar_operacion
+ *              (operacionDeDato: registro y vocabularios); si no cuadra, no sale.
+ *   comprobar  la puerta (puerta.js): papel y quién habla, salud.
+ *   aplicar    la RPC aplicar_operacion (0106), en una transacción, con la
+ *              clave de idempotencia y la regla de choque de cada dato.
+ *   apuntar    aplicar_operacion deja la fila en `operacion`; lo que para la
+ *              puerta también se apunta, como rechazada y con su motivo.
+ *   contar     lo que se devuelve sale de hecho y sin_hacer de la base
+ *              (resultadoDeOperacion: sin `pedido` ni `inversa`, que llevan salud).
+ *   deshacer   una operación hecha, con la RPC deshacer_operacion (0111, trozo 41):
+ *              en una transacción de la base aplica su inversa, la marca deshecha
+ *              y borra el sobre que nació en ella. Solo la propia, y si un dato
+ *              cambió después no se pisa (sin_hacer con su motivo). Nunca desde
+ *              aquí con escrituras sueltas.
+ *
+ * Hoy solo operaciones de tipo dato; ningún escritor pasa todavía por aquí.
+ * Sin la RPC (0106 sin aplicar, o la 0111 para deshacer): no se guarda, vuelve
+ * `rpc_ausente` y queda `dato_sin_guardar` en el log; nunca se escribe en household_state.
+ * Sin base propia: `rpc` y cómo leer sus errores los da api/_bot/datos.js.
+ */
+import { operacionDeDato, cabeceraDeOperacion, hay, resultadoDeOperacion, apuntarSinGuardar, DatoInvalido, campoDelPedido } from "../escribirDato.js";
+import { comprobar, falloDePuerta, choquesAlGuardar, trasLosChoques, ORIGEN_PREFERENCIA_POR_DEFECTO } from "./puerta.js";
+import { ESTADO_OPERACION, FALLO_DATO, CANAL_DATO } from "../vocabularios.js";
+
+/** La RPC que escribe toda operación (0106). */
+export const RPC_OPERACION = "aplicar_operacion";
+/** La RPC que escribe persona, su salud y los grupos (0108, trozo 10). */
+export const RPC_PERSONA = "escribir_persona";
+/**
+ * Lo que se añade a la clave de una operación de persona: escribir_persona y aplicar_operacion comparten las
+ * claves de la casa, y de un mismo mensaje pueden salir un dato y un cambio de la familia.
+ */
+export const SUFIJO_CLAVE_PERSONA = ":persona";
+/** La RPC que deshace una operación con su inversa (0111). */
+export const RPC_DESHACER = "deshacer_operacion";
+
+/** Una RPC de la tubería. Un fallo de la base no tumba a quien llama: queda en el log y vuelve como { fallo }. */
+async function llamarRpc(funcion, args, { rpc, falloDeError, canal, campo }) {
+  try {
+    return { r: await rpc(funcion, args) };
+  } catch (e) {
+    // a propósito: un fallo de la base no tumba a quien llama; queda en el log y vuelve como fallo.
+    const { fallo, motivo } = falloDeError(e);
+    apuntarSinGuardar({ fallo, motivo, canal, campo });
+    return { fallo };
+  }
+}
+
+/**
+ * Una operación de tipo dato, por la tubería entera. Nunca lanza por un fallo
+ * de la base: devuelve { guardado: false, fallo } y lo apunta en el log.
+ * @param {Parameters<typeof operacionDeDato>[0]} pedido  casa, clave, accion, canal, ref, autor, pedida_at y dato (o datos)
+ * @param {{ papel: string|null, rpc: (funcion: string, args: object) => Promise<any>,
+ *   falloDeError: (e: unknown) => { fallo: string, motivo: string|null } }} servidor
+ * @returns {Promise<{ guardado: boolean, fallo?: string, error?: string, motivo?: string } & Record<string, unknown>>}
+ */
+export async function operar(pedido, { papel, rpc, falloDeError }) {
+  const campo = campoDelPedido(pedido);
+  // Entender.
+  let op;
+  try {
+    op = operacionDeDato(pedido);
+  } catch (e) {
+    if (!(e instanceof DatoInvalido)) throw e;
+    apuntarSinGuardar({ fallo: e.fallo, canal: pedido?.canal ?? null, campo });
+    return { guardado: false, fallo: e.fallo, error: e.message };
+  }
+
+  const llamar = (operacion) => llamarRpc(RPC_OPERACION, { p_operacion: operacion }, { rpc, falloDeError, canal: op.canal, campo });
+
+  // Comprobar.
+  const contra = comprobar(op, { papel });
+  if (contra) {
+    const fallo = falloDePuerta(contra.motivo);
+    apuntarSinGuardar({ fallo, motivo: contra.motivo, canal: op.canal, campo });
+    // Apuntar: la base solo acepta autores de la casa (o el sistema, sin autor); de quien no lo es no queda fila.
+    // Sin el valor: lo rechazado no se guarda, y así un lector no puede llenar `operacion` con lo que mande.
+    const apuntable = op.autor_user_id == null || papel != null;
+    const pedido = { datos: op.datos.map(({ valor: _fuera, ...d }) => d) };
+    const apunte = apuntable ? await llamar({ ...op, estado: ESTADO_OPERACION.RECHAZADA, pedido, sin_hacer: [contra] }) : {};
+    return { guardado: false, fallo, error: contra.motivo, operacion_id: apunte.r?.operacion_id ?? null };
+  }
+
+  // Aplicar y apuntar, en la misma transacción de la base; contar, desde lo que devuelve.
+  const { r, fallo } = await llamar(op);
+  return fallo ? { guardado: false, fallo } : resultadoDeOperacion(r);
+}
+
+/**
+ * Pura. Entender un cambio de la familia: la operación que espera escribir_persona (0108: p_operacion). Las
+ * personas y los grupos salen de cambiosDePersonas (src/lib/personas.js), ya limpios; aquí, la forma de la
+ * operación (la cabecera, la misma que la de un dato: cabeceraDeOperacion). Persona y salud las dice una
+ * persona por la app o un chat: el canal `sistema` no vale. Lanza DatoInvalido.
+ */
+export function operacionDePersonas({ personas, grupos, ...pedido }) {
+  const cabecera = cabeceraDeOperacion(pedido);
+  if (cabecera.canal === CANAL_DATO.SISTEMA) throw new DatoInvalido("la familia no la escribe el sistema");
+  if (!Array.isArray(personas ?? [])) throw new DatoInvalido("personas es una lista");
+  if (grupos !== undefined && !Array.isArray(grupos)) throw new DatoInvalido("grupos es una lista");
+  if (!(personas ?? []).length && grupos === undefined) throw new DatoInvalido("nada que escribir");
+  if ((personas ?? []).some((p) => !hay(p?.id))) throw new DatoInvalido("una persona sin id");
+  return {
+    ...cabecera,
+    clave: `${cabecera.clave}${SUFIJO_CLAVE_PERSONA}`,
+    personas: personas ?? [],
+    ...(grupos !== undefined ? { grupos } : {}),
+  };
+}
+
+/**
+ * Un cambio de la familia (personas, su salud y los grupos) por la tubería entera: entender, la puerta (la
+ * parte de quién habla: una persona de la casa que la edita) y escribir_persona (0108) en una transacción. Las
+ * comprobaciones por campo de la puerta (el origen y la salud dicha por la familia) no se le pasan: lo de la
+ * familia no lleva origen, porque solo lo dice una persona (el canal `sistema` no vale aquí y sin autor la puerta
+ * para), que es lo que esas comprobaciones exigen a un dato. Nunca lanza por un fallo
+ * de la base: devuelve { guardado: false, fallo } y lo apunta en el log (sin la RPC, `rpc_ausente`). Lo que para
+ * la puerta no se apunta en `operacion` (escribir_persona no tiene estado rechazada): queda en el log.
+ * @param {Parameters<typeof operacionDePersonas>[0]} pedido
+ * @param {Parameters<typeof operar>[1]} servidor
+ */
+export async function operarPersonas(pedido, { papel, rpc, falloDeError }) {
+  const campo = "persona";
+  let op;
+  try {
+    op = operacionDePersonas(pedido);
+  } catch (e) {
+    if (!(e instanceof DatoInvalido)) throw e;
+    apuntarSinGuardar({ fallo: e.fallo, canal: pedido?.canal ?? null, campo });
+    return { guardado: false, fallo: e.fallo, error: e.message };
+  }
+  const contra = comprobar({ canal: op.canal, autor_user_id: op.autor_user_id, datos: [] }, { papel });
+  if (contra) {
+    const fallo = falloDePuerta(contra.motivo);
+    apuntarSinGuardar({ fallo, motivo: contra.motivo, canal: op.canal, campo });
+    return { guardado: false, fallo, error: contra.motivo };
+  }
+  const { r, fallo } = await llamarRpc(RPC_PERSONA, { p_operacion: op }, { rpc, falloDeError, canal: op.canal, campo });
+  return fallo ? { guardado: false, fallo } : resultadoDeOperacion(r);
+}
+
+/** La RPC que escribe preferencias y sus conjuntos (0109, trozo 14). */
+export const RPC_PREFERENCIAS = "escribir_preferencias";
+/** La RPC que lee las preferencias de una casa (0109): solo lee. La usan Lola y la app (PR siguientes del trozo 14). */
+export const RPC_LEER_PREFERENCIAS = "preferencias_de_casa";
+/** Lo que se añade a la clave de una operación de preferencias: comparte las claves de la casa con las demás. */
+export const SUFIJO_CLAVE_PREFERENCIAS = ":preferencias";
+/** Cuántas preferencias y conjuntos admite una operación: el tope de escribir_preferencias (`c_max` en la 0109). */
+export const MAX_PREFERENCIAS_OPERACION = 400;
+/** El origen de una preferencia que no lo trae: vive en puerta.js, que también lo usa al ver los choques. */
+export { ORIGEN_PREFERENCIA_POR_DEFECTO };
+
+/**
+ * Pura. Entender un cambio de preferencias (la libreta: cambiosDeLibreta, preferencias.js): la operación que espera
+ * escribir_preferencias (0109: p_operacion), con la cabecera de siempre. Lanza DatoInvalido.
+ */
+export function operacionDePreferencias({ preferencias, planes, ...pedido }) {
+  const cabecera = cabeceraDeOperacion(pedido);
+  const lista = preferencias ?? [];
+  if (!Array.isArray(lista) || (planes !== undefined && !Array.isArray(planes))) throw new DatoInvalido("preferencias y planes son listas");
+  const total = lista.length + (planes ?? []).length;
+  if (total === 0) throw new DatoInvalido("nada que escribir");
+  if (total > MAX_PREFERENCIAS_OPERACION) throw new DatoInvalido(`${total} preferencias, más de ${MAX_PREFERENCIAS_OPERACION} en una operación`);
+  if (lista.some((p) => !p || typeof p !== "object" || ((p.borrar || p.rechazar) && !hay(p.id)))) throw new DatoInvalido("borrar o rechazar una preferencia lleva su id");
+  return {
+    ...cabecera,
+    clave: `${cabecera.clave}${SUFIJO_CLAVE_PREFERENCIAS}`,
+    preferencias: lista,
+    ...(planes !== undefined ? { planes } : {}),
+  };
+}
+
+/**
+ * Un cambio de preferencias por la tubería entera: entender, la puerta (la misma que la de un dato: papel, quién
+ * habla y que lo supuesto o visto lo ponga el sistema o Lola, nunca una pantalla) y escribir_preferencias (0109) en
+ * una transacción. Nunca lanza por un fallo de la base: devuelve { guardado: false, fallo } y lo apunta en el log
+ * (sin la RPC, `rpc_ausente`: no se guarda en ningún otro sitio). Lo que para la puerta queda en el log.
+ * @param {Parameters<typeof operacionDePreferencias>[0]} pedido
+ * @param {Parameters<typeof operar>[1]} servidor
+ */
+export async function operarPreferencias(pedido, { papel, rpc, falloDeError }) {
+  const campo = "preferencia";
+  let op;
+  try {
+    op = operacionDePreferencias(pedido);
+  } catch (e) {
+    if (!(e instanceof DatoInvalido)) throw e;
+    apuntarSinGuardar({ fallo: e.fallo, canal: pedido?.canal ?? null, campo });
+    return { guardado: false, fallo: e.fallo, error: e.message };
+  }
+  // Con su origen (dicho si no lo trae, como la base). Borrar también: lo borra la familia (dicho) o el sistema que
+  // retira lo que vio y ya no ve (`visto`, senales.js), sin autor, como lo creó. Rechazar lo dice siempre la familia.
+  const datos = op.preferencias.map((p) => ({ campo: null, persona_id: p.persona_id ?? null, origen: p.rechazar ? ORIGEN_PREFERENCIA_POR_DEFECTO : p.origen ?? ORIGEN_PREFERENCIA_POR_DEFECTO }));
+  const contra = comprobar({ canal: op.canal, autor_user_id: op.autor_user_id, datos }, { papel });
+  if (contra) {
+    const fallo = falloDePuerta(contra.motivo);
+    apuntarSinGuardar({ fallo, motivo: contra.motivo, canal: op.canal, campo });
+    return { guardado: false, fallo, error: contra.motivo };
+  }
+  // Choques con lo que ya tiene la casa. Sin poder leerla no se escribe: se podría pisar lo de otra persona.
+  const leidas = await llamarRpc(RPC_LEER_PREFERENCIAS, { p_casa: op.casa }, { rpc, falloDeError, canal: op.canal, campo });
+  if (leidas.fallo) return { guardado: false, fallo: leidas.fallo };
+  // Sin la forma v1 tampoco: no es una casa sin preferencias (como leerLibretaDeCasa y api/_bot/datos.js).
+  if (leidas.r?.v !== 1 || !Array.isArray(leidas.r.preferencias)) {
+    apuntarSinGuardar({ fallo: FALLO_DATO.SERVIDOR, canal: op.canal, campo });
+    return { guardado: false, fallo: FALLO_DATO.SERVIDOR };
+  }
+  const at = op.pedida_at ?? new Date().toISOString();
+  const delante = op.canal === CANAL_DATO.APP;
+  const choques = choquesAlGuardar(op.preferencias, leidas.r.preferencias,{ autor: op.autor_user_id, papel, at, delante });
+  for (const c of choques) apuntarChoque(c, op.canal);
+  const { preferencias, apartadas } = trasLosChoques(op.preferencias, choques);
+  // Lo apartado se contesta (Lola lo dice o lo pregunta); si no queda nada que escribir, no hay operación.
+  const contestar = (res) => (choques.length ? { ...res, choques, apartadas } : res);
+  if (!preferencias.length && !(op.planes ?? []).length) return contestar({ guardado: false });
+  const { r, fallo } = await llamarRpc(RPC_PREFERENCIAS, { p_operacion: { ...op, preferencias, choques } }, { rpc, falloDeError, canal: op.canal, campo });
+  return contestar(fallo ? { guardado: false, fallo } : resultadoDeOperacion(r));
+}
+
+/**
+ * La línea de log de un choque resuelto, para contarlos por clase y respuesta (cifra del trozo 33):
+ * {"evento":"choque","momento":"al_guardar","clases":["deseo","deseo"],"criterio":"tiempo","respuesta":"aplicar_y_avisar","canal":"telegram"}.
+ * Sin valores ni ids: puede tocar la salud.
+ */
+export function apuntarChoque({ momento, clases, gana, criterio, respuesta }, canal = null) {
+  console.log(JSON.stringify({ evento: "choque", momento, clases, gana, criterio, respuesta, canal }));
+}
+
+/** Lo que se contesta de deshacer_operacion (0111): todo lo que devuelve, que no lleva `inversa` ni valores. */
+export const CAMPOS_DESHACER = ["operacion_id", "estado", "repetida", "deshecho", "sin_hacer", "rev"];
+
+/**
+ * Deshacer una operación hecha, por la tubería: comprobar (la misma puerta que al escribir: quien pide habla
+ * por sí y edita la casa) y deshacer en la base (deshacer_operacion, 0111), que mira que sea suya y que nada
+ * de lo que tocó haya cambiado después. Nunca lanza por un fallo de la base: devuelve { guardado: false, fallo }
+ * y lo apunta en el log (sin la RPC, `rpc_ausente`).
+ * @param {{ casa: string, operacion_id: string, canal: string, autor?: { user_id?: string|null } }} pedido
+ * @param {Parameters<typeof operar>[1]} servidor
+ * @returns {Promise<{ guardado: boolean, fallo?: string, error?: string } & Record<string, unknown>>}
+ *   guardado: true si quedó deshecha (también si ya lo estaba: `repetida`); si no, `sin_hacer` dice por qué
+ *   (MOTIVOS_SIN_DESHACER).
+ */
+export async function deshacer({ casa, operacion_id, canal, autor = {} }, { papel, rpc, falloDeError }) {
+  const autor_user_id = autor.user_id ?? null;
+  // Entender: solo se deshace lo propio, así que sin quién lo pide no hay nada que deshacer.
+  const falta = !casa ? "casa" : !operacion_id ? "operacion_id" : !autor_user_id ? "autor" : null;
+  if (falta) {
+    apuntarSinGuardar({ fallo: FALLO_DATO.INVALIDO, canal: canal ?? null, campo: falta });
+    return { guardado: false, fallo: FALLO_DATO.INVALIDO, error: `falta ${falta}` };
+  }
+  // Comprobar: la puerta de escribir, sin datos (papel y quién habla).
+  const contra = comprobar({ canal, autor_user_id, datos: [] }, { papel });
+  if (contra) {
+    const fallo = falloDePuerta(contra.motivo);
+    apuntarSinGuardar({ fallo, motivo: contra.motivo, canal });
+    return { guardado: false, fallo, error: contra.motivo };
+  }
+  // Deshacer, en una transacción de la base; contar, desde lo que devuelve.
+  const { r, fallo } = await llamarRpc(RPC_DESHACER, { p_casa: casa, p_operacion_id: operacion_id, p_autor_user_id: autor_user_id },
+    { rpc, falloDeError, canal, campo: null });
+  if (fallo) return { guardado: false, fallo };
+  const out = Object.fromEntries(CAMPOS_DESHACER.map((k) => [k, r?.[k] ?? null]));
+  return { guardado: out.estado === ESTADO_OPERACION.DESHECHA, ...out };
+}

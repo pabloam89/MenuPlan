@@ -59,6 +59,7 @@ export function CommentThread({ user, targetType, targetId, targetOwnerId, count
   const [editDraft, setEditDraft] = useState("");
   const [reportingId, setReportingId] = useState(null);
   const [sending, setSending] = useState(false);
+  const [rechazo, setRechazo] = useState(null);
 
   const load = useCallback(async () => {
     const real = await loadComments(targetType, targetId);
@@ -78,10 +79,14 @@ export function CommentThread({ user, targetType, targetId, targetOwnerId, count
     const text = draft.trim();
     if (!text) return;
     setSending(true);
+    setRechazo(null);
     const saved = await postComment(user?.id, {
       targetType, targetId, targetOwnerId, body: text, parentId: replyTo,
     });
     setSending(false);
+    // El filtro lo ha rechazado: se deja el texto escrito para que pueda
+    // corregirlo, que borrarselo seria castigarle dos veces.
+    if (saved?.error === "moderation") { setRechazo(saved.message); return; }
     if (!saved) return;
     setDraft("");
     setReplyTo(null);
@@ -225,7 +230,7 @@ export function CommentThread({ user, targetType, targetId, targetOwnerId, count
           <div style={{ display: "flex", gap: 6, marginTop: 8, alignItems: "center" }}>
             <input
               value={draft}
-              onChange={(e) => setDraft(e.target.value)}
+              onChange={(e) => { setDraft(e.target.value); setRechazo(null); }}
               onKeyDown={(e) => { if (e.key === "Enter") send(); }}
               maxLength={500}
               className="mp-field"
@@ -236,6 +241,12 @@ export function CommentThread({ user, targetType, targetId, targetOwnerId, count
               <Send size={14} strokeWidth={2.6} />
             </button>
           </div>
+
+          {rechazo && (
+            <p role="alert" style={{ margin: "6px 2px 0", fontSize: 12, lineHeight: 1.4, color: "#c0392b", fontWeight: 600 }}>
+              {rechazo}
+            </p>
+          )}
         </div>
       )}
 

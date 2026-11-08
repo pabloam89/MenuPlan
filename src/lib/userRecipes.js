@@ -1,15 +1,21 @@
 import { z } from "zod";
+import { DIFFICULTIES, MAIN_PROTEINS, SEASONS } from "../data/recipeSchema.js";
+import { enOrden } from "./enOrden.js";
 import { NUTRIENTES, CAMPOS_SECUNDARIOS } from "../data/nutrientes.js";
-import { uid } from "./groups.js";
+import * as ids from "./ids.js";
+import { USOS_RECETA } from "./vocabularios.js";
 import { callModel, extractJson, AIPlannerError, ICON_TYPE_MAP, CATEGORY_ICON } from "./aiPlanner.js";
 import { FAST_MODEL } from "./aiModels.js";
+import { apiUrl } from "./apiUrl.js";
 import { EU_ALLERGENS } from "./allergens.js";
 import { normalizeRichSteps, richToPlainSteps } from "./recipeSteps.js";
 import { computeRecipeNutrition, deriveRecipeAllergens } from "./ingredients.js";
 import { StepRichSchema, isMontaje } from "../data/recipeSchema.js";
 import { recipeCatalog } from "../data/recipeCatalog.js";
 import { lowerFirst } from "./dishNaming.js";
-import guarnicionesData from "../data/recipes/guarniciones.json";
+import { KITCHEN_TOOL_IDS } from "./electrodomesticos.js";
+import guarnicionesData from "../data/recipes/guarniciones.json" with { type: "json" };
+import { esRecetaDelTitular } from "./userRecipesFila.js";
 
 /** Los nombres por ración de los 24 micronutrientes (src/data/nutrientes.js). */
 const MICRONUTRIENTES_RACION = CAMPOS_SECUNDARIOS.filter(
@@ -33,14 +39,8 @@ export { QUALITATIVE_INGREDIENT_UNITS, isQualitativeUnit };
 // Leaving all unchecked means "no special tool", so the dish is never
 // excluded by a household's available equipment. Several can be checked
 // at once (e.g. oven or airfryer both work) — any one unlocks the dish.
-export const COOKING_METHODS = [
-  { id: "Horno", label: "Horno" },
-  { id: "Airfryer", label: "Airfryer" },
-  { id: "Thermomix", label: "Thermomix" },
-  { id: "Olla rápida", label: "Olla rápida" },
-  { id: "Microondas", label: "Microondas" },
-  { id: "Vaporera", label: "Vaporera" },
-];
+// Los nombres salen de electrodomesticos.js, el vocabulario del CHECK de 0086.
+export const COOKING_METHODS = KITCHEN_TOOL_IDS.map((id) => ({ id, label: id }));
 
 // A hand-picked starting point per aisle so the ingredient step never starts
 // from a blank page — especially fruit and veg, which are under-represented
@@ -214,7 +214,9 @@ export const USAGE_TAGS = [
   { id: "guarnicion", label: "Guarnición", hint: "Acompaña a otro plato" },
 ];
 
-const USAGE_TAG_IDS = USAGE_TAGS.map((t) => t.id);
+/** Los ids, que son también el vocabulario cerrado de user_recipes.usage_tags (CHECK de 0086). */
+// La lista vive en vocabularios.js; vocabularios.test.js comprueba que cuadra con USAGE_TAGS.
+export const USAGE_TAG_IDS = USOS_RECETA;
 
 /**
  * Collapses the multi-select usage tags into the single legacy `type` value
@@ -290,7 +292,8 @@ export function isCopiedRecipe(recipe) {
  * @param {object[]} userRecipes @param {{ id?: string } | null} user
  */
 export function filterMyLibraryRecipes(userRecipes, user) {
-  return (userRecipes ?? []).filter((r) => isOwnCreatedRecipe(r, user) || isCopiedRecipe(r));
+  // Y las del titular que ve un cotitular (#958, 0104): son de la casa, de solo lectura.
+  return (userRecipes ?? []).filter((r) => isOwnCreatedRecipe(r, user) || isCopiedRecipe(r) || esRecetaDelTitular(r));
 }
 
 /**
@@ -388,14 +391,14 @@ export const ALLERGEN_OPTIONS = Object.entries(EU_ALLERGENS).map(([id, meta]) =>
 }));
 
 export function buildUserRecipeId() {
-  return `user_${uid()}`;
+  return ids.recetaPropia.nuevo();
 }
 
 /**
  * Builds a "combo" user recipe from a catalog dish + a garnish, so a user can
  * save a MenuPlan catalog recipe paired with the side they like into "Mis
  * recetas". From there it joins the pool like any other own recipe and is
- * favored/excluded by the general recipeMode setting (preferir/solo mías).
+ * favored like the rest of them.
  *
  * Macros are per-ración: the garnish JSON stores them per its own baseServings,
  * so we normalize before adding. Ingredients are re-scaled to the dish's
@@ -475,7 +478,7 @@ export function buildGarnishComboRecipe(recipe, garnish) {
 export async function generateDishPhotoWithAI(dishName, { signal, category, steps } = {}) {
   let response;
   try {
-    response = await fetch("/api/generate-dish-photo", {
+    response = await fetch(apiUrl("/api/generate-dish-photo"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ dishName, category, steps }),
@@ -547,7 +550,7 @@ function normalizeMainProtein(value, ingredientNames = []) {
   return value;
 }
 
-const SEASON_IDS = ["all", "verano", "invierno"];
+const SEASON_IDS = SEASONS;
 
 function normalizeSeason(value) {
   if (SEASON_IDS.includes(value)) return value;
@@ -584,7 +587,7 @@ function normalizeCategory(value) {
   return value;
 }
 
-const DIFFICULTY_IDS = ["facil", "normal", "elaborada"];
+const DIFFICULTY_IDS = DIFFICULTIES;
 function normalizeDifficulty(value) {
   if (DIFFICULTY_IDS.includes(value)) return value;
   const text = normalizeName(value);
@@ -684,14 +687,15 @@ export const UserRecipeDraftSchema = z.object({
     "ensaladas_verduras", "sopas_cremas", "platos_unicos", "cenas_rapidas",
     "guarniciones",
   ]),
-  mainProtein: z.enum([
+  // El orden lo lee el modelo (de las carnes al «none»); los valores, del catálogo.
+  mainProtein: z.enum(enOrden(MAIN_PROTEINS, [
     "pollo", "pavo", "pato", "cerdo", "ternera", "cordero", "caza",
-    "pescado_blanco", "pescado_azul", "marisco", "huevo", "legumbre", "none",
-  ]),
+    "pescado_blanco", "pescado_azul", "marisco", "huevo", "legumbre",
+  ])),
   mealRole: z.array(z.enum(["primero", "segundo", "plato_unico", "cena", "guarnicion", "merienda", "postre"])).min(1),
   // How the dish can be served — multi-select. `type` (below) is derived from
   // this and kept in sync for backward compatibility with the rest of the app.
-  usageTags: z.array(z.enum(["plato_unico", "plato_normal", "guarnicion"])).min(1),
+  usageTags: z.array(z.enum(USAGE_TAG_IDS)).min(1),
   type: z.enum(["completo", "principal", "guarnicion"]),
   // Fase 6: mismo criterio y mismo patrón que usageTags — propuesto por la IA
   // mirando la receta, nunca preguntado al usuario. No es un juicio ex-ante
@@ -703,7 +707,7 @@ export const UserRecipeDraftSchema = z.object({
   // Coerced: fast/cheap models occasionally quote numbers ("30" instead of 30)
   // — tolerate that instead of failing the whole draft over formatting.
   time: z.coerce.number().positive(),
-  difficulty: z.enum(["facil", "normal", "elaborada"]),
+  difficulty: z.enum(DIFFICULTIES),
   kcal: z.coerce.number().nonnegative(),
   protein_g: z.coerce.number().nonnegative(),
   carbs_g: z.coerce.number().nonnegative(),
@@ -729,7 +733,7 @@ export const UserRecipeDraftSchema = z.object({
   kidFriendly: z.boolean(),
   tupperFriendly: z.boolean(),
   allergens: z.array(z.enum(Object.keys(EU_ALLERGENS))),
-  season: z.enum(["all", "verano", "invierno"]),
+  season: z.enum(SEASONS),
   ingredients: z.array(IngredientSchema).min(1),
   steps: z.array(z.string().min(1)).min(1),
   // Paso a paso estructurado, mismo formato que el catálogo. Opcional: si el
@@ -784,7 +788,10 @@ export async function generateUserRecipeDraft(input, { signal } = {}) {
  * Los alérgenos, como en la app: si TODOS los ingredientes resuelven contra
  * el catálogo, el cálculo manda; si alguno no, la estimación de la IA.
  */
-export function recetaParaGuardar(draft, { mealRole = [], requiredAppliances = [], photo = null, owner = null, visibility = "private" } = {}) {
+export function recetaParaGuardar(borrador, { mealRole = [], requiredAppliances = [], photo = null, owner = null, visibility = "private" } = {}) {
+  // `mencionados` es del asistente (lo que nombraste y no estaba en la lista),
+  // no de la receta: no se guarda.
+  const { mencionados: _mencionados, ...draft } = borrador;
   const usageTags = draft.usageTags ?? [];
   const type = deriveTypeFromUsageTags(usageTags);
   const guarnicion = type === "guarnicion";
@@ -833,8 +840,9 @@ export function payloadDeBorrador(input) {
     allergens: input.allergens?.length ? input.allergens : undefined,
     // Electrodoméstico elegido en el paso "¿Cómo se prepara?" — para que los
     // pasos generados lo tengan en cuenta (ver regla en api/_prompts.js) en
-    // vez de dar por hecho fuego/sartén tradicional.
-    appliance: input.requiredAppliances?.[0] || undefined,
+    // vez de dar por hecho fuego/sartén tradicional. Si son varios, van todos
+    // separados por coma: cada paso usa el que le toque.
+    appliance: input.requiredAppliances?.length ? input.requiredAppliances.join(", ") : undefined,
     preparationNotes: input.preparationNotes || undefined,
   };
 }
@@ -847,7 +855,39 @@ export function payloadDeBorrador(input) {
  * comparten la app y el bot para que una receta dictada por Telegram sea
  * idéntica a una creada con el asistente.
  */
+/**
+ * De los ingredientes que la IA dice que nombraste en «¿Cómo lo preparas?» y
+ * no están en tu lista, los que conocemos, con el nombre del catálogo. Lo que
+ * no reconocemos se descarta (decisión de Pablo, 7 oct 2026: de un ingrediente
+ * desconocido no sabemos alérgenos ni precio, y proponerlo solo da líos). Se
+ * compara la forma normalizada entera —sin acentos, en singular—, nunca «que
+ * contenga»: «pan» no es «panceta».
+ *
+ * @param {string[]} nombres - lo que devolvió la IA en `mentionedIngredients`
+ * @param {string[]} yaEnLista - los nombres que ya lleva la receta
+ * @returns {string[]}
+ */
+export function ingredientesReconocidos(nombres, yaEnLista = []) {
+  const ya = new Set(yaEnLista.map((n) => ingredientStem(n)));
+  const porForma = new Map(INGREDIENT_CATALOG.map((n) => [ingredientStem(n), n]));
+  const vistos = new Set();
+  const out = [];
+  for (const nombre of Array.isArray(nombres) ? nombres : []) {
+    const forma = ingredientStem(String(nombre ?? ""));
+    if (!forma || ya.has(forma) || vistos.has(forma)) continue;
+    const delCatalogo = porForma.get(forma);
+    if (!delCatalogo) continue;
+    vistos.add(forma);
+    out.push(delCatalogo);
+  }
+  return out;
+}
+
 export function borradorDesdeRespuesta(parsed, userPayload) {
+  const mencionados = ingredientesReconocidos(
+    parsed?.mentionedIngredients,
+    (userPayload?.ingredients ?? []).map((i) => i?.name),
+  );
   // Be forgiving if the model returns only one of the two classification
   // fields: fill in the missing side so validation can succeed, then let the
   // user adjust at the review step.
@@ -962,6 +1002,7 @@ export function borradorDesdeRespuesta(parsed, userPayload) {
   const draft = validation.data;
   return {
     ...draft,
+    mencionados,
     id: buildUserRecipeId(),
     requiredAppliances: undefined,
     methods: [],

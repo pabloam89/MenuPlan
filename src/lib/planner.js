@@ -1,34 +1,12 @@
-import { RECIPES, RECIPES_BY_ID } from "../data/recipes.js";
 import { membersOfGroup } from "./groups.js";
-import { getSchoolDish, hasAnySchoolDish } from "./schoolMenu.js";
-import { resolveMemberAge, stageForAge } from "./stages.js";
-import {
-  fixedDishScoreBoost,
-  markFixedDishPlaced,
-  migrateFixedDishes,
-} from "./fixedDishes.js";
-import {
-  comidaPairConflict,
-  dayPastaPenalty,
-  dayProteinPenalty,
-  isSoloPlato,
-  isValidPrimero,
-  recipeProteinKey,
-  trackDayPasta,
-} from "./recipeDiversity.js";
-import { maxCookTime } from "./cookTime.js";
+import { DIAS, COMIDAS, DONDE_COME } from "./vocabularios.js";
+import { DIA_LARGO } from "./dias.js";
+import { estructuraDelGrupo, estructuraCenaDelGrupo } from "./estructuraPlatos.js";
 
-export const DAYS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+// La lista vive en vocabularios.js (fuente única); aquí con su nombre de siempre.
+export const DAYS = DIAS;
 
-export const DAY_LABELS = {
-  Lun: "Lunes",
-  Mar: "Martes",
-  Mié: "Miércoles",
-  Jue: "Jueves",
-  Vie: "Viernes",
-  Sáb: "Sábado",
-  Dom: "Domingo",
-};
+export const DAY_LABELS = DIA_LARGO;
 
 export function dayLabel(short) {
   return DAY_LABELS[short] ?? short;
@@ -68,7 +46,7 @@ export function getExtraMeals(data) {
  */
 export function getDayMeals(data) {
   const active = new Set([...getMeals(data), ...getExtraMeals(data)]);
-  return ["Desayuno", "Comida", "Merienda", "Cena", "Postre"].filter((m) => active.has(m));
+  return COMIDAS.filter((m) => active.has(m));
 }
 
 export function isLunchMeal(meal) {
@@ -87,7 +65,7 @@ export function primaryDayMeal(data) {
 //   "fuera"  → comen fuera
 //   "cole"   → comedor escolar (solo niños)
 //   "off"    → no aplica / no come
-export const SLOT_VALUES = ["casa", "tupper", "fuera", "cole", "off"];
+export const SLOT_VALUES = DONDE_COME;
 
 export function slotKey(memberId, day, meal) {
   return `${memberId}|${day}|${meal}`;
@@ -142,6 +120,50 @@ export function cookDayCounts(data) {
 }
 
 /**
+ * Los días que la semana pedida planifica DE VERDAD, leídos de `data.menuWeek`
+ * (`{ offset, startDayIdx, days }`, lo pone `prepararSemana`): la selección
+ * manual de días si la hay; si no, en la semana en curso (`offset` 0) desde el
+ * día de inicio hasta el domingo; y la semana entera en las demás. Sin
+ * `menuWeek` (datos viejos, tests), los siete días, como siempre.
+ *
+ * Es la única regla: `getWeekDatesByMenuWeek` (weekCalendar.js), que pinta la
+ * semana, la reutiliza, así que lo pintado y lo planificado no pueden
+ * discrepar. Vive aquí porque weekCalendar importa de este fichero y el motor
+ * no necesita fechas. Hasta el 30 oct 2026 el motor recorría los siete días siempre y una
+ * semana de viernes a domingo guardaba huecos de lunes a jueves, gastaba en
+ * ellos las cuotas de variedad y de familias y los compraba (#1029).
+ *
+ * Un `days` con un nombre que no es un día, o un `startDayIdx` fuera de 0..6,
+ * es un error de quien lo construyó y se lanza: caer en silencio a otra regla
+ * pintaría y planificaría una semana que nadie pidió. La base lo impide en lo
+ * nuevo (CHECK de `start_day_idx` en 0005; vocabulario de `active_days` en
+ * 0086, `not valid` para las filas de antes, que el 30 oct 2026 eran 0 fuera
+ * de él). Las tildes se comparan en NFC («Mié» en NFD es el mismo día, no
+ * otro valor): una semana archivada antes de vocabularios.js puede traerlas
+ * descompuestas.
+ *
+ * @param {object} data
+ * @returns {string[]} días en el orden de DAYS, nunca vacío
+ */
+export function diasActivosDe(data) {
+  const menuWeek = data?.menuWeek;
+  if (!menuWeek || typeof menuWeek !== "object") return [...DAYS];
+  const { offset = 0, startDayIdx = 0, days = null } = menuWeek;
+  if (Array.isArray(days)) {
+    const enNFC = days.map((d) => (typeof d === "string" ? d.normalize("NFC") : d));
+    const desconocidos = enNFC.filter((d) => !DAYS.includes(d));
+    if (desconocidos.length > 0) {
+      throw new TypeError(`menuWeek.days con días desconocidos: ${desconocidos.join(", ")}`);
+    }
+    if (enNFC.length > 0) return DAYS.filter((d) => enNFC.includes(d));
+  }
+  if (!Number.isInteger(startDayIdx) || startDayIdx < 0 || startDayIdx >= DAYS.length) {
+    throw new TypeError(`menuWeek.startDayIdx fuera de 0..${DAYS.length - 1}: ${startDayIdx}`);
+  }
+  return offset === 0 ? DAYS.filter((_, i) => i >= startDayIdx) : [...DAYS];
+}
+
+/**
  * Cuántos HUECOS de plato tiene la semana: 2 por cada comida que se cocina
  * (primero + segundo), 1 por cada cena, menos 1 por cada comida que sea de un
  * solo plato (plato único marcado a mano, o la estructura "1_plato" de la casa).
@@ -165,18 +187,18 @@ export function weeklySlotBudget(data, group = null) {
   const schedule = data?.schedule ?? {};
   const slotType = data?.slotType ?? {};
   const target = group ?? { memberIds: members.map((m) => m.id) };
-  const mealStructure =
-    data?.mealStructureByGroup?.[group?.id] ?? data?.mealStructure ?? "primero_segundo";
+  const mealStructure = estructuraDelGrupo(data, group?.id);
   // La cena tiene estructura propia (ver buildGroupContext): una cena de dos
   // platos son DOS huecos, igual que una comida.
-  const estructuraCena =
-    data?.mealStructureCenaByGroup?.[group?.id] ?? data?.mealStructureCena ?? "1_plato";
+  const estructuraCena = estructuraCenaDelGrupo(data, group?.id);
 
   let comidaDays = 0;
   let cenaDays = 0;
   let cenaDobles = 0;
   let platoUnicoDays = 0;
-  for (const day of DAYS) {
+  // Solo los días de la semana pedida: con una semana de viernes a domingo el
+  // reparto se baja a los huecos de tres días, no a 21.
+  for (const day of diasActivosDe(data)) {
     if (meals.includes("Comida") && modeForGroupSlot(target, members, schedule, day, "Comida").cook) {
       comidaDays += 1;
       if (slotType[`${day}|Comida`] === "unico" || mealStructure === "1_plato") platoUnicoDays += 1;
@@ -195,442 +217,8 @@ export function weeklySlotBudget(data, group = null) {
   };
 }
 
-function recipeMealType(meal) {
-  // Map any user-defined meal label to a recipe mealType. Only "cena"
-  // requires the cena tag; everything else (Comida, Desayuno, Almuerzo,
-  // Merienda, etc.) reuses "comida" recipes.
-  return (meal ?? "").toLowerCase() === "cena" ? "cena" : "comida";
-}
-
-const PROTEIN_TAGS = ["pescado", "carne", "legumbres", "huevos"];
-const TOOL_TAGS = {
-  Horno: ["horno", "pizza", "empanada"],
-  Wok: ["wok"],
-  Plancha: ["plancha"],
-  "Olla rápida": ["guiso", "legumbres"],
-  "Robot/Thermomix": ["crema", "sopa"],
-  Batidora: ["crema", "puré", "sopa"],
-};
-
-function normalizedText(value) {
-  return String(value ?? "")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
-}
-
-function primaryProteinFromRecipe(recipe) {
-  return recipe.tags.find((t) => PROTEIN_TAGS.includes(t)) ?? null;
-}
-
-function proteinFromSchoolCourses(courses) {
-  if (!hasAnySchoolDish(courses)) return null;
-  const text = normalizedText(
-    [courses.primero, courses.segundo, courses.postre].filter(Boolean).join(" ")
-  );
-  if (/pesc|atun|merluza|salmon|bacalao|lenguado|gallo/.test(text)) return "pescado";
-  if (/pollo|pavo|ternera|cerdo|carne|lomo|hamburgues/.test(text)) return "carne";
-  if (/lentej|garbanz|alubi|judia|legumbre/.test(text)) return "legumbres";
-  if (/huevo|tortilla|revuelto/.test(text)) return "huevos";
-  return null;
-}
-
-function daySchoolProteins(data, groupMembers, day) {
-  return new Set(
-    groupMembers
-      .map((m) => proteinFromSchoolCourses(getSchoolDish(data.schoolMenus, m.id, day)))
-      .filter(Boolean)
-  );
-}
-
-function groupTargetKcal(data, group) {
-  const base = data.kcalByGroup?.[group.id] ?? data.kcal ?? 2000;
-  return Math.max(1200, Math.min(3000, base));
-}
-
-function mealKcalTarget(targetKcal, meal) {
-  return recipeMealType(meal) === "cena" ? targetKcal * 0.28 : targetKcal * 0.38;
-}
-
-function recipeToolIssues(recipe, availableTools) {
-  const issues = [];
-  const available = new Set(availableTools ?? []);
-  for (const [tool, tags] of Object.entries(TOOL_TAGS)) {
-    const needsTool = tags.some((tag) => {
-      const lowerTag = normalizedText(tag);
-      return recipe.tags.some((t) => normalizedText(t) === lowerTag) ||
-        normalizedText(recipe.name).includes(lowerTag);
-    });
-    if (needsTool && !available.has(tool)) issues.push(tool);
-  }
-  return issues;
-}
-
-function recipeScore(recipe, ctx) {
-  let score = 0;
-
-  // Meal type match
-  if (!recipe.mealTypes.includes(recipeMealType(ctx.meal))) return -Infinity;
-
-  // Allergies: hard exclude
-  for (const a of ctx.allergies) {
-    if (recipe.allergens.includes(a.toLowerCase())) return -Infinity;
-  }
-
-  // Dislikes: soft exclude (tag or name match)
-  const lowerName = recipe.name.toLowerCase();
-  for (const d of ctx.dislikes) {
-    const dl = d.toLowerCase();
-    if (lowerName.includes(dl) || recipe.tags.includes(dl)) score -= 50;
-  }
-
-  // Tupper mode → boost tupperFriendly, penalize others
-  if (ctx.mode === "tupper") {
-    score += recipe.tupperFriendly ? 40 : -80;
-  }
-
-  // Kids group → boost kidFriendly, penalize big/slow recipes
-  if (ctx.groupHasKids) {
-    if (recipe.kidFriendly) score += 20;
-    else score -= 15;
-  }
-
-  // Time constraints (per meal + weekday/weekend)
-  const timeBudget = ctx.maxTime ?? 30;
-  if (recipe.time > timeBudget) score -= (recipe.time - timeBudget) * 1.4;
-
-  // Cook level
-  if (ctx.cookLevel === "basic" && recipe.difficulty === "Me gusta") score -= 30;
-  if (ctx.cookLevel === "pro" && recipe.difficulty === "Fácil") score -= 5;
-
-  for (const skill of ctx.cookSkills ?? []) {
-    const skillText = normalizedText(skill);
-    if (recipe.tags.some((t) => normalizedText(t) === skillText)) score += 8;
-    if (normalizedText(recipe.name).includes(skillText)) score += 6;
-  }
-
-  const toolIssues = recipeToolIssues(recipe, ctx.kitchenTools);
-  if (toolIssues.length > 0) score -= 35 * toolIssues.length;
-
-  const kcalTarget = mealKcalTarget(ctx.targetKcal, ctx.meal);
-  score -= Math.min(35, Math.abs(recipe.kcal - kcalTarget) / 22);
-
-  // Goal tags (canonical ids; chip labels can be renamed by the user but the
-  // id stays stable for scoring).
-  const goalIds = ctx.goalIds ?? [];
-  for (const id of goalIds) {
-    if (id === "rapido") score += recipe.time <= 25 ? 24 : -Math.min(24, (recipe.time - 25) * 0.9);
-    if (id === "economico") {
-      score += recipe.kcal <= 550 ? 8 : -4;
-      if (recipe.tags.includes("legumbres") || recipe.tags.includes("huevos")) score += 8;
-    }
-    if (
-      id === "sano" &&
-      (recipe.tags.includes("verdura") ||
-        recipe.tags.includes("pescado") ||
-        recipe.tags.includes("legumbres"))
-    )
-      score += 18;
-    if (id === "deportivo" && (recipe.tags.includes("pescado") || recipe.tags.includes("carne"))) score += 12;
-    if (id === "variado") score += Math.random() * 10;
-  }
-
-  for (const [freqKey, min] of Object.entries(ctx.freqs ?? {})) {
-    if (recipe.tags.includes(freqKey)) {
-      const remaining = Math.max(0, min - (ctx.typeCount[freqKey] ?? 0));
-      score += remaining * 14;
-    }
-  }
-
-  if (ctx.schoolProteins.has(primaryProteinFromRecipe(recipe))) score -= 22;
-  if (ctx.schoolProteins.size > 0 && recipe.tags.includes("verdura")) score += 10;
-
-  score -= dayProteinPenalty(recipe, ctx.dayProteinKeys);
-  score -= dayPastaPenalty(recipe, ctx.dayFlags?.hasPasta);
-
-  if (ctx.partnerRecipe) {
-    const conflict =
-      ctx.partnerRole === "main"
-        ? comidaPairConflict(recipe, ctx.partnerRecipe)
-        : comidaPairConflict(ctx.partnerRecipe, recipe);
-    if (conflict) score -= 200;
-  }
-
-  score += fixedDishScoreBoost(recipe, ctx.meal, ctx.fixedTracks ?? []);
-
-  // Avoid repeating same recipe / proteine in same week
-  if (ctx.usedIds.has(recipe.id)) score -= 200;
-  const protein = primaryProteinFromRecipe(recipe);
-  // "Sin repetir proteína" tightens the per-week limit from 2 to 1.
-  const proteinLimit = goalIds.includes("no-repetir-proteina") ? 1 : 2;
-  if (protein && ctx.proteinCount[protein] >= proteinLimit) score -= 28;
-
-  // Base randomness to avoid deterministic menus
-  score += Math.random() * 8;
-
-  return score;
-}
-
-export function pickRecipe(ctx) {
-  let best = null;
-  let bestScore = -Infinity;
-  for (const r of RECIPES) {
-    const s = recipeScore(r, ctx);
-    if (s > bestScore) {
-      bestScore = s;
-      best = r;
-    }
-  }
-  return best;
-}
-
-/** 1º de comida: solo platos ligeros válidos. */
-export function pickComidaPrimero(ctx, excludeIds = new Set(), partnerRecipe = null) {
-  let best = null;
-  let bestScore = -Infinity;
-  for (const r of RECIPES) {
-    if (excludeIds.has(r.id)) continue;
-    if (!isValidPrimero(r)) continue;
-    if (partnerRecipe && comidaPairConflict(r, partnerRecipe)) continue;
-    let s = recipeScore(r, ctx);
-    if (s === -Infinity) continue;
-    const tags = r.tags ?? [];
-    if (tags.includes("crema") || tags.includes("sopa")) s += 24;
-    if (tags.includes("verdura") && !tags.includes("legumbres")) s += 18;
-    if (tags.includes("legumbres")) s += 8;
-    if (r.kcal > 320) s -= 12;
-    if (s > bestScore) {
-      bestScore = s;
-      best = r;
-    }
-  }
-  return best;
-}
-
-/** Pick 2º + 1º con reglas de comida española. */
-function pickComidaPair(ctx) {
-  const ranked = RECIPES.map((r) => ({ r, s: recipeScore(r, ctx) }))
-    .filter(({ s }) => s > -Infinity)
-    .sort((a, b) => b.s - a.s);
-
-  for (const { r: main } of ranked.slice(0, 22)) {
-    if (isSoloPlato(main)) {
-      const primero = pickComidaPrimero(ctx, new Set([main.id]), main);
-      return { main, primero: primero ?? null };
-    }
-    const primero = pickComidaPrimero(ctx, new Set([main.id]), main);
-    if (primero) return { main, primero };
-  }
-
-  const main = ranked[0]?.r ?? null;
-  if (!main) return { main: null, primero: null };
-  return { main, primero: pickComidaPrimero(ctx, new Set([main.id]), main) };
-}
-
-function trackDayProtein(dayProteinKeys, recipe) {
-  const pk = recipeProteinKey(recipe);
-  if (pk) dayProteinKeys.add(pk);
-}
-
-function trackRecipeUsage(recipe, meal, ctx, usedIds, proteinCount, typeCount, fixedTracks) {
-  usedIds.add(recipe.id);
-  markFixedDishPlaced(recipe, meal, fixedTracks);
-  const protein = primaryProteinFromRecipe(recipe);
-  if (protein) proteinCount[protein] = (proteinCount[protein] ?? 0) + 1;
-  for (const tag of recipe.tags) typeCount[tag] = (typeCount[tag] ?? 0) + 1;
-}
-
-function warningsForRecipe(recipe, ctx) {
-  const warnings = [];
-  const timeBudget = ctx.maxTime ?? 30;
-  if (recipe.time > timeBudget) {
-    warnings.push({
-      type: "time",
-      message: `Supera el tiempo disponible (${recipe.time} min vs ${timeBudget} min).`,
-    });
-  }
-  const toolIssues = recipeToolIssues(recipe, ctx.kitchenTools);
-  if (toolIssues.length > 0) {
-    warnings.push({
-      type: "tool",
-      message: `Puede requerir ${toolIssues.join(", ")} y no está marcado como disponible.`,
-    });
-  }
-  const protein = primaryProteinFromRecipe(recipe);
-  if (protein && ctx.schoolProteins.has(protein)) {
-    warnings.push({
-      type: "school-overlap",
-      message: `Repite ${protein} tras el menú del cole; se priorizó compensar, pero no había opción mejor.`,
-    });
-  }
-  if (ctx.mode === "tupper" && !recipe.tupperFriendly) {
-    warnings.push({
-      type: "tupper",
-      message: "No es una receta ideal para tupper.",
-    });
-  }
-  const kcalTarget = mealKcalTarget(ctx.targetKcal, ctx.meal);
-  if (Math.abs(recipe.kcal - kcalTarget) > 220) {
-    warnings.push({
-      type: "kcal",
-      message: `Se aleja del objetivo calórico suave (${recipe.kcal} kcal vs ${Math.round(kcalTarget)} kcal).`,
-    });
-  }
-  return warnings;
-}
-
-/**
- * Generate a menu plan: { [groupId]: { [`${day}-${meal}`]: { recipeId, mode, eaters } | null } }
- */
-export function generateMenu(data) {
-  const { members, groups, schedule, dislikes, cookLevel } = data;
-  const plan = { _warnings: [] };
-
-  const fixedTracks = migrateFixedDishes(data.fixedDishes).map((fd) => ({ ...fd, placed: 0 }));
-
-  for (const group of groups) {
-    plan[group.id] = {};
-    const groupMembers = membersOfGroup(group, members);
-    const groupHasKids = groupMembers.some((m) => {
-      const s = stageForAge(resolveMemberAge(m)).id;
-      return s === "baby" || s === "infantil" || s === "primaria";
-    });
-
-    // Aggregate per-member allergies + dislikes for this group.
-    const groupAllergies = Array.from(
-      new Set(groupMembers.flatMap((m) => m.allergies ?? []))
-    );
-    const groupDislikes = Array.from(
-      new Set([...(dislikes ?? []), ...groupMembers.flatMap((m) => m.dislikes ?? [])])
-    );
-
-    const usedIds = new Set();
-    const proteinCount = { pescado: 0, carne: 0, legumbres: 0, huevos: 0 };
-    const typeCount = {};
-
-    // Per-group goal ids with global fallback. Members can also bring their
-    // own preferences (data.goalsByGroup may also contain memberId entries
-    // when the UI starts supporting per-member overrides).
-    const groupGoalIds =
-      data.goalsByGroup?.[group.id] ?? data.goals ?? [];
-    const memberGoalIds = groupMembers.flatMap(
-      (m) => data.goalsByGroup?.[m.id] ?? []
-    );
-    const goalIds = Array.from(new Set([...groupGoalIds, ...memberGoalIds]));
-    const freqs = data.freqsByGroup?.[group.id] ?? data.freqs ?? {};
-    const targetKcal = groupTargetKcal(data, group);
-    const kitchenTools = [
-      ...(Array.isArray(data.kitchenTools) ? data.kitchenTools : []),
-      ...(Array.isArray(data.customKitchenTools) ? data.customKitchenTools : []),
-    ];
-
-    const meals = getMeals(data);
-    for (const day of DAYS) {
-      const dayProteinKeys = new Set();
-      const dayFlags = { hasPasta: false };
-      for (const meal of meals) {
-        const mode = modeForGroupSlot(group, members, schedule, day, meal);
-        const slot = `${day}-${meal}`;
-        if (!mode.cook) {
-          plan[group.id][slot] = null;
-          continue;
-        }
-        const eaters = groupMembers.filter((m) => {
-          const s = schedule[slotKey(m.id, day, meal)] ?? "casa";
-          return s === "casa" || s === "tupper";
-        }).length;
-
-        const isWeekend = day === "Sáb" || day === "Dom";
-        const schoolProteins = daySchoolProteins(data, groupMembers, day);
-        const ctx = {
-          meal,
-          mode: mode.mode,
-          groupHasKids,
-          isWeekend,
-          maxTime: maxCookTime(data, { isWeekend, meal }),
-          cookLevel,
-          cookSkills: data.cookSkills ?? [],
-          kitchenTools,
-          targetKcal,
-          goalIds,
-          freqs,
-          allergies: groupAllergies,
-          dislikes: groupDislikes,
-          usedIds,
-          proteinCount,
-          typeCount,
-          schoolProteins,
-          fixedTracks,
-          dayProteinKeys,
-          dayFlags,
-        };
-        let recipe;
-        let firstRecipeId = null;
-
-        if (isLunchMeal(meal)) {
-          const pair = pickComidaPair(ctx);
-          recipe = pair.main;
-          if (pair.primero) firstRecipeId = pair.primero.id;
-        } else {
-          recipe = pickRecipe(ctx);
-        }
-
-        if (!recipe) {
-          plan[group.id][slot] = null;
-          plan._warnings.push({
-            groupId: group.id,
-            groupLabel: group.label,
-            day,
-            meal,
-            type: "no-recipe",
-            message: "No hay receta compatible con alergias, restricciones y tipo de comida.",
-          });
-          continue;
-        }
-
-        if (firstRecipeId) {
-          const primero = RECIPES_BY_ID[firstRecipeId];
-          if (primero) {
-            trackRecipeUsage(primero, meal, ctx, usedIds, proteinCount, typeCount, fixedTracks);
-            trackDayPasta(primero, dayFlags);
-            trackDayProtein(dayProteinKeys, primero);
-          }
-        }
-
-        trackRecipeUsage(recipe, meal, ctx, usedIds, proteinCount, typeCount, fixedTracks);
-        trackDayPasta(recipe, dayFlags);
-        trackDayProtein(dayProteinKeys, recipe);
-        const slotWarnings = warningsForRecipe(recipe, ctx);
-        for (const warning of slotWarnings) {
-          plan._warnings.push({
-            ...warning,
-            groupId: group.id,
-            groupLabel: group.label,
-            day,
-            meal,
-          });
-        }
-        plan[group.id][slot] = {
-          recipeId: recipe.id,
-          firstRecipeId,
-          mode: mode.mode,
-          eaters,
-          warnings: slotWarnings,
-        };
-      }
-    }
-  }
-
-  return plan;
-}
-
-// `replaceMenuSlot` vivía aquí: elegía un plato alternativo para un hueco con
-// el catálogo local. Lo sustituyó `pickCatalogReplacement` (lib/aiPlanner.js)
-// cuando el generador pasó al LLM, y llevaba sin un solo llamador desde
-// entonces. Retirada el 14 sep 2026 — 160 líneas.
-//
-// Lo demás de este fichero NO está muerto, aunque lo parezca: `generateMenu`
-// ya no genera el menú de nadie, pero sí el estado de demo para desarrollo
-// (scripts/gen-demo-state.mjs), y de él cuelgan `pickRecipe`,
-// `pickComidaPrimero`, `pickComidaPair`, `trackDayProtein` y `recipeScore`.
-// Si algún día se retira esa demo, se van los cinco de golpe.
+// Aquí vivía el planificador local de platos (`generateMenu`, `pickRecipe`,
+// `recipeScore` y sus auxiliares) sobre las 29 recetas de prototipo: ya no
+// generaba el menú de nadie y solo alimentaba la demo y un test. Retirado el
+// 9 oct 2026 (#286): la demo es ahora una lista fija de platos del catálogo
+// (src/dev/demoMenu.js) y el motor de verdad es el solver (lib/solver.js).

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { FRECUENCIAS, OPERADORES, PLANOS, TABLAS, TIPOS_TABLA } from "./model.js";
+import { FRECUENCIAS, OPERADORES, PLANOS, ROLES_FUENTE, TABLAS } from "./model.js";
 import { RecipeSchema } from "./recipeSchema.js";
 import { IngredientSchema } from "./ingredientSchema.js";
 
@@ -50,7 +50,7 @@ function clavesDe(schema) {
 describe("el registro del modelo", () => {
   it("usa solo los vocabularios que declara", () => {
     for (const t of TABLAS) {
-      expect(TIPOS_TABLA, `${t.id}.tipo`).toContain(t.tipo);
+      expect(ROLES_FUENTE, `${t.id}.rol`).toContain(t.rol);
       expect(FRECUENCIAS, `${t.id}.actualizacion`).toContain(t.actualizacion);
       for (const c of t.campos) expect(PLANOS, `${t.id}.${c.campo}.plano`).toContain(c.plano);
     }

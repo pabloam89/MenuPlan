@@ -19,9 +19,10 @@
  * del todo si nadie contesta — con "cremas" le negarías sólidos a quien ya los
  * come, y con "sólidos" le ofrecerías trozos a quien todavía no puede.
  */
+import { ETAPA_BEBE } from "./vocabularios.js";
 
-/** Las tres etapas, en el orden en que se viven. */
-export const ETAPAS_BEBE = ["cremas", "mixto", "solidos"];
+/** Las tres etapas, en el orden en que se viven (la lista vive en vocabularios.js). */
+export const ETAPAS_BEBE = ETAPA_BEBE;
 
 export const ETAPA_BEBE_DEFAULT = "mixto";
 

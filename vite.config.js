@@ -1,6 +1,11 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import { configDefaults } from 'vitest/config'
+import { cargarEnv, direcciones, esReferencia } from './scripts/lib/env.mjs'
+import { bajarPrioridad } from './scripts/lib/prioridad.mjs'
+import { banderas } from './scripts/lib/banderas.mjs'
+import { color } from './src/design/tokens.js'
 
 function readJsonBody(req) {
   return new Promise((resolve) => {
@@ -127,7 +132,22 @@ function devDishPhotoApi(env) {
   }
 }
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ mode, command }) => {
+  // Tests y build en local, con prioridad baja (#284): el PC sigue fluido con
+  // varias sesiones a la vez. Aquí y no en un envoltorio porque este fichero lo
+  // cargan todos los caminos (npm test, npx vitest, vecinos, npm run build) y
+  // antes de lanzar los workers, que heredan la prioridad. No en el CI ni en
+  // Vercel; tampoco en `npm run dev`, que no es un trabajo pesado.
+  if (command === 'build' || process.env.VITEST) bajarPrioridad()
+
+  // Las direcciones de 1Password (op://…) de ops/env.1password, con .env.local encima:
+  // se resuelven aquí, antes de loadEnv, porque Vite deja que process.env pise
+  // al fichero. En los tests no: corren sin claves, como en el CI. Tolerante:
+  // una clave que la sesión no puede leer (las de administración, #299) queda
+  // vacía con un aviso y no para el arranque.
+  const refs = Object.entries(direcciones()).filter(([, v]) => esReferencia(v)).map(([k]) => k)
+  if (process.env.VITEST) for (const k of refs) process.env[k] ||= ''
+  else cargarEnv(refs, { tolerante: true })
   const env = loadEnv(mode, process.cwd(), '')
 
   // El commit del que sale este build, para sellar cada evento de analítica
@@ -145,33 +165,15 @@ export default defineConfig(({ mode }) => {
     env.VITE_APP_VERSION ||
     'dev'
 
-  // Qué motor asigna los platos (ver solverActivo en src/lib/solver.js). En
-  // los builds de `staging` y de `main` (producción, desde el 30 sep 2026) el
-  // solver va encendido por defecto; en local y en las ramas de preview sigue
-  // el modelo, salvo que VITE_MOTOR diga otra cosa (y los tests cuentan con
-  // eso). Un navegador concreto puede volver al modelo con localStorage.mp_motor.
   const gitRef = process.env.VERCEL_GIT_COMMIT_REF || env.VERCEL_GIT_COMMIT_REF || ''
-  const desplegada = gitRef === 'staging' || gitRef === 'main'
-  const motor =
-    process.env.VITE_MOTOR || env.VITE_MOTOR || (desplegada ? 'solver' : 'modelo')
-
-  // La pizarra: empezar un menú vacío y rellenarlo a mano (ver pizarraActiva
-  // en src/lib/pizarra.js). Mismo trato que el motor: encendida en `staging`
-  // y en producción, apagada en local salvo que VITE_PIZARRA la encienda.
-  const pizarra =
-    process.env.VITE_PIZARRA || env.VITE_PIZARRA || (desplegada ? 'on' : 'off')
-
-  // Carrusel de presentación y visitas guiadas (GUIAS_ACTIVAS en App.jsx).
-  // Apagadas en `staging`, donde el bot de Telegram hace de guía; encendidas
-  // en producción hasta que el frontal de Lola llegue allí.
-  const guias = process.env.VITE_GUIAS || env.VITE_GUIAS || (gitRef === 'staging' ? 'off' : 'on')
+  const flags = banderas(gitRef, (k) => process.env[k] || env[k])
 
   return {
     define: {
       'import.meta.env.VITE_APP_VERSION': JSON.stringify(appVersion),
-      'import.meta.env.VITE_MOTOR': JSON.stringify(motor),
-      'import.meta.env.VITE_PIZARRA': JSON.stringify(pizarra),
-      'import.meta.env.VITE_GUIAS': JSON.stringify(guias),
+      ...Object.fromEntries(
+        Object.entries(flags).map(([k, valor]) => [`import.meta.env.${k}`, JSON.stringify(valor)]),
+      ),
     },
     plugins: [
       react(),
@@ -186,8 +188,8 @@ export default defineConfig(({ mode }) => {
           name: 'HoMenu',
           short_name: 'HoMenu',
           description: 'El menú familiar de la semana, resuelto.',
-          theme_color: '#2d5a3d',
-          background_color: '#ffffff',
+          theme_color: color.marca,
+          background_color: color.superficie,
           display: 'standalone',
           orientation: 'portrait',
           start_url: '/',
@@ -255,6 +257,15 @@ export default defineConfig(({ mode }) => {
       // Un porcentaje y no un número fijo para que una máquina de CI con más
       // núcleos siga aprovechándolos.
       maxWorkers: "50%",
+      // Y el tiempo por test. Medido el 8 oct 2026: los tests que recorren el
+      // catálogo entero (axisRegistry, aiPlanner, nutricion del bot) tardan
+      // 4-6 s con el PC cargado (varias sesiones, servidores de Vite), y el
+      // corte por defecto de vitest es 5 s. Fallaba uno distinto cada vez,
+      // con `STACK_TRACE_ERROR` y sin aserción: era el reloj, no el código.
+      testTimeout: 30_000,
+      // e2e/ es de Playwright (playwright.config.js), no de vitest: sus
+      // *.spec.js abren un navegador y no corren aquí.
+      exclude: [...configDefaults.exclude, 'e2e/**'],
     },
     server: {
       port: 5176,

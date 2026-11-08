@@ -1,4 +1,6 @@
+import { apiUrl } from "./apiUrl.js";
 import { supabase } from "./supabase.js";
+import * as ids from "./ids.js";
 
 const deviceType = () =>
   /Mobi|Android/i.test(navigator.userAgent) ? "mobile" : "desktop";
@@ -15,13 +17,27 @@ const deviceType = () =>
 // métrica, es una anécdota.
 export const APP_VERSION = import.meta.env.VITE_APP_VERSION ?? "dev";
 
+// El nombre con el que nace el perfil. Cada proveedor rellena su metadata a su
+// manera y Apple puede no mandar nombre ninguno: con "Ocultar mi correo" el
+// email es un alias tipo a1b2c3@privaterelay.appleid.com, y ese valor acababa
+// tal cual en el nombre visible y, vía deriveUsername, en el handle PÚBLICO
+// del perfil. Del email solo se usa lo de delante de la arroba.
+function displayNameFrom(user) {
+  const meta = user.user_metadata ?? {};
+  const name =
+    meta.full_name ||
+    meta.name ||
+    [meta.given_name, meta.family_name].filter(Boolean).join(" ");
+  return name || (user.email ? user.email.split("@")[0] : "");
+}
+
 export async function upsertUserProfile(user, extra = {}) {
   if (!supabase || !user) return;
   const { error } = await supabase.from("user_profiles").upsert(
     {
       user_id: user.id,
       email: user.email,
-      display_name: user.user_metadata?.full_name ?? user.email,
+      display_name: displayNameFrom(user),
       avatar_url: user.user_metadata?.avatar_url ?? null,
       device_type: deviceType(),
       locale: navigator.language ?? null,
@@ -46,12 +62,12 @@ let flushTimer = null;
 // auth.uid(), so their events go through /api/track instead (service-role
 // insert, user_id null) tagged with a random per-browser id. Kept in a separate
 // queue: a batch never mixes the two paths.
-const GUEST_TRACK_URL = "/api/track";
+const GUEST_TRACK_URL = apiUrl("/api/track");
 const ANON_ID_KEY = "mp_anon_id";
 let guestQueue = [];
 let anonId = null;
 
-function getAnonId() {
+export function getAnonId() {
   if (anonId) return anonId;
   try {
     anonId = localStorage.getItem(ANON_ID_KEY);
@@ -59,9 +75,7 @@ function getAnonId() {
     // storage blocked — fall through to a per-session id
   }
   if (!anonId) {
-    anonId =
-      globalThis.crypto?.randomUUID?.() ??
-      `${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
+    anonId = ids.anonimo.nuevo();
     try {
       localStorage.setItem(ANON_ID_KEY, anonId);
     } catch {

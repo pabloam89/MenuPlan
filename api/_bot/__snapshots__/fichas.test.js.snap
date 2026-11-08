@@ -1,0 +1,2300 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
+"[
+ {
+  "type": "custom",
+  "name": "consultar",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "que": {
+     "type": "string",
+     "enum": [
+      "casa",
+      "ajustes",
+      "despensa",
+      "compra",
+      "cole",
+      "recordatorios"
+     ],
+     "description": "Qué mirar."
+    }
+   },
+   "required": [
+    "que"
+   ],
+   "additionalProperties": false
+  },
+  "description": "Mira un dato de la casa, sin cambiar nada. que: casa = quién vive en la casa (nombres, edades, alergias, intolerancias, lo que no les gusta), los grupos de menú, qué comidas se planifican y qué día es hoy; ajustes = cómo está configurada la casa: estructura de comidas, nivel de cocina, trastos, gustos anotados (con su estado: fijado/inferido/delegado), quién come fuera y reglas/invitados; despensa = lo que hay apuntado en la despensa de la casa (nevera, despensa, congelador); compra = la lista de la compra de la semana activa: lo que falta por comprar, por secciones; cole = el menú del cole guardado (lo que comen los niños en el comedor); recordatorios = los recordatorios pendientes de este chat, con su id."
+ },
+ {
+  "type": "custom",
+  "name": "ver_menu",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "cuando": {
+     "type": "string",
+     "enum": [
+      "hoy",
+      "manana",
+      "pasado_manana",
+      "dia",
+      "finde",
+      "finde_que_viene",
+      "esta_semana",
+      "semana_que_viene",
+      "rango"
+     ],
+     "description": "Qué días. dia = un día (en dia); rango = de dia a hasta. Sin él, esta semana."
+    },
+    "dia": {
+     "type": "string",
+     "description": "Con cuando=dia o rango: lunes…domingo, «hoy» o «mañana»."
+    },
+    "hasta": {
+     "type": "string",
+     "description": "Con cuando=rango: el último día."
+    },
+    "comidas": {
+     "type": "array",
+     "items": {
+      "type": "string",
+      "enum": [
+       "Desayuno",
+       "Comida",
+       "Merienda",
+       "Cena",
+       "Postre",
+       "Aperitivo"
+      ]
+     },
+     "description": "Opcional: solo esas comidas («solo cenas»)."
+    },
+    "platos": {
+     "type": "array",
+     "items": {
+      "type": "string",
+      "enum": [
+       "primero",
+       "principal"
+      ]
+     },
+     "description": "Opcional: primero o principal."
+    },
+    "para": {
+     "type": "string",
+     "description": "Opcional: para quién («el bebé», «los peques», «Leo»)."
+    },
+    "semana": {
+     "type": "string",
+     "enum": [
+      "esta",
+      "siguiente"
+     ],
+     "description": "Opcional: «esta» semana o la «siguiente», si lo dicen. Sin ella, el próximo día con ese nombre que tenga menú."
+    }
+   },
+   "additionalProperties": false
+  },
+  "description": "El menú activo, justo el trozo que piden: unos días (hoy, mañana, un día, el finde, esta semana, la que viene, de un día a otro), unas comidas, unos platos, para alguien. Lo pedido SALE PINTADO DEBAJO de tu mensaje: no lo copies; como mucho, una frase. Lo que devuelve es para que tú lo sepas."
+ },
+ {
+  "type": "custom",
+  "name": "ver_receta",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "nombre": {
+     "type": "string",
+     "description": "Nombre del plato, aunque sea aproximado."
+    }
+   },
+   "required": [
+    "nombre"
+   ],
+   "additionalProperties": false
+  },
+  "description": "Ingredientes y pasos de una receta, por su nombre (normalmente uno de los platos del menú)."
+ },
+ {
+  "type": "custom",
+  "name": "por_que_plato",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "dia": {
+     "type": "string",
+     "description": "lunes…domingo, «hoy» o «mañana»."
+    },
+    "semana": {
+     "type": "string",
+     "enum": [
+      "esta",
+      "siguiente"
+     ],
+     "description": "Opcional: «esta» semana o la «siguiente», si lo dicen. Sin ella, el próximo día con ese nombre que tenga menú."
+    },
+    "comida": {
+     "type": "string",
+     "enum": [
+      "Desayuno",
+      "Comida",
+      "Merienda",
+      "Cena",
+      "Postre",
+      "Aperitivo"
+     ]
+    },
+    "grupo": {
+     "type": "string",
+     "description": "Opcional: para quién, si no es el menú de toda la familia."
+    },
+    "cual": {
+     "type": "string",
+     "enum": [
+      "primero",
+      "principal"
+     ],
+     "description": "Por defecto el principal."
+    }
+   },
+   "required": [
+    "dia",
+    "comida"
+   ],
+   "additionalProperties": false
+  },
+  "description": "Por qué hay un plato en el menú («¿por qué el martes pescado?», «¿quién ha puesto esto?»): quién lo puso (el menú automático, alguien a mano en la app o tú por el chat), cuándo y, si fue el menú automático, qué preferencias de la casa lo pidieron. Di eso tal cual; no inventes motivos que no traiga."
+ },
+ {
+  "type": "custom",
+  "name": "marcar_compra",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "productos": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "minItems": 1
+    },
+    "estado": {
+     "type": "string",
+     "enum": [
+      "comprado",
+      "pendiente"
+     ]
+    }
+   },
+   "required": [
+    "productos",
+    "estado"
+   ],
+   "additionalProperties": false
+  },
+  "description": "Marca productos de la lista como comprados (o los devuelve a pendientes). Usa los nombres como aparecen en la lista."
+ },
+ {
+  "type": "custom",
+  "name": "anadir_compra",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "productos": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "minItems": 1
+    }
+   },
+   "required": [
+    "productos"
+   ],
+   "additionalProperties": false
+  },
+  "description": "Añade a la lista de la compra comida o bebida que no sale del menú («añade leche», «apunta yogures»). Solo cosas de comer y beber: velas, pilas, pañales o limpieza no se añaden."
+ },
+ {
+  "type": "custom",
+  "name": "pasar_a_mercadona",
+  "input_schema": {
+   "type": "object",
+   "properties": {},
+   "additionalProperties": false
+  },
+  "description": "Rellena una lista en la cuenta de Mercadona de la familia con lo que queda por comprar («pásalo a Mercadona», «méteme la compra en Mercadona»). Solo crea la lista: no compra ni paga. Tarda unos minutos y el aviso llega solo a este chat. Dile lo que devuelve, sin añadir nada."
+ },
+ {
+  "type": "custom",
+  "name": "quitar_compra",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "productos": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
+    },
+    "manuales": {
+     "type": "boolean",
+     "description": "true: quita todo lo añadido a mano."
+    }
+   },
+   "additionalProperties": false
+  },
+  "description": "Quita productos de la lista de la compra («quita el pan», «borra los yogures, que ya no hacen falta»). NO es marcarlos como comprados (eso es marcar_compra). manuales=true quita todo lo que se añadió a mano («borra lo que añadí»). Lo quitado no vuelve aunque cambie el menú: dilo si preguntan. Usa los nombres como salen en la lista."
+ },
+ {
+  "type": "custom",
+  "name": "proponer_platos",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "dia": {
+     "type": "string",
+     "description": "Opcional: lunes…domingo, «hoy» o «mañana». Sin él, la próxima comida que toca: NO lo preguntes para recomendar («entre semana» sin más = hoy)."
+    },
+    "semana": {
+     "type": "string",
+     "enum": [
+      "esta",
+      "siguiente"
+     ],
+     "description": "Opcional: «esta» semana o la «siguiente», si lo dicen. Sin ella, el próximo día con ese nombre que tenga menú."
+    },
+    "comida": {
+     "type": "string",
+     "enum": [
+      "Desayuno",
+      "Comida",
+      "Merienda",
+      "Cena",
+      "Postre",
+      "Aperitivo"
+     ],
+     "description": "Opcional: sin ella, la próxima que toca por la hora."
+    },
+    "grupo": {
+     "type": "string",
+     "description": "Opcional: para quién, si no es para toda la familia: el nombre de una persona («Leo») o «los peques», «los mayores», «el bebé». Sin esto, es para toda la familia (el bebé tiene su menú)."
+    },
+    "cual": {
+     "type": "string",
+     "enum": [
+      "principal",
+      "primero"
+     ],
+     "description": "Por defecto el principal (el segundo en la comida)."
+    },
+    "n": {
+     "type": "integer",
+     "minimum": 2,
+     "maximum": 6,
+     "description": "Cuántas opciones; por defecto 3 (caben 3 botones más «Elige tú»)."
+    },
+    "parecido_a": {
+     "type": "string",
+     "description": "Opcional: el plato que piden («salmón al horno con ensalada de mango»)."
+    },
+    "plato": {
+     "type": "string",
+     "description": "Opcional: un plato que YA está en el menú, por su nombre («el shakshuka», «las lentejas»): el hueco es el suyo, de hoy en adelante. Sin dia ni comida."
+    },
+    "estilo": {
+     "type": "string",
+     "enum": [
+      "ligero",
+      "rapido"
+     ],
+     "description": "Opcional: si piden algo ligero (ordena por calorías y las enseña) o rápido (por tiempo)."
+    },
+    "para": {
+     "type": "string",
+     "enum": [
+      "mayores",
+      "ninos",
+      "bebe"
+     ],
+     "description": "Opcional: para quién. «Con mi mujer/marido», «para nosotros» = mayores. El bebé solo si lo nombran."
+    },
+    "de_fuera": {
+     "type": "object",
+     "description": "Lo que NO pueden comer los invitados de esa comida (celíaco = alergias: gluten; embarazada = estados: embarazo). Pásalo SIEMPRE que lo hayan dicho, también en cada propuesta o cambio siguiente de esa comida: el motor lo filtra igual que lo de la casa. Sin esto, no está filtrado y no puedes decir que lo es.",
+     "properties": {
+      "alergias": {
+       "type": "array",
+       "items": {
+        "type": "string",
+        "enum": [
+         "gluten",
+         "crustaceos",
+         "huevos",
+         "pescado",
+         "cacahuetes",
+         "soja",
+         "leche",
+         "frutos_cascara",
+         "apio",
+         "mostaza",
+         "sesamo",
+         "sulfitos",
+         "altramuces",
+         "moluscos"
+        ]
+       }
+      },
+      "intolerancias": {
+       "type": "array",
+       "items": {
+        "type": "string",
+        "enum": [
+         "lactosa_fina",
+         "fructosa",
+         "sorbitol"
+        ]
+       }
+      },
+      "estados": {
+       "type": "array",
+       "items": {
+        "type": "string",
+        "enum": [
+         "embarazo",
+         "lactancia"
+        ]
+       }
+      }
+     },
+     "additionalProperties": false
+    },
+    "rasgos": {
+     "type": "object",
+     "description": "Opcional: lo que piden del plato, tal cual lo dicen. «Reconfortante», «de cuchara», «que no pique», «barato», «fresquito»… Solo los que digan.",
+     "properties": {
+      "connotacion": {
+       "type": "string",
+       "enum": [
+        "reconfortante",
+        "fresco",
+        "casero",
+        "festivo"
+       ]
+      },
+      "textura": {
+       "type": "string",
+       "enum": [
+        "cuchara",
+        "tenedor",
+        "mano"
+       ],
+       "description": "cuchara = sopas, cremas, guisos; mano = para picar o bocadillo."
+      },
+      "picante": {
+       "type": "string",
+       "enum": [
+        "sin",
+        "con"
+       ],
+       "description": "sin = que no pique; con = que pique."
+      },
+      "sabor": {
+       "type": "string",
+       "enum": [
+        "suave",
+        "intenso",
+        "especiado",
+        "dulce",
+        "acido",
+        "ahumado"
+       ]
+      },
+      "coste": {
+       "type": "string",
+       "enum": [
+        "economico",
+        "medio",
+        "caro"
+       ],
+       "description": "economico = barato (menos de 1 € por ración)."
+      },
+      "calorias": {
+       "type": "string",
+       "enum": [
+        "ligero",
+        "medio",
+        "contundente"
+       ],
+       "description": "Para «algo contundente»; para «ligero» usa estilo."
+      }
+     },
+     "additionalProperties": false
+    },
+    "ejes": {
+     "type": "array",
+     "minItems": 1,
+     "maxItems": 3,
+     "description": "Opcional: «más» o «menos» de un nutriente, comparado con el plato que ya está en ese hueco; si piden varios, todos a la vez («más proteína y menos grasa»). Cualquier nutriente: «más carbos» → carbohidratos, «menos sal» → sodio, «más hierro» → hierro. carga = lo que sacia («que llene»); densidadNutricional = kcal por 100 g («que pese menos»). «Ligero» sigue siendo estilo. Solo si lo piden.",
+     "items": {
+      "type": "object",
+      "properties": {
+       "cual": {
+        "type": "string",
+        "enum": [
+         "calorias",
+         "proteina",
+         "carbohidratos",
+         "grasa",
+         "fibra",
+         "azucar",
+         "grasa_saturada",
+         "sodio",
+         "calcio",
+         "hierro",
+         "magnesio",
+         "fosforo",
+         "potasio",
+         "zinc",
+         "cobre",
+         "manganeso",
+         "selenio",
+         "yodo",
+         "vitamina_a",
+         "betacaroteno",
+         "vitamina_d",
+         "vitamina_e",
+         "vitamina_k",
+         "vitamina_c",
+         "vitamina_b1",
+         "vitamina_b2",
+         "vitamina_b3",
+         "vitamina_b5",
+         "vitamina_b6",
+         "folato",
+         "vitamina_b12",
+         "colesterol",
+         "carga",
+         "densidadNutricional"
+        ]
+       },
+       "direccion": {
+        "type": "string",
+        "enum": [
+         "mas",
+         "menos"
+        ]
+       }
+      },
+      "required": [
+       "cual",
+       "direccion"
+      ],
+      "additionalProperties": false
+     }
+    },
+    "perfil": {
+     "type": "string",
+     "enum": [
+      "equilibrado",
+      "altoProteina",
+      "despuesEntrenar",
+      "antesEntrenar",
+      "ligeroQueSacie",
+      "bajoSal",
+      "ricoHierro"
+     ],
+     "description": "Opcional: un perfil del plato entero, varios nutrientes a la vez. equilibrado = equilibrado; altoProteina = alto en proteína; despuesEntrenar = para después de entrenar; antesEntrenar = para antes de entrenar; ligeroQueSacie = ligero pero que sacie; bajoSal = bajo en sal; ricoHierro = rico en hierro. «Más completo», «que tenga de todo», «un compendio de proteína, grasa e hidratos» → equilibrado. Solo para el plato principal."
+    },
+    "repetir_vecinos": {
+     "type": "boolean",
+     "description": "Opcional: true si piden que valga repetir lo de los días de al lado (el botón «Repetir con los días de al lado»): entran las proteínas que la respuesta dio por EXCLUIDAS."
+    }
+   },
+   "additionalProperties": false
+  },
+  "description": "Recetas del catálogo que encajan en un hueco del menú (respetan alergias, gustos, tiempo y lo que ya hay en la semana), SIN cambiar nada. Para recomendar o dar a elegir; con parecido_a, las más parecidas a un plato que piden por su nombre. En la comida hay primero y segundo; «cual» dice cuál. Para cambiar un plato del menú dicho por su nombre («cámbiame el shakshuka»), pásalo en plato y no mires antes ver_menu: la herramienta encuentra su día y su comida. Devuelve también qué es el plato que hay ahora."
+ },
+ {
+  "type": "custom",
+  "name": "donde_come",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "plazo": {
+     "type": "string",
+     "enum": [
+      "dias",
+      "siempre"
+     ],
+     "description": "dias: solo esos días. siempre: todas las semanas."
+    },
+    "dias": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "Como lo digan: hoy, mañana, pasado mañana, el jueves, el finde, el 15, 15 de noviembre, de lunes a miércoles o AAAA-MM-DD. Si dudas de qué día es, pregúntalo antes."
+    },
+    "semana": {
+     "type": "string",
+     "enum": [
+      "esta",
+      "siguiente"
+     ],
+     "description": "Con plazo dias, siguiente si dicen «de la semana que viene» («el viernes de la que viene»)."
+    },
+    "comidas": {
+     "type": "array",
+     "items": {
+      "type": "string",
+      "enum": [
+       "Desayuno",
+       "Comida",
+       "Merienda",
+       "Cena",
+       "Postre",
+       "Aperitivo"
+      ]
+     }
+    },
+    "quienes": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "Nombres de la casa, «yo» (quien escribe), «los niños», «adultos»; con plazo dias, vacío = toda la casa."
+    },
+    "donde": {
+     "type": "string",
+     "enum": [
+      "casa",
+      "tupper",
+      "fuera",
+      "cole",
+      "off"
+     ]
+    },
+    "de_nuevo": {
+     "type": "boolean",
+     "description": "Solo si la herramienta te dijo que eso ya se guardó hace poco y la persona, AHORA, ha confirmado que lo quiere también para estos días."
+    }
+   },
+   "required": [
+    "plazo"
+   ],
+   "additionalProperties": false
+  },
+  "description": "Quién come dónde, con su plazo. plazo dias: días concretos en que alguien (o toda la casa) no come en casa, o esa comida no se hace: «hoy cenamos fuera», «el viernes Leo come con los abuelos», «Nat no está el finde», «el jueves comida no, que no tengo tiempo», «el 15 no comemos». Una llamada apunta todos los días × todas las comidas que le pases: «no come el finde» es dias [finde] con comidas [Comida, Cena]. Si los días no llevan las mismas comidas («el finde entero y hoy solo la cena»), una llamada por cada combinación. Si en el menú ya hecho todo un grupo queda fuera, se quita ese plato y la compra se rehace (sale pintado debajo); si solo falta alguien, el plato se queda para los demás. plazo siempre: el horario FIJO, lo que se repite TODAS las semanas («los jueves comemos fuera», «los niños comen en el cole de lunes a jueves»), con donde y quienes obligatorios: dias lunes…domingo, «entre semana», «finde» o «de lunes a jueves» (vacío = todos); comidas vacío = Comida y Cena (con donde = cole, solo la Comida). Un día suelto («el jueves no comemos», «este viernes cenamos fuera») NUNCA es plazo siempre."
+ },
+ {
+  "type": "custom",
+  "name": "cambiar_plato",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "dia": {
+     "type": "string",
+     "description": "lunes…domingo, «hoy» o «mañana»."
+    },
+    "semana": {
+     "type": "string",
+     "enum": [
+      "esta",
+      "siguiente"
+     ],
+     "description": "Opcional: «esta» semana o la «siguiente», si lo dicen. Sin ella, el próximo día con ese nombre que tenga menú."
+    },
+    "comida": {
+     "type": "string",
+     "enum": [
+      "Desayuno",
+      "Comida",
+      "Merienda",
+      "Cena",
+      "Postre",
+      "Aperitivo"
+     ]
+    },
+    "grupo": {
+     "type": "string",
+     "description": "Opcional: para quién, si no es para toda la familia: el nombre de una persona («Leo») o «los peques», «los mayores», «el bebé». Sin esto, es para toda la familia (el bebé tiene su menú)."
+    },
+    "cual": {
+     "type": "string",
+     "enum": [
+      "principal",
+      "primero"
+     ],
+     "description": "Por defecto el principal (el segundo en la comida)."
+    },
+    "receta": {
+     "type": "string",
+     "description": "Opcional: el nombre de la receta elegida. Si va, rasgos, ejes y perfil no se usan."
+    },
+    "rasgos": {
+     "type": "object",
+     "description": "Opcional: lo que piden del plato, tal cual lo dicen. «Reconfortante», «de cuchara», «que no pique», «barato», «fresquito»… Solo los que digan.",
+     "properties": {
+      "connotacion": {
+       "type": "string",
+       "enum": [
+        "reconfortante",
+        "fresco",
+        "casero",
+        "festivo"
+       ]
+      },
+      "textura": {
+       "type": "string",
+       "enum": [
+        "cuchara",
+        "tenedor",
+        "mano"
+       ],
+       "description": "cuchara = sopas, cremas, guisos; mano = para picar o bocadillo."
+      },
+      "picante": {
+       "type": "string",
+       "enum": [
+        "sin",
+        "con"
+       ],
+       "description": "sin = que no pique; con = que pique."
+      },
+      "sabor": {
+       "type": "string",
+       "enum": [
+        "suave",
+        "intenso",
+        "especiado",
+        "dulce",
+        "acido",
+        "ahumado"
+       ]
+      },
+      "coste": {
+       "type": "string",
+       "enum": [
+        "economico",
+        "medio",
+        "caro"
+       ],
+       "description": "economico = barato (menos de 1 € por ración)."
+      },
+      "calorias": {
+       "type": "string",
+       "enum": [
+        "ligero",
+        "medio",
+        "contundente"
+       ],
+       "description": "Para «algo contundente»; para «ligero» usa estilo."
+      }
+     },
+     "additionalProperties": false
+    },
+    "ejes": {
+     "type": "array",
+     "minItems": 1,
+     "maxItems": 3,
+     "description": "Opcional: «más» o «menos» de un nutriente, comparado con el plato que ya está en ese hueco; si piden varios, todos a la vez («más proteína y menos grasa»). Cualquier nutriente: «más carbos» → carbohidratos, «menos sal» → sodio, «más hierro» → hierro. carga = lo que sacia («que llene»); densidadNutricional = kcal por 100 g («que pese menos»). «Ligero» sigue siendo estilo. Solo si lo piden.",
+     "items": {
+      "type": "object",
+      "properties": {
+       "cual": {
+        "type": "string",
+        "enum": [
+         "calorias",
+         "proteina",
+         "carbohidratos",
+         "grasa",
+         "fibra",
+         "azucar",
+         "grasa_saturada",
+         "sodio",
+         "calcio",
+         "hierro",
+         "magnesio",
+         "fosforo",
+         "potasio",
+         "zinc",
+         "cobre",
+         "manganeso",
+         "selenio",
+         "yodo",
+         "vitamina_a",
+         "betacaroteno",
+         "vitamina_d",
+         "vitamina_e",
+         "vitamina_k",
+         "vitamina_c",
+         "vitamina_b1",
+         "vitamina_b2",
+         "vitamina_b3",
+         "vitamina_b5",
+         "vitamina_b6",
+         "folato",
+         "vitamina_b12",
+         "colesterol",
+         "carga",
+         "densidadNutricional"
+        ]
+       },
+       "direccion": {
+        "type": "string",
+        "enum": [
+         "mas",
+         "menos"
+        ]
+       }
+      },
+      "required": [
+       "cual",
+       "direccion"
+      ],
+      "additionalProperties": false
+     }
+    },
+    "perfil": {
+     "type": "string",
+     "enum": [
+      "equilibrado",
+      "altoProteina",
+      "despuesEntrenar",
+      "antesEntrenar",
+      "ligeroQueSacie",
+      "bajoSal",
+      "ricoHierro"
+     ],
+     "description": "Opcional: un perfil del plato entero, varios nutrientes a la vez. equilibrado = equilibrado; altoProteina = alto en proteína; despuesEntrenar = para después de entrenar; antesEntrenar = para antes de entrenar; ligeroQueSacie = ligero pero que sacie; bajoSal = bajo en sal; ricoHierro = rico en hierro. «Más completo», «que tenga de todo», «un compendio de proteína, grasa e hidratos» → equilibrado. Solo para el plato principal."
+    },
+    "de_fuera": {
+     "type": "object",
+     "description": "Lo que NO pueden comer los invitados de esa comida (celíaco = alergias: gluten; embarazada = estados: embarazo). Pásalo SIEMPRE que lo hayan dicho, también en cada propuesta o cambio siguiente de esa comida: el motor lo filtra igual que lo de la casa. Sin esto, no está filtrado y no puedes decir que lo es.",
+     "properties": {
+      "alergias": {
+       "type": "array",
+       "items": {
+        "type": "string",
+        "enum": [
+         "gluten",
+         "crustaceos",
+         "huevos",
+         "pescado",
+         "cacahuetes",
+         "soja",
+         "leche",
+         "frutos_cascara",
+         "apio",
+         "mostaza",
+         "sesamo",
+         "sulfitos",
+         "altramuces",
+         "moluscos"
+        ]
+       }
+      },
+      "intolerancias": {
+       "type": "array",
+       "items": {
+        "type": "string",
+        "enum": [
+         "lactosa_fina",
+         "fructosa",
+         "sorbitol"
+        ]
+       }
+      },
+      "estados": {
+       "type": "array",
+       "items": {
+        "type": "string",
+        "enum": [
+         "embarazo",
+         "lactancia"
+        ]
+       }
+      }
+     },
+     "additionalProperties": false
+    }
+   },
+   "required": [
+    "dia",
+    "comida"
+   ],
+   "additionalProperties": false
+  },
+  "description": "Cambia el plato de un hueco del menú y rehace la compra. Con «receta» pone esa o, si no está tal cual en el catálogo, la más parecida que encaje en el hueco (la respuesta dice si es aproximada); sin ella, el motor elige otra respetando alergias y preferencias. Con «rasgos», «ejes» (más/menos de cualquier nutriente) o «perfil» (equilibrado, para entrenar…) elige solo entre las que cumplen; si ninguna cumple, NO cambia nada y lo dice. En la comida y la cena hay primero (entrante) y segundo; «cual» dice cuál. Un entrante, primero o tapa para una comida o cena que no lo tenía se AÑADE con cual: primero, y el principal no se toca: nunca cambies el principal para poner un entrante."
+ },
+ {
+  "type": "custom",
+  "name": "ajustar_gustos",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "ajustes": {
+     "type": "array",
+     "minItems": 1,
+     "maxItems": 8,
+     "items": {
+      "type": "object",
+      "properties": {
+       "campo": {
+        "type": "string"
+       },
+       "valor": {
+        "type": "string"
+       },
+       "op": {
+        "type": "string",
+        "enum": [
+         "mas",
+         "menos",
+         "nunca"
+        ]
+       },
+       "n": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 7
+       },
+       "cantidad": {
+        "type": "string",
+        "description": "Solo freqs: «menos de dos», «como mucho tres», «al menos una vez»…"
+       },
+       "ambito": {
+        "type": "string",
+        "enum": [
+         "todos",
+         "ninos",
+         "adultos",
+         "bebes"
+        ]
+       },
+       "servicio": {
+        "type": "string",
+        "enum": [
+         "ambos",
+         "comida",
+         "cena"
+        ]
+       }
+      },
+      "required": [
+       "campo",
+       "valor",
+       "op"
+      ],
+      "additionalProperties": false
+     }
+    },
+    "frase": {
+     "type": "string",
+     "description": "Lo que dijo el usuario, literal: queda como procedencia."
+    },
+    "dicho": {
+     "type": "boolean",
+     "description": "true: lo ha dicho claro. false: lo supones tú."
+    },
+    "desde": {
+     "type": "string",
+     "description": "AAAA-MM-DD, solo si empieza más adelante."
+    },
+    "hasta": {
+     "type": "string",
+     "description": "AAAA-MM-DD, solo si tiene fin."
+    },
+    "dias": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "Solo esos días: Lun, Mar, Mié, Jue, Vie, Sáb, Dom."
+    },
+    "salvoDias": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "Todos los días menos estos."
+    }
+   },
+   "required": [
+    "ajustes",
+    "frase",
+    "dicho"
+   ],
+   "additionalProperties": false
+  },
+  "description": "Gustos de la casa, como el panel de la app. Cada ajuste: campo, valor, op (mas|menos|nunca), n opcional (veces/semana, 0-7, solo freqs; solo si dijo un número exacto), cantidad opcional (solo freqs: lo que dijo, literal, si es «menos de dos», «como mucho tres», «al menos una»…; el número lo saca el código, no tú), ambito (todos|ninos|adultos|bebes), servicio (ambos|comida|cena). Campos y valores válidos: DOMINIOS. «Nada de X» es favoritos/excluidos con op=nunca. dicho=true SOLO si es una instrucción o una norma de la casa («en casa no comemos cerdo», «pon más pescado», «nada de fritos»). Un comentario u opinión es dicho=false aunque hable de gustos («a los peques no les va mucho el pescado», «el cerdo nos sienta regular», «son de poco comer»): eso solo inclina el menú, no excluye nada y caduca; se apunta sin preguntar. Un antojo de hoy («hoy no me apetece») no es un gusto: no lo apuntes. Con algo supuesto, habla de ello como impresión, no como hecho. desde/hasta (AAAA-MM-DD) para lo que tiene fecha («este mes», «a partir del lunes»). dias y salvoDias para lo que vale solo algunos días («los lunes, sin carne» → dias [Lun]; «entre semana, nada de fritos» → dias [Lun..Vie]; «sin pescado en la cena salvo los viernes» → servicio cena, salvoDias [Vie]): por días solo se puede QUITAR (op=nunca: un ingrediente, carne, pescado, legumbres, huevos, pasta_arroz o una técnica) y solo como norma dicha."
+ },
+ {
+  "type": "custom",
+  "name": "descartar_supuesto",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "campo": {
+     "type": "string"
+    },
+    "valor": {
+     "type": "string"
+    },
+    "ambito": {
+     "type": "string",
+     "enum": [
+      "todos",
+      "ninos",
+      "adultos",
+      "bebes"
+     ]
+    },
+    "servicio": {
+     "type": "string",
+     "enum": [
+      "ambos",
+      "comida",
+      "cena"
+     ]
+    }
+   },
+   "required": [
+    "campo",
+    "valor"
+   ],
+   "additionalProperties": false
+  },
+  "description": "Cuando la familia desmiente algo que TÚ apuntaste como supuesto («no, el pescado sí les encanta», «lo dije solo por hoy»): llámala SIEMPRE. Lo que dijiste que apuntabas «como impresión» YA ESTÁ GUARDADO (sale en la ficha como «Supuesto:») y sigue inclinando el menú hasta que se descarta: contestar «vale, no apunto nada» no lo quita. Deja de valer y no lo vuelves a suponer. Mismos campo/valor/ambito/servicio con que se apuntó. Para lo que la familia dijo y ahora cambia, usa ajustar_gustos."
+ },
+ {
+  "type": "custom",
+  "name": "ajustar_casa",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "estructura": {
+     "type": "string",
+     "enum": [
+      "primero_segundo",
+      "1_plato"
+     ]
+    },
+    "estructuraCena": {
+     "type": "string",
+     "enum": [
+      "primero_segundo",
+      "1_plato"
+     ]
+    },
+    "esfuerzo": {
+     "type": "string",
+     "enum": [
+      "basic",
+      "normal",
+      "pro"
+     ]
+    },
+    "tiempo": {
+     "type": "string",
+     "enum": [
+      "con_prisa",
+      "normal",
+      "con_tiempo",
+      "depende"
+     ]
+    },
+    "trastosMas": {
+     "type": "array",
+     "items": {
+      "type": "string",
+      "enum": [
+       "Airfryer",
+       "Horno",
+       "Microondas",
+       "Olla rápida",
+       "Thermomix",
+       "Vaporera"
+      ]
+     },
+     "description": "Aparatos que se añaden."
+    },
+    "trastosMenos": {
+     "type": "array",
+     "items": {
+      "type": "string",
+      "enum": [
+       "Airfryer",
+       "Horno",
+       "Microondas",
+       "Olla rápida",
+       "Thermomix",
+       "Vaporera"
+      ]
+     },
+     "description": "Aparatos que ya no tienen."
+    },
+    "trastoOtro": {
+     "type": "string",
+     "description": "Un aparato que no está en la lista, como lo digan: se suma a los de fuera ya apuntados. Vacío (\\"\\") si ya no tienen los de fuera."
+    },
+    "comidas": {
+     "type": "array",
+     "items": {
+      "type": "string",
+      "enum": [
+       "Comida",
+       "Cena"
+      ]
+     },
+     "description": "Qué comidas se planifican."
+    },
+    "etapaBebe": {
+     "type": "string",
+     "enum": [
+      "cremas",
+      "mixto",
+      "solidos"
+     ],
+     "description": "Qué come el bebé: cremas (solo cremas y purés: todo triturado fino), mixto (un poco de cada: purés y algún trozo blando), solidos (ya come sólidos: trozos que coge con la mano). «Come de todo» o «ya come de todo» es solidos; «un poco de cada» o «purés y algún trozo», mixto. Apúntalo en cuanto lo digan, antes de proponerle nada."
+    },
+    "supermercadosMas": {
+     "type": "array",
+     "items": {
+      "type": "string",
+      "enum": [
+       "Mercadona",
+       "Lidl",
+       "Alcampo",
+       "Carrefour",
+       "Dia",
+       "Aldi",
+       "Eroski",
+       "Consum",
+       "Hipercor",
+       "Supercor",
+       "El Corte Inglés",
+       "Bonpreu",
+       "Gadis",
+       "Ahorramás",
+       "Froiz",
+       "Deza",
+       "Alimerka"
+      ]
+     },
+     "description": "Súper que se añaden."
+    },
+    "supermercadosMenos": {
+     "type": "array",
+     "items": {
+      "type": "string",
+      "enum": [
+       "Mercadona",
+       "Lidl",
+       "Alcampo",
+       "Carrefour",
+       "Dia",
+       "Aldi",
+       "Eroski",
+       "Consum",
+       "Hipercor",
+       "Supercor",
+       "El Corte Inglés",
+       "Bonpreu",
+       "Gadis",
+       "Ahorramás",
+       "Froiz",
+       "Deza",
+       "Alimerka"
+      ]
+     },
+     "description": "Súper que dejan."
+    },
+    "supermercadoOtro": {
+     "type": "string",
+     "description": "Un súper o tienda que no está en la lista, como lo digan: se suma a los de fuera ya apuntados. Vacío (\\"\\") si ya no compran en los de fuera."
+    },
+    "presupuesto": {
+     "type": "number",
+     "minimum": 10,
+     "maximum": 1000,
+     "description": "Euros por semana."
+    },
+    "sinPresupuesto": {
+     "type": "boolean"
+    },
+    "desayuno": {
+     "type": "string",
+     "enum": [
+      "off",
+      "variado",
+      "findes",
+      "igual"
+     ]
+    },
+    "merienda": {
+     "type": "string",
+     "enum": [
+      "off",
+      "semana",
+      "laborables"
+     ]
+    },
+    "postre": {
+     "type": "string",
+     "enum": [
+      "off",
+      "comida",
+      "cena",
+      "ambas"
+     ]
+    },
+    "postreTipo": {
+     "type": "string",
+     "enum": [
+      "inmediato",
+      "cazo",
+      "horno"
+     ]
+    },
+    "postreInmediato": {
+     "type": "string",
+     "enum": [
+      "fruta",
+      "yogur",
+      "mix"
+     ]
+    },
+    "usoDespensa": {
+     "type": "string",
+     "enum": [
+      "strict",
+      "only",
+      "prefer",
+      "off"
+     ]
+    }
+   },
+   "required": [],
+   "additionalProperties": false
+  },
+  "description": "Cómo funciona la casa, en cuatro partes. Cada llamada toca UNA parte; si dicen cosas de dos, dos llamadas. Pasa solo lo que cambien.\\nCOCINA. Cómo se cocina en casa: estructura de la comida (primero_segundo = primero y segundo; 1_plato = plato único), esfuerzo (basic/normal/pro), tiempo por día (con_prisa/normal/con_tiempo/depende) y aparatos (Airfryer, Horno, Microondas, Thermomix, Olla rápida, Vaporera). «Tenemos airfryer» es trastosMas [Airfryer]; «ya no tenemos horno», trastosMenos [Horno]: los demás se quedan. Uno que no está en la lista («tenemos plancha»), trastoOtro. Cocinar en tanda va por pedir_tanda.\\nCOMPRA. Dónde hace la compra la casa y cuánto quiere gastar. «También compramos en Lidl» es supermercadosMas [Lidl]; «ya no vamos al Dia», supermercadosMenos [Dia]: los demás se quedan. Uno que no está en la lista («compramos en la frutería de abajo»), supermercadoOtro. Con Mercadona, en la app la lista de la compra enseña el precio de cada cosa. presupuesto: euros por semana; sinPresupuesto=true si dicen que no tienen.\\nEXTRAS. Desayuno, merienda y postre, que van aparte de comida y cena. desayuno: off (sin desayuno), variado (uno distinto cada día), findes (el mismo entre semana y otro el finde), igual (siempre el mismo). merienda (solo para los niños): off, semana (los 7 días), laborables (de lunes a viernes). postre: off, comida, cena, ambas; postreTipo: inmediato (sin cocinar), cazo (cremas), horno (horneados); postreInmediato, si es sin cocinar: fruta, yogur, mix (alterna).\\nDESPENSA. Cuánto aprovecha el menú lo que hay en casa (la despensa). usoDespensa: strict (solo con lo de casa, sin comprar salvo que un hueco no salga de otra forma); only (sobre todo lo de casa, y se compra lo que falte); prefer (con lo de casa solo para desempatar entre platos); off (sin mirar lo de casa (la compra sigue descontando lo que tengas)). «Deja de usar lo de casa» es off. Lo que hay se apunta con anadir_despensa."
+ },
+ {
+  "type": "custom",
+  "name": "ajustar_trato",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "ritmo": {
+     "type": "string",
+     "enum": [
+      "directo",
+      "guiado"
+     ]
+    },
+    "profundidad": {
+     "type": "string",
+     "enum": [
+      "nada",
+      "poco",
+      "mucho",
+      "preguntar"
+     ]
+    },
+    "fotos": {
+     "type": "boolean"
+    },
+    "largo": {
+     "type": "string",
+     "enum": [
+      "corto",
+      "largo"
+     ]
+    }
+   },
+   "required": [],
+   "additionalProperties": false
+  },
+  "description": "Cómo quiere quien escribe que le hables (solo a él o ella, no a toda la casa). ritmo: directo («no me preguntes tanto», «decide tú») o guiado («ve paso a paso», «pregúntame antes»). profundidad, cuánto afinar antes de hacer un menú: nada («hazlo ya»), poco, mucho («quiero afinarlo bien») o preguntar (preguntárselo cada vez). fotos: si quiere fotos de los platos. largo: corto («más corto», «al grano») o largo («explícame más»). Solo lo que diga; lo demás no se toca. Úsala cuando lo pida como algo para siempre, no por un mensaje suelto."
+ },
+ {
+  "type": "custom",
+  "name": "ajustar_semana",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "semana": {
+     "type": "string",
+     "enum": [
+      "esta",
+      "siguiente"
+     ]
+    },
+    "dias": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "lunes…domingo, «entre semana» o «finde»: los días que SÍ entran."
+    },
+    "variedad": {
+     "type": "string",
+     "enum": [
+      "strict",
+      "moderate",
+      "relaxed"
+     ]
+    }
+   },
+   "required": [],
+   "additionalProperties": false
+  },
+  "description": "Qué días entran en el menú de una semana concreta («esta semana solo hasta el jueves», «la que viene de lunes a viernes»), y cuánto se pueden repetir platos entre semanas: variedad strict (nada de ninguna semana anterior), moderate (nada de la semana anterior), relaxed (se pueden repetir). Para «nunca el finde» de siempre, donde_come con plazo siempre con donde = off. Después, generar_menu para esa semana si quieren el menú ya."
+ },
+ {
+  "type": "custom",
+  "name": "pedir_tanda",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "bases": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "base": {
+        "type": "string"
+       },
+       "veces": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 5
+       }
+      },
+      "required": [
+       "base"
+      ],
+      "additionalProperties": false
+     }
+    },
+    "platos": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "familia": {
+        "type": "string"
+       },
+       "veces": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 4
+       }
+      },
+      "required": [
+       "familia"
+      ],
+      "additionalProperties": false
+     }
+    },
+    "minutos": {
+     "type": "integer",
+     "minimum": 0,
+     "maximum": 240
+    },
+    "dia": {
+     "type": "string"
+    },
+    "ninguna": {
+     "type": "boolean"
+    }
+   },
+   "required": [],
+   "additionalProperties": false
+  },
+  "description": "Batch cooking (día de hacer tuppers; a la familia nunca le digas «tanda»), como la pantalla de bases de la app. bases: lo que se deja hecho para usar en varios platos (claves: arroz, pasta, patatas, boniato, legumbre, quinoa, cuscus, sofrito, caldo, salsa_tomate, verdura_asada, pesto, bechamel, patatas_asadas, bolonesa), con veces = platos de la semana que lo usan (2-5; 0 lo quita). platos: platos que se dejan hechos o a medias (claves: croquetas-crudas, bunuelos-masa, falafel-crudo, empanadillas-cerradas, empanada-montada, lasana-montada, ravioli-cortados, quiche-sin-hornear, pastel-al-horno, huevos-rellenos, carne-empanada, verduras-rellenas, gazpacho, caldo-casero, crema, sopa), veces 1-4. minutos: el rato de manos que hay para la sesión (30-240). dia: el día en que se cocina (lunes…domingo). ninguna=true: deja de cocinar en tanda. Si una clave no vale, te devuelvo la lista buena: corrígela, no se lo preguntes a la familia."
+ },
+ {
+  "type": "custom",
+  "name": "anadir_invitado",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "dia": {
+     "type": "string",
+     "description": "Como lo digan: hoy, mañana, el jueves, el 15, 15 de noviembre o AAAA-MM-DD. «El jueves de la semana que viene»: dia jueves y semana siguiente."
+    },
+    "comida": {
+     "type": "string",
+     "enum": [
+      "Desayuno",
+      "Comida",
+      "Merienda",
+      "Cena",
+      "Postre",
+      "Aperitivo"
+     ]
+    },
+    "n": {
+     "type": "integer",
+     "minimum": 1,
+     "maximum": 20
+    },
+    "nombre": {
+     "type": "string"
+    },
+    "semana": {
+     "type": "string",
+     "enum": [
+      "esta",
+      "siguiente"
+     ]
+    }
+   },
+   "required": [
+    "dia",
+    "comida"
+   ],
+   "additionalProperties": false
+  },
+  "description": "Alguien de fuera viene a comer o cenar un día concreto. Cuenta al generar el menú de esa semana (raciones y compra) y caduca solo; si esa semana ya tiene menú, no lo cambia: dilo y ofrece rehacer ese día."
+ },
+ {
+  "type": "custom",
+  "name": "anadir_comensal",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "nombre": {
+     "type": "string"
+    },
+    "edad": {
+     "type": "integer",
+     "minimum": 0,
+     "maximum": 120
+    }
+   },
+   "required": [
+    "nombre"
+   ],
+   "additionalProperties": false
+  },
+  "description": "Añade a alguien que vive y come en casa (no un invitado puntual)."
+ },
+ {
+  "type": "custom",
+  "name": "ajustar_persona",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "nombre": {
+     "type": "string"
+    },
+    "nuevoNombre": {
+     "type": "string"
+    },
+    "edad": {
+     "type": "integer",
+     "minimum": 0,
+     "maximum": 120
+    },
+    "pesoKg": {
+     "type": "number"
+    },
+    "alturaCm": {
+     "type": "number"
+    },
+    "borrar": {
+     "type": "boolean"
+    }
+   },
+   "required": [
+    "nombre"
+   ],
+   "additionalProperties": false
+  },
+  "description": "Una persona de la casa: corregir cómo se escribe su nombre (nuevoNombre, p. ej. un nombre mal oído en un audio), su edad en años (quien se dio de alta sin edad cuenta como adulto hasta que se ponga), y peso (kg) y altura (cm), opcionales: con los dos, el motor ajusta su ración (cantidades de la compra y de las recetas). borrar=true quita peso y altura. nombre puede ser «yo»."
+ },
+ {
+  "type": "custom",
+  "name": "ajustar_menu_peques",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "cena": {
+     "type": "string",
+     "enum": [
+      "igual",
+      "aparte",
+      "lo_del_mediodia"
+     ]
+    },
+    "mediodia": {
+     "type": "string",
+     "enum": [
+      "igual",
+      "aparte"
+     ]
+    },
+    "finde": {
+     "type": "string",
+     "enum": [
+      "igual",
+      "aparte"
+     ]
+    },
+    "noRepetir": {
+     "type": "array",
+     "items": {
+      "type": "string",
+      "enum": [
+       "proteina",
+       "hidratos",
+       "verdura"
+      ]
+     }
+    }
+   },
+   "required": [],
+   "additionalProperties": false
+  },
+  "description": "Cómo comen los peques, si no es lo mismo que los mayores. Por defecto, toda la casa come lo mismo (el bebé, aparte): úsala solo si lo dicen, y pasa solo lo que cambien. cena: igual (lo mismo que la familia), aparte (algo suyo, sin repetir lo del cole), lo_del_mediodia (los días de cole cenan lo que la familia comió a mediodía). mediodia (los días que comen en casa) y finde: igual o aparte. noRepetir: con cena aparte, qué no repite la cena del comedor (proteina, hidratos, verdura; vacío = puede repetir). Cuenta en el próximo menú."
+ },
+ {
+  "type": "custom",
+  "name": "quitar_comensal",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "nombre": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "nombre"
+   ],
+   "additionalProperties": false
+  },
+  "description": "Quita a alguien de la casa (ya no come aquí). Confirma antes con el usuario."
+ },
+ {
+  "type": "custom",
+  "name": "ajustar_alergias",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "persona": {
+     "type": "string"
+    },
+    "alergenos": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
+    },
+    "ninguna": {
+     "type": "boolean"
+    },
+    "quitar": {
+     "type": "boolean"
+    },
+    "confirmado": {
+     "type": "boolean"
+    }
+   },
+   "required": [
+    "confirmado"
+   ],
+   "additionalProperties": false
+  },
+  "description": "Alergias o intolerancias de una persona o de «toda la casa» (los 14 alérgenos oficiales: gluten, crustaceos, huevos, pescado, cacahuetes, soja, leche, frutos_cascara, apio, mostaza, sesamo, sulfitos, altramuces, moluscos). ninguna=true si dicen que nadie tiene. confirmado=true en cuanto la persona lo ha dicho claro (quién y qué): se guarda al momento y se cuenta en una línea con [[No es así]] para deshacer. Si lo dijo a medias (sin decir quién, o «creo que…»), pregunta antes. Quitar una alergia o «nadie tiene» se comprueban además contra lo que ha escrito."
+ },
+ {
+  "type": "custom",
+  "name": "ajustar_salud",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "persona": {
+     "type": "string"
+    },
+    "intolerancias": {
+     "type": "array",
+     "items": {
+      "type": "string",
+      "enum": [
+       "lactosa_fina",
+       "fructosa",
+       "sorbitol"
+      ]
+     }
+    },
+    "estados": {
+     "type": "array",
+     "items": {
+      "type": "string",
+      "enum": [
+       "embarazo",
+       "lactancia"
+      ]
+     }
+    },
+    "hasta": {
+     "type": "string"
+    },
+    "quitar": {
+     "type": "boolean"
+    },
+    "confirmado": {
+     "type": "boolean"
+    }
+   },
+   "required": [
+    "persona",
+    "confirmado"
+   ],
+   "additionalProperties": false
+  },
+  "description": "Lo que NO es uno de los 14 alérgenos pero cambia el menú de una persona: intolerancias (lactosa_fina = intolerancia a la lactosa, fructosa, sorbitol) y estados (embarazo, lactancia). Igual que las alergias: confirmado=true en cuanto lo ha dicho claro (quién y qué), se guarda al momento y se cuenta en una línea con [[No es así]]. hasta (AAAA-MM-DD) solo si dan fecha de fin de un estado. quitar=true para quitarlo (se comprueba contra lo que ha escrito). La celiaquía y la alergia a la leche van con ajustar_alergias (gluten, leche)."
+ },
+ {
+  "type": "custom",
+  "name": "deshacer",
+  "input_schema": {
+   "type": "object",
+   "properties": {},
+   "required": [],
+   "additionalProperties": false
+  },
+  "description": "Deshace el último cambio que hiciste por QUIEN LO PIDE, en este chat (un plato cambiado, la compra, un ajuste, una receta guardada o un menú generado: vuelve el anterior). Un solo nivel. No deshace lo de otra persona ni lo hecho en la app. Si lo último suyo no se puede deshacer (despensa, tareas, recordatorios), lo dice y no toca nada: cuéntalo tal cual."
+ },
+ {
+  "type": "custom",
+  "name": "generar_menu",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "camino": {
+     "type": "string",
+     "enum": [
+      "basico",
+      "medio",
+      "avanzado"
+     ],
+     "description": "El que eligieron con los botones (basico = Solo los días, medio = Unas preguntas, avanzado = A fondo). Sin él no se genera: pregúntalo siempre."
+    },
+    "semana": {
+     "type": "string",
+     "enum": [
+      "esta",
+      "siguiente"
+     ]
+    },
+    "desde": {
+     "type": "string",
+     "description": "AAAA-MM-DD: para cuándo, lo que hayan contestado (manda sobre semana). Se pregunta siempre."
+    },
+    "estructura": {
+     "type": "string",
+     "enum": [
+      "primero_segundo",
+      "1_plato"
+     ],
+     "description": "Platos por comida solo para este menú («esta semana, un plato»). Si es para siempre, ajustar_casa."
+    },
+    "estructuraCena": {
+     "type": "string",
+     "enum": [
+      "primero_segundo",
+      "1_plato"
+     ],
+     "description": "Platos en la cena solo para este menú. Si es para siempre, ajustar_casa."
+    },
+    "forzado": {
+     "type": "boolean",
+     "description": "true si dicen que sigas sin preguntar más («sigue tú», «da igual», «me he cansado»): genera con lo que haya, salvo lo de seguridad."
+    },
+    "rehacer": {
+     "type": "boolean",
+     "description": "true si piden rehacer una semana que ya tiene menú, o al pulsar [[Rehacer la del …]]: entonces desde = ese lunes y rehacer: true, los dos."
+    },
+    "fijos": {
+     "type": "array",
+     "maxItems": 7,
+     "items": {
+      "type": "object",
+      "properties": {
+       "nombre": {
+        "type": "string",
+        "description": "El plato como lo han dicho."
+       },
+       "comida": {
+        "type": "string",
+        "enum": [
+         "Comida",
+         "Cena"
+        ],
+        "description": "Solo si lo dicen; si no, se deduce del plato."
+       }
+      },
+      "required": [
+       "nombre"
+      ],
+      "additionalProperties": false
+     }
+    }
+   },
+   "required": [
+    "semana"
+   ],
+   "additionalProperties": false
+  },
+  "description": "Genera un menú NUEVO con el motor de HoMenu (respeta toda la configuración) y lo deja activo: «esta» semana desde hoy, la «siguiente» (la primera semana SIN menú a partir del lunes que viene) o, con desde, la semana de esa fecha («a partir del 2 de noviembre» → desde 2026-11-02). Una semana que ya tiene menú NO se rehace sin rehacer: true, que solo va cuando piden rehacer esa semana («rehaz», «cambia el menú de…», el botón «Rehacer la del…»); si no, la herramienta avisa sin tocar nada y tú preguntas. Rehacer la semana en curso empieza mañana: hoy y lo pasado no cambian. Tarda unos segundos. fijos: los platos que piden por su nombre para esa semana («un día salmón al horno», «otro pollo con patatas»); se ponen al generar, una vez cada uno, con la receta exacta o la más parecida. Con fijos NO hace falta cambiar_plato después. Solo si piden generar o rehacer, o si no hay menú: una pregunta sobre lo ya generado («¿y las recetas?», «¿y la compra?», «¿y el domingo?») se contesta con ver_receta, consultar o ver_menu y NUNCA regenera, porque rehacerlo cambia los platos que ya han visto."
+ },
+ {
+  "type": "custom",
+  "name": "empezar_de_nuevo",
+  "input_schema": {
+   "type": "object",
+   "properties": {},
+   "required": [],
+   "additionalProperties": false
+  },
+  "description": "Olvida lo hablado hasta ahora en este chat y empieza una charla nueva, cuando lo pidan («olvida lo que hemos hablado», «empecemos de nuevo»). NO borra la casa, el menú ni la compra: díselo así."
+ },
+ {
+  "type": "custom",
+  "name": "crear_recordatorio",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "texto": {
+     "type": "string",
+     "description": "Lo que hay que recordar, en corto y en segunda persona: «Sacar el pollo del congelador»."
+    },
+    "cuando": {
+     "type": "string"
+    },
+    "repite": {
+     "type": "string",
+     "enum": [
+      "diario",
+      "semanal"
+     ]
+    }
+   },
+   "required": [
+    "texto",
+    "cuando"
+   ],
+   "additionalProperties": false
+  },
+  "description": "Programa un recordatorio en ESTE chat. Solo si el usuario lo ha pedido o ha dicho que sí a tu oferta, y solo de lo que tiene que ver con comer (sacar algo del congelador, la compra, preparar el menú). Citas, médicos o recados que no son de comida, no: dilo en una línea. cuando: fecha y hora en hora de España, AAAA-MM-DDTHH:MM. repite: diario o semanal (opcional)."
+ },
+ {
+  "type": "custom",
+  "name": "aviso_vispera",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "activar": {
+     "type": "boolean"
+    },
+    "hora": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "activar"
+   ],
+   "additionalProperties": false
+  },
+  "description": "El aviso de la víspera: cada noche miras el menú de mañana y, SOLO si hay algo que preparar (legumbres en remojo, sacar un plato del congelador, su día de batch cooking), les escribes. Solo con su sí: ofrécelo una vez, tras su primer menú, con [[Sí, avísame]] [[No hace falta]]. activar=false lo quita. hora HH:MM en hora de España (por defecto 20:30)."
+ },
+ {
+  "type": "custom",
+  "name": "cancelar_recordatorio",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "id": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "id"
+   ],
+   "additionalProperties": false
+  },
+  "description": "Cancela un recordatorio pendiente por su id (míralo antes con consultar, que=recordatorios)."
+ },
+ {
+  "type": "custom",
+  "name": "anotar_tarea",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "texto": {
+     "type": "string",
+     "description": "Lo que queda abierto, en corto y sin nombres de app."
+    },
+    "kind": {
+     "type": "string",
+     "enum": [
+      "seguimiento",
+      "pregunta"
+     ]
+    },
+    "sobre": {
+     "type": "string",
+     "enum": [
+      "alergias",
+      "etapa_bebe",
+      "otra"
+     ],
+     "description": "De qué va una pregunta: alergias, cómo come el bebé, u otra cosa."
+    },
+    "para": {
+     "type": "string",
+     "description": "Para quién es: el nombre de alguien de la casa, tal cual."
+    },
+    "encargado": {
+     "type": "string",
+     "description": "Quién se encarga: el nombre de alguien de la casa, tal cual."
+    },
+    "vence": {
+     "type": "string",
+     "description": "Fecha límite, AAAA-MM-DD, si la dicen («antes del viernes»)."
+    },
+    "cuando": {
+     "type": "string",
+     "description": "Si quieren un aviso: fecha y hora en España, AAAA-MM-DDTHH:MM. Crea un recordatorio en este chat."
+    },
+    "scope": {
+     "type": "string",
+     "enum": [
+      "casa",
+      "personal"
+     ],
+     "description": "personal solo si es algo suyo y estáis en privado."
+    },
+    "confirmado": {
+     "type": "boolean",
+     "description": "true solo si la persona ha dicho que sí a apuntarlo (obligatorio en seguimientos)."
+    },
+    "reemplaza": {
+     "type": "string",
+     "description": "Solo si la casa ya tenía el máximo y la persona ha elegido cuál quitar: su referencia."
+    }
+   },
+   "required": [
+    "texto",
+    "kind"
+   ],
+   "additionalProperties": false
+  },
+  "description": "Apunta algo que tiene que sobrevivir a esta charla. Dos tipos:\\n- pregunta: un dato que te falta para atender algo y que van a darte más tarde («luego te digo cómo come»). No pide permiso.\\n- seguimiento: algo que te piden que tengas en cuenta («dímelo cuando lo sepas», «que Isa compre el pan antes del viernes»). SOLO con su sí: pregúntalo antes y pon confirmado = true únicamente si han dicho que sí.\\nNunca prometas enterarte tú de algo que no ves (si llegó un pedido, un precio): ofrece avisar en una fecha (cuando) para que lo miren. Si ya hay una igual en las abiertas, no la anotes otra vez. Solo lo que tiene que ver con lo que come la casa: citas, llamadas o recados que no son de comida, no."
+ },
+ {
+  "type": "custom",
+  "name": "cerrar_tarea",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "ref": {
+     "type": "string",
+     "description": "La referencia de 8 caracteres que sale entre corchetes en «Tareas abiertas de la casa»."
+    },
+    "estado": {
+     "type": "string",
+     "enum": [
+      "hecha",
+      "descartada",
+      "rechazada"
+     ]
+    }
+   },
+   "required": [
+    "ref"
+   ],
+   "additionalProperties": false
+  },
+  "description": "Cierra una tarea abierta cuando lo que dicen la resuelve sin duda («ya está comprado»). estado «descartada» si ya no hace falta («olvídalo», «ya no»). estado «rechazada» si es una pregunta que no quieren contestar («prefiero no decirlo»): no se vuelve a preguntar. Si la referencia es vaga y podría ser más de una, pregunta cuál antes de cerrar."
+ },
+ {
+  "type": "custom",
+  "name": "editar_tarea",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "ref": {
+     "type": "string",
+     "description": "La referencia de 8 caracteres que sale entre corchetes en «Tareas abiertas de la casa»."
+    },
+    "texto": {
+     "type": "string"
+    },
+    "vence": {
+     "type": "string"
+    },
+    "para": {
+     "type": "string",
+     "description": "Para quién es: el nombre de alguien de la casa, tal cual."
+    },
+    "encargado": {
+     "type": "string",
+     "description": "Quién se encarga: el nombre de alguien de la casa, tal cual."
+    }
+   },
+   "required": [
+    "ref"
+   ],
+   "additionalProperties": false
+  },
+  "description": "Corrige una tarea abierta («no, era para el sábado», «mejor que lo haga Pablo»): texto, fecha, para quién o quién se encarga."
+ },
+ {
+  "type": "custom",
+  "name": "anadir_despensa",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "items": {
+     "type": "array",
+     "minItems": 1,
+     "maxItems": 150,
+     "items": {
+      "type": "object",
+      "properties": {
+       "nombre": {
+        "type": "string"
+       },
+       "cantidad": {
+        "type": "number"
+       },
+       "unidad": {
+        "type": "string",
+        "enum": [
+         "ud",
+         "g",
+         "kg",
+         "ml",
+         "l"
+        ]
+       },
+       "congelado": {
+        "type": "boolean"
+       }
+      },
+      "required": [
+       "nombre"
+      ],
+      "additionalProperties": false
+     }
+    },
+    "origen": {
+     "type": "string",
+     "enum": [
+      "foto",
+      "texto"
+     ]
+    },
+    "otra_vez": {
+     "type": "boolean",
+     "description": "Solo si dicen que es OTRA compra igual a la que acabas de apuntar: la misma lista dos veces seguidas no se suma dos veces."
+    }
+   },
+   "required": [
+    "items",
+    "origen"
+   ],
+   "additionalProperties": false
+  },
+  "description": "Apunta alimentos en la despensa (suma si ya estaban). Solo comida: nada de droguería ni bolsas. Nombres de alimento simples en español («pechuga de pollo», «tomate triturado»), sin marcas. Si viene de una foto, solo tras enseñar la lista y que digan que sí. Pásalo TODO en una llamada (varios tickets también): lo que no quepa sale en el recibo como sin hacer."
+ },
+ {
+  "type": "custom",
+  "name": "guardar_menu_cole",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "semanas": {
+     "type": "array",
+     "minItems": 1,
+     "maxItems": 6,
+     "items": {
+      "type": "object",
+      "properties": {
+       "dias": {
+        "type": "object",
+        "properties": {
+         "lunes": {
+          "type": "object",
+          "properties": {
+           "primero": {
+            "type": "string"
+           },
+           "segundo": {
+            "type": "string"
+           },
+           "postre": {
+            "type": "string"
+           },
+           "sinClase": {
+            "type": "boolean"
+           }
+          },
+          "required": [],
+          "additionalProperties": false
+         },
+         "martes": {
+          "type": "object",
+          "properties": {
+           "primero": {
+            "type": "string"
+           },
+           "segundo": {
+            "type": "string"
+           },
+           "postre": {
+            "type": "string"
+           },
+           "sinClase": {
+            "type": "boolean"
+           }
+          },
+          "required": [],
+          "additionalProperties": false
+         },
+         "miercoles": {
+          "type": "object",
+          "properties": {
+           "primero": {
+            "type": "string"
+           },
+           "segundo": {
+            "type": "string"
+           },
+           "postre": {
+            "type": "string"
+           },
+           "sinClase": {
+            "type": "boolean"
+           }
+          },
+          "required": [],
+          "additionalProperties": false
+         },
+         "jueves": {
+          "type": "object",
+          "properties": {
+           "primero": {
+            "type": "string"
+           },
+           "segundo": {
+            "type": "string"
+           },
+           "postre": {
+            "type": "string"
+           },
+           "sinClase": {
+            "type": "boolean"
+           }
+          },
+          "required": [],
+          "additionalProperties": false
+         },
+         "viernes": {
+          "type": "object",
+          "properties": {
+           "primero": {
+            "type": "string"
+           },
+           "segundo": {
+            "type": "string"
+           },
+           "postre": {
+            "type": "string"
+           },
+           "sinClase": {
+            "type": "boolean"
+           }
+          },
+          "required": [],
+          "additionalProperties": false
+         }
+        },
+        "required": [],
+        "additionalProperties": false
+       }
+      },
+      "required": [
+       "dias"
+      ],
+      "additionalProperties": false
+     }
+    },
+    "para": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "semanas"
+   ],
+   "additionalProperties": false
+  },
+  "description": "Guarda el menú del comedor escolar (leído de una foto o PDF, o dictado). Por días de lunes a viernes con primero, segundo y postre; sinClase=true si ese día no hay cole. Solo lo que has leído de verdad: de un PDF o una foto de otro mensaje no queda nada, así que lo que no esté en tu resumen anterior ni en lo que han escrito no se guarda. Una semana con menos de 3 días no se guarda (pisaría la que hay). Varias semanas si el cole rota, empezando por la que toca la semana que se planifica. para: «todos» o el nombre de un niño si es solo suyo. Solo tras enseñar el resumen y que digan que sí."
+ },
+ {
+  "type": "custom",
+  "name": "buscar_recetas",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "consulta": {
+     "type": "string"
+    },
+    "categoria": {
+     "type": "string",
+     "enum": [
+      "legumbres",
+      "carnes",
+      "pescados",
+      "huevos",
+      "pasta_arroces",
+      "sopas_cremas",
+      "ensaladas_verduras",
+      "platos_unicos",
+      "bebes_cremas",
+      "bebes_solidos",
+      "desayunos",
+      "meriendas",
+      "postres",
+      "guarniciones",
+      "salsas",
+      "mias"
+     ]
+    },
+    "maxMinutos": {
+     "type": "integer",
+     "minimum": 5,
+     "maximum": 240
+    },
+    "n": {
+     "type": "integer",
+     "minimum": 1,
+     "maximum": 10,
+     "description": "Cuántas enseñar; por defecto 6."
+    },
+    "conFotos": {
+     "type": "boolean"
+    }
+   },
+   "required": [],
+   "additionalProperties": false
+  },
+  "description": "Busca en el recetario (catálogo de HoMenu y recetas propias de la casa) para VER recetas de lo que pidan: «sólidos de bebé», «algo con garbanzos», «postres». Nada se cambia. categoria (opcional) es una carpeta del recetario: legumbres = Legumbres; carnes = Carnes; pescados = Pescados; huevos = Huevos; pasta_arroces = Pasta y arroz; sopas_cremas = Sopas y cremas; ensaladas_verduras = Ensaladas y verduras; platos_unicos = Platos únicos; bebes_cremas = Cremas de bebé; bebes_solidos = Sólidos de bebé; desayunos = Desayunos; meriendas = Meriendas; postres = Postres; guarniciones = Guarniciones; salsas = Salsas; mias = Vuestras recetas. consulta: palabras clave (ingrediente, nombre) o lo que quieren tal cual lo dicen («algo de cuchara para el frío», «una cena que parezca de restaurante»): se busca también por significado. conFotos: manda la foto de las primeras."
+ },
+ {
+  "type": "custom",
+  "name": "apartar_foto_plato",
+  "input_schema": {
+   "type": "object",
+   "properties": {},
+   "required": [],
+   "additionalProperties": false
+  },
+  "description": "Guarda la foto de ESTE mensaje como foto del plato de una receta que se está creando (el plato ya hecho, no una receta escrita ni un ticket). Después, preparar_receta con usarFoto = true."
+ },
+ {
+  "type": "custom",
+  "name": "preparar_receta",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "nombre": {
+     "type": "string"
+    },
+    "raciones": {
+     "type": "integer",
+     "minimum": 1,
+     "maximum": 20
+    },
+    "minutos": {
+     "type": "integer",
+     "minimum": 1,
+     "maximum": 600
+    },
+    "electrodomestico": {
+     "type": "string",
+     "enum": [
+      "Airfryer",
+      "Horno",
+      "Microondas",
+      "Olla rápida",
+      "Thermomix",
+      "Vaporera"
+     ]
+    },
+    "ingredientes": {
+     "type": "array",
+     "minItems": 1,
+     "maxItems": 30,
+     "items": {
+      "type": "object",
+      "properties": {
+       "nombre": {
+        "type": "string"
+       },
+       "cantidad": {
+        "type": "number"
+       },
+       "unidad": {
+        "type": "string",
+        "enum": [
+         "g",
+         "kg",
+         "ml",
+         "l",
+         "ud",
+         "cucharada",
+         "cucharadita",
+         "taza",
+         "diente",
+         "pizca",
+         "al gusto",
+         "c/n"
+        ]
+       }
+      },
+      "required": [
+       "nombre"
+      ],
+      "additionalProperties": false
+     }
+    },
+    "cuando": {
+     "type": "array",
+     "items": {
+      "type": "string",
+      "enum": [
+       "primero",
+       "segundo",
+       "plato_unico",
+       "cena",
+       "merienda",
+       "postre"
+      ]
+     }
+    },
+    "paraNinos": {
+     "type": "boolean"
+    },
+    "preparacion": {
+     "type": "string",
+     "description": "Cómo se hace, con sus palabras (el modelo redacta los pasos a partir de aquí)."
+    },
+    "usarFoto": {
+     "type": "boolean",
+     "description": "true si hay foto del plato (en este mensaje o apartada con apartar_foto_plato)."
+    }
+   },
+   "required": [
+    "nombre",
+    "ingredientes"
+   ],
+   "additionalProperties": false
+  },
+  "description": "Estructura una receta propia (como el asistente de la app) y la deja lista SIN guardar, para enseñarla. Solo cuando ya tengas nombre e ingredientes con cantidades; lo demás tiene valor por defecto. cuando: en qué comidas se sirve (primero, segundo, plato_unico, cena, merienda, postre). paraNinos: si es apta para niños (omitir si no lo saben). Se guarda solo para la casa."
+ },
+ {
+  "type": "custom",
+  "name": "compartir",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "que": {
+     "type": "string",
+     "enum": [
+      "receta",
+      "semana"
+     ]
+    },
+    "receta": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "que"
+   ],
+   "additionalProperties": false
+  },
+  "description": "Pone los botones para mandar a otra persona (por WhatsApp o Telegram) una receta o la semana. que: receta o semana. receta: su nombre o id (solo si que = receta)."
+ },
+ {
+  "type": "custom",
+  "name": "guardar_receta",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "confirmado": {
+     "type": "boolean"
+    },
+    "nombre": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "confirmado",
+    "nombre"
+   ],
+   "additionalProperties": false
+  },
+  "description": "Guarda la última receta preparada con preparar_receta en esta charla (la herramienta la tiene apartada: no hace falta volver a pedir ningún dato), en el recetario de la casa, y el motor ya puede ponerla en menús. Llámala en cuanto digan «Guardar» o «sí» al resumen, con confirmado = true y el nombre de la receta que han aprobado (si no es la última preparada, no se guarda)."
+ },
+ {
+  "type": "custom",
+  "name": "receta_propia",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "accion": {
+     "type": "string",
+     "enum": [
+      "favorita",
+      "no_favorita",
+      "borrar",
+      "nueva_carpeta",
+      "borrar_carpeta",
+      "a_carpeta",
+      "sacar_de_carpeta",
+      "recuperar"
+     ]
+    },
+    "receta": {
+     "type": "string",
+     "description": "El nombre de la receta, como lo dicen. Todas menos nueva_carpeta y borrar_carpeta."
+    },
+    "carpeta": {
+     "type": "string",
+     "description": "El nombre de la carpeta: para nueva_carpeta, borrar_carpeta, a_carpeta y sacar_de_carpeta."
+    },
+    "confirmado": {
+     "type": "boolean",
+     "description": "Solo para borrar y borrar_carpeta, tras su «sí»."
+    }
+   },
+   "required": [
+    "accion"
+   ],
+   "additionalProperties": false
+  },
+  "description": "Las recetas y las carpetas de quien escribe, como en «Mis recetas» de la app. Con una receta que nombran: favorita (la marca como favorita, del catálogo o vuestra), no_favorita (se la quita), borrar (solo las vuestras, no las del catálogo), a_carpeta o sacar_de_carpeta (con la carpeta), o recuperar (la saca de «Descartados», las que la casa descartó, y vuelve a poder salir en los menús). Con una carpeta: nueva_carpeta o borrar_carpeta (las cuatro fijas no se borran; las recetas de dentro no se borran). Borrar no se deshace: llámala primero sin confirmado, pregunta con el nombre que te devuelva y vuelve a llamarla con confirmado = true y ese nombre solo con su «sí»."
+ }
+]"
+`;

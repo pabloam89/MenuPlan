@@ -13,8 +13,15 @@ import {
   cargaDe, esfuerzoDe, recursoDe, llevaMasaDe,
   escalabilidadDe, robustezDe, perecibilidadDe, conLasManosDe,
 } from "../lib/derive/ejesDePlato.js";
+import { IDS_PERFILES, puntuar } from "../lib/derive/perfiles.js";
+import { aporteDe } from "../lib/aporte.js";
+import { NUTRIENTES } from "./nutrientes.js";
+import { AGREGABLE, AGREGABLES, TIPOS_EJE } from "../lib/vocabularios.js";
+import { nivelCalorias } from "../lib/caloriasNivel.js";
 
 const RAIZ = fileURLToPath(new URL("./recipes", import.meta.url));
+const recipeNutrition = JSON.parse(readFileSync(fileURLToPath(new URL("./derived/recipeNutrition.json", import.meta.url)), "utf8"));
+const recipeCoste = JSON.parse(readFileSync(fileURLToPath(new URL("./derived/recipeCoste.json", import.meta.url)), "utf8"));
 const recetas = readdirSync(RAIZ)
   .filter((f) => f.endsWith(".json"))
   .flatMap((f) => JSON.parse(readFileSync(join(RAIZ, f), "utf8")));
@@ -25,6 +32,8 @@ const recetas = readdirSync(RAIZ)
  * Solo los que tienen `campo`. Los silenciosos sin campo valen 0 por
  * definición y no hay nada que contar.
  */
+const tiene = (v) => v != null && !(Array.isArray(v) && v.length === 0);
+
 const MEDIDORES = {
   // El eje 1 no vive en ningún campo: se calcula. Así que su cobertura se mide
   // CORRIENDO el cálculo, que es lo único que la sostiene. Antes declaraba 1.0
@@ -80,8 +89,53 @@ const MEDIDORES = {
   // calcio (94,9 %) escondía que la B12 está en 89,6 %, y sobre todo que el
   // omega-3 no tiene campo: la cobertura decía 95 % para una pregunta que no
   // tiene ni un dato detrás.
+  textura: () => recetas.filter((r) => r.textura).length / recetas.length,
+  connotacion: () => recetas.filter((r) => (r.connotacion ?? []).length > 0).length / recetas.length,
+  coste: () => recetas.filter((r) => recipeCoste.recetas?.[r.id]?.nivel).length / recetas.length,
   micronutrientes: () => Math.min(...["iron100g", "calcium100g", "vitaminB12100g", "folate100g"]
     .map((k) => alimentos.filter((a) => a.nutricion?.[k] != null).length / alimentos.length)),
+  // El 50 se mide corriendo `puntuar`: de cuántas recetas se puede afirmar al
+  // menos un perfil sin que le falte ningún dato.
+  // 51-77 (#939): los campos cerrados de la receta. Se cuentan igual que
+  // el inventario del diccionario: con valor, y una lista con algo dentro.
+  categoria: () => recetas.filter((r) => tiene(r.category)).length / recetas.length,
+  proteinaPrincipal: () => recetas.filter((r) => tiene(r.mainProtein)).length / recetas.length,
+  proteinasExtra: () => recetas.filter((r) => tiene(r.extraProteins)).length / recetas.length,
+  basePrincipal: () => recetas.filter((r) => tiene(r.mainBase)).length / recetas.length,
+  modoBase: () => recetas.filter((r) => tiene(r.baseMode)).length / recetas.length,
+  minutosFijos: () => recetas.filter((r) => tiene(r.minutosFijos)).length / recetas.length,
+  minutosPorRacion: () => recetas.filter((r) => tiene(r.minutosPorRacion)).length / recetas.length,
+  capacidadMaxima: () => recetas.filter((r) => tiene(r.capacidadMax)).length / recetas.length,
+  ocasion: () => recetas.filter((r) => tiene(r.occasion)).length / recetas.length,
+  favoritoNinos: () => recetas.filter((r) => tiene(r.kidFavourite)).length / recetas.length,
+  picante: () => recetas.filter((r) => tiene(r.picante)).length / recetas.length,
+  saborDominante: () => recetas.filter((r) => tiene(r.sabor)).length / recetas.length,
+  llevaSalsa: () => recetas.filter((r) => tiene(r.llevaSalsa)).length / recetas.length,
+  etapaBebe: () => recetas.filter((r) => tiene(r.etapaBebe)).length / recetas.length,
+  guarnicionPosible: () => recetas.filter((r) => tiene(r.canBeGarnish)).length / recetas.length,
+  compatibilidadSalsa: () => recetas.filter((r) => tiene(r.sauceCompat)).length / recetas.length,
+  papelEnComida: () => recetas.filter((r) => tiene(r.mealRole)).length / recetas.length,
+  tipoPlato: () => recetas.filter((r) => tiene(r.type)).length / recetas.length,
+  tiempoTotal: () => recetas.filter((r) => tiene(r.time)).length / recetas.length,
+  dificultad: () => recetas.filter((r) => tiene(r.difficulty)).length / recetas.length,
+  temporada: () => recetas.filter((r) => tiene(r.season)).length / recetas.length,
+  racionesBase: () => recetas.filter((r) => tiene(r.baseServings)).length / recetas.length,
+  aptoNinos: () => recetas.filter((r) => tiene(r.kidFriendly)).length / recetas.length,
+  alergenos: () => recetas.filter((r) => tiene(r.allergens)).length / recetas.length,
+  esfuerzoPostre: () => recetas.filter((r) => tiene(r.effort)).length / recetas.length,
+  tipoPostre: () => recetas.filter((r) => tiene(r.dessertKind)).length / recetas.length,
+  // El aporte se DERIVA de los gramos; el campo es solo el override.
+  aporte: () => recetas.filter((r) => aporteDe(r).size > 0).length / recetas.length,
+  // El 78 se añade al cargar: se mide corriendo el mismo cálculo.
+  calorias: () => recetas.filter((r) => nivelCalorias(r) != null).length / recetas.length,
+  perfilNutricional: () => recetas.filter((r) => IDS_PERFILES.some(
+    (id) => puntuar(id, r, { leer: (p, c) => p?.[c] ?? null, completitud: completitudDe }).sinDato.length === 0,
+  )).length / recetas.length,
+  // Los nutrientes por ración (trozo 24): recetas del derivado con número.
+  ...Object.fromEntries(Object.values(NUTRIENTES).map(({ porRacion: k }) => [k, () => {
+    const filas = Object.values(recipeNutrition);
+    return filas.filter((n) => Number.isFinite(n[k])).length / filas.length;
+  }])),
 };
 
 describe("el registro de ejes", () => {
@@ -99,6 +153,11 @@ describe("el registro de ejes", () => {
     // 26 y allí existe, una discusión sobre «el eje 26» apunta a dos cosas.
     const faltan = Array.from({ length: 45 }, (_, i) => i + 1).filter((n) => !ns.includes(n));
     expect(faltan, "números del documento sin entrada en el registro").toEqual([]);
+  });
+
+  it("el tipo de cada eje es uno de TIPOS_EJE (el CHECK de registro_eje, 0109)", () => {
+    const fuera = EJES.filter((e) => !TIPOS_EJE.includes(e.tipo)).map((e) => `${e.id}: ${e.tipo}`);
+    expect(fuera).toEqual([]);
   });
 
   it("ningún id repetido: es la clave de consulta", () => {
@@ -219,7 +278,11 @@ describe("el registro de ejes", () => {
       if (statSync(p).isDirectory()) return rec(p);
       return /\.(js|jsx)$/.test(e) && !/\.test\./.test(e) ? [p] : [];
     });
-    return rec(raiz).map((p) => ({ ruta: p, texto: readFileSync(p, "utf8") }));
+    // Y el bot (api/_bot): también es un lector del catálogo. Los atributos
+    // blandos y el coste los lee él al recomendar, y fuera de src/ el registro
+    // los daba por muertos.
+    const bot = fileURLToPath(new URL("../../api/_bot", import.meta.url));
+    return [...rec(raiz), ...rec(bot).filter((p) => !p.endsWith("core.mjs"))].map((p) => ({ ruta: p, texto: readFileSync(p, "utf8") }));
   })();
 
   /** El nombre del campo tal cual aparece en el código, por eje. */
@@ -230,6 +293,12 @@ describe("el registro de ejes", () => {
     escalabilidadTanda: "scalesWithEaters", sabor: "healthFlags",
     subtipoIngrediente: "taxonomia", parte: ".part", montaje: "montaje",
     gruposSecundarios: "mainIngredients", formato: "formato", temperatura: "temperatura",
+    textura: "textura", connotacion: "connotacion", coste: "costeNivel",
+    densidadNutricional: "densidadDe", carga: "cargaDe",
+    completitud: "completitudDe", perfilNutricional: "ordenarPorPerfil",
+    categoria: "category", proteinaPrincipal: "mainProtein", proteinasExtra: "extraProteins", basePrincipal: "mainBase", modoBase: "baseMode", minutosFijos: "minutosFijos", minutosPorRacion: "minutosPorRacion", capacidadMaxima: "capacidadMax", ocasion: "occasion", favoritoNinos: "kidFavourite", picante: "picante", saborDominante: "sabor", llevaSalsa: "llevaSalsa", etapaBebe: "etapaBebe", guarnicionPosible: "canBeGarnish", compatibilidadSalsa: "sauceCompat", papelEnComida: "mealRole", tipoPlato: "type", tiempoTotal: "time", dificultad: "difficulty", temporada: "season", racionesBase: "baseServings", aptoNinos: "kidFriendly", alergenos: "allergens", esfuerzoPostre: "effort", tipoPostre: "dessertKind",
+    aporte: "aporteDe", calorias: "caloriasNivel",
+    ...Object.fromEntries(Object.values(NUTRIENTES).map(({ porRacion: k }) => [k, k])),
   };
 
   it("cada consumidor declarado nombra de verdad el campo del eje", () => {
@@ -294,22 +363,57 @@ describe("el registro de ejes", () => {
     expect([...new Set(fuera)], "un valor que el vocabulario del registro no admite").toEqual([]);
   });
 
+  describe("cómo se junta cada eje (trozo 24)", () => {
+    it("todo eje tiene agregable de la lista; fuera de la receta no se junta", () => {
+      for (const e of EJES) {
+        expect(AGREGABLES, `${e.n} ${e.id}`).toContain(e.agregable);
+        if (e.ambito !== "receta" && e.ambito !== "parte") expect(e.agregable, `${e.n} ${e.id}`).toBe(AGREGABLE.NO);
+      }
+    });
+
+    it("lo que se suma o se promedia es numérico y dice su unidad; lo que se cuenta no la lleva", () => {
+      for (const e of EJES) {
+        if ([AGREGABLE.SUMA, AGREGABLE.MEDIA].includes(e.agregable)) {
+          expect(e.tipo, `${e.n} ${e.id}`).toBe("numerico");
+          expect(e.unidad, `${e.n} ${e.id}`).not.toBe(null);
+        }
+        if (e.unidad !== null) expect(e.tipo, `${e.n} ${e.id}: unidad sin ser numérico`).toBe("numerico");
+      }
+    });
+
+    it("cada nutriente del derivado es un eje de receta que se suma, numerado tras los declarados", () => {
+      const ejemplo = Object.values(recipeNutrition)[0];
+      const nutrientes = new Set(Object.values(NUTRIENTES).map((nu) => nu.porRacion));
+      const ultimoDeclarado = Math.max(...EJES.filter((e) => !nutrientes.has(e.id)).map((e) => e.n));
+      for (const { porRacion: k } of Object.values(NUTRIENTES)) {
+        const e = EJE_POR_ID.get(k);
+        expect(e, k).toBeTruthy();
+        expect(e.agregable, k).toBe(AGREGABLE.SUMA);
+        expect(k in ejemplo, `${k}: el derivado no lo trae`).toBe(true);
+        expect(e.n, k).toBeGreaterThan(ultimoDeclarado);
+      }
+    });
+  });
+
   describe("las consultas", () => {
     it("`cobertura` distingue el eje sin datos del eje que no existe", () => {
       // Son dos respuestas distintas y confundirlas es el error de fondo:
       // 0 = «declarado y vacío», null = «esa pregunta no está registrada».
       // Se usaba `formato` de ejemplo y dejó de servir al poblarlo: un test
       // que ilustra con un eje vivo caduca en cuanto ese eje avanza. `textura`
-      // (eje 8) sigue declarada y vacía, que es lo que este caso necesita.
-      expect(cobertura("textura")).toBe(0);
+      // (eje 8) servía hasta el 30 sep 2026, cuando se pobló con el
+      // enriquecimiento del Recetario Estrella. Ahora `autenticidad` (eje 15),
+      // declarada y vacía.
+      expect(cobertura("autenticidad")).toBe(0);
       expect(cobertura("un-eje-que-nadie-ha-declarado")).toBeNull();
     });
 
     it("`puedeResponder` dice por qué NO, que es lo que se le enseña al usuario", () => {
       expect(puedeResponder("tecnica").puede).toBe(true);
-      const textura = puedeResponder("textura");
-      expect(textura.puede).toBe(false);
-      expect(textura.porque).toMatch(/sin datos/);
+      // Era `textura`, poblada el 30 sep 2026: ahora `autenticidad`.
+      const autenticidad = puedeResponder("autenticidad");
+      expect(autenticidad.puede).toBe(false);
+      expect(autenticidad.porque).toMatch(/sin datos/);
       // El caso «tener datos y que nadie los lea», que no es lo mismo que no
       // tenerlos. El ejemplo era `fotogenia` y era FALSO: `apetecible` sí lo
       // lee CatalogBrowserSheet, en la faceta que la UI llama «gourmet». Este

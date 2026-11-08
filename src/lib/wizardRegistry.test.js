@@ -4,12 +4,15 @@ import { describe, it, expect } from "vitest";
 import {
   CONTROLES, TEMAS, PREGUNTAS, PREGUNTAS_POR_ID, registroOrdenado,
   estadoDelCampo, estadoDePregunta, dependenciasCumplidas, anulada,
-  preguntasVisibles, siguientePregunta, cuantasQuedan, coberturaDeTema,
+  preguntasVisibles, cuantasQuedan, coberturaDeTema,
   temasVisibles, valorDePregunta, controlesVisibles,
 } from "./wizardRegistry.js";
 import { libretaVacia, poner, delegar } from "./notepad.js";
 import { CAMPOS_POR_ID } from "./notepadFields.js";
 import { rutaDeReparto } from "./reparto.js";
+import { datoDe } from "./registroFicha.js";
+import { estadosDeFichas } from "./estadoDeDato.js";
+import { ESTADO_DE_ORIGEN } from "./vocabularios.js";
 
 /** Una casa recién llegada: no ha contestado nada. */
 const VACIA = {};
@@ -46,9 +49,32 @@ describe("la tabla es coherente consigo misma", () => {
     for (const p of PREGUNTAS) expect(p.requiere ?? []).not.toContain(p.id);
   });
 
-  it("los ids son únicos y los órdenes no chocan", () => {
+  it("los ids son únicos", () => {
     expect(new Set(PREGUNTAS.map((p) => p.id)).size).toBe(PREGUNTAS.length);
-    expect(new Set(PREGUNTAS.map((p) => p.orden)).size).toBe(PREGUNTAS.length);
+  });
+
+  it("cada pregunta es de un dato del registro de la ficha, y no lleva orden ni suposición propios", () => {
+    // El orden (peso_menu) y si se puede suponer viven en el registro (plan
+    // fichas con estado, trozo 5): una pregunta es la vista de un dato.
+    for (const p of PREGUNTAS) {
+      expect(datoDe(p.dato), `${p.id} apunta a «${p.dato}», que no está en el registro`).not.toBe(null);
+      expect(p.orden, `${p.id} lleva orden propio`).toBeUndefined();
+      expect(p.suposicion, `${p.id} lleva suposicion propia`).toBeUndefined();
+    }
+  });
+
+  it("los pesos de sus datos no chocan: el orden del recorrido es único", () => {
+    const pesos = PREGUNTAS.map((p) => datoDe(p.dato)?.peso_menu);
+    for (const [i, w] of pesos.entries()) expect(w, `${PREGUNTAS[i].id} sin peso_menu en el registro`).toBeGreaterThan(0);
+    expect(new Set(pesos).size).toBe(PREGUNTAS.length);
+    // Y el recorrido va de más peso a menos.
+    const ordenados = registroOrdenado().map((p) => datoDe(p.dato).peso_menu);
+    expect(ordenados).toEqual([...ordenados].sort((a, b) => b - a));
+  });
+
+  it("dos preguntas con el mismo peso no se ordenan en silencio", () => {
+    const registro = [PREGUNTAS_POR_ID.cocina, { ...PREGUNTAS_POR_ID.esfuerzo, dato: PREGUNTAS_POR_ID.cocina.dato }];
+    expect(() => registroOrdenado(registro)).toThrow(/peso/);
   });
 
   it("una fila de la libreta apunta a un campo que el parser conoce", () => {
@@ -85,10 +111,7 @@ describe("la fila de controles sale del registro, no de un componente", () => {
     // incluido el de Tiempo, que toca cuatro casillas de una.
     const CONSUMIDOS = new Set([
       "freqs", "cocinas", "mealStructure", "cookLevel", "kitchenTools",
-      "customKitchenTools", "cookTime", "kidDinner", "notepad",
-      // Lo lee `resolveModeData` (App.jsx) para NO pisar en modo basico un
-      // nivel de cocina que elegiste tu desde la fila de mandos.
-      "cookLevelManual",
+      "cookTime", "kidDinner", "notepad",
     ]);
     const base = { ...CIMIENTOS };
     for (const p of controlesVisibles(libretaVacia(), CIMIENTOS)) {
@@ -104,21 +127,21 @@ describe("la fila de controles sale del registro, no de un componente", () => {
   });
 
   it("el modo basico no pisa lo que acabas de elegir a mano", () => {
-    // El fallo que esto sujeta: `resolveModeData` (App.jsx) fuerza
+    // El fallo que esto sujeta: `resolveModeData` (App.jsx) forzaba
     // `cookLevel: "normal"` en modo basico —el de por defecto— y se comia la
-    // eleccion del mando "Esfuerzo". El mando se pintaba, se guardaba, se
-    // marcaba con su aro teal, y el menu salia igual.
+    // eleccion del mando "Esfuerzo". Ya no lo fuerza (trozo 12 de #1037: el
+    // nivel que llega es el dicho o el defecto; prepararGeneracion.test.js).
     //
-    // Se comprueba sobre la LISTA de campos que el modo basico fuerza, no solo
-    // sobre cookLevel: si manana el modo basico empieza a forzar otro campo que
-    // un mando escribe, esto lo caza.
+    // Se comprueba sobre la LISTA de campos que el modo basico fuerza: si
+    // manana el modo basico empieza a forzar otro campo que un mando escribe,
+    // esto lo caza.
     const FUERZA_EL_BASICO = new Set([
-      "extraMeals", "slotType", "cookLevel", "menuVarietyPref",
+      "extraMeals", "slotType", "menuVarietyPref",
       "mealStyleByGroup", "mealStructureByGroup", "cookTime",
     ]);
     // Los que llevan su propia marca de "lo eligio el usuario", que es como
     // sobreviven (el patron de `manualSlotType`).
-    const CON_MARCA = { cookLevel: "cookLevelManual", slotType: "manualSlotType", cookTime: "cookTime" };
+    const CON_MARCA = { slotType: "manualSlotType", cookTime: "cookTime" };
 
     for (const p of controlesVisibles(libretaVacia(), CIMIENTOS)) {
       if (p.fuente !== "data" || !p.escribe) continue;
@@ -314,13 +337,12 @@ describe("el cole va delante, y por eso no depende de nadie", () => {
   });
 
   it("en una casa vacía, la primera pregunta es el cole y no las alergias", () => {
-    expect(siguientePregunta(libretaVacia(), VACIA).id).toBe("cole");
+    expect(preguntasVisibles(libretaVacia(), VACIA)[0].id).toBe("cole");
   });
 
   it("«no aplica» es una respuesta, no un hueco", () => {
     const n = libretaVacia();
     expect(estadoDelCampo(PREGUNTAS_POR_ID.cole, n, { schoolChoice: "no_aplica" })).toBe("fijado");
-    expect(siguientePregunta(n, { schoolChoice: "no_aplica" }).id).toBe("members");
   });
 });
 
@@ -429,20 +451,15 @@ describe("los tres estados de una tarjeta", () => {
   });
 
   it("salvo las alergias, donde suponer sería ponerle un criterio en la boca", () => {
-    const data = { members: [{ id: "m1" }], allergiesReviewed: true, allergies: ["gluten"] };
-    // Marcada `suposicion: false`: en cuanto se infiere, pide confirmación.
-    expect(PREGUNTAS_POR_ID.alergias.suposicion).toBe(false);
+    const data = { members: [{ id: "m1", allergies: ["gluten"], alergiasRevisadas: true }] };
+    // El registro dice que las alergias no se suponen: en cuanto se infieren, piden confirmación.
+    expect(datoDe(PREGUNTAS_POR_ID.alergias.dato).suposicion).toBe(false);
     expect(estadoDePregunta(PREGUNTAS_POR_ID.alergias, libretaVacia(), data)).toBe("aclarado");
   });
 
   it("una duda del parser levanta la voz aunque haya valor", () => {
     const n = poner(libretaVacia(), "cocina.italiana", true, { origen: "texto" });
     expect(estadoDePregunta(PREGUNTAS_POR_ID.cocina, n, VACIA, ["cocina"])).toBe("aclaracion");
-  });
-
-  it("y una aclaración se atiende antes que un hueco", () => {
-    const n = poner(libretaVacia(), "cocina.italiana", true, { origen: "texto" });
-    expect(siguientePregunta(n, CIMIENTOS, { dudas: ["cocina"] }).id).toBe("cocina");
   });
 });
 
@@ -493,11 +510,10 @@ describe("el wizard se acorta mientras hablas", () => {
       // `appliances` — el mismo campo huérfano al que apuntaba Trastos, así que
       // el test daba por contestada una pregunta que en realidad no movía nada.
       kitchenTools: ["Horno"],
-      budget: 100,
+      presupuesto: 100,
       pantryMode: "prefer",
     };
     expect(cuantasQuedan(n, todo)).toBe(0);
-    expect(siguientePregunta(n, todo)).toBe(null);
   });
 });
 
@@ -552,6 +568,17 @@ describe("bordes", () => {
     const data = { members: [{ id: "m1" }], allergiesReviewed: true, allergies: [] };
     expect(estadoDelCampo(PREGUNTAS_POR_ID.alergias, libretaVacia(), data)).toBe("fijado");
     expect(valorDePregunta(PREGUNTAS_POR_ID.alergias, libretaVacia(), data)).toEqual([]);
+  });
+
+  // #958: leía data.allergies, que ya no existe; las alergias son de cada persona.
+  it("las alergias salen de las personas, no de data.allergies", () => {
+    const data = { members: [{ id: "m1", allergies: ["gluten"], alergiasRevisadas: true }, { id: "m2", allergies: ["huevo", "gluten"], alergiasRevisadas: true }], allergies: [] };
+    expect(valorDePregunta(PREGUNTAS_POR_ID.alergias, libretaVacia(), data)).toEqual(["gluten", "huevo"]);
+  });
+
+  it("con alguien aún sin revisar, la pregunta sigue abierta", () => {
+    const data = { members: [{ id: "m1", allergies: [], alergiasRevisadas: true }, { id: "m2", alergiasRevisadas: false }] };
+    expect(estadoDelCampo(PREGUNTAS_POR_ID.alergias, libretaVacia(), data)).toBe("vacio");
   });
 });
 
@@ -649,6 +676,56 @@ describe("los subejes también llevan su ilustración", () => {
     for (const eje of PREGUNTAS_POR_ID.ninos.subejes) {
       const rutas = eje.opciones.map((o) => o.arte);
       expect(new Set(rutas).size, `ninos.${eje.campo} repite`).toBe(rutas.length);
+    }
+  });
+});
+
+// Plan fichas con estado, trozo 9: el estado de cada dato, de ficha_casa v2 (estadoDeDato.js).
+describe("con el estado de la ficha v2, el asistente sabe de dónde sale cada dato", () => {
+  const persona = (id) => ({ tipo: "persona", id });
+  const dato = (id, origen, extra = {}) => ({ campo: "alergias", sujeto: persona(id), estado: ESTADO_DE_ORIGEN[origen] ?? "vacio", valor: origen ? [] : null, origen, bloqueado: false, caduca_at: null, ...extra });
+  const fichas = (...datos) => estadosDeFichas({ persona: datos }, new Date("2026-10-30T10:00:00Z"));
+  const DOS = { members: [{ id: "a", allergies: [], alergiasRevisadas: true }, { id: "b", allergies: [], alergiasRevisadas: true }] };
+  const alergias = PREGUNTAS_POR_ID.alergias;
+
+  it("sin sobres (la v2 de hoy: todo vacío), lo dicho en la casa sigue contestado: no se repregunta", () => {
+    const estados = fichas(dato("a", null), dato("b", null));
+    expect(estadoDelCampo(alergias, libretaVacia(), DOS, estados)).toBe("fijado");
+    expect(estadoDePregunta(alergias, libretaVacia(), DOS, [], estados)).toBe("aclarado");
+    expect(cuantasQuedan(libretaVacia(), DOS, { estados })).toBe(cuantasQuedan(libretaVacia(), DOS));
+  });
+
+  it("una alergia supuesta en una persona pide confirmación aunque la casa la dé por revisada", () => {
+    const estados = fichas(dato("a", "dicho"), dato("b", "supuesto"));
+    expect(estadoDelCampo(alergias, libretaVacia(), DOS, estados)).toBe("inferido");
+    expect(estadoDePregunta(alergias, libretaVacia(), DOS, [], estados)).toBe("aclaracion");
+  });
+
+  it("dichas por todos con sobre, contestada aunque el documento aún no lo sepa", () => {
+    const sinRevisar = { members: DOS.members.map((m) => ({ ...m, alergiasRevisadas: false })) };
+    expect(estadoDelCampo(alergias, libretaVacia(), sinRevisar)).toBe("vacio");
+    expect(estadoDelCampo(alergias, libretaVacia(), sinRevisar, fichas(dato("a", "dicho"), dato("b", "dicho")))).toBe("fijado");
+    // Con una sin sobre, sigue sin contestar: el sobre afina, no inventa lo que nadie dijo.
+    expect(estadoDelCampo(alergias, libretaVacia(), sinRevisar, fichas(dato("a", "dicho"), dato("b", null)))).toBe("vacio");
+  });
+
+  it("con el sobre caducado, lo que dice la casa pasa a confirmar", () => {
+    const estados = fichas(dato("a", "dicho"), dato("b", null, { caduca_at: "2026-10-01T00:00:00Z" }));
+    expect(estadoDePregunta(alergias, libretaVacia(), DOS, [], estados)).toBe("aclaracion");
+  });
+
+  it("una pregunta cuyo dato no tiene campo en la ficha (las comidas) no cambia con los estados", () => {
+    const data = { meals: ["Comida", "Cena"] };
+    expect(estadoDelCampo(PREGUNTAS_POR_ID.comidas, libretaVacia(), data, fichas(dato("a", "supuesto")))).toBe("fijado");
+  });
+
+  it("el presupuesto (PR 8): «sin presupuesto» dicho es una respuesta; sin decir nada, no; el par viejo no cuenta (la 0112, aplicada)", () => {
+    const p = PREGUNTAS_POR_ID.presupuesto;
+    for (const data of [{}, { hasBudget: false, budget: 80 }, { hasBudget: true, budget: 60 }]) {
+      expect(estadoDelCampo(p, libretaVacia(), data), JSON.stringify(data)).toBe("vacio");
+    }
+    for (const data of [{ presupuesto: null }, { presupuesto: 60 }]) {
+      expect(estadoDelCampo(p, libretaVacia(), data), JSON.stringify(data)).toBe("fijado");
     }
   });
 });

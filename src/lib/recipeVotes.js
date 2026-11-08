@@ -1,4 +1,5 @@
 import { supabase } from "./supabase.js";
+import { tipoDeGrupo } from "./groups.js";
 
 /**
  * A vote entry mixes two independent user actions on a recipe:
@@ -87,6 +88,22 @@ export function toggleRecipeVote(votes, recipeId, vote) {
   return applyEntry(votes, recipeId, nextVote, favScopeOf(cur));
 }
 
+/**
+ * Un 👍/👎 con casa (#958): la nota va a los votos de la casa (lo que usa el
+ * motor) y a los personales (lo que se guarda en recipe_votes). Lo que se
+ * guarda sale de los PERSONALES: con votosDeLaCasa los de la casa ya no llevan
+ * la favorita personal, y guardarlos habría borrado esa favorita de recipe_votes.
+ * @returns {{ casa: object, personal: object, guardar: object|null }}  `guardar`: la fila de recipe_votes (null = borrarla)
+ */
+export function votarReceta(casa, personal, recipeId, vote) {
+  const nuevoPersonal = toggleRecipeVote(personal, recipeId, vote);
+  return {
+    casa: toggleRecipeVote(casa, recipeId, vote),
+    personal: nuevoPersonal,
+    guardar: nuevoPersonal[recipeId] ?? null,
+  };
+}
+
 /** Toggle the favorite on/off (default scope "all" when turning on), preserving the rating. */
 export function toggleFavorite(votes, recipeId, defaultScope = "all") {
   const cur = votes?.[recipeId];
@@ -122,23 +139,61 @@ export function favoriteRecipeIds(votes) {
  * Favorite recipe ids that apply to a given menu group. A favorite applies when
  * its scope is "all", when the group is the single-family group ("Familia"), or
  * when the scope explicitly lists the group's label.
- * @param {string} groupLabel  e.g. "Adultos" | "Niños" | "Bebé" | "Familia"
+ *
+ * El ámbito guardado son etiquetas ("Adultos", "Niños"…), pero se compara por
+ * TIPO de grupo (tipoDeGrupo): un grupo que se llame distinto sigue recibiendo
+ * las favoritas de su tipo. Una etiqueta sin tipo conocido, por la etiqueta.
+ * @param {object|string} group  el grupo, o su etiqueta (llamadas de antes)
  * @returns {Set<string>}
  */
-export function favoriteIdsForGroup(votes, groupLabel) {
+export function favoriteIdsForGroup(votes, group) {
+  const g = typeof group === "string" ? { label: group } : group ?? {};
+  const tipo = tipoDeGrupo(g);
+  const cubre = (etiqueta) => {
+    const suyo = tipoDeGrupo({ label: etiqueta });
+    return suyo ? suyo === tipo : etiqueta === g.label;
+  };
   const ids = new Set();
   for (const [id, entry] of Object.entries(votes ?? {})) {
     if (!isFavorite(entry)) continue;
     const scope = favScopeOf(entry);
     if (
       scope === "all" ||
-      groupLabel === "Familia" ||
-      (Array.isArray(scope) && scope.includes(groupLabel))
+      tipo === "familia" ||
+      (Array.isArray(scope) && scope.some(cubre))
     ) {
       ids.add(id);
     }
   }
   return ids;
+}
+
+/**
+ * Los votos personales sin sus favoritas: solo la nota (👍/👎). Las favoritas
+ * de una casa son las de household_favorites, también para el motor (#958):
+ * Lola solo ve esas (api/_bot/casa.js), y la app mezclaba además las favoritas
+ * PERSONALES de quien abría la app (recipe_votes), así que la misma casa
+ * generaba con favoritas distintas según quién generara. Ahora las dos igual
+ * (votosDeLaCasa).
+ */
+export function sinFavoritas(votes = {}) {
+  const out = {};
+  for (const [id, e] of Object.entries(votes ?? {})) {
+    const entry = makeEntry(voteOf(e), null);
+    if (entry != null) out[id] = entry;
+  }
+  return out;
+}
+
+/**
+ * Lo que la casa usa al generar en la app: con casa, las favoritas de la casa
+ * más la nota personal de cada receta; sin casa (sin cuenta), las personales,
+ * que entonces son las únicas.
+ * @param {object} personal  recipe_votes de quien abre la app
+ * @param {object|null} deLaCasa  household_favorites ya pasadas a votos (householdFavoritesToVotes); null sin casa
+ */
+export function votosDeLaCasa(personal = {}, deLaCasa = null) {
+  return deLaCasa ? mergeVotes(sinFavoritas(personal), deLaCasa) : personal;
 }
 
 /**
@@ -169,18 +224,20 @@ export function mergeVotes(local = {}, remote = {}) {
 const scopeColumn = (scope) => (scope === "all" || !Array.isArray(scope) ? null : scope);
 
 /**
- * Loads the user's votes as the same map the app keeps in state.
- * @returns {Promise<Record<string, VoteEntry>>}
+ * Loads the user's votes as the same map the app keeps in state. Si la
+ * lectura falla, `data` es null y `error` lo dice (#317): con `{}`, App.jsx
+ * subía todos los votos locales encima de los de otro dispositivo.
+ * @returns {Promise<{ data: Record<string, VoteEntry>|null, error: object|null }>}
  */
 export async function loadRecipeVotes(userId) {
-  if (!supabase || !userId) return {};
+  if (!supabase || !userId) return { data: {}, error: null };
   const { data, error } = await supabase
     .from("recipe_votes")
     .select("recipe_id, vote, is_favorite, scope")
     .eq("user_id", userId);
   if (error) {
     console.warn("[recipeVotes] load failed", error.message);
-    return {};
+    return { data: null, error };
   }
   const map = {};
   for (const row of data ?? []) {
@@ -188,7 +245,7 @@ export async function loadRecipeVotes(userId) {
     const entry = makeEntry(row.vote, favScope);
     if (entry != null) map[row.recipe_id] = entry;
   }
-  return map;
+  return { data: map, error: null };
 }
 
 /** Upserts a single recipe's vote entry (rating and/or favorite scope). */
@@ -220,6 +277,23 @@ export async function deleteRecipeVote(userId, recipeId) {
     .eq("user_id", userId)
     .eq("recipe_id", recipeId);
   if (error) console.warn("[recipeVotes] delete failed", error.message);
+}
+
+/**
+ * Sube los votos que este dispositivo tiene y la nube no. `carga` es lo que
+ * acaba de devolver loadRecipeVotes: si falló, no sube nada (#317). Devuelve
+ * cuántos ha mandado subir.
+ * @param {{ userId: string, local: Record<string, VoteEntry>,
+ *   carga: { data: Record<string, VoteEntry>|null, error: object|null } }} args
+ */
+export async function subirVotosSoloLocales({ userId, local, carga }) {
+  if (!carga || carga.error || !carga.data) return 0;
+  const pendientes = Object.fromEntries(
+    Object.entries(local ?? {}).filter(([rid]) => !(rid in carga.data)),
+  );
+  const n = Object.keys(pendientes).length;
+  if (n) await upsertRecipeVotes(userId, pendientes);
+  return n;
 }
 
 /** Backfills several local-only votes to the cloud (first login on device). */

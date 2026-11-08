@@ -1,4 +1,4 @@
-import { FAMILIAS, FAMILIA_LABELS } from "../../lib/notepadFields.js";
+import { FAMILIAS, FAMILIAS_EN_PANTALLA, FAMILIA_LABELS } from "../../lib/notepadFields.js";
 import { mover, normalizar, repartoAFreqs } from "../../lib/reparto.js";
 import { SliderEjes } from "./SliderEjes.jsx";
 
@@ -20,7 +20,7 @@ import { SliderEjes } from "./SliderEjes.jsx";
  * la mitad del trabajo de reconocer la lista se pierde.
  */
 
-const ORDEN = ["carne", "pescado", "pasta_arroz", "legumbres", "huevos", "verdura"];
+const ORDEN = FAMILIAS_EN_PANTALLA;
 
 // Las filas siguen siendo FAMILIAS, solo ordenadas: si mañana aparece una
 // familia nueva en el cuaderno, sale igual —al final— en vez de desaparecer

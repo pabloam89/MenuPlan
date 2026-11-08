@@ -338,7 +338,10 @@
     "isVegetarian": true,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 55
+    "medianAmount": 55,
+    "mayContain": [
+      "mostaza"
+    ]
   },
   {
     "id": "alitas-de-pollo",
@@ -806,7 +809,10 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 105
+    "medianAmount": 105,
+    "mayContain": [
+      "soja"
+    ]
   },
   {
     "id": "bechamel",
@@ -889,7 +895,11 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 200
+    "medianAmount": 200,
+    "mayContain": [
+      "huevos",
+      "soja"
+    ]
   },
   {
     "id": "bogavante",
@@ -996,10 +1006,10 @@
     "aliases": [],
     "aisle": "Aceites y conservas",
     "category": "Verduras y frutas",
-    "allergens": [],
-    "cookingAllergens": [
+    "allergens": [
       "sulfitos"
     ],
+    "cookingAllergens": [],
     "conflictsWith": [
       "alcohol_cocina"
     ],
@@ -1064,7 +1074,10 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 175
+    "medianAmount": 175,
+    "mayContain": [
+      "sulfitos"
+    ]
   },
   {
     "id": "caballa",
@@ -1213,7 +1226,12 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "ml",
-    "medianAmount": 300
+    "medianAmount": 300,
+    "mayContain": [
+      "apio",
+      "gluten",
+      "soja"
+    ]
   },
   {
     "id": "caldo-de-marisco",
@@ -1234,7 +1252,13 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "ml",
-    "medianAmount": 500
+    "medianAmount": 500,
+    "mayContain": [
+      "apio",
+      "gluten",
+      "moluscos",
+      "soja"
+    ]
   },
   {
     "id": "caldo-de-pescado",
@@ -1252,7 +1276,14 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "ml",
-    "medianAmount": 450
+    "medianAmount": 450,
+    "mayContain": [
+      "apio",
+      "crustaceos",
+      "gluten",
+      "moluscos",
+      "soja"
+    ]
   },
   {
     "id": "caldo-de-pollo",
@@ -1266,7 +1297,12 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "ml",
-    "medianAmount": 450
+    "medianAmount": 450,
+    "mayContain": [
+      "apio",
+      "gluten",
+      "soja"
+    ]
   },
   {
     "id": "caldo-de-verduras",
@@ -1282,7 +1318,12 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ml",
-    "medianAmount": 350
+    "medianAmount": 350,
+    "mayContain": [
+      "apio",
+      "gluten",
+      "soja"
+    ]
   },
   {
     "id": "callo-de-ternera-limpio",
@@ -1531,10 +1572,10 @@
     "aliases": [],
     "aisle": "Aceites y conservas",
     "category": "Verduras y frutas",
-    "allergens": [],
-    "cookingAllergens": [
+    "allergens": [
       "sulfitos"
     ],
+    "cookingAllergens": [],
     "conflictsWith": [
       "alcohol_cocina"
     ],
@@ -1719,7 +1760,12 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 175
+    "medianAmount": 175,
+    "mayContain": [
+      "frutos_cascara",
+      "leche",
+      "soja"
+    ]
   },
   {
     "id": "chorizo",
@@ -1735,7 +1781,10 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 80
+    "medianAmount": 80,
+    "mayContain": [
+      "sulfitos"
+    ]
   },
   {
     "id": "chuletas-de-cerdo",
@@ -1908,7 +1957,10 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ml",
-    "medianAmount": 50
+    "medianAmount": 50,
+    "mayContain": [
+      "sulfitos"
+    ]
   },
   {
     "id": "col",
@@ -2130,7 +2182,10 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 8
+    "medianAmount": 8,
+    "mayContain": [
+      "mostaza"
+    ]
   },
   {
     "id": "cuscus",
@@ -2321,7 +2376,11 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 8
+    "medianAmount": 8,
+    "mayContain": [
+      "apio",
+      "mostaza"
+    ]
   },
   {
     "id": "espinacas",
@@ -2369,7 +2428,10 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 200
+    "medianAmount": 200,
+    "mayContain": [
+      "sesamo"
+    ]
   },
   {
     "id": "farfalle",
@@ -2517,7 +2579,10 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 100
+    "medianAmount": 100,
+    "mayContain": [
+      "sulfitos"
+    ]
   },
   {
     "id": "fresa",
@@ -2594,7 +2659,12 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 190
+    "medianAmount": 190,
+    "mayContain": [
+      "huevos",
+      "leche",
+      "soja"
+    ]
   },
   {
     "id": "gambas",
@@ -2613,7 +2683,10 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 150
+    "medianAmount": 150,
+    "mayContain": [
+      "sulfitos"
+    ]
   },
   {
     "id": "gambas-enteras",
@@ -2633,7 +2706,10 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 150
+    "medianAmount": 150,
+    "mayContain": [
+      "sulfitos"
+    ]
   },
   {
     "id": "garbanzos",
@@ -2710,7 +2786,11 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 40
+    "medianAmount": 40,
+    "mayContain": [
+      "gluten",
+      "soja"
+    ]
   },
   {
     "id": "granada",
@@ -2742,7 +2822,12 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 40
+    "medianAmount": 40,
+    "mayContain": [
+      "frutos_cascara",
+      "sesamo",
+      "soja"
+    ]
   },
   {
     "id": "grelo",
@@ -2836,7 +2921,13 @@
     "pieza": {
       "nombre": "pan",
       "g": 70
-    }
+    },
+    "mayContain": [
+      "huevos",
+      "leche",
+      "sesamo",
+      "soja"
+    ]
   },
   {
     "id": "harina",
@@ -2951,7 +3042,10 @@
     "isVegetarian": true,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 230
+    "medianAmount": 230,
+    "mayContain": [
+      "soja"
+    ]
   },
   {
     "id": "hojas-verdes",
@@ -3074,7 +3168,11 @@
     "pieza": {
       "nombre": "loncha",
       "g": 20
-    }
+    },
+    "mayContain": [
+      "leche",
+      "soja"
+    ]
   },
   {
     "id": "jarrete-de-ternera",
@@ -3115,10 +3213,10 @@
     "aliases": [],
     "aisle": "Aceites y conservas",
     "category": "Verduras y frutas",
-    "allergens": [],
-    "cookingAllergens": [
+    "allergens": [
       "sulfitos"
     ],
+    "cookingAllergens": [],
     "conflictsWith": [],
     "isVegetarian": true,
     "isVegan": true,
@@ -3447,7 +3545,10 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 7
+    "medianAmount": 7,
+    "mayContain": [
+      "gluten"
+    ]
   },
   {
     "id": "levadura-quimica",
@@ -3469,10 +3570,10 @@
     "aliases": [],
     "aisle": "Aceites y conservas",
     "category": "Verduras y frutas",
-    "allergens": [],
-    "cookingAllergens": [
+    "allergens": [
       "sulfitos"
     ],
+    "cookingAllergens": [],
     "conflictsWith": [
       "alcohol_cocina"
     ],
@@ -3728,7 +3829,11 @@
     "isVegetarian": true,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 40
+    "medianAmount": 40,
+    "mayContain": [
+      "frutos_cascara",
+      "soja"
+    ]
   },
   {
     "id": "manzana",
@@ -3787,7 +3892,11 @@
     "pieza": {
       "nombre": "lámina",
       "g": 230
-    }
+    },
+    "mayContain": [
+      "leche",
+      "soja"
+    ]
   },
   {
     "id": "mascarpone",
@@ -3821,7 +3930,10 @@
     "isVegetarian": true,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 40
+    "medianAmount": 40,
+    "mayContain": [
+      "mostaza"
+    ]
   },
   {
     "id": "medio-cochinillo",
@@ -4003,7 +4115,10 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 40
+    "medianAmount": 40,
+    "mayContain": [
+      "gluten"
+    ]
   },
   {
     "id": "monkfish",
@@ -4040,7 +4155,11 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 150
+    "medianAmount": 150,
+    "mayContain": [
+      "gluten",
+      "sulfitos"
+    ]
   },
   {
     "id": "morcillo",
@@ -4133,7 +4252,12 @@
       "nombre": "muffin",
       "g": 60,
       "plural": "muffins"
-    }
+    },
+    "mayContain": [
+      "huevos",
+      "leche",
+      "soja"
+    ]
   },
   {
     "id": "muslo-de-pollo",
@@ -4178,7 +4302,11 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 135
+    "medianAmount": 135,
+    "mayContain": [
+      "gluten",
+      "soja"
+    ]
   },
   {
     "id": "naranja",
@@ -4318,7 +4446,12 @@
         "nombre": "oblea",
         "g": 7
       }
-    }
+    },
+    "mayContain": [
+      "huevos",
+      "leche",
+      "soja"
+    ]
   },
   {
     "id": "orecchiette",
@@ -4417,7 +4550,10 @@
         "nombre": "hogaza",
         "g": 500
       }
-    }
+    },
+    "mayContain": [
+      "soja"
+    ]
   },
   {
     "id": "pan-de-payes",
@@ -4439,7 +4575,10 @@
     "pieza": {
       "nombre": "rebanada",
       "g": 35
-    }
+    },
+    "mayContain": [
+      "soja"
+    ]
   },
   {
     "id": "pan-molde",
@@ -4461,7 +4600,14 @@
     "pieza": {
       "nombre": "rebanada",
       "g": 35
-    }
+    },
+    "mayContain": [
+      "frutos_cascara",
+      "huevos",
+      "leche",
+      "sesamo",
+      "soja"
+    ]
   },
   {
     "id": "pan-rallado",
@@ -4477,7 +4623,13 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 60
+    "medianAmount": 60,
+    "mayContain": [
+      "frutos_cascara",
+      "huevos",
+      "sesamo",
+      "soja"
+    ]
   },
   {
     "id": "panceta",
@@ -4644,7 +4796,10 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 120
+    "medianAmount": 120,
+    "mayContain": [
+      "gluten"
+    ]
   },
   {
     "id": "pato",
@@ -4723,7 +4878,10 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ml",
-    "medianAmount": 80
+    "medianAmount": 80,
+    "mayContain": [
+      "sulfitos"
+    ]
   },
   {
     "id": "penne",
@@ -4868,7 +5026,10 @@
     "isVegetarian": true,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 35
+    "medianAmount": 35,
+    "mayContain": [
+      "gluten"
+    ]
   },
   {
     "id": "pimenton",
@@ -5076,7 +5237,10 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 100
+    "medianAmount": 100,
+    "mayContain": [
+      "gluten"
+    ]
   },
   {
     "id": "platano",
@@ -5744,7 +5908,12 @@
     "pieza": {
       "nombre": "salchicha",
       "g": 55
-    }
+    },
+    "mayContain": [
+      "gluten",
+      "leche",
+      "sulfitos"
+    ]
   },
   {
     "id": "salmon",
@@ -5834,7 +6003,10 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 150
+    "medianAmount": 150,
+    "mayContain": [
+      "mostaza"
+    ]
   },
   {
     "id": "salsa-cesar",
@@ -5852,7 +6024,10 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 60
+    "medianAmount": 60,
+    "mayContain": [
+      "leche"
+    ]
   },
   {
     "id": "salsa-soja",
@@ -5888,7 +6063,11 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "ml",
-    "medianAmount": 10
+    "medianAmount": 10,
+    "mayContain": [
+      "gluten",
+      "sulfitos"
+    ]
   },
   {
     "id": "salvia",
@@ -6031,10 +6210,10 @@
     "aliases": [],
     "aisle": "Aceites y conservas",
     "category": "Verduras y frutas",
-    "allergens": [],
-    "cookingAllergens": [
+    "allergens": [
       "sulfitos"
     ],
+    "cookingAllergens": [],
     "conflictsWith": [
       "alcohol_cocina"
     ],
@@ -6069,7 +6248,10 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 150
+    "medianAmount": 150,
+    "mayContain": [
+      "sulfitos"
+    ]
   },
   {
     "id": "solomillo",
@@ -6136,7 +6318,10 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 80
+    "medianAmount": 80,
+    "mayContain": [
+      "soja"
+    ]
   },
   {
     "id": "tabasco",
@@ -6347,7 +6532,10 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 50
+    "medianAmount": 50,
+    "mayContain": [
+      "sulfitos"
+    ]
   },
   {
     "id": "tomate-triturado",
@@ -6433,7 +6621,10 @@
         "nombre": "tortilla pequeña",
         "g": 30
       }
-    }
+    },
+    "mayContain": [
+      "soja"
+    ]
   },
   {
     "id": "trofie",
@@ -6569,10 +6760,10 @@
     ],
     "aisle": "Aceites y conservas",
     "category": "Despensa",
-    "allergens": [],
-    "cookingAllergens": [
+    "allergens": [
       "sulfitos"
     ],
+    "cookingAllergens": [],
     "conflictsWith": [],
     "isVegetarian": true,
     "isVegan": true,
@@ -6589,10 +6780,10 @@
     ],
     "aisle": "Aceites y conservas",
     "category": "Despensa",
-    "allergens": [],
-    "cookingAllergens": [
+    "allergens": [
       "sulfitos"
     ],
+    "cookingAllergens": [],
     "conflictsWith": [],
     "isVegetarian": true,
     "isVegan": true,
@@ -6605,10 +6796,10 @@
     "aliases": [],
     "aisle": "Aceites y conservas",
     "category": "Despensa",
-    "allergens": [],
-    "cookingAllergens": [
+    "allergens": [
       "sulfitos"
     ],
+    "cookingAllergens": [],
     "conflictsWith": [],
     "isVegetarian": true,
     "isVegan": true,
@@ -6621,10 +6812,10 @@
     "aliases": [],
     "aisle": "Aceites y conservas",
     "category": "Despensa",
-    "allergens": [],
-    "cookingAllergens": [
+    "allergens": [
       "sulfitos"
     ],
+    "cookingAllergens": [],
     "conflictsWith": [],
     "isVegetarian": true,
     "isVegan": true,
@@ -6637,10 +6828,10 @@
     "aliases": [],
     "aisle": "Aceites y conservas",
     "category": "Despensa",
-    "allergens": [],
-    "cookingAllergens": [
+    "allergens": [
       "sulfitos"
     ],
+    "cookingAllergens": [],
     "conflictsWith": [
       "alcohol_cocina"
     ],
@@ -6669,7 +6860,10 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ml",
-    "medianAmount": 60
+    "medianAmount": 60,
+    "mayContain": [
+      "sulfitos"
+    ]
   },
   {
     "id": "vino-tinto",
@@ -6677,10 +6871,10 @@
     "aliases": [],
     "aisle": "Aceites y conservas",
     "category": "Despensa",
-    "allergens": [],
-    "cookingAllergens": [
+    "allergens": [
       "sulfitos"
     ],
+    "cookingAllergens": [],
     "conflictsWith": [
       "alcohol_cocina"
     ],
@@ -6727,7 +6921,10 @@
       "nombre": "vol-au-vent",
       "g": 20,
       "plural": "vol-au-vents"
-    }
+    },
+    "mayContain": [
+      "huevos"
+    ]
   },
   {
     "id": "whisky",

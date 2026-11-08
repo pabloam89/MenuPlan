@@ -177,8 +177,36 @@ comprobaron paso a paso y están anotadas como excepción.
    lentejas de primero y garbanzos de segundo pasan el filtro. `filterRecipes.js:549`
    arrastra la misma lista incompleta en un comentario.
 
-   Se deja **deliberadamente sin corregir**: arreglarlo cambia qué menús genera
+   Se dejó **deliberadamente sin corregir**: arreglarlo cambia qué menús genera
    el motor para todo el mundo (empezaría a rechazar combinaciones que hoy
    acepta), y eso es una decisión de producto, no una consecuencia colateral de
    haber cerrado el campo a enum. Es exactamente el patrón de duplicación
    código↔prompt que `INDEX.md` ya documenta como transversal.
+
+   **DECIDIDA (Álvaro, 20 oct 2026; #891, construida en #896).** Un plato con
+   `mainProtein: "legumbre"` y `carbs_g > protein_g` cuenta como hidrato
+   `"legumbre"` (`getCarbType`), y choca con arroz, pasta, patatas y otra
+   legumbre según `chocanHidratos` (`src/utils/validateMenu.js`), la única
+   comparación de hidratos del motor. Manda `mainProtein`, no `mainBase`: la
+   base de batch cooking `bases_004` (`mainProtein: none`) sigue sin hidrato.
+   El cruce va en su propia regla, `guarnicion_legumbre`, relajable: si no hay
+   ningún plato que la cumpla, el solver la salta antes que dejar un hueco.
+
+## 8. Decisiones y lecciones (15 sep 2026)
+
+- **Dos motivos distintos para una base:** *manos* (minutos delante del
+  fuego), que arreglan el sofrito y la verdura asada; y *reloj* (minutos hasta
+  comer), que arreglan las féculas y sobre todo la verdura asada (−51 min por
+  plato). Medir solo las manos lleva a concluir, en falso, que las féculas no
+  sirven. Lo que importa es si el plato CRUZA de no caber a caber
+  (`esMontajeRapido`, `loQueGana()` en `lib/bases.js`).
+- **Trece bases**, ordenadas por trabajo ahorrado. Boniato, cuscús y quinoa se
+  quedan por decisión de Pablo («que cada uno marque lo que quiera»): no
+  volver a proponer quitarlas.
+- **Bases ricas, no neutras** (arroz con ajo, sofrito con tomate). La
+  combinatoria va embebida en el catálogo como platos cerrados con foto.
+- El catálogo de 28 salsas (`salsas.json`) no tiene consumidores: es cantera
+  de bases nuevas (de ahí salió la bechamel).
+- **Pendiente:** 34 recetas sin foto, entre ellas las 10 nuevas de verdura
+  asada y pesto. Sin foto no pueden ser estrella. Hay crédito de AI Studio
+  desde el 6 oct; falta correr `scripts/gen-fotos-pendientes.mjs` y marcarlas.

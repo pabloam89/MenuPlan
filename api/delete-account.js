@@ -1,14 +1,17 @@
 import crypto from "node:crypto";
 
 import { cors } from "./_guard.js";
+import { borrarLoDelBot } from "./_bot/borrar.js";
 
 // Real account deletion (Apple App Store Guideline 5.1.1(v)): removes the
 // auth.users row for the caller. Every user-scoped table (user_state,
 // user_pantry, user_profiles, user_events, recipe_votes, user_follows,
-// user_recipes, user_menus + user_menu_weeks/user_menu_recipes,
-// user_recipe_discards) references auth.users(id) on delete cascade, so this
-// single call is enough to wipe all of it — app_feedback is the deliberate
-// exception (on delete set null: anonymized, not deleted).
+// user_recipes, user_menus + user_menu_weeks/user_menu_recipes)
+// references auth.users(id) on delete cascade, so this single call is enough
+// to wipe all of it — app_feedback is the deliberate exception (on delete set
+// null: anonymized, not deleted). Lo de la casa (household_state, favoritos y
+// descartes en household_recipe_discards) cuelga de households, que cae con
+// su titular: por eso antes se hereda (prepare_account_deletion, abajo).
 //
 // Must run server-side: deleting another user's auth account requires the
 // service-role key, which can never be shipped to the browser. The caller's
@@ -37,7 +40,7 @@ async function fetchWithTimeout(url, options) {
 // Apple obliga a revocar el token de las cuentas creadas con "Iniciar sesión
 // con Apple" cuando el usuario borra la cuenta — misma guía que obliga al
 // borrado en sí. El refresh token lo copia el cliente en apple_auth_tokens al
-// iniciar sesión, porque Supabase no lo persiste (ver la migración 0053).
+// iniciar sesión, porque Supabase no lo persiste (ver la migración 0099).
 //
 // El secreto de cliente de Apple no es una cadena fija: es un JWT ES256
 // firmado con la clave .p8, válido cinco minutos, que hay que fabricar en cada
@@ -175,8 +178,48 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: "Sesión inválida." });
   }
 
+  // Antes de nada que no tenga vuelta: sus casas con cotitular pasan al más
+  // antiguo (prepare_account_deletion, 0075). Si no, al borrar el usuario su
+  // pareja perdería menús, compra y despensa. Si esto falla, NO se borra la
+  // cuenta (se puede reintentar): borrar sin heredar no tiene arreglo.
+  let herencia = { pasadas: 0, lectores: 0 };
+  try {
+    const prepRes = await fetchWithTimeout(`${supabaseUrl}/rest/v1/rpc/prepare_account_deletion`, {
+      method: "POST",
+      headers: {
+        apikey: serviceRoleKey,
+        "Content-Type": "application/json",
+        // Las claves nuevas (sb_secret_…) no van como Bearer (api/_bot/db.js).
+        ...(serviceRoleKey.startsWith("eyJ") ? { Authorization: `Bearer ${serviceRoleKey}` } : {}),
+      },
+      body: JSON.stringify({ p_user_id: userId }),
+    });
+    const prepBody = await prepRes.text();
+    if (!prepRes.ok) {
+      console.error("[delete-account] prepare_account_deletion failed", prepRes.status, prepBody.slice(0, 300));
+      return res.status(500).json({ error: "No se pudo pasar tu casa a quien la lleva contigo. No se ha borrado nada; inténtalo de nuevo." });
+    }
+    herencia = JSON.parse(prepBody) ?? herencia;
+  } catch (err) {
+    console.error("[delete-account] prepare_account_deletion threw", err?.name, err?.message);
+    return res.status(500).json({ error: "No se pudo pasar tu casa a quien la lleva contigo. No se ha borrado nada; inténtalo de nuevo." });
+  }
+
   // Antes de borrar: mientras el usuario exista todavía se puede leer su token.
   await revokeAppleToken(supabaseUrl, serviceRoleKey, userId);
+
+  // Lo del bot de Telegram que no cae en cascada con el usuario (chats
+  // enlazados, charlas, recordatorios, identidad…): antes, porque después ya
+  // no se sabe qué casas eran suyas. Y después de heredar: así solo ve las que
+  // siguen siendo suyas, y no borra los chats ni la cuota del heredero (M-1).
+  // Con 4 s como mucho y sin cortar el
+  // borrado: igual que con Apple, el derecho a borrar no depende de esto.
+  // Sin las identidades de Telegram: caen con el usuario, y si su borrado
+  // falla, Lola sigue reconociendo a la persona en vez de crearle otra cuenta (#958).
+  await Promise.race([
+    borrarLoDelBot(userId, { conIdentidades: false }),
+    new Promise((resolve) => setTimeout(resolve, 4000)),
+  ]).catch((err) => console.error("[delete-account] limpieza del bot", err?.message));
 
   try {
     const deleteRes = await fetchWithTimeout(`${supabaseUrl}/auth/v1/admin/users/${userId}`, {
@@ -189,7 +232,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: "No se pudo eliminar la cuenta." });
     }
 
-    return res.status(200).json({ ok: true });
+    return res.status(200).json({ ok: true, pasadas: herencia.pasadas ?? 0, lectores: herencia.lectores ?? 0 });
   } catch (err) {
     console.error(
       "[delete-account] DELETE /auth/v1/admin/users threw",

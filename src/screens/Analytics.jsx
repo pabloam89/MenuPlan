@@ -20,24 +20,26 @@ import {
   GroupScopePicker,
   WeekRangeBadge,
   bottomNavSpacer,
+  safeTop,
 } from "../components/ui.jsx";
-import { groupsFromModel } from "../lib/groups.js";
+import { gruposVigentes } from "../lib/groups.js";
 import { getConsumptionInsights, mergeConsumptionGroups, filterConsumptionByMeal } from "../lib/consumptionInsights.js";
 import { getMenuInsights } from "../lib/menuInsights.js";
 import { formatWeekRangeLabel, getWeekDates } from "../lib/weekCalendar.js";
+import { DIA_LETRA } from "../lib/dias.js";
 import { mealTimeColor } from "../lib/mealTimes.js";
 import { visualForRecipe } from "../assets/dishes/dishVisuals.js";
 import { tabDirection } from "../lib/motion.js";
 import { SpendPanel } from "./SpendPanel.jsx";
 
-const DAY_LETTERS = { Lun: "L", Mar: "M", Mié: "X", Jue: "J", Vie: "V", Sáb: "S", Dom: "D" };
+const DAY_LETTERS = DIA_LETRA;
 const TAB_OPTIONS = [
   { id: "cocina", label: "Cocina" },
   { id: "objetivos", label: "Objetivos" },
   { id: "gasto", label: "Gasto" },
 ];
 
-export function AnalyticsScreen({ data, setData, menuPlan, shopping, setShopping, readOnly = false, readOnlyLabel = null, onUndoReceiptTachado, onNav, onToast, initialTab = null, onInitialTabHandled = null }) {
+export function AnalyticsScreen({ data, menuPlan, shopping, readOnly = false, readOnlyLabel = null, onUndoReceiptTachado, onNav, onToast, initialTab = null, onInitialTabHandled = null }) {
   const [tab, setTab] = useState(initialTab ?? "cocina");
   const tabDirRef = useRef(0);
   // Deep link from "En casa" → Gastos: land directly on the requested tab.
@@ -55,7 +57,7 @@ export function AnalyticsScreen({ data, setData, menuPlan, shopping, setShopping
   };
   const [scope, setScope] = useState("all");
   const weekLabel = formatWeekRangeLabel(getWeekDates());
-  const groups = data.groups?.length ? data.groups : groupsFromModel(data.members, data.menuModel);
+  const groups = gruposVigentes(data);
 
   const insights = useMemo(
     () => getMenuInsights(menuPlan, groups, data, shopping),
@@ -81,7 +83,7 @@ export function AnalyticsScreen({ data, setData, menuPlan, shopping, setShopping
 
   return (
     <div style={{ background: "#f7f9f7", minHeight: "100dvh" }}>
-      <div style={{ padding: "20px 16px 0" }}>
+      <div style={{ padding: "20px 16px 0", paddingTop: safeTop(20) }}>
         <div
           style={{
             display: "flex",
@@ -137,7 +139,7 @@ export function AnalyticsScreen({ data, setData, menuPlan, shopping, setShopping
         style={{ padding: "0 16px", paddingBottom: `calc(${bottomNavSpacer()} + 12px)` }}
       >
         {tab === "gasto" ? (
-          <SpendPanel data={data} setData={setData} shopping={shopping} setShopping={setShopping} readOnly={readOnly} onUndoReceiptTachado={onUndoReceiptTachado} onToast={onToast} />
+          <SpendPanel readOnly={readOnly} onUndoReceiptTachado={onUndoReceiptTachado} onToast={onToast} />
         ) : !insights.hasMenu ? (
           <EmptyAnalytics onNav={onNav} />
         ) : tab === "cocina" ? (

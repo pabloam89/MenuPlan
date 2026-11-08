@@ -1,4 +1,6 @@
 import { supabase } from "./supabase.js";
+import { favScopeOf, isFavorite, voteOf, votosDeLaCasa } from "./recipeVotes.js";
+import { scopeToColumn, favoritasDeFilas, votosDeFavoritas } from "./recetasDeLaCasa.js";
 
 /**
  * Household favorites for menu generation (see household_favorites table).
@@ -6,39 +8,57 @@ import { supabase } from "./supabase.js";
  */
 
 /**
+ * Los votos con que genera la app al cargar (#958): con casa y favoritas
+ * leídas, las de la casa más la nota personal (votosDeLaCasa), como Lola; sin
+ * casa, o si household_favorites no se pudo leer, las personales (no se
+ * vacían las favoritas por un corte; el fallo ya va al log en loadHouseholdFavorites).
+ * @param {object} personal  recipe_votes de quien abre la app
+ * @param {string|null} householdId
+ * @param {{ data: object|null, error: object|null }} carga  lo que dio loadHouseholdFavorites
+ */
+export function votosAlCargar(personal, householdId, carga) {
+  const deLaCasa = householdId && !carga?.error ? householdFavoritesToVotes(carga?.data ?? {}, personal) : null;
+  return votosDeLaCasa(personal, deLaCasa);
+}
+
+/**
+ * Las favoritas de la casa. Si la lectura falla, `data` es null y `error` lo
+ * dice (#317): «la casa no tiene favoritas» no es lo mismo que «no se sabe».
  * @param {string} householdId
- * @returns {Promise<Record<string, { scope?: string|null }>>}
+ * @returns {Promise<{ data: Record<string, { scope?: string|null }>|null, error: object|null }>}
  */
 export async function loadHouseholdFavorites(householdId) {
-  if (!supabase || !householdId) return {};
+  if (!supabase || !householdId) return { data: {}, error: null };
   const { data, error } = await supabase
     .from("household_favorites")
     .select("recipe_id, scope")
     .eq("household_id", householdId);
   if (error) {
     console.warn("[householdFavoritesSync] load failed", error.message);
-    return {};
+    return { data: null, error };
   }
-  /** @type {Record<string, { scope?: string|null }>} */
-  const out = {};
-  for (const row of data ?? []) {
-    out[row.recipe_id] = { scope: row.scope ?? null };
-  }
-  return out;
+  return { data: favoritasDeFilas(data), error: null };
 }
+
+// La traducción del ámbito (texto con comas ↔ "all" | string[]) vive en
+// recetasDeLaCasa.js: la usa también Lola.
 
 /**
  * @param {string} householdId
  * @param {string} recipeId
- * @param {string|null|undefined} scope
+ * @param {import("./recipeVotes.js").VoteEntry|null|undefined} entry  la entrada
+ *   de recipeVotes ({ v, fav }); de ella solo se guarda el ámbito de favorita.
  */
-export async function saveHouseholdFavorite(householdId, recipeId, scope = null) {
+export async function saveHouseholdFavorite(householdId, recipeId, entry = null) {
   if (!supabase || !householdId || !recipeId) return;
+  // Una entrada que ya no es favorita (queda solo el 👍/👎) no es una fila con
+  // scope null: null es «todos», y al recargar volvería a ser de toda la casa.
+  if (!isFavorite(entry)) return deleteHouseholdFavorite(householdId, recipeId);
   const { error } = await supabase.from("household_favorites").upsert(
     {
       household_id: householdId,
       recipe_id: recipeId,
-      scope: scope ?? null,
+      scope: scopeToColumn(favScopeOf(entry)),
     },
     { onConflict: "household_id,recipe_id" },
   );
@@ -60,15 +80,16 @@ export async function deleteHouseholdFavorite(householdId, recipeId) {
 }
 
 /**
- * Converts household favorites rows into recipeVotes-shaped map for the app.
+ * Converts household favorites rows into recipeVotes-shaped map for the app,
+ * con la misma forma que lee recipeVotes.js ({ v, fav }). Antes devolvía
+ * { isFavorite, scope }, que mergeVotes leía como «ni nota ni favorita» y
+ * borraba: las favoritas de la casa desaparecían en cada carga.
+ * La casa no guarda notas: `v` se toma de `personal` para que la mezcla
+ * (en la que este mapa manda) no borre el 👍/👎 propio de esas recetas.
  * @param {Record<string, { scope?: string|null }>} favorites
- * @returns {Record<string, { isFavorite: true, scope?: string|null }>}
+ * @param {Record<string, import("./recipeVotes.js").VoteEntry>} [personal]
+ * @returns {Record<string, { v?: 'up'|'down', fav: 'all'|string[] }>}
  */
-export function householdFavoritesToVotes(favorites) {
-  /** @type {Record<string, { isFavorite: true, scope?: string|null }>} */
-  const out = {};
-  for (const [recipeId, meta] of Object.entries(favorites ?? {})) {
-    out[recipeId] = { isFavorite: true, scope: meta?.scope ?? null };
-  }
-  return out;
+export function householdFavoritesToVotes(favorites, personal = {}) {
+  return votosDeFavoritas(favorites, personal, voteOf);
 }

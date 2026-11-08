@@ -1,0 +1,207 @@
+/**
+ * La familia de la casa en la app (trozo 10 de #1037): se lee de sus filas (personas_de_casa, 0108) y se guarda
+ * por api/operacion.js (escribir_persona, la misma tubería y puerta que Lola), no en household_state.
+ *
+ * Plan B mientras la 0108 no esté aplicada (la rama se despliega antes que la migración): si la base no tiene
+ * personas_de_casa, la app sigue como hasta ahora (la familia va en el documento y la copia a sus filas el
+ * trigger 0089). Se decide en cada carga de la casa; la misma 0108 que crea la RPC quita el trigger.
+ */
+import { supabase } from "./supabase.js";
+import { apiUrl } from "./apiUrl.js";
+import * as ids from "./ids.js";
+import { FALLO_DATO } from "./vocabularios.js";
+import { enviarAlServidor, falloDeEnvio } from "./escribirDato.js";
+import { esSinFuncion } from "./postgrest.js";
+import { guardarConVersion } from "./versionCasa.js";
+import { membersDeFilas, cambiosDePersonas, conOrdenDeTodos, textosDeAvisos, FamiliaSinLeer, RPC_FAMILIA, revSiguiente } from "./personas.js";
+
+/** De dónde sale la familia en esta carga: de sus filas, o del documento (base sin la 0108). */
+export const MODO_FAMILIA = Object.freeze({ FILAS: "filas", DOCUMENTO: "documento" });
+
+/** La pantalla de la que sale un cambio de la familia (la `ref` de la operación). */
+export const REF_FAMILIA = "familia";
+
+/**
+ * La familia de una casa. `{ modo: FILAS, familia }`; `{ modo: DOCUMENTO }` si la base aún no tiene la RPC; o
+ * `{ error: true }` si no se pudo leer (sin red, o una respuesta sin la forma esperada): no es una casa sin nadie.
+ * @param {string} casa
+ */
+export async function leerFamiliaDeCasa(casa, cliente = supabase) {
+  if (!cliente) return { error: true };
+  const { data, error } = await cliente.rpc(RPC_FAMILIA, { p_casa: casa });
+  // La función no existe: base sin la 0108.
+  if (esSinFuncion(error)) return { modo: MODO_FAMILIA.DOCUMENTO };
+  try {
+    if (error) throw new FamiliaSinLeer(error.code ?? null);
+    return { modo: MODO_FAMILIA.FILAS, familia: membersDeFilas(data) };
+  } catch (e) {
+    if (!(e instanceof FamiliaSinLeer)) throw e;
+    console.warn("[familiaCasa] lectura", e.message);
+    return { error: true };
+  }
+}
+
+/**
+ * Pura. Los datos de la casa con la familia de sus filas en vez de la del documento. Sin cambio si no se leyó de
+ * ahí; una casa sin fila de documento ni personas sigue sin datos (no es una casa que adoptar).
+ */
+export function conFamiliaLeida(data, carga) {
+  if (carga?.modo !== MODO_FAMILIA.FILAS) return data;
+  if (!data && !carga.familia.members.length) return data;
+  return { ...(data ?? {}), ...carga.familia };
+}
+
+/** Pura. Lo que va al documento: sin `members` ni `groups` cuando la familia vive en sus filas. */
+export function sinFamilia(datos, modo) {
+  if (modo !== MODO_FAMILIA.FILAS) return datos;
+  const { members: _m, groups: _g, ...resto } = datos;
+  return resto;
+}
+
+/** El access_token de la sesión de Supabase, o null. */
+export async function tokenDeSesion() {
+  const { data } = await supabase.auth.getSession();
+  return data?.session?.access_token ?? null;
+}
+
+/** La dirección de api/operacion.js, donde la app propone sus operaciones (la familia y la cola de datos, escribirDato.js). */
+export const urlOperacion = () => apiUrl("/api/operacion");
+
+/**
+ * Una operación de la app a api/operacion.js (la familia, la libreta): `cuerpo` sin clave ni fecha, que se ponen
+ * aquí. Nunca lanza por la red ni por la sesión: `{ ok: true, ... }` con lo que devuelve la tubería, o
+ * `{ ok: false, fallo }` (FALLOS_DATO). `etiqueta`, para el log.
+ */
+export async function enviarOperacion(cuerpo, { token = tokenDeSesion, fetcher = fetch, etiqueta = "operacion" } = {}) {
+  const sesion = async () => {
+    try {
+      return await token();
+    } catch (e) {
+      // Una sesión que no se puede leer es no tener sesión (sin_sesion): quien llama lo dice.
+      console.warn(`[${etiqueta}] sesión sin leer`, e?.message);
+      return null;
+    }
+  };
+  let r;
+  try {
+    r = await enviarAlServidor({ token: sesion, url: urlOperacion(), fetchFn: fetcher })({
+      ...cuerpo, clave: ids.claveOperacion.nuevo(), pedida_at: new Date().toISOString(),
+    });
+  } catch (e) {
+    if (!(e instanceof TypeError)) throw e;
+    return { ok: false, fallo: FALLO_DATO.SIN_RED };
+  }
+  // Un cuerpo que no es JSON (la página de un proxy, un despliegue a medias) no es un guardado: se dice y al log.
+  const fallo = falloDeEnvio(r);
+  if (fallo) {
+    if (!r.cuerpo) console.warn(`[${etiqueta}] respuesta sin JSON`, r.status);
+    return { ok: false, fallo };
+  }
+  if (r.cuerpo.guardado !== true) return { ...r.cuerpo, ok: false, fallo: r.cuerpo.fallo ?? FALLO_DATO.SERVIDOR };
+  return { ...r.cuerpo, ok: true };
+}
+
+/**
+ * Las señales de lo que hace la familia en la app (un voto, un descarte, un cambio de plato: senales.js) a
+ * api/operacion.js (enviarOperacion), que las suma en `senal`. Sin casa o sin señales, nada. Lo que hizo la familia ya
+ * está hecho: si no se cuentan, no se repite y queda en el log (`senales_sin_contar`).
+ */
+export async function contarSenales(casa, senales, opciones) {
+  if (!casa || !senales?.length) return;
+  try {
+    const r = await enviarOperacion({ casa, senales }, { etiqueta: "senales", ...opciones });
+    if (!r.ok) console.warn(JSON.stringify({ evento: "senales_sin_contar", fallo: r.fallo }));
+  } catch (e) {
+    console.error(JSON.stringify({ evento: "senales_sin_contar", motivo: String(e?.message ?? e).slice(0, 200) }));
+  }
+}
+
+/** Un cambio de la familia a api/operacion.js (enviarOperacion). */
+export const enviarFamilia = ({ casa, personas, grupos }, opciones) => enviarOperacion({
+  casa, accion: "guardar_familia", ref_id: REF_FAMILIA, personas, ...(grupos !== undefined ? { grupos } : {}),
+}, { etiqueta: "familiaCasa", ...opciones });
+
+/**
+ * Una cola de guardados, uno tras otro: `encolar(paso)` corre `paso` cuando acaba el anterior y devuelve su
+ * promesa. Un paso que falla no rompe la cola para el siguiente (el fallo ya lo recibe quien encoló).
+ */
+export function colaEnOrden() {
+  let cola = Promise.resolve();
+  return (paso) => {
+    const p = cola.then(paso);
+    // a propósito: el fallo ya lo recibe quien llamó (p); la cola solo no se rompe para el siguiente
+    cola = p.catch(() => {});
+    return p;
+  };
+}
+
+/**
+ * La familia de una casa tal como la conoce la app: la leída y, tras cada guardado que entra, la guardada.
+ * `guardar(datos)` manda lo que cambió respecto a ella (cambiosDePersonas, con el orden de todos), uno tras
+ * otro: cada cambio se calcula sobre lo ya guardado, y uno que falla se vuelve a mandar con el siguiente.
+ * Devuelve `{ ok, enviado, avisos }` (avisos, en frases, solo de lo enviado) y lo de enviarFamilia.
+ */
+export function familiaDeCasa({ casa, familia, enviar = enviarFamilia }) {
+  let conocida = familia;
+  const encolar = colaEnOrden();
+  const guardar = (datos) => {
+    const ahora = { members: datos?.members ?? [], groups: datos?.groups ?? [] };
+    return encolar(async () => {
+      const { cambios, avisos } = cambiosDePersonas(conocida, ahora);
+      const conOrden = conOrdenDeTodos(cambios, conocida, ahora);
+      if (!conOrden) return { ok: true, enviado: false, avisos: [] };
+      const r = await enviar({ casa, ...conOrden });
+      if (r.ok) conocida = ahora;
+      return { ...r, enviado: true, avisos: textosDeAvisos(avisos) };
+    });
+  };
+  return { casa, guardar, conocida: () => conocida };
+}
+
+/**
+ * Un guardado de la familia como tarea de la cola de la casa (guardarConVersion, versionCasa.js), que le pasa
+ * la versión conocida. escribir_persona sube bot_rev: si la app no lo apunta, su siguiente guardado del
+ * documento chocaría consigo mismo y recargaría. Si la versión que deja es la siguiente a la conocida, nadie
+ * más escribió y se apunta (`botRev`); si no, otro escribió entretanto (Lola, otro móvil) y la app no lo ha
+ * visto: `conflict`, para recargar en vez de pisarlo con el documento de aquí.
+ * @param {() => Promise<{ ok: boolean, enviado?: boolean, rev?: number | null }>} guardar
+ */
+export const conVersionDeFamilia = (guardar) => async (rev) => {
+  const r = await guardar();
+  if (!r.ok || !r.enviado) return r;
+  const nueva = revSiguiente(rev, r.rev);
+  if (nueva != null) return { ...r, botRev: nueva };
+  return { ...r, conflict: true };
+};
+
+/**
+ * Pura. ¿La carga de la casa se para aquí? Sin poder leer la familia, siempre: con ella a medias, un guardado
+ * borraría a quien no salió. Sin los datos de la casa con sobre (casaDatos.js), tampoco: no se sabría si van en el
+ * documento o en su sobre. Sin poder leer la libreta (libretaCasa.js), tampoco: un guardado la vaciaría. Sin poder
+ * leer el documento, solo si lo que hay en memoria no vale (`soloNube`).
+ */
+export const cargaSinSeguir = (cargas) => queNoCargo(cargas).length > 0;
+
+/** Las piezas de la casa que no se han podido leer, cada una con su nombre: lo que lleva el rastro RASTRO.CASA_SIN_CARGAR. */
+export const PIEZA_DE_CASA = Object.freeze({ DOCUMENTO: "documento", FAMILIA: "familia", DATOS: "datos", LIBRETA: "libreta" });
+
+/** Pura. Qué piezas fallaron en la carga de la casa (PIEZA_DE_CASA); vacía, la carga sigue. */
+export function queNoCargo({ soloNube, remoteState, cargaFamilia, cargaCasa = null, cargaLibreta = null }) {
+  return [
+    soloNube && remoteState?.error && PIEZA_DE_CASA.DOCUMENTO,
+    cargaFamilia?.error && PIEZA_DE_CASA.FAMILIA,
+    cargaCasa?.error && PIEZA_DE_CASA.DATOS,
+    cargaLibreta?.error && PIEZA_DE_CASA.LIBRETA,
+  ].filter(Boolean);
+}
+
+/**
+ * Los dos guardados de la casa, en su cola (`guardarConVersion`, versionCasa.js): primero la familia, que con
+ * conVersionDeFamilia apunta la versión que deja, y detrás el documento, que sale con ella. Un guardado
+ * programado antes de una recarga de la nube no sale (`version.vigente`), así que nunca se calcula el cambio de
+ * la familia contra otra recién leída. El documento no espera a que la familia entre: no la lleva, y la que falla
+ * se vuelve a mandar con el siguiente guardado (familiaDeCasa). Devuelve las dos promesas.
+ */
+export function guardarFamiliaYDocumento({ version, familia, documento, enCola = guardarConVersion }) {
+  return { familia: enCola(version, conVersionDeFamilia(familia)), documento: enCola(version, documento) };
+}

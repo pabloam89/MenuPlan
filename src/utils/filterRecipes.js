@@ -1,14 +1,15 @@
 import { recipeCatalog } from "../data/recipeCatalog.js";
 import guarniciones from "../data/recipes/guarniciones.json";
-import { normalizeAllergenId, recipeIngredientsHitAllergens } from "../lib/allergens.js";
+import { normalizeAllergenId, recipeIngredientsHitAllergens, recipeIngredientIdsHitFreeAllergy } from "../lib/allergens.js";
 import { ensureHealthFlags } from "../lib/healthFlags.js";
 import { recipeHitsIntolerances, recipeViolatesDiet } from "../lib/intolerances.js";
 import { isAdaptableRestriction, planAdaptations } from "../lib/substitutions.js";
 import { ingredientWords, wordsOverlapEither } from "./normalizePantryInput.js";
 import { isMontaje, effectiveRecipeTime, necesitaVispera } from "../data/recipeSchema.js";
-import { resolveIngredientId } from "../lib/ingredients.js";
+import { resolveIngredientId, deriveRecipeAllergens } from "../lib/ingredients.js";
 import { esAnadido } from "../lib/cocinaTopes.js";
 import { aporteDe } from "../lib/aporte.js";
+import { platoVetado } from "../lib/vetos.js";
 
 // Off-menu categories: the optional desayuno/merienda/postre pool. They live in
 // the same catalog but must never be picked by the comida/cena planner (see the
@@ -53,6 +54,11 @@ const VINAGRE = /\bvinagres?\b( de \w+)?/g;
 const normalizeForAlcoholCheck = (s) =>
   s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(VINAGRE, " ");
 
+/** ¿Este ingrediente es (o lleva) una bebida alcohólica? Vinagre no. */
+export function nombraAlcohol(name) {
+  return ALCOHOL_RE.test(normalizeForAlcoholCheck(String(name ?? "")));
+}
+
 /**
  * Whether a single recipe violates any HARD safety restriction (allergen,
  * non-adaptable intolerance, alcohol-for-kids, baby-category isolation) for a
@@ -73,18 +79,55 @@ const normalizeForAlcoholCheck = (s) =>
  * @param {boolean}  [opts.isBabyGroup]
  * @returns {boolean}
  */
+/**
+ * Lo que una receta «puede contener» por sus ingredientes elaborados (un caldo
+ * de brick, un embutido, un curry: ver `mayContain` en ingredientSchema.js).
+ * Para quien tiene la alergia cuenta como si lo llevara: se excluye. Las del
+ * catálogo lo traen calculado al cargar; una receta propia se calcula aquí.
+ */
+export function puedeContenerDe(recipe) {
+  if (Array.isArray(recipe?.puedeContener)) return recipe.puedeContener;
+  if (!recipe?.ingredients?.length) return [];
+  return deriveRecipeAllergens(recipe).mayContain;
+}
+
+/**
+ * ¿Choca la receta con alguna alergia? ES el único sitio que lo decide: lo usan
+ * recipeViolatesHardSafety, el filtro principal (filterRecipes) y las
+ * guarniciones (filterGarnishes). Antes cada uno repetía su copia y la red de
+ * las alergias libres solo estaba en una: «Tomates» bloqueaba la receta
+ * al rehacer un postre y dejaba pasar «Judías verdes con garbanzos» al generar.
+ *
+ * @param {Object} recipe
+ * @param {Set<string>} blockedAllergens - ids normalizados
+ * @param {string[]} allergies - el texto original (el nivel 2 resuelve la frase)
+ */
+function recetaChocaConAlergias(recipe, blockedAllergens, allergies) {
+  if (blockedAllergens.size === 0) return false;
+  if (recipe.allergens?.some((a) => blockedAllergens.has(normalizeAllergenId(a)))) return true;
+  if (puedeContenerDe(recipe).some((a) => blockedAllergens.has(normalizeAllergenId(a)))) return true;
+  const names = (recipe.ingredients ?? []).map((ing) => ing.name);
+  if (recipeIngredientsHitAllergens(names, blockedAllergens)) return true;
+  // Nivel 2 de las alergias libres: por id de ingrediente, no por nombre.
+  // resolveIngredientId ya está cargado en este fichero para otra cosa; se
+  // pasa en vez de que allergensCore.js importe el catálogo entero (ver su
+  // cabecera: eso retrasaba el arranque de quien solo necesita el nivel 1).
+  return recipeIngredientIdsHitFreeAllergy(allergies, recipe.ingredients, resolveIngredientId);
+}
+
 export function recipeViolatesHardSafety(
   recipe,
-  { allergies = [], intolerances = [], hasKids = false, isBabyGroup = false } = {},
+  // offMenu: desayunos, meriendas y postres no se adaptan sin gluten (al
+  // generarlos no se hace; al rehacer uno, tampoco: las dos vías igual).
+  { allergies = [], intolerances = [], hasKids = false, isBabyGroup = false, offMenu = false } = {},
 ) {
   if (!recipe) return true;
 
+  // Una alergia no se desbloquea por sustitución: «sin_gluten» no prueba que el
+  // plato esté libre de gluten (falta certificado y contaminación cruzada).
+  // Hasta que haya sustitutos certificados, la alergia bloquea siempre.
   const blockedAllergens = new Set(allergies.map(normalizeAllergenId));
-  if (blockedAllergens.size > 0) {
-    if (recipe.allergens?.some((a) => blockedAllergens.has(normalizeAllergenId(a)))) return true;
-    const names = (recipe.ingredients ?? []).map((ing) => ing.name);
-    if (recipeIngredientsHitAllergens(names, blockedAllergens)) return true;
-  }
+  if (recetaChocaConAlergias(recipe, blockedAllergens, allergies)) return true;
 
   const hardIntolerances = Array.from(new Set(intolerances)).filter(
     (id) => !isAdaptableRestriction(id),
@@ -125,15 +168,13 @@ export function filterOffMenuRecipes(
 
   // Hard safety — allergens + non-adaptable intolerances + alcohol-for-kids.
   pool = pool.filter(
-    (r) => !recipeViolatesHardSafety(r, { allergies, intolerances, hasKids, isBabyGroup: false }),
+    (r) => !recipeViolatesHardSafety(r, { allergies, intolerances, hasKids, isBabyGroup: false, offMenu: true }),
   );
 
-  // Soft: dislikes (with fallback so we never empty the pool).
-  const dislikeLower = dislikes.map((d) => String(d).toLowerCase()).filter(Boolean);
-  if (dislikeLower.length > 0) {
-    const noDislike = pool.filter(
-      (r) => !r.ingredients.some((ing) => dislikeLower.some((d) => ing.name.toLowerCase().includes(d))),
-    );
+  // Soft: dislikes (with fallback so we never empty the pool). Mismo
+  // comparador que el menú (lib/vetos.js); aquí blando a propósito.
+  if (dislikes.length > 0) {
+    const noDislike = pool.filter((r) => !platoVetado(r, dislikes));
     if (noDislike.length > 0) pool = noDislike;
   }
 
@@ -228,55 +269,24 @@ export function filterRecipes({
   pantryIngredients = [],
   pantryIngredientIds = [],
   extraRecipes = [],
-  // "preferred" (default) | "only" (only the user's recipes) | "catalog"
-  // (only the bundled catalog). Set from data.recipeMode.
-  recipeMode = "preferred",
   // Cuántos platos de cada cocina extranjera quiere la casa esta semana
   // ({ peruana: 1, india: 0, ... }). `null` = nadie lo ha tocado, y entonces
   // esto no filtra nada: es el comportamiento de siempre.
   cocinas = null,
   // Set<string> of recipe ids the user favorited for this group. Soft ranking
-  // signal (annotates `isFavorite`, never excludes) EXCEPT con recipeMode
-  // "only", donde ademas hacen de salvoconducto: una favorita del catalogo
-  // cuenta como "mia" porque la pantalla ya la mete en "Mis recetas". Ver
-  // el paso 0.
+  // signal: annotates `isFavorite`, never excludes.
   favoriteIds = null,
 } = {}) {
-  const blockedAllergens = new Set(allergies.map(normalizeAllergenId));
   const activeIntolerances = Array.from(new Set(intolerances));
-  const dislikeLower = dislikes.map((d) => d.toLowerCase());
+  // La alergia no se desbloquea con «sin_gluten»: el paso 1 excluye siempre el
+  // gluten de quien lo tiene como alergia (ver recipeViolatesHardSafety).
+  const blockedAllergens = new Set(allergies.map(normalizeAllergenId));
   const toolsLower = new Set(kitchenTools.map((t) => t.toLowerCase()));
   const season = currentSeason();
 
   let pool = extraRecipes.length > 0
     ? [...recipeCatalog, ...extraRecipes.map(ensureHealthFlags)]
     : recipeCatalog;
-
-  // 0. Recipe-source mode (never applies to baby groups, which have their own
-  // curated catalog). "only" = just the user's recipes; "catalog" = drop them.
-  //
-  // ── Qué cuenta como "mía" ────────────────────────────────────────────────
-  // Lo mismo que cuenta en la pantalla, y esa es toda la regla. "Mis recetas"
-  // del navegador de catálogo (ver mineRecipes en CatalogBrowserSheet) son las
-  // que has CREADO más las del catálogo que has marcado con corazón. Aquí se
-  // filtraba solo por `source === "user"`, así que las favoritas del catálogo
-  // se caían: las veías dentro de la carpeta "Mis recetas" y luego "Solo mis
-  // recetas" las excluía del menú. Dos pantallas con dos definiciones de la
-  // misma palabra.
-  //
-  // Y de las dos señales, la del corazón es la MÁS específica: `recipeMode` es
-  // una política general y el corazón es una decisión sobre una receta
-  // concreta. Que la política borre la decisión concreta va al revés de como
-  // funciona cualquier sistema de preferencias.
-  //
-  // Se usa `favoriteIds` (el del GRUPO, ver favoriteIdsForGroup) y no todas las
-  // favoritas: si marcaste algo para el menú de los niños, no tiene por qué
-  // entrar en el de los adultos. El corazón ya trae su alcance.
-  if (!isBabyGroup && recipeMode === "only") {
-    pool = pool.filter((r) => r.source === "user" || favoriteIds?.has(r.id));
-  } else if (!isBabyGroup && recipeMode === "catalog") {
-    pool = pool.filter((r) => r.source !== "user");
-  }
 
   // 0a. User-discarded recipes ("no me gusta" forever + live weekly/cooldown
   // rejections). Compared against the base catalog id, matching how the caller
@@ -343,12 +353,7 @@ export function filterRecipes({
   // catches the other 6 (soja, cacahuetes, apio, mostaza, sulfitos, altramuces)
   // that the catalog can't encode, so marking them actually excludes recipes.
   if (blockedAllergens.size > 0) {
-    pool = pool.filter((r) => {
-      if (r.allergens.some((a) => blockedAllergens.has(normalizeAllergenId(a)))) return false;
-      const names = (r.ingredients ?? []).map((ing) => ing.name);
-      if (recipeIngredientsHitAllergens(names, blockedAllergens)) return false;
-      return true;
-    });
+    pool = pool.filter((r) => !recetaChocaConAlergias(r, blockedAllergens, allergies));
   }
 
   // 1c. Intolerances & dietary states. Two behaviors:
@@ -374,15 +379,12 @@ export function filterRecipes({
       .filter(Boolean);
   }
 
-  // 2. Dislikes — exclude if any ingredient name contains a disliked term
-  if (dislikeLower.length > 0) {
-    pool = pool.filter(
-      (r) =>
-        !r.ingredients.some((ing) => {
-          const name = ing.name.toLowerCase();
-          return dislikeLower.some((d) => name.includes(d));
-        }),
-    );
+  // 2. Vetos («no me pongas X») — DUROS en la comida y la cena: el plato sale
+  // del pool, sin caída. Palabra entera, sin tildes, singular o plural, sobre
+  // el nombre y los ingredientes (lib/vetos.js#platoVetado). Hasta el 8 oct
+  // 2026 era un substring: «pollo» se llevaba el repollo.
+  if (dislikes.length > 0) {
+    pool = pool.filter((r) => !platoVetado(r, dislikes));
   }
 
   // 3. Kid-friendly
@@ -409,7 +411,9 @@ export function filterRecipes({
 
   // 6. Required appliance — exclude if user doesn't have the required tool.
   // Static catalog dishes use a single `requiredAppliance` string; user-made
-  // recipes can accept several via `requiredAppliances` (any one unlocks it).
+  // recipes can list several via `requiredAppliances`, and then the dish needs
+  // ALL of them (empieza en la olla y acaba en el horno). Hasta el 6 oct 2026
+  // bastaba con uno, pero nadie guardaba más de uno.
   pool = pool.filter((r) => {
     const required = r.requiredAppliances?.length
       ? r.requiredAppliances
@@ -417,7 +421,7 @@ export function filterRecipes({
         ? [r.requiredAppliance]
         : [];
     if (!required.length) return true;
-    return required.some((a) => toolsLower.has(a.toLowerCase()));
+    return required.every((a) => toolsLower.has(a.toLowerCase()));
   });
 
   // 7. Cook level — deterministic difficulty filter
@@ -452,8 +456,8 @@ export function filterRecipes({
   // el caso que sí debe seguir bloqueando: la UNIÓN de varias restricciones de
   // distintos miembros (ver "pool exhaustion from MULTIPLE members" en
   // aiPlanner.test.js), que cae a ~10.
-  const minRecipes = isBabyGroup ? 10 : recipeMode === "only" ? 1 : 15;
-  const minCategories = isBabyGroup ? 1 : recipeMode === "only" ? 1 : 4;
+  const minRecipes = isBabyGroup ? 10 : 15;
+  const minCategories = isBabyGroup ? 1 : 4;
 
   // 9. Recetario Estrella, sin plan B: el fondo de armario (catálogo antiguo,
   // sin foto propia) nunca entra para un grupo normal, ni siquiera cuando las
@@ -574,11 +578,7 @@ export function filterGarnishes(
   const hardIds = activeIntolerances.filter((id) => !isAdaptableRestriction(id));
 
   return guarnicionesList.filter((g) => {
-    if (blockedAllergens.size > 0) {
-      if (g.allergens.some((a) => blockedAllergens.has(normalizeAllergenId(a)))) return false;
-      const names = (g.ingredients ?? []).map((ing) => ing.name);
-      if (recipeIngredientsHitAllergens(names, blockedAllergens)) return false;
-    }
+    if (recetaChocaConAlergias(g, blockedAllergens, allergies)) return false;
     if (hardIds.length > 0 && recipeHitsIntolerances(g, hardIds)) return false;
     if (hardIds.length > 0 && recipeViolatesDiet(g, hardIds)) return false;
     if (hasKids && g.ingredients.some((ing) => ALCOHOL_RE.test(normalizeForAlcoholCheck(ing.name)))) {

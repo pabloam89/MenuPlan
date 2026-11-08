@@ -19,8 +19,8 @@
 
 import { composicionDe, ejeProteina, ejeHidrato } from "./composicion.js";
 import { ESCALA_POR_TECNICA } from "../../data/recipeSchema.js";
-import alimentos from "../../data/alimentos.json";
-import alimentoPorIngrediente from "../../data/alimentoPorIngrediente.json";
+import alimentos from "../../data/alimentos.json" with { type: "json" };
+import alimentoPorIngrediente from "../../data/alimentoPorIngrediente.json" with { type: "json" };
 
 const porId = new Map(alimentos.map((a) => [a.id, a]));
 const alimentoDe = (ingredientId) =>
@@ -209,8 +209,8 @@ export function completitudDe(receta) {
 
   const faltan = Object.entries(tiene).filter(([, v2]) => !v2).map(([k]) => k);
   return faltan.length
-    ? { valor: false, via: `le falta ${faltan.join(" y ")}`, duda: null }
-    : { valor: true, via: "trae proteína, hidrato y verdura", duda: null };
+    ? { valor: false, faltan, via: `le falta ${faltan.join(" y ")}`, duda: null }
+    : { valor: true, faltan, via: "trae proteína, hidrato y verdura", duda: null };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -1,0 +1,570 @@
+/**
+ * Generar un menú: o queda activo y la casa lo sabe, o no queda nada y se dice.
+ * Antes se activaba con dos PATCH sueltos y, si la foto de la casa no entraba,
+ * se respondía igual «generado y activado».
+ */
+import { MARCA_COMPRA } from "../../src/lib/vocabularios.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+vi.mock("./db.js", () => ({ select: vi.fn(), insert: vi.fn(), borrar: vi.fn(), eq: (v) => `eq.${v}` }));
+vi.mock("./casa.js", () => ({ cargarCasa: vi.fn(), conCasa: vi.fn() }));
+vi.mock("./embudo.js", () => ({ registrar: vi.fn(), rastro: vi.fn(), EMBUDO: {} }));
+vi.mock("./menu.js", () => ({
+  motor: vi.fn(), describirMenu: vi.fn(async () => ""), masParecida: vi.fn(), normal: (s) => s, prepararRecetas: vi.fn(), DIA_LARGO: {},
+}));
+
+const { select, insert, borrar } = await import("./db.js");
+const { cargarCasa, conCasa } = await import("./casa.js");
+const { motor } = await import("./menu.js");
+const { generarMenu, resultadoDeGenerar, SIN_GENERAR } = await import("./generar.js");
+const { ESTADO, recibo } = await import("./resultado.js");
+const { estimarSemana, frasePresupuesto } = await import("../../src/lib/presupuesto.js");
+const { resumenCumplimiento } = await import("../../src/lib/cumplimiento.js");
+const { rastro } = await import("./embudo.js");
+const { MINIMO } = await import("../../src/lib/minimosParaGenerar.js");
+
+const plan = { Lun: { Cena: { recipeId: "r1" } } };
+const m = {
+  recipeCatalog: [],
+  resolveModeData: (d) => d,
+  membersOfGroup: (g, ms) => ms,
+  groupsFromModel: () => [{ id: "g1", label: "Todos" }],
+  explicitDaysForOffset: () => null,
+  computeWeekRange: () => ({ startISO: "2026-10-05", endISO: "2026-10-11", activeDays: ["Lun"] }),
+  prepararSemana: () => ({ weekData: {}, crossWeek: null, weekSchedule: {} }),
+  // La semana tal cual: lo que compila la entrada lo prueba entradaMotor.test.js.
+  entradaDelMotor: (weekData) => weekData,
+  generateMenuWithAI: async () => ({ plan, recipes: [{ id: "r1", name: "Tortilla" }], cumplimiento: { preferencias: [] } }),
+  registerRecipes: () => {},
+  buildShoppingList: () => ({ byCategory: [{ items: [{ name: "huevos" }] }], pantryItems: [] }),
+  getDayMeals: () => ({}),
+  createMenuId: () => "menu-nuevo",
+  menuToRow: (menu) => ({ id: menu.id }),
+  weekToRow: () => ({}),
+  COLUMNAS_DESPENSA: "*",
+  filaDeDespensa: (f) => f,
+  estimarSemana, frasePresupuesto, resumenCumplimiento,
+};
+
+const casaVieja = {
+  householdId: "h1", botRev: 3,
+  // Con las alergias revisadas: sin eso no se genera (trozo 2 de #1037, abajo).
+  state: { data: { members: [{ id: "p1", name: "Ana", alergiasRevisadas: true }], groups: [{ id: "g1", label: "Todos" }], menuModel: "same" }, shopping: { items: [] } },
+  // menuModel, como lo deja cargarCasa (casa.js): de su sobre, aquí el defecto del registro.
+  conSobre: { menuModel: { valor: "same", conSobre: false } },
+  menu: { id: "menu-viejo" }, semanas: [], semana: null,
+};
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  motor.mockResolvedValue(m);
+  cargarCasa.mockResolvedValue(structuredClone(casaVieja));
+  select.mockImplementation(async (tabla) => (tabla === "households" ? [{ owner_user_id: "u1" }] : []));
+  insert.mockResolvedValue([]);
+  borrar.mockResolvedValue(null);
+});
+
+describe("generar: un reparto por edades que no eligió nadie pasa a un menú (trozo 12, menuModel con sobre)", () => {
+  const porEdades = [{ id: "ga", label: "Adultos" }, { id: "gn", label: "Niños" }];
+  /** Los grupos que deja generar en una casa con el reparto por edades y menuModel «same» en `data`. */
+  const gruposTrasGenerar = async (conSobre) => {
+    const casa = { ...structuredClone(casaVieja), conSobre, state: { ...casaVieja.state, data: { ...casaVieja.state.data, menuModel: "same", groups: porEdades } } };
+    cargarCasa.mockResolvedValue(structuredClone(casa));
+    let cambios;
+    conCasa.mockImplementation(async (_h, cambiar) => { cambios = await cambiar(structuredClone(casa)); return { ok: true }; });
+    motor.mockResolvedValue({ ...m, tipoDeGrupo: (g) => (g.id === "ga" ? "adultos" : "ninos") });
+    await generarMenu("h1", "esta", [], {});
+    return cambios.state.data.groups;
+  };
+  const TODOS = [{ id: "g1", label: "Todos" }];
+
+  it("con el «same» del defecto del registro en su sobre, nadie lo eligió: un solo menú", async () => {
+    expect(await gruposTrasGenerar({ menuModel: { valor: "same", conSobre: false } })).toEqual(TODOS);
+  });
+  it("con «same» dicho por alguien, el reparto se queda", async () => {
+    expect(await gruposTrasGenerar({ menuModel: { valor: "same", conSobre: true } })).toEqual(porEdades);
+  });
+  it("una casa sin menuModel con su sobre no se genera: no se adivina si alguien lo eligió (la 0112, aplicada)", async () => {
+    await expect(gruposTrasGenerar(null)).rejects.toThrow(/no trae menuModel/);
+  });
+  it("generar no siembra «same» en el documento: menuModel sale de su sobre", async () => {
+    const casa = structuredClone(casaVieja);
+    delete casa.state.data.menuModel;
+    let cambios;
+    conCasa.mockImplementation(async (_h, cambiar) => { cambios = await cambiar(structuredClone(casa)); return { ok: true }; });
+    await generarMenu("h1", "esta", [], {});
+    expect(cambios.state.data).not.toHaveProperty("menuModel");
+  });
+});
+
+describe("generar menú: todo o nada", () => {
+  it("activa el menú en la misma escritura que la casa, con lo apuntado a mano MIENTRAS generaba", async () => {
+    // Mientras el motor pensaba alguien dijo «apunta pan»: la casa fresca lo tiene.
+    const fresca = { ...structuredClone(casaVieja), botRev: 4, state: { ...casaVieja.state, shopping: { items: [{ name: "pan", manual: true }] } } };
+    let cambios;
+    conCasa.mockImplementation(async (_h, cambiar) => { cambios = await cambiar(fresca); return { ok: true }; });
+    const out = {};
+    const texto = await generarMenu("h1", "esta", [], out);
+    expect(cambios.activar).toBe("menu-nuevo");
+    expect(cambios.state.data.activeMenuId).toBe("menu-nuevo");
+    expect(cambios.state.shopping.items.map((i) => i.name)).toEqual(["huevos", "pan"]);
+    // La semana guarda solo marcas (trozo 18): lo apuntado a mano; los huevos salen del plan al leerla.
+    expect(cambios.semana.shopping.marcas.map((m) => [m.nombre, m.marcas])).toEqual([["pan", [MARCA_COMPRA.ANADIDO]]]);
+    expect(out.ok).toBe(true);
+    expect(texto).toMatch(/generado y activado/);
+    expect(borrar).not.toHaveBeenCalled();
+  });
+
+  it("apunta de qué semana es y por qué camino se pidió (trozo 70)", async () => {
+    conCasa.mockResolvedValue({ ok: true });
+    const out = {};
+    await generarMenu("h1", "esta", [], out, { comoSePidio: { camino: "medio" } });
+    const fila = insert.mock.calls.find(([tabla]) => tabla === "menu_generado")[1][0];
+    expect(fila).toEqual({ household_id: "h1", menu_id: "menu-nuevo", week_start: out.desde, camino: "medio" });
+  });
+
+  it("los días de la última vez mandan sobre los de la casa (trozo 71)", async () => {
+    conCasa.mockResolvedValue({ ok: true });
+    const pedidos = [];
+    motor.mockResolvedValue({ ...m, computeWeekRange: (...a) => { pedidos.push(a[2]); return m.computeWeekRange(...a); } });
+    await generarMenu("h1", "siguiente", [], {}, { soloEste: { dias: ["Lun", "Mar"] } });
+    expect(pedidos[0]).toEqual(["Lun", "Mar"]);
+  });
+
+  it("si no se puede apuntar, el menú sigue hecho (trozo 70)", async () => {
+    const aviso = vi.spyOn(console, "error").mockImplementation(() => {});
+    conCasa.mockResolvedValue({ ok: true });
+    insert.mockImplementation(async (tabla) => { if (tabla === "menu_generado") throw new Error("500"); return []; });
+    const out = {};
+    await generarMenu("h1", "esta", [], out);
+    expect(out.ok).toBe(true);
+    aviso.mockRestore();
+  });
+
+  it("si la casa no se guarda, no dice «activado»: borra el menú a medias y lo dice", async () => {
+    conCasa.mockResolvedValue({ ok: false, error: "conflicto persistente" });
+    const out = {};
+    const texto = await generarMenu("h1", "esta", [], out);
+    expect(texto).toMatch(/^NO GUARDADO/);
+    expect(texto).not.toMatch(/activado/);
+    expect(out.ok).toBe(false);
+    expect(borrar.mock.calls.map(([t]) => t)).toEqual(["user_menu_recipes", "user_menu_weeks", "user_menus"]);
+    // Solo se borra si sigue inactivo.
+    expect(borrar.mock.calls[2][1]).toMatch(/is_active=eq\.false/);
+  });
+
+  it("si falla al meter las semanas, no deja el menú a medias en el historial", async () => {
+    insert.mockImplementation(async (tabla) => { if (tabla === "user_menu_weeks") throw new Error("500"); return []; });
+    await expect(generarMenu("h1", "esta", [], {})).rejects.toThrow("500");
+    expect(borrar).toHaveBeenCalled();
+    expect(conCasa).not.toHaveBeenCalled();
+  });
+
+  it("las semanas que se quedan pasan al dueño del menú nuevo, aunque las guardara un cotitular", async () => {
+    // La FK (user_id, menu_id) → user_menus: una semana copiada con el user_id
+    // del menú viejo (de un cotitular) no entra en el menú nuevo, que es del titular.
+    cargarCasa.mockResolvedValue({ ...structuredClone(casaVieja), semanas: [{ weekStart: "2099-01-05", weekEnd: "2099-01-11" }] });
+    select.mockImplementation(async (tabla) => {
+      if (tabla === "households") return [{ owner_user_id: "u1" }];
+      if (tabla === "user_menu_weeks") return [{ user_id: "u2", household_id: "h1", week_start: "2099-01-05", plan: {} }];
+      return [];
+    });
+    conCasa.mockResolvedValue({ ok: true });
+    await generarMenu("h1", "esta", [], {});
+    const semanas = insert.mock.calls.find(([t]) => t === "user_menu_weeks")[1];
+    const copiada = semanas.find((w) => w.week_start === "2099-01-05");
+    expect(copiada).toMatchObject({ user_id: "u1", menu_id: "menu-nuevo" });
+  });
+});
+
+describe("(d) el recordatorio de alergias por silencio (#229)", () => {
+  const porSilencio = (extra = {}) => ({
+    ...structuredClone(casaVieja),
+    state: {
+      ...casaVieja.state,
+      data: { ...casaVieja.state.data, members: [{ id: "p1", allergies: [], alergiasRevisadas: true, alergiasOrigen: "por_silencio" }], ...extra },
+    },
+  });
+
+  it("el primer menú lo pide, y la marca va en la MISMA escritura que el menú", async () => {
+    let cambios;
+    conCasa.mockImplementation(async (_h, cambiar) => { cambios = await cambiar(porSilencio()); return { ok: true }; });
+    const info = vi.spyOn(console, "info").mockImplementation(() => {});
+    const out = {};
+    await generarMenu("h1", "esta", [], out);
+    expect(out.recordarSilencio).toBe(true);
+    expect(cambios.state.data.alergiasSilencioRecordado).toBe(true);
+    expect(info.mock.calls.map(([l]) => JSON.parse(l))).toEqual([{ evento: "bot_alergias", accion: "recordada", origen: "por_silencio", canal: "telegram" }]);
+    info.mockRestore();
+  });
+
+  it("el segundo, no: sale una vez y no dos", async () => {
+    conCasa.mockImplementation(async (_h, cambiar) => { await cambiar(porSilencio({ alergiasSilencioRecordado: true })); return { ok: true }; });
+    const out = {};
+    await generarMenu("h1", "esta", [], out);
+    expect(out.recordarSilencio).toBe(false);
+  });
+
+  it("sin nadie por silencio, tampoco", async () => {
+    conCasa.mockImplementation(async (_h, cambiar) => { await cambiar(structuredClone(casaVieja)); return { ok: true }; });
+    const out = {};
+    await generarMenu("h1", "esta", [], out);
+    expect(out.recordarSilencio).toBe(false);
+  });
+});
+
+describe("generar menú con las recetas propias", () => {
+  it("el motor recibe las de user_recipes (las de la app), no solo las del JSON", async () => {
+    const propia = { id: "user_app1", name: "Tortilla de la abuela", source: "user" };
+    cargarCasa.mockResolvedValue({ ...structuredClone(casaVieja), recetasPropias: [propia] });
+    conCasa.mockResolvedValue({ ok: true });
+    const prepararSemana = vi.spyOn(m, "prepararSemana");
+    await generarMenu("h1", "esta", [], {});
+    expect(prepararSemana.mock.calls[0][0].userRecipes).toEqual([propia]);
+    prepararSemana.mockRestore();
+  });
+});
+
+describe("colocarPedidos", () => {
+  it("pasa el `hoy` de la casa a pickCatalogReplacement (la vigencia no puede ir por el reloj del servidor)", async () => {
+    const { colocarPedidos } = await import("./generar.js");
+    const { isoDeCasa } = await import("../../src/lib/dias.js");
+    const receta = { id: "lentejas", name: "Lentejas", time: 30, mealRole: ["main"] };
+    // Como el de verdad, trae lo que se escribe en el hueco (#1246).
+    const pick = vi.fn(() => ({ recipeId: "lentejas", frontendRecipe: receta, hueco: { recipeId: "lentejas", garnishId: null, sauceId: null, platoDe: "lentejas" } }));
+    const motorFalso = { recipeCatalogById: { lentejas: receta }, pickCatalogReplacement: pick, registerRecipes: () => {} };
+    const planDeSemana = { g1: { "Lun-Comida": { recipeId: "otra" } } };
+    const pedidos = [{ pedido: "lentejas", fijo: { catalogId: "lentejas", meals: ["Comida"] } }];
+    expect(colocarPedidos(motorFalso, {}, planDeSemana, [], pedidos, ["Lun"])).toEqual(["lentejas"]);
+    expect(pick.mock.calls[0][2].hoy).toBe(isoDeCasa());
+    expect(planDeSemana.g1["Lun-Comida"]).toMatchObject({ recipeId: "lentejas", platoDe: "lentejas", garnishId: null });
+  });
+});
+
+describe("generar: la semana pedida (#905)", () => {
+  it("una semana que ya tiene menú no se rehace sin rehacer: avisa y no escribe nada", async () => {
+    cargarCasa.mockResolvedValue({ ...structuredClone(casaVieja), semanas: [{ weekStart: "2000-01-01", weekEnd: "2099-01-01", startDayIdx: 0, plan: {} }] });
+    const out = {};
+    const texto = await generarMenu("h1", "esta", [], out);
+    expect(texto).toMatch(/YA HAY MENÚ/);
+    expect(out.ok).toBe(false);
+    expect(insert).not.toHaveBeenCalled();
+  });
+});
+
+describe("generar: rehacer la semana en curso (#907)", () => {
+  it("la compra sale solo de lo rehecho: hoy y lo pasado vuelven al plan pero no a la compra", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-10-22T10:00:00Z")); // jueves
+    try {
+      const viejo = { g1: { "Lun-Comida": { recipeId: "viejo-lunes" }, "Jue-Cena": { recipeId: "viejo-hoy" }, "Vie-Cena": { recipeId: "viejo-vie" } } };
+      cargarCasa.mockResolvedValue({ ...structuredClone(casaVieja), semanas: [{ weekStart: "2026-10-19", weekEnd: "2026-10-25", startDayIdx: 0, plan: viejo }] });
+      const nuevo = { g1: { "Vie-Cena": { recipeId: "nuevo-vie" } } };
+      let enLaCompra = null;
+      motor.mockResolvedValue({
+        ...m,
+        generateMenuWithAI: async () => ({ plan: nuevo, recipes: [], cumplimiento: { preferencias: [] } }),
+        buildShoppingList: (p) => { enLaCompra = Object.keys(p.g1); return { byCategory: [], pantryItems: [] }; },
+      });
+      conCasa.mockResolvedValue({ ok: true });
+      const out = {};
+      await generarMenu("h1", "esta", [], out, { rehacer: true });
+      expect(out.ok).toBe(true);
+      expect(enLaCompra).toEqual(["Vie-Cena"]);
+      expect(nuevo.g1).toMatchObject({ "Lun-Comida": { recipeId: "viejo-lunes" }, "Jue-Cena": { recipeId: "viejo-hoy" }, "Vie-Cena": { recipeId: "nuevo-vie" } });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
+
+describe("generar: la respuesta dice qué semana es (#915)", () => {
+  // Sábado 24 oct 2026: la del 26 ya tiene menú, «la siguiente» es la del 2 nov.
+  const conSemanaDel26 = () => cargarCasa.mockResolvedValue({ ...structuredClone(casaVieja), semanas: [{ weekStart: "2026-10-26", weekEnd: "2026-11-01", startDayIdx: 0, plan: {} }] });
+  const motorConSemanas = () => motor.mockResolvedValue({
+    ...m,
+    computeWeekRange: (offset) => (offset === 2
+      ? { startISO: "2026-11-02", endISO: "2026-11-08", activeDays: ["Lun"] }
+      : { startISO: "2026-10-26", endISO: "2026-11-01", activeDays: ["Lun"] }),
+  });
+
+  it("«la siguiente» elegida por el código (la primera libre) nombra la semana en palabras", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-10-24T10:00:00Z"));
+    try {
+      conSemanaDel26();
+      motorConSemanas();
+      conCasa.mockResolvedValue({ ok: true });
+      const texto = await generarMenu("h1", "siguiente", [], {});
+      expect(texto).toContain("semana del 2 al 8 de noviembre");
+      expect(texto).toContain("la primera semana sin menú");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("una semana pedida por fecha también la nombra, sin decir «la primera libre»", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-10-24T10:00:00Z"));
+    try {
+      conSemanaDel26();
+      motorConSemanas();
+      conCasa.mockResolvedValue({ ok: true });
+      const texto = await generarMenu("h1", "siguiente", [], {}, { desde: "2026-11-04" });
+      expect(texto).toContain("semana del 2 al 8 de noviembre");
+      expect(texto).not.toContain("primera semana sin menú");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
+
+describe("la compra de la semana nueva: cada artículo en una sola lista (#958)", () => {
+  it("pidiendo la siguiente, lo apuntado a mano se queda solo en la de hoy", async () => {
+    const { compraDeLaSemanaNueva } = await import("./generar.js");
+    const casa = { menu: { id: "m" }, semanas: [], semana: { shopping: { items: [{ name: "pan", manual: true }] } } };
+    const r = compraDeLaSemanaNueva([{ name: "huevos" }], casa, { startISO: "2026-11-02", endISO: "2026-11-08", ponerSemanaNueva: false });
+    expect(r.map((i) => i.name)).toEqual(["huevos"]);
+  });
+
+  it("si la nueva es la que se ve, lo apuntado a mano pasa, sin repetir lo que ya pide el motor", async () => {
+    const { compraDeLaSemanaNueva } = await import("./generar.js");
+    const casa = { menu: null, semanas: [], state: { shopping: { items: [{ name: "pan", manual: true }, { name: "Huevo", manual: true }, { name: "sal", manual: true, have: true }] } } };
+    const r = compraDeLaSemanaNueva([{ name: "huevos" }], casa, { startISO: "2026-10-26", endISO: "2026-11-01", ponerSemanaNueva: true });
+    expect(r.map((i) => i.name)).toEqual(["huevos", "pan"]);
+  });
+
+  it("rehaciendo una semana, lo comprado y lo de casa siguen marcados", async () => {
+    const { compraDeLaSemanaNueva } = await import("./generar.js");
+    const casa = {
+      menu: { id: "m" },
+      semanas: [{ weekStart: "2026-10-26", weekEnd: "2026-11-01", shopping: { items: [{ name: "Huevos", unit: "ud", have: true }, { name: "Arroz", unit: "g", atHome: true }] } }],
+      semana: null,
+    };
+    const r = compraDeLaSemanaNueva([{ name: "huevos", unit: "ud" }, { name: "arroz", unit: "g" }, { name: "pan", unit: "ud" }], casa, { startISO: "2026-10-29", endISO: "2026-11-01", ponerSemanaNueva: true });
+    expect(r.map((i) => [i.name, !!i.have, !!i.atHome])).toEqual([["huevos", true, false], ["arroz", false, true], ["pan", false, false]]);
+  });
+});
+
+describe("semanas por fecha y memoria entre menús (#958)", () => {
+  it("las semanas que se quedan llevan el offset calculado desde hoy, nunca el copiado", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-10-29T10:00:00Z")); // jueves
+    try {
+      // La de la semana que viene se generó hace una semana: guardada como offset 2.
+      cargarCasa.mockResolvedValue({ ...structuredClone(casaVieja), semanas: [{ weekStart: "2026-11-02", weekEnd: "2026-11-08" }] });
+      select.mockImplementation(async (tabla) => {
+        if (tabla === "households") return [{ owner_user_id: "u1" }];
+        if (tabla === "user_menu_weeks") return [{ user_id: "u1", household_id: "h1", week_start: "2026-11-02", week_end: "2026-11-08", week_offset: 2, plan: {} }];
+        return [];
+      });
+      motor.mockResolvedValue({ ...m, computeWeekRange: () => ({ startISO: "2026-10-29", endISO: "2026-11-01", activeDays: ["Jue"] }) });
+      conCasa.mockResolvedValue({ ok: true });
+      await generarMenu("h1", "esta", [], {});
+      const semanas = insert.mock.calls.find(([t]) => t === "user_menu_weeks")[1];
+      expect(semanas.find((w) => w.week_start === "2026-11-02").week_offset).toBe(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("el motor recibe las semanas guardadas como memoria (lib/recientes.js)", async () => {
+    select.mockImplementation(async (tabla, filtro) => {
+      if (tabla === "households") return [{ owner_user_id: "u1" }];
+      if (tabla === "user_menu_weeks" && /week_start=lte/.test(filtro)) {
+        return [
+          { week_start: "2026-10-19", plan: { g1: { "Lun-Cena": { recipeId: "lentejas" } } } },
+          { week_start: "2026-10-19", plan: { g1: { "Lun-Cena": { recipeId: "copia" } } } },
+          { week_start: "2026-10-12", plan: {} },
+        ];
+      }
+      return [];
+    });
+    let recibido;
+    motor.mockResolvedValue({ ...m, generateMenuWithAI: async (wd) => { recibido = wd; return { plan, recipes: [], cumplimiento: { preferencias: [] } }; } });
+    conCasa.mockResolvedValue({ ok: true });
+    await generarMenu("h1", "esta", [], {});
+    const semanas = Object.values(recibido.menus.guardadas.weeks);
+    expect(semanas.map((w) => w.startISO)).toEqual(["2026-10-19", "2026-10-12"]);
+    expect(semanas[0].plan.g1["Lun-Cena"].recipeId).toBe("lentejas");
+  });
+
+  it("un plan sin platos no se guarda ni se activa", async () => {
+    motor.mockResolvedValue({ ...m, generateMenuWithAI: async () => ({ plan: { g1: {}, _warnings: ["nada"] }, recipes: [], cumplimiento: { preferencias: [] } }) });
+    const out = {};
+    const texto = await generarMenu("h1", "esta", [], out);
+    expect(texto).toMatch(/^NO GUARDADO/);
+    expect(out.ok).toBe(false);
+    expect(insert).not.toHaveBeenCalled();
+    expect(conCasa).not.toHaveBeenCalled();
+  });
+
+  it("con presupuesto, dice si la semana cabe; lo que no tiene precio no cuenta como 0 € (#958)", async () => {
+    const conPres = structuredClone(casaVieja);
+    conPres.state.data = { ...conPres.state.data, presupuesto: 60 };
+    cargarCasa.mockResolvedValue(conPres);
+    conCasa.mockResolvedValue({ ok: true });
+    // Una receta de la familia: sin fila de precio. Suma 0 €, pero no deja decir «cabe».
+    const planCasa = { g1: { "Lun-Cena": { recipeId: "propia_1", raciones: 2 } }, _warnings: [] };
+    motor.mockResolvedValue({ ...m, generateMenuWithAI: async () => ({ plan: planCasa, recipes: [{ id: "propia_1", name: "Tortilla" }], cumplimiento: { preferencias: [] } }) });
+    const out = {};
+    const texto = await generarMenu("h1", "esta", [], out);
+    expect(out.presupuesto).toMatch(/no puedo asegurar que quepa en el presupuesto de 60 €/);
+    expect(texto).toContain(`PRESUPUESTO (dilo con estas cifras, sin redondear a favor): ${out.presupuesto}`);
+  });
+
+  it("sin presupuesto no se dice nada de euros", async () => {
+    conCasa.mockResolvedValue({ ok: true });
+    const out = {};
+    const texto = await generarMenu("h1", "esta", [], out);
+    expect(out.presupuesto).toBeNull();
+    expect(texto).not.toMatch(/PRESUPUESTO/);
+  });
+
+  it("los días elegidos de la semana en curso que ya pasaron no entran", async () => {
+    const { diasQueQuedan } = await import("./generar.js");
+    expect(diasQueQuedan(["Lun", "Mar", "Jue", "Sáb"], 0, 2)).toEqual(["Jue", "Sáb"]);
+    expect(diasQueQuedan(["Lun", "Mar"], 0, 2)).toBeNull();
+    expect(diasQueQuedan(["Lun", "Mar"], 1, 2)).toEqual(["Lun", "Mar"]);
+    expect(diasQueQuedan(null, 0, 2)).toBeNull();
+  });
+
+  it("aiRecipes se poda a lo que sigue a la vista y a las favoritas", async () => {
+    const { recetasQueSiguen } = await import("./generar.js");
+    const ai = [{ id: "a" }, { id: "b" }, { id: "c" }, { id: "fav" }];
+    const r = recetasQueSiguen(ai, [{ g1: { "Lun-Cena": { recipeId: "a" } } }, { g1: { "Mar-Comida": { firstRecipeId: "b" } } }], { deLaCasa: { recipeVotes: { fav: {} } } });
+    expect(r.map((x) => x.id)).toEqual(["a", "b", "fav"]);
+  });
+});
+
+describe("generar: lo dicho que el menú no cumple se dice, y la cifra va al rastro (trozo 31 de #1037)", () => {
+  const fila = (id, origen, estado, extra = {}) => ({ id, campo: "tecnica", valor: "horno", operador: "mas", cantidad: null, origen, estado, ...extra });
+  const conInforme = (preferencias) => motor.mockResolvedValue({
+    ...m, generateMenuWithAI: async () => ({ plan, recipes: [{ id: "r1", name: "Tortilla" }], cumplimiento: { preferencias, porHueco: {} } }),
+  });
+
+  it("una preferencia dicha que no se cumple sale en una línea; lo visto no se dice", async () => {
+    conInforme([fila("a", "dicho", "no"), fila("b", "dicho", "cumplida", { valor: "olla" }), fila("c", "visto", "no", { campo: "base", valor: "arroz" })]);
+    conCasa.mockResolvedValue({ ok: true });
+    const out = {};
+    const texto = await generarMenu("h1", "esta", [], out);
+    expect(out.incumplidas).toEqual(["más cosas al horno"]);
+    expect(texto).toMatch(/NO SE HA PODIDO CUMPLIR \([^)]*\): más cosas al horno\./);
+    expect(rastro).toHaveBeenCalledWith("h1", "menu_generated", expect.objectContaining({ preferencias: { dichas: 2, cumplidas: 1, pct: 50 } }));
+  });
+
+  it("si todo lo dicho se cumple, ni una palabra", async () => {
+    conInforme([fila("a", "dicho", "cumplida")]);
+    conCasa.mockResolvedValue({ ok: true });
+    const out = {};
+    const texto = await generarMenu("h1", "esta", [], out);
+    expect(out.incumplidas).toEqual([]);
+    expect(texto).not.toMatch(/NO SE HA PODIDO CUMPLIR/);
+  });
+});
+
+describe("generar: un hueco vacío no se calla (#1029)", () => {
+  // Lo que recibió el motor: una casa de dos, comida de un plato y cena, solo el lunes.
+  const semanaDeUno = { members: [{ id: "p1" }], groups: [{ id: "g1", label: "Todos", memberIds: ["p1"] }], schedule: {}, meals: ["Comida", "Cena"], mealStructure: "1_plato" };
+  const conPlan = (plan) => motor.mockResolvedValue({
+    ...m,
+    prepararSemana: () => ({ weekData: semanaDeUno, crossWeek: null, weekSchedule: {} }),
+    generateMenuWithAI: async () => ({ plan, recipes: [{ id: "r1", name: "Tortilla" }], cumplimiento: { preferencias: [] } }),
+  });
+
+  it("el menú se guarda igual, pero el texto y `out` dicen qué hueco se queda sin plato", async () => {
+    conPlan({ g1: { "Lun-Cena": { recipeId: "r1" } } });
+    conCasa.mockResolvedValue({ ok: true });
+    const out = {};
+    const texto = await generarMenu("h1", "esta", [], out);
+    expect(out.ok).toBe(true);
+    expect(insert).toHaveBeenCalled();
+    expect(out.huecosVacios).toEqual([{ grupo: "g1", dia: "Lun", comida: "Comida", plato: "principal", de: 1 }]);
+    expect(texto).toMatch(/HUECOS SIN PLATO \(dilo tal cual[^)]*\): lunes comida\./);
+  });
+
+  it("con todos los huecos llenos, ni una palabra de huecos", async () => {
+    conPlan({ g1: { "Lun-Comida": { recipeId: "r1" }, "Lun-Cena": { recipeId: "r1" } } });
+    conCasa.mockResolvedValue({ ok: true });
+    const out = {};
+    const texto = await generarMenu("h1", "esta", [], out);
+    expect(out.huecosVacios).toEqual([]);
+    expect(texto).not.toMatch(/HUECOS SIN PLATO/);
+  });
+
+  it("si TODOS los huecos esperados están vacíos, no se guarda (plan_vacio) aunque haya un plato fuera de los días pedidos", async () => {
+    conPlan({ g1: { "Mar-Cena": { recipeId: "r1" } } });
+    const out = {};
+    const texto = await generarMenu("h1", "esta", [], out);
+    expect(out).toMatchObject({ ok: false, aviso: "plan_vacio" });
+    expect(texto).toMatch(/^NO GUARDADO/);
+    expect(insert).not.toHaveBeenCalled();
+  });
+});
+
+describe("mínimos para generar (trozo 2 de #1037, decisión B): sin alergias dichas no se genera, se pregunta", () => {
+  const conPersonas = (members) => cargarCasa.mockResolvedValue({
+    ...structuredClone(casaVieja), state: { ...casaVieja.state, data: { ...casaVieja.state.data, members } },
+  });
+
+  it("con alguien sin revisar: ni motor ni guardado, y dice a quién hay que preguntar", async () => {
+    conPersonas([{ id: "p1", name: "Ana", alergiasRevisadas: true }, { id: "p2", name: "Leo" }]);
+    const generateMenuWithAI = vi.fn(m.generateMenuWithAI);
+    motor.mockResolvedValue({ ...m, generateMenuWithAI });
+    const out = {};
+    const texto = await generarMenu("h1", "esta", [], out);
+    expect(out).toMatchObject({ ok: false, aviso: "faltan_minimos", faltan: [{ minimo: MINIMO.alergias, personas: ["Leo"] }] });
+    expect(generateMenuWithAI).not.toHaveBeenCalled();
+    expect(insert).not.toHaveBeenCalled();
+    expect(texto).toMatch(/^NO GENERADO/);
+    expect(texto).toMatch(/Leo/);
+    expect(texto).toMatch(/alergia/i);
+  });
+
+  it("revisados todos (dicho o por silencio), se genera", async () => {
+    conPersonas([{ id: "p1", name: "Ana", alergiasRevisadas: true }, { id: "p2", name: "Leo", alergiasRevisadas: true }]);
+    conCasa.mockResolvedValue({ ok: true });
+    const out = {};
+    await generarMenu("h1", "esta", [], out);
+    expect(out.ok).toBe(true);
+    expect(out.aviso).toBeUndefined();
+  });
+});
+
+// Trozo 27 de #1037: generar devuelve un RESULTADO, y lo que no se guardó no sale como hecho.
+describe("el resultado de generar", () => {
+  it("generado: la semana, con sus platos, en lo hecho", async () => {
+    conCasa.mockImplementation(async (_h, cambiar) => { await cambiar(structuredClone(casaVieja)); return { ok: true }; });
+    const out = {};
+    const r = resultadoDeGenerar(out, await generarMenu("h1", "esta", [], out));
+    expect(r.estado).toBe(ESTADO.HECHO);
+    expect(r.hecho).toEqual(["semana del 5 al 11 de octubre (1 plato)"]);
+    expect(r.nota).toMatch(/generado y activado/);
+  });
+
+  it("si la casa no se guarda, nada hecho: «⚠️ Sin hacer», nunca «✅»", async () => {
+    conCasa.mockResolvedValue({ ok: false, error: "conflicto persistente" });
+    const out = {};
+    const r = resultadoDeGenerar(out, await generarMenu("h1", "esta", [], out));
+    expect(r.estado).toBe(ESTADO.NADA);
+    expect(r.sinHacer).toEqual([{ que: "el menú", motivo: SIN_GENERAR.NO_GUARDADO }]);
+    expect(recibo([r])).not.toMatch(/✅/);
+  });
+
+  it("sin saber las alergias: no generado, y es una pregunta: sin ⚠️ en el recibo", async () => {
+    cargarCasa.mockResolvedValue({ ...structuredClone(casaVieja), state: { data: { members: [{ id: "p1", name: "Ana" }], groups: [{ id: "g1", label: "Todos" }] } } });
+    const out = {};
+    const r = resultadoDeGenerar(out, await generarMenu("h1", "esta", [], out));
+    expect(r.estado).toBe(ESTADO.NADA);
+    expect(r.sinHacer).toEqual([]);
+    expect(recibo([r])).toBe("");
+    expect(r.nota).toMatch(/NO GENERADO/);
+  });
+
+  it("los huecos vacíos y lo quitado por seguridad van a «sin hacer»: parcial", () => {
+    const r = resultadoDeGenerar({ ok: true, desde: "2026-10-05", hasta: "2026-10-11", platos: 12, huecosVacios: [{ grupo: "Todos", dia: "Lun", comida: "Cena", plato: "principal" }], quitados: ["Merluza (Mar Cena)"] }, "texto");
+    expect(r.estado).toBe(ESTADO.PARCIAL);
+    expect(r.sinHacer.map((x) => x.que)).toContain("Merluza (Mar Cena)");
+    expect(r.sinHacer).toHaveLength(2);
+  });
+});

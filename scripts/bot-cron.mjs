@@ -1,6 +1,6 @@
 /**
  * Programa (o reprograma) el job de pg_cron que manda los recordatorios del
- * bot: cada 5 minutos, POST a /api/bot/recordatorios con el secreto.
+ * bot: cada CADA_MINUTOS (api/_bot/cadencia.js), POST a /api/bot/recordatorios con el secreto.
  *
  *   node scripts/bot-cron.mjs                    → contra staging
  *   node scripts/bot-cron.mjs https://otra.url   → contra otro despliegue
@@ -12,10 +12,11 @@
 
 import fs from "node:fs";
 import pg from "pg";
+import { leerEnv } from "./lib/env.mjs";
+import { HORARIO_CRON } from "../api/_bot/cadencia.js";
 
 const NOMBRE = "bot-recordatorios";
-const env = fs.readFileSync(new URL("../.env.local", import.meta.url), "utf8");
-const leer = (k) => env.match(new RegExp(`^${k}="?([^"\\r\\n]+)`, "m"))?.[1]?.trim();
+const leer = leerEnv;
 const dbUrl = leer("SUPABASE_DB_URL");
 const secreto = leer("BOT_CRON_SECRET");
 if (!dbUrl || !secreto) throw new Error("Faltan SUPABASE_DB_URL o BOT_CRON_SECRET en .env.local");
@@ -37,7 +38,7 @@ try {
       body := '{}'::jsonb,
       timeout_milliseconds := 20000
     )`;
-    await c.query("select cron.schedule($1, '*/5 * * * *', $2)", [NOMBRE, llamada]);
+    await c.query("select cron.schedule($1, $2, $3)", [NOMBRE, HORARIO_CRON, llamada]);
   }
   const { rows } = await c.query("select jobname, schedule, active from cron.job where jobname = $1", [NOMBRE]);
   console.log(quitar ? "Job borrado." : `Job programado contra ${base}:`, rows);

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { X, Users, UserPlus, Check, MessageCircle, Camera, ThumbsUp, ThumbsDown, CookingPot, ArrowUpRight, ChevronDown, Pencil, ShieldOff } from "./icons.jsx";
 import { countOwnerCookings } from "../lib/cookingsSync.js";
-import { Avatar } from "./ui.jsx";
+import { Avatar, safeTop } from "./ui.jsx";
 import { FollowListSheet } from "./FollowListSheet.jsx";
 import { relativeTime, personColor } from "../lib/socialUi.js";
 import { fileToAvatarDataUrl } from "../lib/avatarImage.js";
@@ -29,6 +29,7 @@ import {
 import {
   FIXTURES_ENABLED, FIXTURE_REQUESTS, FIXTURE_COMMENTS, FIXTURE_SENT, FIXTURE_MY_RECIPES,
 } from "../lib/socialFixtures.js";
+import { reviewText } from "../lib/moderation.js";
 
 // Ilustracion de "tus recetas" del navegador de catalogo: la misma que ya
 // representa tu recetario en el resto de la app.
@@ -81,7 +82,7 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
 
   const refresh = useCallback(async () => {
     const uid = user?.id;
-    const [prof, cts, reqs, snt, fols, fing, coms, mine, blk] = await Promise.all([
+    const [cargaPerfil, cts, reqs, snt, fols, fing, coms, mine, blk] = await Promise.all([
       loadMyProfile(uid),
       loadProfileCounts(uid),
       loadFollowRequests(uid),
@@ -98,7 +99,8 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
     const finalSent = useFx ? FIXTURE_SENT : snt;
     const finalComs = useFx ? FIXTURE_COMMENTS : coms;
 
-    setProfile(prof);
+    // Si el perfil no se pudo leer, se queda el que ya se veía.
+    if (!cargaPerfil.error) setProfile(cargaPerfil.data);
     setCounts(useFx && cts.followers === 0 ? { followers: 12, following: 8, recipes: 5, menus: 1 } : cts);
     setCookCount(await countOwnerCookings(user?.id));
     setRequests(finalReqs);
@@ -143,6 +145,16 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
   }, [profile?.username, profile?.display_name, user]);
 
   const patch = async (fields) => {
+    // Solo pasa por el filtro el texto que se va a ver en publico. Cambiar el
+    // avatar o la visibilidad no tiene nada que moderar, y hacerle una llamada
+    // de red a cada una seria pagar por nada.
+    const publico = [fields.display_name, fields.username, fields.bio]
+      .filter((v) => typeof v === "string" && v.trim())
+      .join(". ");
+    if (publico) {
+      const veredicto = await reviewText(publico);
+      if (!veredicto.ok) return { error: "moderation", message: veredicto.message };
+    }
     setSaving(true);
     setProfile((p) => ({ ...(p ?? {}), ...fields }));
     const res = await saveMyProfile(user?.id, { display_name: profile?.display_name ?? "", ...fields });
@@ -577,6 +589,7 @@ function ProfileForm({ profile, inheritedName, onSave }) {
   const [displayName, setDisplayName] = useState(profile?.display_name || inheritedName || "");
   const [username, setUsername] = useState(profile?.username ?? "");
   const [taken, setTaken] = useState(false);
+  const [rechazo, setRechazo] = useState(null);
   const [saving, setSaving] = useState(false);
 
   // El handle puede llegar despues (se deriva de forma asincrona al abrir).
@@ -590,6 +603,7 @@ function ProfileForm({ profile, inheritedName, onSave }) {
     if (err) return;
     setSaving(true);
     setTaken(false);
+    setRechazo(null);
     const res = await onSave({
       display_name: displayName.trim(),
       username: username.trim() || null,
@@ -598,6 +612,9 @@ function ProfileForm({ profile, inheritedName, onSave }) {
     // El unico sitio donde se sabe si el handle esta libre es el indice unico:
     // preguntarlo antes es una carrera con quien lo pilla mientras tanto.
     if (res?.error === "username_taken") setTaken(true);
+    // El nombre visible y el handle se leen en todo el feed, asi que pasan por
+    // el mismo filtro que un comentario.
+    if (res?.error === "moderation") setRechazo(res.message);
   };
 
   return (
@@ -621,7 +638,9 @@ function ProfileForm({ profile, inheritedName, onSave }) {
           style={{ ...field, flex: 1 }}
         />
       </div>
-      {(err || taken) && <p style={errText}>{taken ? "Ese nombre ya está cogido" : err}</p>}
+      {(err || taken || rechazo) && (
+        <p style={errText}>{rechazo ?? (taken ? "Ese nombre ya está cogido" : err)}</p>
+      )}
 
       <button type="button" onClick={save} disabled={saving || Boolean(err)} style={{ ...saveBtn, opacity: err ? .5 : 1 }}>
         Guardar
@@ -692,10 +711,16 @@ const drawer = {
   overflowY: "auto", boxShadow: "-14px 0 40px rgba(20,47,29,.28)",
 };
 
-const head = { padding: "20px 20px 16px", background: "linear-gradient(180deg, #e9f4ed 0%, #fff 100%)" };
+// El cajon va a altura completa pegado arriba, asi que su cabecera y su aspa de
+// cerrar caen donde el iPhone pinta el reloj si no se apartan.
+const head = {
+  padding: "20px 20px 16px",
+  paddingTop: safeTop(20),
+  background: "linear-gradient(180deg, #e9f4ed 0%, #fff 100%)",
+};
 
 const closeBtn = {
-  position: "absolute", top: 12, right: 12, zIndex: 2,
+  position: "absolute", top: safeTop(12), right: 12, zIndex: 2,
   display: "flex", alignItems: "center", justifyContent: "center",
   width: 30, height: 30, borderRadius: 10,
   border: "1.5px solid #d5e6da", background: "#fff", color: GREEN, cursor: "pointer",

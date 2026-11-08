@@ -1,0 +1,21 @@
+# Copia nocturna cifrada de la base de MenuPlan (encargo #247).
+# Se instala en /etc/systemd/system/ (pasos en la skill hetzner).
+[Unit]
+Description=Copia cifrada de la base de MenuPlan (issue 247)
+Wants=network-online.target
+After=network-online.target docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+# Variables (COPIA_DB_URL, COPIA_AVISO_URL...): fichero 600 de root, nunca en el repo.
+EnvironmentFile=/etc/menuplan-copia/copia.env
+ExecStart=/usr/local/sbin/menuplan-copia
+# El temporal del script (con el passfile de la base) va a /run/menuplan-copia:
+# tmpfs, solo root, y systemd lo borra al parar, también tras un SIGKILL o un
+# apagón (en /tmp podía sobrevivir). El script lo lee de $RUNTIME_DIRECTORY.
+RuntimeDirectory=menuplan-copia
+RuntimeDirectoryMode=0700
+TimeoutStartSec=30min
+Nice=10
+IOSchedulingClass=idle

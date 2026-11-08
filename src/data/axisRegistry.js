@@ -62,12 +62,32 @@
  *                 contradicción y el test la caza.
  *   cobertura     medida sobre las 1.033 recetas (o los 396 alimentos, cuando
  *                 el eje es del alimento) el 22 sep 2026.
+ *   agregable     (AGREGABLES, vocabularios.js) cómo se junta el eje sobre los
+ *                 platos de un día o una semana: se suma (kcal, coste, minutos),
+ *                 se hace la media, se cuentan los platos que lo cumplen o no se
+ *                 junta. Lo que se cuenta por plato (enum, árbol, etiquetas,
+ *                 sí/no) se cuenta sin declararlo; un numérico o un derivado lo
+ *                 declara, y fuera de la receta no se junta. Lo leerá la entrada
+ *                 del motor (plan fichas con estado, trozos 30-31).
+ *   unidad        (UNIDADES_EJE) la de un numérico, por ración; obligatoria si
+ *                 se suma o se hace la media, porque sumar gramos con
+ *                 miligramos es el fallo del sodio de nutrientes.js.
  *
  * Medido, no estimado: los números de `cobertura` salen de contar el campo en
  * el catálogo, y el test los vuelve a contar para que no se queden viejos.
  */
 
-/** @typedef {"enum"|"jerarquico"|"tags"|"numerico"|"booleano"|"derivado"} TipoEje */
+// Los vocabularios se importan de su dueño, nunca se copian (#939).
+import {
+  ALLERGENS, APORTES, BASE_MODES, CATEGORIES, CONNOTACIONES, DESSERT_KINDS, DIFFICULTIES, EFFORTS, ETAPAS_BEBE_RECETA, FORMATOS, MAIN_BASES, MAIN_INGREDIENTS, MAIN_PROTEINS, MEAL_ROLES, OCCASIONS, PICANTES, SABORES, SAUCE_COMPAT_TAGS, SEASONS, TECNICAS, TEMPERATURAS, TEXTURAS, TYPES,
+} from "./recipeSchema.js";
+import { APARATOS_DE_RECETA } from "../lib/electrodomesticos.js";
+import { NIVELES_COSTE } from "../lib/costeNiveles.js";
+import { NIVELES_CALORIAS } from "../lib/caloriasNivel.js";
+import { NUTRIENTES } from "./nutrientes.js";
+import { AGREGABLE, UNIDAD_EJE, UNIDADES_EJE } from "../lib/vocabularios.js";
+
+/** @typedef {string} TipoEje  uno de TIPOS_EJE (vocabularios.js; axisRegistry.test.js lo comprueba eje a eje) */
 /** @typedef {"activo"|"silencioso"|"sin_lector"|"sin_datos"} EstadoEje */
 
 export const AMBITO = {
@@ -92,11 +112,11 @@ export const AMBITO = {
  * `cobertura` es la fracción del ámbito que tiene el eje relleno. Para los que
  * no existen todavía es 0, y eso NO los hace inválidos: los hace silenciosos.
  */
-export const EJES = [
+const DECLARADOS = [
   // ── Composición y nutrición (1-5, 45) ────────────────────────────────────
   {
     n: 1, id: "composicion", nombre: "Composición jerárquica ponderada, por parte",
-    ambito: AMBITO.RECETA, tipo: "derivado", estado: "activo",
+    ambito: AMBITO.RECETA, tipo: "derivado", agregable: AGREGABLE.CUENTA, estado: "activo",
     campo: null, vocabulario: null,
     consumidores: ["familias", "recipeCatalog", "menuRecuento", "PanelBalance"], cobertura: 1.0,
     nota: "Estaba repartida en cuatro campos sin pesos. Hoy la calcula derive/composicion.js: 98,6 % de acuerdo con la curación en proteína, 99,5 % en hidrato. — YA TIENE LECTOR (24 sep): derive/familias.js lo usa para decidir las seis claves de `freqs` por MASA en vez de por `category` + `mainProtein`, que eran binarias (un bacon al 12 % contaba como carne igual que un filete al 33 %) y mezclaban composición con formato. Se le añadió un TERCER PLANO, la verdura, que es lo que permitió sacar la familia «verdura» de `sopas_cremas` y `ensaladas_verduras` — o sea, del eje 6. El plano de la verdura no compite: es una cuota, y la familia se decide por RESIDUO (si ninguna de las cinco que estructuran llega al umbral, queda ella), porque tratarla como una cuota más daba 529 recetas de 1.033: la verdura es agua y el sofrito pesa.",
@@ -110,16 +130,16 @@ export const EJES = [
   },
   {
     n: 3, id: "densidadNutricional", nombre: "Densidad nutricional (kcal/100 g, g proteína/100 kcal, fibra, saciedad)",
-    ambito: AMBITO.RECETA, tipo: "numerico", estado: "sin_lector",
+    ambito: AMBITO.RECETA, tipo: "numerico", agregable: AGREGABLE.NO, estado: "activo",
     campo: null, vocabulario: null,
-    consumidores: [], cobertura: 1,
+    consumidores: ["menu"], cobertura: 1,
     nota: "DERIVADO, no curado: `densidadDe` en src/lib/derive/ejesDePlato.js da kcal/100 g del plato servido y gramos de proteína por 100 kcal, de las macros de receta (al 100 %) sobre la masa del vector. Cobertura 100 % del catálogo, mediana 113 kcal/100 g con p05 50 y p95 212. El segundo número es el que de verdad separa: un plato puede ser denso en calorías y pobre en proteína, que es justo lo que alguien quiere saber al pedir «algo que llene».",
   },
   {
     n: 4, id: "micronutrientes", nombre: "Micronutrientes (hierro, calcio, B12, omega-3, folato)",
     ambito: AMBITO.ALIMENTO, tipo: "numerico", estado: "activo",
     campo: "alimentos.nutricion", vocabulario: null,
-    consumidores: ["ingredients", "recipeCatalog", "healthFlags", "aiPlanner", "userRecipes"], cobertura: 0.896,
+    consumidores: ["ingredients", "recipeCatalog", "healthFlags", "aiPlanner", "userRecipes", "menu"], cobertura: 0.896,
     nota: "El documento decía «BEDCA los tiene; el pipeline no los trae». Ya los trae: 24 micros por alimento. Pero la cobertura NO es la del calcio (94,9 %), que es de los mejores: es la del PEOR de los que el nombre del eje promete, y ese es la B12 con 89,6 %. Y hay uno que no se puede contestar en absoluto: el OMEGA-3 no tiene campo — omega3100g no existe en ninguna de las 396 filas, así que «dame algo con omega-3» no tiene respuesta por mucho que el eje diga 90 %. Falta además la TABLA DE RETENCIÓN POR TÉCNICA: un hervido pierde folato y el crudo no.",
   },
   {
@@ -142,23 +162,23 @@ export const EJES = [
     n: 6, id: "formato", nombre: "Formato",
     ambito: AMBITO.RECETA, tipo: "enum", estado: "sin_lector",
     campo: "formato",
-    vocabulario: ["ensalada", "sopa", "cremoso", "guiso", "plato_seco"],
+    vocabulario: FORMATOS,
     consumidores: [], cobertura: 0.725,
     nota: "Disfrazado en `category`. Es ORTOGONAL a todo lo demás: hay ensaladas de pasta y ensaladas de legumbre. Entre nueve legumbres conviven «Lentejas con verduras» (guiso caliente) y «Ensalada de garbanzos con chorizo» (fría) con la MISMA firma en todos los ejes existentes: les separan formato y temperatura. — VOCABULARIO REHECHO antes de poblarlo, y ese orden importa: el primero (ensalada · guiso · sopa · plato_seco · montaje · masa · bol) se probó contra 31 recetas reales y dio 52 % de encaje único, con 4 sin ningún valor posible y 11 con dos. Cometía el pecado de `category` — mezclaba hidratación (guiso/sopa/seco) con estructura (masa/montaje) y con recipiente (bol) —, así que `masa` y `montaje` salen a ejes propios (46 y 47: la empanada es masa sin montaje, el pan tumaca montaje sin masa, la lasaña las dos), `bol` se cae por ser dónde se sirve y no cómo se hace, y entra `cremoso`, que faltaba para las 65 recetas que empiezan por «Puré» o «Crema». `salsa` no entra: la tiene ya el eje 45. Y el ámbito pasa a PARTE, que es lo que resuelve «Lomo a la plancha CON ENSALADA» — principal seco, guarnición ensalada — y era el mismo error que el eje 45 existe para arreglar, cometido aquí. — POBLADO el 22 sep por derive/formato.js: 749 de 1.033, y se ABSTIENE en 284. La abstención no es pereza: 172 de esas son recetas de olla sin señal en el nombre, y en olla conviven «Brócoli al vapor» y «Ternera guisada» sin nada que las separe. El valor escrito es el de la receta ENTERA, que es el de su parte principal; cuando el eje 45 suba del 17 % pasará a calcularse por parte de verdad. — ÁMBITO CORREGIDO A RECETA el 22 sep, y es una rectificación: se declaró PARTE porque es lo que el eje DEBERÍA ser, pero `formato` no existe en ninguno de los 12.105 pasos de `stepsRich` —solo hay text, kind, minutes, part, base y during—, así que era exactamente el error que el eje 46 explica haber evitado, cometido aquí por querer adelantar el futuro. El ámbito describe dónde vive el dato, no dónde nos gustaría que viviera. Vuelve a PARTE el día que haya un `stepsRich[].formato` de verdad.",
   },
   {
     n: 7, id: "temperatura", nombre: "Temperatura de servicio",
     ambito: AMBITO.RECETA, tipo: "enum", estado: "sin_lector",
-    campo: "temperatura", vocabulario: ["caliente", "templado", "frio"],
+    campo: "temperatura", vocabulario: TEMPERATURAS,
     consumidores: [], cobertura: 0.887,
     nota: "Poblado el 22 sep 2026 por derive/formato.js: 916 de 1.033. La técnica lo da casi entero —lo que se cocina se sirve caliente— y el nombre manda sobre ella, porque un escabeche se cocina y se come frío. Se abstiene en las 117 sin técnica. Queda SIN_LECTOR a propósito: el dato está y todavía no lo lee nadie, y el registro lo dice en vez de dejar que se pudra en silencio. Su primer lector natural es filterRecipes, para poder pedir «algo frío».",
   },
   {
     n: 8, id: "textura", nombre: "Textura",
-    ambito: AMBITO.RECETA, tipo: "enum", estado: "silencioso",
-    campo: null, vocabulario: null,
-    consumidores: [], cobertura: 0,
-    nota: "Solo implícita en `etapaBebe`, que la esconde dentro de una categoría.",
+    ambito: AMBITO.RECETA, tipo: "enum", estado: "activo",
+    campo: "textura", vocabulario: TEXTURAS,
+    consumidores: ["menu.js"], cobertura: 0.723,
+    nota: "Cómo se come: cuchara, tenedor, mano. Todo el Recetario Estrella (30 sep 2026, scripts/recetas-atributos-blandos.mjs: dos pasadas y un juez). La lee el bot al recomendar («de cuchara»). Antes solo implícita en `etapaBebe`.",
   },
   {
     n: 9, id: "sabor", nombre: "Perfil de sabor + intensidad",
@@ -169,16 +189,16 @@ export const EJES = [
   },
   {
     n: 10, id: "carga", nombre: "Carga / saciedad",
-    ambito: AMBITO.RECETA, tipo: "numerico", estado: "sin_lector",
+    ambito: AMBITO.RECETA, tipo: "numerico", agregable: AGREGABLE.NO, estado: "activo",
     campo: null, vocabulario: null,
-    consumidores: [], cobertura: 0.881,
+    consumidores: ["menu"], cobertura: 0.881,
     nota: "Seis reglas del prompt la invocan. Es una de las tres que la función objetivo del solver necesita, junto con completitud y densidad. DERIVADA por `cargaDe` (src/lib/derive/ejesDePlato.js) de `protein_g` y `fiber_g` por ración, que están en 910 de 1.033: lo que sacia no son las calorías sino la proteína, la fibra y el volumen — 600 kcal de pasta con nata dejan con hambre a las dos horas y 400 de legumbre con verdura no. NO devuelve un índice de saciedad a propósito: hay media docena publicadas y ninguna es consenso, así que da los gramos y los dos ratios por 100 kcal y quien pregunte decide. Mediana 5,08 g de proteína por 100 kcal.",
   },
   {
     n: 11, id: "completitud", nombre: "Completitud (¿es comida entera?)",
-    ambito: AMBITO.RECETA, tipo: "derivado", estado: "sin_lector",
+    ambito: AMBITO.RECETA, tipo: "derivado", agregable: AGREGABLE.CUENTA, estado: "activo",
     campo: null, vocabulario: null,
-    consumidores: [], cobertura: 1,
+    consumidores: ["menu"], cobertura: 1,
     nota: "DERIVADO por `completitudDe` (src/lib/derive/ejesDePlato.js): un plato es entero cuando trae proteína, hidrato Y verdura, leídos del vector de composición. La verdura se mide por masa y no por presencia —40 g por ración—, porque dos hojas de perejil no completan nada. Cobertura 100 %, y DISCRIMINA: 261 de 947 son completos, así que el eje sirve para elegir cena. Nace de un caso en vivo: el solver dio por bueno un menú con «Brócoli al vapor en árbol» de segundo, cumpliendo TODAS las restricciones — las restricciones descartan, pero lo que hace bueno un menú es la función objetivo.",
   },
   {
@@ -190,10 +210,10 @@ export const EJES = [
   },
   {
     n: 13, id: "connotacion", nombre: "Connotación emocional",
-    ambito: AMBITO.RECETA, tipo: "tags", estado: "silencioso",
-    campo: null, vocabulario: null,
-    consumidores: [], cobertura: 0,
-    nota: "Responde a «algo reconfortante», que es una petición real y hoy no se puede honrar.",
+    ambito: AMBITO.RECETA, tipo: "tags", estado: "activo",
+    campo: "connotacion", vocabulario: CONNOTACIONES,
+    consumidores: ["menu.js"], cobertura: 0.716,
+    nota: "Responde a «algo reconfortante», que es una petición real. Todo el Recetario Estrella desde el 30 sep 2026 (scripts/recetas-atributos-blandos.mjs); la lee el bot al recomendar.",
   },
 
   // ── Cultura y rito (14-22) ───────────────────────────────────────────────
@@ -234,13 +254,13 @@ export const EJES = [
   },
   {
     n: 20, id: "aptoVigilia", nombre: "Apto vigilia",
-    ambito: AMBITO.RECETA, tipo: "derivado", estado: "sin_lector",
+    ambito: AMBITO.RECETA, tipo: "derivado", agregable: AGREGABLE.CUENTA, estado: "sin_lector",
     campo: null, vocabulario: null, consumidores: [], cobertura: 1,
     nota: "DERIVADO por `aptoVigiliaDe` al 100 %, de `taxonomia.clase`, que está al 100 % en los 396 alimentos: no hay mamífero, ave ni víscera. La víscera cuenta porque unos callos son carne aunque el árbol los cuelgue aparte, y el pescado NO cuenta — ese matiz es lo que hace que esto sea un eje y no un sinónimo de vegetariano. 444 de 947 recetas son de vigilia.",
   },
   {
     n: 21, id: "aptoAyuno", nombre: "Apto ayuno",
-    ambito: AMBITO.RECETA, tipo: "derivado", estado: "silencioso",
+    ambito: AMBITO.RECETA, tipo: "derivado", agregable: AGREGABLE.CUENTA, estado: "silencioso",
     campo: null, vocabulario: null, consumidores: [], cobertura: 0,
   },
   {
@@ -254,19 +274,19 @@ export const EJES = [
   {
     n: 23, id: "tecnica", nombre: "Técnica",
     ambito: AMBITO.RECETA, tipo: "enum", estado: "activo",
-    campo: "tecnica", vocabulario: ["olla", "sarten", "horno", "plancha", "crudo"],
+    campo: "tecnica", vocabulario: TECNICAS,
     consumidores: ["sesgos", "menuRecuento", "notepad", "panelParser"], cobertura: 0.883,
     nota: "Le FALTA `fritura`, está al 0 % en guarniciones y tiene valores falsos. 121 recetas sin técnica.",
   },
   {
     n: 24, id: "tiempoActivo", nombre: "Tiempo activo vs calendario",
-    ambito: AMBITO.RECETA, tipo: "numerico", estado: "sin_lector",
+    ambito: AMBITO.RECETA, tipo: "numerico", agregable: AGREGABLE.SUMA, unidad: UNIDAD_EJE.MIN, estado: "sin_lector",
     campo: null, vocabulario: null, consumidores: [], cobertura: 0.971,
     nota: "DERIVADO por `tiempoActivoDe` de `stepsRich[].kind`: suma los pasos `prep`, `activo` y `emplatado`, y NO los `pasivo`, `espera`, `opcional` ni `paralelo` — un precalentado de horno es paralelo y no son manos de nadie. Mediana 20 minutos contra 30 de `time`, que es exactamente la distancia que el eje existe para enseñar: las cuatro horas de un guiso son cuatro horas en las que no estás en la cocina. OJO CON LO QUE MIDE: es SUMA DE TRABAJO, no minutos de pie. En 87 recetas supera el `time` declarado porque una receta solapa —mientras se fríe la berenjena se escurre la patata— y los dos pasos suman por separado. Sirve para comparar dos platos; para el reloj real harían falta las dependencias entre pasos, que el catálogo no tiene. Se abstiene cuando faltan minutos en más del 20 % de los pasos.",
   },
   {
     n: 25, id: "esfuerzoMental", nombre: "Esfuerzo mental / nº de componentes",
-    ambito: AMBITO.RECETA, tipo: "derivado", estado: "sin_lector",
+    ambito: AMBITO.RECETA, tipo: "derivado", agregable: AGREGABLE.NO, estado: "sin_lector",
     campo: null, vocabulario: null, consumidores: [], cobertura: 0.975,
     nota: "DERIVADO por `esfuerzoDe` de stepsRich: ingredientes que controlar, pasos, componentes y pasos `paralelo`. No es `difficulty` —que la cura una persona— ni el tiempo: es la carga de atención, y quince pasos con tres componentes que se cruzan cansan más que veinte en línea. Los `componentes` salen de `part`, así que valen null y NO 0 cuando la receta no lo tiene: que nadie lo mirara no significa que haya un solo componente, y esa es la distinción que el catálogo pagó cara contando 442 recetas juzgadas como sin mirar.",
   },
@@ -279,13 +299,13 @@ export const EJES = [
   {
     n: 27, id: "equipamiento", nombre: "Equipamiento requerido",
     ambito: AMBITO.RECETA, tipo: "tags", estado: "activo",
-    campo: "requiredAppliance", vocabulario: ["horno", "gofrera"],
+    campo: "requiredAppliance", vocabulario: APARATOS_DE_RECETA,
     consumidores: ["filterRecipes"], cobertura: 0.155,
     nota: "SU VOCABULARIO TIENE QUE SER EL DEL ASISTENTE, y no lo era: eso hacía desaparecer 63 recetas. `filterRecipes` excluye la receta cuyo aparato no esté entre los `kitchenTools` declarados, y el asistente solo deja declarar seis (airfryer, horno, microondas, olla rápida, thermomix, vaporera). El catálogo exigía además `batidora` (60 recetas, 45 estrella: gazpacho, salmorejo, hummus, las cremas), `plancha` (2) y `gofrera` (1), que nadie puede declarar: esas recetas no salían nunca para ningún usuario, y no fallaban de forma ruidosa, simplemente no estaban. Resuelto quitando el campo a las 62 de batidora y plancha —una batidora de mano se presupone y «plancha» es una sartén, que ya vive en `tecnica`—, con lo que la cobertura baja del 21,5 % al 15,5 %: el campo dice ahora lo que decía significar. La gofrera se queda como única excepción escrita. Fusible en src/data/aparatos.test.js.",
   },
   {
     n: 28, id: "progresion", nombre: "Progresión / aprendizaje",
-    ambito: AMBITO.RECETA, tipo: "numerico", estado: "silencioso",
+    ambito: AMBITO.RECETA, tipo: "numerico", agregable: AGREGABLE.NO, estado: "silencioso",
     campo: null, vocabulario: null, consumidores: [], cobertura: 0,
   },
   {
@@ -296,13 +316,13 @@ export const EJES = [
   },
   {
     n: 42, id: "escalabilidadReal", nombre: "Escalabilidad real",
-    ambito: AMBITO.RECETA, tipo: "derivado", estado: "sin_lector",
+    ambito: AMBITO.RECETA, tipo: "derivado", agregable: AGREGABLE.CUENTA, estado: "sin_lector",
     campo: null, vocabulario: ["escala", "por_tandas"], consumidores: [], cobertura: 0.883,
     nota: "Un guiso escala; doce filetes a la plancha, no. DERIVADO por `escalabilidadDe` de la técnica: olla, horno y crudo escalan (589 recetas) y sartén y plancha van POR TANDAS (323). La diferencia no está en los ingredientes sino en si el RECIPIENTE limita, y «por tandas» no es «no se puede»: es que el tiempo crece con los comensales en vez de quedarse igual, que es justo lo que hace falta saber antes de invitar a gente.",
   },
   {
     n: 43, id: "robustez", nombre: "Robustez ante el descuido",
-    ambito: AMBITO.RECETA, tipo: "derivado", estado: "sin_lector",
+    ambito: AMBITO.RECETA, tipo: "derivado", agregable: AGREGABLE.CUENTA, estado: "sin_lector",
     campo: null, vocabulario: ["robusto", "atento", "fragil"], consumidores: [], cobertura: 0.975,
     nota: "DERIVADO por `robustezDe` de la racha más larga de MINUTOS activos seguidos: 632 robustas, 235 atentas, 56 frágiles. Lo de los minutos no es un detalle — contando PASOS, las «Lentejas con verduras» salían frágiles, porque un guiso encadena seis pasos activos (picar, sofreír, añadir, rehogar) que son doce minutos y luego hora y media de olla sola. El número de pasos mide cómo escribió la receta quien la escribió, no cuánto te ata. Hoy las lentejas salen `atento` con 15 min y el risotto `fragil` con 32, que es la distinción que el eje existe para hacer.",
   },
@@ -318,7 +338,7 @@ export const EJES = [
     n: 30, id: "transportabilidad", nombre: "Transportabilidad / tupper",
     ambito: AMBITO.RECETA, tipo: "booleano", estado: "activo",
     campo: "tupperFriendly", vocabulario: null,
-    consumidores: ["aiPlanner", "planner", "validateMenu", "menuInsights"], cobertura: 1.0,
+    consumidores: ["aiPlanner", "validateMenu", "menuInsights"], cobertura: 1.0,
     nota: "`solver` sale de la lista el 24 sep y NO porque dejara de usarlo: lo lee a través de `UNARIA_POR_REGLA.tupper_not_friendly`, la tabla de reglas unarias de validateMenu, en vez de nombrar `tupperFriendly` a mano. El test de este registro comprueba que el módulo declarado NOMBRE el campo, y con la tabla ya no lo nombra ninguno de los que podan — el lector real pasa a ser `validateMenu`, que es donde vive la regla. Es la consecuencia buscada de que las siete unarias dejaran de estar escritas dos veces, y el registro la cazó a la primera.",
   },
   {
@@ -341,7 +361,7 @@ export const EJES = [
   },
   {
     n: 40, id: "perecibilidad", nombre: "Perecibilidad y orden en la semana",
-    ambito: AMBITO.RECETA, tipo: "derivado", estado: "sin_lector",
+    ambito: AMBITO.RECETA, tipo: "derivado", agregable: AGREGABLE.NO, estado: "sin_lector",
     campo: null, vocabulario: null, consumidores: [], cobertura: 1,
     nota: "Restricción DE POSICIÓN, no de selección: el pescado fresco va al principio de la semana, y eso no descarta la receta — la coloca. Es el único eje de posición de la lista. DERIVADO por `perecibilidadDe` al 100 % de la clase del alimento: pez, marisco y cefalópodo mandan 2 días (208 recetas), carne y lácteo 4 (578), y 161 no tienen nada que caduque. La conserva, el congelado y el ahumado NO cuentan: un «Atún en conserva» es pez y aguanta un año. — DE POCO USO HOY, y conviene que esté escrito para no sobrevalorarlo: la compra de MenuPlan va al congelador de partida, así que el orden de la semana no aprieta. El eje vale el día que haya compra fresca o lista diaria; mientras tanto es correcto y ocioso, que es distinto de estar mal.",
   },
@@ -349,9 +369,9 @@ export const EJES = [
   // ── Economía y sostenibilidad (34-36) ────────────────────────────────────
   {
     n: 34, id: "coste", nombre: "Coste por ración",
-    ambito: AMBITO.RECETA, tipo: "numerico", estado: "silencioso",
-    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
-    nota: "Con `priceHistory` y 3.052 productos en el repo. Es el que menos trabajo nuevo pide.",
+    ambito: AMBITO.RECETA, tipo: "numerico", agregable: AGREGABLE.SUMA, unidad: UNIDAD_EJE.EUR, estado: "activo",
+    campo: "costeNivel", vocabulario: NIVELES_COSTE, consumidores: ["menu.js"], cobertura: 0.856,
+    nota: "€ por ración con Mercadona a €/kg (lib/coste.js, modo granel → derived/recipeCoste.json, que regenera build:coste y cada sync:mercadona). Nivel solo con cobertura de precios ≥ 0,8; sin ella, sin nivel. La lee el bot («algo barato»).",
   },
   {
     n: 35, id: "huella", nombre: "Huella / sostenibilidad",
@@ -360,7 +380,7 @@ export const EJES = [
   },
   {
     n: 36, id: "aprovechamiento", nombre: "Aprovechamiento y merma",
-    ambito: AMBITO.RECETA, tipo: "derivado", estado: "silencioso",
+    ambito: AMBITO.RECETA, tipo: "derivado", agregable: AGREGABLE.NO, estado: "silencioso",
     campo: null, vocabulario: null, consumidores: [], cobertura: 0,
     nota: "Eje de RELACIÓN ENTRE RECETAS: qué sobra de una y entra en otra. El único de la lista que no es una propiedad de un plato solo.",
   },
@@ -421,10 +441,10 @@ export const EJES = [
   },
   {
     n: 48, id: "gruposSecundarios", nombre: "Grupos de alimento secundarios (verdura, lácteo, fruta, frutos secos, seta, encurtido)",
-    ambito: AMBITO.RECETA, tipo: "tags", estado: "sin_lector",
-    campo: "mainIngredients", vocabulario: null,
-    consumidores: [], cobertura: 0.644,
-    nota: "EL PEOR CASO DEL CATÁLOGO, y estaba sin declarar. `mainIngredients` tiene 665 recetas rellenas, enum en el esquema, columna en Supabase y sincronización… y CERO lectores: el único sitio del código donde aparece la palabra fuera del esquema y del sync es una variable local del mismo nombre en `recipes.js`, que no tiene nada que ver. Es `mainBase` con el doble de cobertura y sin el consuelo de estar documentado. Se declara aquí para que deje de ser invisible: o alguien lo lee, o se borra — la regla del documento es que todo campo declara su consumidor y si no tiene, se va.",
+    ambito: AMBITO.RECETA, tipo: "tags", estado: "activo",
+    campo: "mainIngredients", vocabulario: MAIN_INGREDIENTS,
+    consumidores: ["rasgosBusqueda"], cobertura: 0.644,
+    nota: "EL PEOR CASO DEL CATÁLOGO, y estaba sin declarar. `mainIngredients` tiene 665 recetas rellenas, enum en el esquema, columna en Supabase y sincronización… y CERO lectores: el único sitio del código donde aparece la palabra fuera del esquema y del sync es una variable local del mismo nombre en `recipes.js`, que no tiene nada que ver. Es `mainBase` con el doble de cobertura y sin el consuelo de estar documentado. Se declara aquí para que deje de ser invisible: o alguien lo lee, o se borra — la regla del documento es que todo campo declara su consumidor y si no tiene, se va. LECTOR desde el 28 oct 2026 (#939): el buscador (rasgosBusqueda.js), para «algo con verdura», «sin lácteos», «con setas».",
   },
 
   // ── Lo que salió de la auditoría de estrella (49) ────────────────────────
@@ -435,7 +455,299 @@ export const EJES = [
     consumidores: ["filterRecipes", "necesitaVispera"], cobertura: 0.975,
     nota: "DERIVADO, no curado: sale de `stepsRich[].minutes >= 720` y por eso su cobertura es la de `stepsRich` (97,5 %) y no hay campo que mantener. Nace de un caso concreto: «Carpaccio de salmón con cítricos» es `montaje: true`, y el atajo de `recipeMatchesPreferType(\"cena_rapida\")` devolvía true por esa vía SIN mirar el tiempo, así que la app podía proponerlo como cena de hoy teniendo por primer paso «Congelar un mínimo de 48 h antes». Hoy son 12 recetas estrella con un paso pasivo de 12 h o más: los dos salmones de anisakis, los remojos de legumbre y los curados. NO es `adelanto`, que es de batch cooking y dice si el plato AGUANTA hecho; este dice si EXIGE empezarse antes, y son preguntas opuestas. Se deriva en vez de curarse porque el dato ya está escrito en los pasos y un campo nuevo sería una segunda verdad que se desincroniza.",
   },
+
+  // ── Preguntas compuestas sobre la nutrición (50) ─────────────────────────
+  {
+    n: 50, id: "perfilNutricional", nombre: "Perfil nutricional (equilibrado, alto en proteína, para entrenar, bajo en sal…)",
+    ambito: AMBITO.RECETA, tipo: "tags", estado: "activo",
+    campo: null, vocabulario: ["equilibrado", "altoProteina", "despuesEntrenar", "antesEntrenar", "ligeroQueSacie", "bajoSal", "ricoHierro"],
+    consumidores: ["menu"], cobertura: 1,
+    nota: "DERIVADO por `puntuar` (src/lib/derive/perfiles.js): no es un eje nuevo sino una pregunta sobre VARIOS a la vez —macros, carga (10), completitud (11) y micros (4)—, y por eso hay uno solo para todos los perfiles en vez de uno por perfil. Nace del caso «el gazpacho de fresas se me queda ligero, dame algo más completo»: «más proteína» a secas daba otro plato desequilibrado, y lo que pedían era una PROPORCIÓN. La cobertura es «de cuántas recetas se puede afirmar algo» (al menos un perfil sin datos que falten), medida corriendo `puntuar` sobre las 1.033: los macros están al 100 %, así que es 1. Cada perfil por separado sí puede no saber —«bajo en sal» sin sodio es «no lo sé», nunca «bajo»—, y eso lo dice `sinDato` en vez de esta columna. LECTOR: `menu` (api/_bot, `conPerfil`), en `proponer_platos` y `cambiar_plato` y en la vía rápida; con él subieron a `consumidores` los ejes 4, 10 y 11, que es donde de verdad se leen.",
+  },
+  // ── 51-77: los campos cerrados de la receta que no estaban (#939) ────────
+  // El inventario del diccionario (npm run diccionario:inventario) los contaba
+  // como campo_sin_eje. Vocabulario importado de recipeSchema.js; cobertura
+  // medida en axisRegistry.test.js.
+  {
+    n: 51, id: "categoria", nombre: "Carpeta del recetario",
+    ambito: AMBITO.RECETA, tipo: "enum", estado: "activo",
+    campo: "category", vocabulario: CATEGORIES,
+    consumidores: ["filterRecipes", "validateMenu", "solver", "menu.js"], cobertura: 1,
+    nota: "La carpeta (carnes, pescados, pasta_arroces…). Las que se pueden pedir a Lola son un recorte: `CATEGORIAS_PEDIBLES` (api/_bot/esquemas.js).",
+  },
+  {
+    n: 52, id: "proteinaPrincipal", nombre: "Proteína principal",
+    ambito: AMBITO.RECETA, tipo: "enum", estado: "activo",
+    campo: "mainProtein", vocabulario: MAIN_PROTEINS,
+    consumidores: ["filterRecipes", "validateMenu", "solver", "aiPlanner", "menu.js"], cobertura: 1,
+    nota: "Lo más pedido junto a la base (#938). Agrupa en familias con PROTEIN_GROUP_BY_MAIN_PROTEIN para la variedad.",
+  },
+  {
+    n: 53, id: "proteinasExtra", nombre: "Otras proteínas del plato",
+    ambito: AMBITO.RECETA, tipo: "tags", estado: "activo",
+    campo: "extraProteins", vocabulario: MAIN_PROTEINS,
+    consumidores: ["filterRecipes", "validateMenu", "solver", "intolerances"], cobertura: 0.191,
+    nota: "Las que acompañan a la principal: cuentan para vetos e intolerancias.",
+  },
+  {
+    n: 54, id: "basePrincipal", nombre: "Base o fécula (arroz, pasta, patata…)",
+    ambito: AMBITO.RECETA, tipo: "enum", estado: "activo",
+    campo: "mainBase", vocabulario: MAIN_BASES,
+    consumidores: ["filterRecipes", "validateMenu", "bases", "sesgos", "esquemas"], cobertura: 0.361,
+    nota: "El eje que se pudrió (cabecera de este fichero). Hoy lo lee la variedad, las tandas y lo pedible de Lola (#930).",
+  },
+  {
+    n: 55, id: "aporte", nombre: "Familias que entrega el plato",
+    ambito: AMBITO.RECETA, tipo: "tags", estado: "activo",
+    campo: "aporte", vocabulario: APORTES,
+    consumidores: ["filterRecipes", "validateMenu", "solver", "aiPlanner"], cobertura: 0.716,
+    nota: "DERIVADO por `aporteDe` (src/lib/aporte.js) de los gramos por familia; el campo `aporte` es solo el override a mano y casi siempre falta a propósito. La cobertura se mide corriendo `aporteDe`.",
+  },
+  {
+    n: 56, id: "modoBase", nombre: "La base va aparte o dentro",
+    ambito: AMBITO.RECETA, tipo: "enum", estado: "activo",
+    campo: "baseMode", vocabulario: BASE_MODES,
+    consumidores: ["bases", "aiPlanner", "filterRecipes"], cobertura: 0.354,
+    nota: "Lo que hace posible cocinar la base en tanda el domingo. Ausente = sin decidir, no «dentro».",
+  },
+  {
+    n: 57, id: "minutosFijos", nombre: "Minutos fijos de una tanda",
+    ambito: AMBITO.RECETA, tipo: "numerico", agregable: AGREGABLE.NO, unidad: UNIDAD_EJE.MIN, estado: "activo",
+    campo: "minutosFijos", vocabulario: null,
+    consumidores: ["bases"], cobertura: 0.015,
+    nota: "Solo en recetas de base: el tiempo que no crece con las raciones.",
+  },
+  {
+    n: 58, id: "minutosPorRacion", nombre: "Minutos por ración de una tanda",
+    ambito: AMBITO.RECETA, tipo: "numerico", agregable: AGREGABLE.NO, unidad: UNIDAD_EJE.MIN, estado: "activo",
+    campo: "minutosPorRacion", vocabulario: null,
+    consumidores: ["bases"], cobertura: 0.015,
+    nota: "Solo en recetas de base: lo que crece con cada ración.",
+  },
+  {
+    n: 59, id: "capacidadMaxima", nombre: "Raciones máximas por tanda",
+    ambito: AMBITO.RECETA, tipo: "numerico", agregable: AGREGABLE.NO, unidad: UNIDAD_EJE.RACION, estado: "activo",
+    campo: "capacidadMax", vocabulario: null,
+    consumidores: ["bases"], cobertura: 0.015,
+    nota: "Solo en recetas de base: cuánto cabe en una olla.",
+  },
+  {
+    n: 60, id: "ocasion", nombre: "Diario o especial",
+    ambito: AMBITO.RECETA, tipo: "enum", estado: "activo",
+    campo: "occasion", vocabulario: OCCASIONS,
+    consumidores: ["validateMenu", "rasgosBusqueda", "vectores"], cobertura: 0.05,
+    nota: "«Especial» también cuenta como connotación festiva en el buscador.",
+  },
+  {
+    n: 61, id: "favoritoNinos", nombre: "Lo piden los niños",
+    ambito: AMBITO.RECETA, tipo: "booleano", estado: "activo",
+    campo: "kidFavourite", vocabulario: null,
+    consumidores: ["sugerenciasDeHueco", "recipeIntents"], cobertura: 0.061,
+    nota: "Más fuerte que `aptoNinos`: no solo lo comen, lo piden.",
+  },
+  {
+    n: 62, id: "picante", nombre: "Nivel de picante",
+    ambito: AMBITO.RECETA, tipo: "enum", estado: "activo",
+    campo: "picante", vocabulario: PICANTES,
+    consumidores: ["rasgosBusqueda", "menu.js", "vectores"], cobertura: 0.723,
+    nota: "Se guarda en tres niveles y se pide en dos: `PICANTE_PEDIDO` (recipeSchema.js) dice qué niveles agrupa cada forma de pedirlo.",
+  },
+  {
+    n: 63, id: "saborDominante", nombre: "Sabor dominante",
+    ambito: AMBITO.RECETA, tipo: "tags", estado: "activo",
+    campo: "sabor", vocabulario: SABORES,
+    consumidores: ["rasgosBusqueda", "menu.js", "vectores"], cobertura: 0.723,
+    nota: "No es el eje 9 (`sabor`, que vive en healthFlags y mezcla salud): este es el sabor que se nota (suave, intenso, ácido…).",
+  },
+  {
+    n: 64, id: "llevaSalsa", nombre: "Lleva salsa",
+    ambito: AMBITO.RECETA, tipo: "booleano", estado: "activo",
+    campo: "llevaSalsa", vocabulario: null,
+    consumidores: ["sesgos"], cobertura: 0.167,
+    nota: "Para no juntar dos platos con salsa en la misma comida.",
+  },
+  {
+    n: 65, id: "etapaBebe", nombre: "Textura para el bebé",
+    ambito: AMBITO.RECETA, tipo: "enum", estado: "activo",
+    campo: "etapaBebe", vocabulario: ETAPAS_BEBE_RECETA,
+    consumidores: ["babyStage", "restriccionesReceta", "filterRecipes"], cobertura: 0.057,
+    nota: "La de la receta (cremas, sólidos). La de la persona añade «mixto», que abre las dos (src/lib/babyStage.js).",
+  },
+  {
+    n: 66, id: "guarnicionPosible", nombre: "Puede ir de guarnición",
+    ambito: AMBITO.RECETA, tipo: "booleano", estado: "sin_datos",
+    campo: "canBeGarnish", vocabulario: null,
+    consumidores: ["userRecipesFila"], cobertura: 0,
+    nota: "Solo lo traen las recetas propias; el catálogo no lo rellena.",
+  },
+  {
+    n: 67, id: "compatibilidadSalsa", nombre: "Con qué platos casa una salsa",
+    ambito: AMBITO.RECETA, tipo: "tags", estado: "activo",
+    campo: "sauceCompat", vocabulario: SAUCE_COMPAT_TAGS,
+    consumidores: ["pairSauces"], cobertura: 0.027,
+    nota: "Solo en recetas de tipo salsa (lo valida el esquema).",
+  },
+  {
+    n: 68, id: "papelEnComida", nombre: "Primero, segundo, plato único, cena…",
+    ambito: AMBITO.RECETA, tipo: "tags", estado: "activo",
+    campo: "mealRole", vocabulario: MEAL_ROLES,
+    consumidores: ["filterRecipes", "validateMenu", "aiPlanner", "fixedDishes", "caloriasNivel"], cobertura: 1,
+    nota: "Dónde puede ir el plato en el menú. Lo pidió Pablo explícitamente (primer o segundo plato).",
+  },
+  {
+    n: 69, id: "tipoPlato", nombre: "Completo, principal, guarnición, salsa o base",
+    ambito: AMBITO.RECETA, tipo: "enum", estado: "activo",
+    campo: "type", vocabulario: TYPES,
+    consumidores: ["CatalogBrowserSheet", "BasesPreferidas", "dishNaming"], cobertura: 1,
+    nota: "Qué es la receta por sí sola, no dónde va (eso es `papelEnComida`).",
+  },
+  {
+    n: 70, id: "tiempoTotal", nombre: "Tiempo total en minutos",
+    ambito: AMBITO.RECETA, tipo: "numerico", agregable: AGREGABLE.SUMA, unidad: UNIDAD_EJE.MIN, estado: "activo",
+    campo: "time", vocabulario: null,
+    consumidores: ["filterRecipes", "solver", "validateMenu", "sugerenciasDeHueco", "menu.js"], cobertura: 1,
+    nota: "El tiempo de reloj. El activo, el que exige estar delante, es el eje 24.",
+  },
+  {
+    n: 71, id: "dificultad", nombre: "Fácil, normal o elaborada",
+    ambito: AMBITO.RECETA, tipo: "enum", estado: "activo",
+    campo: "difficulty", vocabulario: DIFFICULTIES,
+    consumidores: ["filterRecipes", "aiPlanner", "sugerenciasDeHueco", "menu.js"], cobertura: 1,
+    nota: "El filtro por nivel de cocina de la casa (básico → fácil; normal → fácil y normal).",
+  },
+  {
+    n: 72, id: "temporada", nombre: "Todo el año, verano o invierno",
+    ambito: AMBITO.RECETA, tipo: "enum", estado: "activo",
+    campo: "season", vocabulario: SEASONS,
+    consumidores: ["filterRecipes", "CatalogBrowserSheet"], cobertura: 1,
+    nota: "«all» es todo el año. La estacionalidad de cada ingrediente es otro eje (18).",
+  },
+  {
+    n: 73, id: "racionesBase", nombre: "Raciones para las que está escrita",
+    ambito: AMBITO.RECETA, tipo: "numerico", agregable: AGREGABLE.NO, unidad: UNIDAD_EJE.RACION, estado: "activo",
+    campo: "baseServings", vocabulario: null,
+    consumidores: ["recipeCatalog", "coste", "bases", "aporte"], cobertura: 1,
+    nota: "Con ella se escalan cantidades, coste y aporte por ración.",
+  },
+  {
+    n: 74, id: "aptoNinos", nombre: "Apto para niños",
+    ambito: AMBITO.RECETA, tipo: "booleano", estado: "activo",
+    campo: "kidFriendly", vocabulario: null,
+    consumidores: ["filterRecipes", "aiPlanner", "rasgosBusqueda", "recipeIntents"], cobertura: 1,
+    nota: "Que lo pueden comer; que lo pidan es `favoritoNinos`.",
+  },
+  {
+    n: 75, id: "alergenos", nombre: "Los 14 alérgenos de la UE",
+    ambito: AMBITO.RECETA, tipo: "tags", estado: "activo",
+    campo: "allergens", vocabulario: ALLERGENS,
+    consumidores: ["filterRecipes", "restriccionesReceta", "menuConflicts", "allergensCore"], cobertura: 0.833,
+    nota: "Lo declarado; lib/allergens.js completa los que delatan los ingredientes.",
+  },
+  {
+    n: 76, id: "esfuerzoPostre", nombre: "Esfuerzo de un postre",
+    ambito: AMBITO.RECETA, tipo: "enum", estado: "activo",
+    campo: "effort", vocabulario: EFFORTS,
+    consumidores: ["postres"], cobertura: 0.025,
+    nota: "Solo en postres: inmediato, cazo u horno.",
+  },
+  {
+    n: 77, id: "tipoPostre", nombre: "Fruta o yogur",
+    ambito: AMBITO.RECETA, tipo: "enum", estado: "activo",
+    campo: "dessertKind", vocabulario: DESSERT_KINDS,
+    consumidores: ["postres"], cobertura: 0.006,
+    nota: "Solo en postres de diario.",
+  },
+  {
+    n: 78, id: "calorias", nombre: "Ligero, medio o contundente",
+    ambito: AMBITO.RECETA, tipo: "enum", estado: "activo",
+    campo: "caloriasNivel", vocabulario: NIVELES_CALORIAS,
+    consumidores: ["menu.js"], cobertura: 1,
+    nota: "DERIVADO al cargar (CAMPOS_AL_CARGAR en recipeSchema.js) por `nivelCalorias`, de las kcal y del papel del plato: una cena de 500 kcal no es lo que un plato único de 500. Se podía pedir a Lola («algo contundente») y no tenía eje.",
+  },
+  // Los dos campos de la libreta que no tenían eje (notepadFields.js, `sinEje`): una preferencia lleva siempre
+  // el suyo (tabla preferencia, 0109; plan fichas con estado, trozo 14). Son de la casa, no del plato.
+  {
+    n: 79, id: "esfuerzo", nombre: "Lo que cuesta cocinarlo, como lo pide la casa (fácil, rápido, elaborado)",
+    ambito: AMBITO.HOGAR, tipo: "enum", estado: "silencioso",
+    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
+    nota: "El campo `esfuerzo` de la libreta. Ningún campo del plato lo representa sin ambigüedad (sesgos.js), así que el motor no lo lee: silencioso. Sus valores, el dominio del campo en notepadFields.js.",
+  },
+  {
+    n: 80, id: "familiaTanda", nombre: "Familia de plato que se deja hecha o a medias (croquetas, cremas…)",
+    ambito: AMBITO.HOGAR, tipo: "enum", estado: "silencioso",
+    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
+    nota: "El campo `tandaPlatos` de la libreta: cuenta familias de plato, que salen del nombre del plato (tandaFamiliasDefs.js, CLAVES_PLATO) y no de un campo de la receta. Lo lee la tanda (tandaFamilias.js) desde la libreta, no del catálogo.",
+  },
+  // Los cinco que siguen son de la casa, no del plato: los usan las preferencias que vienen del documento en el
+  // trozo 14 (#1037), `mealStyleByGroup` y `kidDinnerConfig`, que no tienen eje del catálogo. Silenciosos: el motor
+  // no los lee de una receta; la app y Lola los leen de las filas de preferencia, como `esfuerzo`.
+  {
+    n: 81, id: "estiloComida", nombre: "Estilo de comida de un menú (de todo, equilibrado, ligero o a mano)",
+    ambito: AMBITO.HOGAR, tipo: "enum", estado: "silencioso",
+    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
+    nota: "`mealStyleByGroup`: un estilo por grupo, que reescala las veces de cada familia a los huecos de la semana. Sus valores, los ids de MEAL_STYLES (Onboarding.jsx).",
+  },
+  {
+    n: 82, id: "comeConLaFamilia", nombre: "Si un niño come lo de la familia o lo suyo, por comida",
+    ambito: AMBITO.HOGAR, tipo: "booleano", estado: "silencioso",
+    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
+    nota: "`kidDinnerConfig` (kidsMenu.js): el mediodía entre semana, la cena entre semana y el finde de cada niño, cada uno con su ámbito.",
+  },
+  {
+    n: 83, id: "cenaDelMediodia", nombre: "Si la cena de un niño aprovecha lo que la familia comió al mediodía (días de comedor)",
+    ambito: AMBITO.HOGAR, tipo: "booleano", estado: "silencioso",
+    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
+    nota: "`kidDinnerConfig.reuseColeDinner` (kidsMenu.js).",
+  },
+  {
+    n: 84, id: "repiteDelComedor", nombre: "Qué puede repetir la cena de un niño de lo que comió en el comedor",
+    ambito: AMBITO.HOGAR, tipo: "enum", estado: "silencioso",
+    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
+    nota: "`kidDinnerConfig.avoid` (kidsMenu.js): protein, carbs o veg; «no_es» es que la cena lo evita.",
+  },
+  {
+    n: 85, id: "comePocasCosas", nombre: "Si un niño come pocas cosas (y hay que asegurarle algo que coma)",
+    ambito: AMBITO.HOGAR, tipo: "booleano", estado: "silencioso",
+    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
+    nota: "`kidDinnerConfig.limited` (kidsMenu.js); lo que sí come (`safeFoods`) va en subtipoIngrediente.",
+  },
 ];
+
+/**
+ * Los nutrientes por ración como ejes de receta (plan fichas con estado, trozo
+ * 24): uno por nutriente de nutrientes.js, con su id por ración, su unidad y
+ * `agregable: suma`, para que una preferencia pueda pedir «como mucho 2.000
+ * kcal al día» o «al menos 60 g de proteína». Los valores siguen en
+ * derived/recipeNutrition.json (computeRecipeNutrition): el eje dice cómo
+ * leerlos, no los copia. Se numeran tras el último eje declarado. Lola ya
+ * ordena por cualquiera de ellos (api/_bot/esquemas.js, EJES).
+ *
+ * Cobertura: recetas del derivado con número, medida el 30 oct 2026 (el test
+ * la vuelve a contar); solo el azúcar baja de 1 (1.013 de 1.033).
+ */
+const COBERTURA_NUTRIENTE = { sugar_g: 0.981 };
+const ULTIMO_DECLARADO = Math.max(...DECLARADOS.map((e) => e.n));
+const NUTRIENTES_POR_RACION = Object.values(NUTRIENTES).map((nu, i) => ({
+  n: ULTIMO_DECLARADO + 1 + i, id: nu.porRacion, nombre: `Nutriente por ración (${nu.porRacion})`,
+  ambito: AMBITO.RECETA, tipo: "numerico", agregable: AGREGABLE.SUMA, unidad: nu.unidad, estado: "activo",
+  campo: null, vocabulario: null, consumidores: ["esquemas"], cobertura: COBERTURA_NUTRIENTE[nu.porRacion] ?? 1,
+}));
+
+/** Lo que se cuenta por plato se cuenta (agregable por defecto de cada tipo); los numéricos y derivados lo declaran. */
+const AGREGABLE_DEL_TIPO = { enum: AGREGABLE.CUENTA, jerarquico: AGREGABLE.CUENTA, tags: AGREGABLE.CUENTA, booleano: AGREGABLE.CUENTA };
+const SE_JUNTAN = new Set([AMBITO.RECETA, AMBITO.PARTE]);
+
+/** El eje con su agregable y su unidad; falla al cargar si falta lo que no tiene defecto (principio 3). */
+function conAgregable(e) {
+  const agregable = e.agregable ?? (SE_JUNTAN.has(e.ambito) ? AGREGABLE_DEL_TIPO[e.tipo] : AGREGABLE.NO);
+  if (!agregable) throw new Error(`eje ${e.id}: un eje ${e.tipo} de receta dice si se suma, se hace la media, se cuenta o no`);
+  const unidad = e.unidad ?? null;
+  if (unidad !== null && !UNIDADES_EJE.includes(unidad)) throw new Error(`eje ${e.id}: la unidad «${unidad}» no está en UNIDADES_EJE`);
+  if ([AGREGABLE.SUMA, AGREGABLE.MEDIA].includes(agregable) && unidad === null) throw new Error(`eje ${e.id}: se junta (${agregable}) y no dice en qué unidad`);
+  return { ...e, agregable, unidad };
+}
+
+export const EJES = [...DECLARADOS, ...NUTRIENTES_POR_RACION].map(conAgregable);
 
 /** Por id, para no recorrer el array en cada consulta. */
 export const EJE_POR_ID = new Map(EJES.map((e) => [e.id, e]));

@@ -1,9 +1,13 @@
+import { FRONTAL_BOT } from "../lib/frontalBot.js";
+import { seOfreceApple, enTelegram } from "../lib/apiUrl.js";
 import { useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
-import { BookOpen, Calendar, ChevronDown, ClipboardList, CookingPot, Home, ShoppingCart, Sparkles, UserCircle, Users, X } from "./icons.jsx";
+import { BookOpen, Calendar, ChevronDown, ClipboardList, CookingPot, Home, Send, ShoppingCart, Sparkles, UserCircle, Users, X } from "./icons.jsx";
+import { color as tono, tipografia, espaciado, radio, sombra, capa } from "../design/tokens.js";
+import { urlEntrarConTelegram, PREGUNTA_ALTA } from "../lib/cuentaTelegram.js";
 import { initialsOf, memberAvatarColor, memberAvatarThumbSrc } from "../lib/stages.js";
 import { formatWeekRangeLabel, getWeekDates } from "../lib/weekCalendar.js";
-import { adhocReasonLabel } from "../lib/groups.js";
+import { adhocReasonLabel, mordidaDeCara } from "../lib/groups.js";
 import { subscribeFeedBadge, readFeedBadge } from "../lib/socialBadge.js";
 
 const GROUP_ABBREV = { Adultos: "A", Niños: "N", Bebé: "B", Familia: "F" };
@@ -68,14 +72,21 @@ export function ProgressDots({ current, total, onJump, compact = false }) {
   );
 }
 
+// Son literales (react-refresh no deja exportar otra cosa desde un .jsx de
+// componentes) y deben valer lo que `tam-columna` y `tam-nav` de
+// src/design/tokens.js: lo vigila src/design/marca.test.js.
 export const APP_SHELL_MAX_WIDTH = 420;
 export const BOTTOM_NAV_HEIGHT = 80;
 
-export function SegmentedControl({ options, value, onChange, style, activeDark, compact = false }) {
+// `ariaLabel`: el nombre del grupo para el lector de pantalla («Tu compra»).
+// Cada opción anuncia si está elegida (aria-pressed), lo pongan o no.
+export function SegmentedControl({ options, value, onChange, style, activeDark, compact = false, ariaLabel }) {
   const fontSize = compact ? 11 : 13;
   const btnPad = compact ? "5px 10px" : "7px 0";
   return (
     <div
+      role={ariaLabel ? "group" : undefined}
+      aria-label={ariaLabel}
       style={{
         display: compact ? "inline-flex" : "flex",
         width: compact ? undefined : "100%",
@@ -93,6 +104,7 @@ export function SegmentedControl({ options, value, onChange, style, activeDark, 
           <button
             key={id}
             type="button"
+            aria-pressed={sel}
             onClick={() => onChange(id)}
             style={{
               flex: compact ? "0 0 auto" : 1,
@@ -105,7 +117,7 @@ export function SegmentedControl({ options, value, onChange, style, activeDark, 
               borderRadius: compact ? 8 : 9,
               border: "none",
               background: sel ? (activeDark ? "#2d5a3d" : "#fff") : "transparent",
-              color: sel ? (activeDark ? "#fff" : "#142f1d") : "#7a8a7f",
+              color: sel ? (activeDark ? "#fff" : "#142f1d") : "#5a7066",
               fontSize,
               fontWeight: 800,
               cursor: "pointer",
@@ -162,13 +174,13 @@ export function SegmentedTabButton({
   // acento dice ademas CUAL es, que es lo que se mira al volver a la pantalla.
   // Es el mismo trato que el Chip seleccionado del sistema (6.1) y la variante
   // `activeDark` del segmented (6.2).
-  const iconColor = selected ? "#fff" : "#9ab0a1";
+  const iconColor = selected ? "#fff" : "#67806f";
   const surface = selected
     ? { background: accent, color: "#fff", boxShadow: "none" }
-    : { background: "transparent", color: "#7a9485", boxShadow: "none" };
+    : { background: "transparent", color: "#4f655b", boxShadow: "none" };
   const badgeTone = selected
     ? { color: accent, background: "rgba(255,255,255,.92)" }
-    : { color: "#7a9485", background: "#dce8de" };
+    : { color: "#4f655b", background: "#dce8de" };
 
   if (Icon) {
     return (
@@ -399,7 +411,7 @@ export function EmptyIllustration({
 // size="sm" is an opt-in compact variant (e.g. inline next to a segmented
 // control where there's no room for the full-size 48×28 switch) — default
 // stays exactly as before for every existing caller.
-export function ToggleSwitch({ checked, onChange, label, size = "md" }) {
+export function ToggleSwitch({ checked, onChange, label, size = "md", disabled = false, ariaLabel }) {
   const sm = size === "sm";
   const trackW = sm ? 34 : 48;
   const trackH = sm ? 20 : 28;
@@ -422,6 +434,8 @@ export function ToggleSwitch({ checked, onChange, label, size = "md" }) {
         type="button"
         role="switch"
         aria-checked={checked}
+        aria-label={ariaLabel}
+        disabled={disabled}
         onClick={() => onChange(!checked)}
         style={{
           width: trackW,
@@ -430,7 +444,8 @@ export function ToggleSwitch({ checked, onChange, label, size = "md" }) {
           border: "none",
           padding: 2,
           background: checked ? "#2d5a3d" : "#d4e0d8",
-          cursor: "pointer",
+          cursor: disabled ? "default" : "pointer",
+          opacity: disabled ? 0.5 : 1,
           flexShrink: 0,
           transition: "background .2s",
         }}
@@ -454,6 +469,34 @@ export function ToggleSwitch({ checked, onChange, label, size = "md" }) {
 
 export function bottomNavSpacer() {
   return `calc(${BOTTOM_NAV_HEIGHT}px + env(safe-area-inset-bottom, 0px))`;
+}
+
+/**
+ * El padding de arriba de una cabecera de pantalla, ya con el hueco de la barra
+ * de estado sumado.
+ *
+ * La app se dibuja de borde a borde (`viewport-fit=cover` en index.html, y la
+ * barra de estado en modo overlay en capacitor.config.json), asi que la primera
+ * franja de cada pantalla queda DEBAJO del reloj. Eso es lo que queremos
+ * visualmente — la banda de color sube hasta el borde en vez de dejar una tira
+ * blanca — pero obliga a apartar el contenido, o los botones de la esquina
+ * acaban bajo el reloj y no se pueden pulsar.
+ *
+ * Se hace con `env()` y no con un numero por dispositivo a proposito: el hueco
+ * no es el mismo en un SE (sin notch), en un mini (pantalla pequeña pero notch
+ * igual de grande) o en uno con Dynamic Island, y es iOS quien sabe cuanto mide
+ * en cada uno. Asi no hay lista de modelos que mantener, y un iPhone que salga
+ * mañana tambien sale bien.
+ *
+ * En la web de escritorio y en Safari con su barra de direcciones el inset vale
+ * 0, y queda exactamente el padding que se pide.
+ *
+ * @param {number} px El padding de diseño, el que tendria sin barra de estado.
+ */
+// Helper de estilo, no un componente: sale de aquí para que 19 pantallas no cambien su import.
+// eslint-disable-next-line react-refresh/only-export-components
+export function safeTop(px) {
+  return `calc(${px}px + env(safe-area-inset-top, 0px))`;
 }
 
 // One single bar everywhere in the app — it used to swap its 4-5 items
@@ -484,8 +527,13 @@ const NAV_ITEMS = [
   { id: "feed",      icon: Users,         label: "Gente",    color: "#4a6fd4" },
 ];
 
+// Frontal del bot: la app es para ver lo de esta semana, y el recetario (que
+// Pablo quiere a mano: «es crítico»). Gente no se borra; vuelve al apagar
+// FRONTAL_BOT.
+const NAV_FRONTAL = new Set(["dashboard", "recipes", "menu", "shopping"]);
+
 export function BottomNav({ active, onNav, dissolved = false }) {
-  const items = NAV_ITEMS;
+  const items = FRONTAL_BOT ? NAV_ITEMS.filter((it) => NAV_FRONTAL.has(it.id)) : NAV_ITEMS;
   // Aviso de novedades de Gente: punto sin numero (el numero esta en la
   // campana del propio Feed). Ver socialBadge.js para el porque del store.
   const feedNews = useSyncExternalStore(subscribeFeedBadge, readFeedBadge);
@@ -545,6 +593,7 @@ export function BottomNav({ active, onNav, dissolved = false }) {
               key={it.id}
               type="button"
               data-coach={`nav-${it.id}`}
+              aria-current={sel ? "page" : undefined}
               onClick={() => onNav(it.id)}
               style={{
                 flex: 1,
@@ -578,7 +627,7 @@ export function BottomNav({ active, onNav, dissolved = false }) {
                 <span style={{ position: "relative", display: "inline-flex" }}>
                   <it.icon
                     size={22}
-                    color={sel ? it.color : "#c2d4cb"}
+                    color={sel ? it.color : "#7f9488"}
                     strokeWidth={sel ? 2.4 : 1.8}
                   />
                   {it.id === "feed" && feedNews && !sel && (
@@ -593,11 +642,14 @@ export function BottomNav({ active, onNav, dissolved = false }) {
                   )}
                 </span>
               )}
+              {/* Contraste de texto (4,5:1): el color de cada pestaña va en el
+                  icono; la etiqueta, en tinta oscura si está elegida y en un
+                  gris que se lee si no. */}
               <span
                 style={{
-                  fontSize: 10,
+                  fontSize: 11,
                   fontWeight: sel || it.highlight ? 800 : 600,
-                  color: it.highlight ? "#1a3a24" : sel ? it.color : "#9ab0a1",
+                  color: it.highlight || sel ? "#1a3a24" : "#5f7468",
                   letterSpacing: ".2px",
                   lineHeight: 1,
                 }}
@@ -664,7 +716,7 @@ export function SliderInput({ label, value, min, max, step, suffix, valueLabel, 
   );
 }
 
-function GoogleGlyph({ size = 18 }) {
+export function GoogleGlyph({ size = 18 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 48 48" aria-hidden="true" style={{ flexShrink: 0 }}>
       <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
@@ -675,7 +727,50 @@ function GoogleGlyph({ size = 18 }) {
   );
 }
 
-export function GoogleButton({ onClick, label = "Continuar con Google", variant = "light" }) {
+export function TelegramGlyph({ size = 18, color = tono.telegram }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" style={{ flexShrink: 0 }}>
+      <path
+        fill={color}
+        d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"
+      />
+    </svg>
+  );
+}
+
+export function AppleGlyph({ size = 18, color = "#fff" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" style={{ flexShrink: 0 }}>
+      <path
+        fill={color}
+        d="M16.36 12.78c-.03-2.7 2.2-3.99 2.3-4.05-1.25-1.83-3.2-2.08-3.9-2.11-1.66-.17-3.24.98-4.08.98-.84 0-2.14-.96-3.52-.93-1.81.03-3.48 1.05-4.41 2.67-1.88 3.26-.48 8.08 1.35 10.72.9 1.29 1.97 2.74 3.38 2.69 1.36-.06 1.87-.88 3.51-.88 1.64 0 2.1.88 3.53.85 1.46-.03 2.38-1.32 3.27-2.62 1.03-1.5 1.45-2.95 1.48-3.03-.03-.01-2.84-1.09-2.87-4.32zM13.7 4.9c.74-.9 1.24-2.15 1.1-3.4-1.07.04-2.36.71-3.13 1.61-.69.79-1.29 2.06-1.13 3.28 1.19.09 2.41-.6 3.16-1.49z"
+      />
+    </svg>
+  );
+}
+
+/**
+ * El botón de entrar con un proveedor. Google y Apple comparten cuerpo porque
+ * comparten los dos comportamientos que importan: el estado "Redirigiendo…"
+ * mientras se abre el navegador del sistema, y un error que se lee bajo el
+ * botón en vez de perderse en la consola.
+ *
+ * Apple exige que su botón no se vea menos que el resto (Guideline 4.8), así
+ * que la única diferencia entre los dos es el color y el glifo, nunca el
+ * tamaño ni el peso.
+ */
+function OAuthButton({
+  onClick,
+  label,
+  glyph,
+  variant,
+  background,
+  color,
+  border,
+  spinnerTrack,
+  spinnerArc,
+  failMessage,
+}) {
   const dark = variant === "dark";
   const [pressed, setPressed] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -687,10 +782,11 @@ export function GoogleButton({ onClick, label = "Continuar con Google", variant 
     setError(null);
     let failure = null;
     try {
-      // signInWithGoogle reports failures by *returning* { error } rather than
-      // throwing, so catching a rejection only covers half the cases. Missing
-      // Supabase env vars in a deploy hit the returned-error path, which used
-      // to leave the button spinning "Redirigiendo…" forever with no clue why.
+      // Los signIn del hook avisan de los fallos *devolviendo* { error }, no
+      // lanzando, así que capturar el rechazo solo cubre la mitad de los
+      // casos. Faltar las env de Supabase en un deploy cae por la rama del
+      // error devuelto, que antes dejaba el botón girando "Redirigiendo…"
+      // para siempre y sin pista de por qué.
       const result = await onClick?.();
       failure = result?.error ?? null;
     } catch (err) {
@@ -698,7 +794,7 @@ export function GoogleButton({ onClick, label = "Continuar con Google", variant 
     }
     if (failure) {
       setLoading(false);
-      setError(failure.message || "No se pudo conectar con Google.");
+      setError(failure.message || failMessage);
     }
     // On success the page redirects — no need to reset loading
   };
@@ -722,9 +818,9 @@ export function GoogleButton({ onClick, label = "Continuar con Google", variant 
         gap: 10,
         padding: "15px 20px",
         borderRadius: 999,
-        border: dark ? "1.5px solid rgba(255,255,255,.25)" : "1.5px solid #dbe5de",
-        background: "#fff",
-        color: "#1a3a24",
+        border,
+        background,
+        color,
         fontSize: 15,
         fontWeight: 800,
         cursor: loading ? "default" : "pointer",
@@ -744,11 +840,11 @@ export function GoogleButton({ onClick, label = "Continuar con Google", variant 
           style={{ flexShrink: 0 }}
           aria-hidden="true"
         >
-          <circle cx="9" cy="9" r="7" fill="none" stroke="#dbe5de" strokeWidth="2.5" />
-          <path d="M9 2 A7 7 0 0 1 16 9" fill="none" stroke="#2d5a3d" strokeWidth="2.5" strokeLinecap="round" />
+          <circle cx="9" cy="9" r="7" fill="none" stroke={spinnerTrack} strokeWidth="2.5" />
+          <path d="M9 2 A7 7 0 0 1 16 9" fill="none" stroke={spinnerArc} strokeWidth="2.5" strokeLinecap="round" />
         </svg>
       ) : (
-        <GoogleGlyph size={18} />
+        glyph
       )}
       {loading ? "Redirigiendo…" : label}
     </button>
@@ -761,7 +857,7 @@ export function GoogleButton({ onClick, label = "Continuar con Google", variant 
           lineHeight: 1.45,
           textAlign: "center",
           color: dark ? "#ffd9d2" : "#c0392b",
-          // The dark variant sits over the splash video, where plain text on a
+          // The dark variant sits over the splash photo, where plain text on a
           // bright frame is unreadable.
           ...(dark
             ? {
@@ -780,15 +876,188 @@ export function GoogleButton({ onClick, label = "Continuar con Google", variant 
   );
 }
 
+export function GoogleButton({ onClick, label = "Continuar con Google", variant = "light" }) {
+  return (
+    <OAuthButton
+      onClick={onClick}
+      label={label}
+      variant={variant}
+      glyph={<GoogleGlyph size={18} />}
+      background="#fff"
+      color="#1a3a24"
+      border={variant === "dark" ? "1.5px solid rgba(255,255,255,.25)" : "1.5px solid #dbe5de"}
+      spinnerTrack="#dbe5de"
+      spinnerArc="#2d5a3d"
+      failMessage="No se pudo conectar con Google."
+    />
+  );
+}
+
+export function AppleButton({ onClick, label = "Continuar con Apple", variant = "light" }) {
+  return (
+    <OAuthButton
+      onClick={onClick}
+      label={label}
+      variant={variant}
+      glyph={<AppleGlyph size={18} />}
+      background="#000"
+      color="#fff"
+      border="1.5px solid #000"
+      spinnerTrack="rgba(255,255,255,.35)"
+      spinnerArc="#fff"
+      failMessage="No se pudo conectar con Apple."
+    />
+  );
+}
+
+/**
+ * «Entrar con Telegram» (specs/auth.md §7): lleva al login oficial de Telegram en
+ * la misma pestaña, y la vuelta la recoge BotEnlace.jsx como la llave de Lola.
+ */
+export function TelegramButton({ url, variant = "light" }) {
+  return (
+    <OAuthButton
+      onClick={() => { window.location.href = url; }}
+      label="Entrar con Telegram"
+      variant={variant}
+      glyph={<Send size={18} />}
+      background={tono.telegram}
+      color={tono.superficie}
+      border={`1.5px solid ${tono.telegram}`}
+      spinnerTrack={tono["linea-fuerte"]}
+      spinnerArc={tono.superficie}
+      failMessage="No se pudo abrir Telegram."
+    />
+  );
+}
+
+/**
+ * Las formas de entrar, juntas y con el mismo peso. Telegram va primero
+ * (Pablo, 4 nov 2026: «tu chat con Lola es tu llave»), solo donde el login
+ * de Telegram funciona (`urlEntrarConTelegram`).
+ *
+ * En la app de iOS van siempre las dos: ofrecer Google a solas es rechazo de
+ * App Store por la Guideline 4.8. Por eso existe este componente y no se pinta
+ * `GoogleButton` suelto en ninguna pantalla.
+ *
+ * Apple se ofrece en la app nativa, porque la 4.8 es de iOS, y en la web solo
+ * con la bandera VITE_APPLE_WEB (encendida en `staging`, para probarlo de punta
+ * a punta antes de abrirlo en producción: issue #890). `conApple` manda sobre
+ * ambas.
+ */
+export function SignInOptions({
+  onGoogle,
+  onApple,
+  variant = "light",
+  conApple = seOfreceApple(),
+  urlTelegram = typeof window === "undefined" ? null : urlEntrarConTelegram(window.location),
+  dentroDeTelegram = enTelegram(),
+}) {
+  const dark = variant === "dark";
+  return (
+    <div style={{ display: "grid", gap: 10 }}>
+      {urlTelegram && <TelegramButton url={urlTelegram} variant={variant} />}
+      {/* Dentro de Telegram, Google y Apple no dejan entrar (trozo 5 de specs/auth.md §7): solo se dice dónde sí. */}
+      {dentroDeTelegram ? (
+        <p style={{
+          margin: 0,
+          textAlign: "center",
+          fontSize: tipografia["paso-12"],
+          fontWeight: tipografia["peso-700"],
+          color: dark ? tono.superficie : tono["tinta-suave"],
+        }}>
+          ¿Con Google o Apple? Ábrelo en el navegador.
+        </p>
+      ) : (
+        <>
+          {conApple && <AppleButton onClick={onApple} variant={variant} />}
+          <GoogleButton onClick={onGoogle} variant={variant} />
+        </>
+      )}
+      {/* La aceptación de los términos vive aquí y no en cada pantalla porque
+          aquí es donde nace la cuenta, y porque App Store exige, en apps con
+          contenido de usuarios, que el usuario acepte unas condiciones con
+          tolerancia cero antes de poder publicar. Al estar dentro de este
+          componente aparece sola en las siete pantallas que ofrecen entrar. */}
+      <p style={{
+        margin: "2px 4px 0",
+        fontSize: 11.5,
+        lineHeight: 1.45,
+        textAlign: "center",
+        fontWeight: 600,
+        color: dark ? "rgba(255,255,255,.85)" : "#7a9485",
+        ...(dark ? { textShadow: "0 1px 6px rgba(0,0,0,.6)" } : null),
+      }}>
+        Al continuar aceptas los{" "}
+        <a href="/terminos.html" target="_blank" rel="noopener noreferrer"
+           style={{ color: "inherit", fontWeight: 800 }}>términos de uso</a>
+        {" "}y la{" "}
+        <a href="/privacidad.html" target="_blank" rel="noopener noreferrer"
+           style={{ color: "inherit", fontWeight: 800 }}>política de privacidad</a>.
+      </p>
+    </div>
+  );
+}
+
+/**
+ * Una pregunta de cuenta, encima de todo, con dos salidas (specs/auth.md §7, trozo 4): «¿Ya hablas con Lola?» al
+ * nacer una cuenta de Google o Apple, y «¿Añades este Google a tu cuenta?» al volver de Telegram. `onPrincipal`
+ * devuelve `{ error }` como los botones de entrar: si falla, el botón lo dice y la pregunta sigue.
+ */
+export function PreguntaDeCuenta({ titulo, principal, onPrincipal, conTelegram = false, secundario, onSecundario }) {
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={titulo}
+      style={{
+        position: "fixed", inset: 0, zIndex: capa["capa-emergente"],
+        background: tono.scrim,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: `0 ${espaciado["esp-24"]}px`,
+      }}
+    >
+      <div style={{
+        width: "100%", maxWidth: 360,
+        background: tono.superficie,
+        borderRadius: radio["radio-modal"],
+        boxShadow: sombra["sombra-3"],
+        padding: espaciado["esp-24"],
+        display: "grid", gap: espaciado["esp-12"],
+      }}>
+        <h2 style={{ margin: 0, textAlign: "center", color: tono.tinta, fontSize: tipografia["paso-20"], fontWeight: tipografia["peso-900"] }}>
+          {titulo}
+        </h2>
+        <OAuthButton
+          onClick={onPrincipal}
+          label={principal}
+          variant="light"
+          glyph={conTelegram ? <Send size={18} /> : null}
+          background={tono.marca}
+          color={tono.superficie}
+          border={`1.5px solid ${tono.marca}`}
+          spinnerTrack={tono["marca-viva"]}
+          spinnerArc={tono.superficie}
+          failMessage={PREGUNTA_ALTA.noSePudo}
+        />
+        <GhostPillButton onClick={onSecundario} tone="borde">{secundario}</GhostPillButton>
+      </div>
+    </div>
+  );
+}
+
 export function GhostPillButton({ onClick, children, tone = "light" }) {
   const [pressed, setPressed] = useState(false);
   const light = tone === "light";
   // "solid" es el CTA principal: relleno verde, alto contraste, se ve igual
-  // sobre el vídeo del splash que sobre un fondo claro (cuando el vídeo no
+  // sobre la foto del splash que sobre un fondo claro (cuando la foto no
   // carga). Los otros tonos son secundarios (ghost translúcido / borde claro).
-  const solid = tone === "solid";
+  const telegram = tone === "telegram";
+  const solid = tone === "solid" || telegram;
 
-  const styles = solid
+  const styles = telegram
+    ? { border: "none", background: tono.telegram, color: tono.superficie, boxShadow: sombra["sombra-2"] }
+    : solid
     ? {
         border: "none",
         background: pressed
@@ -1049,9 +1318,7 @@ export function GroupAvatarStack({ faces, size = 46, active = true, max = null }
   const border = Math.max(2, Math.round(size * 0.055));
   const shown = max ? faces.slice(0, max) : faces;
   const overflow = faces.length - shown.length;
-  // Faces sit centred in the thumb, so hiding ~38% of the circle underneath
-  // still leaves each one recognisable.
-  const bite = Math.round(size * 0.38);
+  const bite = mordidaDeCara(size);
 
   const disc = (face, i, key) => (
     <span

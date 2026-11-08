@@ -2,17 +2,21 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
+  "regions": ["fra1"],
   "functions": {
     "api/share-recipe.js": {
       "includeFiles": "src/{data/recipes/*.json,assets/dishes/dishImages.json}"
     },
     "api/bot/telegram.js": {
-      "includeFiles": "api/_bot/{core.mjs,conocimiento.md}",
+      "includeFiles": "{api/_bot/{core.mjs,conocimiento.md,manual/*.md,dominiosGustos.json,recetasVectores.json},src/assets/dishes/dishImages.json,public/store/mercadona.json}",
       "maxDuration": 120
     },
-    "api/bot/miniapp.js": {
-      "includeFiles": "api/_bot/core.mjs",
-      "maxDuration": 30
+    "api/bot/recordatorios.js": {
+      "includeFiles": "{api/_bot/core.mjs,src/assets/dishes/dishImages.json}"
+    },
+    "api/bot/canario.js": {
+      "includeFiles": "{api/_bot/{core.mjs,conocimiento.md,manual/*.md,dominiosGustos.json,recetasVectores.json},src/assets/dishes/dishImages.json,public/store/mercadona.json}",
+      "maxDuration": 120
     }
   },
   "rewrites": [
@@ -31,7 +35,12 @@
         {
           "key": "X-Frame-Options",
           "value": "DENY"
-        },
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
         {
           "key": "X-Content-Type-Options",
           "value": "nosniff"

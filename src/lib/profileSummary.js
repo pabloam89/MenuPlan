@@ -2,6 +2,8 @@ import { migrateFixedDishes } from "./fixedDishes.js";
 import { formatCookTimeSummary } from "./cookTime.js";
 import { DAYS, getMeals, slotKey } from "./planner.js";
 import { FAMILIA_LABELS } from "./notepadFields.js";
+import { vetosDe } from "./vetos.js";
+import { aparatosParaEnsenar } from "./aparatosDeCasa.js";
 
 const GOAL_LABELS = {
   sano: "Sano",
@@ -58,12 +60,8 @@ export function buildProfileSummary(data) {
   }
 
   const allergies = members.flatMap((m) => m.allergies ?? []);
-  const dislikes = [
-    ...(data.dislikes ?? []),
-    ...members.flatMap((m) => m.dislikes ?? []),
-  ];
   const uniqueAllergies = [...new Set(allergies)];
-  const uniqueDislikes = [...new Set(dislikes)];
+  const uniqueDislikes = vetosDe(data);
   if (uniqueAllergies.length || uniqueDislikes.length) {
     const lines = [];
     if (uniqueAllergies.length) lines.push(`Alergias: ${uniqueAllergies.join(", ")}`);
@@ -107,7 +105,7 @@ export function buildProfileSummary(data) {
   }
 
   const cook = COOK_LABELS[data.cookLevel] ?? data.cookLevel;
-  const tools = [...(data.kitchenTools ?? []), ...(data.customKitchenTools ?? [])];
+  const tools = aparatosParaEnsenar(data);
   sections.push({
     title: "Cocina",
     lines: [

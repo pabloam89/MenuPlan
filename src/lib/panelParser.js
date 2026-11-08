@@ -25,7 +25,8 @@
 import { z } from "zod";
 import { VERBOS, AMBITOS, SERVICIOS, CAMPOS_POR_ID, valorValido, rutaDe } from "./notepadFields.js";
 import { poner, valorDe } from "./notepad.js";
-import { pareceAlergia } from "./alergias.js";
+// De alergiasBase.js y no de alergias.js: este módulo lo carga Lola (vía libretaEnData.js), y alergias.js arrastra .jsx.
+import { pareceAlergia } from "./alergiasBase.js";
 
 /** Los tres desenlaces posibles de una frase. */
 export const TIPOS = ["propuestas", "limites", "no_entendido"];
@@ -169,7 +170,7 @@ function noEntendido() {
  * INFERIDO y se pinta para que el usuario lo confirme. Nunca como si lo
  * hubiera dicho campo por campo.
  */
-export function aplicarAjuste(notepad, ajuste, { frase, fecha }) {
+export function aplicarAjuste(notepad, ajuste, { frase, fecha, fuente, desde, hasta }) {
   const campo = CAMPOS_POR_ID[ajuste.campo];
   if (!campo || !valorValido(ajuste.campo, ajuste.valor)) return notepad;
 
@@ -186,7 +187,11 @@ export function aplicarAjuste(notepad, ajuste, { frase, fecha }) {
   } else if (campo.proyecta === "excluidos") {
     valor = ajuste.op === "nunca";
   } else if (campo.proyecta === "favoritos") {
-    valor = ajuste.op !== "nunca";
+    // Solo «más» lo hace favorito. Antes era `op !== "nunca"`, y «menos
+    // ensaladas» o «no más de dos ensaladas» (op menos, n 2) quedaba como
+    // FAVORITO: el menú sacaba 3-4 a la semana (#958). Un favorito es una
+    // lista, no lleva veces: «menos» solo lo quita de favoritos.
+    valor = ajuste.op === "mas";
   } else if (ajuste.campo === "cocina") {
     // `cocina` es una CUENTA por semana (0-5), no un sesgo -1/0/1: el usuario
     // no sube ni baja un "normal" de cocina peruana que no existe, pide un
@@ -201,7 +206,9 @@ export function aplicarAjuste(notepad, ajuste, { frase, fecha }) {
     valor = ajuste.op === "mas" ? 1 : ajuste.op === "menos" ? -1 : 0;
   }
 
-  return poner(notepad, path, valor, { origen: "texto", frase, fecha });
+  // `fuente`, `desde` y `hasta` los pone el bot (lo dicho frente a lo supuesto,
+  // y «este mes»); el panel de la app no los manda y queda como siempre.
+  return poner(notepad, path, valor, { origen: "texto", frase, fecha, fuente, desde, hasta });
 }
 
 /** Aplica todos los ajustes de una opción, en orden. */

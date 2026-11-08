@@ -32,7 +32,7 @@ import {
 } from "../components/icons.jsx";
 import { PantryInput } from "../components/PantryInput.jsx";
 import { PantryReceiptFlow } from "./PantryReceiptFlow.jsx";
-import { APP_SHELL_MAX_WIDTH, BottomNav, bottomNavSpacer, EmptyIllustration, ToggleSwitch } from "../components/ui.jsx";
+import { APP_SHELL_MAX_WIDTH, BottomNav, bottomNavSpacer, safeTop, EmptyIllustration, ToggleSwitch } from "../components/ui.jsx";
 import {
   SwipePurchaseShell,
   // Aliased: Pantry.jsx already has its own local AisleIcon (a small item-
@@ -65,6 +65,7 @@ import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { DATE_BUCKET_OPTIONS, matchesDateBucket } from "../lib/priceHistory.js";
 import { priceShoppingList } from "../lib/listPricing.js";
 import { isMercadonaStore } from "../lib/storeCatalog.js";
+import { useCompra } from "../lib/compraApp.js";
 
 // Las 3 ubicaciones que el usuario ve como filtros. La única que el usuario
 // elige al guardar es "congelador" (frozen); nevera vs despensa se deriva del
@@ -1386,7 +1387,7 @@ export function PantryScreen({
   const canUploadReceipt = Boolean(setData);
   // Stable empty-array fallback (not a fresh `?? []` literal each render) so
   // the useMemos below that depend on it don't re-run every single render.
-  const receipts = useMemo(() => data?.receipts ?? [], [data?.receipts]);
+  const { tickets: receipts } = useCompra();
 
   // Only offer categories actually present — a static 11-aisle list would be
   // mostly dead filters for a pantry that only has a handful of items.
@@ -1508,9 +1509,9 @@ export function PantryScreen({
     }
     let active = true;
     setLoading(true);
-    loadPantry(user.id, pantryHouseholdId || null).then((rows) => {
+    loadPantry(user.id, pantryHouseholdId || null).then(({ data: rows }) => {
       if (active) {
-        setItems(rows);
+        setItems(rows ?? []);
         setLoading(false);
       }
     });
@@ -1532,7 +1533,7 @@ export function PantryScreen({
   };
 
   const handleSaved = async () => {
-    const next = user ? await loadPantry(user.id, pantryHouseholdId || null) : loadLocalPantry();
+    const next = user ? ((await loadPantry(user.id, pantryHouseholdId || null)).data ?? []) : loadLocalPantry();
     setItems(next);
     const focus = [...next].sort((a, b) => String(b.updatedAt ?? "").localeCompare(String(a.updatedAt ?? "")))[0];
     if (!focus?.id) return;
@@ -2176,7 +2177,7 @@ export function PantryScreen({
 
   return (
     <div style={{ background: "#fff", minHeight: "100dvh" }}>
-      <div style={{ background: HEADER_BAND, padding: "20px 16px 14px" }}>
+      <div style={{ background: HEADER_BAND, padding: "20px 16px 14px", paddingTop: safeTop(20) }}>
         {header}
       </div>
       <div style={{ padding: `16px 16px calc(${bottomNavSpacer()} + 28px)` }}>
@@ -2238,7 +2239,7 @@ export function PantryScreen({
                 animation: "pantrySidebarIn .3s cubic-bezier(.4,0,.2,1) both",
               }}
             >
-              <div style={{ background: "#e9f4ed", padding: "18px 16px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+              <div style={{ background: "#e9f4ed", padding: "18px 16px 14px", paddingTop: safeTop(18), display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
                   <span
                     style={{

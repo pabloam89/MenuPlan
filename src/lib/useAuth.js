@@ -1,11 +1,75 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "./supabase.js";
 import { upsertUserProfile } from "./analytics.js";
+import { clearState, congelarCopia } from "./storage.js";
+import { traeLlaveDeLola } from "./llaveLola.js";
+import { rememberAppleRefreshToken } from "./appleTokens.js";
+import { isNativeApp, apiUrl } from "./apiUrl.js";
+import { avisoAlVolver, esAltaNueva, urlEntrarConTelegram, PREGUNTA_ALTA, proveedorDeAlta, tieneProveedor } from "./cuentaTelegram.js";
+
+// De quién es la copia de la casa que guarda este navegador (storage.js). Si
+// esa cuenta deja de existir (/borrarme en Telegram, o borrada en otro
+// dispositivo), la copia no puede quedarse: la app la enseñaba como invitado
+// —el «menú raro»— y la subía a la siguiente cuenta que entrara. Al cerrar
+// sesión a mano pasa igual: la casa vive en la cuenta, y este dispositivo
+// vuelve a la portada, sin enseñársela al siguiente que lo coja.
+const MARCA = "homenu:cuenta";
+const leerMarca = () => { try { return localStorage.getItem(MARCA); } catch { return null; } };
+const ponerMarca = (id) => { try { localStorage.setItem(MARCA, id); } catch { /* noop */ } };
+const quitarMarca = () => { try { localStorage.removeItem(MARCA); } catch { /* noop */ } };
+
+// «¿Ya hablas con Lola?» (trozo 4 de specs/auth.md §7). La respuesta «No, crear cuenta», por cuenta, para no volver a
+// preguntar al recargar; y tras «Sí», qué proveedor ofrecer añadir cuando vuelva de Telegram (en la misma pestaña).
+const RESPONDIDA = "homenu:alta-respondida";
+const OFERTA = "homenu:ofrecer-anadir";
+const leerRespondida = () => { try { return localStorage.getItem(RESPONDIDA); } catch { return null; } };
+const apuntarRespuesta = (id) => { try { localStorage.setItem(RESPONDIDA, id); } catch { /* noop */ } };
+const leerOferta = () => { try { return sessionStorage.getItem(OFERTA); } catch { return null; } };
+const apuntarOferta = (forma) => { try { if (forma) sessionStorage.setItem(OFERTA, forma); } catch { /* noop */ } };
+const olvidarOferta = () => { try { sessionStorage.removeItem(OFERTA); } catch { /* noop */ } };
 
 /**
- * Tracks the Supabase auth session and exposes Google sign-in / sign-out.
- * Local-only for now: the OAuth redirect is configured for localhost in the
- * Supabase dashboard. Falls back gracefully if Supabase env vars are missing.
+ * ¿Se pregunta «¿Ya hablas con Lola?» a esta cuenta? Si acaba de nacer en Google o Apple, no ha contestado, y aquí se
+ * puede entrar con Telegram (fuera del dominio del bot no hay a qué alternativa mandarla, y se crea como siempre).
+ */
+const preguntaAlta = (user) => esAltaNueva(user, Date.now()) && leerRespondida() !== user.id
+  && typeof window !== "undefined" && Boolean(urlEntrarConTelegram(window.location));
+
+/** La cuenta de la copia local, aunque su sesión ya se haya perdido (BotEnlace). */
+export const cuentaDeLaCopia = leerMarca;
+
+/** Borra la copia local y su marca. */
+export function olvidarCopia() {
+  clearState();
+  quitarMarca();
+}
+
+// La llave de Lola (?entrar= o la firma de Telegram, llaveLola.js) la gestiona
+// BotEnlace, que ya limpia al cambiar de cuenta: aquí no se toca nada mientras
+// tanto. Se lee al cargar el módulo, antes de que BotEnlace la quite.
+const CON_LLAVE = typeof window !== "undefined" && traeLlaveDeLola();
+
+// «User from sub claim in JWT does not exist»: el token es bueno pero la cuenta ya no está.
+const esCuentaBorrada = (error) =>
+  error?.code === "user_not_found" || (error?.status === 403 && /sub claim|does not exist/i.test(error?.message ?? ""));
+
+function recargarLimpio() {
+  congelarCopia();
+  olvidarCopia();
+  window.location.replace(window.location.pathname + window.location.search + window.location.hash);
+}
+
+/**
+ * Tracks the Supabase auth session and exposes Google / Apple sign-in and
+ * sign-out.
+ * Falls back gracefully if Supabase env vars are missing.
+ *
+ * En la app nativa (iOS) el login va por otro camino — navegador del sistema y
+ * vuelta por com.homenu.app:// — porque Google no admite su pantalla de login
+ * dentro de un webview. Ver `nativeAuth.js`, que se carga solo ahí.
+ *
+ * Los dos proveedores van siempre juntos: en iOS, ofrecer Google sin ofrecer
+ * Apple es rechazo de App Store (Guideline 4.8).
  */
 // Supabase re-fires SIGNED_IN on token refresh / tab focus; upsert the
 // profile only once per user per page load.
@@ -14,6 +78,9 @@ let lastUpsertedUserId = null;
 export function useAuth() {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
+  // Si volver de Google trajo un error (#1238): en la web viene en la URL; en el móvil, por la vuelta del navegador.
+  const [avisoAlEntrar, setAvisoAlEntrar] = useState(() => (typeof window === "undefined" ? null : avisoAlVolver(window.location.href)));
+  const olvidarAvisoAlEntrar = useCallback(() => setAvisoAlEntrar(null), []);
 
   useEffect(() => {
     if (!supabase) { setLoading(false); return; }
@@ -21,9 +88,27 @@ export function useAuth() {
 
     supabase.auth
       .getSession()
-      .then(({ data }) => {
+      .then(({ data, error: fallo }) => {
         if (!mounted) return;
-        setSession(data?.session ?? null);
+        const s = data?.session ?? null;
+        if (!CON_LLAVE) {
+          // Había cuenta y su sesión se ha perdido sin cerrarla (la cuenta se
+          // borró y no se pudo renovar): la copia es de alguien que ya no está.
+          // Sin red al renovar (AuthRetryableFetchError), no: no se sabe qué ha
+          // pasado. Un rechazo del servidor (la cuenta ya no está), sí.
+          if (!s && fallo?.name !== "AuthRetryableFetchError" && leerMarca()) return recargarLimpio();
+          // Con sesión, se pregunta al servidor: un token aún vigente de una
+          // cuenta borrada sigue pareciendo bueno aquí. Sin red, no se toca nada.
+          // Por detrás: la app no espera a esta vuelta al servidor para abrir.
+          if (s) {
+            supabase.auth.getUser().catch((e) => ({ error: e })).then(async ({ error }) => {
+              if (!esCuentaBorrada(error)) return;
+              await supabase.auth.signOut({ scope: "local" }).catch(() => {});
+              recargarLimpio();
+            });
+          }
+        }
+        setSession(s);
         setLoading(false);
       })
       .catch(() => {
@@ -31,53 +116,191 @@ export function useAuth() {
       });
 
     const { data: sub } = supabase.auth.onAuthStateChange((event, next) => {
+      if (next?.user?.id) ponerMarca(next.user.id);
+      // La sesión se cae con la app abierta y no la ha cerrado nadie (signOut
+      // de aquí quita antes la marca): la cuenta ya no está.
+      if (event === "SIGNED_OUT" && !CON_LLAVE && leerMarca()) return recargarLimpio();
       setSession(next);
-      if (event === "SIGNED_IN" && next?.user && next.user.id !== lastUpsertedUserId) {
+      // Una cuenta recién nacida en Google o Apple no escribe nada hasta contestar «¿Ya hablas con Lola?» (trozo 4).
+      if (event === "SIGNED_IN" && next?.user && next.user.id !== lastUpsertedUserId && !preguntaAlta(next.user)) {
         lastUpsertedUserId = next.user.id;
         upsertUserProfile(next.user);
       }
+      // Aparte del guard de arriba: el token de Apple solo viaja en la sesión
+      // del login que lo trae, así que se intenta guardar en cada SIGNED_IN y
+      // no una vez por carga de página.
+      if (event === "SIGNED_IN") rememberAppleRefreshToken(next);
     });
+
+    // En nativo, la sesión no llega por la carga de la página sino por la URL
+    // con la que el sistema devuelve el control a la app tras el login.
+    let stopNativeListener = () => {};
+    if (isNativeApp) {
+      import("./nativeAuth.js")
+        .then(({ listenForNativeAuthCallback }) => {
+          if (mounted) stopNativeListener = listenForNativeAuthCallback(supabase, { alAvisar: setAvisoAlEntrar });
+        })
+        .catch((err) => console.error("[auth] no se pudo escuchar la vuelta del login", err));
+    }
 
     return () => {
       mounted = false;
       sub?.subscription?.unsubscribe?.();
+      stopNativeListener();
     };
   }, []);
 
-  const signInWithGoogle = useCallback(async () => {
+  // Google y Apple solo se diferencian en el nombre del proveedor: el camino
+  // (nativo por navegador del sistema, web por redirección) es el mismo.
+  const signInWith = useCallback(async (provider, vendorLabel) => {
     // These messages reach the user under the button, so they say what to do
     // rather than naming the vendor. The console keeps the developer detail.
     if (!supabase) {
       console.error(
-        "[auth] VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY missing in this build — Google sign-in cannot work.",
+        `[auth] VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY missing in this build — ${vendorLabel} sign-in cannot work.`,
       );
       return {
         error: new Error("El inicio de sesión no está disponible en este entorno. Puedes entrar sin cuenta."),
       };
     }
+    if (isNativeApp) {
+      const { startNativeOAuth } = await import("./nativeAuth.js");
+      const { error } = await startNativeOAuth(supabase, provider);
+      if (error) console.error(`[auth] ${vendorLabel} sign-in failed (nativo)`, error);
+      return { error: error ?? null };
+    }
+
     const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
+      provider,
       options: { redirectTo: window.location.origin },
     });
     if (error) {
-      console.error("[auth] Google sign-in failed", error);
+      console.error(`[auth] ${vendorLabel} sign-in failed`, error);
       return { error };
     }
     return { error: null };
   }, []);
 
+  const signInWithGoogle = useCallback(() => signInWith("google", "Google"), [signInWith]);
+
+  // Añadir una forma de entrar (google, apple) a la cuenta con sesión (#1238, «Formas de entrar» de Mi perfil): por
+  // si un día no tiene Telegram a mano. Es la misma cuenta; Supabase la reconoce por ese proveedor a partir de ahí.
+  const anadirFormaDeEntrar = useCallback(async (proveedor) => {
+    if (!supabase) return { error: new Error("No disponible en este entorno.") };
+    if (isNativeApp) {
+      const { startNativeLink } = await import("./nativeAuth.js");
+      const { error } = await startNativeLink(supabase, proveedor);
+      if (error) console.error(`[auth] añadir ${proveedor} (nativo)`, error);
+      return { error: error ?? null };
+    }
+    const { error } = await supabase.auth.linkIdentity({ provider: proveedor, options: { redirectTo: window.location.origin } });
+    if (error) console.error(`[auth] añadir ${proveedor}`, error);
+    return { error: error ?? null };
+  }, []);
+  // Quitar una forma de entrar (el interruptor de Mi perfil). La guarda de la última es de `formasDeEntrar`; Supabase
+  // tampoco deja quitar la única identidad. La sesión se renueva para que `user.identities` diga ya lo nuevo.
+  const quitarFormaDeEntrar = useCallback(async (proveedor) => {
+    if (!supabase) return { error: new Error("No disponible en este entorno.") };
+    const { data, error: fallo } = await supabase.auth.getUserIdentities();
+    const identidad = data?.identities?.find((i) => i.provider === proveedor);
+    const { error } = fallo ? { error: fallo } : identidad ? await supabase.auth.unlinkIdentity(identidad) : { error: new Error(`Sin identidad ${proveedor}`) };
+    if (error) {
+      console.error(`[auth] quitar ${proveedor}`, error);
+      return { error };
+    }
+    const { error: alRenovar } = await supabase.auth.refreshSession();
+    if (alRenovar) console.error("[auth] renovar tras quitar una forma de entrar", alRenovar);
+    return { error: null };
+  }, []);
+  const signInWithApple = useCallback(() => signInWith("apple", "Apple"), [signInWith]);
+
+  // «¿Ya hablas con Lola?» (trozo 4 de specs/auth.md §7): mientras no conteste, la cuenta nueva no se da a la app
+  // (`user` null): ni perfil, ni casa. `respondida` solo sirve para repintar al contestar; lo que manda es la marca.
+  const [, setRespondida] = useState(null);
+  // Si se pregunta se decide una sola vez por cuenta, al recibirla: con la pregunta abierta, pasar la ventana de
+  // VENTANA_ALTA_NUEVA_MS no la contesta sola (daría la cuenta a la app, y su casa, sin que nadie dijera «No»).
+  const usuario = session?.user ?? null;
+  const [decidida, setDecidida] = useState({ id: null, pregunta: false });
+  const pregunta = usuario ? (decidida.id === usuario.id ? decidida.pregunta : preguntaAlta(usuario)) : false;
+  useEffect(() => {
+    if (usuario && decidida.id !== usuario.id) setDecidida({ id: usuario.id, pregunta });
+  }, [usuario, decidida.id, pregunta]);
+  const altaPendiente = Boolean(usuario && pregunta && leerRespondida() !== usuario.id);
+
+  // «No, crear cuenta»: se apunta la respuesta y sigue como cualquier alta (perfil, y la casa en useHousehold).
+  const crearCuentaNueva = useCallback(() => {
+    const u = session?.user;
+    if (!u) return;
+    apuntarRespuesta(u.id);
+    setRespondida(u.id);
+    if (u.id !== lastUpsertedUserId) { lastUpsertedUserId = u.id; upsertUserProfile(u); }
+  }, [session]);
+
+  // «Sí, entrar con Telegram»: la cuenta vacía se borra (el mismo borrado de Mi perfil), se cierra su sesión y se va
+  // al login de Telegram. Ya dentro, la app ofrece añadir este Google (OFERTA_ANADIR). Si el borrado falla, no se
+  // cierra nada: la pregunta sigue y dice que no se pudo.
+  const entrarConTelegramEnVez = useCallback(async () => {
+    const u = session?.user;
+    const url = urlEntrarConTelegram(window.location);
+    if (!u || !session?.access_token || !url) return { error: new Error(PREGUNTA_ALTA.noSePudo) };
+    const r = await fetch(apiUrl("/api/delete-account"), { method: "POST", headers: { Authorization: `Bearer ${session.access_token}` } })
+      .catch((e) => ({ ok: false, status: 0, e }));
+    if (!r.ok) {
+      console.error("[auth] borrar la cuenta vacía del alta", r.status, r.e);
+      return { error: new Error(PREGUNTA_ALTA.noSePudo) };
+    }
+    apuntarOferta(proveedorDeAlta(u));
+    quitarMarca();
+    // La cuenta ya no existe: la sesión se quita solo aquí (scope local), sin preguntar al servidor.
+    await supabase.auth.signOut({ scope: "local" }).catch((e) => console.error("[auth] cerrar la sesión borrada", e));
+    window.location.href = url;
+    return { error: null };
+  }, [session]);
+
+  // Tras entrar con Telegram desde la pregunta: «¿Añades este Google a tu cuenta?», si la cuenta aún no lo tiene.
+  const [oferta, setOferta] = useState(leerOferta);
+  const ofertaAnadir = session?.user && oferta && !tieneProveedor(session.user, oferta) && !altaPendiente ? oferta : null;
+  const responderOferta = useCallback(async (acepta) => {
+    const forma = oferta;
+    olvidarOferta();
+    setOferta(null);
+    return acepta && forma ? anadirFormaDeEntrar(forma) : { error: null };
+  }, [oferta, anadirFormaDeEntrar]);
+
   const signOut = useCallback(async () => {
     if (!supabase) return { error: null };
+    quitarMarca();
     const { error } = await supabase.auth.signOut();
-    if (error) console.error("[auth] sign-out failed", error);
+    if (error) {
+      console.error("[auth] sign-out failed", error);
+      // Sin servidor, también falla signOut({ scope: "local" }), que pasa por la
+      // red: la sesión de este dispositivo se quita a mano.
+      try {
+        localStorage.removeItem(supabase.auth.storageKey);
+      } catch (err) {
+        console.error("[auth] no se pudo borrar la sesión guardada", err);
+      }
+      setSession(null);
+    }
+    recargarLimpio();
     return { error };
   }, []);
 
   return {
-    session,
-    user: session?.user ?? null,
+    session: altaPendiente ? null : session,
+    user: altaPendiente ? null : session?.user ?? null,
+    altaPendiente,
+    crearCuentaNueva,
+    entrarConTelegramEnVez,
+    ofertaAnadir,
+    responderOferta,
     loading,
     signInWithGoogle,
+    signInWithApple,
+    anadirFormaDeEntrar,
+    quitarFormaDeEntrar,
+    avisoAlEntrar,
+    olvidarAvisoAlEntrar,
     signOut,
   };
 }

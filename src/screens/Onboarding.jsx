@@ -87,19 +87,25 @@ import {
   groupAvatarFaces,
   ToggleSwitch,
   WeekChips,
+  safeTop,
 } from "../components/ui.jsx";
 import { MAX_MENU_WEEKS, weekEntry } from "../lib/menuArchive.js";
+import { quitarPersona } from "../lib/quitarPersona.js";
 import { applyFreqWithinBudget } from "../lib/freqBudget.js";
-import { FAMILIA_LABELS } from "../lib/notepadFields.js";
-import { getWeekDatesByMenuWeek, calendarDayNumber, formatWeekRangeLabel, mondayISOForOffset } from "../lib/weekCalendar.js";
+import { FAMILIA_LABELS, FAMILIAS_EN_PANTALLA } from "../lib/notepadFields.js";
+import { DONDE_COME } from "../lib/vocabularios.js";
+import { enOrden } from "../lib/enOrden.js";
+import { getWeekDatesByMenuWeek, calendarDayNumber, formatWeekRangeLabel, mondayISOForOffset, todayDayIdx } from "../lib/weekCalendar.js";
+import { NOMBRES_DIA, LETRAS_DIA, indiceDeFecha } from "../lib/dias.js";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
 import { BasesPreferidas } from "../components/BasesPreferidas.jsx";
 import { OnboardingProgressContext } from "./onboardingProgressContext.js";
 import { StoreBadge } from "./SpendPanel.jsx";
 import { isMercadonaStore } from "../lib/storeCatalog.js";
-import { HOUSEHOLD_ROLES, stageForAge, suggestHomeRole, migrateHomeRole, AVATAR_PALETTE, AVATAR_FOLDER, memberAvatarColor, memberAvatarSrc, memberAvatarThumbSrc, avatarThumbSrcByKey } from "../lib/stages.js";
+import { HOUSEHOLD_ROLES, esMenor, esNino, stageForAge, suggestHomeRole, migrateHomeRole, isFamilyGroup, AVATAR_PALETTE, AVATAR_FOLDER, memberAvatarColor, memberAvatarSrc, memberAvatarThumbSrc, avatarThumbSrcByKey } from "../lib/stages.js";
 import { migrateFixedDishes, normalizeFixedDish, catalogMatchesForFixedDish } from "../lib/fixedDishes.js";
 import { EU_ALLERGENS, normalizeAllergenId } from "../lib/allergens.js";
+import { marcarRevisadas, conMiembroNuevo } from "../lib/alergias.js";
 import { CatalogBrowserSheet, categoryColor } from "./CatalogBrowserSheet.jsx";
 import { favoriteRecipeIds } from "../lib/recipeVotes.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
@@ -120,8 +126,8 @@ import {
   reconcileTierGroups,
   resolveMemberAge,
   tierForMember,
-  uid,
 } from "../lib/groups.js";
+import * as ids from "../lib/ids.js";
 import {
   ALL_DAY_MEALS,
   DAYS,
@@ -146,6 +152,9 @@ import { SCHOOL_DAYS, SCHOOL_COURSES, hasAnySchoolDish, householdHasSchoolMenu, 
 import { outStateFor, isHomeState, nextSlotState, resolveQuickActions } from "../lib/schedulePresets.js";
 import { importSchoolMenuFile, selectBestWeek } from "../lib/schoolMenuImport.js";
 import { SchoolMenuDeck } from "./SchoolMenuDeck.jsx";
+import { estructuraDelGrupo, estructuraCenaDelGrupo, conEstructura } from "../lib/estructuraPlatos.js";
+import { conInterruptor, conPresupuesto, leerPresupuesto, PRESUPUESTO_DE_PARTIDA } from "../lib/presupuestoCasa.js";
+import { CLAVE_CASA } from "../lib/estiloEnFilas.js";
 
 const MEAL_STRUCTURE_CARDS = [
   {
@@ -215,13 +224,6 @@ function normalizeTextValue(input) {
   return (input ?? "").trim().replace(/\s+/g, " ");
 }
 
-const FAMILY_ROLES_SET = new Set(["papa", "mama", "hijo", "hija", "bebe", "abuelo", "abuela"]);
-function isFamilyGroup(members) {
-  return members.some((m) =>
-    FAMILY_ROLES_SET.has(migrateHomeRole(m.homeRole ?? suggestHomeRole(memberAge(m))))
-  );
-}
-
 function titleCase(input) {
   const text = normalizeTextValue(input);
   if (!text) return "";
@@ -280,6 +282,11 @@ export function OnboardingShell({
     <div
       style={{
         padding: "12px 20px 0",
+        // La fila de Atrás / puntos / cerrar va pegada arriba, asi que hay que
+        // bajarla del reloj. Salvo en demo: ahi esto no ocupa la pantalla, va
+        // dentro de un marco pequeño, y sumarle el hueco del reloj lo
+        // descuadraria contra el borde del marco.
+        paddingTop: heightOverride ? 12 : safeTop(12),
         // En demo (carrusel) fijamos la altura al frame para que el scroll ocurra
         // DENTRO del body (como una pantalla real) y no haya saltos raros.
         height: heightOverride ?? "100dvh",
@@ -527,6 +534,20 @@ function fileToAvatarDataUrl(file) {
   });
 }
 
+// La tira de avatares arranca en el principio: nada a la izquierda y más a la derecha.
+const TIRA_AVATARES_INICIO = { izq: false, der: true };
+// Hasta 3 avatares caben justos; con más, las flechas aparecen y se ve medio avatar de más.
+const TIRA_AVATARES_CABEN = 3;
+// Holgura en px al comparar scrollLeft con los extremos (trae decimales).
+const TIRA_AVATARES_HOLGURA = 2;
+// Hueco en px entre avatares; también entra en el cálculo del ancho de cada uno.
+const TIRA_AVATARES_HUECO = 10;
+// Círculo visible de la flecha y lo que sobresale de la tira, en px; la zona táctil es --tam-tactil.
+const TIRA_AVATARES_FLECHA = 28;
+const TIRA_AVATARES_FLECHA_FUERA = 16;
+// Cada clic en una flecha desplaza esta fracción del ancho de la tira.
+const TIRA_AVATARES_SALTO = 0.85;
+
 export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, onBack, nextLabel, showMenuModel = false, demoName = null, demoAge = null }) {
   const [name, setName] = useState("");
   const [ageStr, setAgeStr] = useState("");
@@ -537,6 +558,9 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
   const [addBounce, setAddBounce] = useState(false);
   const [colorExpanded, setColorExpanded] = useState(false);
   const [avatarExpanded, setAvatarExpanded] = useState(false);
+  // Tira de avatares del popup: ref para desplazarla con las flechas y qué flecha toca ver.
+  const avatarStripRef = useRef(null);
+  const [avatarStripPos, setAvatarStripPos] = useState(TIRA_AVATARES_INICIO);
   // "family" = the drag-a-profile builder shown to real users. The classic
   // name+age+Añadir form is kept only for the scripted ValueProps demo, which
   // passes demoName/demoAge; there is no user-facing toggle anymore.
@@ -563,22 +587,16 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
     if (!canAdd) return;
     setAddBounce(true);
     setTimeout(() => setAddBounce(false), 320);
-    setData((d) => ({
-      ...d,
-      members: [
-        ...d.members,
-        {
-          id: uid(),
-          name: trimmedName,
-          age: computedAge,
-          useBirthDate: false,
-          birthDate: "",
-          homeRole: suggestHomeRole(computedAge),
-          stageDetail: "",
-          allergies: [],
-          dislikes: [],
-        },
-      ],
+    setData((d) => conMiembroNuevo(d, {
+      id: ids.persona.nuevo(),
+      name: trimmedName,
+      age: computedAge,
+      useBirthDate: false,
+      birthDate: "",
+      homeRole: suggestHomeRole(computedAge),
+      stageDetail: "",
+      allergies: [],
+      dislikes: [],
     }));
     setName("");
     setAgeStr("");
@@ -589,28 +607,22 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
   const addProfile = (profile) => {
     setAddBounce(true);
     setTimeout(() => setAddBounce(false), 320);
-    const id = uid();
+    const id = ids.persona.nuevo();
     const defFolder = AVATAR_FOLDER[profile.key];
     const defAvatar = DEFAULT_AVATAR[profile.key] ?? (defFolder ? `${defFolder}_1` : null);
-    setData((d) => ({
-      ...d,
-      members: [
-        ...d.members,
-        {
-          id,
-          name: "",
-          age: profile.age ?? null,
-          useBirthDate: false,
-          birthDate: "",
-          homeRole: profile.role,
-          profileKey: profile.key,
-          color: profile.tint,
-          avatarKey: defAvatar,
-          stageDetail: "",
-          allergies: [],
-          dislikes: [],
-        },
-      ],
+    setData((d) => conMiembroNuevo(d, {
+      id,
+      name: "",
+      age: profile.age ?? null,
+      useBirthDate: false,
+      birthDate: "",
+      homeRole: profile.role,
+      profileKey: profile.key,
+      color: profile.tint,
+      avatarKey: defAvatar,
+      stageDetail: "",
+      allergies: [],
+      dislikes: [],
     }));
     setJustAddedId(id);
     setEditingMemberId(id);
@@ -773,7 +785,9 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
   const removeMember = (id) => {
     setRemovingIds((s) => new Set([...s, id]));
     setTimeout(() => {
-      setData((d) => ({ ...d, members: d.members.filter((m) => m.id !== id) }));
+      // Con todo lo suyo (grupos, horario, cole…), con la misma función que
+      // Lola (#958): antes aquí solo se quitaba de members.
+      setData((d) => quitarPersona(d, id));
       setRemovingIds((s) => { const n = new Set(s); n.delete(id); return n; });
     }, 260);
   };
@@ -1008,7 +1022,7 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
         // the quick add popup (just-dropped profile) stays minimal.
         const isEdit = editingMemberId !== justAddedId;
         const catLabel = prof?.label ?? migrateHomeRole(editing.homeRole);
-        const closePopup = () => { setEditingMemberId(null); setJustAddedId(null); setAvatarExpanded(false); setColorExpanded(false); };
+        const closePopup = () => { setEditingMemberId(null); setJustAddedId(null); setAvatarExpanded(false); setColorExpanded(false); setAvatarStripPos(TIRA_AVATARES_INICIO); };
         const dismiss = () => {
           if (editingMemberId === justAddedId) removeMember(editingMemberId);
           closePopup();
@@ -1045,6 +1059,8 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
                 const keys   = folder && count > 0
                   ? Array.from({ length: count }, (_, i) => `${folder}_${i + 1}`)
                   : [];
+                // Avatares a la vista: los que caben justos, o medio más si hay de sobra (el que asoma avisa de que hay más).
+                const visibles = keys.length > TIRA_AVATARES_CABEN ? TIRA_AVATARES_CABEN + 0.5 : TIRA_AVATARES_CABEN;
                 return (
                   <div style={{ display: "flex", alignItems: "stretch", gap: 0 }}>
 
@@ -1097,6 +1113,7 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
                           onChange={(e) => updateMemberName(editing.id, e.target.value)}
                           placeholder="Nombre"
                           autoFocus={!isEdit}
+                          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); closePopup(); } }}
                           style={{ flex: 1, minWidth: 0, height: 34, padding: "0 10px", borderRadius: 9, border: "1.5px solid #ddd", fontSize: 13, outline: "none", boxSizing: "border-box", fontFamily: "inherit" }}
                         />
                         {isEdit ? (
@@ -1125,12 +1142,22 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
                         )}
                       </div>
 
-                      {/* Avatar strip — exactamente 3 caben a la vez y el resto
-                          pide scroll a la derecha. El fade + chevron de la derecha
-                          indica que hay más avatares. */}
+                      {/* Avatar strip — con 3 o menos caben justos; con más se ven
+                          tres y medio, y ese medio avatar asomando es lo que dice
+                          que hay más a la derecha. Las flechas desplazan la tira y
+                          solo salen si hay más hacia ese lado. */}
                       {keys.length > 0 && (
                         <div style={{ position: "relative" }}>
-                          <div style={{ display: "flex", gap: 10, overflowX: "auto", padding: "4px 0", scrollSnapType: "x proximity", scrollbarWidth: "none" }}>
+                          <div
+                            ref={avatarStripRef}
+                            onScroll={(e) => {
+                              const el = e.currentTarget;
+                              const izq = el.scrollLeft > TIRA_AVATARES_HOLGURA;
+                              const der = el.scrollLeft < el.scrollWidth - el.clientWidth - TIRA_AVATARES_HOLGURA;
+                              setAvatarStripPos((p) => (p.izq === izq && p.der === der ? p : { izq, der }));
+                            }}
+                            style={{ display: "flex", gap: TIRA_AVATARES_HUECO, overflowX: "auto", padding: "4px 0", scrollSnapType: "x proximity", scrollbarWidth: "none" }}
+                          >
                           {keys.map((k) => {
                             const sel = editing.avatarKey === k;
                             return (
@@ -1139,7 +1166,7 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
                                 type="button"
                                 onClick={() => updateMemberAvatar(editing.id, k)}
                                 style={{
-                                    flex: "0 0 calc((100% - 20px) / 3)", aspectRatio: "1",
+                                    flex: `0 0 calc((100% - ${(Math.ceil(visibles) - 1) * TIRA_AVATARES_HUECO}px) / ${visibles})`, aspectRatio: "1",
                                     scrollSnapAlign: "start",
                                     padding: 0, cursor: "pointer",
                                   borderRadius: 999, overflow: "hidden",
@@ -1155,18 +1182,34 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
                             );
                           })}
                           </div>
-                          {/* Fade + chevron hint — only when there are more than 3 avatars */}
-                          {keys.length > 3 && (
-                            <div style={{
-                              position: "absolute", top: 0, right: 0, bottom: 0,
-                              width: 32, pointerEvents: "none",
-                              background: "linear-gradient(90deg, transparent, rgba(255,255,255,.95))",
-                              display: "flex", alignItems: "center", justifyContent: "flex-end",
-                              paddingRight: 2,
-                            }}>
-                              <ChevronRight size={14} color="#9ab0a1" strokeWidth={2.5} />
-                            </div>
-                          )}
+                          {keys.length > TIRA_AVATARES_CABEN && [["izq", -1, ChevronLeft, "Avatares anteriores", "left"], ["der", 1, ChevronRight, "Más avatares", "right"]].map(([lado, dir, Flecha, etiqueta, borde]) => avatarStripPos[lado] && (
+                            <button
+                              key={lado}
+                              type="button"
+                              aria-label={etiqueta}
+                              onClick={() => {
+                                const el = avatarStripRef.current;
+                                const quieta = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+                                if (el) el.scrollBy({ left: dir * el.clientWidth * TIRA_AVATARES_SALTO, behavior: quieta ? "auto" : "smooth" });
+                              }}
+                              // Zona táctil de --tam-tactil con el círculo dentro, casi todo
+                              // fuera de la tira para no tapar los avatares.
+                              style={{
+                                position: "absolute", top: "50%", [borde]: `calc(-1 * ((var(--tam-tactil) - ${TIRA_AVATARES_FLECHA}px) / 2 + ${TIRA_AVATARES_FLECHA_FUERA}px))`, transform: "translateY(-50%)",
+                                width: "var(--tam-tactil)", height: "var(--tam-tactil)", padding: 0, border: "none", background: "transparent",
+                                cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center",
+                              }}
+                            >
+                              <span style={{
+                                width: TIRA_AVATARES_FLECHA, height: TIRA_AVATARES_FLECHA, borderRadius: "var(--radio-pildora)", boxSizing: "border-box",
+                                border: "1.5px solid var(--color-linea)", background: "var(--color-superficie)", color: "var(--color-tinta-suave)",
+                                boxShadow: "var(--sombra-2)",
+                                display: "inline-flex", alignItems: "center", justifyContent: "center",
+                              }}>
+                                <Flecha size={16} strokeWidth={2.6} />
+                              </span>
+                            </button>
+                          ))}
                         </div>
                       )}
                     </div>
@@ -1548,17 +1591,18 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
 // assignment bubble) but as a compact segmented control instead of a full
 // onboarding step, so it can live at the bottom of "Gestionar familia".
 function FamilyMenuModelSection({ data, setData }) {
-  const membersWithAge = data.members.map((m) => ({ ...m, age: memberAge(m) }));
-  const showBabyHint = hasBabyMember(membersWithAge);
+  const showBabyHint = hasBabyMember(data.members);
   const [assignmentOpen, setAssignmentOpen] = useState(false);
   const [draftGroups, setDraftGroups] = useState(null);
 
-  const buildGroups = (members, modelId) =>
+  // `viejos`: los grupos de ahora; los rehechos heredan sus ids (conservarIds).
+  const buildGroups = (members, modelId, viejos) =>
     migrateGroupsForBabies(
-      members.map((m) => ({ ...m, age: memberAge(m) })),
+      members,
       groupsFromModel(
-        members.map((m) => ({ ...m, age: memberAge(m) })),
-        modelId
+        members,
+        modelId,
+        viejos
       ),
       modelId
     );
@@ -1567,14 +1611,14 @@ function FamilyMenuModelSection({ data, setData }) {
     if (modelId === "same") {
       setDraftGroups(null);
       setAssignmentOpen(false);
-      setData((d) => ({ ...d, menuModel: "same", groups: buildGroups(d.members, "same") }));
+      setData((d) => ({ ...d, menuModel: "same", groups: buildGroups(d.members, "same", d.groups) }));
       return;
     }
     const reuseExisting =
       data.menuModel === "separate" && Array.isArray(data.groups) && data.groups.length > 0;
     const groups = reuseExisting
       ? reconcileTierGroups(data.members, data.groups)
-      : buildGroups(data.members, "separate");
+      : buildGroups(data.members, "separate", data.groups);
 
     if (groups.length > 1) {
       setDraftGroups(groups);
@@ -2359,7 +2403,16 @@ export function OnboardingRestrictions({
   // Salir de aquí hacia delante ES haberlo revisado. Sin la marca, una lista
   // vacía no distingue "no tenemos" de "no lo hemos mirado", que es justo lo
   // que no se puede suponer (ver `alergias` en wizardRegistry.js).
-  const conRevision = (fn) => fn && (() => { setData((d) => ({ ...d, allergiesReviewed: true })); fn(); });
+  // La pantalla enseña a todos los de la casa: revisa a todos.
+  // `fn` recibe la casa YA marcada: el setData no llega a quien lo llama en
+  // este mismo clic, y el alta genera el menú ahí mismo. Sin pasarla, el
+  // primer menú salía con la casa sin revisar (los 14 alérgenos fuera y
+  // huecos vacíos).
+  const conRevision = (fn) => fn && (() => {
+    const revisada = marcarRevisadas(data, null);
+    setData((d) => marcarRevisadas(d, null));
+    fn(revisada);
+  });
   // Con todo vacío, el botón lo afirma en vez de decir "Continuar": pasar sin
   // marcar nada tiene que leerse como una respuesta, no como saltarse el paso.
   const nadaMarcado = data.members.every(
@@ -2860,6 +2913,8 @@ export function RestrictionTabCard({
   );
 }
 
+// Aparcado a propósito: App.jsx no lo monta. Ni montarlo ni borrarlo, ni en
+// una limpieza de código muerto (decisión de Pablo, 8 sep 2026).
 export function OnboardingRepeat({
   data,
   setData,
@@ -3766,17 +3821,18 @@ export function OnboardingMenuModel({ data, setData, onNext, onBack, onFinish, o
     },
   ];
 
-  const membersWithAge = data.members.map((m) => ({ ...m, age: memberAge(m) }));
-  const showBabyHint = hasBabyMember(membersWithAge);
+  const showBabyHint = hasBabyMember(data.members);
   const [assignmentOpen, setAssignmentOpen] = useState(false);
   const [draftGroups, setDraftGroups] = useState(null);
 
-  const buildGroups = (members, modelId) =>
+  // `viejos`: los grupos de ahora; los rehechos heredan sus ids (conservarIds).
+  const buildGroups = (members, modelId, viejos) =>
     migrateGroupsForBabies(
-      members.map((m) => ({ ...m, age: memberAge(m) })),
+      members,
       groupsFromModel(
-        members.map((m) => ({ ...m, age: memberAge(m) })),
-        modelId
+        members,
+        modelId,
+        viejos
       ),
       modelId
     );
@@ -3788,7 +3844,7 @@ export function OnboardingMenuModel({ data, setData, onNext, onBack, onFinish, o
     if (modelId === "same") {
       setDraftGroups(null);
       setAssignmentOpen(false);
-      setData((d) => ({ ...d, menuModel: "same", groups: buildGroups(d.members, "same") }));
+      setData((d) => ({ ...d, menuModel: "same", groups: buildGroups(d.members, "same", d.groups) }));
       return;
     }
 
@@ -3799,7 +3855,7 @@ export function OnboardingMenuModel({ data, setData, onNext, onBack, onFinish, o
       data.menuModel === "separate" && Array.isArray(data.groups) && data.groups.length > 0;
     const groups = reuseExisting
       ? reconcileTierGroups(data.members, data.groups)
-      : buildGroups(data.members, "separate");
+      : buildGroups(data.members, "separate", data.groups);
 
     if (needsAssignmentPopup(groups, "separate")) {
       setDraftGroups(groups);
@@ -4079,7 +4135,7 @@ const KID_SAFE_FOODS = [
   { key: "pescado", label: "Pescado", img: "/ingredients/merluza.png" },
   { key: "carne", label: "Carne", img: "/ingredients/ternera.png" },
   { key: "legumbres", label: "Legumbres", img: "/ingredients/lentejas.png" },
-  { key: "verdura", label: "Verdura", img: "/categories/verduras.png" },
+  { key: "verdura", label: "Verdura", img: "/categories/ensaladas_verduras.png" },
   { key: "patata", label: "Patata", img: "/ingredients/patata.png" },
   { key: "fruta", label: "Fruta", img: "/ingredients/manzana.png" },
   { key: "pan", label: "Pan", img: "/ingredients/pan.png" },
@@ -4234,9 +4290,9 @@ export function OnboardingKidsDinner({ data, setData, onNext, onBack, onFinish, 
       const next = { ...d, kidDinnerConfig: { byMember } };
       const model = deriveKidsMenuModel(next);
       if (model) {
-        const withAge = (next.members ?? []).map((m) => ({ ...m, age: memberAge(m) }));
+        const miembros = next.members ?? [];
         next.menuModel = model;
-        next.groups = migrateGroupsForBabies(withAge, groupsFromModel(withAge, model), model);
+        next.groups = migrateGroupsForBabies(miembros, groupsFromModel(miembros, model, d.groups), model);
       }
       return next;
     });
@@ -4453,7 +4509,7 @@ export function OnboardingKidsDinner({ data, setData, onNext, onBack, onFinish, 
         {/* Los bebés van DEBAJO de los niños y solo en modo completo. En el modo
             corto sobra: "mixto" ya sirve las dos listas y es la única respuesta
             que no se equivoca si nadie contesta. */}
-        {data.expertMode && hasBabyMember(data.members.map((m) => ({ ...m, age: memberAge(m) }))) && (
+        {data.expertMode && hasBabyMember(data.members) && (
           <section style={{ paddingTop: 18, borderTop: "1px solid #eef3f0" }}>
             <SectionTitle Icon={Baby} color={CARD_ACCENT}>¿Y los bebés?</SectionTitle>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
@@ -4680,9 +4736,7 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
 
   const subjectMemberIds = useMemo(() => memberList.map((m) => m.id), [memberList]);
   const subjectMembers = memberList;
-  const allowCole = memberList.some(
-    (m) => stageForAge(memberAge(m)).id !== "adulto"
-  );
+  const allowCole = memberList.some((m) => esMenor(m));
 
   // Sheet state: { day, meal | null } — when meal is null, the sheet is in
   // "day mode" (only row-level actions, no per-member edition for a slot).
@@ -5141,7 +5195,7 @@ function ScheduleSlotSheet({
           {members.map((m) => {
             const raw = schedule[`${m.id}|${day}|${meal}`] ?? "casa";
             const cur = raw === "off" ? "casa" : raw;
-            const kid = stageForAge(memberAge(m)).id !== "adulto";
+            const kid = esMenor(m);
             return (
               <div key={m.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <div style={{ width: 54, flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
@@ -5463,7 +5517,7 @@ function ScheduleCell({ value, states, onClick, size = 14 }) {
   );
 }
 
-const STATE_ORDER = ["casa", "tupper", "cole", "fuera", "off"];
+const STATE_ORDER = enOrden(DONDE_COME, ["casa", "tupper", "cole", "fuera"]);
 
 function MixedDots({ states }) {
   // Sort by canonical order so identical states cluster together visually.
@@ -5501,7 +5555,7 @@ function MixedDots({ states }) {
   );
 }
 
-const FULL_DAY_NAMES = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+const FULL_DAY_NAMES = NOMBRES_DIA;
 
 function DayView({ days, meals, members, schedule, coleAllowedIds = new Set(), dayIdx, onDayChange, onClose, onSetMemberSlot }) {
   const [touchStartX, setTouchStartX] = useState(null);
@@ -6526,9 +6580,7 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
       const sm = d.schoolMenus ?? {};
       const schedule = { ...d.schedule };
       let changed = false;
-      const kids = (d.members ?? []).filter(
-        (m) => stageForAge(memberAge(m)).id !== "adulto"
-      );
+      const kids = (d.members ?? []).filter((m) => esMenor(m));
       for (const kid of kids) {
         for (const day of SCHOOL_DAYS) {
           const key = `${kid.id}|${day}|Comida`;
@@ -7162,6 +7214,8 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
 
 // ─── Fixed dishes ──────────────────────────────────────────────
 
+// Aparcado a propósito, como OnboardingRepeat: ni montarlo ni borrarlo
+// (decisión de Pablo, 8 sep 2026).
 export function OnboardingFixedDishes({ data, setData, onNext, onBack, onFinish, onReset }) {
   const [dish, setDish] = useState("");
   const add = () => {
@@ -7282,8 +7336,9 @@ const GOAL_ICON_MAP = {
   variado: Shuffle,
 };
 
+// La casa entera va con la misma clave que el estilo de comida (CLAVE_CASA, estiloEnFilas.js).
 function goalsManualKey(subjectId) {
-  return subjectId ?? "__global__";
+  return subjectId ?? CLAVE_CASA;
 }
 
 const BASE_KCAL = 2000;
@@ -7456,7 +7511,7 @@ const FOOD_META = {
   verdura: { label: "Verdura", Icon: Salad, color: "#3f8f5b" },
 };
 
-const FOOD_ORDER = ["carne", "pescado", "pasta_arroz", "legumbres", "huevos", "verdura"];
+const FOOD_ORDER = FAMILIAS_EN_PANTALLA;
 
 // Ilustraciones de categoría (mismo set Midjourney que el resto de la app).
 // Se usan para componer el mosaico de cada estilo de comida.
@@ -7562,8 +7617,7 @@ function computeGroupSlotBudget(data, group) {
   // (per-group override first, then the global "modo básico" default). Without
   // the "1_plato" branch the budget over-counts comida days as 2 slots while
   // the generator only produces 1, making the scaled freqs impossible to meet.
-  const mealStructure =
-    data.mealStructureByGroup?.[group?.id] ?? data.mealStructure ?? "primero_segundo";
+  const mealStructure = estructuraDelGrupo(data, group?.id);
   let comidaDays = 0;
   let cenaDays = 0;
   let platoUnicoDays = 0;
@@ -7719,7 +7773,7 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
   }, [styleableGroups, activeGroupId]);
 
   const subjectId = activeGroupId;
-  const styleKey = subjectId ?? "__global__";
+  const styleKey = subjectId ?? CLAVE_CASA;
   const activeStyle = data.mealStyleByGroup?.[styleKey] ?? DEFAULT_MEAL_STYLE;
   const isCustom = activeStyle === "personalizado";
 
@@ -7824,11 +7878,11 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
   const customOverBudget = useMemo(() => {
     const subjects = styleableGroups.length > 0
       ? styleableGroups.map((g) => ({ key: g.id, group: g }))
-      : [{ key: "__global__", group: null }];
+      : [{ key: CLAVE_CASA, group: null }];
     return subjects.some(({ key, group }) => {
       const style = data.mealStyleByGroup?.[key] ?? DEFAULT_MEAL_STYLE;
       if (style !== "personalizado") return false;
-      const freqs = (key === "__global__" ? data.freqs : data.freqsByGroup?.[key]) ?? {};
+      const freqs = (key === CLAVE_CASA ? data.freqs : data.freqsByGroup?.[key]) ?? {};
       const used = FOOD_ORDER.reduce((s, k) => s + Math.max(0, freqs[k] ?? 0), 0);
       const budget = computeGroupSlotBudget(data, group);
       return used > budget.total;
@@ -8542,9 +8596,7 @@ function OnboardingMealExtrasShared({ data, setData, onNext, onBack, onFinish, o
   const setExtraMeal = (key, val) =>
     setData((d) => ({ ...d, extraMeals: { ...(d.extraMeals ?? {}), [key]: val } }));
   const optDesayunoOn = Boolean(em.desayuno && em.desayuno !== "off");
-  const optHasKids = (data.members ?? []).some((m) =>
-    ["infantil", "primaria"].includes(stageForAge(memberAge(m)).id),
-  );
+  const optHasKids = (data.members ?? []).some((m) => esNino(m));
 
   // Postre is a multi-select of comida/cena mapped onto the enum the planner
   // already understands (off | comida | cena | ambas) — no separate "ambas" UI.
@@ -8606,10 +8658,11 @@ function OnboardingMealExtrasShared({ data, setData, onNext, onBack, onFinish, o
 
   const expert = Boolean(data.expertMode);
   const postreOn = em.postre && em.postre !== "off";
-  const structureId = data.mealStructureByGroup?.[subjectId] ?? "primero_segundo";
+  // La que usa el motor para este grupo (estructuraPlatos.js, #958).
+  const structureId = estructuraDelGrupo(data, subjectId);
   // La cena empieza en un plato, que es como se cena aquí. Ver
   // CENA_STRUCTURE_CARDS y `mealStructureCena` en App.jsx.
-  const cenaStructureId = data.mealStructureCenaByGroup?.[subjectId] ?? "1_plato";
+  const cenaStructureId = estructuraCenaDelGrupo(data, subjectId);
 
   const extrasSection = (key, children) => ({ key, children });
 
@@ -8933,14 +8986,14 @@ export function OnboardingMode({ data, setData, onNext, onBack, onFinish, onRese
             active={current === t.id}
             onClick={() =>
               setData((d) => ({
-                ...d,
-                expertMode: t.id === "expert",
-                modePrompted: true,
                 // Básico se salta la pregunta de "¿uno o dos platos?" (ver
                 // OnboardingSchedule) — asume plato combinado, la opción con
                 // menos fricción, en vez de dejarlo caer en el fallback de
-                // "primero_segundo" sin haberlo elegido nadie.
-                ...(t.id === "basic" ? { mealStructure: "1_plato" } : {}),
+                // "primero_segundo" sin haberlo elegido nadie. Para toda la
+                // casa, con la misma escritura que Lola (conEstructura, #958):
+                // si no, la de cada grupo del modo experto seguía mandando.
+                ...(t.id === "basic" ? conEstructura(d, "1_plato") : d),
+                expertMode: t.id === "expert",
               }))
             }
           />
@@ -8964,28 +9017,22 @@ export function OnboardingMode({ data, setData, onNext, onBack, onFinish, onRese
 // una respuesta — y la de la mayoría la primera vez.
 //
 // Es la pantalla "En casa" de siempre (pestañas Añadir/Inventario,
-// foto/ticket/a mano), no una versión apilada/simplificada. "¿Cuándo se da
-// por gastado?" vivió aquí al lado un día (2026-08-25) como paso condicional
-// — se quitó del wizard al día siguiente: esa pregunta se entiende mejor
-// mirando la despensa real que a mitad del asistente, así que ahora es un
-// sheet contextual en Compra → En casa (ver PantryPrefsSheet en
-// components/ModeSheets.jsx), no un paso de este flujo.
+// foto/ticket/a mano), no una versión apilada/simplificada.
 export function OnboardingPantryInventory({
   onNext, onBack, onFinish, onReset, nextLabel,
-  user, pantryHouseholdId, priceObs, pantryEpoch, onToast, data, setData, shopping, setShopping,
+  user, pantryHouseholdId, priceObs, pantryEpoch, onToast, data, setData, onHayEnCasa, shopping, setShopping,
 }) {
-  // Cuántas cosas hay en casa, apuntado en `data` para que lo pueda leer el
-  // paso siguiente. La despensa vive en Supabase/localStorage, no en `data`, y
+  // Si hay algo en casa, apuntado en este móvil (onHayEnCasa → marcasLocales.js)
+  // para que lo pueda leer el paso siguiente. La despensa vive en Supabase/localStorage, no en `data`, y
   // quien sabe cuánto hay es esta pantalla — que lo cuenta y avisa por
   // `onItemsCount`. Sin este dato, "¿cuánto tiramos de lo de casa?" se
   // preguntaría con la nevera vacía, que es la pregunta más tonta del
   // asistente.
   const apuntarCuantos = useCallback(
     (count) => {
-      const hay = count > 0;
-      setData((d) => (d.pantryHasItems === hay ? d : { ...d, pantryHasItems: hay }));
+      onHayEnCasa?.(count > 0);
     },
-    [setData],
+    [onHayEnCasa],
   );
 
   return (
@@ -9187,7 +9234,7 @@ export function OnboardingGoals({ data, setData, onNext, onBack, onFinish, onRes
     setDraftGoal("");
     if (!v) return;
     if (goalDefs.some((g) => g.label.toLowerCase() === v.toLowerCase())) return;
-    const baseId = slugifyGoalLabel(v) || `custom-${Math.random().toString(36).slice(2, 8)}`;
+    const baseId = slugifyGoalLabel(v) || ids.objetivoPropio.nuevo();
     let newId = baseId;
     let i = 2;
     while (goalDefs.some((g) => g.id === newId)) {
@@ -9732,8 +9779,8 @@ export const APPLIANCES = KITCHEN_TOOLS_CON_ARTE;
 // Sin "Añadir otro": la lista fija son los seis aparatos que el generador sabe
 // aprovechar de verdad (ver resolveCookwareMarker en RecipeSteps.jsx). Un
 // nombre escrito a mano no casaba con ninguna receta, así que solo servía para
-// añadir una fila y con ella scroll. `customKitchenTools` sigue en el modelo de
-// datos y lo que hubiera ahí se respeta; simplemente ya no se edita aquí.
+// añadir una fila y con ella scroll. Lo de fuera de la lista lo apunta Lola
+// como «Otro» con su nota (kitchenToolsNota); aquí no se edita y se respeta.
 export function OnboardingAppliances({ data, setData, onNext, onBack, onFinish, onReset, finishLabel }) {
   const toggleTool = (tool) =>
     setData((d) => ({
@@ -9833,16 +9880,18 @@ const PANTRY_MODES = [
   },
 ];
 
-export function OnboardingPantryMode({ data, setData, onNext, onBack, onFinish, onReset, finishLabel }) {
-  // `useHomeStock` se mantiene en sincronía como el booleano heredado que es
-  // (off ⇄ false), igual que hace normalizeData en App.jsx.
-  const elegir = (mode) =>
-    setData((d) => ({ ...d, pantryMode: mode, pantryModeSet: true, useHomeStock: mode !== "off" }));
-
-  // Sin elegir todavía no se marca ninguna: `pantryMode` nace en "off"
-  // (INITIAL_DATA), y pintar "Que no cuente" como si la hubieras elegido tú
-  // sería ponerte una respuesta en la boca.
-  const elegido = data.pantryModeSet === true ? data.pantryMode : null;
+export function OnboardingPantryMode({ setData, onNext, onBack, onFinish, onReset, finishLabel }) {
+  // Si el menú parte de la despensa no se guarda: es usaDespensa (src/lib/modoDespensa.js).
+  // Sin elegir en este paso no se marca ninguna: `pantryMode` nace con el
+  // defecto (INITIAL_DATA), y pintarlo como si lo hubieras elegido tú sería
+  // ponerte una respuesta en la boca. Lo elegido se guarda en `data`; qué
+  // card se tocó aquí es de la pantalla, no de la casa (ya no hay marca
+  // pantryModeSet: el sobre dice si alguien lo dijo, trozo 12 de #1037).
+  const [elegido, setElegido] = useState(null);
+  const elegir = (mode) => {
+    setElegido(mode);
+    setData((d) => ({ ...d, pantryMode: mode }));
+  };
 
   return (
     <OnboardingShell
@@ -9950,22 +9999,16 @@ export function OnboardingBatchCooking({ data, setData, onNext, onBack, onFinish
 
 // ── Week selector ────────────────────────────────────────────────────────────
 
-const WEEK_DAY_SHORT = ["L", "M", "X", "J", "V", "S", "D"];
+const WEEK_DAY_SHORT = LETRAS_DIA;
 const MONTH_NAMES_ES = [
   "Enero","Febrero","Marzo","Abril","Mayo","Junio",
   "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre",
 ];
 
-function todayMondayIdx() {
-  const d = new Date().getDay();
-  return d === 0 ? 6 : d - 1;
-}
-
 function buildCalendarWeeks(count = 6) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const dow = today.getDay();
-  const toMonday = dow === 0 ? -6 : 1 - dow;
+  const toMonday = -indiceDeFecha(today);
   const thisMonday = new Date(today);
   thisMonday.setDate(today.getDate() + toMonday);
 
@@ -9998,7 +10041,7 @@ const VARIETY_OPTIONS = [
 ];
 
 export function OnboardingWeek({ data, setData, onNext, onBack, onReset, onFinish }) {
-  const todayIdx = todayMondayIdx();
+  const todayIdx = todayDayIdx();
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -10880,21 +10923,22 @@ export function OnboardingBudget({ data, setData, onBack, onNext, onFinish, onRe
     return raw.length;
   }, [data.menuWeekOffsets, data.menuWeek]);
 
-  const hasBudget = Boolean(data.hasBudget);
+  // Un solo dato (presupuestoCasa.js): null es «sin presupuesto»; una cifra que no vale («sin_cifra») cuenta como
+  // encendido y se dice debajo del deslizador: la cifra de partida que enseña no se aplica hasta que se elige una.
+  const { estado: estadoPresupuesto, euros } = leerPresupuesto(data);
+  const hasBudget = estadoPresupuesto !== "sin";
   const primaryStore = data.supermarkets[0] ?? "";
   const mercadonaOn = hasBudget && primaryStore === "Mercadona";
 
+  // Sin presupuesto no se vacían los súper: no es decir «no compro en ninguno», y borraría los que apuntó Lola.
   const setBudgetMode = (capped) => {
-    setData((d) => ({
-      ...d,
-      hasBudget: capped,
-      wantsPriceEstimates: capped,
-      ...(capped ? {} : { supermarkets: [] }),
-    }));
+    setData((d) => ({ ...conInterruptor(d, capped), wantsPriceEstimates: capped }));
   };
 
+  // El elegido va el primero (el que se enseña aquí) y los demás se quedan (#958 C): sustituir la lista
+  // borraba los que la casa dijo en Lola.
   const pickStore = (name) => {
-    setData((d) => ({ ...d, supermarkets: [name] }));
+    setData((d) => ({ ...d, supermarkets: [name, ...(d.supermarkets ?? []).filter((s) => s !== name)] }));
   };
 
   return (
@@ -10928,12 +10972,17 @@ export function OnboardingBudget({ data, setData, onBack, onNext, onFinish, onRe
         <div>
           <p style={onbBudgetFieldLabel}>¿Cuánto quieres gastar por semana?</p>
           <BudgetSliderEuroRow
-            value={data.budget}
+            value={euros ?? PRESUPUESTO_DE_PARTIDA}
             min={30}
             max={200}
             step={5}
-            onChange={(v) => setData((d) => ({ ...d, budget: v }))}
+            onChange={(v) => setData((d) => conPresupuesto(d, v))}
           />
+          {estadoPresupuesto === "sin_cifra" && (
+            <OnbBudgetStoreHint>
+              El presupuesto está activado pero sin una cifra válida, así que no se tiene en cuenta: elige cuánto quieres gastar.
+            </OnbBudgetStoreHint>
+          )}
         </div>
 
         <div style={{ marginTop: 20 }}>

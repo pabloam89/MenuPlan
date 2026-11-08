@@ -1,6 +1,10 @@
-import { describe, expect, it } from "vitest";
-import { resolverMenu, candidatosDeHueco, REGLAS_RELAJABLES } from "./solver.js";
-import { buildGroupContext } from "./aiPlanner.js";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { resolverMenu, resolverConReintentos, candidatosDeHueco, REGLAS_RELAJABLES } from "./solver.js";
+import { buildGroupContext, generateMenuWithAI, choquesDelPlan, REGLA_EN_PALABRAS } from "./aiPlanner.js";
+import { entradaDelMotor } from "./entradaMotor.js";
+import { casaCon } from "./cumplimiento.js";
+import { ESCALONES_RELAJAR } from "./preferenciasSistema.js";
+import { dataConLibreta } from "./libretaEnData.js";
 import { filterRecipes } from "../utils/filterRecipes.js";
 import { validateMenu, splitAchievableFreqs, FREQ_KEY_MATCHERS, CENA_KCAL_SOFT_CAP, VECES_MISMA_SOPA } from "../utils/validateMenu.js";
 import { weeklySlotBudget } from "./planner.js";
@@ -25,6 +29,10 @@ const casa = (extra = {}) => ({
   // buildGroupContext cae en DEFAULT_FREQS, que suma 14 topes para 21 huecos y
   // NO tiene solucion (ver C2): el primer intento de esta suite se colgo ahi.
   freqs: { legumbres: 2, verdura: 3, pescado: 2 },
+  // Alergias ya preguntadas («ninguna»). Sin esto, desde el 8 oct (#107) el
+  // menú esquiva los 14 alérgenos y quedan 27 platos: la semana no cierra
+  // (#140; qué hacer con esas casas, en #229).
+  allergiesReviewed: true,
   ...extra,
 });
 
@@ -34,21 +42,26 @@ function resolverPara(data, opciones = {}) {
   const { recipes: pool, error } = filterRecipes(ctx.filterOpts);
   if (error) throw new Error(error);
   const { achievable } = splitAchievableFreqs(pool, ctx.config.freqs);
-  const res = resolverMenu(ctx.slots, pool, {
+  const { conReintentos = false, ...resto } = opciones;
+  const res = (conReintentos ? resolverConReintentos : resolverMenu)(ctx.slots, pool, {
     healthProfiles: ctx.config.healthProfiles,
     freqs: achievable,
     // Solo el tope de NODOS, que es determinista. El de milisegundos existe
     // para el usuario que espera; en la suite, con veinte ficheros en
     // paralelo, cortaba la búsqueda en sitios distintos cada vez.
     maxMs: 120000,
-    ...opciones,
+    ...resto,
   });
   return { ...res, ctx, pool, achievable };
 }
 
 describe("el solver produce menús VÁLIDOS, que es lo que hoy no pasa nunca", () => {
+  // Por el camino de producción (aiPlanner usa resolverConReintentos). Con una
+  // sola semilla esta casa se metía en un callejón desde el 23 sep 2026 (62
+  // recetas desbloqueadas cambiaron el orden de búsqueda) y relajaba el tope
+  // de pescado en vie_cena.
   it("una semana normal sale entera y sin una sola violación", () => {
-    const { asignaciones, completo, ctx, pool, achievable } = resolverPara(casa());
+    const { asignaciones, completo, ctx, pool, achievable } = resolverPara(casa(), { conReintentos: true });
     expect(completo).toBe(true);
     expect(asignaciones).toHaveLength(ctx.slots.length);
 
@@ -57,7 +70,9 @@ describe("el solver produce menús VÁLIDOS, que es lo que hoy no pasa nunca", (
     );
     expect(violations.map((v) => `${v.rule} @ ${v.slotId}`)).toEqual([]);
     expect(valid).toBe(true);
-  });
+    // Hasta tres intentos con presupuesto de suite (maxMs alto): en una máquina
+    // cargada pasa de los 5 s por defecto. En producción el solver va en décimas.
+  }, 60000);
 
   it("una casa nueva de verdad: reparto por defecto, topes con holgura, objetivo exacto", () => {
     // Lo que produce App.jsx para quien no ha tocado nada: los topes llevan
@@ -317,4 +332,134 @@ describe("la cena de dos platos", () => {
     expect(ctx.slots.filter((s) => s.mealType === "cena")).toHaveLength(7);
     expect(ctx.slots.every((s) => s.mealType !== "cena" || !s.position)).toBe(true);
   });
+});
+
+describe("segundo_sin_proteina_principal es relajable (#894): sin proteína animal no se pierden huecos", () => {
+  const segundos = (ctx) => ctx.slots.filter((s) => s.position === "2" || s.position === "segundo").map((s) => s.slotId);
+  const casos = {
+    "casa vegana": casa({ members: [{ id: "m1", age: 38, intolerances: ["vegano"] }, { id: "m2", age: 40, intolerances: ["vegano"] }] }),
+    "casa vegetariana alérgica al huevo": casa({
+      mealStructureCena: "primero_segundo",
+      members: [
+        { id: "m1", age: 38, intolerances: ["vegetariano"], allergies: ["huevos"] },
+        { id: "m2", age: 40, intolerances: ["vegetariano"] },
+      ],
+    }),
+  };
+  const VACIOS_ANTES = { "casa vegana": 7, "casa vegetariana alérgica al huevo": 9 };
+  for (const [nombre, data] of Object.entries(casos)) {
+    it(`${nombre}: no deja más huecos vacíos que antes, y los que no llevan proteína salen como relajados`, () => {
+      const { asignaciones, relajados, ctx, pool } = resolverPara(data, { conReintentos: true, semilla: 1 });
+      const ids = segundos(ctx);
+      expect(ids.length).toBeGreaterThan(0);
+      // Sin más huecos vacíos que antes de la regla. Medido el 20 oct 2026
+      // con la regla anulada (cumple siempre): la vegana deja 7 (sus segundos
+      // de comida: no hay ningún segundo en su pool) y la vegetariana sin
+      // huevo, 9. Con la regla, los mismos. Con la regla sin relajar, la
+      // vegetariana dejaba 16: eso es lo que este tope pilla.
+      expect(ctx.slots.length - asignaciones.length).toBeLessThanOrEqual(VACIOS_ANTES[nombre]);
+      const { violations } = validateMenu(asignaciones, pool, ctx.slots, [], {}, {});
+      const sinProteina = violations.filter((v) => v.rule === "segundo_sin_proteina_principal").map((v) => v.slotId);
+      expect(sinProteina.filter((id) => !relajados.includes(id))).toEqual([]);
+    }, 60000);
+
+    it(`${nombre}: cada hueco relajado dice qué clase cedió, y alguno se llena cediendo solo una regla del sistema (método de choques)`, () => {
+      const { relajados, relajadoPor } = resolverPara(data, { conReintentos: true, semilla: 1 });
+      expect(Object.keys(relajadoPor).sort()).toEqual([...relajados].sort());
+      for (const id of relajados) expect(ESCALONES_RELAJAR.map((e) => e.clase)).toContain(relajadoPor[id]);
+      // Antes de los escalones todo se relajaba a la vez; ahora, lo que cabe cediendo la regla del sistema no pasa de ahí.
+      expect(Object.values(relajadoPor)).toContain("sistema");
+    }, 60000);
+  }
+});
+
+describe("las preferencias de la casa en el solver (trozo 31 de #1037)", () => {
+  const pref = (extra = {}) => ({ id: "p", campo: "tecnica", valor: "horno", operador: "mas", cantidad: null, fuerza: "medio", origen: "dicho", ambito: null, ...extra });
+  const cuantos = (res, p) => {
+    const porId = new Map(res.pool.map((r) => [r.id, r]));
+    return res.asignaciones.filter((a) => casaCon(p, porId.get(a.recipeId))).length;
+  };
+
+  it("«más horno» dicho saca más platos al horno que sin decirlo; visto, no más que dicho", () => {
+    const sin = cuantos(resolverPara(casa(), { semilla: 3 }), pref());
+    const dicho = cuantos(resolverPara(casa(), { semilla: 3, preferencias: [pref()] }), pref());
+    const visto = cuantos(resolverPara(casa(), { semilla: 3, preferencias: [pref({ origen: "visto", fuerza: "bajo" })] }), pref());
+    expect(dicho).toBeGreaterThan(sin);
+    expect(dicho).toBeGreaterThanOrEqual(visto);
+  }, 60000);
+
+  it("«menos sartén» dicho saca menos platos de sartén que sin decirlo", () => {
+    const menos = pref({ valor: "sarten", operador: "menos" });
+    const sin = cuantos(resolverPara(casa(), { semilla: 5 }), menos);
+    expect(sin).toBeGreaterThan(0);
+    expect(cuantos(resolverPara(casa(), { semilla: 5, preferencias: [menos] }), menos)).toBeLessThan(sin);
+  }, 60000);
+
+  it("un tope obligatorio no se pasa ni relajando: con solo pescado posible, el hueco se queda vacío", () => {
+    const data = casa();
+    const ctx = buildGroupContext(data, data.groups[0]);
+    const pool = filterRecipes(ctx.filterOpts).recipes.filter((r) => FREQ_KEY_MATCHERS.pescado(r));
+    const tope = pref({ campo: "freqs", valor: "pescado", operador: "como_mucho", cantidad: 2, fuerza: "obligatoria" });
+    const opts = { freqs: { pescado: 2 }, maxMs: 120000, semilla: 1 };
+    // Sin la preferencia, el tope de pescado es orientación: se relaja para no dejar huecos.
+    const sin = resolverMenu(ctx.slots, pool, opts);
+    expect(cuantos({ ...sin, pool }, tope)).toBeGreaterThan(2);
+    const con = resolverMenu(ctx.slots, pool, { ...opts, preferencias: [tope] });
+    expect(cuantos({ ...con, pool }, tope)).toBeLessThanOrEqual(2);
+    expect(con.sinCombinacion.length).toBeGreaterThan(0);
+  }, 60000);
+});
+
+describe("las alergias y los vetos nunca empeoran por una preferencia (trozo 31 de #1037)", () => {
+  afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); vi.restoreAllMocks(); });
+  // La casa pide más huevo y más queso; una persona es alérgica al huevo y el queso está vetado.
+  const libreta = (campos) => ({ v: 1, campos: Object.fromEntries(Object.entries(campos).map(([k, valor]) => [k, { valor, origen: "texto" }])) });
+  const pide = { "favoritos.huevo": true, "favoritos.queso": true, "tecnica.horno": 1 };
+  const generar = async (data) => {
+    vi.stubGlobal("localStorage", { getItem: (k) => (k === "mp_motor" ? "solver" : null) });
+    // Reloj quieto y azar fijo: la semilla del solver sale del reloj, y quieto no corta por milisegundos (solo por nodos, que es determinista).
+    vi.useFakeTimers({ toFake: ["Date"] }); vi.setSystemTime(new Date("2026-11-02T12:00:00Z")); vi.spyOn(Math, "random").mockReturnValue(0.5);
+    const entrada = entradaDelMotor(data, { hoy: "2026-11-02" });
+    const { plan, recipes } = await generateMenuWithAI(entrada);
+    return { entrada, plan, recipes };
+  };
+  const conHuevo = (recipes) => recipes.filter((r) => (r.allergens ?? []).includes("huevos") || (r.ingredients ?? []).some((i) => /huevo/i.test(i?.name ?? "")));
+  const conQueso = (recipes) => recipes.filter((r) => (r.ingredients ?? []).some((i) => /queso/i.test(i?.name ?? "")));
+
+  it("la preferencia tira de verdad (sin alergia ni veto salen platos con huevo y con queso), y con ellas no sale ninguno", async () => {
+    const libre = await generar(dataConLibreta(casa(), libreta(pide)));
+    expect(conHuevo(libre.recipes).length).toBeGreaterThan(0);
+    expect(conQueso(libre.recipes).length).toBeGreaterThan(0);
+
+    const data = dataConLibreta(
+      casa({ members: [{ id: "m1", age: 38, allergies: ["huevos"] }, { id: "m2", age: 40 }] }),
+      libreta({ ...pide, "excluidos.queso": true }),
+    );
+    const { entrada, plan, recipes } = await generar(data);
+    expect(entrada.preferencias.map((p) => p.id)).toEqual(expect.arrayContaining(["favoritos.huevo", "favoritos.queso"]));
+    expect(recipes.length).toBeGreaterThan(10);
+    expect(choquesDelPlan(entrada, plan)).toEqual([]);
+    expect(conHuevo(recipes).map((r) => r.name)).toEqual([]);
+    expect(conQueso(recipes).map((r) => r.name)).toEqual([]);
+  }, 120000);
+});
+
+describe("el aviso de lo relajado dice qué clase se cedió (método de choques, trozo 33 de #1037)", () => {
+  afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); vi.restoreAllMocks(); });
+
+  it("una línea por grupo, con lo cedido en palabras de su escalón y no el texto de antes", async () => {
+    vi.stubGlobal("localStorage", { getItem: (k) => (k === "mp_motor" ? "solver" : null) });
+    vi.useFakeTimers({ toFake: ["Date"] }); vi.setSystemTime(new Date("2026-11-02T12:00:00Z")); vi.spyOn(Math, "random").mockReturnValue(0.5);
+    const data = casa({
+      mealStructureCena: "primero_segundo",
+      members: [{ id: "m1", age: 38, intolerances: ["vegetariano"], allergies: ["huevos"] }, { id: "m2", age: 40, intolerances: ["vegetariano"] }],
+    });
+    const { plan } = await generateMenuWithAI(entradaDelMotor(data, { hoy: "2026-11-02" }));
+    const avisos = (plan._warnings ?? []).filter((w) => /no cabía ningún plato sin/.test(w));
+    expect(avisos).toHaveLength(1);
+    // El escalón del sistema dice sus reglas, las de su declaración (ESCALONES_RELAJAR), y no las cuatro de golpe.
+    const sistema = ESCALONES_RELAJAR.find((e) => e.clase === "sistema").reglas.map((r) => REGLA_EN_PALABRAS[r]);
+    expect(avisos[0]).toContain(`sin saltarse ${sistema.join(" ni ")}`);
+    expect(avisos[0]).not.toContain(`sin saltarse ${[...REGLAS_RELAJABLES].map((r) => REGLA_EN_PALABRAS[r]).join(" ni ")}`);
+  }, 120000);
 });

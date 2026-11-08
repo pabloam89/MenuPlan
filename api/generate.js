@@ -1,4 +1,4 @@
-import { blocked, cors } from "./_guard.js";
+import { blocked, cors, topeDiarioAgotado } from "./_guard.js";
 import { SYSTEM_PROMPTS } from "./_prompts.js";
 
 // Server-side proxy to the Anthropic API.
@@ -23,16 +23,55 @@ const ALLOWED_MODELS = new Set(["claude-sonnet-4-6", "claude-haiku-4-5-20251001"
 const DEFAULT_MODEL = "claude-haiku-4-5-20251001";
 const MAX_TOKENS_CAP = 32000;
 
+// La forma de `messages`, antes de pagar nada. Lo que manda la app: turnos
+// user/assistant con texto, y como mucho una imagen o un PDF (tickets, menú
+// del cole, foto de receta). El texto más largo legítimo es el del
+// planificador con modelo: la tabla del catálogo entera (~400k caracteres)
+// repetida en un reintento; MAX_TEXTO deja margen sobre eso.
+const MAX_MENSAJES = 12;
+const MAX_ADJUNTOS = 4;
+const MAX_TEXTO = 1_000_000;
+const ROLES = new Set(["user", "assistant"]);
+const BLOQUES = new Set(["text", "image", "document"]);
+
+/** null si la forma vale; si no, el motivo para el 400. Exportada para tests. */
+export function problemaDeMensajes(messages) {
+  if (messages.length > MAX_MENSAJES) return "too many messages";
+  let texto = 0;
+  let adjuntos = 0;
+  for (const m of messages) {
+    if (!m || !ROLES.has(m.role)) return "invalid role";
+    if (typeof m.content === "string") {
+      texto += m.content.length;
+    } else if (Array.isArray(m.content) && m.content.length > 0) {
+      for (const b of m.content) {
+        if (!b || !BLOQUES.has(b.type)) return "invalid content block";
+        if (b.type === "text") {
+          if (typeof b.text !== "string") return "invalid content block";
+          texto += b.text.length;
+        } else {
+          adjuntos++;
+        }
+      }
+    } else {
+      return "invalid content";
+    }
+  }
+  if (adjuntos > MAX_ADJUNTOS) return "too many attachments";
+  if (texto > MAX_TEXTO) return "messages too long";
+  return null;
+}
+
 export default async function handler(req, res) {
   if (cors(req, res)) return;
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  // A single menu generation fans out into several calls (planner + format
-  // retries + garnish replacements), so this is well above one user's needs
-  // while still capping bulk abuse. Mobile carriers share IPs via CGNAT, hence
-  // the generous ceiling.
+  // With the model planner (local, or forced with mp_motor) one menu fans out
+  // into several calls per group (planner + format retries); deployed, the
+  // menu comes from the solver and makes none. Mobile carriers share IPs via
+  // CGNAT, hence the generous ceiling.
   if (await blocked(req, res, { bucket: "generate", limit: 60, windowSec: 600 })) return;
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -46,6 +85,8 @@ export default async function handler(req, res) {
     if (!Array.isArray(messages) || messages.length === 0) {
       return res.status(400).json({ error: "messages is required" });
     }
+    const forma = problemaDeMensajes(messages);
+    if (forma) return res.status(400).json({ error: forma });
 
     // An unknown task gets no system prompt rather than a fallback one: silently
     // running someone else's job would be worse than the caller seeing a 400.
@@ -59,6 +100,9 @@ export default async function handler(req, res) {
     const safeMaxTokens = Number.isFinite(requested)
       ? Math.min(Math.max(1, Math.floor(requested)), MAX_TOKENS_CAP)
       : 1024;
+
+    // El tope diario, ya validado el cuerpo: solo cuenta lo que llega al modelo.
+    if (await topeDiarioAgotado(res, "generate")) return;
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",

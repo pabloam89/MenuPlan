@@ -29,9 +29,10 @@
  * tanda. Sin ese tope el modelo prometería cocinar para 40 en el mismo cazo.
  */
 
-import basesCatalog from "../data/recipes/bases.json";
+import basesCatalog from "../data/recipes/bases.json" with { type: "json" };
 import { catalogIdOfPlanRecipe } from "./freezer.js";
 import { CAPACIDAD_POR_APARATO } from "./applianceMethods.js";
+import { DIAS } from "./dias.js";
 
 /** Todas las bases del catálogo. */
 export const BASES = basesCatalog;
@@ -559,6 +560,8 @@ export const MIN_PLATOS_POR_BASE = 2;
  * @returns {{ bases: Array, minutosTotales: number, ahorroTotal: number }}
  *   ordenado por ahorro descendente: lo que más tiempo devuelve, primero.
  */
+const SEMANA = DIAS;
+
 export function sesionDeBases(plan, recetasPorId, opts = {}) {
   const dias = opts.dias ?? [];
   const comidas = opts.comidas ?? [];
@@ -591,7 +594,12 @@ export function sesionDeBases(plan, recetasPorId, opts = {}) {
             // A qué distancia del domingo cae este hueco. El índice sale de
             // `dias`, no de una lista fija, para que una semana acortada cuente
             // bien: si el menú empieza el miércoles, el miércoles es el día 1.
-            dia: dias.indexOf(clave.split("-")[0]) + 1,
+            // Con `diaTanda` dicho (la casa cocina el miércoles, no el domingo),
+            // se cuenta desde la última tanda: el lunes queda a 5 días del
+            // miércoles anterior, y el mismo día de la tanda, a 0 (recién hecha).
+            dia: opts.diaTanda
+              ? (SEMANA.indexOf(clave.split("-")[0]) - SEMANA.indexOf(opts.diaTanda) + 7) % 7
+              : dias.indexOf(clave.split("-")[0]) + 1,
           });
           porBase.set(base.id, entrada);
         }
@@ -614,7 +622,8 @@ export function sesionDeBases(plan, recetasPorId, opts = {}) {
     const congela = entrada.base.freezable === true;
     const huecos = [];
     for (const h of entrada.huecos) {
-      const enNevera = h.dia > 0 && h.dia <= dias;
+      // El 0 solo existe con `diaTanda`: el mismo día de la tanda, recién hecha.
+      const enNevera = (h.dia > 0 || (opts.diaTanda && h.dia === 0)) && h.dia <= dias;
       if (enNevera) huecos.push({ ...h, desde: "nevera" });
       else if (congela) huecos.push({ ...h, desde: "congelador" });
       // else: se cae. Ese día no hay tanda que valga.

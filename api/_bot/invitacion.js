@@ -1,0 +1,133 @@
+/**
+ * Entrar en una casa con una invitación, desde Telegram (/start inv_<token>):
+ * el camino de la asistenta, que no tiene por qué usar la app
+ * (specs/roles-de-la-casa-propuesta.md, apartado 3).
+ *
+ * Quién se une: si este Telegram ya ES una cuenta (bot_identities, que desde
+ * C-3 solo se apunta con prueba), esa; si no, una cuenta nueva nacida aquí
+ * (como «Soy nuevo»), con su casa propia vacía. Después: se une con el papel
+ * de la invitación (bot_unirse_por_invitacion, 0073), y su chat privado queda
+ * enlazado a la casa que le invita. Si la invitación trae idioma y la persona
+ * no había elegido uno, la base se lo pone.
+ */
+
+import { select, rpc, eq } from "./db.js";
+import { crearCuentaTelegram } from "./cuentas.js";
+import { enlazarChat, idDePersona, chatOcupado, apuntarEnlace } from "./enlace.js";
+import { avisarFallo, contesto, SIN_LEER } from "./avisar.js";
+import { noPude } from "./noPude.js";
+import { IDIOMA, IDIOMAS, CAMINO_ENLACE, RESULTADO_ENLACE, PRUEBA_IDENTIDAD } from "../../src/lib/vocabularios.js";
+
+export const ES_INVITACION = /^inv_([0-9a-f]{32})$/;
+
+const TEXTOS = {
+  es: {
+    caducada: "Esa invitación ya no vale (caduca a los 7 días y sirve una sola vez). Pide otra a quien te invitó.",
+    ocupado: "Este chat ya está conectado a otra casa. Solo quien lo conectó puede cambiarlo.",
+    lleno: "Ya estás en el máximo de casas ajenas (3). Sal de alguna antes de entrar en esta.",
+    hola: (casa, papel) => papel === "editor"
+      ? `¡Hola! Soy <b>Lola</b> 👩‍🍳 Ya eres cotitular de <b>${casa}</b>: puedes pedirme el menú, cambiar platos, la compra… como quien te invitó.`
+      : `¡Hola! Soy <b>Lola</b> 👩‍🍳 Ya estás en <b>${casa}</b>. Pregúntame qué toca cocinar hoy, cómo se hace un plato o qué hay en la lista de la compra; y dime lo que vayas comprando, que te lo tacho.`,
+  },
+  en: {
+    caducada: "That invitation is no longer valid (it expires after 7 days and works only once). Ask whoever invited you for a new one.",
+    ocupado: "This chat is already linked to another home. Only the person who linked it can change that.",
+    lleno: "You're already in the maximum number of other homes (3). Leave one before joining this one.",
+    hola: (casa, papel) => papel === "editor"
+      ? `Hi! I'm <b>Lola</b> 👩‍🍳 You're now a co-owner of <b>${casa}</b>: ask me for the menu, change dishes, the shopping list… just like whoever invited you.`
+      : `Hi! I'm <b>Lola</b> 👩‍🍳 You're now in <b>${casa}</b>. Ask me what to cook today, how to make a dish, or what's on the shopping list; and tell me what you buy, and I'll tick it off.`,
+  },
+};
+
+/**
+ * ¿Vale aún esta invitación, y a qué casa lleva? Las mismas reglas que
+ * `_unirse` en la base (su última versión: 0087): una de household_invites sin
+ * revocar, con usos y sin caducar, o el enlace fijo de la casa
+ * (households.invite_token). La copia en JS la vigila invitacion.test.js, que
+ * falla si la regla de la última migración cambia. null si no vale; SIN_LEER
+ * si no se pudo mirar (#208: no se dice «caducada» sin saberlo).
+ */
+export async function invitacionVigente(token, ahora = Date.now()) {
+  try {
+    const [inv] = await select("household_invites", `token=${eq(token)}`, "household_id,revoked_at,uses,max_uses,expires_at");
+    if (inv) return !inv.revoked_at && inv.uses < inv.max_uses && Date.parse(inv.expires_at) > ahora ? { householdId: inv.household_id } : null;
+    const [casa] = await select("households", `invite_token=${eq(token)}`, "id");
+    return casa ? { householdId: casa.id } : null;
+  } catch (e) {
+    avisarFallo("invitacion_vigente", e, { grave: false });
+    return SIN_LEER;
+  }
+}
+
+const lenguaDe = (codigo) => (String(codigo ?? "").toLowerCase().startsWith(IDIOMA.EN) ? IDIOMA.EN : IDIOMA.ES);
+
+/**
+ * @param {{ from: object, chatId: string|number, token: string, nombre?: string|null }} args
+ * @returns {Promise<{ texto: string, householdId: string|null, lang: 'es'|'en' }>}
+ */
+export async function unirsePorInvitacion({ from, chatId, token, nombre = null }) {
+  const yo = idDePersona(from);
+  let lang = lenguaDe(from?.language_code);
+  if (!yo) return { texto: TEXTOS[lang].caducada, householdId: null, lang };
+
+  // La invitación, mirada ANTES de crear nada (#958): un `/start inv_…`
+  // inventado o caducado dejaba un usuario de auth huérfano, creado para nada.
+  // Solo se lee: la que manda sigue siendo la base al unirse (bot_unirse_por_invitacion).
+  const destino = await invitacionVigente(token);
+  if (destino === SIN_LEER) return { texto: noPude("invitacion", lang), householdId: null, lang };
+  if (!destino) return { texto: TEXTOS[lang].caducada, householdId: null, lang };
+
+  const [ident] = await select("bot_identities", `channel=eq.telegram&external_id=${eq(yo)}`, "user_id");
+  // Este chat privado ya enlazado a otra casa por otra cuenta no se puede
+  // mover (enlazarChat diría «ocupado»). Antes se miraba DESPUÉS de unirse: la
+  // persona entraba en la casa y gastaba la invitación, pero su chat no quedaba
+  // enlazado a ella (#958). Ahora se mira antes, con la misma regla.
+  const [chat] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(String(chatId))}`, "household_id,linked_by");
+  // Sin identidad pero con su privado enlazado por una cuenta (chats de antes
+  // de las identidades): es esa cuenta, no una nueva.
+  let userId = ident?.user_id ?? (String(chatId) === yo ? chat?.linked_by ?? null : null);
+  if (chatOcupado(chat, destino.householdId, userId)) {
+    await apuntarEnlace({ camino: CAMINO_ENLACE.INVITACION, resultado: RESULTADO_ENLACE.OCUPADO, householdId: destino.householdId, userId });
+    return { texto: TEXTOS[lang].ocupado, householdId: null, lang };
+  }
+  let nacida = false;
+  if (!userId) {
+    const cuenta = await crearCuentaTelegram({ telegramId: from.id, nombre });
+    userId = cuenta.userId;
+    nacida = true;
+  }
+
+  let r;
+  try {
+    r = await rpc("bot_unirse_por_invitacion", { p_user_id: userId, p_token: token });
+  } catch (e) {
+    // «Caducada» solo si la base contestó que no vale (sus raise exception);
+    // si no se pudo preguntar, se dice eso (#208).
+    const motivo = avisarFallo("invitacion_unirse", e, { grave: false });
+    if (!contesto(motivo)) return { texto: noPude("invitacion", lang), householdId: null, lang };
+    const lleno = /limit/i.test(String(e?.message));
+    return { texto: TEXTOS[lang][lleno ? "lleno" : "caducada"], householdId: null, lang };
+  }
+  if (!r?.householdId) return { texto: TEXTOS[lang].caducada, householdId: null, lang };
+  if (IDIOMAS.includes(r.lang)) lang = r.lang;
+  const [perfil] = await select("user_profiles", `user_id=${eq(userId)}`, "ui_lang");
+  if (IDIOMAS.includes(perfil?.ui_lang)) lang = perfil.ui_lang;
+
+  const enlace = await enlazarChat({
+    camino: CAMINO_ENLACE.INVITACION,
+    chatId,
+    kind: "private",
+    householdId: r.householdId,
+    userId,
+    externalId: yo,
+    nombre,
+    lang: from?.language_code,
+    // La cuenta nacida aquí sí apunta identidad; una que ya lo era, ya la tiene.
+    identidad: nacida ? PRUEBA_IDENTIDAD.NACIDA : null,
+  });
+  if (enlace.ocupado) return { texto: TEXTOS[lang].ocupado, householdId: r.householdId, lang };
+
+  const [casa] = await select("households", `id=${eq(r.householdId)}`, "name");
+  const nombreCasa = String(casa?.name ?? "la casa").replace(/[<>&]/g, "");
+  return { texto: TEXTOS[lang].hola(nombreCasa, r.role), householdId: r.householdId, lang };
+}

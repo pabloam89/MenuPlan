@@ -1,4 +1,5 @@
-import { DAYS } from "./planner.js";
+import { DAYS, diasActivosDe } from "./planner.js";
+import { indiceDeFecha } from "./dias.js";
 
 /**
  * La fecha de un Date en formato ISO (YYYY-MM-DD), leida en HORA LOCAL.
@@ -20,8 +21,7 @@ export function isoLocalDate(d) {
 export function getWeekDates(referenceDate = new Date()) {
   const d = new Date(referenceDate);
   d.setHours(0, 0, 0, 0);
-  const dow = d.getDay();
-  const toMonday = dow === 0 ? -6 : 1 - dow;
+  const toMonday = -indiceDeFecha(d);
   const monday = new Date(d);
   monday.setDate(d.getDate() + toMonday);
 
@@ -43,22 +43,19 @@ export function getWeekDates(referenceDate = new Date()) {
  * normalizado al orden L-D y sin duplicados, para que el resto del código
  * (que solo espera un array de day-codes en orden) no tenga que saber que
  * viene de una selección manual.
+ *
+ * La regla de qué días están activos es `diasActivosDe` (planner.js): la misma
+ * que usa el motor para crear los huecos, así lo que se pinta y lo que se
+ * planifica no pueden discrepar (#1029).
  */
 export function getWeekDatesByMenuWeek(menuWeek) {
-  const { offset = 0, startDayIdx = 0, days = null } = menuWeek ?? {};
+  const { offset = 0 } = menuWeek ?? {};
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const referenceDate = new Date(today);
   referenceDate.setDate(today.getDate() + offset * 7);
   const dates = getWeekDates(referenceDate);
-  const activeDays =
-    Array.isArray(days) && days.length > 0
-      ? DAYS.filter((d) => days.includes(d))
-      // For the current week (offset==0), only show days from startDayIdx onwards.
-      : offset === 0
-        ? DAYS.filter((_, i) => i >= startDayIdx)
-        : [...DAYS];
-  return { dates, activeDays };
+  return { dates, activeDays: diasActivosDe({ menuWeek }) };
 }
 
 /**
@@ -77,12 +74,9 @@ export function getWeekDatesFromStartISO(startISO, startDayIdx = 0, days = null)
   const monday = new Date(start);
   monday.setDate(start.getDate() - startDayIdx);
   const dates = getWeekDates(monday);
-  // `days` (selección manual archivada) manda si está presente — ver
-  // getWeekDatesByMenuWeek, mismo criterio.
-  const activeDays =
-    Array.isArray(days) && days.length > 0
-      ? DAYS.filter((dd) => days.includes(dd))
-      : DAYS.filter((_, i) => i >= startDayIdx);
+  // Misma regla que al generar (diasActivosDe): una semana archivada se mira
+  // siempre como «en curso» (offset 0), porque sus días son los que fueron.
+  const activeDays = diasActivosDe({ menuWeek: { offset: 0, startDayIdx, days } });
   return { dates, activeDays };
 }
 
@@ -112,8 +106,7 @@ export function mondayISOForOffset(offset = 0, today = new Date()) {
 
 /** Returns the 0-based Monday index of today (0=Lun … 6=Dom). */
 export function todayDayIdx() {
-  const dow = new Date().getDay(); // 0=Sun
-  return dow === 0 ? 6 : dow - 1;
+  return indiceDeFecha(new Date());
 }
 
 function pad2(n) {

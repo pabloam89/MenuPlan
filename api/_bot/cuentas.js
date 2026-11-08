@@ -19,11 +19,13 @@
  * servidor (`sesionDe`): ningún correo sale y nadie más ve el token.
  */
 
+import { seguirCon, fallaCon } from "./avisar.js";
 import { config, select, eq } from "./db.js";
+import { CANAL, ABREN_SESION } from "../../src/lib/vocabularios.js";
+// El email sintético, de un solo sitio: la app lo usa para ofrecer «Entrar también con Google» (#1238).
+import { emailSintetico } from "../../src/lib/cuentaTelegram.js";
 
-const DOMINIO_SINTETICO = "usuarios.menuplanai.com";
-
-export const emailSintetico = (telegramId) => `tg${telegramId}@${DOMINIO_SINTETICO}`;
+export { emailSintetico };
 
 async function auth(ruta, { method = "POST", body, token } = {}) {
   const { url, key, headers } = config();
@@ -32,8 +34,20 @@ async function auth(ruta, { method = "POST", body, token } = {}) {
     headers: token ? { apikey: anonKey() ?? key, Authorization: `Bearer ${token}`, "Content-Type": "application/json" } : headers,
     body: body === undefined ? undefined : JSON.stringify(body),
   });
-  const json = await res.json().catch(() => ({}));
+  // a propósito: sin cuerpo JSON, el status ya dice qué pasó
+  const json = await res.json().catch(seguirCon("cuentas_json", {}));
   return { ok: res.ok, status: res.status, json };
+}
+
+/**
+ * Un fallo de GoTrue, con su código y su mensaje y nada más: el cuerpo puede
+ * traer el id y el email de la persona, y el texto acaba en el log (#211).
+ */
+function errorDeAuth(que, r) {
+  const j = r.json ?? {};
+  const codigo = j.error_code ?? j.code ?? j.error ?? null;
+  const msg = j.msg ?? j.error_description ?? j.message ?? "";
+  return Object.assign(new Error(`${que} → ${r.status} ${[codigo, msg].filter(Boolean).join(" ")}`.slice(0, 200)), { status: r.status });
 }
 
 const anonKey = () => process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || null;
@@ -71,7 +85,7 @@ export async function verificarCodigoEmail(email, token) {
 export async function tokenHashDe(email) {
   const r = await auth("/admin/generate_link", { body: { type: "magiclink", email } });
   const hash = r.json?.properties?.hashed_token ?? r.json?.hashed_token;
-  if (!r.ok || !hash) throw new Error(`generate_link → ${r.status} ${JSON.stringify(r.json).slice(0, 200)}`);
+  if (!r.ok || !hash) throw errorDeAuth("generate_link", r);
   return hash;
 }
 
@@ -93,8 +107,25 @@ export async function cuentaNacidaAqui(telegramId) {
   const [id] = await select("bot_identities", `channel=eq.telegram&external_id=${eq(telegramId)}`, "user_id");
   if (!id) return null;
   const { url, headers } = config();
-  const u = await fetch(`${url}/auth/v1/admin/users/${id.user_id}`, { headers }).then((r) => r.json()).catch(() => null);
+  const u = await fetch(`${url}/auth/v1/admin/users/${id.user_id}`, { headers }).then((r) => r.json()).catch(fallaCon("cuentas_nacida_aqui", null));
   return u?.email === emailSintetico(telegramId) ? { id: u.id, email: u.email } : null;
+}
+
+/**
+ * La cuenta (de Google, de Apple) a la que este Telegram se conectó DESDE DENTRO de ella, o null (#1238, trozo 3 de
+ * specs/auth.md §7): su fila de bot_identities se apuntó con una prueba que sale de una sesión de esa cuenta
+ * (ABREN_SESION: el enlace de «Conectar Telegram» pulsado en el privado de este Telegram). El código del email, una
+ * invitación o una fila de antes de la 0129 (sin prueba) no abren nada.
+ */
+export async function cuentaConectadaDesdeLaApp(telegramId) {
+  // `*` y no la columna: sin la 0129 la fila llega sin prueba_identidad y no abre nada, en vez de un 400 que tumbaría
+  // también la entrada de las cuentas nacidas en Telegram.
+  const [id] = await select("bot_identities", `channel=eq.telegram&external_id=${eq(String(telegramId))}`, "*");
+  if (!id || !ABREN_SESION.has(id.prueba_identidad)) return null;
+  const { url, headers } = config();
+  const u = await fetch(`${url}/auth/v1/admin/users/${id.user_id}`, { headers }).then((r) => r.json()).catch(fallaCon("cuentas_conectada_app", null));
+  // La sesión se abre por el email (tokenHashDe): sin él, o si la cuenta no es la de la fila, nada.
+  return u?.id === id.user_id && u?.email ? { id: u.id, email: u.email } : null;
 }
 
 const esperar = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -109,12 +140,12 @@ export async function crearCuentaTelegram({ telegramId, nombre }) {
     body: {
       email,
       email_confirm: true,
-      user_metadata: { full_name: nombre ?? undefined, telegram_id: String(telegramId), origen: "telegram" },
+      user_metadata: { full_name: nombre ?? undefined, telegram_id: String(telegramId), origen: CANAL.TELEGRAM },
     },
   });
   const yaExistia = !creada.ok && /already|exists|registered/i.test(JSON.stringify(creada.json));
   if (!creada.ok && !yaExistia) {
-    throw new Error(`crear usuario → ${creada.status} ${JSON.stringify(creada.json).slice(0, 200)}`);
+    throw errorDeAuth("crear usuario", creada);
   }
 
   const token = await sesionDe(email);
@@ -139,7 +170,8 @@ export async function crearCuentaTelegram({ telegramId, nombre }) {
     headers: { apikey: anonKey() ?? config().key, Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
     body: "{}",
   });
-  const hogar = await res.json().catch(() => null);
+  // a propósito: sin cuerpo JSON, falla justo abajo con el status
+  const hogar = await res.json().catch(seguirCon("cuentas_hogar", null));
   if (!res.ok || !hogar?.activeHouseholdId) throw new Error(`ensure_user_household → ${res.status}`);
 
   return { userId: yo.json?.id, householdId: hogar.activeHouseholdId, email };

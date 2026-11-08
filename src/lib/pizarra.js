@@ -37,7 +37,34 @@ import {
   slotKey,
 } from "./planner.js";
 import { isBabyMenuGroup, membersOfGroup } from "./groups.js";
-import { resolveMemberAge, stageForAge } from "./stages.js";
+import { esNino } from "./stages.js";
+import { computeWeekRange, explicitDaysForOffset, horarioDeSemana } from "./menuArchive.js";
+import { compraNueva } from "./compraMarcas.js";
+
+/**
+ * Lo que abrir una pizarra cambia en `data`; salir de su hoja lo devuelve.
+ * El consumo no: a un invitado se le devuelve a la despensa al abrir (no guarda
+ * histórico), y tiene que quedar devuelto aunque cierre la app con la hoja
+ * delante. Su menú vuelve sin consumo, y nada se descuenta dos veces.
+ */
+const CAMPOS_DE_ABRIR_PIZARRA = [
+  "groups", "menus", "activeMenuId", "menuWeek", "menuWeekDays", "menuWeekOffsets", "extraMeals",
+];
+
+export function fotoAntesDePizarra({ data, menuPlan, shopping, aiRecipes, pantalla }) {
+  return {
+    data: Object.fromEntries(CAMPOS_DE_ABRIR_PIZARRA.map((campo) => [campo, data[campo]])),
+    menuPlan,
+    shopping,
+    aiRecipes,
+    pantalla,
+  };
+}
+
+/** `data` sobre la casa de ahora: lo que cambió en la hoja y no es del menú se queda. */
+export function volverAntesDePizarra(foto, dataActual) {
+  return { ...foto, data: { ...dataActual, ...foto.data } };
+}
 
 /**
  * ¿Está encendida? Apagada por defecto, igual que el solver y por el mismo
@@ -72,10 +99,7 @@ export function pizarraActiva() {
 
 /** Los niños que cuentan para la merienda: ni bebés ni adultos. */
 function tieneNinos(miembros) {
-  return miembros.some((m) => {
-    const s = stageForAge(resolveMemberAge(m)).id;
-    return s === "infantil" || s === "primaria";
-  });
+  return miembros.some((m) => esNino(m));
 }
 
 /**
@@ -203,6 +227,79 @@ export function conHuecosAlDia(plan, data, groups) {
   }
 
   return nuevos > 0 ? next : plan;
+}
+
+/**
+ * Una semana en blanco, tal y como la guarda el menú. La usan el alta de la
+ * pizarra y `conSemanasAlDia`: es la única receta de «qué lleva una semana».
+ *
+ * `esAncla`: la primera semana del menú. Solo ella puede empezar a mitad
+ * (`menuWeek.startDayIdx`) y usa siempre el horario de la casa; las demás van
+ * enteras, y con «distinto en cada semana» (`menuScheduleSameForAllWeeks`
+ * apagado) llevan el suyo propio (`menuWeekOverrides`) si lo tienen.
+ */
+export function semanaEnBlanco(data, groups, offset, esAncla) {
+  const startDayIdx = esAncla ? (data.menuWeek?.startDayIdx ?? 0) : 0;
+  const days = explicitDaysForOffset(data, offset);
+  const { startISO, endISO } = computeWeekRange(offset, startDayIdx, days);
+  const schedule = horarioDeSemana(data, offset, esAncla);
+  return {
+    startISO,
+    week: {
+      offset, startDayIdx, days, startISO, endISO,
+      plan: planVacio({ ...data, groups, schedule }, groups),
+      // La compra sale de los platos que se vayan poniendo (compraMarcas.js).
+      shopping: compraNueva(),
+      schedule,
+    },
+  };
+}
+
+/**
+ * Abre en el menú las semanas que los mandos acaban de marcar.
+ *
+ * La pizarra nace con la semana en curso, y la hoja «¿Qué días?» deja marcar
+ * días en las tres siguientes. Marcar solo escribía en `menuWeekDays` y los
+ * derivados: el menú seguía con UNA semana guardada, y como el paso de semanas
+ * se dibuja desde las semanas del menú, no salía —no había forma de llegar a
+ * lo que acababas de elegir—.
+ *
+ * SOLO AÑADE, como `conHuecosAlDia`: una semana que ya está conserva su plan
+ * (puede tener platos) y solo se le actualizan los días; desmarcar una no la
+ * borra. Devuelve `{ menu, nuevas, aGuardar }`;
+ * `nuevas` es `{ lunes: semana }` con lo añadido, `aGuardar` lo mismo más las
+ * semanas con días cambiados (lo que hay que subir a la nube), y `menu` es el
+ * mismo objeto cuando no hay nada que hacer.
+ */
+export function conSemanasAlDia(menu, data, groups) {
+  const weeks = menu?.weeks ?? {};
+  const abiertas = new Set(Object.values(weeks).map((w) => w?.offset));
+  const offsets = Array.isArray(data?.menuWeekOffsets) ? [...data.menuWeekOffsets].sort((a, b) => a - b) : [];
+  const nuevas = {};
+  // Las que ya están conservan plan y clave; solo se les pone al día los días,
+  // que pudieron cambiar en la hoja después de abrirse.
+  let refrescadas = null;
+  for (const [lunes, w] of Object.entries(weeks)) {
+    if (!offsets.includes(w?.offset)) continue;
+    const days = explicitDaysForOffset(data, w.offset);
+    if (JSON.stringify(days) === JSON.stringify(w.days ?? null)) continue;
+    refrescadas = refrescadas ?? { ...weeks };
+    refrescadas[lunes] = { ...w, days };
+  }
+
+  for (const offset of offsets) {
+    if (abiertas.has(offset)) continue;
+    const { startISO, week } = semanaEnBlanco(data, groups, offset, offset === offsets[0]);
+    if (weeks[startISO]) continue;
+    nuevas[startISO] = week;
+  }
+
+  if (Object.keys(nuevas).length === 0 && !refrescadas) return { menu, nuevas, aGuardar: {} };
+  const resultado = { ...(refrescadas ?? weeks), ...nuevas };
+  // Lo que hay que subir a la nube: las nuevas y las que cambiaron de días.
+  const aGuardar = { ...nuevas };
+  for (const [lunes, w] of Object.entries(resultado)) if (w !== weeks[lunes]) aGuardar[lunes] = w;
+  return { menu: { ...menu, weeks: resultado }, nuevas, aGuardar };
 }
 
 /** Cuántos huecos tiene un esqueleto (para el copy de "tienes N huecos"). */

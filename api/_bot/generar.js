@@ -15,23 +15,40 @@
  * tampoco.
  *
  * Diferencia con la app, a propósito: una sola semana por petición («esta»
- * desde hoy, o «la que viene»).
+ * desde hoy, la primera libre a partir de la que viene, o la de una fecha).
+ * Qué semana es y si ya tiene menú lo decide semanaPedida.js (#905, #907).
  */
 
 // Las fechas de la semana (computeWeekRange) se calculan en hora local: en el
 // servidor, la de España, no UTC.
 process.env.TZ = "Europe/Madrid";
 
-import { select, insert, update, eq } from "./db.js";
-import { cargarCasa, guardarCasa } from "./casa.js";
+import { fallaCon } from "./avisar.js";
+import { apuntarMenuGenerado } from "./menusGenerados.js";
+import { conEstructuraDelMenu } from "../../src/lib/estructuraPlatos.js";
+import { select, insert, borrar, eq } from "./db.js";
+import { cargarCasa, conCasa } from "./casa.js";
+import { datosDelMotor } from "../../src/lib/recetasDeLaCasa.js";
 import { motor, describirMenu, masParecida, normal, prepararRecetas, DIA_LARGO } from "./menu.js";
-import { registrar, EMBUDO } from "./embudo.js";
+import { propiasDe } from "./propias.js";
+import { registrar, rastro, EMBUDO } from "./embudo.js";
+import { RASTRO, CAMPO_CUMPLIMIENTO } from "../../src/lib/rastro.js";
+import { isoDeCasa, DIAS, DIAS_FINDE, semanasEntre } from "../../src/lib/dias.js";
+import { collectMenuRecipeIds, pruneAiRecipes, planHasDishes } from "../../src/lib/menuArchive.js";
+import { huecosEsperados, huecosVacios, describirHuecos } from "../../src/lib/huecosDelPlan.js";
+import { minimosQueFaltan, MINIMO } from "../../src/lib/minimosParaGenerar.js";
+import { indiceSemanaCole } from "../../src/lib/schoolMenu.js";
+import { VENTANA_SEMANAS } from "../../src/lib/recientes.js";
+import { resolverSemana, conservarDiasPrevios, rangoDeFechas } from "./semanaPedida.js";
+import { conRecordatorioDeSilencio } from "../../src/lib/alergiasBase.js";
+import { apuntarRecordatorio } from "./silencio.js";
+import { listaParaEscribir } from "../../src/lib/vocabularios.js";
+import { conMarcas, claveArticulo } from "../../src/lib/compraIdentidad.js";
+import { compraParaGuardar, articulosDe } from "../../src/lib/compraMarcas.js";
+import { modoDespensaAlGenerar, usaDespensa } from "../../src/lib/modoDespensa.js";
+import { resultado, NO_GUARDADO } from "./resultado.js";
 
-const hoyISO = () => new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" }).format(new Date());
-const indiceHoy = () => {
-  const d = new Intl.DateTimeFormat("en-GB", { weekday: "short", timeZone: "Europe/Madrid" }).format(new Date());
-  return ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].indexOf(d);
-};
+const hoyISO = () => isoDeCasa();
 
 /**
  * @param {"esta" | "siguiente"} cual
@@ -49,7 +66,7 @@ const FUERA_DE_PEDIDOS = new Set(["bebes", "desayunos", "meriendas", "postres", 
  * plato a plato: cada cambio, otra vuelta del modelo en el chat.
  */
 export function platosPedidos(m, casa, fijos = []) {
-  const propias = casa.state?.data?.userRecipes ?? [];
+  const propias = propiasDe(casa);
   const candidatas = [...propias, ...m.recipeCatalog].filter((r) => r?.name && !FUERA_DE_PEDIDOS.has(r.category));
   return fijos.filter((f) => f?.nombre).map((f) => {
     const q = normal(f.nombre);
@@ -66,77 +83,353 @@ export function platosPedidos(m, casa, fijos = []) {
   });
 }
 
-/** Dónde ha quedado cada plato pedido en el plan, en palabras. */
-export function dondeQuedaron(pedidos, plan) {
-  return pedidos.map(({ pedido, aproximada, fijo }) => {
-    let donde = null;
-    for (const [gid, huecos] of Object.entries(plan)) {
-      if (gid.startsWith("_") || donde) continue;
-      for (const [clave, h] of Object.entries(huecos ?? {})) {
-        const ids = [h?.recipeId, h?.firstRecipeId].filter(Boolean).map((id) => String(id).split("__").pop());
-        if (fijo.catalogId ? ids.includes(fijo.catalogId) : false) {
-          const [d, franja] = clave.split("-");
-          donde = `${DIA_LARGO[d] ?? d}, ${franja.toLowerCase()}`;
-          break;
-        }
+/**
+ * La clave del hueco («Lun-Comida») donde está un plato pedido, o null. Solo
+ * en los días activos de la semana (`activos`): el motor planifica la semana
+ * entera, y un menú hecho un jueves podía dejar lo pedido el lunes, que ya
+ * pasó; contaba como puesto, nadie lo veía y no se recolocaba.
+ */
+function claveDelPedido(fijo, plan, activos = null) {
+  if (!fijo.catalogId) return null;
+  for (const [gid, huecos] of Object.entries(plan)) {
+    if (gid.startsWith("_")) continue;
+    for (const [clave, h] of Object.entries(huecos ?? {})) {
+      if (activos?.length && !activos.includes(clave.split("-")[0])) continue;
+      const ids = [h?.recipeId, h?.firstRecipeId].filter(Boolean).map((id) => String(id).split("__").pop());
+      if (ids.includes(fijo.catalogId)) return clave;
+    }
+  }
+  return null;
+}
+
+const FINDE = new Set(DIAS_FINDE);
+// Por encima de esto, mejor en fin de semana: es donde la casa tiene tiempo.
+const MINUTOS_ENTRE_SEMANA = 30;
+
+/**
+ * Los platos pedidos que el motor no ha dejado en el plan, colocados a mano en
+ * el servidor. Pasa: dos fijos van al mismo día, juntos se pasan del tiempo de
+ * una comida entre semana, y la reparación posterior quita uno (las lentejas
+ * «no cabían»); con plato único, a veces no se coloca ninguno. Cada uno va a un
+ * día sin otro pedido (los largos, antes en fin de semana), en la franja que
+ * toca y como primero o como principal según la receta y la estructura de la
+ * casa, en todos los grupos que comen esa franja salvo el del bebé. Muta
+ * `plan` y `recipes`; devuelve lo que ha colocado.
+ */
+export function colocarPedidos(m, data, plan, recipes, pedidos, activeDays) {
+  const colocados = [];
+  const ocupados = new Set(pedidos.map((p) => claveDelPedido(p.fijo, plan, activeDays)?.split("-")[0]).filter(Boolean));
+  for (const p of pedidos) {
+    if (claveDelPedido(p.fijo, plan, activeDays)) continue;
+    const receta = m.recipeCatalogById?.[p.fijo.catalogId] ?? (data.userRecipes ?? []).find((r) => r.id === p.fijo.catalogId);
+    if (!receta) continue;
+    const franja = p.fijo.meals?.[0] ?? "Comida";
+    const largo = (receta.time ?? 0) > MINUTOS_ENTRE_SEMANA;
+    const dias = largo ? [...activeDays.filter((d) => FINDE.has(d)), ...activeDays.filter((d) => !FINDE.has(d))] : activeDays;
+    const roles = receta.mealRole ?? [];
+    for (const d of dias) {
+      if (ocupados.has(d)) continue;
+      let puesto = false;
+      for (const [gid, huecos] of Object.entries(plan)) {
+        const clave = `${d}-${franja}`;
+        const h = gid.startsWith("_") ? null : huecos?.[clave];
+        if (!h || /(^|__)bebes_/.test(h.recipeId ?? "")) continue;
+        const course = h.firstRecipeId && roles.includes("primero") && !roles.includes("segundo") ? "first" : "main";
+        const el = m.pickCatalogReplacement(data, plan, { groupId: gid, day: d, meal: franja, course, forcedRecipe: receta, hoy: hoyISO() });
+        if (!el?.recipeId) continue;
+        // Con su guarnición, su salsa y para qué receta son (#1246): el plato sale del hueco.
+        plan[gid][clave] = { ...h, ...el.hueco, warnings: [] };
+        m.registerRecipes([el.frontendRecipe]);
+        recipes.push(el.frontendRecipe);
+        puesto = true;
+      }
+      if (puesto) {
+        ocupados.add(d);
+        colocados.push(p.pedido);
+        break;
       }
     }
+  }
+  return colocados;
+}
+
+/**
+ * Vacía los huecos del plan con un plato que choca con alguien de su grupo
+ * (m.choquesDelPlan) y dice cuáles. Muta `plan`. El hueco queda vacío y con
+ * aviso, como los que el motor deja vacíos a propósito: mejor un hueco sin
+ * plato que un plato que no se puede comer.
+ */
+export function quitarLoQueChoca(m, data, plan) {
+  const choques = m.choquesDelPlan?.(data, plan) ?? [];
+  for (const c of choques) {
+    const h = plan[c.groupId][c.clave];
+    plan[c.groupId][c.clave] = { ...h, [c.campo]: null, warnings: [...(h.warnings ?? []), `«${c.nombre}» quitado: choca con una restricción del grupo.`] };
+  }
+  return choques.map((c) => `${c.nombre} (${c.clave.replace("-", " ")})`);
+}
+
+/** Dónde ha quedado cada plato pedido en el plan, en palabras. */
+export function dondeQuedaron(pedidos, plan, activos = null) {
+  return pedidos.map(({ pedido, aproximada, fijo }) => {
+    const clave = claveDelPedido(fijo, plan, activos);
+    const [d, franja] = clave ? clave.split("-") : [];
+    const donde = clave ? `${DIA_LARGO[d] ?? d}, ${franja.toLowerCase()}` : null;
     return donde
       ? `«${pedido}» → ${fijo.name} (${donde})${aproximada ? ", lo más parecido que hay" : ""}`
       : `«${pedido}» no ha cabido en la semana: ofrece ponerlo con cambiar_plato`;
   });
 }
 
-export async function generarMenu(householdId, cual = "esta", fijos = []) {
+/**
+ * La compra de la semana que se genera, con dueño único para cada artículo
+ * (#958, clases D y E):
+ *   · rehaciendo una semana, lo ya marcado («comprado», «en casa») de la que
+ *     se sustituye sigue marcado, por ingrediente y unidad (conMarcas);
+ *   · lo apuntado a mano y sin comprar pasa a la lista nueva SOLO si es la que
+ *     se va a ver (`ponerSemanaNueva`). Pidiendo la siguiente, la de hoy se
+ *     queda con lo suyo: antes salía en las dos listas y se compraba dos veces.
+ *     Si el motor ya pide lo mismo, no se repite.
+ * Pura. `casa` es la que se leyó (o la fresca, al guardar).
+ */
+export function compraDeLaSemanaNueva(generados, casa, { startISO, endISO, ponerSemanaNueva }) {
+  const sustituida = (casa?.menu ? casa.semanas ?? [] : []).find((w) => w.weekStart <= endISO && w.weekEnd >= startISO);
+  const items = conMarcas(generados, sustituida?.shopping?.items);
+  if (!ponerSemanaNueva) return items;
+  const yaPedidos = new Set(items.map((it) => claveArticulo(it.name)));
+  const aMano = (casa?.semana?.shopping?.items ?? casa?.state?.shopping?.items ?? [])
+    .filter((it) => it.manual && !it.have && !yaPedidos.has(claveArticulo(it.name)));
+  return [...items, ...aMano];
+}
+
+/**
+ * Los días elegidos a mano (`menuWeekDays`) que aún no han pasado. En la
+ * semana en curso solo cuentan desde `startDayIdx` (hoy, o mañana si se
+ * rehace): con los días elegidos, generar un miércoles metía el lunes y el
+ * martes, y la compra pedía sus ingredientes (#958). Si no queda ninguno, la
+ * semana va desde hoy como sin días elegidos (null).
+ */
+export function diasQueQuedan(dias, offset, startDayIdx) {
+  if (!dias?.length || offset !== 0) return dias ?? null;
+  const quedan = dias.filter((d) => DIAS.indexOf(d) >= startDayIdx);
+  return quedan.length ? quedan : null;
+}
+
+/**
+ * Las últimas semanas guardadas de la casa (de cualquier menú) hasta la que
+ * se genera, una por lunes, de la más reciente a la más vieja: la memoria de
+ * lib/recientes.js. Las semanas que se conservan están copiadas en varios
+ * menús; cuenta una vez.
+ * Si la lectura falla, null y no []: «no sé qué hubo» no es «no hubo nada».
+ * Con [] la poda de aiRecipes borraba las recetas de esas semanas (revisor
+ * de #966, C5). Quien llama genera sin memoria y no poda.
+ */
+export async function semanasAnteriores(householdId, hastaISO) {
+  const filas = await select(
+    "user_menu_weeks",
+    `household_id=${eq(householdId)}&week_start=lte.${hastaISO}&order=week_start.desc&limit=${VENTANA_SEMANAS * 4}`,
+    "week_start,plan",
+  ).catch(fallaCon("generar_semanas_anteriores", null));
+  if (!filas) return null;
+  const porLunes = new Map();
+  for (const f of filas) if (f?.week_start && !porLunes.has(f.week_start)) porLunes.set(f.week_start, { startISO: f.week_start, plan: f.plan ?? {} });
+  return [...porLunes.values()].slice(0, VENTANA_SEMANAS);
+}
+
+/**
+ * Las recetas generadas (`state.aiRecipes`) que aún sirven: las de los planes
+ * que siguen a la vista (`planes`: la semana nueva, las que se quedan y las
+ * recientes, por si «deshaz» vuelve al menú de antes) y las favoritas. Como
+ * pruneAiRecipes en la app al generar. En las casas que solo usan Lola no lo
+ * podaba nadie y crecía sin fin (hasta 137 el 29 oct 2026). Lo de menús más
+ * viejos sigue en user_menu_recipes, que es de donde se lee su historial.
+ */
+export function recetasQueSiguen(aiRecipes, planes, casa) {
+  const semanas = Object.fromEntries((planes ?? []).map((plan, i) => [String(i), { plan }]));
+  const quedan = collectMenuRecipeIds({ vivas: { weeks: semanas } });
+  return pruneAiRecipes(aiRecipes, quedan, new Set(Object.keys(casa?.deLaCasa?.recipeVotes ?? {})));
+}
+
+/** Borra un menú que no llegó a activarse, con sus semanas y recetas. */
+async function borrarMenu(householdId, menuId) {
+  const f = `household_id=${eq(householdId)}&menu_id=${eq(menuId)}`;
+  await borrar("user_menu_recipes", f);
+  await borrar("user_menu_weeks", f);
+  await borrar("user_menus", `household_id=${eq(householdId)}&id=${eq(menuId)}&is_active=eq.false`);
+}
+
+/** Lo que se le dice a Lola cuando falta un mínimo: qué preguntar, a quién, y que vuelva a generar después. */
+export function preguntaPorMinimos(faltan) {
+  const lista = (xs) => (xs.length > 1 ? `${xs.slice(0, -1).join(", ")} y ${xs.at(-1)}` : xs[0]);
+  const alergias = faltan.find((f) => f.minimo === MINIMO.alergias);
+  if (alergias) {
+    const varios = alergias.personas.length > 1;
+    return `NO GENERADO: de ${lista(alergias.personas)} aún no sé si ${varios ? "tienen" : "tiene"} alguna alergia o intolerancia. Pregúntalo antes, una sola vez y con el aviso de «Seguridad», sin generar; cuando contesten (o sigan con lo suyo), vuelve a llamar a generar_menu.`;
+  }
+  return `NO GENERADO: falta ${lista(faltan.map((f) => f.minimo))}.`;
+}
+
+/**
+ * Por qué no se ha generado, para el recibo que ve la familia: una frase
+ * corta por clase. El detalle lo lee el modelo en la nota del resultado.
+ */
+export const SIN_GENERAR = Object.freeze({
+  CASA: "faltan datos de la casa",
+  SEMANA: "esa semana ya tiene menú o no se puede generar",
+  MINIMOS: "falta saber algo de la casa antes (alergias)",
+  PREGUNTAR: "falta preguntar para cuándo y cómo de a fondo",
+  VACIO: "no ha salido ningún plato",
+  NO_GUARDADO,
+});
+
+/**
+ * Los motivos de no generar que son una pregunta pendiente, no un fallo: la familia no ve «⚠️ Sin hacer» por ellos
+ * (4 nov 2026: salió «⚠️ Sin hacer: el menú (falta preguntar para cuándo y cómo de a fondo)» mientras Lola preguntaba).
+ */
+export const SIN_GENERAR_ES_PREGUNTA = new Set([SIN_GENERAR.PREGUNTAR, SIN_GENERAR.MINIMOS]);
+
+/**
+ * El RESULTADO de generar_menu (resultado.js, trozo 27 de #1037), de lo que
+ * `generarMenu` deja en `out`: la semana guardada, y los huecos que se han
+ * quedado sin plato o sin el plato por seguridad; o, si no se generó, por qué.
+ * `texto`, lo que devolvió, va de nota para el modelo.
+ */
+export function resultadoDeGenerar(out, texto) {
+  // Falta preguntar algo antes (fecha y camino, alergias): es una duda, no un fallo. Va como cualquier duda (resultado.js,
+  // ESTADO.NADA sin «sin hacer»): sin línea ⚠️ en el recibo, y al modelo, «pregúntalo» con lo que falta en la nota.
+  if (!out?.ok && SIN_GENERAR_ES_PREGUNTA.has(out?.motivo)) return resultado({ accion: "menu", nota: texto });
+  if (!out?.ok) return resultado({ accion: "menu", sinHacer: [{ que: "el menú", motivo: out?.motivo ?? SIN_GENERAR.NO_GUARDADO }], nota: texto });
+  const sinHacer = [
+    ...(out.huecosVacios ?? []).map((h) => ({ que: describirHuecos([h]), motivo: "ningún plato encaja" })),
+    ...(out.quitados ?? []).map((que) => ({ que, motivo: "quitado por seguridad: choca con alguien" })),
+  ];
+  return resultado({ accion: "menu", hecho: [`semana del ${rangoDeFechas(out.desde, out.hasta)} (${out.platos} ${out.platos === 1 ? "plato" : "platos"})`], sinHacer, nota: texto });
+}
+
+/**
+ * Pura. ¿Alguien eligió el modelo de menú de la casa? Que menuModel tenga sobre (trozo 12): el defecto del registro
+ * («same») no lo eligió nadie. Sin él (una casa que no viene de cargarCasa), lanza: no se adivina.
+ */
+const modeloElegido = (casa) => {
+  const leido = casa?.conSobre?.menuModel;
+  if (!leido) throw new Error("generar: la casa no trae menuModel con su sobre (cargarCasa)");
+  return leido.conSobre;
+};
+
+// `out` se rellena siempre (ok, motivo y lo generado): de ahí sale el resultado.
+export async function generarMenu(householdId, cual = "esta", fijos = [], out = null, { desde = null, rehacer = false, soloEste = {}, comoSePidio = null } = {}) {
+  out ??= {};
+  // Una salida sin generar: el motivo para el recibo y el texto para Lola.
+  const noGenerado = (motivo, texto, extra = {}) => { Object.assign(out, { ok: false, motivo, ...extra }); return texto; };
   const casa = await cargarCasa(householdId);
-  if (!casa) return "Esta casa todavía no tiene datos en la nube.";
+  if (!casa) return noGenerado(SIN_GENERAR.CASA, "Esta casa todavía no tiene datos en la nube.");
+  // Qué semana, antes de gastar motor: una que ya tiene menú no se rehace en
+  // silencio (#905) y rehacer la de hoy no toca hoy ni lo pasado (#907).
+  const pedida = resolverSemana({ cual, desde, rehacer, semanas: casa.menu ? casa.semanas : [], hoy: hoyISO() });
+  if (pedida.aviso) {
+    Object.assign(out, { ok: false, aviso: pedida.aviso, motivo: SIN_GENERAR.SEMANA });
+    return pedida.aviso;
+  }
   const m = await motor();
   // Las recetas propias de la casa, registradas para resolver los pedidos.
-  if (fijos.length) await prepararRecetas(casa).catch(() => {});
+  if (fijos.length) await prepararRecetas(casa).catch(fallaCon("generar_recetas_propias"));
 
-  const base = m.resolveModeData(casa.state?.data ?? {});
+  // Las propias de user_recipes, no las del JSON: la app las quita de ahí.
+  // `soloEste`: lo dicho para este menú (pedidoMenu.js). Va al motor y no se guarda en la casa.
+  const base = conEstructuraDelMenu(m.resolveModeData({ ...datosDelMotor(casa), userRecipes: propiasDe(casa) }), soloEste);
   const pedidos = platosPedidos(m, casa, fijos);
   const working = pedidos.length ? { ...base, fixedDishes: [...(base.fixedDishes ?? []), ...pedidos.map((p) => p.fijo)] } : base;
   const miembros = working.members ?? [];
   let groups = working.groups ?? [];
   const conGente = (gs) => gs.some((g) => m.membersOfGroup(g, miembros).length > 0);
-  if (miembros.length && (!groups.length || !conGente(groups))) groups = m.groupsFromModel(miembros, working.menuModel);
-  if (!groups.length || !conGente(groups)) return "Antes de generar necesito saber quién come en casa: añade al menos una persona.";
+  // Una casa del chat sin modelo de menú es de antes de «todos comen lo
+  // mismo»: el reparto por edades que tiene no lo eligió nadie. Al generar
+  // (el plan es nuevo, no se pierde nada) pasa a un solo menú. Un reparto
+  // elegido (menuModel dicho, o menús individuales) no se toca.
+  const elegido = modeloElegido(casa);
+  const soloPorEdades = groups.length > 1 && groups.every((g) => ["adultos", "ninos", "bebe"].includes(m.tipoDeGrupo(g)));
+  const vivas = (casa.semanas ?? []).filter((w) => w.weekEnd >= hoyISO());
+  // Si otra semana del menú se queda, sus huecos van con los ids de ahora: no
+  // se reagrupa (se hará cuando se rehaga esa).
+  const quedaOtra = pedida.offset > 0 ? vivas.some((w) => w.weekStart <= hoyISO()) : vivas.some((w) => w.weekStart > hoyISO()) || Boolean(pedida.existente);
+  if (!elegido && soloPorEdades && !quedaOtra) groups = [];
+  const modelo = working.menuModel ?? "same";
+  // Rehechos, heredan el id de los de antes por su papel (Adultos → Familia).
+  if (miembros.length && (!groups.length || !conGente(groups))) groups = m.groupsFromModel(miembros, modelo, working.groups ?? []);
+  if (!groups.length || !conGente(groups)) return noGenerado(SIN_GENERAR.CASA, "Antes de generar necesito saber quién come en casa: añade al menos una persona.");
+  // Sin saber las alergias de alguien no se genera: se pregunta antes (trozo 2
+  // de #1037, decidido por Pablo el 30 oct 2026; revierte #107). Esquivar los
+  // 14 alérgenos dejaba 27 recetas y la semana con huecos (#1029). El silencio
+  // tras el aviso ya cuenta como revisado (silencioDelTurno corre antes).
+  const faltan = minimosQueFaltan(working);
+  if (faltan.length) {
+    Object.assign(out, { ok: false, aviso: "faltan_minimos", faltan, motivo: SIN_GENERAR.MINIMOS });
+    return preguntaPorMinimos(faltan);
+  }
 
-  // «Esta semana» empieza hoy (no tiene sentido planificar el lunes pasado);
-  // «la siguiente», el lunes que viene y entera.
-  const offset = cual === "siguiente" ? 1 : 0;
-  const startDayIdx = offset === 0 ? Math.max(0, indiceHoy()) : 0;
-  const days = m.explicitDaysForOffset(working, offset);
-  const { startISO, endISO, activeDays } = m.computeWeekRange(offset, startDayIdx, days);
+  // «Esta semana» empieza hoy (no tiene sentido planificar el lunes pasado),
+  // o mañana si se rehace; las demás, desde su lunes y enteras.
+  const { offset, startDayIdx } = pedida;
+  const days = diasQueQuedan(soloEste.dias ?? m.explicitDaysForOffset(working, offset), offset, startDayIdx);
+  const { startISO: inicioGenerado, endISO, activeDays } = m.computeWeekRange(offset, startDayIdx, days);
+  // Rehaciendo la semana en curso, se guarda entera desde donde empezaba: lo
+  // de hoy y lo pasado vuelve del plan viejo (conservarDiasPrevios, abajo).
+  const previa = offset === 0 && pedida.existente ? pedida.existente : null;
+  const startISO = previa ? m.computeWeekRange(0, previa.startDayIdx ?? 0, days).startISO : inicioGenerado;
   const varietyPref = ["strict", "moderate", "relaxed"].includes(working.menuVarietyPref) ? working.menuVarietyPref : "strict";
 
+  // La semana del cole que toca por FECHA (indiceSemanaCole), no siempre la 1.
   const { weekData, crossWeek, weekSchedule } = m.prepararSemana(working, {
-    groups, offset, w: 0, startDayIdx, days, activeDays, startISO, endISO,
+    groups, offset, w: indiceSemanaCole(working.schoolMenus, startISO), startDayIdx, days, activeDays, startISO, endISO,
     weekOffsets: [offset], sameForAllWeeks: true, varietyPref, weekCount: 1, hoy: hoyISO(),
   });
+  // La memoria entre menús (lib/recientes.js) lee `data.menus`, que la app no
+  // sube a la casa: en Lola salía vacía y la semana siguiente podía repetir los
+  // platos de esta. Se saca de las semanas guardadas (#958).
+  const anteriores = await semanasAnteriores(householdId, startISO);
+  weekData.menus = { guardadas: { weeks: Object.fromEntries((anteriores ?? []).map((w) => [w.startISO, w])) } };
 
-  const filasDespensa = await select("user_pantry", `household_id=${eq(householdId)}&order=created_at.asc`, m.COLUMNAS_DESPENSA).catch(() => []);
+  const filasDespensa = await select("user_pantry", `household_id=${eq(householdId)}&order=created_at.asc`, m.COLUMNAS_DESPENSA).catch(fallaCon("generar_despensa", []));
   const despensa = filasDespensa.map(m.filaDeDespensa);
-  const pantryMode = ["strict", "only", "prefer", "off"].includes(working.pantryMode) ? working.pantryMode : "off";
-  const pantryIngredients = pantryMode === "off" ? [] : despensa;
+  const pantryMode = modoDespensaAlGenerar(working);
+  const pantryIngredients = usaDespensa(working) ? despensa : [];
 
-  const { plan, recipes } = await m.generateMenuWithAI(weekData, { pantryIngredients, pantryMode, crossWeek });
+  // El motor lee la semana compilada una vez (src/lib/entradaMotor.js), no la casa.
+  const { plan, recipes, cumplimiento } = await m.generateMenuWithAI(m.entradaDelMotor(weekData), { pantryIngredients, pantryMode, crossWeek });
   m.registerRecipes(recipes);
+  // Lo pedido que el motor no haya dejado, antes de la compra (que sale del plan).
+  if (pedidos.length) colocarPedidos(m, { schedule: {}, ...working, groups }, plan, recipes, pedidos, activeDays);
+  // La última puerta antes de guardar (#958): ningún plato que choque con
+  // alguien de su grupo llega a la base, lo haya puesto el motor o un atajo.
+  const quitados = quitarLoQueChoca(m, { ...working, groups }, plan);
+  // Los huecos que la semana debía tener y se han quedado sin plato (#1029):
+  // el motor los tira con una nota en plan._warnings que nadie lee, y Lola
+  // decía «¡Menú listo!» con cinco vacíos. Se cuentan con lo que recibió el
+  // motor (weekData) y solo en los días que se generan. El menú se guarda
+  // igual (un hueco vacío no es un fallo total), pero se dice tal cual.
+  const esperados = huecosEsperados(weekData, { activeDays });
+  const vacios = huecosVacios(plan, esperados);
+  // Un plan sin ningún plato no se guarda ni se activa: dejaría la casa sin
+  // menú y diría «generado» (#958). Tampoco si TODOS los huecos esperados
+  // están vacíos: lo que tuviera estaría fuera de los días pedidos.
+  if (!planHasDishes(plan) || (esperados.length > 0 && vacios.length === esperados.length)) {
+    Object.assign(out, { ok: false, aviso: "plan_vacio", motivo: SIN_GENERAR.VACIO });
+    return "NO GUARDADO: el motor no ha podido poner ningún plato en esa semana (revisa los días elegidos y quién come). Sigue el menú de antes.";
+  }
   const sh = m.buildShoppingList(plan, groups, m.getDayMeals(weekData), despensa);
-  // Lo apuntado a mano y sin comprar («apunta leche y pan», con o sin menú)
-  // pasa a la lista nueva: generar un menú no puede borrarlo.
-  const aMano = (casa.semana?.shopping?.items ?? casa.state?.shopping?.items ?? []).filter((it) => it.manual && !it.have);
-  const shopping = { items: [...sh.byCategory.flatMap((c) => c.items), ...(sh.pantryItems ?? []), ...aMano] };
+  const generados = articulosDe(sh);
+  let shopping = { items: generados };
+  // Rehaciendo la semana en curso, hoy y lo pasado vuelven del plan viejo
+  // DESPUÉS de la compra: lo de días que ya pasaron no se vuelve a comprar.
+  const conservados = previa ? conservarDiasPrevios(plan, previa.plan, startDayIdx, DIAS) : [];
 
-  const week = { offset, startDayIdx, days, startISO, endISO, plan, shopping, schedule: weekSchedule };
+  const week = { offset, startDayIdx: previa ? previa.startDayIdx ?? 0 : startDayIdx, days, startISO, endISO, plan, shopping, schedule: weekSchedule };
   const menu = { id: m.createMenuId(), createdAt: Date.now(), isFavorite: false, isActive: true, activatedAt: null, varietyPref, weeks: { [startISO]: week } };
 
   // Como saveMenu: primero el menú INACTIVO con sus semanas y recetas; solo
   // si todo entra, se activa. Un menú a medias nunca queda activo.
   const [hogar] = await select("households", `id=${eq(householdId)}`, "owner_user_id");
   const dueno = hogar?.owner_user_id;
-  if (!dueno) return "No encuentro quién gestiona esta casa.";
+  if (!dueno) return noGenerado(SIN_GENERAR.CASA, "No encuentro quién gestiona esta casa.");
   const previos = await select("user_menus", `household_id=${eq(householdId)}&limit=1`, "id");
 
   // Las otras semanas del menú activo que no han pasado y no chocan con la
@@ -152,61 +445,136 @@ export async function generarMenu(householdId, cual = "esta", fijos = []) {
     ? (await select("user_menu_weeks", `household_id=${eq(householdId)}&menu_id=${eq(casa.menu.id)}`, COLUMNAS_SEMANA))
       .filter((w) => seQuedan.some((s) => s.weekStart === w.week_start))
     : [];
-  const recetasQueSeQuedan = semanasQueSeQuedan.length
+  const recetasQueSeQuedan = semanasQueSeQuedan.length || conservados.length
     ? await select("user_menu_recipes", `household_id=${eq(householdId)}&menu_id=${eq(casa.menu.id)}`, "recipe_id,recipe_snapshot")
     : [];
 
-  await insert("user_menus", [m.menuToRow(menu, dueno, householdId)]);
-  await insert("user_menu_weeks", [
-    m.weekToRow(dueno, menu.id, startISO, week, householdId),
-    ...semanasQueSeQuedan.map((w) => ({ ...w, menu_id: menu.id })),
-  ]);
-  const porReceta = new Map(recetasQueSeQuedan.map((f) => [f.recipe_id, f.recipe_snapshot]));
-  for (const r of recipes) if (r?.id) porReceta.set(r.id, r);
-  const filas = [...porReceta].filter(([, snap]) => snap).map(([recipe_id, recipe_snapshot]) => ({
-    user_id: dueno, household_id: householdId, menu_id: menu.id, recipe_id, recipe_snapshot,
-  }));
-  if (filas.length) await insert("user_menu_recipes", filas, { upsert: true });
+  // La lista que se ve pasa a ser la de la semana nueva salvo que se quede la
+  // de hoy (se ha pedido la siguiente): entonces lo apuntado a mano sigue
+  // siendo de la de hoy, y solo de ella (compraDeLaSemanaNueva).
+  const ponerSemanaNueva = !semanasQueSeQuedan.some((w) => w.week_start <= hoy && hoy <= w.week_end) || (startISO <= hoy && hoy <= endISO);
+  shopping = { items: compraDeLaSemanaNueva(generados, casa, { startISO, endISO, ponerSemanaNueva }) };
+  // La semana guarda solo las marcas (trozo 18): la lista sale del plan al leerla (compraDeSemana.js).
+  week.shopping = compraParaGuardar(shopping);
 
-  // activate_household_menu, hecho desde el servidor: uno activo por casa.
-  await update("user_menus", `household_id=${eq(householdId)}&is_active=eq.true`, { is_active: false });
-  await update("user_menus", `household_id=${eq(householdId)}&id=${eq(menu.id)}`, { is_active: true });
+  try {
+    await insert("user_menus", [m.menuToRow(menu, dueno, householdId)]);
+    await insert("user_menu_weeks", [
+      m.weekToRow(dueno, menu.id, startISO, week, householdId),
+      // Con el dueño del menú nuevo: la semana pudo guardarla un cotitular, y
+      // la FK (user_id, menu_id) → user_menus la rechazaría.
+      // El offset se CALCULA desde hoy, como el de la nueva: copiado, era
+      // relativo al día en que se generó, podía repetir el de la nueva y la app
+      // (que identifica la semana por él) pisaba una con la otra (#958).
+      ...semanasQueSeQuedan.map((w) => ({ ...w, user_id: dueno, menu_id: menu.id, week_offset: semanasEntre(hoy, w.week_start), active_days: listaParaEscribir("dias", w.active_days) })),
+    ]);
+    const porReceta = new Map(recetasQueSeQuedan.map((f) => [f.recipe_id, f.recipe_snapshot]));
+    for (const r of recipes) if (r?.id) porReceta.set(r.id, r);
+    const filas = [...porReceta].filter(([, snap]) => snap).map(([recipe_id, recipe_snapshot]) => ({
+      user_id: dueno, household_id: householdId, menu_id: menu.id, recipe_id, recipe_snapshot,
+    }));
+    if (filas.length) await insert("user_menu_recipes", filas, { upsert: true });
+  } catch (e) {
+    // Un menú a medias no se queda en el historial.
+    await borrarMenu(householdId, menu.id).catch(fallaCon("generar_borrar_menu_a_medias"));
+    throw e;
+  }
 
-  // La foto de la casa: plan y compra vivos, recetas registradas y el puntero
-  // al menú activo. Sube bot_rev, así que la app abierta recarga.
-  const porId = new Map((casa.state?.aiRecipes ?? []).map((r) => [r.id, r]));
-  for (const r of recipes) porId.set(r.id, r);
-  // La foto viva es la semana de hoy: si la que se queda es la de hoy (se ha
-  // pedido la siguiente), sigue siendo esa.
+  // Activar el menú y guardar la foto de la casa (plan y compra vivos, recetas
+  // registradas, puntero al menú activo), en UNA transacción (0069): o queda
+  // activo y la casa lo sabe, o nada. Sube bot_rev, así que la app recarga.
+  // Mientras el motor pensaba (segundos) pudo entrar otra escritura: cada
+  // intento parte de la casa fresca y solo pone lo que trae esta generación,
+  // así que lo apuntado a mano entre medias («apunta pan») no se pierde.
   const deHoy = semanasQueSeQuedan.find((w) => w.week_start <= hoy && hoy <= w.week_end);
-  const state = {
-    ...casa.state,
-    data: { ...(casa.state?.data ?? {}), activeMenuId: menu.id },
-    menuPlan: deHoy && !(startISO <= hoy && hoy <= endISO) ? deHoy.plan : plan,
-    shopping: deHoy && !(startISO <= hoy && hoy <= endISO) ? deHoy.shopping : shopping,
-    aiRecipes: [...porId.values()],
-  };
-  const r = await guardarCasa(casa, { state });
-  if (!r.ok && r.conflicto) {
-    // Otra escritura del bot se cruzó: el menú ya está guardado y activo en
-    // sus tablas, que es lo que la app lee al cargar. Se reintenta la foto.
-    const fresca = await cargarCasa(householdId);
-    await guardarCasa(fresca, { state: { ...fresca.state, data: { ...fresca.state.data, activeMenuId: menu.id }, menuPlan: state.menuPlan, shopping: state.shopping, aiRecipes: state.aiRecipes } });
+  let compraFinal = shopping;
+  // Alergias por silencio (#229): el primer menú lo recuerda una vez. La marca
+  // va en esta misma escritura: dos menús seguidos no lo dan dos veces.
+  let recordarSilencio = false;
+  const r = await conCasa(householdId, (fresca) => {
+    const silencio = conRecordatorioDeSilencio(fresca.state?.data ?? {});
+    recordarSilencio = silencio.recordar;
+    const d = silencio.data;
+    const porId = new Map((fresca.state?.aiRecipes ?? []).map((x) => [x.id, x]));
+    for (const x of recipes) porId.set(x.id, x);
+    // Sin saber qué semanas hubo (lectura fallida), no se poda: se guarda todo.
+    const aiRecipes = anteriores
+      ? recetasQueSiguen([...porId.values()], [plan, ...semanasQueSeQuedan.map((w) => w.plan), ...anteriores.map((w) => w.plan)], fresca)
+      : [...porId.values()];
+    compraFinal = { items: compraDeLaSemanaNueva(generados, fresca, { startISO, endISO, ponerSemanaNueva }) };
+    return {
+      // La semana nueva del menú nuevo, con la compra a mano de ahora. La foto
+      // para «deshaz» lleva esa misma semana: deshacer reactiva el menú de
+      // antes y deja la nueva como estaba.
+      casa: { ...fresca, semana: { menuId: menu.id, weekStart: startISO, plan, shopping: compraFinal } },
+      semana: { shopping: compraParaGuardar(compraFinal) },
+      activar: menu.id,
+      state: {
+        ...fresca.state,
+        // Los grupos, si se sacaron del modelo aquí: sin ellos en la casa, el
+        // plan tiene grupos que nadie conoce y proponer o cambiar un plato
+        // salen vacíos (pasaba en todas las casas creadas desde el chat).
+        // menuModel no se toca: `d` trae el de su sobre o el defecto, y guardarCasa no lo escribe (no lo dijo nadie).
+        data: { ...d, activeMenuId: menu.id, ...(groups !== (working.groups ?? []) ? { groups } : {}) },
+        // La foto viva es la semana de hoy: si la que se queda es la de hoy
+        // (se ha pedido la siguiente), sigue siendo esa.
+        menuPlan: ponerSemanaNueva ? plan : deHoy.plan,
+        shopping: ponerSemanaNueva ? compraFinal : deHoy.shopping,
+        aiRecipes,
+      },
+    };
+  });
+  if (!r.ok) {
+    // Nada quedó activo: el menú nuevo se borra para que no aparezca a medias
+    // en el historial, y se dice tal cual (antes respondía «generado y
+    // activado» aunque la casa no se hubiera guardado).
+    console.error("[generar] no se activó", r.error);
+    await borrarMenu(householdId, menu.id).catch((e) => console.error("[generar] borrar el menú a medias", e?.message));
+    Object.assign(out, { ok: false, motivo: SIN_GENERAR.NO_GUARDADO });
+    return `NO GUARDADO: el menú no se ha podido guardar (${r.error === "conflicto persistente" ? "otros cambios en la casa a la vez" : r.error}). Sigue el menú de antes. Se puede volver a intentar.`;
   }
 
   if (!previos.length) await registrar(EMBUDO.PRIMER_MENU, { userId: dueno, unaVez: true });
+  if (recordarSilencio) apuntarRecordatorio();
 
   const platos = Object.entries(plan).filter(([k]) => !k.startsWith("_")).reduce((n, [, h]) => n + Object.values(h ?? {}).filter((x) => x?.recipeId).length, 0);
   const avisos = (plan._warnings ?? []).length;
+  // El presupuesto (src/lib/presupuesto.js): si la casa lo tiene, se dice
+  // siempre si la semana cabe, no cabe o no se sabe. Nunca en silencio (#958).
+  const presupuesto = m.frasePresupuesto(working, m.estimarSemana(plan, { recetas: recipes }));
   const conservadas = semanasQueSeQuedan.map((w) => `del ${w.week_start} al ${w.week_end}`);
+  // Lo que la familia dijo y el menú no cumple (src/lib/cumplimiento.js, trozo 31 de #1037): se dice en una línea.
+  const { incumplidas, ...cumplidas } = m.resumenCumplimiento(cumplimiento.preferencias);
   // La semana generada va en la propia respuesta: sin ella, el modelo llamaba
   // a ver_menu justo después (y otra vez tras cada cambio), y un «hazme el
   // menú con salmón un día» tardaba casi un minuto en seis vueltas.
-  const semana = await describirMenu({ ...casa, menu: null, semanas: null, semana: { plan, weekStart: startISO, weekEnd: endISO, activeDays, startDayIdx, shopping } }).catch(() => "");
-  return `Menú nuevo generado y activado: del ${startISO} al ${endISO}, ${platos} huecos con plato${avisos ? ` (${avisos} avisos del motor: huecos que no encajaban del todo)` : ""}.`
+  const semana = await describirMenu({ ...casa, menu: null, semanas: null, semana: { plan, weekStart: startISO, weekEnd: endISO, activeDays, startDayIdx, shopping } }).catch(fallaCon("generar_describir", ""));
+  // Para la vía rápida del enrutador (api/_bot/turno.js): lo generado, en datos.
+  // Un menú ya hecho no falla por no apuntarlo: se avisa y sigue (racha y «como la última vez» lo notan).
+  await apuntarMenuGenerado(householdId, { menu_id: menu.id, week_start: startISO, camino: comoSePidio?.camino ?? null }).catch(fallaCon("generar_apuntar", null));
+  Object.assign(out, {
+    ok: true, desde: startISO, hasta: endISO, platos, avisos, conservadas, recordarSilencio, presupuesto, quitados, incumplidas,
+    pedidos: pedidos.length ? dondeQuedaron(pedidos, plan, activeDays) : [],
+    // Dónde quedó cada plato pedido («Jue-Comida»), para destacarlo al pintar.
+    colocados: pedidos.map((p) => claveDelPedido(p.fijo, plan, activeDays)).filter(Boolean),
+    // Los huecos sin plato ({ grupo, dia, comida, plato }), para que la vía
+    // rápida no diga «listo» a secas (#1029).
+    huecosVacios: vacios,
+  });
+  await rastro(householdId, RASTRO.MENU_GENERADO, { menuId: menu.id, weekStart: startISO, weekEnd: endISO, slots: platos, pedidos: pedidos.length,
+    // La cifra del plan (#1037): de las preferencias dichas, cuántas cumple la semana y su % (cifras:modelo).
+    [CAMPO_CUMPLIMIENTO]: cumplidas });
+  // Qué semana ha salido, en palabras (#915): también cuando la eligió el código
+  // por «la siguiente» (la primera sin menú), que puede no ser la que ella esperaba.
+  const libre = cual === "siguiente" && !desde ? " (la primera semana sin menú)" : "";
+  return `Menú nuevo generado y activado: semana del ${rangoDeFechas(startISO, endISO)}${libre} (${startISO} al ${endISO}), ${platos} huecos con plato${avisos ? ` (${avisos} avisos del motor: huecos que no encajaban del todo)` : ""}.`
+    + (quitados.length ? `\nSIN PONER, por seguridad (chocan con una alergia, intolerancia o dieta de alguien de su grupo; dilo así): ${quitados.join("; ")}.` : "")
+    + (vacios.length ? `\nHUECOS SIN PLATO (dilo tal cual, no lo disimules; ofrece intentarlo de otra forma o ponerles algo con cambiar_plato): ${describirHuecos(vacios)}.` : "")
     + (conservadas.length ? ` Se conserva tal cual la semana ${conservadas.join(" y ")}.` : "")
-    + (pedidos.length ? `\nLo que pidieron, ya puesto (no hace falta cambiar_plato):\n${dondeQuedaron(pedidos, plan).join("\n")}` : "")
+    + (presupuesto ? `\nPRESUPUESTO (dilo con estas cifras, sin redondear a favor): ${presupuesto}` : "")
+    + (incumplidas.length ? `\nNO SE HA PODIDO CUMPLIR (lo pidieron; dilo en una línea, sin excusas): ${incumplidas.join("; ")}.` : "")
+    + (pedidos.length ? `\nLo que pidieron, ya puesto (no hace falta cambiar_plato):\n${dondeQuedaron(pedidos, plan, activeDays).join("\n")}` : "")
     + (semana
-      ? `\n\nAsí queda, para que sepas qué hay (no hace falta ver_menu). En el chat NO la copies entera: resume en 3-4 líneas; la semana la ven con el botón que sale solo.\n${semana}`
-      : " La semana la ven con el botón que sale solo: resume en 3-4 líneas qué has hecho.");
+      ? `\n\nLa semana SALE PINTADA debajo de tu mensaje, con lo pedido destacado: NO la escribas ni llames a ver_menu; di en una o dos frases qué semana es (la del rango de arriba) y dónde ha quedado lo que pidieron. Para que lo sepas (no lo copies):\n${semana}`
+      : " La semana la ven con el botón que sale solo: resume en 3-4 líneas qué has hecho, diciendo qué semana es.");
 }

@@ -1,0 +1,14 @@
+name: senal-review
+
+# Llama a la señal reutilizable de la Fábrica (factory-am89/fabrica), fijada a un sha de su main: subirlo es
+# un cambio de este fichero y pasa por PR. Solo despierta a anulacion.yml (que escucha a un workflow llamado
+# `senal-review`) cuando alguien envía una review en un PR. No recibe secretos ni permisos.
+on:
+  pull_request_review:
+    types: [submitted]
+
+permissions: {}
+
+jobs:
+  senal:
+    uses: factory-am89/fabrica/.github/workflows/senal-review.yml@60a7008c68629aedde441a9ee27e68f6b7e0c1b9

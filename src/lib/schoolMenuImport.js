@@ -8,7 +8,9 @@
 // All heavy deps (pdfjs/tesseract) are loaded lazily so the main bundle
 // stays slim until the user opens the school menu importer.
 
-export const DAY_KEYS = ["Lun", "Mar", "Mié", "Jue", "Vie"];
+import { DIAS_LABORABLES, indiceDeFecha } from "./dias.js";
+
+export const DAY_KEYS = DIAS_LABORABLES;
 export const COURSE_KEYS = ["Primero", "Segundo", "Postre"];
 
 const DAY_PATTERNS = [
@@ -547,9 +549,8 @@ export function selectBestWeek(weeks) {
   if (!weeks || weeks.length <= 1) return 0;
 
   const now = new Date();
-  const todayDow = now.getDay();
   const monday = new Date(now);
-  monday.setDate(now.getDate() - ((todayDow + 6) % 7));
+  monday.setDate(now.getDate() - indiceDeFecha(now));
   monday.setHours(0, 0, 0, 0);
 
   const MONTH_NAMES = [

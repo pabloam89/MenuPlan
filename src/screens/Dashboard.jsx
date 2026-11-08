@@ -6,17 +6,24 @@ import {
   UtensilsCrossed,
   Settings,
   Sparkles,
+  Send,
+  RotateCcw,
 } from "../components/icons.jsx";
-import { Avatar, BottomNav, bottomNavSpacer } from "../components/ui.jsx";
+import { FRONTAL_BOT, abrirLola, lolaConectada } from "../lib/frontalBot.js";
+import lolaFoto from "../assets/lola/lola-perfil.jpg";
+import { Avatar, BottomNav, bottomNavSpacer, safeTop } from "../components/ui.jsx";
 import { googleInfo } from "./Settings.jsx";
-import { planHasDishes } from "../lib/menuArchive.js";
-import { DAYS, getDayMeals } from "../lib/planner.js";
+import { planDeHoy, planHasDishes } from "../lib/menuArchive.js";
+import { isoLocalDate } from "../lib/weekCalendar.js";
+import { getDayMeals } from "../lib/planner.js";
+import { diaDeFecha } from "../lib/dias.js";
 import { adhocReasonLabel } from "../lib/groups.js";
 import { RECIPES_BY_ID } from "../data/recipes.js";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { memberAvatarColor, memberAvatarThumbSrc } from "../lib/stages.js";
 import menuCardPhoto2 from "../assets/dashboard/menu-card-2.jpg";
 import menuCardPhoto3 from "../assets/dashboard/menu-card-3.jpg";
+import { NOMBRE_PAPEL, papelDe } from "../lib/papeles.js";
 
 // Degradado de fondo de toda Inicio (2026-08-28): sustituye la card verde
 // sólida del perfil, que se sentía como una caja vacía sin contenido real
@@ -31,7 +38,7 @@ const GREEN = "#2d5a3d";
 const INK = "#142f1d";
 
 
-const todayShort = () => DAYS[(new Date().getDay() + 6) % 7];
+const todayShort = () => diaDeFecha(new Date());
 
 // Saludo contextual: le da a la cabecera un texto propio en vez de depender
 // solo de los avatares — pequeño, gratis, y varía a lo largo del día en vez
@@ -67,6 +74,9 @@ const COMPOUND_FIRST_NAMES = new Set([
 // Solo el nombre de pila para el saludo: "Pablo Artiñano" → "Pablo", pero
 // "José María García" → "José María" (ver COMPOUND_FIRST_NAMES).
 function firstNameOf(fullName) {
+  // Las cuentas nacidas en Telegram sin nombre llevan de nombre el email
+  // sintético (tg123456789@…): eso no es un nombre y no se saluda con él.
+  if (/^tg\d+/i.test(String(fullName ?? "").trim())) return "";
   const parts = String(fullName ?? "").trim().split(/\s+/).filter(Boolean);
   if (parts.length <= 1) return parts[0] ?? "";
   const firstTwo = parts.slice(0, 2).join(" ")
@@ -263,6 +273,93 @@ function RotatingPhoto({ photos, objectPosition = "center", interval = 2000 }) {
 // the photo. "Generar menú nuevo" is the one CTA Inicio still has (2026-08-25)
 // — every other action moved out from under it (En casa → wizard, Recetas/
 // Compra → their own tabs), so this is the single front door to a new menú.
+/**
+ * La puerta a Lola (frontal del bot, src/lib/frontalBot.js): lo que antes era
+ * «Generar menú» ahora se le pide a ella en Telegram. Tarjeta blanca y baja,
+ * no un héroe: lo primero de Inicio sigue siendo ver qué toca hoy.
+ * Quien aún no habla con ella lee «Conecta con Lola»; el botón es el mismo
+ * (abrirLola lleva el código que conecta). Si no se puede saber, «Pídeselo».
+ * Mientras se pregunta (undefined) el texto no se ve: salía «Pídeselo» y
+ * saltaba a «Conecta». La última respuesta se recuerda para que volver a
+ * Inicio, o un fallo de red, no lo haga cambiar.
+ */
+let conectadaSabida;
+export function LolaCard() {
+  const [conectada, setConectada] = useState(conectadaSabida);
+  useEffect(() => {
+    let vivo = true;
+    lolaConectada().then((c) => {
+      conectadaSabida = c ?? conectadaSabida ?? null;
+      if (vivo) setConectada(conectadaSabida);
+    });
+    return () => { vivo = false; };
+  }, []);
+  return (
+    <button
+      type="button"
+      onClick={abrirLola}
+      style={{
+        display: "flex", alignItems: "center", gap: 12, width: "100%",
+        padding: "10px 12px 10px 10px", marginBottom: 16, borderRadius: 18,
+        border: "1px solid #e3ebe6", background: "#fff", cursor: "pointer",
+        fontFamily: "inherit", textAlign: "left",
+        boxShadow: "0 6px 16px -12px rgba(20,47,29,.3)",
+      }}
+    >
+      <img
+        src={lolaFoto}
+        alt=""
+        style={{ width: 52, height: 52, borderRadius: "50%", objectFit: "cover", objectPosition: "center 30%", flexShrink: 0, background: "#f4f8f5" }}
+      />
+      <span style={{ flex: 1, minWidth: 0, fontSize: 16, fontWeight: 900, color: INK, letterSpacing: "-.2px", visibility: conectada === undefined ? "hidden" : "visible" }}>
+        {conectada === false ? "Conecta con Lola" : "Pídeselo a Lola"}
+      </span>
+      <span
+        aria-hidden
+        style={{
+          width: 40, height: 40, borderRadius: "50%", background: GREEN, flexShrink: 0,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          boxShadow: "0 4px 18px rgba(45,90,61,.25)",
+        }}
+      >
+        <Send size={18} color="#fff" strokeWidth={2.4} />
+      </span>
+    </button>
+  );
+}
+
+// «Reiniciar menú» en la fila de «Hoy toca» (30 oct 2026): vivía al fondo de
+// la pantalla de perfil y no lo encontraba nadie. Es la misma acción de antes
+// (onResetMenu = handleSoftReset, con su hoja de confirmación); aquí solo
+// cambia la puerta. Píldora visible de 30 px con área táctil de 40: el margen
+// negativo evita que la fila del título crezca.
+function ReiniciarChip({ onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        minHeight: "var(--tam-tactil)", margin: "-8px 0", padding: "0 4px",
+        border: "none", background: "none", cursor: "pointer", fontFamily: "inherit", flexShrink: 0,
+      }}
+    >
+      <span
+        style={{
+          display: "flex", alignItems: "center", gap: 5, height: 30, padding: "0 11px",
+          borderRadius: "var(--radio-pildora)",
+          border: "1.5px solid var(--color-linea-fuerte)",
+          background: "var(--color-superficie)",
+          color: "var(--color-marca)",
+          fontSize: 12, fontWeight: 800,
+        }}
+      >
+        <RotateCcw size={13} strokeWidth={2.6} />
+        Reiniciar
+      </span>
+    </button>
+  );
+}
+
 function MenuHeroCard({ photos, onClick, title, subtitle, Icon = Sparkles }) {
   return (
     <button
@@ -401,6 +498,8 @@ export function DashboardScreen({
   onViewMenu,
   onOpenAccount,
   onGenerateMenu,
+  // «Reiniciar menú» (el mismo que estaba en el perfil).
+  onResetMenu,
   // Ausente = la pizarra no se ofrece (está apagada fuera de staging).
   onStartPizarra,
 }) {
@@ -419,18 +518,20 @@ export function DashboardScreen({
   // With several menus (Adultos/Niños/Bebé) a discreet control lets you flip
   // between them; the section itself only ever renders dishes.
   const todayMeals = useMemo(() => {
-    if (!selectedGroup || !hasMenu) return [];
+    // Sin mirar `hasMenu`: dice si la semana A LA VISTA tiene platos, no la de hoy.
+    if (!selectedGroup) return [];
     const day = todayShort();
+    const plan = planDeHoy(data.menus, data.activeMenuId, data.menuWeek?.offset, menuPlan, isoLocalDate(new Date()));
     const out = [];
     for (const meal of getDayMeals(data)) {
-      const slot = menuPlan[selectedGroup.id]?.[`${day}-${meal}`];
+      const slot = plan[selectedGroup.id]?.[`${day}-${meal}`];
       if (!slot?.recipeId) continue;
       const recipe = RECIPES_BY_ID[slot.recipeId];
       if (!recipe) continue;
       out.push({ meal, recipe, photo: dishImageForRecipe(recipe) });
     }
     return out;
-  }, [menuPlan, data, hasMenu, selectedGroup]);
+  }, [menuPlan, data, selectedGroup]);
 
   // Siempre visible (2026-08-28): antes la sección desaparecía entera cuando
   // no había menú, así que Inicio se quedaba en un hueco vacío bajo la card.
@@ -455,6 +556,7 @@ export function DashboardScreen({
         style={{
           flex: 1,
           padding: `18px 18px calc(${bottomNavSpacer()} + 12px)`,
+          paddingTop: safeTop(18),
           maxWidth: 420,
           margin: "0 auto",
           width: "100%",
@@ -489,7 +591,7 @@ export function DashboardScreen({
                 overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
               }}
             >
-              {greetingWord()}, {firstNameOf(g.name)}
+              {greetingWord()}{firstNameOf(g.name) ? `, ${firstNameOf(g.name)}` : ""}
             </p>
             {onOpenAccount && (
               <button
@@ -500,7 +602,7 @@ export function DashboardScreen({
                 title="Tu perfil"
                 style={{
                   flexShrink: 0,
-                  width: 34, height: 34, borderRadius: "50%",
+                  width: 44, height: 44, borderRadius: "50%",
                   border: "none", background: "rgba(255,255,255,.75)",
                   display: "flex", alignItems: "center", justifyContent: "center",
                   cursor: "pointer", boxShadow: "0 2px 6px rgba(20,47,29,.14)",
@@ -567,7 +669,7 @@ export function DashboardScreen({
                 margin: "8px 0 0", fontSize: 11, fontWeight: 700, color: "#5c7568",
               }}
             >
-              {activeHousehold.name} · {householdReadOnly ? "Visitante" : "Propietario"}
+              {activeHousehold.name} · {NOMBRE_PAPEL.es[papelDe(activeHousehold.role)]}
             </p>
           )}
         </div>
@@ -581,7 +683,9 @@ export function DashboardScreen({
         {/* Único CTA que le queda a Inicio (2026-08-25): generar un menú
             nuevo. Todo lo demás (En casa, Recetas, Compra, favoritos e
             históricos) tiene ya su propia puerta fuera de aquí. */}
-        {!householdReadOnly && onGenerateMenu && (
+        {FRONTAL_BOT && <LolaCard />}
+
+        {!FRONTAL_BOT && !householdReadOnly && onGenerateMenu && (
           <MenuHeroCard
             photos={[menuCardPhoto2, menuCardPhoto3]}
             onClick={onGenerateMenu}
@@ -589,7 +693,9 @@ export function DashboardScreen({
           />
         )}
 
-        {!householdReadOnly && onStartPizarra && <PizarraCard onClick={onStartPizarra} />}
+        {/* Sin pasarle el clic: handleStartPizarra lo tomaría por `eleccion` y metería
+            el evento (con `window` dentro) en `data`, y ya nada se podría guardar. */}
+        {!householdReadOnly && onStartPizarra && <PizarraCard onClick={() => onStartPizarra()} />}
 
         {/* ── Hoy toca (solo renderiza platos; vacío si no hay menú) ── */}
         {showTodaySection && (
@@ -599,6 +705,7 @@ export function DashboardScreen({
               <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: INK, letterSpacing: "-.2px", flexShrink: 0 }}>
                 Hoy toca
               </p>
+              {hasMenu && onResetMenu && <ReiniciarChip onClick={onResetMenu} />}
               {/* Separador siempre (antes solo con varios grupos, y sin menú
                   la cabecera se quedaba coja). Con varios grupos, el selector;
                   con uno solo, los avatares de la familia sin ser botón — el
@@ -675,11 +782,15 @@ export function DashboardScreen({
                 )}
               </div>
             ) : (
-              <p style={{ margin: "2px 2px 0", fontSize: 12.5, color: "#9aa8a0", fontStyle: "italic" }}>
-                {multiGroup && selectedGroup?.label
-                  ? `Hoy no tenemos menú para ${selectedGroup.label.toLowerCase()}`
-                  : "Hoy no tenemos menú"}
-              </p>
+              // Sin botón a Lola aquí: ya está la tarjeta de arriba (LolaCard),
+              // y dos llamadas a lo mismo en una pantalla sobran (7 oct 2026).
+              <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", margin: "2px 2px 0" }}>
+                <p style={{ margin: 0, fontSize: 13, color: "#5c7568", fontWeight: 600 }}>
+                  {multiGroup && selectedGroup?.label
+                    ? `Hoy no tenemos menú para ${selectedGroup.label.toLowerCase()}`
+                    : "Hoy no tenemos menú"}
+                </p>
+              </div>
             )}
           </div>
         )}

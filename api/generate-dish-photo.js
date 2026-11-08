@@ -1,5 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
-import { blocked, cors } from "./_guard.js";
+import { blocked, cors, topeDiarioAgotado } from "./_guard.js";
 import { disambiguationClause } from "../src/lib/photoDisambiguation.js";
 
 // Generates a single dish photo on demand for the recipe-creation wizard
@@ -122,6 +122,9 @@ export default async function handler(req, res) {
       : buildBabyPureePrompt(dishName);
   }
 
+  // El tope diario, ya validado el cuerpo: solo cuenta lo que llega al modelo.
+  if (await topeDiarioAgotado(res, "dish-photo")) return;
+
   try {
     const ai = new GoogleGenAI({ apiKey });
     const prompt = category === "bebes" ? babyPhotoPrompt() : buildPhotoPrompt(dishName);
@@ -131,7 +134,11 @@ export default async function handler(req, res) {
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       config: {
         responseModalities: ["IMAGE", "TEXT"],
-        httpOptions: { timeout: 60000, headers: {} },
+        // El modelo tarda ya más de un minuto en devolver la imagen (68 s
+        // medidos el 6 oct 2026) y con 60 s se cortaba siempre: «This
+        // operation was aborted». Hasta 110 s, dentro de los 120 de
+        // maxDuration (vercel.json).
+        httpOptions: { timeout: 110000, headers: {} },
       },
     });
 

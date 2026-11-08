@@ -1,9 +1,11 @@
 import { useMemo, useState } from "react";
-import { BookOpen, Plus, SlidersHorizontal, Sparkles } from "../components/icons.jsx";
-import { BottomNav, bottomNavSpacer } from "../components/ui.jsx";
+import { BookOpen, Heart, NotebookPen, Plus, Sparkles } from "../components/icons.jsx";
+import { BottomNav, bottomNavSpacer, safeTop } from "../components/ui.jsx";
+import { BaldosaFranja, RayaBaldosas } from "../components/wizard/ControlRow.jsx";
+import { color } from "../design/tokens.js";
 import { CatalogBrowserSheet } from "./CatalogBrowserSheet.jsx";
-import { RecipesCoachTour, CoachHelpButton } from "../components/HomeCoachTour.jsx";
 import { filterMyLibraryRecipes, isCatalogGarnishCombo } from "../lib/userRecipes.js";
+import { favoriteRecipeIds } from "../lib/recipeVotes.js";
 
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
@@ -34,7 +36,6 @@ export function RecipesScreen({
   onChangeRecipeVisibility,
   onDeleteRecipe,
   onEditRecipe,
-  onOpenRecipePrefs,
   readOnly = false,
   readOnlyLabel = null,
   // Con qué carpeta abre (un enlace del bot: «recetas de sólidos de bebé» →
@@ -42,7 +43,12 @@ export function RecipesScreen({
   initialCategory = null,
   initialMine = false,
 }) {
-  const [showIconCoach, setShowIconCoach] = useState(false);
+  // Pestañas (review de UX, lámina 27): Para ti (el catálogo), Mis recetas
+  // (lo que has creado, con tus carpetas) y Favoritos (lo que marcaste con ♥).
+  // Hasta el 7 oct 2026 «Mis recetas» era una teja más del catálogo y las
+  // favoritas iban dentro (ver la nota del 27 ago más abajo).
+  const [pestana, setPestana] = useState(initialMine ? "mias" : "parati");
+  const favoritas = useMemo(() => new Set(favoriteRecipeIds(recipeVotes)), [recipeVotes]);
 
   const ownRecipes = useMemo(
     () => (readOnly ? userRecipes : filterMyLibraryRecipes(userRecipes, user)),
@@ -61,6 +67,7 @@ export function RecipesScreen({
         <div
           style={{
             padding: "20px 18px 14px",
+            paddingTop: safeTop(20),
             maxWidth: 420, margin: "0 auto", width: "100%", boxSizing: "border-box",
             display: "flex", alignItems: "center", justifyContent: "space-between",
           }}
@@ -77,39 +84,18 @@ export function RecipesScreen({
             <h1 style={{ margin: 0, fontSize: 20, fontWeight: 900, color: INK, letterSpacing: "-.3px" }}>
               Recetas
             </h1>
-            <CoachHelpButton active={showIconCoach} onClick={() => setShowIconCoach((v) => !v)} />
           </div>
-          <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
-            {onOpenRecipePrefs && !readOnly && (
-              <button
-                type="button"
-                onClick={onOpenRecipePrefs}
-                title="Preferencias de recetas"
-                style={{
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  width: 36, height: 36, borderRadius: 12,
-                  border: "1.5px solid #d5e6da", background: "#fff",
-                  color: GREEN, cursor: "pointer",
-                }}
-              >
-                <SlidersHorizontal size={16} strokeWidth={2.3} />
-              </button>
-            )}
-            {onOpenRecipePlanner && !readOnly && (
-              <button
-                type="button"
-                onClick={onOpenRecipePlanner}
-                style={{
-                  display: "flex", alignItems: "center", gap: 6,
-                  padding: "8px 13px", borderRadius: 12, border: "none",
-                  background: GREEN, color: "#fff",
-                  fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
-                }}
-              >
-                <Plus size={14} strokeWidth={2.8} /> Crear
-              </button>
-            )}
-          </div>
+        </div>
+        <div style={{ padding: "0 18px 12px", maxWidth: 420, margin: "0 auto", width: "100%", boxSizing: "border-box", display: "flex", justifyContent: "space-between" }}>
+          <BaldosaFranja Icono={Sparkles} etiqueta="Para ti" color={color.aviso} marcado={pestana === "parati"} ariaPressed={pestana === "parati"} onClick={() => setPestana("parati")} />
+          <BaldosaFranja Icono={NotebookPen} etiqueta="Mis recetas" color={color.marca} marcado={pestana === "mias"} ariaPressed={pestana === "mias"} onClick={() => setPestana("mias")} />
+          <BaldosaFranja Icono={Heart} etiqueta="Favoritos" color={color.favorito} marcado={pestana === "favoritos"} ariaPressed={pestana === "favoritos"} onClick={() => setPestana("favoritos")} />
+          {onOpenRecipePlanner && !readOnly && (
+            <>
+              <RayaBaldosas />
+              <BaldosaFranja Icono={Plus} etiqueta="Crear" color={color.marca} title="Crear receta" onClick={onOpenRecipePlanner} />
+            </>
+          )}
         </div>
       </div>
 
@@ -129,12 +115,20 @@ export function RecipesScreen({
             "Crear" vuelve a la cabecera, que es donde no estorba. */}
 
         <CatalogBrowserSheet
+          // Una por pestaña: cada una arranca limpia (su buscador, sus filtros).
+          key={pestana}
           inline
           inlinePadding={18}
           reference
           browseCategories
-          initialCategory={initialCategory}
-          initialMine={initialMine}
+          initialCategory={pestana === "parati" ? initialCategory : null}
+          initialMine={pestana === "mias"}
+          hideMineTile
+          soloMias={pestana === "mias"}
+          favoriteIds={pestana === "favoritos" ? favoritas : null}
+          emptyImg={pestana === "favoritos" ? "/avatares/cards/empty_favoritas.jpg" : undefined}
+          emptyLabel={pestana === "favoritos" ? "Aún no tienes favoritas" : undefined}
+          emptySubtitle={pestana === "favoritos" ? "Toca el ♥ de una receta y aparecerá aquí." : undefined}
           recipeVotes={recipeVotes}
           recipeCollections={recipeCollections}
           recipeFolders={recipeFolders}
@@ -153,7 +147,6 @@ export function RecipesScreen({
         />
       </div>
 
-      {showIconCoach && <RecipesCoachTour onClose={() => setShowIconCoach(false)} />}
 
       <BottomNav active="recipes" onNav={onNav} />
     </div>

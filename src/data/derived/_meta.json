@@ -1,10 +1,10 @@
 {
   "generado_por": "scripts/build-derived.mjs",
   "hash_fuentes": {
-    "ingredientes": "e7596e2067cea067",
-    "recetas": "8b2b8740e6f50b2f",
+    "ingredientes": "0bfb824edbe5739f",
+    "recetas": "37bf62f1aadbbc14",
     "alimentos": "effcc6d80ca0d39b",
-    "operador": "73a7743240dd3fa6"
+    "operador": "aaf3f1fb4c4f1261"
   },
   "recetas": 1033,
   "recipeNutrition": {

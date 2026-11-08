@@ -3,7 +3,6 @@ import {
   wantsPackFields,
   defaultPackFor,
   stockFromPack,
-  formatPackLabel,
 } from "./packUnits.js";
 
 describe("packUnits", () => {
@@ -23,11 +22,5 @@ describe("packUnits", () => {
     expect(out.qty).toBe(1140);
     expect(out.unit).toBe("g");
     expect(out.pack.count).toBe(2);
-  });
-
-  it("formats a human pack label", () => {
-    expect(
-      formatPackLabel({ packCount: 1, packKind: "bote", packSize: 570, packSizeUnit: "g" }),
-    ).toBe("1 bote · 570 g");
   });
 });

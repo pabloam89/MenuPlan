@@ -7,7 +7,9 @@
  * se registra en el log y se sigue.
  */
 
+import { seguirCon } from "./avisar.js";
 import { EMBUDO, PANTALLA_EMBUDO } from "../../src/lib/embudo.js";
+import { PANTALLA_RASTRO } from "../../src/lib/rastro.js";
 import { select, insert, eq } from "./db.js";
 
 export { EMBUDO };
@@ -39,10 +41,38 @@ export async function registrar(event, { userId = null, telegramId = null, unaVe
   }
 }
 
+/**
+ * El rastro de lo que se hace desde el chat (src/lib/rastro.js): mismos
+ * nombres y forma que la app, con la casa en metadata para el analista. Nunca
+ * rompe nada: si falla, se apunta en el log y sigue.
+ */
+export async function rastro(householdId, event, datos = {}) {
+  try {
+    const userId = householdId ? await duenoDe(householdId) : null;
+    await insert("user_events", [{
+      user_id: userId,
+      event,
+      screen: PANTALLA_RASTRO,
+      metadata: { canal: "telegram", ...(householdId ? { household_id: householdId } : {}), ...datos },
+    }]);
+  } catch (err) {
+    console.error("[bot/rastro]", event, err?.message);
+  }
+}
+
+/**
+ * El dueño de una casa. Si la base falla, lanza el error: quien comprueba un
+ * bloqueo (compartir.js, #208) tiene que saber que no pudo, no recibir null.
+ */
+export async function duenoDeEstricto(householdId) {
+  const [h] = await select("households", `id=${eq(householdId)}`, "owner_user_id");
+  return h?.owner_user_id ?? null;
+}
+
 /** El dueño de una casa: los eventos van a su nombre, como en la app. */
 export async function duenoDe(householdId) {
-  const [h] = await select("households", `id=${eq(householdId)}`, "owner_user_id").catch(() => []);
-  return h?.owner_user_id ?? null;
+  // a propósito: el evento vale más sin dueño que perdido
+  return duenoDeEstricto(householdId).catch(seguirCon("embudo_dueno", null));
 }
 
 /**

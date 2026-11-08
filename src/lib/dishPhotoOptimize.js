@@ -11,7 +11,7 @@
 // Some callers pass a locally-picked photo (data: URI from the device photo
 // picker) rather than a Blob origin URL — neither tier can resize those, so
 // they pass through untouched.
-import derivativesManifest from "../assets/dishes/dishImageDerivatives.json";
+import derivativesManifest from "../assets/dishes/dishImageDerivatives.json" with { type: "json" };
 
 function isRemoteUrl(url) {
   return typeof url === "string" && /^https?:\/\//.test(url);

@@ -6,6 +6,7 @@ import { SEALS, STICKER_COLORS } from "../lib/cookings.js";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { deckImg } from "../lib/dishPhotoOptimize.js";
 import { CatalogBrowserSheet } from "../screens/CatalogBrowserSheet.jsx";
+import * as ids from "../lib/ids.js";
 
 const INK = "#142f1d";
 const INK_SOFT = "#5a7066";
@@ -229,7 +230,7 @@ export function CookingComposer({
           if (r) pickRecipe(r);
         }}
         onCreateDraft={(name) => {
-          setLink({ recipeId: `draft_${Date.now().toString(36)}`, name, draft: true });
+          setLink({ recipeId: ids.borrador.nuevo(), name, draft: true });
           setView(null);
         }}
         extraRecipes={mineWithToday}

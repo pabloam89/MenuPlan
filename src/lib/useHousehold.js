@@ -36,6 +36,8 @@ import {
 
   buildInviteUrl,
 
+  casaPropia,
+
 } from "./householdsSync.js";
 
 
@@ -325,7 +327,11 @@ export function useHousehold({ user, loading: authLoading }) {
 
       if (!pending) return;
 
-      const preview = await previewHouseholdInvite(pending);
+      const { data: preview, error: previewError } = await previewHouseholdInvite(pending);
+
+      // Sin red no se sabe si la invitación vale: se deja guardada y se
+      // vuelve a mirar en el próximo arranque (#317). Antes se borraba.
+      if (previewError) return;
 
       if (!preview) {
         if (user.id) await clearPendingInviteToken(user.id);
@@ -333,8 +339,10 @@ export function useHousehold({ user, loading: authLoading }) {
       }
 
       const hhs = bootResult?.households ?? [];
-      const ownHousehold = hhs.find((h) => h.role === "owner" && h.isOwn);
-      const alreadyMember = hhs.some((h) => h.id === preview.householdId);
+      const ownHousehold = casaPropia(hhs);
+      // Ya miembro, salvo que la invitación le suba de papel (lector → cotitular).
+      const yaDentro = hhs.find((h) => h.id === preview.householdId);
+      const alreadyMember = Boolean(yaDentro) && !(yaDentro.role === "viewer" && preview.role === "editor");
       const isOwnInvite =
         alreadyMember
         || (ownHousehold
@@ -349,6 +357,8 @@ export function useHousehold({ user, loading: authLoading }) {
         token: pending,
         householdId: preview.householdId,
         householdName: preview.householdName,
+        role: preview.role,
+        ownerName: preview.ownerName,
       });
 
     })();

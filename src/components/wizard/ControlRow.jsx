@@ -6,6 +6,7 @@ import {
 import { controlesVisibles, valorDePregunta } from "../../lib/wizardRegistry.js";
 import { BarraRehacer } from "./BarraRehacer.jsx";
 import { ControlSheet } from "./ControlSheet.jsx";
+import { color as tono } from "../../design/tokens.js";
 
 /**
  * La fila de mandos que vive sobre el menú.
@@ -80,7 +81,7 @@ const TEAL = "#0f766e";
  */
 export function BaldosaAccion({
   Icono, etiqueta, color = VERDE, tinte = "#fff",
-  marcado = false, onClick, title, ariaPressed,
+  marcado = false, onClick, title, ariaPressed, ancho = 76, ...rest
 }) {
   return (
     <button
@@ -89,8 +90,9 @@ export function BaldosaAccion({
       title={title}
       aria-label={title ?? etiqueta}
       aria-pressed={ariaPressed}
+      {...rest}
       style={{
-        flexShrink: 0, width: 76,
+        flexShrink: 0, width: ancho, minWidth: 0,
         display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
         background: "none", border: "none", padding: 0,
         cursor: "pointer", fontFamily: "inherit",
@@ -123,6 +125,16 @@ export function BaldosaAccion({
       </span>
     </button>
   );
+}
+
+/** Una baldosa de la franja de Recetas y Compra: cuatro por fila, ocupando el ancho sin que el móvil estrecho se salga. */
+export function BaldosaFranja(props) {
+  return <BaldosaAccion ancho="23%" {...props} />;
+}
+
+/** La raya fina que aparta una acción de las baldosas que cambian de vista (Crear en Recetas, Compartir en Compra). */
+export function RayaBaldosas() {
+  return <span aria-hidden style={{ width: 1, alignSelf: "stretch", margin: "6px 0 18px", background: tono.linea, flexShrink: 0 }} />;
 }
 
 function Baldosa({ pregunta, tocado, onClick }) {

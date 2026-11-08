@@ -5,15 +5,18 @@ import {
   User,
   Users,
   Camera,
-  Check,
   Info,
   ShieldCheck,
+  Download,
 } from "../components/icons.jsx";
-import { Avatar, BottomNav, bottomNavSpacer, GoogleButton } from "../components/ui.jsx";
+import { Avatar, AppleGlyph, BottomNav, bottomNavSpacer, GoogleGlyph, safeTop, SignInOptions, TelegramGlyph, ToggleSwitch, WizardSheet } from "../components/ui.jsx";
 import { googleInfo } from "./Settings.jsx";
 import { findAccountMember,
-  resolveAccountMember, memberAvatarColor, memberAvatarThumbSrc, migrateHomeRole, resolveMemberAge, userAvatarSrc } from "../lib/stages.js";
+  resolveAccountMember, miembroDeCuentaId, conMiembroDeCuenta, memberAvatarColor, memberAvatarThumbSrc, migrateHomeRole, resolveMemberAge, userAvatarSrc } from "../lib/stages.js";
+import { esTitular } from "../lib/householdsSync.js";
 import { fileToAvatarDataUrl } from "../lib/avatarImage.js";
+import { FORMA_DE_ENTRAR, NOMBRE_FORMA, resumenDeFormas } from "../lib/cuentaTelegram.js";
+import { color as tono, tipografia, espaciado, radio, tamano } from "../design/tokens.js";
 
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
@@ -236,6 +239,58 @@ function FieldLabel({ children }) {
   );
 }
 
+// ── Formas de entrar (#1238, specs/auth.md §7) ──────────────────────────────
+
+const LOGO_FORMA = { [FORMA_DE_ENTRAR.TELEGRAM]: TelegramGlyph, [FORMA_DE_ENTRAR.GOOGLE]: GoogleGlyph, [FORMA_DE_ENTRAR.APPLE]: AppleGlyph };
+
+// Una fila como las demás, y dentro cada forma con su logo y su interruptor: encendido entra, apagado no.
+function FormasDeEntrar({ formas, onAnadir, onQuitar }) {
+  const [abierta, setAbierta] = useState(false);
+  return (
+    <>
+      <ProfileOptionRow
+        img="/avatares/cards/formas_de_entrar.jpg"
+        title="Formas de entrar"
+        subtitle={resumenDeFormas(formas)}
+        onClick={() => setAbierta(true)}
+      />
+      {abierta && (
+        <WizardSheet title="Formas de entrar" onClose={() => setAbierta(false)}>
+          <Card>
+            {formas.map(({ forma, tiene, apagable }, i) => {
+              const Logo = LOGO_FORMA[forma];
+              return (
+                <div
+                  key={forma}
+                  style={{
+                    display: "flex", alignItems: "center", gap: espaciado["esp-12"],
+                    minHeight: tamano["tam-tactil"],
+                    padding: `${espaciado["esp-12"]}px ${espaciado["esp-16"]}px`,
+                    borderTop: i === 0 ? "none" : `1px solid ${tono["linea-suave"]}`,
+                  }}
+                >
+                  {forma === FORMA_DE_ENTRAR.APPLE
+                    ? <Logo size={tamano["tam-icono-24"]} color={tono.tinta} />
+                    : <Logo size={tamano["tam-icono-24"]} />}
+                  <span style={{ flex: 1, fontSize: tipografia["paso-14"], fontWeight: tipografia["peso-800"], color: tono.tinta }}>
+                    {NOMBRE_FORMA[forma]}
+                  </span>
+                  <ToggleSwitch
+                    checked={tiene}
+                    disabled={tiene && !apagable}
+                    ariaLabel={NOMBRE_FORMA[forma]}
+                    onChange={(encender) => (encender ? onAnadir(forma) : onQuitar(forma))}
+                  />
+                </div>
+              );
+            })}
+          </Card>
+        </WizardSheet>
+      )}
+    </>
+  );
+}
+
 // ── Main screen ─────────────────────────────────────────────────────────────
 
 export function HomeProfileScreen({
@@ -245,9 +300,13 @@ export function HomeProfileScreen({
   onNav,
   onBack,
   onSignIn,
+  onAppleSignIn,
   onSignOut,
-  onReset,
   onDeleteAccount,
+  onExportData = null,
+  formasDeEntrar = null,
+  onAnadirFormaDeEntrar,
+  onQuitarFormaDeEntrar,
   onEditMembers,
   onEditPreferences,
   onOpenHouseholds,
@@ -263,7 +322,12 @@ export function HomeProfileScreen({
   // OJO: va DESPUES de members. Estaba encima y reventaba la pantalla entera
   // con "Cannot access members before initialization" — un const no existe
   // hasta su linea, aunque el fichero compile sin rechistar.
-  const accountMember = resolveAccountMember(members, data.accountMemberId, g.name);
+  // Por cuenta, no compartido en la casa (miembroDeCuentaId en stages.js).
+  const accountMember = resolveAccountMember(
+    members,
+    miembroDeCuentaId(data, user?.id, { esTitular: !activeHousehold || esTitular(activeHousehold) }),
+    g.name,
+  );
 
   const setField = (key, val) => setData((d) => ({ ...d, [key]: val }));
 
@@ -288,48 +352,44 @@ export function HomeProfileScreen({
       {/* hidden file input */}
       <input ref={fileInputRef} type="file" accept="image/*" onChange={onPhotoSelected} style={{ display: "none" }} />
 
-      <div style={{
-        padding: `20px 18px calc(${bottomNavSpacer()} + 18px)`,
-        maxWidth: 420, margin: "0 auto", width: "100%", boxSizing: "border-box",
-      }}>
-
-        {/* ── Header ─────────────────────────────────── */}
-        {/* No longer a bottom-nav tab (see BottomNav in ui.jsx) — reached as a
-            header icon from "Inicio", so it needs its own explicit way back. */}
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
+      {/* ── Cabecera ─────────────────────────────────── */}
+      {/* Ya no es una pestaña de la barra (BottomNav, ui.jsx): se llega desde un icono de Inicio y necesita su Atrás. */}
+      <header style={{ background: tono["marca-fondo"], paddingTop: safeTop(espaciado["esp-16"]) }}>
+        <div style={{
+          display: "flex", alignItems: "center", gap: espaciado["esp-12"],
+          padding: `0 18px ${espaciado["esp-16"]}px`,
+          maxWidth: tamano["tam-columna"], margin: "0 auto", width: "100%", boxSizing: "border-box",
+        }}>
+          <div style={{
+            width: 38, height: 38, borderRadius: radio["radio-control"], background: tono.superficie,
+            display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+          }}>
+            <User size={tamano["tam-icono-18"]} color={tono.marca} />
+          </div>
+          <h1 style={{ margin: 0, fontSize: tipografia["paso-20"], fontWeight: tipografia["peso-900"], color: tono.tinta, letterSpacing: "-.3px" }}>
+            Mi perfil
+          </h1>
           {onBack && (
             <button
               type="button"
               onClick={onBack}
               style={{
-                border: "1px solid #e0eae3", background: "#fff", color: GREEN,
-                borderRadius: 10, padding: "7px 12px", fontSize: 13, fontWeight: 700,
+                marginLeft: "auto", minHeight: tamano["tam-tactil"], padding: `0 ${espaciado["esp-12"]}px`,
+                border: "none", background: tono.superficie, color: tono.marca,
+                borderRadius: radio["radio-control"], fontSize: tipografia["paso-13"], fontWeight: tipografia["peso-700"],
                 cursor: "pointer", fontFamily: "inherit", flexShrink: 0,
               }}
             >
               Atrás
             </button>
           )}
-          <div style={{
-            width: 38, height: 38, borderRadius: 12, background: "#e6f3ea",
-            display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-          }}>
-            <User size={18} color={GREEN} />
-          </div>
-          <h1 style={{ margin: 0, fontSize: 20, fontWeight: 900, color: INK, letterSpacing: "-.3px" }}>
-            Mi perfil
-          </h1>
-          {activeHousehold && (
-            <span style={{
-              marginLeft: "auto", padding: "4px 10px", borderRadius: 999,
-              fontSize: 10.5, fontWeight: 800, flexShrink: 0,
-              background: householdReadOnly ? "#fff7e6" : "rgba(45,90,61,.1)",
-              color: householdReadOnly ? "#9a6b00" : GREEN,
-            }}>
-              {householdReadOnly ? "Visitante" : "Propietario"}
-            </span>
-          )}
         </div>
+      </header>
+
+      <div style={{
+        padding: `${espaciado["esp-16"]}px 18px calc(${bottomNavSpacer()} + 18px)`,
+        maxWidth: tamano["tam-columna"], margin: "0 auto", width: "100%", boxSizing: "border-box",
+      }}>
 
         {activeHousehold && (
           <p style={{ margin: "0 0 16px", fontSize: 13, fontWeight: 700, color: "#7a9485" }}>
@@ -393,7 +453,7 @@ export function HomeProfileScreen({
                         key={m.id}
                         type="button"
                         aria-pressed={on}
-                        onClick={() => setField("accountMemberId", on ? null : m.id)}
+                        onClick={() => setData((d) => conMiembroDeCuenta(d, user?.id, on ? null : m.id))}
                         style={{
                           display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
                           flexShrink: 0, width: 62, padding: "7px 3px", borderRadius: 12,
@@ -423,7 +483,7 @@ export function HomeProfileScreen({
             <p style={{ margin: "0 0 14px", fontSize: 13, color: "#7a9485", lineHeight: 1.5 }}>
               Inicia sesión para sincronizar recetas, familia y preferencias.
             </p>
-            <GoogleButton onClick={onSignIn} />
+            <SignInOptions onGoogle={onSignIn} onApple={onAppleSignIn} />
           </Card>
         )}
 
@@ -456,6 +516,8 @@ export function HomeProfileScreen({
         )}
 
         {/* ── Cuenta y datos ─────────────────────── */}
+        {/* Formas de entrar (#1238): en lugar del botón suelto «Entrar también con Google». */}
+        {formasDeEntrar && <FormasDeEntrar formas={formasDeEntrar} onAnadir={onAnadirFormaDeEntrar} onQuitar={onQuitarFormaDeEntrar} />}
         {/* Solo tiene sentido con sesión activa — sin este guard se mostraba
             también en el estado deslogueado (junto a la tarjeta "Continuar
             con Google" de arriba), y pulsarlo no hacía nada porque no había
@@ -467,12 +529,16 @@ export function HomeProfileScreen({
             onClick={onSignOut}
           />
         )}
-        <ProfileOptionRow
-          img="/avatares/cards/reiniciar_menu.jpg"
-          title="Reiniciar menú"
-          accent="#c0392b"
-          onClick={onReset}
-        />
+        {/* «Reiniciar menú» se mudó a Inicio, a la fila de «Hoy toca» (30 oct 2026). */}
+        {/* Descargar los datos de la casa (trozo 36): solo con sesión y casa, junto a eliminar la cuenta. */}
+        {onExportData && (
+          <ProfileOptionRow
+            icon={Download}
+            title="Descargar mis datos"
+            subtitle="Todo lo que HoMenu guarda de tu casa, en un fichero."
+            onClick={onExportData}
+          />
+        )}
         <ProfileOptionRow
           img="/avatares/cards/eliminar_cuenta.jpg"
           title="Eliminar cuenta"
@@ -492,6 +558,21 @@ export function HomeProfileScreen({
         >
           <ShieldCheck size={13} color="#7a9485" />
           <span style={{ fontSize: 12.5, color: "#7a9485", fontWeight: 700 }}>Política de privacidad</span>
+        </a>
+
+        {/* Términos de uso — App Store los exige en apps con contenido de
+            usuarios, y tienen que poder leerse sin tener cuenta. */}
+        <a
+          href="/terminos.html"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+            marginTop: 2, padding: "10px 0", textDecoration: "none",
+          }}
+        >
+          <ShieldCheck size={13} color="#7a9485" />
+          <span style={{ fontSize: 12.5, color: "#7a9485", fontWeight: 700 }}>Términos de uso</span>
         </a>
 
         {/* Version */}

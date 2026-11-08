@@ -1,31 +1,30 @@
-import legumbres from "./recipes/legumbres.json";
-import carnes from "./recipes/carnes.json";
-import pescados from "./recipes/pescados.json";
-import huevos from "./recipes/huevos.json";
-import pastaArroces from "./recipes/pasta_arroces.json";
-import sopasCremas from "./recipes/sopas_cremas.json";
-import ensaladasVerduras from "./recipes/ensaladas_verduras.json";
-import platosUnicos from "./recipes/platos_unicos.json";
-import cenasRapidas from "./recipes/cenas_rapidas.json";
-import bebes from "./recipes/bebes.json";
-import desayunos from "./recipes/desayunos.json";
-import meriendas from "./recipes/meriendas.json";
-import postres from "./recipes/postres.json";
-import guarniciones from "./recipes/guarniciones.json";
-import salsas from "./recipes/salsas.json";
-import bases from "./recipes/bases.json";
+import legumbres from "./recipes/legumbres.json" with { type: "json" };
+import carnes from "./recipes/carnes.json" with { type: "json" };
+import pescados from "./recipes/pescados.json" with { type: "json" };
+import huevos from "./recipes/huevos.json" with { type: "json" };
+import pastaArroces from "./recipes/pasta_arroces.json" with { type: "json" };
+import sopasCremas from "./recipes/sopas_cremas.json" with { type: "json" };
+import ensaladasVerduras from "./recipes/ensaladas_verduras.json" with { type: "json" };
+import platosUnicos from "./recipes/platos_unicos.json" with { type: "json" };
+import cenasRapidas from "./recipes/cenas_rapidas.json" with { type: "json" };
+import bebes from "./recipes/bebes.json" with { type: "json" };
+import desayunos from "./recipes/desayunos.json" with { type: "json" };
+import meriendas from "./recipes/meriendas.json" with { type: "json" };
+import postres from "./recipes/postres.json" with { type: "json" };
+import guarniciones from "./recipes/guarniciones.json" with { type: "json" };
+import salsas from "./recipes/salsas.json" with { type: "json" };
+import bases from "./recipes/bases.json" with { type: "json" };
 import { validateRecipes } from "./recipeSchema.js";
 import { deriveHealthFlags } from "../lib/healthFlags.js";
-import { supabase } from "../lib/supabase.js";
-import { BUNDLED_CATALOG_VERSION } from "./catalogVersion.js";
-import { rowToRecipe } from "./recipeRow.js";
-import recipeNutrition from "./derived/recipeNutrition.json";
-import recipeFamilias from "./derived/recipeFamilias.json";
-import { computeRecipeNutrition } from "../lib/ingredients.js";
+import { conNivelCalorias } from "../lib/caloriasNivel.js";
+import recipeNutrition from "./derived/recipeNutrition.json" with { type: "json" };
+import recipeFamilias from "./derived/recipeFamilias.json" with { type: "json" };
+import { costeReceta } from "../lib/coste.js";
+import { computeRecipeNutrition, deriveRecipeAllergens } from "../lib/ingredients.js";
 import { NUTRIENTES, CAMPOS_SECUNDARIOS } from "./nutrientes.js";
 
 // Attach heuristic health flags once, so filterRecipes/decisionCatalog get them
-// for free regardless of whether the recipe came from JSON or Supabase.
+// for free.
 function withHealthFlags(recipes) {
   return recipes.map((r) => ({ ...r, healthFlags: deriveHealthFlags(r) }));
 }
@@ -98,9 +97,9 @@ const MICRONUTRIENTES = CAMPOS_SECUNDARIOS.filter(
 const nutricionDe = (r) => recipeNutrition[r.id] ?? computeRecipeNutrition(r, r.baseServings || 4);
 
 // Exportada para poder probar la rama que NO se da en el bundle: una receta
-// que llega de la nube y no está en la tabla derivada. Mismo motivo por el que
-// `rowToRecipe` vive en su propio fichero — la costura que más silenciosamente
-// se rompe necesita poder probarse.
+// que llega de la nube y no está en la tabla derivada. La costura que más
+// silenciosamente se rompe necesita poder probarse (el mapper de filas de la
+// nube, `rowToRecipe`, se borró el 9 oct 2026).
 /**
  * Las familias (las claves de `freqs`) que consume cada plato, y con qué
  * cuota de masa. Vienen de `derived/recipeFamilias.json`, no se calculan
@@ -110,6 +109,33 @@ const nutricionDe = (r) => recipeNutrition[r.id] ?? computeRecipeNutrition(r, r.
  * Una receta sin fila —una de usuario, una recién llegada de Supabase— se
  * queda sin el campo, y quien lo lea tiene que saber caer a la regla vieja.
  */
+/**
+ * Coste por ración con precios de Mercadona (derived/recipeCoste.json, que
+ * regenera `npm run build:coste` y cada `sync:mercadona`). `costeNivel`
+ * solo si la cobertura de precios llega: si no, la receta se queda sin él.
+ */
+/**
+ * «Puede contener» de cada receta (ids UE), heredado de los ingredientes
+ * elaborados. Lo leen filterRecipes (excluye si choca con una alergia) y quien
+ * pinte la receta (avisa). Se calcula al cargar: no se guarda en el JSON, así
+ * que cambiar una ficha de ingrediente lo cambia en todas sus recetas.
+ */
+export function withPuedeContener(recipes) {
+  return recipes.map((r) => {
+    const lista = deriveRecipeAllergens(r).mayContain;
+    return lista.length ? { ...r, puedeContener: lista } : r;
+  });
+}
+
+export function withCoste(recipes) {
+  // Modo 'granel' (lib/coste.js): el € por ración que se planifica. Lo leen el
+  // planner (puente de aiPlanner) y el bot («algo barato»: costeNivel).
+  return recipes.map((r) => {
+    const c = costeReceta(r, { modo: "granel" });
+    return c ? { ...r, costeRacion: c.porRacion, costeNivel: c.nivel } : r;
+  });
+}
+
 export function withFamilias(recipes) {
   return recipes.map((r) => {
     const f = recipeFamilias[r.id];
@@ -203,171 +229,31 @@ if (import.meta.env.DEV) {
 }
 
 
-const SUPABASE_FETCH_TIMEOUT_MS = 3000;
-
-// Caché en localStorage del catálogo remoto ya validado, para no repetir el
-// select("*") completo (~3.5MB) en cada recarga de página — solo se salta la
-// red mientras la versión cacheada siga siendo >= BUNDLED_CATALOG_VERSION (si
-// el bundle sube de versión, la caché queda obsoleta automáticamente) y no
-// haya pasado CACHE_TTL_MS desde que se guardó.
-const CATALOG_CACHE_KEY = "mp_recipe_catalog_cache_v1";
-const CATALOG_CACHE_TTL_MS = 30 * 60 * 1000;
-
-function readCatalogCache() {
-  try {
-    const raw = localStorage.getItem(CATALOG_CACHE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed.version !== "number" || !Array.isArray(parsed.recipes)) return null;
-    if (typeof parsed.cachedAt !== "number" || Date.now() - parsed.cachedAt > CATALOG_CACHE_TTL_MS) return null;
-    return parsed;
-  } catch {
-    return null;
-  }
-}
-
-function writeCatalogCache(version, recipes) {
-  try {
-    localStorage.setItem(CATALOG_CACHE_KEY, JSON.stringify({ version, recipes, cachedAt: Date.now() }));
-  } catch {
-    // Cuota de localStorage llena o no disponible — la caché es una pura
-    // optimización, seguir sin ella no cambia el comportamiento.
-  }
-}
-
-function withTimeout(promise, ms) {
-  return Promise.race([
-    promise,
-    new Promise((_, reject) => setTimeout(() => reject(new Error(`timeout after ${ms}ms`)), ms)),
-  ]);
-}
-
-// Cuánto tarda en volver a preguntarse "¿hay catálogo nuevo?" cuando la
-// respuesta ha sido que no. La consulta en sí son ~100 bytes, pero es una ida
-// y vuelta en el arranque de CADA carga, y la respuesta solo cambia cuando
-// alguien sube una seed nueva a mano.
-const NO_UPDATE_KEY = "mp_recipe_catalog_uptodate_v1";
-const NO_UPDATE_TTL_MS = 6 * 60 * 60 * 1000;
-
-function remoteKnownUpToDate() {
-  try {
-    const raw = localStorage.getItem(NO_UPDATE_KEY);
-    if (!raw) return false;
-    const parsed = JSON.parse(raw);
-    // Atado a la versión del bundle: en cuanto se despliega un bundle nuevo,
-    // la nota deja de valer y se vuelve a preguntar.
-    if (parsed?.bundled !== BUNDLED_CATALOG_VERSION) return false;
-    return Date.now() - (parsed.at ?? 0) <= NO_UPDATE_TTL_MS;
-  } catch {
-    return false;
-  }
-}
-
-function markRemoteUpToDate() {
-  try {
-    localStorage.setItem(NO_UPDATE_KEY, JSON.stringify({ bundled: BUNDLED_CATALOG_VERSION, at: Date.now() }));
-  } catch {
-    // Cuota llena o modo privado: solo significa volver a preguntar.
-  }
-}
-
-// Reads the remote catalog version from catalog_meta. Any problem (table not
-// created yet, no row, network/permission error) resolves to 0 so the version
-// gate below treats the DB as "behind" and keeps the bundled JSON — the safe
-// default. Never throws.
-async function loadRemoteCatalogVersion() {
-  try {
-    const { data, error } = await withTimeout(
-      supabase.from("catalog_meta").select("version").eq("id", "recipes")
-        .abortSignal(AbortSignal.timeout(SUPABASE_FETCH_TIMEOUT_MS))
-        .maybeSingle(),
-      SUPABASE_FETCH_TIMEOUT_MS,
-    );
-    if (error) throw error;
-    return Number(data?.version ?? 0) || 0;
-  } catch {
-    return 0;
-  }
-}
-
-// Catalog loading strategy — Supabase is authoritative, but GATED on version.
+// UNA sola fuente: el catálogo que viaja en el bundle (src/data/recipes).
 //
-// Editing recipes in Supabase (no redeploy) stays possible, but a database
-// that's BEHIND the bundled JSON (e.g. an old seed missing an allergen fix)
-// can no longer silently override the reviewed catalog: if
-// catalog_meta.version < BUNDLED_CATALOG_VERSION, or the remote data is
-// missing/invalid/unreachable, we fall back to the bundled JSON (already
-// validated above). Never throws: menu generation must keep working.
-async function loadRecipes() {
-  if (!supabase) return JSON_RECIPES;
-
-  // Empate = mismo contenido. La versión sube cuando cambia el JSON y la seed
-  // la iguala, así que con v20 en los dos lados bajarse el catálogo entero es
-  // pagar ~1,1 MB por recibir exactamente lo que ya viene en el bundle. Solo
-  // hay algo que traerse cuando la nube va POR DELANTE, que es el caso real
-  // del "editar recetas en Supabase sin redesplegar".
-  if (remoteKnownUpToDate()) return JSON_RECIPES;
-
-  const cached = readCatalogCache();
-  if (cached && cached.version > BUNDLED_CATALOG_VERSION) {
-    return cached.recipes;
-  }
-
-  try {
-    // La VERSIÓN primero, y el catálogo solo si hace falta.
-    //
-    // Antes las dos peticiones salían en paralelo (Promise.all), así que el
-    // catálogo entero se descargaba SIEMPRE y se tiraba a la basura cuando la
-    // puerta de versión no dejaba usarlo — y ese camino además no cacheaba
-    // nada, o sea que volvía a bajárselo entero en la siguiente carga. Con el
-    // bundle por delante de la nube (que es lo normal justo después de un
-    // despliegue) eran megas por recarga, por usuario, para nada. La ida y
-    // vuelta de más que cuesta preguntar antes son ~100 bytes.
-    const remoteVersion = await loadRemoteCatalogVersion();
-
-    if (remoteVersion <= BUNDLED_CATALOG_VERSION) {
-      if (remoteVersion < BUNDLED_CATALOG_VERSION) {
-        console.warn(
-          `[recipeCatalog] Catálogo de Supabase v${remoteVersion} por detrás del incluido ` +
-            `v${BUNDLED_CATALOG_VERSION}; usando el catálogo local para no degradar datos.`,
-        );
-      }
-      markRemoteUpToDate();
-      return JSON_RECIPES;
-    }
-
-    // Con AbortSignal, no solo con la carrera del timeout: withTimeout deja de
-    // ESPERAR a los 3 s, pero sin abortar la petición los megas siguen
-    // bajando igual. Una conexión lenta pagaba el catálogo entero Y encima se
-    // quedaba con el JSON local — lo peor de los dos mundos.
-    const result = await withTimeout(
-      supabase.from("recipes").select("*").abortSignal(AbortSignal.timeout(SUPABASE_FETCH_TIMEOUT_MS)),
-      SUPABASE_FETCH_TIMEOUT_MS,
-    );
-
-    const { data, error } = result;
-    if (error) throw error;
-    if (!data || data.length === 0) throw new Error("empty result");
-
-    const remoteRecipes = data.map(rowToRecipe);
-    const remoteGuarniciones = remoteRecipes.filter((r) => r.type === "guarnicion");
-    const remoteSalsas = remoteRecipes.filter((r) => r.type === "salsa");
-    const errors = validateCatalog(remoteRecipes, [remoteGuarniciones, remoteSalsas]);
-    if (errors.length > 0) throw new Error(`invalid data:\n${errors.join("\n")}`);
-
-    writeCatalogCache(remoteVersion, remoteRecipes);
-    return remoteRecipes;
-  } catch (e) {
-    console.warn(
-      `[recipeCatalog] No se pudo leer el catálogo de Supabase (${e.message}); usando el catálogo local.`,
-    );
-    return JSON_RECIPES;
-  }
+// Hasta el 30 sep 2026 la app preguntaba antes a Supabase (catalog_meta) y,
+// si su versión iba por delante, se bajaba de ahí el catálogo entero. La copia
+// de Supabase se quedó en la v27 mientras el bundle seguía (v39: alérgenos
+// «puede contener», atributos, coste), y nadie la mantenía: era una puerta
+// para que subir un número en la base cambiara las recetas de todos sin
+// desplegar y sin pruebas. Ahora las recetas cambian con un commit, pasan las
+// pruebas y se despliegan; las tablas de Supabase siguen ahí (migración
+// 0064), sin lectores.
+//
+// Lo que guardaba el cargador antiguo en el navegador (hasta ~3,5 MB) se
+// borra al pasar, para no ocupar sitio a nadie.
+try {
+  localStorage.removeItem("mp_recipe_catalog_cache_v1");
+  localStorage.removeItem("mp_recipe_catalog_uptodate_v1");
+} catch {
+  // Sin almacenamiento (modo privado, pruebas): nada que borrar.
 }
 
 // El orden importa: los micros ANTES de las banderas, porque
 // `deriveHealthFlags` lee `iron_mg` para decidir «rico en hierro».
-export const recipeCatalog = withFamilias(withHealthFlags(withMicronutrientes(await loadRecipes())));
+// `caloriasNivel` (ligero/medio/contundente) sale de kcal y del papel del
+// plato: ver lib/caloriasNivel.js.
+export const recipeCatalog = withPuedeContener(withCoste(conNivelCalorias(withFamilias(withHealthFlags(withMicronutrientes(JSON_RECIPES))))));
 
 export const recipeCatalogById = Object.fromEntries(
   recipeCatalog.map((r) => [r.id, r]),

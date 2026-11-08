@@ -1,0 +1,102 @@
+import { describe, it, expect } from "vitest";
+import { readFileSync, readdirSync } from "node:fs";
+import { EJES } from "../src/data/axisRegistry.js";
+import { MOTIVOS_SIN_HACER_PREFERENCIA } from "../src/lib/vocabularios.js";
+import { MAX_PREFERENCIAS_OPERACION, ORIGEN_PREFERENCIA_POR_DEFECTO } from "../src/lib/operaciones/tuberia.js";
+
+/**
+ * La 0109 (plan fichas con estado, trozo 14): preferencia, plan_preferencias, senal, registro_eje y los historiales,
+ * con escribir_preferencias, preferencias_de_casa y las dos podas de noche. Lo que no vigilan principios.test.js
+ * (FK, índices, comentarios) ni vocabularios.test.js (cada CHECK de lista con su lista de JS). La autoprueba de la
+ * propia migración prueba lo que hace (crear, no duplicar, lo supuesto no pisa lo dicho, rechazar, borrar, leer,
+ * decaer y podar); este test, lo que se ve en el texto.
+ */
+const sinComentarios = (texto) => texto.split("\n").filter((l) => !/^\s*--/.test(l)).join("\n");
+const codigo = sinComentarios(readFileSync(new URL("./migrations/0109_preferencia_senal_historial.sql", import.meta.url), "utf8"));
+
+/** El cuerpo de una función, de su create a su $$ de cierre. */
+function cuerpo(nombre) {
+  const i = codigo.search(new RegExp(String.raw`create function public\.${nombre}\(`));
+  expect(i, `falta la función ${nombre}`).toBeGreaterThan(-1);
+  const abre = codigo.indexOf("$$", i);
+  return codigo.slice(i, codigo.indexOf("$$", abre + 2) + 2);
+}
+
+const TABLAS = ["registro_eje", "plan_preferencias", "preferencia", "senal", "ticket", "precio_observado", "cocinado"];
+
+describe("0109: preferencias, señales e historiales", () => {
+  it("registro_eje es EJES (axisRegistry.js) entero: los INSERT de la 0109 y de las que siguen (0117), mismo id y tipo", () => {
+    const dir = new URL("./migrations/", import.meta.url);
+    const inserts = readdirSync(dir).filter((f) => f.endsWith(".sql")).sort()
+      .flatMap((f) => [...sinComentarios(readFileSync(new URL(f, dir), "utf8")).matchAll(/insert into public\.registro_eje \(id, tipo\) values([\s\S]*?);/g)]);
+    expect(inserts.length, "faltan los INSERT de registro_eje").toBeGreaterThanOrEqual(2);
+    const filas = inserts.flatMap((m) => [...m[1].matchAll(/\('([^']+)', '([^']+)'\)/g)].map(([, id, tipo]) => `${id}:${tipo}`));
+    expect(new Set(filas).size, "un eje insertado dos veces").toBe(filas.length);
+    expect([...filas].sort()).toEqual(EJES.map((e) => `${e.id}:${e.tipo}`).sort());
+  });
+
+  it("cada tabla nace con RLS y sin permisos de usuario ni políticas: solo el servidor (como operacion y sobre)", () => {
+    for (const t of TABLAS) {
+      expect(codigo, t).toMatch(new RegExp(String.raw`alter table public\.${t} enable row level security;`));
+      expect(codigo, t).toMatch(new RegExp(String.raw`revoke all on table [^;]*public\.${t}\b[^;]* from anon, authenticated;`));
+    }
+    expect(codigo).not.toMatch(/create\s+policy/i);
+    expect(codigo).not.toMatch(/grant\s+[^;]*\bon\s+(table\s+)?public\.(preferencia|plan_preferencias|senal|registro_eje|ticket|precio_observado|cocinado)\b/i);
+  });
+
+  it("escribe solo la service role; lee la casa (y la service role); las podas no las llama nadie más que el cron", () => {
+    expect(codigo).toMatch(/revoke all on function public\.escribir_preferencias\(jsonb\) from public, anon, authenticated;\s*grant execute on function public\.escribir_preferencias\(jsonb\) to service_role;/);
+    expect(codigo).toMatch(/revoke all on function public\.preferencias_de_casa\(uuid\) from public, anon, authenticated;\s*grant execute on function public\.preferencias_de_casa\(uuid\) to authenticated, service_role;/);
+    for (const f of ["senal_decaer", "historial_podar"]) {
+      expect(codigo).toMatch(new RegExp(String.raw`revoke all on function public\.${f}\(\) from public, anon, authenticated;`));
+      expect(codigo).not.toMatch(new RegExp(String.raw`grant execute on function public\.${f}\(`));
+    }
+    expect(cuerpo("preferencias_de_casa")).toMatch(/household_members m where m\.household_id = p_casa and m\.user_id = auth\.uid\(\)/);
+  });
+
+  it("una persona autora que no es de la casa no se calla: aborta antes de escribir (no se guarda null)", () => {
+    const f = cuerpo("escribir_preferencias");
+    const aviso = f.indexOf("la persona autora no es de esta casa");
+    expect(aviso).toBeGreaterThan(-1);
+    expect(f.slice(f.lastIndexOf("if ", aviso), aviso)).toMatch(/autor_persona_id[\s\S]*not exists[\s\S]*public\.persona x where x\.household_id = v_casa/);
+    expect(aviso).toBeLessThan(f.indexOf("insert into public.operacion"));
+  });
+
+  it("el tope de una operación es el de aplicar_operacion (0115): una libreta entera cabe en las dos", () => {
+    const de0115 = readFileSync(new URL("./migrations/0115_escribir_con_ambito.sql", import.meta.url), "utf8");
+    const tope = (texto, nombre) => Number(texto.match(new RegExp(String.raw`${nombre} constant integer := (\d+);`))?.[1]);
+    expect(tope(cuerpo("escribir_preferencias"), "c_max")).toBe(tope(de0115, "c_max_datos"));
+    expect(tope(de0115, "c_max_datos")).toBeGreaterThan(0);
+  });
+
+  it("el tope de una operación es el de la tubería (MAX_PREFERENCIAS_OPERACION): lo que no cabe se dice antes de llegar", () => {
+    expect(cuerpo("escribir_preferencias")).toContain(`c_max constant integer := ${MAX_PREFERENCIAS_OPERACION};`);
+  });
+
+  it("el origen de una preferencia que no lo trae es el mismo en la puerta (tubería) y en la base", () => {
+    expect(cuerpo("escribir_preferencias")).toContain(`v_nueva.origen := coalesce(v_nueva.origen, '${ORIGEN_PREFERENCIA_POR_DEFECTO}');`);
+    expect(ORIGEN_PREFERENCIA_POR_DEFECTO).toBe("dicho");
+  });
+
+  it("los motivos de sin_hacer son MOTIVOS_SIN_HACER_PREFERENCIA, y nada más", () => {
+    const motivos = [...cuerpo("escribir_preferencias").matchAll(/v_motivo := '([a-z_]+)'/g)].map((m) => m[1]);
+    expect([...new Set(motivos)].sort()).toEqual([...MOTIVOS_SIN_HACER_PREFERENCIA].sort());
+  });
+
+  it("lo que pone el servidor no lo trae el pedido: casa, canal, autor, rechazo, operación y fechas se pisan", () => {
+    const f = cuerpo("escribir_preferencias");
+    for (const campo of ["household_id := v_casa", "canal := v_canal", "dicho_by := case", "rechazada_at := null", "operacion_id := v_id", "updated_at := now()"]) {
+      expect(f, campo).toContain(`v_nueva.${campo}`);
+    }
+    expect(f).toContain("raise exception 'escribir_preferencias: un defecto no se guarda");
+  });
+
+  it("las dos podas, de noche, con sus plazos escritos una vez", () => {
+    expect(codigo).toMatch(/select cron\.schedule\('senal-decaer', '[^']+', 'select public\.senal_decaer\(\)'\);/);
+    expect(codigo).toMatch(/select cron\.schedule\('historial-podar', '[^']+', 'select public\.historial_podar\(\)'\);/);
+    const poda = cuerpo("historial_podar");
+    expect(poda).toContain("c_precios constant interval := interval '90 days'");
+    expect(poda).toContain("c_cocinado constant interval := interval '1 year'");
+    expect(cuerpo("senal_decaer")).toContain("c_semivida_dias constant numeric := 60");
+  });
+});

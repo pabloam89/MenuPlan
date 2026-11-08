@@ -1,0 +1,84 @@
+# Los tests y la build en cada PR contra staging o main, y en cada push a
+# staging. Hay varias sesiones tocando los mismos ficheros a la vez: esto
+# pilla lo que una rompe en el código de otra antes de que llegue a staging.
+#
+# Sin secretos: los tests usan bases y claves de mentira, y la build no los
+# necesita (sin VITE_SUPABASE_* solo avisa).
+
+name: Tests
+
+on:
+  pull_request:
+    branches: [staging, main]
+    # edited: editar el cuerpo del PR (la línea «Jueces:») vuelve a lanzarlo.
+    types: [opened, synchronize, reopened, edited]
+  push:
+    branches: [staging]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  # Listar los PR abiertos y sus ficheros (scripts/migraciones-pr.mjs): solo lectura.
+  pull-requests: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # Dos commits: en un PR, HEAD es la fusión con la base y HEAD^1 la base;
+          # su diferencia son los ficheros del PR (para los dos pasos del final).
+          fetch-depth: 2
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      # Falla solo con errores de lint NUEVOS respecto a lint-base.json (ver
+      # scripts/lint-base.mjs); los viejos se arreglan cuando se toca el fichero.
+      - name: Lint
+        run: npm run lint:base
+      - name: Tests
+        run: npm test
+        env:
+          TZ: Europe/Madrid
+      - name: Build
+        run: npm run build
+      # Las dos protecciones que daba la guardia de las sesiones hasta #878. Van al final,
+      # dentro de este job (el único check obligatorio), para que se vea antes si los tests
+      # y la build pasan. Solo en pull_request: el push a staging no tiene PR.
+      #
+      # 1. Migraciones (scripts/migraciones-pr.mjs): una aplicada no se toca, y ninguna nueva
+      #    usa el número que ya lleva otro PR abierto a la misma base.
+      - name: Migraciones del PR
+        if: github.event_name == 'pull_request'
+        run: |
+          # core.quotePath=false: sin él git escapa los acentos y la ruta no casa.
+          git -c core.quotePath=false diff --name-status -M HEAD^1 HEAD > "$RUNNER_TEMP/estado-del-pr.txt"
+          # El ESTADO.md de la base, no el del PR: un PR no puede darse permiso a sí mismo.
+          git show HEAD^1:supabase/ESTADO.md > "$RUNNER_TEMP/estado-base.md" || : > "$RUNNER_TEMP/estado-base.md"
+          node scripts/migraciones-pr.mjs "$RUNNER_TEMP/estado-del-pr.txt" "$RUNNER_TEMP/estado-base.md"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_BASE: ${{ github.event.pull_request.base.ref }}
+      # 2. Workflows (scripts/workflows-pr.mjs): si el PR toca .github/workflows/ (o los scripts de
+      #    estas dos comprobaciones), su cuerpo lleva «Jueces: …, seguridad» (sustituye a la regla
+      #    workflow-sin-seguridad, #821). Solo en PR a staging: lo que sube a main ya pasó por aquí
+      #    al entrar en staging. El cuerpo va por entorno y nunca interpolado en el script: lo escribe
+      #    cualquiera. De buena fe: el PR puede cambiar este paso o el script (arreglo de fondo, #881).
+      - name: Juez de seguridad si cambia un workflow
+        if: github.event_name == 'pull_request' && github.base_ref == 'staging'
+        run: |
+          git -c core.quotePath=false diff --name-only HEAD^1 HEAD > "$RUNNER_TEMP/ficheros-del-pr.txt"
+          node scripts/workflows-pr.mjs "$RUNNER_TEMP/ficheros-del-pr.txt"
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_AUTOR: ${{ github.event.pull_request.user.login }}

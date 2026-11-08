@@ -20,6 +20,7 @@ import guarnicionesData from "../data/recipes/guarniciones.json";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { aisleImageSrc, categoryImageSrc, ingredientImageSrc, ingredientThumbSrc } from "../lib/ingredientImages.js";
 import { lowerFirst } from "../lib/dishNaming.js";
+import * as ids from "../lib/ids.js";
 
 const GARNISH_BY_ID = Object.fromEntries(guarnicionesData.map((g) => [g.id, g]));
 const GREEN = "#2d5a3d";
@@ -713,7 +714,7 @@ function CookedDishPicker({ onSave, onCancel, saving, extraRecipes = [], recipeV
       // receta exista antes de poder anotar un tupper es pedir el trabajo al
       // revés. La hoja solo lo ofrece si escribes y no hay coincidencias, que
       // es lo que evita acabar con catorce fichas de "pasta con tomate".
-      onCreateDraft={(name) => setSelected({ id: `draft_${Date.now().toString(36)}`, name, draft: true })}
+      onCreateDraft={(name) => setSelected({ id: ids.borrador.nuevo(), name, draft: true })}
       extraRecipes={extraRecipes}
       recipeVotes={recipeVotes}
       recipeCollections={recipeCollections}

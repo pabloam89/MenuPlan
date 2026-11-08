@@ -8,7 +8,18 @@
 
 import crypto from "node:crypto";
 import { enviarPendientes } from "../_bot/recordatorios.js";
+import { botonDeRecordatorio } from "../_bot/botonRecordatorio.js";
 import { enviar, escaparHtml } from "../_bot/telegram.js";
+import { TIPO_VISPERA, avisoDeVisperaDe } from "../_bot/vispera.js";
+import { rpc } from "../_bot/db.js";
+import { barrer } from "../_bot/caducidades.js";
+import { aprenderDeSenales } from "../_bot/aprender.js";
+import { barrerCaducados } from "../_bot/mercadonaEncargos.js";
+import { fallaCon } from "../_bot/avisar.js";
+import { isoDeCasa } from "../../src/lib/dias.js";
+// Cada cuánto llama el cron a este endpoint: la misma cifra con la que lo
+// programa scripts/bot-cron.mjs.
+import { CADA_MS } from "../_bot/cadencia.js";
 
 function autorizado(cabecera) {
   const secreto = process.env.BOT_CRON_SECRET || process.env.CRON_SECRET;
@@ -23,12 +34,28 @@ export default async function handler(req, res) {
   if (!autorizado(req.headers.authorization)) return res.status(401).end();
   const enviados = await enviarPendientes(async (r) => {
     if (r.channel !== "telegram") return;
-    // Con un botón que se lo pide a Lola tal cual: «Preparar el menú de la
-    // semana que viene» se convierte en prepararlo, sin tener que escribir.
-    const cabe = Buffer.byteLength(`t:${r.text}`) <= 64;
-    await enviar(r.chat_id, `⏰ <b>Recordatorio</b>: ${escaparHtml(r.text)}`, cabe
-      ? { botones: [[{ texto: "👉 Vamos", dato: `t:${r.text}` }]] }
-      : {});
+    // El aviso de la víspera (api/_bot/vispera.js): se monta ahora, con el menú
+    // de mañana, y si no hay nada que preparar no se manda nada.
+    if (r.aviso === TIPO_VISPERA) {
+      const hoy = isoDeCasa();
+      const aviso = r.household_id ? await avisoDeVisperaDe(r.household_id, hoy) : null;
+      if (aviso) await enviar(r.chat_id, aviso);
+      return;
+    }
+    // Con un botón que se lo pide a Lola: «Preparar el menú de la semana que
+    // viene» se convierte en prepararlo, sin tener que escribir. El botón lleva
+    // la tarea, no el texto: se hace en su casa (#1238), y vale para cualquier largo.
+    await enviar(r.chat_id, `⏰ <b>Recordatorio</b>: ${escaparHtml(r.texto)}`, { botones: [[botonDeRecordatorio(r.id)]] });
   });
-  return res.status(200).json({ ok: true, enviados });
+  // Tareas caducadas y lo cerrado de hace más de 7 días (texto que puede llevar
+  // salud o menores): fuera. Si falla, los recordatorios ya salieron.
+  const tareas = await rpc("bot_tareas_purgar", {}).catch((e) => { console.error("[tareas] purga", e?.message); return null; });
+  // Lo que caduca (api/_bot/caducidades.js), en esta misma pasada: un solo
+  // dueño para todo lo que vence, con su lista cerrada (#958).
+  const caducado = await barrer({ enviar, cadaMs: CADA_MS }).catch((e) => { console.error("[caducidades]", e?.message); return null; });
+  // Lo que se aprende de las señales (api/_bot/aprender.js, trozo 15): lo último; si falla, lo de arriba ya salió.
+  const aprendido = await aprenderDeSenales({ cadaMs: CADA_MS }).catch((e) => { console.error("[senales]", e?.message); return null; });
+  // Encargos de Mercadona que lleva demasiado: sin esto, si el trabajador cae, quien lo pidió por Lola no se entera.
+  const mercadona = await barrerCaducados().catch(fallaCon("mercadona", null));
+  return res.status(200).json({ ok: true, enviados, tareas, caducado, aprendido, mercadona });
 }

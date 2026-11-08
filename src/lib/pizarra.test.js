@@ -1,6 +1,8 @@
-import { describe, it, expect } from "vitest";
-import { planVacio, huecosDelPlan, conHuecosAlDia, conHuecoAnadido, sinHueco, franjasDelDia } from "./pizarra.js";
+import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
+import { planVacio, semanaEnBlanco, fotoAntesDePizarra, volverAntesDePizarra, huecosDelPlan, conHuecosAlDia, conSemanasAlDia, conHuecoAnadido, sinHueco, franjasDelDia } from "./pizarra.js";
 import { DAYS, getDayMeals, slotKey } from "./planner.js";
+import { compraQueSeVe, esCompraConMarcas } from "./compraMarcas.js";
+import { mondayISOForOffset } from "./weekCalendar.js";
 
 const ADULTOS = [
   { id: "a1", name: "Pablo", age: 36 },
@@ -208,5 +210,108 @@ describe("abrir y cerrar huecos día a día (el `+`)", () => {
   it("franjasDelDia dice qué tiene ya ese día", () => {
     const plan = planVacio(casaBase(), [grupo]);
     expect([...franjasDelDia(plan, "Lun", [grupo])].sort()).toEqual(["Cena", "Comida"]);
+  });
+});
+
+describe("las semanas marcadas se abren en el menú", () => {
+  // Las fechas salen de «hoy»: con el reloj parado el test no depende del día.
+  beforeAll(() => { vi.useFakeTimers(); vi.setSystemTime(new Date(2026, 9, 30, 12)); });
+  afterAll(() => { vi.useRealTimers(); });
+  const grupo = grupoCon(ADULTOS);
+  const menuConUna = () => ({
+    origin: "pizarra",
+    weeks: { "2000-01-03": { offset: 0, startDayIdx: 0, days: null, plan: planVacio(casaBase(), [grupo]) } },
+  });
+
+  it("añade una semana por cada offset marcado que el menú no tiene", () => {
+    const data = casaBase(ADULTOS, { menuWeekOffsets: [0, 1, 2], menuWeek: { offset: 0, startDayIdx: 0 } });
+    const { menu, nuevas } = conSemanasAlDia(menuConUna(), data, [grupo]);
+    expect(Object.keys(menu.weeks)).toHaveLength(3);
+    expect(Object.keys(nuevas)).toHaveLength(2);
+    expect(Object.values(nuevas).map((w) => w.offset).sort()).toEqual([1, 2]);
+    // Con huecos para tocar, no un plan vacío de verdad.
+    for (const w of Object.values(nuevas)) expect(huecosDelPlan(w.plan)).toBeGreaterThan(0);
+  });
+
+  it("a la semana que ya está se le ponen al día los días elegidos", () => {
+    const antes = menuConUna();
+    const data = casaBase(ADULTOS, {
+      menuWeekOffsets: [0],
+      menuWeek: { offset: 0, startDayIdx: 0 },
+      menuWeekDays: { [mondayISOForOffset(0)]: ["Lun", "Mar"] },
+    });
+    const { menu, aGuardar } = conSemanasAlDia(antes, data, [grupo]);
+    expect(menu.weeks["2000-01-03"].days).toEqual(["Lun", "Mar"]);
+    // Con platos puestos: al refrescar los días el plan es el mismo objeto.
+    expect(menu.weeks["2000-01-03"].plan).toBe(antes.weeks["2000-01-03"].plan);
+    // Y se sube a la nube: si no, al recargar volverían los días de antes.
+    expect(Object.keys(aGuardar)).toEqual(["2000-01-03"]);
+  });
+
+  it("con «distinto en cada semana» la semana nueva lleva su horario; con «igual», el de la casa", () => {
+    const propio = { [slotKey("a1", "Mar", "Comida")]: "fuera" };
+    const datos = (igual) => casaBase(ADULTOS, {
+      menuWeekOffsets: [0, 1],
+      menuWeek: { offset: 0, startDayIdx: 0 },
+      menuScheduleSameForAllWeeks: igual,
+      menuWeekOverrides: { [mondayISOForOffset(1)]: propio },
+    });
+    const distinto = conSemanasAlDia(menuConUna(), datos(false), [grupo]);
+    expect(Object.values(distinto.nuevas)[0].schedule).toBe(propio);
+    const igual = conSemanasAlDia(menuConUna(), datos(true), [grupo]);
+    expect(Object.values(igual.nuevas)[0].schedule).toEqual({});
+  });
+
+  it("devuelve el mismo menú si no hay nada que abrir", () => {
+    const antes = menuConUna();
+    const data = casaBase(ADULTOS, { menuWeekOffsets: [0], menuWeek: { offset: 0, startDayIdx: 0 } });
+    const r = conSemanasAlDia(antes, data, [grupo]);
+    expect(r.menu).toBe(antes);
+    expect(r.nuevas).toEqual({});
+  });
+});
+
+describe("salir de la hoja de arranque", () => {
+  const antes = {
+    data: { menus: { a: {} }, activeMenuId: "a", kitchenTools: ["horno"], pantryGenDeltas: {} },
+    menuPlan: { g1: {} },
+    shopping: { items: [{ id: "i1" }] },
+    aiRecipes: [{ id: "r1" }],
+    pantalla: "dashboard",
+  };
+
+  it("la foto guarda lo que abrir una pizarra cambia, y nada más", () => {
+    expect(Object.keys(fotoAntesDePizarra(antes).data).sort()).toEqual([
+      "activeMenuId", "extraMeals", "groups", "menuWeek", "menuWeekDays", "menuWeekOffsets", "menus",
+    ]);
+  });
+
+  it("devuelve el menú, la compra y la pantalla de antes", () => {
+    const abierta = { menus: { b: {} }, activeMenuId: "b", kitchenTools: ["horno"], pantryGenDeltas: {} };
+    const vuelta = volverAntesDePizarra(fotoAntesDePizarra(antes), abierta);
+    expect(vuelta.data.menus).toEqual({ a: {} });
+    expect(vuelta.data.activeMenuId).toBe("a");
+    expect(vuelta.menuPlan).toEqual({ g1: {} });
+    expect(vuelta.shopping.items).toHaveLength(1);
+    expect(vuelta.aiRecipes).toEqual([{ id: "r1" }]);
+    expect(vuelta.pantalla).toBe("dashboard");
+  });
+
+  it("no toca lo que no es del menú: los aparatos ni el consumo ya devuelto", () => {
+    const abierta = { kitchenTools: ["horno", "airfryer"], pantryGenDeltas: { sinM1: true } };
+    const { data } = volverAntesDePizarra(fotoAntesDePizarra(antes), abierta);
+    expect(data.kitchenTools).toEqual(["horno", "airfryer"]);
+    expect(data.pantryGenDeltas).toEqual({ sinM1: true });
+  });
+});
+
+// Desde #1210 la app no genera menús: la pizarra es lo único que los crea, y su compra tiene que salir de los platos
+// que se pongan. Con `{ items: [] }` la lista se quedaba vacía aunque el tablero estuviera lleno.
+describe("semanaEnBlanco: la compra sigue al menú", () => {
+  it("empieza sin marcas, así que la lista se saca de los platos", () => {
+    const { week } = semanaEnBlanco(casaBase(), [grupoCon(ADULTOS)], 0, true);
+    expect(esCompraConMarcas(week.shopping)).toBe(true);
+    const derivados = [{ id: "leche", name: "leche" }];
+    expect(compraQueSeVe(week.shopping, () => derivados).items).toEqual(derivados);
   });
 });

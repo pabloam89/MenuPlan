@@ -1,0 +1,108 @@
+/**
+ * Barrera: ninguna FK nueva borra en cascada al borrar una persona.
+ *
+ * La sincronización por clave (0081, y desde la 0089 en cada guardado) borra
+ * la fila de `persona` de quien sale de data.members. Todo lo que cuelgue de
+ * ella con `on delete cascade` se va con ella sin que nadie lo vea: así se
+ * perdían las tareas de la 0083 hasta que la 0089 las pasó a `set null`.
+ *
+ * Solo pueden ir en cascada su salud (dato de salud: debe irse con ella) y su
+ * pertenencia a un grupo. Cualquier otra tabla que apunte a persona lleva
+ * `set null` o `restrict`. Si de verdad tiene que irse con la persona, se
+ * añade aquí con su porqué, en el mismo PR y con el juez auditor-datos.
+ *
+ * Mira el estado final: si una migración posterior cambia el on delete de una
+ * FK, cuenta la última (por eso la 0083 no falla).
+ */
+import { describe, it, expect } from "vitest";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+import { tmpdir } from "node:os";
+import { aplicarEsquema, esquemaFinal, sentencias } from "../scripts/lib/migraciones.mjs";
+
+const DIR = join(dirname(fileURLToPath(import.meta.url)), "migrations");
+
+export const CASCADA_PERMITIDA = new Map([
+  ["persona_alergia", "salud: se va con la persona (PRINCIPIOS §17)"],
+  ["persona_intolerancia", "salud: se va con la persona (PRINCIPIOS §17)"],
+  ["persona_estado", "salud: se va con la persona (PRINCIPIOS §17)"],
+  ["persona_perfil_salud", "salud: se va con la persona (PRINCIPIOS §17)"],
+  ["sobre", "salud: de dónde sale cada dato de la ficha de la persona; se va con ella (PRINCIPIOS §17, 0097)"],
+  ["grupo_persona", "pertenencia a un grupo: sin la persona no significa nada"],
+  ["preferencia", "lo que quiere esa persona (gustos, vetos, topes; 0109): sin ella no condiciona ningún menú"],
+  ["plan_preferencias", "el conjunto de preferencias de esa persona (su dieta, su plan; 0109): sin ella no se aplica a nadie"],
+]);
+
+const PERSONA = "public.persona";
+const aPersona = (estado) => [...estado].flatMap(([tabla, t]) => [...t.fks.values()]
+  .filter((fk) => fk.destino === PERSONA)
+  .map((fk) => ({ tabla, nombre: fk.nombre, onDelete: fk.onDelete, ...(fk.fichero ? { fichero: fk.fichero } : {}) })));
+
+/**
+ * FKs hacia persona de un SQL suelto, en orden: { tabla, nombre, onDelete }. La lectura es la de
+ * scripts/lib/migraciones.mjs (aplicarEsquema), la misma que usa supabase/cascadas.test.js; un `alter` de una
+ * tabla que el trozo no crea cuenta igual (crearSiFalta).
+ */
+export function fksAPersona(sql) {
+  const estado = new Map();
+  for (const s of sentencias(sql)) aplicarEsquema(estado, s, { crearSiFalta: true });
+  return aPersona(estado);
+}
+
+/** Estado final tras todas las migraciones: la última definición de cada FK gana, y un drop table se lleva las suyas. */
+export function estadoFinal(dir = DIR) {
+  return aPersona(esquemaFinal(dir));
+}
+
+describe("cascada hacia persona", () => {
+  it("lee bien las formas que usamos", () => {
+    expect(fksAPersona(`create table if not exists public.persona_alergia (
+      household_id uuid not null,
+      foreign key (household_id, persona_id) references public.persona(household_id, id) on delete cascade
+    );`)).toEqual([{ tabla: "persona_alergia", nombre: null, onDelete: "cascade" }]);
+    expect(fksAPersona(`alter table public.bot_tareas
+      drop constraint if exists bot_tareas_persona_fk,
+      add constraint bot_tareas_persona_fk
+        foreign key (household_id, persona_id) references public.persona(household_id, id)
+        on delete set null (persona_id) not valid;`)).toEqual([{ tabla: "bot_tareas", nombre: "bot_tareas_persona_fk", onDelete: "set null" }]);
+    expect(fksAPersona(`create table public.x (
+      a text references public.grupo(id) on delete cascade,
+      persona_id text references public.persona(id)
+    );`)).toEqual([{ tabla: "x", nombre: null, onDelete: "no action" }]);
+    expect(fksAPersona("-- references public.persona(id) on delete cascade\nselect 1;")).toEqual([]);
+  });
+
+  it("la 0083 en cascada la deja en set null la 0089", () => {
+    const tareas = estadoFinal().find((f) => f.tabla === "bot_tareas");
+    expect(tareas).toMatchObject({ onDelete: "set null", fichero: expect.stringMatching(/^0089/) });
+  });
+
+  it("solo la salud y los grupos se borran en cascada con la persona", () => {
+    const malas = estadoFinal()
+      .filter((f) => f.onDelete === "cascade" && !CASCADA_PERMITIDA.has(f.tabla))
+      .map((f) => `${f.fichero}: ${f.tabla}${f.nombre ? ` (${f.nombre})` : ""}`);
+    expect(malas, "Estas FKs borran en cascada al quitar a alguien de la familia. Usa `on delete set null` o `restrict`, o añádela a CASCADA_PERMITIDA con su porqué").toEqual([]);
+  });
+
+  describe("un drop table (#302)", () => {
+    const CREA = "create table public.cosa_nueva (id uuid primary key, persona_id uuid references public.persona(id) on delete cascade);";
+    const carpeta = (migraciones) => {
+      const d = mkdtempSync(join(tmpdir(), "menuplan-cascada-"));
+      for (const [n, sql] of Object.entries(migraciones)) writeFileSync(join(d, `${n}.sql`), sql);
+      return d;
+    };
+    const tablasDe = (d) => { const t = estadoFinal(d).map((f) => f.tabla); rmSync(d, { recursive: true }); return t; };
+
+    it("una tabla borrada por una migración posterior se lleva sus FK", () => {
+      expect(tablasDe(carpeta({ "0001_a": CREA, "0002_b": "drop table public.cosa_nueva;" }))).toEqual([]);
+    });
+    it("drop + create en el mismo fichero: la tabla vive y su FK cuenta", () => {
+      expect(tablasDe(carpeta({ "0001_a": "drop table if exists public.cosa_nueva;\n" + CREA }))).toEqual(["cosa_nueva"]);
+    });
+    it("create + drop en el mismo fichero: no vive; el drop de otro esquema no la quita", () => {
+      expect(tablasDe(carpeta({ "0001_a": CREA + "\ndrop table public.cosa_nueva;" }))).toEqual([]);
+      expect(tablasDe(carpeta({ "0001_a": CREA + "\ndrop table otro.cosa_nueva;" }))).toEqual(["cosa_nueva"]);
+    });
+  });
+});

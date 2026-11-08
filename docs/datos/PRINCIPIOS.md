@@ -1,0 +1,518 @@
+# Principios de las tablas
+
+Reglas de estructura para todo lo que se cree a partir de la migración 0087.
+Lo anterior no se reescribe por cumplirlas: se arregla cuando se toca.
+
+Este documento es **cómo las aplica HoMenu**. Los principios de base de datos
+que no dependen del producto son generales (enunciado y fuentes, con la
+documentación de PostgreSQL o Fowler detrás, en `docs/PRINCIPIOS.md`); aquí
+queda el desarrollo y el cumplimiento en esta base.
+
+Cada regla dice por qué existe y cómo se hace cumplir:
+
+- **[auto]**: lo comprueba `supabase/principios.test.js` sobre el SQL de las
+  migraciones ≥ 0087 (y, donde se dice, sobre todas). Falla el CI.
+- **[revisión]**: no hay test que lo vea; lo mira quien revisa la migración.
+
+Si una regla no encaja, se rompe a la vista: un comentario en la migración que
+diga cuál y por qué. Lo que no vale es saltársela sin decirlo.
+
+## 1. Todo cuelga de la casa
+
+Principio: `household-owns-data` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
+- Las tablas de dominio llevan `household_id uuid not null references
+  public.households(id) on delete cascade`, y su índice principal empieza por
+  `household_id`. **[revisión]**
+  Por qué: la casa es la unidad de acceso (RLS), de borrado (RGPD) y de
+  consulta; con el índice así, cada lectura de una casa es un rango.
+- Los hijos de una entidad de la casa la referencian con FK compuesta
+  `(household_id, x_id) → (household_id, id)`. **[revisión]**
+  Por qué: así la base impide que una fila cuelgue de algo de otra casa
+  (ver `bot_reminders_tarea_fk` en 0080 y `bot_tareas_persona_fk` en 0083).
+- Las tablas por usuario heredadas (`user_pantry`, `user_menus`,
+  `user_recipes`…) son excepciones congeladas: no se crean tablas nuevas por
+  usuario para datos de la casa. **[revisión]**
+- Las casas de prueba se marcan (`households.es_prueba boolean not null
+  default false`, cuando exista) y quedan fuera de métricas y purgas.
+  **[revisión]** Por qué: la base es una sola y es producción; los evals y los
+  scripts escriben en ella y hoy no se distinguen de las familias reales.
+
+## 2. Toda FK dice qué pasa al borrar
+
+Principio: `fk-declares-on-delete` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
+- Cada `references` declara `on delete` (`cascade`, `restrict` o `set null`).
+  **[auto]** Por qué: el valor por defecto (`no action`) es una decisión que
+  nadie tomó; con cascadas hacia `persona`, borrar mal se lleva tareas en
+  silencio (ver 0081).
+- Toda FK tiene un índice cuyas primeras columnas son las de la FK (sirve la
+  primary key o un unique que empiecen por ellas). **[auto]** Por qué: Postgres
+  no lo crea solo, y sin él cada `on delete cascade` recorre la tabla hija
+  entera; borrar una casa se vuelve lento y bloquea. El 8 oct 2026 faltaban 20
+  (`bot_messages.household_id`, `bot_tareas.created_by`…).
+- Una columna `*_id` o `*_by` sin FK lleva `comment on column` con la razón:
+  catálogo del bundle, polimórfica o externa (Telegram, Mercadona).
+  **[revisión]** Por qué: sin el comentario no se distingue un olvido de una
+  decisión.
+
+## 3. Claves primarias
+
+Principio: `stable-unique-id` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
+| Caso | Clave |
+|---|---|
+| La genera el servidor | `uuid default gen_random_uuid()` |
+| La genera el cliente | `uuid` si va a una columna uuid (persona y grupo, desde el 7 oct 2026: uuid en el valor; los viejos pasan a uuid con la 0091, y la columna, de `text` a `uuid` después: transición en `supabase/PENDIENTES.md`); si no, `text` con prefijo de tipo + 12 base36 de CSPRNG y CHECK de formato. Siempre de `src/lib/ids.js` |
+| Registro o cola de solo añadir | `bigint generated always as identity` (nunca `serial`/`bigserial`: **[auto]**) |
+| Entidad de la casa | compuesta `(household_id, id)` |
+
+**[auto en el código, revisión en el SQL]** Por qué: los ids de cliente
+(personas, grupos, carpetas `fld_…`, menús `menu_…`) se fabricaban cada uno
+a su manera con `Math.random`. Ahora todos salen de `src/lib/ids.js`
+(`ids.<tipo>.nuevo()`, `ids.<tipo>.es()` acepta el formato nuevo y los viejos),
+y `src/lib/ids.guard.test.js` falla si alguien genera un id fuera de él. Los
+ids viejos no se reescriben nunca. El CHECK de formato en la base usa las
+regex que exporta `ids.js`.
+
+## 4. Vocabularios cerrados
+
+Principio: `closed-vocabulary` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
+- `text` + CHECK llamado `<tabla>_<col>_vocabulario`. La lista vive en una
+  constante JS, y un solo test compara SQL y JS: `src/lib/vocabularios.test.js`.
+  Los `enum` de las herramientas de Lola salen de esa misma constante.
+  **[revisión]** el nombre; la paridad, **[auto]**.
+  Por qué: añadir un valor en JS sin migración es el fallo típico, y solo un
+  test lo ve antes que el usuario.
+- La paridad es **por columna**, no por nombre de constraint: el CHECK de lista
+  vigente de cada columna (el último de las migraciones, también los que nacieron
+  en línea como `channel text check (…)`) tiene su lista en
+  `COLUMNA_A_VOCABULARIO` de `src/lib/vocabularios.test.js` (las del producto, en
+  `COLUMNAS_VOCABULARIO` de `scripts/lib/columnasVocabulario.mjs`), o está en
+  `SIN_LISTA` con su porqué (deuda que solo baja). Un CHECK con literales e
+  `in`/`any`/`<@` que el lector no entiende va a `NO_ES_LISTA` con su motivo.
+  «Vigente» sale de las migraciones menos las de «Sin aplicar» de
+  `supabase/ESTADO.md`: si esa lista miente, la paridad también (el lector,
+  `scripts/lib/checksVocabulario.mjs`, lo dice en su cabecera). **[auto]**
+- Un valor no se borra ni se reutiliza (#497): deja de ofrecerse quitándolo de
+  la constante y retirándolo en `ops/vocabularios-vida.json`
+  (`producto.<nombre>`, con su `pasa_a`), y **el CHECK lo sigue admitiendo**,
+  porque hay filas de familias guardadas con él. Hoy **sacar un retirado del
+  CHECK está prohibido** (el test falla); permitirlo, tras reescribir las filas
+  con `CONTRAE`, sería un estado nuevo («purgado») y una decisión aparte.
+  Cambiar su significado deja una línea en `redefiniciones`. **[auto]**
+  Por qué: un valor reutilizado mezcla en un recuento filas viejas y nuevas que
+  quieren decir cosas distintas, y nadie lo ve.
+- Como el CHECK admite los retirados, **el que impide volver a escribirlos es el
+  código** (#539): todo módulo dueño escribe una columna de vocabulario con
+  `paraEscribir` / `listaParaEscribir` de `src/lib/vocabularios.js`: un retirado
+  pasa a su `pasa_a`; uno sin sucesor no se escribe (null, o fuera de la lista) y
+  deja la línea `vocabulario_escritura` con `accion: quitado`; uno desconocido
+  lanza `FueraDeVocabulario`, como lo rechazaría el CHECK.
+  Los retirados llegan a la app y al bot por `RETIRADOS`, proyección de
+  `ops/vocabularios-vida.json` que el test compara con ella. El escáner de
+  `scripts/lib/escritoresVocabulario.mjs` falla si una asignación de esas
+  columnas no pasa por la función (o por la de otro vocabulario) o si un
+  escritor de sus tablas escribe un valor a mano (un canal o idioma fijo, con
+  `CANAL.TELEGRAM` o `IDIOMAS`). Vigila todas las columnas de
+  `COLUMNAS_VOCABULARIO`, la misma lista de la paridad (#549); lo que se escribe
+  desde SQL lo dice `ESCRITORES_SQL`, y el test falla si falta uno.
+  **[auto]** Un trigger que rechazara los retirados en filas nuevas sería la
+  opción en la base, si esto no bastara.
+- Nada de `create type … as enum` ni `alter type … add value`. **[auto]**
+  Por qué: un enum de Postgres no se puede encoger, y el valor que añade
+  `add value` no se puede usar en la misma transacción (la 0070 tuvo que ir
+  sola por eso). Los trece enums que hay se quedan; no se suma ninguno.
+  **Única excepción:** declarar un valor que ya existe en producción y que
+  ninguna migración declara, con `add value if not exists` y la marca
+  `-- enum-declarativo: <porqué>` en el mismo fichero (la 0098, #366, y la 0101). No
+  añade nada a la base: solo permite reconstruirla desde las migraciones. Un
+  `add value` sin marca, o sin `if not exists`, o en un fichero que no esté en
+  `ENUM_DECLARATIVO` (`principios.test.js`, hoy la 0098 y la 0101), sigue fallando. La marca va en
+  una línea que empieza por `--`, con el porqué (tres palabras) en esa línea.
+  Límite conocido: el test no distingue un `--` de línea dentro de un `/* */` o
+  de un literal de varias líneas.
+- Tabla de consulta (lookup) solo si los valores llevan atributos que alguien
+  lee. **[revisión]**
+- Residual `'otro'` solo cuando sirva: con columna `<col>_otro text` y
+  `check ((<col> = 'otro') = (<col>_otro is not null))`. **[revisión]**
+
+## 5. JSON o tabla
+
+Principio: `json-or-table` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
+| Tabla si… | JSON si… |
+|---|---|
+| se filtra o agrega en el servidor, o entre casas | un solo escritor lo lee y escribe entero |
+| otra fila la referencia por FK, o necesita integridad | es una foto: snapshot, deshacer, historial |
+| varios escritores editan partes a la vez | la forma es heterogénea o versionada, y la valida zod |
+| cada parte necesita RLS distinta | es un payload externo tal cual llega |
+| crece sin tope o guarda historia | es estado de la UI |
+| tiene ciclo de vida propio | es configuración pequeña y acotada |
+
+Híbridos que valen:
+
+- Una fila por entidad con cuerpo `jsonb` (lo indexable en columnas).
+- Tabla como verdad + proyección JSON servida por RPC para cargar rápido.
+- Versión por sección del documento, para no pisarse entre secciones.
+
+Lo que no vale: sincronizar con DELETE + INSERT cuando hay FK en cascada que
+cuelgan de esas filas. Se hace diff y upsert por clave (la lección de 0079 →
+0081). **[revisión]**
+
+Toda columna `jsonb` nueva lleva al menos `check (jsonb_typeof(col) = 'object')`
+(o `'array'`) y un `comment on column` que nombra el fichero JS que la valida.
+**[revisión]** Por qué: sin eso, la forma del JSON solo está en la cabeza de
+quien lo escribió.
+
+## 6. Un dato, un sitio
+
+Principio: `one-fact-one-place` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
+Cada hecho vive en un solo lugar. Cualquier otra copia es una proyección
+calculada, y se documenta de dónde sale y quién la recalcula. **[revisión]**
+Por qué: dos copias acaban diciendo cosas distintas (los comensales en el
+JSON de la casa y en `persona` mientras dure la transición son la excepción
+declarada, no el modelo).
+
+Vale también entre capas: un hecho del catálogo (JSON en git) no se copia a
+mano en una tabla ni en una constante JS, y un vocabulario de la base no se
+reescribe en el código; se genera o se importa de su origen, con un test que
+compare. **[revisión]**
+
+## 7. Concurrencia
+
+Principio: `versioned-concurrency` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
+El estado compartido de la casa se escribe con RPC que comprueban y suben una
+versión (`bot_rev`, 0057/0068). En funciones nuevas, el cliente no lee el
+documento entero, lo modifica y lo vuelve a escribir. **[revisión]**
+Por qué: la app, el bot y otro miembro escriben la misma casa; sin versión,
+gana el último y nadie se entera.
+
+## 8. Seguridad
+
+Principio: `secure-by-default` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
+- `enable row level security` en la misma migración que crea la tabla.
+  **[auto]** Por qué: entre una migración y la siguiente la tabla queda abierta
+  a `anon` por la API.
+- Tabla sin políticas (solo servidor): además `revoke all on table … from
+  anon, authenticated`. **[auto]** Por qué: RLS sin políticas ya cierra, pero
+  el revoke deja escrita la intención y protege si alguien desactiva RLS.
+- Funciones `security definer`: `set search_path = public, pg_temp`,
+  `revoke all on function … from public, anon, authenticated` y `grant execute`
+  explícito a quien la use. **[auto]** Por qué: Supabase concede EXECUTE a
+  `anon` y `authenticated` por defecto, y revocar a `public` no lo quita (lo
+  que se vio con la 0055/0056).
+- `anon` no tiene permisos por defecto sobre tablas ni secuencias nuevas (0096).
+  Para dárselos hay que escribir `grant … to anon` con la marca `-- anon: <porqué>` en la propia
+  sentencia. **[auto]** (`supabase/anonPorDefecto.test.js`) Por qué: así la RLS
+  deja de ser la única barrera frente a la clave pública. Límites:
+  - Vale solo para lo que crea `postgres`: nada se crea en `public` con otro rol
+    (`supabase_admin` tiene su propia plantilla, abierta a `anon`).
+  - Una tabla que se borra y se recrea sale cerrada a `anon`, aunque antes
+    estuviera abierta: si alguna ruta pública la leía, deja de funcionar.
+  - Las funciones no entran: siguen con el revoke explícito de arriba.
+  - El test lee texto y no ve SQL armado a trozos (`'grant ' || …`,
+    `format`), ni entrar en un rol por otra vía (`create role … in role`), ni
+    cambios hechos en el panel. `grant authenticated to anon` sí lo rechaza.
+- Las políticas usan `(select auth.uid())`, no `auth.uid()` a pelo.
+  **[revisión]** Por qué: así se evalúa una vez por consulta y no por fila
+  (0011).
+
+## 9. Fechas de cada fila
+
+Principio: `who-what-when` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
+Toda tabla nueva lleva `created_at timestamptz not null default now()`.
+**[auto]** Por qué: sin ella no se sabe desde cuándo consta un dato; el 8 oct
+2026, 18 tablas no la tenían, entre ellas `persona_alergia`. `updated_at` solo
+si lleva el trigger `set_updated_at` (0001); una columna que nadie actualiza
+miente (8 lo hacían ese día). **[revisión]** El resto de fechas (días del
+menú, zona de la casa, rangos) está en la sección 20.
+
+## 10. Migraciones
+
+Principio: `expand-and-contract` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
+Producción y staging comparten base: cada migración tiene que convivir con el
+código desplegado de antes y de después.
+
+- **Expandir y contraer.** Primero se añade; lo que se quita va en un despliegue
+  posterior, cuando ningún código desplegado lo usa. Un `drop table` o
+  `drop column` exige una línea de cabecera `-- CONTRAE: <qué y por qué ya
+  nadie lo usa>`. **[auto]** la línea; **[revisión]** que sea verdad.
+- **Constraints sobre tablas existentes, `not valid`**, y el `validate` después.
+  Cada `validate` pendiente se apunta en `supabase/PENDIENTES.md` con su
+  condición y su consulta previa. **[auto]**, y la comprobación de que todo
+  NOT VALID sin validar está en PENDIENTES.md corre sobre **todas** las
+  migraciones. Por qué: validar recorre la tabla con bloqueo; y un NOT VALID
+  olvidado no protege lo que ya había.
+- **`set lock_timeout`** al principio (p. ej. `'5s'`). **[auto]** Por qué: un
+  `alter table` que espera un bloqueo pone en cola todas las lecturas detrás.
+- **Nada no transaccional.** Sin `begin`/`commit`, sin `concurrently`, sin
+  `vacuum`. Un índice concurrente va a `supabase/manual/` con el mismo número y
+  sufijo (`0080b_indice_concurrente.sql`). **[auto]**
+- **Precondiciones con `raise exception`** en un bloque `do`: si falta una
+  migración previa o hay datos que la romperían, falla antes de tocar nada
+  (ver 0083). **[revisión]**
+- **Cada migración aparece en `supabase/ESTADO.md`**, con su estado real.
+  **[auto]**
+
+## 11. Transformaciones
+
+Principio: `pure-transformations` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
+Cada transformación del dominio vive en un módulo puro con tests
+(`src/lib/nutricionPlato.js`, `src/data/axisRegistry.js`). La base no la
+duplica: si la necesita, la deriva con una vista o una columna generada a
+partir del dato de origen. **[revisión]** Por qué: dos implementaciones de la
+misma cuenta divergen. Y nada de un framework genérico de calculadoras: un
+módulo por transformación.
+
+## 12. Nombres
+
+Principio: `names-have-form` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
+Un mismo patrón en todas las tablas, para que leer una sea leerlas todas.
+
+- `snake_case` ASCII en minúsculas, sin abreviaturas inventadas. **[revisión]**
+- Tablas nuevas en plural; la clave ajena se llama como la entidad en
+  singular + `_id` (`persona_id` → `personas`). **[revisión]**
+- Columnas estructurales en inglés: `id`, `*_id`, `created_at`, `updated_at`,
+  `status`. Las de dominio pueden ir en español, pero una misma idea se llama
+  igual en todas las tablas. **[revisión]**
+- Sufijos que dicen el tipo: `_at` es `timestamptz`, `_on` es `date`, `es_` /
+  `is_` es `boolean`, y las magnitudes llevan su unidad: `_g`, `_ml`, `_min`,
+  `_cents`, `_kcal`. **[revisión]** Por qué: «cantidad» sin unidad es la mitad
+  de los fallos de recetas (gramos frente a piezas).
+- Sufijos y prefijos de constraints e índices: `_fk`, `_vocabulario`, `uq_`,
+  `idx_`. **[revisión]**
+
+## 13. Normalización
+
+Principio: `normalised-tables` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
+Las tablas nuevas nacen en tercera forma normal. En llano:
+
+- **Cada celda, un valor (1FN).** Nada de listas separadas por comas en un
+  `text`, ni columnas repetidas `alergia_1`, `alergia_2`…: eso es una tabla
+  hija. **[revisión]**
+- **Cada columna depende de la clave entera (2FN).** En una tabla con clave
+  compuesta, lo que solo depende de una parte de la clave va a otra tabla.
+  **[revisión]**
+- **Nada que se pueda leer de otra entidad (3FN).** Se guarda el id, no una
+  copia de su nombre, su precio o su foto. **[revisión]** Por qué: la copia
+  se queda vieja el día que cambia el original (el `owner_snapshot` de
+  `user_recipes` llegó a servir un email).
+- **Clave natural única además de la técnica.** Si en el mundo real algo no
+  puede repetirse (un alimento por nombre canónico, un miembro por casa y
+  usuario), lleva su `unique`. **[revisión]** Por qué: un `uuid` no impide
+  duplicados; solo los numera.
+- **Desnormalizar es una decisión, no un atajo.** Una copia por rendimiento
+  es una proyección (sección 6): lleva `comment on column` con «PROYECCIÓN de
+  <origen>, la recalcula <quién>» y un test o trigger que la recalcule.
+  **[revisión]**
+
+## 14. Tipos y nulos
+
+Principio: `types-and-nulls` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
+- **`not null` por defecto.** Un `null` es una decisión: si una columna lo
+  admite, su `comment on column` dice qué significa (¿desconocido? ¿no
+  aplica?). **[revisión]**
+- **Fechas con zona**: `timestamptz`, nunca `timestamp` a secas. **[auto]**
+  Por qué: la casa, el bot y Vercel viven en zonas distintas.
+- **Texto sin longitud fija**: `text` + `check (char_length(x) <= n)` si hace
+  falta tope, nunca `varchar(n)` ni `char(n)`. **[auto]** Por qué: cambiar un
+  check es barato; cambiar un tipo reescribe la tabla.
+- **Números exactos**: dinero en céntimos `integer`, cantidades en `numeric`
+  o `integer` con la unidad en el nombre; nunca `real`, `float` ni `double
+  precision`. **[auto]** Por qué: 0,1 + 0,2 no da 0,3 en coma flotante, y una
+  lista de la compra suma.
+- **Rangos con check**: una magnitud que no puede ser negativa lleva
+  `check (x >= 0)`. **[revisión]**
+- **Booleanos `not null default false`**: un booleano con tres estados es un
+  vocabulario. **[revisión]**
+- **Texto limpio**: `check (x = btrim(x) and x <> '')`; si no hay valor, es
+  `null`, no cadena vacía. **[revisión]** Por qué: «leche» y «leche » serían
+  dos alimentos.
+- **Únicos sin mayúsculas ni acentos**: un nombre que no puede repetirse lleva
+  una columna clave normalizada (minúsculas, sin acentos, NFC) con su
+  `unique`, rellenada por una función o columna generada. No se usa una
+  collation no determinista: rompe `like`. **[revisión]**
+
+## 15. Cableado: del código a la tabla
+
+Principio: `table-has-owner-module` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
+La base puede estar perfecta y romperse igual si el código la toca con
+strings sueltos desde cualquier sitio.
+
+- **Una tabla, un módulo dueño.** Cada tabla se lee y escribe desde un
+  módulo (en la app, `src/lib/<dominio>Sync.js`; en el servidor, el módulo
+  de dominio de `api/_bot/`). El resto del código llama a sus funciones.
+  **[auto]** trinquete: `supabase/cableado.test.js` compara con
+  `supabase/cableado.json` y falla si un fichero nuevo se pone a tocar una
+  tabla (medido el 7 oct 2026: 40 tablas, 99 pares tabla-fichero; el objetivo
+  es uno por tabla). Por qué: hoy `bot_identities` se toca desde nueve
+  ficheros; cambiar una columna obliga a encontrarlos todos.
+- **Nombres de columnas y valores, desde una constante.** Fuera del módulo
+  dueño no se escriben a mano nombres de columnas, filtros PostgREST
+  (`status=eq.activo`) ni valores de vocabulario: salen de la constante de la
+  sección 4 o de una función del módulo. **[revisión]**
+- **Tipos generados como objetivo.** Los tipos que genera Supabase a partir
+  del esquema vivo (`supabase gen types`) son la meta para que el editor y el
+  CI marquen un nombre mal escrito antes de producción. **[revisión]** hasta
+  que existan.
+- **La forma del JSON, en un solo esquema zod**, que usan tanto quien escribe
+  como quien lee. **[revisión]**
+
+## 16. Diccionario y lectura
+
+Principio: `self-describing-catalog` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
+- **Cada tabla nueva dice qué es**: `comment on table` con una frase sobre qué
+  guarda y quién la escribe. **[auto]** Las columnas que no se explican por
+  su nombre, también (`comment on column`). **[revisión]** Por qué: el
+  catálogo de la base es la documentación que no se queda vieja.
+- **Columnas explícitas**: el código nuevo pide las columnas que usa, no
+  `select *`. **[revisión]** Por qué: una columna nueva no viaja sin que nadie
+  la pida, y se ve qué código depende de qué columna.
+- **Lecturas compuestas con nombre**: lo que cruza varias tablas se lee con
+  una vista o una RPC con nombre, no con el mismo `join` copiado en varios
+  sitios. **[revisión]**
+- **Listas con tope**: toda lectura que puede crecer lleva límite o
+  paginación. **[revisión]**
+
+## 17. Datos de salud
+
+Principio: `health-data-apart` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
+Alergias, intolerancias, dietas médicas, peso, altura y fecha de nacimiento
+son categoría especial del RGPD (art. 9). Se tratan aparte.
+
+- Cada columna de salud lleva `comment on column … is 'SALUD: …'`, y una tabla
+  de salud, `comment on table … is 'SALUD: …'`. **[auto]** en las columnas
+  cuyo nombre contiene `alerg`, `intoler` o `salud`, o empieza por `peso_` o
+  `altura_`, o es `fecha_nacimiento`. Por qué: lo que no se puede localizar no
+  se puede borrar ni explicar.
+- Llevan `created_at`, autor (sección 18) y sus cambios pasan por la
+  auditoría. **[revisión]** Por qué: hoy no se puede responder «¿quién quitó
+  esta alergia y cuándo?».
+- Se borran con la persona (cascada desde `persona`) y su plazo de
+  conservación está escrito en el comentario de la tabla. **[revisión]**
+- El consentimiento explícito con fecha es condición para lanzar con usuarios
+  reales; durante las pruebas no se pide (decisión del 8 oct 2026).
+
+## 18. Quién y por dónde
+
+Principio: `who-what-when` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
+- Las tablas de la casa llevan `created_by` y, si se editan, `updated_by`:
+  el usuario (`uuid` con FK) o un actor de sistema. El actor va en una columna
+  `actor` con vocabulario (`usuario`, `bot`, `cron`, `script`), y el canal en
+  `canal` (`app`, `telegram`, `whatsapp`, `sistema`). **[revisión]** Por qué:
+  el 8 oct 2026 solo 3 de 55 tablas guardaban el autor; un cambio hecho por un
+  cotitular desde un grupo no dejaba rastro.
+- Las tablas sensibles (salud, miembros y roles de la casa) tienen auditoría
+  de solo añadir: quién, cuándo, canal, y la fila antes y después en `jsonb`.
+  **[revisión]** Por qué: la auditoría de Supabase no guarda el actor de la
+  app ni el del bot.
+- Lo pone el servidor (RPC o trigger), no el cliente. **[revisión]**
+
+## 19. Cada orden, una vez
+
+Principio: `idempotent-writes` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
+- Lo que llega de fuera (cada update de Telegram, un webhook, una ejecución de
+  cron) se guarda con su id externo y `unique (proveedor, <algo>_xid)`, y se
+  procesa con `insert … on conflict do nothing`: si ya estaba, no se repite.
+  **[revisión]** Por qué: Telegram reintenta si tardamos en contestar, y el
+  8 oct 2026 no se guardaba el `update_id`; un reintento se procesaba dos
+  veces.
+- Los ids de terceros acaban en `_xid`, no en `_id`, que queda para las FK
+  nuestras. **[revisión]**
+
+## 20. Días, horas y zonas
+
+Principio: `days-hours-zones` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
+- Un **instante** («se creó a las 10:32») es `timestamptz`. Un **día del
+  calendario** («el menú del martes», «vence el 12») es `date`, nunca un
+  instante a medianoche. **[revisión]**
+- La casa tendrá su zona horaria IANA (`Europe/Madrid`), nunca una
+  abreviatura ni un desfase fijo. Un CHECK no admite subconsultas, así que se
+  valida con un trigger que la busca en `pg_timezone_names`. Hasta que exista,
+  `Europe/Madrid`. **[revisión]**
+- «Hoy» para una casa se calcula en **una sola función** que recibe la zona;
+  nada de `toISOString().slice(0, 10)`, que da el día UTC. **[revisión]** Por
+  qué: el 8 oct 2026 «hoy» se calculaba en 8 sitios, y dos daban el día
+  anterior entre las 00:00 y las 02:00 en Madrid.
+- Los rangos se escriben `>= a and < b`; nada de `between`. **[auto]** Por
+  qué: `between` incluye los dos extremos y cuenta dos veces la medianoche.
+- El instante lo pone `now()` en el servidor, no el reloj del cliente. Los
+  crons se definen en UTC y su hora local se documenta al lado. **[revisión]**
+
+## 21. Estados
+
+Principio: `status-is-state-machine` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
+Una columna `status` es una máquina de estados, no una etiqueta.
+
+- Su vocabulario va con CHECK (sección 4), y cada estado que importa tiene su
+  fecha (`hecha_at`, `enviado_at`), atada con un check propio:
+  `check ((status = 'enviado') = (enviado_at is not null))`. **[revisión]**
+- Los saltos permitidos se escriben (en una RPC que solo deja los válidos, o
+  en un trigger), y un test los prueba. **[revisión]** Por qué: hoy una tarea
+  puede pasar de descartada a hecha, y `bot_reminders` puede decir «enviado»
+  sin fecha de envío.
+
+## Cuando toque
+
+Sin regla dura todavía; se aplican el día que aparezca el caso:
+
+- **Precios con vigencia**: `valido_desde`, de solo añadir; un menú pasado cita
+  el precio de su día.
+- **Ids del catálogo** (JSON en git) inmutables: no se reutilizan; un test
+  comprueba que los que guarda SQL existen en el bundle.
+- **Orden manual**: columna `posicion` con `unique (padre_id, posicion)`.
+- **Binarios** en Blob; en SQL, la URL con `sha256`, bytes y tipo MIME. Nunca
+  `bytea`.
+
+## Qué comprueba el test
+
+`supabase/principios.test.js`, sobre las migraciones ≥ 0087:
+
+1. todo `references` lleva `on delete`;
+2. todo `create table` tiene su `enable row level security` en el fichero;
+3. tabla sin `create policy` → `revoke all on table … from anon, authenticated`;
+4. `security definer` → `search_path` con `pg_temp` (o vacío) y revoke a
+   `public, anon, authenticated`;
+5. ni `create type … as enum` ni `alter type … add value`;
+6. `add constraint … check | foreign key` sobre tabla existente → `not valid`;
+7. cada `not valid` está en `supabase/PENDIENTES.md`;
+8. ni `concurrently`, ni `begin`/`commit`, ni `vacuum`;
+9. `drop table | column` → cabecera `-- CONTRAE:`;
+10. el número aparece en `supabase/ESTADO.md`;
+11. `set lock_timeout` presente;
+12. ni `timestamp` sin zona, ni `varchar(n)`/`char(n)`, ni `real`/`float`/
+    `double precision`/`money` en columnas nuevas o cambiadas;
+13. cada `create table` tiene su `comment on table`;
+14. toda FK de un `create table` tiene un índice (o la primary key o un
+    unique) que empieza por sus columnas;
+15. cada `create table` lleva `created_at … not null default now()`;
+16. ni `serial`, ni `bigserial`, ni `smallserial`;
+17. ni `between` (fuera de los cuerpos de función, que el lector no ve);
+18. una columna nueva de salud (`alerg`, `intoler`, `salud`, `peso_`,
+    `altura_`, `fecha_nacimiento`) tiene `comment on column … is 'SALUD: …'`.
+
+Y sobre todas las migraciones: cada NOT VALID sin un `validate` posterior está
+en PENDIENTES.md. El test se prueba a sí mismo con SQL de ejemplo, bueno y
+malo, para cada regla.
+
+Y `supabase/cableado.test.js`, sobre el código de `src/` y `api/`: ningún
+fichero nuevo toca una tabla directamente, y los que dejan de tocarla salen
+de `supabase/cableado.json` (`node scripts/cableado.mjs` da el resumen).

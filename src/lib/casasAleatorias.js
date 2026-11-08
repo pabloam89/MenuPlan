@@ -107,6 +107,11 @@ export function casaAleatoria(semilla, { nivel = null } = {}) {
   const data = {
     members,
     groups,
+    // Como sale del alta: «¿Qué evitamos?» marca a todos revisados. Sin la
+    // marca el motor esquiva los 14 alérgenos (lib/alergias.js,
+    // alergiasParaMenu) y el banco mediría un menú que ninguna casa con el alta
+    // hecha ve.
+    allergiesReviewed: true,
     meals,
     schedule,
     slotType,

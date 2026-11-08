@@ -269,7 +269,7 @@ function buildPool(pantryStock, frozen) {
   return { pool, garnishByItemId };
 }
 
-function assignFromPool(plan, pantryStock, frozen, days, mealLabels) {
+function assignFromPool(plan, pantryStock, frozen, days, mealLabels, adaptadas = new Set()) {
   const { pool } = buildPool(pantryStock, frozen);
   if (pool.size === 0) return 0;
   const keys = SLOT_KEYS[frozen ? "freezer" : "fridge"];
@@ -284,6 +284,7 @@ function assignFromPool(plan, pantryStock, frozen, days, mealLabels) {
     for (const key of slotKeys) {
       const slot = slots[key];
       if (!slot || slot[keys.from] || slot[otherFrom]) continue;
+      if (adaptadas.has(slot.recipeId)) continue;
       const recipeRef = catalogIdOfPlanRecipe(slot.recipeId);
       const tuppers = pool.get(recipeRef);
       if (!tuppers?.length) continue;
@@ -327,8 +328,9 @@ export function assignPreparedToPlan(plan, pantryStock, opts = {}) {
   const days = opts.days ?? [];
   const mealLabels = opts.mealLabels ?? [];
   let marked = 0;
-  marked += assignFromPool(plan, pantryStock, false, days, mealLabels);
-  marked += assignFromPool(plan, pantryStock, true, days, mealLabels);
+  const adaptadas = opts.adaptadas ?? new Set();
+  marked += assignFromPool(plan, pantryStock, false, days, mealLabels, adaptadas);
+  marked += assignFromPool(plan, pantryStock, true, days, mealLabels, adaptadas);
   return marked;
 }
 

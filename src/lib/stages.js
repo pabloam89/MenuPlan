@@ -27,12 +27,30 @@ export function migrateHomeRole(role) {
   return "Otro";
 }
 
+/**
+ * El papel que se propone por la edad, con los mismos cortes que etapaDe (bebé
+ * hasta cumplir 3: 2,5 es «Bebé»). Sin edad (null, "", «no») no se sabe nada y
+ * se propone «Adulto», como siempre; antes Number(null) = 0 lo hacía «Bebé».
+ */
 export function suggestHomeRole(age) {
-  const a = Number(age);
-  if (Number.isNaN(a)) return "Adulto";
-  if (a <= 2) return "Bebé";
-  if (a < 18) return "Hijo/a";
+  const a = edadEscrita(age);
+  if (a == null) return "Adulto";
+  if (a < DESDE_INFANTIL) return "Bebé";
+  if (a < DESDE_ADULTO) return "Hijo/a";
   return "Adulto";
+}
+
+// Etiquetas de HOUSEHOLD_ROLES, tal y como las devuelve migrateHomeRole.
+const FAMILY_ROLES_SET = new Set(["Papá", "Mamá", "Hijo/a", "Bebé", "Abuelo/a"]);
+
+/**
+ * Si en la casa hay algún papel de familia (padres, hijos, bebé, abuelos), el
+ * menú común se llama «Familia»; si no (pisos de amigos, parejas), «Todos».
+ */
+export function isFamilyGroup(members) {
+  return (members ?? []).some((m) =>
+    FAMILY_ROLES_SET.has(migrateHomeRole(m.homeRole ?? suggestHomeRole(resolveMemberAge(m))))
+  );
 }
 
 export const ADULT_DETAILS = [
@@ -45,15 +63,117 @@ export const ADULT_DETAILS = [
   "Otro",
 ];
 
+// Los cortes salen de STAGES y de ningún otro sitio. Se comparan con «<» el
+// principio del tramo siguiente, para que una edad con decimales (2,5) caiga
+// donde toca: bebé es hasta el día antes de cumplir 3.
+const DESDE_INFANTIL = STAGES.infantil.range[0]; // 3
+const DESDE_PRIMARIA = STAGES.primaria.range[0]; // 6
+const DESDE_SECUNDARIA = STAGES.secundaria.range[0]; // 12
+const DESDE_ADULTO = STAGES.adulto.range[0]; // 18
+
 export function stageForAge(age) {
   const a = Number(age);
   if (Number.isNaN(a)) return STAGES.adulto;
-  if (a <= 2) return STAGES.baby;
-  if (a <= 5) return STAGES.infantil;
-  if (a <= 11) return STAGES.primaria;
-  if (a <= 17) return STAGES.secundaria;
+  if (a < DESDE_INFANTIL) return STAGES.baby;
+  if (a < DESDE_PRIMARIA) return STAGES.infantil;
+  if (a < DESDE_SECUNDARIA) return STAGES.primaria;
+  if (a < DESDE_ADULTO) return STAGES.secundaria;
   return STAGES.adulto;
 }
+
+/**
+ * «YYYY-MM-DD» como día local: new Date("2023-10-08") es medianoche UTC, que al
+ * oeste de Greenwich cae el día 7 y adelanta el cumpleaños. Lo demás, tal cual.
+ */
+function fechaLocal(v) {
+  const m = typeof v === "string" && /^(\d{4})-(\d{2})-(\d{2})$/.exec(v.trim());
+  return m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : new Date(v);
+}
+
+/** Edad en años cumplidos a `hoy` desde una fecha de nacimiento; null si no se lee. */
+function edadDesdeFecha(birthDate, hoy) {
+  const d0 = fechaLocal(birthDate);
+  const ahora = hoy instanceof Date ? hoy : hoy == null ? new Date() : fechaLocal(hoy);
+  if (Number.isNaN(d0.getTime()) || Number.isNaN(ahora.getTime())) return null;
+  let edad = ahora.getFullYear() - d0.getFullYear();
+  const md = ahora.getMonth() - d0.getMonth();
+  if (md < 0 || (md === 0 && ahora.getDate() < d0.getDate())) edad -= 1;
+  return Math.max(0, edad);
+}
+
+/** La edad escrita, si es un número de verdad (0 incluido, también «"0"»). */
+function edadEscrita(age) {
+  if (age == null || age === "") return null;
+  const t = String(age).trim();
+  const n = typeof age === "number" ? age : Number.isFinite(Number(t)) ? Number(t) : parseInt(t, 10);
+  return Number.isFinite(n) && n >= 0 ? n : null;
+}
+
+const sinAcentos = (s) => String(s ?? "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").trim();
+
+/**
+ * Lo que dice el papel cuando no hay edad. Es una pista floja: solo se mira
+ * si no hay fecha ni edad. «Amigo/a» y «Otro» no dicen nada (un amigo puede
+ * tener 8 años o 40). El papel escrito a mano («bebé», «hija») también vale.
+ */
+function etapaPorPapel(homeRole) {
+  const t = sinAcentos(homeRole);
+  if (!t) return null;
+  if (/\bbebes?\b/.test(t)) return "bebe"; // «bebé», «bebés»; no «bebedor»
+  if (/^(hij[oa]|hijo\/a|nin[oa]|nino\/a)$/.test(t)) return "nino";
+  if (/^(adult[oa]|papa|mama|padre|madre|abuel[oa]|abuelo\/a|pareja)$/.test(t)) return "adulto";
+  return null;
+}
+
+/**
+ * LA definición de etapa de una persona de la casa. Todo lo que pregunte «¿es
+ * bebé?», «¿es niño?», «¿es adulto?» —en la app y en el bot— pasa por aquí.
+ *
+ *   etapa: 'bebe' | 'nino' | 'adolescente' | 'adulto' | 'desconocida'
+ *   edad:  años cumplidos, o null si no se sabe
+ *   fuente: 'fechaNacimiento' | 'edad' | 'papel' | 'ninguna'
+ *
+ * Orden: la fecha de nacimiento si se usa (`useBirthDate`), si no la edad, y
+ * si no hay ninguna, el papel como pista. Sin nada, 'desconocida': nunca 30
+ * años en silencio; quien llama decide (para el menú cuenta como adulto, y
+ * para el menú del bebé solo cuenta quien es 'bebe', con edad o por papel).
+ *
+ * Cortes (STAGES): bebé 0–2 (hasta cumplir 3), niño 3–11, adolescente 12–17,
+ * adulto 18+. El bebé se corta en 3 y no en 2 porque es lo prudente: a los 2
+ * años aún hay riesgo de atragantamiento y la sal cuenta; quien ya come como
+ * los demás lo dice con «ya come como un niño» (`notBaby`), que se respeta
+ * siempre, con edad o sin ella.
+ */
+export function etapaDe(persona, { hoy } = {}) {
+  const p = persona ?? {};
+  let edad = null;
+  let fuente = "ninguna";
+  if (p.useBirthDate && p.birthDate) {
+    edad = edadDesdeFecha(p.birthDate, hoy);
+    if (edad != null) fuente = "fechaNacimiento";
+  }
+  if (edad == null) {
+    edad = edadEscrita(p.age);
+    if (edad != null) fuente = "edad";
+  }
+  let etapa;
+  if (edad != null) {
+    etapa = edad < DESDE_INFANTIL ? "bebe" : edad < DESDE_SECUNDARIA ? "nino" : edad < DESDE_ADULTO ? "adolescente" : "adulto";
+  } else {
+    etapa = etapaPorPapel(p.homeRole);
+    if (etapa) fuente = "papel";
+    else etapa = "desconocida";
+  }
+  if (etapa === "bebe" && p.notBaby) etapa = "nino";
+  return { etapa, edad, fuente };
+}
+
+/** ¿Come del menú del bebé? */
+export const esEtapaBebe = (persona, opts) => etapaDe(persona, opts).etapa === "bebe";
+/** Menor de edad (bebé, niño o adolescente). */
+export const esMenor = (persona, opts) => ["bebe", "nino", "adolescente"].includes(etapaDe(persona, opts).etapa);
+/** Niño de 3 a 11 (o sin edad con papel de hijo, o bebé que ya come como niño). */
+export const esNino = (persona, opts) => etapaDe(persona, opts).etapa === "nino";
 
 export function isSchoolAge(age) {
   const a = Number(age);
@@ -68,19 +188,11 @@ export function isSchoolAge(age) {
  * identically everywhere instead of only in whichever screen happened to
  * compute it locally.
  */
+//
+// OJO: sin edad devuelve 30. Vale para pintar y para raciones; para decidir
+// si alguien es bebé, niño o adulto, etapaDe(), que dice 'desconocida'.
 export function resolveMemberAge(member) {
-  if (member.useBirthDate && member.birthDate) {
-    const d0 = new Date(member.birthDate);
-    if (!Number.isNaN(d0.getTime())) {
-      const now = new Date();
-      let age = now.getFullYear() - d0.getFullYear();
-      const md = now.getMonth() - d0.getMonth();
-      const dd = now.getDate() - d0.getDate();
-      if (md < 0 || (md === 0 && dd < 0)) age -= 1;
-      return Math.max(0, age);
-    }
-  }
-  return Number.isFinite(member.age) ? member.age : parseInt(member.age, 10) || 30;
+  return etapaDe(member).edad ?? 30;
 }
 
 /** Fixed avatar palette — one distinct colour per member slot (index-based). */
@@ -210,6 +322,38 @@ export function resolveAccountMember(members, accountMemberId, accountName) {
   const explicit = (members ?? []).find((m) => m.id === accountMemberId);
   if (explicit) return explicit;
   return findAccountMember(members, accountName);
+}
+
+/**
+ * El `accountMemberId` marcado por ESTA cuenta.
+ *
+ * `data.accountMemberId` vive en el JSON de la casa, que es compartido: el
+ * titular y la cotitular pisaban el mismo valor y la segunda «era» el primero.
+ * Ahora cada cuenta guarda el suyo en `data.accountMemberIdByUser[userId]` (va
+ * con la casa a todos los dispositivos, y cada casa tiene su mapa). El valor
+ * viejo compartido solo vale de respaldo para el titular, que es quien lo
+ * marcaba antes de que hubiera cotitulares; a los demás les toca la adivinanza
+ * por nombre hasta que marquen el suyo.
+ *
+ * TRANSICIÓN (ver supabase/PENDIENTES.md): el sitio de verdad es
+ * `household_members.persona_id`, con FK compuesta a `persona`. Se hará
+ * DESPUÉS de que menuplan-1e pase los ids de persona a uuid (bloque 0120+),
+ * para no chocar con ese cambio de tipo. Hasta entonces este mapa es una caché
+ * declarada en el JSON de la casa, y el día de la columna se copia de aquí.
+ * @returns {string|null}
+ */
+export function miembroDeCuentaId(data, userId, { esTitular = true } = {}) {
+  const porUsuario = data?.accountMemberIdByUser;
+  if (userId && porUsuario && Object.prototype.hasOwnProperty.call(porUsuario, userId)) {
+    return porUsuario[userId] ?? null;
+  }
+  return (!userId || esTitular) && typeof data?.accountMemberId === "string" ? data.accountMemberId : null;
+}
+
+/** Marca (o desmarca con null) quién es esta cuenta en la familia. */
+export function conMiembroDeCuenta(data, userId, memberId) {
+  if (!userId) return { ...data, accountMemberId: memberId };
+  return { ...data, accountMemberIdByUser: { ...(data?.accountMemberIdByUser ?? {}), [userId]: memberId ?? null } };
 }
 
 export function findAccountMember(members, accountName) {

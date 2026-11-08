@@ -1,3 +1,10 @@
+import { FRONTAL_BOT, GUIAS_ACTIVAS, abrirLola } from "../lib/frontalBot.js";
+import { pedidoMenu } from "../lib/pedidoLola.js";
+import { BaldosaFranja, RayaBaldosas } from "../components/wizard/ControlRow.jsx";
+import { color as tono } from "../design/tokens.js";
+import BarraComprar, { PildoraLola } from "../components/BarraComprar.jsx";
+import { RellenarMercadona } from "../components/ComprarMercadona.jsx";
+import { pasoDeComprar, useRellenarMercadona } from "../components/useRellenarMercadona.js";
 import { Suspense, lazy, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -13,6 +20,7 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  CheckCircle2,
   CircleHelp,
   Coffee,
   Croissant,
@@ -20,6 +28,7 @@ import {
   Egg,
   Fish,
   Hash,
+  House,
   Refrigerator,
   Leaf,
   Loader2,
@@ -29,7 +38,7 @@ import {
   Plus,
   Receipt,
   Scale,
-  Settings,
+  Send,
   Share2,
   ShoppingBasket,
   ShoppingCart,
@@ -47,14 +56,15 @@ import {
   BottomNav,
   EmptyIllustration,
   ProgressDots,
-  SegmentedControl,
   WizardOptionCard,
   WizardSheet,
   WeekChips,
   bottomNavSpacer,
+  safeTop,
 } from "../components/ui.jsx";
 import { ShoppingCoachTour } from "../components/HomeCoachTour.jsx";
 import { ManualEntryModal, StorePicker, StoreBadge, SUPERMARKETS, appendManualSpend, appendReceiptSpend } from "./SpendPanel.jsx";
+import { useCompra } from "../lib/compraApp.js";
 import {
   ingredientDictionary,
   matchReceiptLine,
@@ -62,6 +72,7 @@ import {
   stripQtyNoise,
   expandAbbreviations,
   toDisplayCase,
+  formatEuro as conCentimos,
   formatEuro0,
 } from "../lib/priceHistory.js";
 import { RECIPES_BY_ID } from "../data/recipes.js";
@@ -90,7 +101,7 @@ import {
   matchReceiptProducts,
   SHOPPING_DAY_WEEK,
 } from "../lib/shoppingListUtils.js";
-import { DAYS } from "../lib/planner.js";
+import { DIA_LETRA, DIA_LARGO, LETRAS_DIA, indiceDeFecha, isoDeCasa } from "../lib/dias.js";
 import {
   calendarDayNumber,
   formatWeekRangeLabel,
@@ -99,8 +110,8 @@ import {
 } from "../lib/weekCalendar.js";
 import { shareShoppingList } from "../lib/menuExport.js";
 import { priceShoppingList } from "../lib/listPricing.js";
-import { isMercadonaStore } from "../lib/storeCatalog.js";
-import { PantryPrefsSheet } from "../components/ModeSheets.jsx";
+import { listaFrenteAPresupuesto } from "../lib/presupuesto.js";
+import { fichaMercadona, NOMBRE_LISTA_MERCADONA, listaParaMercadona } from "../lib/mercadonaList.js";
 
 // Lazy (not a top-level import): Pantry.jsx already imports SwipePurchaseShell
 // from this very file, so a plain top-level import here would be circular.
@@ -110,17 +121,9 @@ const PantryScreen = lazy(() =>
   import("./Pantry.jsx").then((m) => ({ default: m.PantryScreen }))
 );
 
-const DAY_LETTERS = { Lun: "L", Mar: "M", Mié: "X", Jue: "J", Vie: "V", Sáb: "S", Dom: "D" };
+const DAY_LETTERS = DIA_LETRA;
 
-const DAY_FULL = {
-  Lun: "Lunes",
-  Mar: "Martes",
-  Mié: "Miércoles",
-  Jue: "Jueves",
-  Vie: "Viernes",
-  Sáb: "Sábado",
-  Dom: "Domingo",
-};
+const DAY_FULL = DIA_LARGO;
 
 const MEAL_BADGE = {
   Desayuno: { Icon: Coffee, color: "#a16207" },
@@ -207,12 +210,12 @@ function applyPantryCoverage(rows, stock) {
 }
 
 const AISLE_UI = {
-  Verduras:              { Icon: Leaf,         color: "#3d9b5f", img: "/categories/verduras.png" },
+  Verduras:              { Icon: Leaf,         color: "#3d9b5f", img: "/categories/ensaladas_verduras.png" },
   Frutas:                { Icon: Apple,        color: "#e07b39", img: "/categories/frutas.png" },
-  Carne:                 { Icon: Drumstick,    color: "#c45c4a", img: "/categories/carne.png" },
-  Pescado:               { Icon: Fish,         color: "#2072b8", img: "/categories/pescado.png" },
+  Carne:                 { Icon: Drumstick,    color: "#c45c4a", img: "/categories/carnes.png" },
+  Pescado:               { Icon: Fish,         color: "#2072b8", img: "/categories/pescados.png" },
   Legumbres:             { Icon: Bean,         color: "#8b6914", img: "/categories/legumbres.png" },
-  "Pasta y arroz":       { Icon: Wheat,        color: "#c9922a", img: "/categories/pasta_arroz.png" },
+  "Pasta y arroz":       { Icon: Wheat,        color: "#c9922a", img: "/categories/pasta_arroces.png" },
   Lácteos:               { Icon: Milk,         color: "#4a9ec5", img: "/categories/lacteos.png" },
   Huevos:                { Icon: Egg,          color: "#ca9a14", img: "/categories/huevos.png" },
   Panadería:             { Icon: Croissant,    color: "#a67c52", img: "/categories/panaderia.png" },
@@ -262,6 +265,9 @@ export function ShoppingScreen({
   shopping,
   setShopping,
   readOnly = false,
+  // El lector (0072): solo lectura, pero tacha y destacha. Nada más: ni
+  // cantidades, ni borrar, ni «En casa».
+  canTick = false,
   readOnlyLabel = null,
   pantryHouseholdId = null,
   // Full app blob + writer, so spend capture (ticket / manual) lives right here
@@ -306,6 +312,7 @@ export function ShoppingScreen({
   initialTab = null,
   onInitialTabHandled = null,
 }) {
+  const compra = useCompra();
   // Stock powers three things here: discounting the buy list against what you
   // already have (applyPantryCoverage), filing ticket/manual purchases into En
   // casa, and the undo of a "Comprado". Guests use the localStorage mirror.
@@ -329,15 +336,26 @@ export function ShoppingScreen({
     setShowSwipeTutorial(false);
   };
   const [pantryStock, setPantryStock] = useState(() => (user ? [] : loadLocalPantry()));
+  // De quién es el stock cargado. Hasta que llega el de esta cuenta la lista no
+  // se pinta: con el stock vacío salía entera y lo que ya hay en casa
+  // desaparecía un instante después (parpadeo al abrir).
+  const [stockOwner, setStockOwner] = useState(() => (user ? null : "guest"));
+  const stockReady = stockOwner === (user?.id ?? "guest");
   useEffect(() => {
     let active = true;
     if (!user) {
       setPantryStock(loadLocalPantry());
+      setStockOwner("guest");
       return undefined;
     }
-    loadPantry(user.id, pantryHouseholdId || null).then((rows) => {
-      if (active) setPantryStock(rows);
-    });
+    loadPantry(user.id, pantryHouseholdId || null)
+      .then(({ data: rows }) => {
+        if (active) setPantryStock(rows ?? []);
+      })
+      .catch((err) => console.error("[shopping] loadPantry failed", err))
+      .finally(() => {
+        if (active) setStockOwner(user.id);
+      });
     return () => {
       active = false;
     };
@@ -363,9 +381,12 @@ export function ShoppingScreen({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [openCaptureOnMount]);
 
+  // Pasillos abiertos por defecto (en el súper se va bajando la lista, no
+  // abriendo cajones): solo cuenta el `false` de los que se pliegan a mano.
   const [openSections, setOpenSections] = useState(
     initialOpenAisle ? { [initialOpenAisle]: true } : {},
   );
+  const isSectionOpen = (key) => openSections[key] !== false;
   const [showIconCoach, setShowIconCoach] = useState(false);
   const [receiptBusy, setReceiptBusy] = useState(false);
   // Unified spend capture: one money button → chooser (escanear / a mano).
@@ -399,20 +420,6 @@ export function ShoppingScreen({
       onInitialTabHandled?.();
     }
   }, [initialTab, onInitialTabHandled]);
-
-  // "¿Cuándo se da por gastado?" (2026-08-26): ya no es un paso del wizard —
-  // aparece sola la primera vez que entras en "En casa" con un menú activo
-  // (antes de eso la pregunta es abstracta, no hay nada que descontar), y el
-  // icono de ajustes de esa pestaña la reabre cuando quieras. Editable solo
-  // si hay setData (no en hogares de solo lectura).
-  const canEditPantryPrefs = Boolean(setData);
-  const [showPantryPrefs, setShowPantryPrefs] = useState(false);
-  useEffect(() => {
-    if (buyTab === "home" && canEditPantryPrefs && data?.activeMenuId && !data?.pantryPrefsSeen) {
-      setShowPantryPrefs(true);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [buyTab]);
 
   const menuMode = Array.isArray(menuWeeks) && menuWeeks.length > 0;
 
@@ -475,11 +482,21 @@ export function ShoppingScreen({
 
   // Writes one week's shopping through the parent (archive + live mirror for
   // the active week). Fallback mode drives the live `shopping` state directly.
+  // Lee las semanas del último render, no las del cierre: tachar, revertir y
+  // deshacer escriben después de un await o de un toast, y con las de entonces
+  // pisarían lo que se haya tocado mientras.
+  const weeksRef = useRef(weeks);
+  weeksRef.current = weeks;
   const updateWeek = (weekStart, updater) => {
-    const w = weeks.find((x) => x.weekStart === weekStart);
+    const w = weeksRef.current.find((x) => x.weekStart === weekStart);
     const next = updater(w?.items ?? []);
+    // Al día sin esperar al render: un tick pendiente puede escribir con la
+    // pantalla ya desmontada y no debe pisar lo que escribió otro.
+    weeksRef.current = weeksRef.current.map((x) =>
+      x.weekStart === weekStart ? { ...x, items: next } : x,
+    );
     if (menuMode) onUpdateWeek?.(weekStart, { items: next });
-    else setShopping((s) => ({ ...s, items: next }));
+    else setShopping?.((s) => ({ ...s, items: next }));
   };
 
   // A row's sources belonging to `weekStart`, or every source if it has none
@@ -618,13 +635,24 @@ export function ShoppingScreen({
       if (!byWeek.has(s.weekStart)) byWeek.set(s.weekStart, new Set());
       byWeek.get(s.weekStart).add(s.ikey);
     }
+    // Lo quitado, por semana, para que «Deshacer» lo devuelva tal cual.
+    const removed = [];
     for (const [weekStart, ikeys] of byWeek) {
-      updateWeek(weekStart, (items) =>
-        mergeShoppingItems(items).filter(
-          (it) => !ikeys.has(normalizeIngredientKey(it.name, it.unit ?? "ud")),
-        ),
-      );
+      const matches = (it) => ikeys.has(normalizeIngredientKey(it.name, it.unit ?? "ud"));
+      updateWeek(weekStart, (items) => {
+        const merged = mergeShoppingItems(items);
+        removed.push({ weekStart, items: merged.filter(matches) });
+        return merged.filter((it) => !matches(it));
+      });
     }
+    onToast?.(`${row.name}: quitado de la lista`, {
+      label: "Deshacer",
+      onClick: () => {
+        for (const { weekStart, items } of removed) {
+          if (items.length) updateWeek(weekStart, (cur) => [...cur, ...items]);
+        }
+      },
+    });
   };
   const markPurchased = (ids, weekStart = null) => {
     for (const id of ids) {
@@ -634,7 +662,7 @@ export function ShoppingScreen({
   };
   const reloadStock = async () => {
     setPantryStock(
-      user ? await loadPantry(user.id, pantryHouseholdId || null) : loadLocalPantry(),
+      user ? ((await loadPantry(user.id, pantryHouseholdId || null)).data ?? []) : loadLocalPantry(),
     );
   };
   // A shopping row → an "En casa" stock entry. Buying anything now tops up the
@@ -657,46 +685,49 @@ export function ShoppingScreen({
       source: "manual",
     };
   };
-  // Single "Comprado" tap: mark it bought (vanishes from the pending list — no
-  // "Comprado" sub-view anymore) and top up "En casa".
+  // Single "Comprado" tap: mark it bought (pasa a «Comprado») and top up
+  // "En casa". Optimista: se tacha al momento y En casa se sincroniza detrás;
+  // si eso falla, vuelve a «Por comprar» y se avisa.
   const markItemBought = async (id) => {
     const row = rowById.get(id);
     if (!row) return;
-    const item = rowToPantryItem(row);
-    if (item) {
-      try {
-        const saved = await restoreToPantry([item], {
-          user,
-          householdId: pantryHouseholdId || null,
-        });
-        if (user && saved < 1) {
-          console.error("[shopping] restoreToPantry wrote 0 rows");
-          return;
-        }
-        await reloadStock();
-      } catch (err) {
-        console.error("[shopping] restoreToPantry failed", err);
-        return;
-      }
-    }
     applyToSources(row, { have: true });
+    // El lector tacha, pero «En casa» no es suyo.
+    if (readOnly) return;
+    const item = rowToPantryItem(row);
+    if (!item) return;
+    try {
+      const saved = await restoreToPantry([item], {
+        user,
+        householdId: pantryHouseholdId || null,
+      });
+      if (user && saved < 1) throw new Error("restoreToPantry wrote 0 rows");
+      await reloadStock();
+    } catch (err) {
+      console.error("[shopping] restoreToPantry failed", err);
+      applyToSources(row, { have: false });
+      onToast?.(`No se pudo guardar ${row.name} en En casa`);
+    }
   };
-  // Swipe-left on a "Comprado" row: inverse of markItemBought — takes back
-  // out of "En casa" the exact stock that buying it just topped up (same
-  // consume/restore symmetry cooking uses), then returns it to "Por comprar".
+  // Casilla en «Comprado»: inverse of markItemBought — takes back out of
+  // "En casa" the exact stock that buying it just topped up (same
+  // consume/restore symmetry cooking uses), and returns it to "Por comprar".
+  // Optimista igual que tachar.
   const unmarkItemBought = async (id) => {
     const row = rowById.get(id);
     if (!row) return;
-    const item = rowToPantryItem(row);
-    if (item) {
-      try {
-        await consumeFromPantry([item], pantryStock, { user });
-        await reloadStock();
-      } catch (err) {
-        console.error("[shopping] consumeFromPantry failed", err);
-      }
-    }
     applyToSources(row, { have: false });
+    if (readOnly) return;
+    const item = rowToPantryItem(row);
+    if (!item) return;
+    try {
+      await consumeFromPantry([item], pantryStock, { user });
+      await reloadStock();
+    } catch (err) {
+      console.error("[shopping] consumeFromPantry failed", err);
+      applyToSources(row, { have: true });
+      onToast?.(`No se pudo quitar ${row.name} de En casa`);
+    }
   };
   const saveItemQty = (id, rawValue) => {
     const parsed = parseFloat(String(rawValue).replace(",", "."));
@@ -731,9 +762,7 @@ export function ShoppingScreen({
 
   const isEmpty = sections.every((s) => s.items.length === 0);
 
-  const mercadonaSelected =
-    data?.wantsPriceEstimates !== false &&
-    (data?.supermarkets ?? []).some(isMercadonaStore);
+  // De momento toda casa compra en Mercadona: los precios se ven siempre.
   const estimateKey = useMemo(
     () => visibleItems.map((i) => `${i.id}|${i.qty}|${i.unit ?? "ud"}`).join(";"),
     [visibleItems],
@@ -741,14 +770,13 @@ export function ShoppingScreen({
   const [storeEstimate, setStoreEstimate] = useState(null);
   const [linePrices, setLinePrices] = useState(() => new Map());
   useEffect(() => {
-    if (!mercadonaSelected || !visibleItems.length) {
+    if (!visibleItems.length) {
       setStoreEstimate(null);
       setLinePrices(new Map());
       return undefined;
     }
     let cancelled = false;
-    const obs = data?.priceObs ?? [];
-    priceShoppingList("Mercadona", visibleItems, obs)
+    priceShoppingList("Mercadona", visibleItems, compra.precios)
       .then(({ estimate, map }) => {
         if (cancelled) return;
         setStoreEstimate(estimate);
@@ -763,7 +791,23 @@ export function ShoppingScreen({
     return () => {
       cancelled = true;
     };
-  }, [mercadonaSelected, estimateKey, data?.priceObs]);
+  }, [estimateKey, compra.precios]);
+
+  // Lo que se compraría: sale de las líneas por comprar, así que al quitar una
+  // baja el total del botón. En «Comprado» no hay nada que comprar.
+  const paraComprar = useMemo(
+    () => (buyTab === "bought" ? null : listaParaMercadona(visibleItems, linePrices, NOMBRE_LISTA_MERCADONA)),
+    [buyTab, visibleItems, linePrices],
+  );
+  const [comprarAbierto, setComprarAbierto] = useState(false);
+  const mercadona = useRellenarMercadona(pantryHouseholdId, paraComprar?.lista);
+  const paso = pasoDeComprar(mercadona);
+  // Con la cuenta conectada, comprar va directo; sin ella, lo que se puede hacer está en la hoja.
+  const comprar = async () => {
+    if (paso.mirar) return mercadona.mirar();
+    if (!mercadona.conectada || !(await mercadona.rellenar())) setComprarAbierto(true);
+    return undefined;
+  };
 
   // Date label for the current selection: real span of the selected weeks in
   // menú mode; the single-week label otherwise.
@@ -1024,7 +1068,7 @@ export function ShoppingScreen({
           // wiping the whole row on undo would lose quantity the ticket never
           // created (see pantry.js addPantryItems).
           pantryIds = results.filter((r) => r.isNew).map((r) => r.id);
-          setPantryStock(await loadPantry(user.id, pantryHouseholdId || null));
+          setPantryStock((await loadPantry(user.id, pantryHouseholdId || null)).data ?? []);
         } else {
           addLocalPantryItems(items);
           const next = loadLocalPantry();
@@ -1036,7 +1080,8 @@ export function ShoppingScreen({
 
     let saved = 0;
     if (setData) {
-      saved = appendReceiptSpend(
+      saved = await appendReceiptSpend(
+        compra,
         setData,
         { store, date, lines: included, tachedKeys: [...ikeys], tachedWeekStart: targetWeekStart, pantryIds },
         data?.priceAliases ?? {},
@@ -1051,6 +1096,7 @@ export function ShoppingScreen({
       const parts = [];
       if (tachIds.length) parts.push(`${tachIds.length} tachados`);
       if (saved) parts.push(`${saved} gastos guardados`);
+      else if (included.length) parts.push("el gasto no se ha guardado");
       if (pantried) parts.push(`${pantried} a En casa`);
       onToast?.(parts.length ? parts.join(" · ") : "Ticket procesado");
     }
@@ -1061,7 +1107,10 @@ export function ShoppingScreen({
   // tops up "En casa" (same single-source-of-truth rule as a plain Comprado).
   const handleAddManualSpend = async (entry) => {
     if (!setData) return;
-    appendManualSpend(setData, entry, ingredientDictionary(), data?.priceAliases ?? {});
+    if (!(await appendManualSpend(compra, entry, ingredientDictionary(), data?.priceAliases ?? {})).ok) {
+      onToast?.("No he podido guardar el gasto");
+      return;
+    }
     const boughtRow = purchaseChoice;
     if (boughtRow) {
       patchItem(boughtRow.id, { have: true });
@@ -1089,14 +1138,15 @@ export function ShoppingScreen({
   };
 
   const renderAisleSection = (section, idx, total) => {
-    const open = Boolean(openSections[section.key]);
+    const open = isSectionOpen(section.key);
     const isLastSection = idx === total - 1;
     return (
       <div key={section.key}>
         <button
           type="button"
+          aria-expanded={open}
           onClick={() =>
-            setOpenSections((c) => ({ ...c, [section.key]: !c[section.key] }))
+            setOpenSections((c) => ({ ...c, [section.key]: c[section.key] === false }))
           }
           style={{
             width: "100%",
@@ -1142,22 +1192,23 @@ export function ShoppingScreen({
           )}
         </button>
         {open && (
-          <div style={aisleItemsStyle}>
+          <div style={{ ...aisleItemsStyle, padding: "0 0 var(--esp-4)" }}>
             {section.items.map((item, i) => (
               <ShoppingRow
                 key={`${section.key}-${item.id}`}
                 item={item}
                 pricing={linePrices.get(item.id) ?? null}
+                showPrice
                 isLast={i === section.items.length - 1}
                 onSwipePurchased={() => markItemBought(item.id)}
                 onSwipeReturn={() => unmarkItemBought(item.id)}
                 isEditingQty={!readOnly && editingQtyId === item.id}
                 readOnly={readOnly}
+                canTick={canTick}
                 onEditQty={() => !readOnly && setEditingQtyId(item.id)}
                 onSaveQty={(val) => saveItemQty(item.id, val)}
                 onCancelQty={() => setEditingQtyId(null)}
                 onRemove={() => removeItem(item.id)}
-                suppressStrike={buyTab === "bought"}
                 boughtTab={buyTab === "bought"}
               />
             ))}
@@ -1172,7 +1223,19 @@ export function ShoppingScreen({
   // la franja de Mercadona si esta se pinta, o solo debajo de Por comprar/
   // Comprado si no hay súper seleccionado.
   const showMercadonaStrip =
-    mercadonaSelected && storeEstimate && storeEstimate.matched > 0 && !isEmpty;
+    stockReady && storeEstimate && storeEstimate.matched > 0 && !isEmpty;
+  // El total de la lista frente al presupuesto (por semana marcada) y lo que
+  // no tiene precio, aparte (lib/presupuesto.js, #958).
+  // Un solo total: el de lo que se compraría. Por comprar, lo que no se puede
+  // comprar cuenta como «sin precio»; en Comprado, lo estimado de esa lista.
+  const estimacionLista = paraComprar
+    ? {
+        total: paraComprar.total,
+        matched: paraComprar.lineas.length,
+        count: paraComprar.lineas.length + paraComprar.sinProducto.length,
+      }
+    : storeEstimate;
+  const frente = listaFrenteAPresupuesto(data, estimacionLista, selectedWeeks.length);
   const weekSelectorEl = orderedAll.length > 1 && !isEmpty && (
     <WeekChips
       ariaLabel="Semanas incluidas en la compra — marca varias para combinar"
@@ -1202,7 +1265,7 @@ export function ShoppingScreen({
         onChange={(e) => handleReceiptPick(e.target.files?.[0])}
       />
 
-      <div style={{ background: HEADER_BAND, padding: "20px 16px 14px" }}>
+      <div style={{ background: HEADER_BAND, padding: "20px 16px 14px", paddingTop: safeTop(20) }}>
         <div
           style={{
             display: "flex",
@@ -1226,95 +1289,47 @@ export function ShoppingScreen({
               <ShoppingCart size={18} color="#b7791f" strokeWidth={2.4} />
             </span>
             <h2 style={titleStyle}>Tu compra</h2>
-            <button
-              type="button"
-              onClick={toggleIconCoach}
-              style={{
-                ...iconBtnStyle,
-                width: 32,
-                height: 32,
-                borderRadius: 999,
-                background: showIconCoach ? "#e8f0ea" : "#fff",
-              }}
-              aria-label="Explicar iconos"
-              aria-pressed={showIconCoach}
-            >
-              <CircleHelp size={17} strokeWidth={2.2} />
-            </button>
-          </div>
-          <div style={{ display: "flex", gap: 8 }}>
-            <button
-              type="button"
-              data-coach="shop-share"
-              onClick={() => shareShoppingList(shopping).then((r) => {
-                if (r.method === "clipboard") onToast?.("Lista copiada al portapapeles");
-                else if (r.method === "download") onToast?.("Lista descargada");
-              })}
-              style={iconBtnStyle}
-              aria-label="Compartir lista"
-              title="Compartir lista"
-            >
-              <Share2 size={17} strokeWidth={2.2} />
-            </button>
-            {buyTab !== "home" && (
+            {GUIAS_ACTIVAS && (
               <button
                 type="button"
-                onClick={() => setBuyTab("home")}
-                aria-label="Ver En casa"
-                title="En casa"
-                style={iconBtnStyle}
+                onClick={toggleIconCoach}
+                style={{
+                  ...iconBtnStyle,
+                  borderRadius: 999,
+                  background: showIconCoach ? "#e8f0ea" : "#fff",
+                }}
+                aria-label="Explicar iconos"
+                aria-pressed={showIconCoach}
               >
-                <Refrigerator size={17} strokeWidth={2.2} />
-              </button>
-            )}
-            {buyTab === "home" && canEditPantryPrefs && (
-              <button
-                type="button"
-                onClick={() => setShowPantryPrefs(true)}
-                aria-label="Ajustes de En casa: cuándo se da por gastado"
-                title="Ajustes de En casa"
-                style={iconBtnStyle}
-              >
-                <Settings size={17} strokeWidth={2.2} />
+                <CircleHelp size={17} strokeWidth={2.2} />
               </button>
             )}
           </div>
         </div>
       </div>
-      {/* "En casa" salió del selector (2026-08-27) y vive como botón propio
-          en la cabecera: es un inventario persistente, no un tercer estado
-          de la lista de la compra — Comprado sigue siendo un registro fijo
-          de ESTA compra (un recibo), distinto del stock vivo de En casa que
-          se descuenta con el consumo del menú (pantryPrefs.consume). Comprado
+      {/* «En casa» vuelve al selector (30 sep 2026): escondido tras un icono
+          de la cabecera no lo encontraba nadie. Sigue siendo otra cosa —
+          Comprado es un registro fijo de ESTA compra (un recibo), En casa el
+          stock vivo que se descuenta con el consumo del menú
+          —, pero se llega de un toque. Comprado
           muestra precio/envase (misma UI que Pendiente en modo €) cuando hay
           Mercadona activado; si no, la lista plana de siempre. */}
-      {buyTab === "home" ? (
-        <div style={{ padding: "14px 16px 0" }}>
-          <button
-            type="button"
-            onClick={() => setBuyTab("pending")}
-            style={{
-              display: "flex", alignItems: "center", gap: 4,
-              border: "none", background: "transparent", cursor: "pointer",
-              padding: "4px 2px", fontFamily: "inherit",
-              fontSize: 13.5, fontWeight: 700, color: "#2d5a3d",
-            }}
-          >
-            <ChevronLeft size={16} strokeWidth={2.4} /> Tu compra
-          </button>
-        </div>
-      ) : (
-        <div style={{ padding: "14px 16px 0" }}>
-          <SegmentedControl
-            options={[
-              { id: "pending", label: "Por comprar" },
-              { id: "bought", label: "Comprado" },
-            ]}
-            value={buyTab}
-            onChange={setBuyTab}
-          />
-        </div>
-      )}
+      <div style={{ background: HEADER_BAND, padding: "0 16px 12px", display: "flex", justifyContent: "space-between" }}>
+        <BuyTabs value={buyTab} onChange={setBuyTab} />
+        <RayaBaldosas />
+        <BaldosaFranja
+          Icono={Share2}
+          etiqueta="Compartir"
+          color={tono.info}
+          title="Compartir lista"
+         
+          data-coach="shop-share"
+          onClick={() => shareShoppingList(shopping).then((r) => {
+            if (r.method === "clipboard") onToast?.("Lista copiada al portapapeles");
+            else if (r.method === "download") onToast?.("Lista descargada");
+          })}
+        />
+      </div>
 
       {buyTab === "home" ? (
         <div style={{ padding: "16px 16px 0", paddingBottom: `calc(${bottomNavSpacer()} + 12px)` }}>
@@ -1338,7 +1353,7 @@ export function ShoppingScreen({
               // and only passed priceObs, which silently left the SKU toggle
               // dead (2026-08-26 bug).
               data={data}
-              priceObs={data?.priceObs ?? []}
+              priceObs={compra.precios}
               pantryEpoch={pantryEpoch + pantryStockVersion}
               onToast={onToast}
             />
@@ -1361,7 +1376,7 @@ export function ShoppingScreen({
           </div>
         )}
 
-        {showIconCoach && (
+        {GUIAS_ACTIVAS && showIconCoach && (
           <ShoppingCoachTour onClose={() => setShowIconCoach(false)} />
         )}
 
@@ -1378,7 +1393,9 @@ export function ShoppingScreen({
           paddingBottom: `calc(${bottomNavSpacer()} + 12px)`,
         }}
       >
-        {isEmpty && <EmptyList tab={buyTab} />}
+        {!stockReady && <ListSkeleton />}
+
+        {stockReady && isEmpty && <EmptyList tab={buyTab} readOnly={readOnly} />}
 
         {showMercadonaStrip && (
           <>
@@ -1408,8 +1425,27 @@ export function ShoppingScreen({
                     color: "#fff",
                   }}
                 >
-                  {formatEuro0(storeEstimate.total)}
+                  {formatEuro0(frente.total)}
                 </span>
+                {/* El presupuesto de la casa al lado del total (lib/presupuesto.js,
+                    #958): por semana marcada, y con lo que no tiene precio
+                    contado aparte, para que el total no parezca completo. */}
+                {frente && (frente.presupuesto != null || frente.sinPrecio > 0) && (
+                  <span
+                    style={{
+                      marginLeft: "var(--esp-6)",
+                      fontSize: "var(--tipo-paso-13)",
+                      fontWeight: "var(--tipo-peso-700)",
+                      color: frente.veredicto === "no_cabe" ? "var(--color-peligro)" : "var(--color-tinta-suave)",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    {frente.presupuesto != null ? `de ${formatEuro0(frente.presupuesto)}` : ""}
+                    {frente.sinPrecio > 0 ? `${frente.presupuesto != null ? " · " : ""}${frente.sinPrecio} sin precio` : ""}
+                  </span>
+                )}
               </div>
               {weekSelectorEl}
             </div>
@@ -1426,7 +1462,7 @@ export function ShoppingScreen({
             the "En casa" tab (no duplicated stock view inside the buy list). */}
         {(() => {
           const activeSections = sections.filter((s) => s.items.length > 0);
-          if (activeSections.length === 0) return null;
+          if (!stockReady || activeSections.length === 0) return null;
           return (
             <div>
               {activeSections.map((section, i) =>
@@ -1435,8 +1471,29 @@ export function ShoppingScreen({
             </div>
           );
         })()}
+
+        {/* Con productos, el pie de comprar lleva también a Lola. Sin ellos, solo
+            Lola, en su píldora. Sticky, no fixed: al final de la lista ocupa
+            su sitio y no tapa la última fila. */}
+        {!readOnly && stockReady && !isEmpty && paraComprar?.lineas.length > 0 && (
+          <BarraComprar
+            total={conCentimos(paraComprar.total)}
+            productos={paraComprar.lineas.length}
+            paso={paso}
+            onComprar={comprar}
+            onDetalle={() => setComprarAbierto(true)}
+            onLola={FRONTAL_BOT ? () => abrirLola() : undefined}
+          />
+        )}
+        {!readOnly && stockReady && !isEmpty && !(paraComprar?.lineas.length > 0) && FRONTAL_BOT && (
+          <PildoraLola onClick={() => abrirLola()} />
+        )}
       </div>
       </>
+      )}
+
+      {comprarAbierto && paraComprar && (
+        <ComprarSheet compra={paraComprar} mercadona={mercadona} onClose={() => setComprarAbierto(false)} />
       )}
 
       {showCapture && (
@@ -1449,26 +1506,6 @@ export function ShoppingScreen({
           onManual={() => {
             setShowCapture(false);
             setShowManualSpend(true);
-          }}
-        />
-      )}
-
-      {showPantryPrefs && canEditPantryPrefs && (
-        <PantryPrefsSheet
-          initial={data?.pantryPrefs?.consume}
-          onComplete={(consume) => {
-            setData((d) => ({
-              ...d,
-              pantryPrefs: { ...(d.pantryPrefs ?? {}), consume },
-              pantryPrefsSet: true,
-              pantryPrefsSeen: true,
-            }));
-            setShowPantryPrefs(false);
-            onToast?.("Preferencia guardada");
-          }}
-          onClose={() => {
-            setData((d) => (d.pantryPrefsSeen ? d : { ...d, pantryPrefsSeen: true }));
-            setShowPantryPrefs(false);
           }}
         />
       )}
@@ -1538,7 +1575,7 @@ export function ShoppingScreen({
         />
       )}
 
-      {showSwipeTutorial && <SwipeTutorialModal onClose={dismissSwipeTutorial} />}
+      {GUIAS_ACTIVAS && showSwipeTutorial && <SwipeTutorialModal onClose={dismissSwipeTutorial} />}
 
       <BottomNav active="shopping" onNav={onNav} />
     </div>
@@ -2045,6 +2082,8 @@ export function AisleIcon({ aisle, size = 36, soft = false }) {
 }
 
 function QtyInput({ item, onSave, onCancel }) {
+  // (Sin outline: none — el campo solo existe mientras se edita, y el anillo
+  // de foco es lo que dice dónde se está escribiendo.)
   const [val, setVal] = useState(String(item.qty ?? 1));
   const inputRef = useRef(null);
 
@@ -2069,8 +2108,11 @@ function QtyInput({ item, onSave, onCancel }) {
           if (e.key === "Enter") { e.preventDefault(); commit(); }
           if (e.key === "Escape") { e.preventDefault(); onCancel(); }
         }}
+        aria-label={`Cantidad de ${item.name}`}
         style={{
           width: "3.4rem",
+          minHeight: 44,
+          boxSizing: "border-box",
           textAlign: "right",
           border: "1.5px solid #2d5a3d",
           borderRadius: 7,
@@ -2081,20 +2123,20 @@ function QtyInput({ item, onSave, onCancel }) {
           fontFamily: "inherit",
           color: "#142f1d",
           background: "#fff",
-          outline: "none",
+          outline: "2px solid #2e7d75",
+          outlineOffset: 2,
         }}
       />
-      <span style={{ fontSize: 11, fontWeight: 700, color: "#64748b", flexShrink: 0 }}>
+      <span style={{ fontSize: 12, fontWeight: 700, color: "#64748b", flexShrink: 0 }}>
         {item.unit !== "ud" ? item.unit : "uds"}
       </span>
     </div>
   );
 }
 
-const PRICE_NAME_MAX_W = 96;
-const QTY_COL_W = 58;
-const QTY_GAP = 6;
-const ROW_COL_GAP = 3;
+const QTY_COL_W = 44;
+const QTY_GAP = 4;
+const ROW_COL_GAP = 6;
 const SWIPE_MIN_PX = 140;
 
 function formatEuro(n) {
@@ -2133,15 +2175,11 @@ export function SwipePurchaseShell({
     const el = e.target instanceof Element ? e.target : e.target?.parentElement;
     // Keep typing/links; allow swipe from the photo and the pills (those used
     // to be skipped as button/[data-no-swipe] and ate the whole row).
-    if (el?.closest("input, textarea, select, a")) return;
+    // La casilla de comprado es un toque, no el arranque de un deslizamiento.
+    if (el?.closest("input, textarea, select, a, [data-swipe-skip]")) return;
     suppressClickRef.current = false;
     dragRef.current = { active: true, startX: e.clientX, pointerId: e.pointerId, dir: null };
     setDragging(true);
-    try {
-      shellRef.current?.setPointerCapture(e.pointerId);
-    } catch {
-      /* capture is optional — move/up still bubble */
-    }
   };
 
   const onPointerMove = (e) => {
@@ -2154,6 +2192,13 @@ export function SwipePurchaseShell({
       }
       suppressClickRef.current = true;
       dragRef.current.dir = dx > 0 ? "right" : "left";
+      // Se captura el puntero solo cuando ya es un deslizamiento: capturarlo
+      // en el pointerdown mandaba el click de un toque a la fila, no al botón.
+      try {
+        shellRef.current?.setPointerCapture(e.pointerId);
+      } catch {
+        /* capture is optional — move/up still bubble */
+      }
     }
     const thresh = swipeThreshold();
     if (dragRef.current.dir === "right") {
@@ -2288,13 +2333,13 @@ export function SwipePurchaseShell({
   );
 }
 
-function QtyCell({ text, cellStyle, editable, onEdit }) {
+// Ancho mínimo y no fijo: la cantidad se lee entera («2 bolsas», «1,2 kg»)
+// en vez de cortarse con puntos suspensivos.
+function QtyCell({ text, cellStyle, editable, onEdit, label }) {
   const isEmpty = text === "—";
   const style = {
     ...cellStyle,
-    width: QTY_COL_W,
     minWidth: QTY_COL_W,
-    maxWidth: QTY_COL_W,
     boxSizing: "border-box",
     display: "inline-flex",
     alignItems: "center",
@@ -2302,14 +2347,27 @@ function QtyCell({ text, cellStyle, editable, onEdit }) {
     ...(isEmpty ? { color: "#c2cfc7", background: "#f0f4f1" } : null),
   };
   if (editable && !isEmpty) {
+    // La pastilla se queda como está; el botón que la envuelve da los 44 px
+    // de alto de toque.
     return (
       <button
         type="button"
         onClick={onEdit}
         title="Tocar para editar cantidad"
-        style={{ ...style, fontFamily: "inherit", cursor: "pointer" }}
+        aria-label={label ? `Cambiar cantidad de ${label}: ${text}` : `Cambiar cantidad: ${text}`}
+        style={{
+          minHeight: 44,
+          padding: 0,
+          border: "none",
+          background: "transparent",
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontFamily: "inherit",
+          cursor: "pointer",
+        }}
       >
-        {text}
+        <span style={style}>{text}</span>
       </button>
     );
   }
@@ -2319,7 +2377,7 @@ function QtyCell({ text, cellStyle, editable, onEdit }) {
 // Cartoon thumbnail for a shopping row, resolved by name through the
 // ingredient -> family -> aisle cascade. Renders an empty slot when nothing
 // matches so the grid column collapses instead of leaving a gap.
-function IngredientThumb({ name, dimmed = false, size = 34 }) {
+function IngredientThumb({ name, dimmed = false, size = 30 }) {
   const src = ingredientThumbSrc(name);
   const [failed, setFailed] = useState(false);
   if (!src || failed) return <span style={{ width: 0 }} />;
@@ -2349,6 +2407,9 @@ function IngredientThumb({ name, dimmed = false, size = 34 }) {
   );
 }
 
+// Lo que se ve el tick de una fila antes de pasar a «Comprado».
+const TICK_VISIBLE_MS = 300;
+
 function ShoppingRow({
   item,
   pricing = null,
@@ -2357,27 +2418,28 @@ function ShoppingRow({
   onSwipeReturn,
   isEditingQty,
   readOnly = false,
+  canTick = false,
   onEditQty,
   onSaveQty,
   onCancelQty,
   onRemove,
-  // "Comprado" tab: every row here is have/atHome by definition, so the
-  // usual "tachado" that marks a done item inside the mixed Pendiente list
-  // would strike through the whole tab — noise, not signal, when the whole
-  // point of being here is that it's done. Only the text decoration is
-  // suppressed; the row still dims/disables the same as always.
-  suppressStrike = false,
-  // Also drives the swipe gesture: rows here are always dimmed (bought), so
-  // the usual dimmed→disabled swipe rule is skipped, and swipe-left returns
-  // the item to "Por comprar" instead of deleting it (swipe-right is off —
-  // nothing to "complete" on an already-bought row).
+  // Sin súper elegido no hay precios: la columna de € sería toda «—».
+  showPrice = true,
+  // "Comprado" tab: rows here are always bought, so the usual
+  // dimmed→disabled swipe rule is skipped and swipe-right is off (nothing to
+  // "complete"). Devolver a «Por comprar» va por la casilla; deslizar a la
+  // izquierda borra, igual que en «Por comprar» (antes aquí devolvía: el mismo
+  // gesto hacía cosas opuestas según la pestaña).
   boughtTab = false,
 }) {
   const unit = item.unit ?? "ud";
   const displayVal = item.displayQty ?? formatDisplay(item.qty ?? 0, unit);
   const isUdUnit = unit === "ud";
   const pieceCount = pantryPieceCountLabel(item.name, item.qty, item.unit);
-  const dimmed = item.have || item.atHome;
+  // Recién marcada: la fila se queda un momento con el tick antes de irse a
+  // «Comprado»; si no, desaparece sin que se vea que se ha tachado.
+  const [ticking, setTicking] = useState(false);
+  const dimmed = item.have || item.atHome || ticking;
   const canEditQty = !readOnly && !dimmed && !item.__qtyLocked;
 
   // When Mercadona matched a SKU, show the same buy quantities as the € view
@@ -2403,24 +2465,47 @@ function ShoppingRow({
   const priceText =
     storePrice != null && storePrice > 0 ? formatEuro(storePrice) : "—";
 
+  // Casilla de comprado: el deslizamiento a la derecha queda como atajo. En
+  // «Comprado» la misma casilla lo devuelve a «Por comprar».
+  // El temporizador no se cancela al desmontar: lo marcado se guarda aunque se
+  // cambie de pestaña en ese momento.
+  const tickThenBuy = () => {
+    if (ticking) return;
+    setTicking(true);
+    setTimeout(() => {
+      onSwipePurchased();
+      setTicking(false);
+    }, TICK_VISIBLE_MS);
+  };
+  const toggleBought = boughtTab ? onSwipeReturn : tickThenBuy;
+
   return (
     <SwipePurchaseShell
       isLast={isLast}
       readOnly={readOnly}
       disabled={(dimmed && !boughtTab) || isEditingQty}
       onComplete={boughtTab ? undefined : onSwipePurchased}
-      onDelete={boughtTab ? onSwipeReturn : onRemove}
+      onDelete={onRemove}
     >
-      <div
-        style={{
-          opacity: dimmed ? 0.45 : 1,
-          padding: "10px 2px",
-        }}
-      >
+      <div style={{ padding: "var(--esp-2) var(--esp-8)" }}>
         <div style={listRowStyle}>
+          <button
+            type="button"
+            role="checkbox"
+            aria-checked={Boolean(dimmed)}
+            aria-label={`${item.name}: comprado`}
+            data-swipe-skip
+            disabled={readOnly && !canTick}
+            onClick={toggleBought}
+            style={checkBtnStyle(readOnly && !canTick)}
+          >
+            <span style={checkBoxStyle(dimmed)}>
+              {dimmed && <Check size={14} color="#fff" strokeWidth={3} />}
+            </span>
+          </button>
           <IngredientThumb name={item.name} dimmed={dimmed} />
           <div style={nameColStyle}>
-            <span style={productNameStyle(true, dimmed && !suppressStrike)}>
+            <span style={productNameStyle(dimmed)}>
               {item.name}
             </span>
             {item.__weekLabel && (
@@ -2428,7 +2513,7 @@ function ShoppingRow({
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
-                  fontSize: 10,
+                  fontSize: 12,
                   fontWeight: 800,
                   color: "#2d5a3d",
                   background: "#eef4ef",
@@ -2446,20 +2531,18 @@ function ShoppingRow({
                 title="Adaptado por una intolerancia — asegúrate de comprar este producto y no el habitual"
                 style={{
                   display: "flex", alignItems: "center", gap: 3,
-                  fontSize: 10, fontWeight: 800, color: "#2f9e52",
+                  fontSize: 12, fontWeight: 800, color: "#1f7a3d",
                   marginTop: 1,
                 }}
               >
-                <Leaf size={11} strokeWidth={2.6} />
+                <Leaf size={12} strokeWidth={2.6} />
                 Adaptado
               </span>
             )}
           </div>
-          <div style={pillsBlockStyle} data-no-swipe>
+          <div className="fila-compra-pastillas" style={pillsBlockStyle} data-no-swipe>
             {isEditingQty ? (
-              <div style={{ gridColumn: "1 / -1" }}>
-                <QtyInput item={item} onSave={onSaveQty} onCancel={onCancelQty} />
-              </div>
+              <QtyInput item={item} onSave={onSaveQty} onCancel={onCancelQty} />
             ) : (
               <>
                 <QtyCell
@@ -2467,14 +2550,18 @@ function ShoppingRow({
                   cellStyle={udsCellStyle}
                   editable={udsEditable && canEditQty}
                   onEdit={onEditQty}
+                  label={item.name}
                 />
                 <QtyCell
                   text={pesoText}
                   cellStyle={pesoCellStyle}
                   editable={pesoEditable && canEditQty}
                   onEdit={onEditQty}
+                  label={item.name}
                 />
-                <QtyCell text={priceText} cellStyle={priceCellStyle} editable={false} />
+                {showPrice && (
+                  <QtyCell text={priceText} cellStyle={priceCellStyle} editable={false} />
+                )}
               </>
             )}
           </div>
@@ -2637,6 +2724,65 @@ function ActionBtn({ icon: Icon, label, onClick, active, muted, readOnly, coach 
 // bought + saves prices) or add a gasto by hand. Same wizard shell/cards as
 // onboarding's big decision moments, so every "choose one of these paths"
 // popup in the app reads the same.
+// Lo que se va a comprar, con su ficha en Mercadona: en el móvil abre su app.
+function ComprarSheet({ compra, mercadona, onClose }) {
+  return (
+    <WizardSheet
+      icon={ShoppingCart}
+      title="Tu lista en Mercadona"
+      subtitle={`${compra.lineas.length} productos · ${conCentimos(compra.total)}`}
+      onClose={onClose}
+    >
+      {mercadona.servicio && (
+        <div style={{ marginBottom: "var(--esp-16)" }}>
+          <RellenarMercadona m={mercadona} />
+        </div>
+      )}
+      <div style={{ display: "grid", maxHeight: "55vh", overflowY: "auto" }}>
+        {compra.lineas.map((l) => (
+          <a
+            key={l.id}
+            href={fichaMercadona(l.id)}
+            target="_blank"
+            rel="noreferrer"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "var(--esp-8)",
+              minHeight: 44,
+              padding: "var(--esp-8) 0",
+              borderBottom: "1px solid var(--color-linea-suave)",
+              color: "var(--color-tinta)",
+              textDecoration: "none",
+              fontSize: "var(--tipo-paso-13)",
+              fontWeight: "var(--tipo-peso-700)",
+            }}
+          >
+            <span style={{ flex: 1, minWidth: 0 }}>
+              {l.paquetes > 1 ? `${l.paquetes} × ` : ""}
+              {l.nombre}
+            </span>
+            <span style={{ color: "var(--color-tinta-suave)", fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>{conCentimos(l.precio)}</span>
+          </a>
+        ))}
+        {compra.sinProducto.length > 0 && (
+          <p
+            style={{
+              margin: 0,
+              paddingTop: "var(--esp-8)",
+              borderTop: "1px solid var(--color-linea-suave)",
+              color: "var(--color-tinta-suave)",
+              fontSize: "var(--tipo-paso-13)",
+            }}
+          >
+            Sin producto: {compra.sinProducto.join(", ")}
+          </p>
+        )}
+      </div>
+    </WizardSheet>
+  );
+}
+
 function CaptureSheet({ onClose, onScan, onManual }) {
   return (
     <WizardSheet icon={Wallet} iconColor="#2d5a3d" title="Registrar gasto" onClose={onClose}>
@@ -2886,7 +3032,7 @@ const CAL_MONTHS = [
   "enero", "febrero", "marzo", "abril", "mayo", "junio",
   "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
 ];
-const CAL_WEEKDAYS = ["L", "M", "X", "J", "V", "S", "D"];
+const CAL_WEEKDAYS = LETRAS_DIA;
 
 function parseYMD(s) {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s || ""));
@@ -2953,7 +3099,7 @@ function CalendarPopover({ value, anchorRef, onSelect, onClose }) {
 
   if (!pos) return null;
 
-  const firstDow = (new Date(view.y, view.mo, 1).getDay() + 6) % 7; // Mon-first
+  const firstDow = indiceDeFecha(new Date(view.y, view.mo, 1));
   const daysInMonth = new Date(view.y, view.mo + 1, 0).getDate();
   const cells = [...Array(firstDow).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)];
   const shift = (delta) => setView((v) => {
@@ -3166,7 +3312,7 @@ export function ReceiptWizard({ detail, initialLines, weekRange, listItems, onCa
   const [storeSel, setStoreSel] = useState(knownStore ?? "");
   const [storeOther, setStoreOther] = useState(knownStore ? "" : detectedStore);
   const store = storeSel === "__other" ? storeOther : storeSel;
-  const [date, setDate] = useState(detail.date ?? new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(detail.date ?? isoDeCasa());
   const [lines, setLines] = useState(initialLines);
   const [step, setStep] = useState(0);
   // "Aclara productos" is answered one line at a time (select-a-candidate),
@@ -3854,7 +4000,11 @@ export function ReceiptWizard({ detail, initialLines, weekRange, listItems, onCa
   );
 }
 
-function EmptyList({ tab = "pending" }) {
+// Con el frontal del bot la lista sale del menú que se le pide a Lola: el
+// vacío de «Por comprar» abre el chat con ese pedido ya hecho (igual que el
+// vacío de Menú).
+function EmptyList({ tab = "pending", readOnly = false }) {
+  const conLola = FRONTAL_BOT && !readOnly && tab !== "bought";
   return (
     <div style={{ padding: "16px 18px", maxWidth: 420, margin: "0 auto", boxSizing: "border-box" }}>
       <EmptyIllustration
@@ -3863,12 +4013,71 @@ function EmptyList({ tab = "pending" }) {
         subtitle={
           tab === "bought"
             ? "Ve a «Por comprar» y marca algo como comprado — aparecerá aquí."
-            : "Genera la lista desde el menú de esta semana."
+            : conLola
+              ? "Pídele a Lola el menú de la semana"
+              : "Genera la lista desde el menú de esta semana."
         }
         maxWidth={240}
         imgAspect="1 / 1"
         imgPosition="center"
-      />
+      >
+        {conLola && (
+          <button
+            type="button"
+            onClick={() => abrirLola(pedidoMenu("esta"))}
+            style={{
+              marginTop: 14,
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 7,
+              minHeight: 44,
+              padding: "11px 20px",
+              borderRadius: 13,
+              border: "none",
+              background: "#2d5a3d",
+              color: "#fff",
+              fontSize: 14,
+              fontWeight: 800,
+              cursor: "pointer",
+              fontFamily: "inherit",
+            }}
+          >
+            <Send size={15} strokeWidth={2.4} /> Pedírselo a Lola
+          </button>
+        )}
+      </EmptyIllustration>
+    </div>
+  );
+}
+
+// Hueco de la lista mientras llega el stock de En casa (ver stockReady).
+function ListSkeleton() {
+  return (
+    <div aria-busy="true" aria-label="Cargando la lista" style={{ paddingTop: 8 }}>
+      {[0, 1, 2, 3, 4].map((i) => (
+        <div
+          key={i}
+          style={{ height: 52, borderRadius: 12, background: "#f0f4f1", marginBottom: 8 }}
+        />
+      ))}
+    </div>
+  );
+}
+
+// Por comprar · Comprado · En casa: las baldosas de la fila de Tu menú, con el
+// aro en la elegida, igual que en Recetas.
+const BUY_TABS = [
+  { id: "pending", label: "Por comprar", Icon: ShoppingBasket, color: tono.aviso },
+  { id: "bought", label: "Comprado", Icon: CheckCircle2, color: tono.marca },
+  { id: "home", label: "En casa", Icon: House, color: tono.info },
+];
+function BuyTabs({ value, onChange }) {
+  return (
+    <div role="group" aria-label="Tu compra" style={{ display: "contents" }}>
+      {BUY_TABS.map(({ id, label, Icon, color }) => (
+        <BaldosaFranja key={id} Icono={Icon} etiqueta={label} color={color} marcado={value === id} ariaPressed={value === id} onClick={() => onChange(id)} />
+      ))}
     </div>
   );
 }
@@ -3882,8 +4091,8 @@ const titleStyle = {
 };
 
 const iconBtnStyle = {
-  width: 36,
-  height: 36,
+  width: 44,
+  height: 44,
   borderRadius: 12,
   border: "1px solid #e0eae3",
   background: "#fff",
@@ -3916,40 +4125,67 @@ const rowGridStyle = {
   minHeight: 36,
 };
 
-const PILL_BLOCK_W = QTY_COL_W * 3 + QTY_GAP * 2;
-
+// Casilla · foto · nombre · cantidades. El nombre se lleva lo que sobra
+// (minmax(0,1fr)); con columnas fijas la fila se salía en móviles de 360 px.
 const listRowStyle = {
   display: "grid",
-  gridTemplateColumns: `auto ${PRICE_NAME_MAX_W}px ${PILL_BLOCK_W}px`,
+  gridTemplateColumns: "auto auto minmax(0, 1fr) auto",
   alignItems: "center",
   gap: ROW_COL_GAP,
-  minHeight: 36,
+  minHeight: 44,
 };
 
 const nameColStyle = {
-  width: PRICE_NAME_MAX_W,
-  maxWidth: PRICE_NAME_MAX_W,
-  minWidth: PRICE_NAME_MAX_W,
-  flexShrink: 0,
+  minWidth: 0,
 };
 
+// Las tres pastillas siempre en una línea: el nombre se lleva lo que sobra.
 const pillsBlockStyle = {
-  display: "grid",
-  gridTemplateColumns: `repeat(3, ${QTY_COL_W}px)`,
-  gap: QTY_GAP,
-  justifyItems: "stretch",
+  display: "flex",
+  justifyContent: "flex-end",
+  alignItems: "center",
+  columnGap: QTY_GAP,
 };
 
-function productNameStyle(hasPrice, dimmed) {
+// Toca en 44 y ocupa 28 en la fila: los márgenes negativos prestan el ancho.
+function checkBtnStyle(readOnly) {
   return {
-    display: "-webkit-box",
-    WebkitLineClamp: 3,
-    WebkitBoxOrient: "vertical",
-    overflow: "hidden",
-    fontSize: 13,
-    fontWeight: 700,
-    color: hasPrice ? "#142f1d" : "#9ab0a1",
-    textDecoration: dimmed ? "line-through" : "none",
+    width: 44,
+    height: 44,
+    margin: "0 calc(var(--esp-8) * -1)",
+    padding: 0,
+    border: "none",
+    background: "transparent",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    cursor: readOnly ? "default" : "pointer",
+    flexShrink: 0,
+  };
+}
+
+function checkBoxStyle(checked) {
+  return {
+    width: 22,
+    height: 22,
+    boxSizing: "border-box",
+    borderRadius: "var(--radio-chico)",
+    border: checked ? "none" : "2px solid #7f9a89",
+    background: checked ? "#2f9e52" : "#fff",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+  };
+}
+
+// Comprado: tachado y en un gris que se sigue leyendo (sin opacidad).
+function productNameStyle(done) {
+  return {
+    display: "block",
+    fontSize: "var(--tipo-paso-14)",
+    fontWeight: "var(--tipo-peso-700)",
+    color: done ? "#5f7468" : "#142f1d",
+    textDecoration: done ? "line-through" : "none",
     lineHeight: 1.25,
     overflowWrap: "break-word",
     wordBreak: "break-word",
@@ -3968,16 +4204,14 @@ const valueGroupStyle = {
 
 const qtyCellBase = {
   textAlign: "center",
-  padding: "4px 3px",
+  padding: "var(--esp-4)",
   borderRadius: 7,
   border: "none",
-  fontSize: 12,
-  fontWeight: 700,
+  fontSize: "var(--tipo-paso-12)",
+  fontWeight: "var(--tipo-peso-700)",
   fontVariantNumeric: "tabular-nums",
   whiteSpace: "nowrap",
   lineHeight: 1.2,
-  overflow: "hidden",
-  textOverflow: "ellipsis",
 };
 
 // uds + peso — cool slate so both quantity columns read as the same family.
@@ -3998,7 +4232,7 @@ const priceCellStyle = {
   ...qtyCellBase,
   background: "#d7eadc",
   color: "#1a3d28",
-  fontWeight: 800,
+  fontWeight: "var(--tipo-peso-800)",
 };
 
 // Day stripe — mirrors Tu menú's DaySectionHeader (Menu.jsx).

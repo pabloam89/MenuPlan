@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
-import { resolverDia, masParecida } from "./menu.js";
+import { resolverDia, masParecida, huecoDe, huecoDelPlato, queEs, resultadoDeCambio, resultadoDeAnadir, SIN_CAMBIAR } from "./menu.js";
+import { diaDe } from "./interprete.js";
+import { ESTADO, recibo } from "./resultado.js";
 
 // Menú con esta semana (empezada el miércoles) y la que viene, como queda
 // tras pedir «el menú de la semana que viene» con uno de esta ya activo.
@@ -54,5 +56,116 @@ describe("masParecida", () => {
 
   it("si no está lo principal, nada (y se ofrecen opciones)", () => {
     expect(masParecida(candidatas, "merluza en salsa verde")).toBeNull();
+  });
+});
+
+describe("diaDe", () => {
+  it("el nombre o la abreviatura, con o sin artículo, tilde o punto", () => {
+    expect(diaDe("martes")).toBe("Mar");
+    expect(diaDe("el Miércoles")).toBe("Mié");
+    expect(diaDe("mie.")).toBe("Mié");
+    expect(diaDe("sábado 3")).toBe("Sáb");
+    expect(diaDe("dom")).toBe("Dom");
+  });
+
+  it("lo que solo empieza igual no es un día: «marzo» no es martes", () => {
+    expect(diaDe("marzo")).toBe(null);
+    expect(diaDe("juez")).toBe(null);
+    expect(diaDe("domingos")).toBe(null);
+    expect(diaDe("viernesito")).toBe(null);
+  });
+});
+
+describe("huecoDe: un entrante se añade, nunca sustituye al principal", () => {
+  // Lo de staging (2 oct 2026): «un entrante para la cena» → «Vamos con lomo»
+  // cambió la cena entera porque la cena no tenía primero.
+  const conPlan = (hueco, franja = "Cena") => ({
+    semana: { plan: { g1: { [`Vie-${franja}`]: hueco } } },
+    state: { data: { groups: [{ id: "g1", label: "Familia", memberIds: ["a"] }], members: [{ id: "a", name: "Ana" }] } },
+  });
+
+  it("cena sin primero: el primero se añade y el principal no se toca", () => {
+    const h = huecoDe(conPlan({ recipeId: "tortilla" }), { dia: "Vie", franja: "Cena", cual: "primero" });
+    expect(h.course).toBe("first");
+    expect(h.anadir).toBe(true);
+  });
+
+  it("cena con primero: se cambia el primero", () => {
+    const h = huecoDe(conPlan({ recipeId: "tortilla", firstRecipeId: "crema" }), { dia: "Vie", franja: "Cena", cual: "primero" });
+    expect(h.course).toBe("first");
+    expect(h.anadir).toBe(false);
+  });
+
+  it("el principal, como siempre", () => {
+    const h = huecoDe(conPlan({ recipeId: "tortilla" }), { dia: "Vie", franja: "Cena", cual: "principal" });
+    expect(h.course).toBe("main");
+    expect(h.anadir).toBe(false);
+  });
+
+  it("una comida sin primero (desayuno) no cae al principal: error", () => {
+    const h = huecoDe(conPlan({ recipeId: "tostadas" }, "Desayuno"), { dia: "Vie", franja: "Desayuno", cual: "primero" });
+    expect(h.error).toMatch(/no lleva primero/);
+  });
+});
+
+// 4 nov 2026: «¿me cambias el shakshuka? ¿eso qué es?». proponer_platos
+// encuentra el hueco por el nombre del plato y dice qué es el que hay.
+describe("un plato del menú por su nombre", () => {
+  const recetas = { shak: { name: "Shakshuka" }, lent: { name: "Lentejas estofadas" }, crema: { name: "Crema de calabaza" } };
+  const plan = { g1: { "Lun-Cena": { recipeId: "shak" }, "Mar-Comida": { recipeId: "lent", firstRecipeId: "crema" }, "Jue-Cena": { recipeId: "shak" } } };
+  const conMenu = { semanas: [{ weekStart: "2026-11-02", weekEnd: "2026-11-08", plan }], state: { data: { groups: [{ id: "g1", label: "Familia", memberIds: [] }] } } };
+  const recetaDe = (id) => recetas[id] ?? null;
+
+  it("da su día, su comida y cuál, de hoy en adelante (lo pasado no cuenta)", () => {
+    expect(huecoDelPlato(conMenu, recetaDe, "el shakshuka", "2026-11-04")).toEqual({ fecha: "2026-11-05", franja: "Cena", cual: "principal", grupo: "Familia" });
+    expect(huecoDelPlato(conMenu, recetaDe, "shakshuka", "2026-11-02")?.fecha).toBe("2026-11-02");
+  });
+
+  it("también el primero, y sin menú o sin ese plato, null", () => {
+    expect(huecoDelPlato(conMenu, recetaDe, "la crema de calabaza", "2026-11-02")).toMatchObject({ fecha: "2026-11-03", franja: "Comida", cual: "primero" });
+    expect(huecoDelPlato(conMenu, recetaDe, "paella", "2026-11-02")).toBeNull();
+    expect(huecoDelPlato({ semanas: [] }, recetaDe, "shakshuka", "2026-11-02")).toBeNull();
+  });
+
+  it("qué es: la descripción del catálogo o, sin ella, lo que lleva", () => {
+    expect(queEs({ description: "Huevos escalfados en salsa de tomate especiada." })).toBe("Huevos escalfados en salsa de tomate especiada.");
+    expect(queEs({ ingredients: [{ name: "Huevo" }, { name: "Tomate triturado" }, { name: "Pimiento rojo" }] })).toBe("Lleva huevo, tomate triturado y pimiento rojo.");
+    expect(queEs(null)).toBe("");
+  });
+});
+
+// Trozo 27 de #1037: cambiar plato y añadir a la compra devuelven un RESULTADO
+// de lo que dejan en `out`; lo que no se guardó nunca sale con «✅».
+describe("el resultado de cambiar un plato", () => {
+  const cambiado = { cambiado: true, fecha: "2026-10-08", franja: "Cena", antes: "Tortilla", despues: "Merluza", sinCambiar: [] };
+  it("cambiado: el día, la comida y el plato nuevo, en lo hecho", () => {
+    const r = resultadoDeCambio(cambiado, "Cambiado (...)", { dia: "jueves", franja: "Cena" });
+    expect(r.estado).toBe(ESTADO.HECHO);
+    expect(r.hecho).toEqual(["jueves 8, cena: Merluza (antes Tortilla)"]);
+    expect(r.nota).toBe("Cambiado (...)");
+  });
+  it("quien se queda con lo suyo va a «sin hacer»: parcial", () => {
+    const r = resultadoDeCambio({ ...cambiado, sinCambiar: ["Leo"] }, "", { dia: "jueves", franja: "Cena" });
+    expect(r.estado).toBe(ESTADO.PARCIAL);
+    expect(r.sinHacer[0].que).toBe("jueves 8, cena para Leo");
+  });
+  it("sin cambiar: nada hecho, el hueco pedido y su motivo; el recibo no dice «✅»", () => {
+    const r = resultadoDeCambio({ cambiado: false, motivo: SIN_CAMBIAR.SEGURIDAD }, "NO CAMBIADO, por seguridad", { dia: "jueves", franja: "Cena" });
+    expect(r.estado).toBe(ESTADO.NADA);
+    expect(r.sinHacer).toEqual([{ que: "cena del jueves", motivo: SIN_CAMBIAR.SEGURIDAD }]);
+    expect(recibo([r])).not.toMatch(/✅/);
+  });
+});
+
+describe("el resultado de añadir a la compra", () => {
+  it("lo nuevo, lo devuelto y lo que ya estaba quedan pedidos: hecho", () => {
+    const r = resultadoDeAnadir({ ok: true, nuevos: ["leche"], devueltos: ["pan"], yaEstaban: ["huevos"] }, ["leche", "pan", "huevos"]);
+    expect(r.estado).toBe(ESTADO.HECHO);
+    expect(r.hecho).toEqual(["leche", "pan (estaba tachado)", "huevos (ya estaba)"]);
+  });
+  it("si la lista no se guardó, todo lo pedido sin hacer", () => {
+    const r = resultadoDeAnadir({ ok: false }, ["leche"], "No he podido guardar la lista: x.");
+    expect(r.estado).toBe(ESTADO.NADA);
+    expect(r.sinHacer).toEqual([{ que: "leche", motivo: "no se ha podido guardar la lista" }]);
   });
 });

@@ -1,0 +1,84 @@
+/**
+ * El botón «Rehacer la del 26 oct» llega a generarMenu con esa semana y con
+ * rehacer: true, aunque el modelo pida otra cosa (#915, de #907): en las evals
+ * pedía `semana: "siguiente"` y eso es la primera semana libre, no la del botón.
+ * Se prueba la herramienta de verdad (herramientas() de agente.js), con
+ * generarMenu y la base de mentira.
+ */
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+process.env.VITE_SUPABASE_URL ||= "https://sin-base.invalid";
+process.env.SUPABASE_SERVICE_ROLE_KEY ||= "sin-clave";
+
+vi.mock("./db.js", async (original) => ({ ...(await original()), insert: vi.fn(), update: vi.fn(), rpc: vi.fn(), select: vi.fn(async () => []) }));
+vi.mock("./ajustes.js", async (original) => ({ ...(await original()), dominiosDeGustos: async () => "DOMINIOS" }));
+vi.mock("./silencio.js", async (original) => ({ ...(await original()), apuntarSilencio: vi.fn(async () => null) }));
+vi.mock("./generar.js", async (original) => ({ ...(await original()), generarMenu: vi.fn(async (_h, _cual, _fijos, out) => { out.ok = false; return "Menú nuevo generado (mentira)."; }) }));
+
+const { herramientas } = await import("./agente.js");
+const { generarMenu, SIN_GENERAR } = await import("./generar.js");
+
+const llamar = async (texto, args) => {
+  const chat = { householdId: "casa", chatId: "1", channel: "telegram", fotos: [], papel: "owner", esGrupo: false, texto };
+  const generar = (await herramientas(chat)).find((t) => t.name === "generar_menu");
+  return generar.run(args, { toolUse: { id: `t-${Math.random()}` } });
+};
+
+beforeEach(() => {
+  generarMenu.mockClear();
+  vi.useFakeTimers({ toFake: ["Date"] });
+  vi.setSystemTime(new Date("2026-10-24T10:00:00Z")); // sábado
+});
+afterEach(() => vi.useRealTimers());
+
+describe("generar_menu al pulsar «Rehacer la del …»", () => {
+  it("pasa `desde` (ese lunes) y rehacer: true aunque el modelo pida `semana: siguiente` y nada más", async () => {
+    await llamar("Rehacer la del 26 oct", { semana: "siguiente" });
+    expect(generarMenu).toHaveBeenCalledTimes(1);
+    const [, cual, fijos, , opciones] = generarMenu.mock.calls[0];
+    expect(cual).toBe("siguiente");
+    expect(fijos).toEqual([]);
+    expect(opciones).toMatchObject({ desde: "2026-10-26", rehacer: true });
+  });
+
+  it("manda el botón sobre una fecha o un rehacer: false que invente el modelo", async () => {
+    await llamar("Rehacer la del 26 oct", { semana: "esta", desde: "2026-11-02", rehacer: false });
+    expect(generarMenu.mock.calls[0][4]).toMatchObject({ desde: "2026-10-26", rehacer: true });
+  });
+
+  it("un mensaje que no es el botón no fuerza nada: va lo que pide el modelo", async () => {
+    await llamar("hazme el menú de la semana que viene", { semana: "siguiente", camino: "basico", desde: "2026-11-02" });
+    expect(generarMenu.mock.calls[0][4]).toMatchObject({ desde: "2026-11-02", rehacer: false });
+    await llamar("rehaz la del 26", { semana: "siguiente", camino: "basico", desde: "2026-10-26", rehacer: true });
+    expect(generarMenu.mock.calls[1][4]).toMatchObject({ desde: "2026-10-26", rehacer: true });
+  });
+});
+
+describe("generar_menu no genera sin camino ni fecha (#1210)", () => {
+  it("sin camino: no llama al motor y devuelve qué preguntar", async () => {
+    const r = await llamar("hazme el menú", { semana: "siguiente", desde: "2026-11-02" });
+    expect(generarMenu).not.toHaveBeenCalled();
+    expect(r).toMatch(/NO GENERADO: antes de generar, pregunta SIEMPRE/);
+    // Un RESULTADO sin nada hecho y sin «sin hacer»: es una pregunta pendiente, no un fallo (sin ⚠️ en el recibo).
+    expect(r).toMatch(/^RESULTADO /);
+    expect(r).not.toContain(SIN_GENERAR.PREGUNTAR);
+    expect(r).toMatch(/Falta un dato para hacerlo/);
+  });
+
+  it("con camino y sin fecha: no genera", async () => {
+    const r = await llamar("hazme el menú", { semana: "siguiente", camino: "basico" });
+    expect(generarMenu).not.toHaveBeenCalled();
+    expect(r).toMatch(/falta para cuándo/);
+  });
+
+  it("en el mensaje del botón del camino: no genera todavía, hace sus preguntas", async () => {
+    const r = await llamar("A fondo", { semana: "siguiente", camino: "avanzado", desde: "2026-11-02" });
+    expect(generarMenu).not.toHaveBeenCalled();
+    expect(r).toMatch(/acaban de elegir «A fondo»/);
+  });
+
+  it("«Rehacer la del …» genera sin camino: ya se eligió al hacerla", async () => {
+    await llamar("Rehacer la del 26 oct", { semana: "siguiente" });
+    expect(generarMenu).toHaveBeenCalledTimes(1);
+  });
+});

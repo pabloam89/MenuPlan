@@ -18,8 +18,8 @@ import {
   pruneMenuHistory,
   removeMenu,
   sortMenusDesc,
-  toggleMenuFavorite,
-} from "./menuArchive.js";
+  toggleMenuFavorite, recipeIdsDeOtrasSemanas } from "./menuArchive.js";
+import { planDeHoy } from "./menuArchive.js";
 import { mondayISOForOffset } from "./weekCalendar.js";
 
 describe("clampWeekCount", () => {
@@ -339,5 +339,118 @@ describe("las semanas se guardan por su lunes, no por un offset", () => {
     const data = { menuWeekDays: rekeyWeeksByMonday({ 1: ["Mié", "Jue"] }, hoy) };
     expect(explicitDaysForOffset(data, 1)).toEqual(["Mié", "Jue"]);
     expect(explicitDaysForOffset(data, 0)).toBeNull();
+  });
+});
+
+// Lo que se toca en la app (cambiar un plato, regenerar, mover, rellenar) solo
+// cambiaba `menuPlan`, y la fila de la semana se quedaba con el plan de cuando
+// se generó. Al recargar gana la fila: el cambio se perdía, y Lola, que solo
+// lee la fila, no lo veía nunca.
+import { semanaVivaPorGuardar } from "./menuArchive.js";
+
+describe("semanaVivaPorGuardar", () => {
+  const generado = { g1: { "Lun-Comida": { recipeId: "carnes_001" } } };
+  const lista = { items: [{ id: "pollo|g", name: "pollo", unit: "g", have: false }] };
+  const menus = {
+    m: {
+      id: "m",
+      weeks: {
+        "2026-10-05": { offset: 0, startISO: "2026-10-05", endISO: "2026-10-11", plan: generado, shopping: lista },
+        "2026-10-12": { offset: 1, startISO: "2026-10-12", endISO: "2026-10-18", plan: {}, shopping: { items: [] } },
+      },
+    },
+  };
+
+  it("un plato cambiado en la app va a la semana que se ve", () => {
+    const editado = { g1: { "Lun-Comida": { recipeId: "pescados_002" } } };
+    const r = semanaVivaPorGuardar(menus, "m", 0, editado, lista);
+    expect(r.weekStart).toBe("2026-10-05");
+    expect(r.week.plan).toEqual(editado);
+    expect(r.week.endISO).toBe("2026-10-11");
+    expect(r.menus.m.weeks["2026-10-05"].plan).toEqual(editado);
+    // La otra semana no se toca.
+    expect(r.menus.m.weeks["2026-10-12"]).toBe(menus.m.weeks["2026-10-12"]);
+  });
+
+  it("la semana es la del offset que se ve, no la primera", () => {
+    const editado = { g1: { "Mar-Cena": { recipeId: "huevos_003" } } };
+    const r = semanaVivaPorGuardar(menus, "m", 1, editado, { items: [] });
+    expect(r.weekStart).toBe("2026-10-12");
+    expect(r.menus.m.weeks["2026-10-05"]).toBe(menus.m.weeks["2026-10-05"]);
+  });
+
+  it("la lista rehecha tras el cambio también viaja", () => {
+    const otra = { items: [{ id: "merluza|g", name: "merluza", unit: "g", have: false }] };
+    const r = semanaVivaPorGuardar(menus, "m", 0, generado, otra);
+    expect(r.week.shopping).toEqual(otra);
+    expect(r.week.plan).toEqual(generado);
+  });
+
+  it("si lo vivo ya es lo de la semana (recién cargado de la nube), no hay nada que guardar", () => {
+    expect(semanaVivaPorGuardar(menus, "m", 0, generado, lista)).toBeNull();
+    // Igual aunque sean copias y no los mismos objetos.
+    expect(semanaVivaPorGuardar(menus, "m", 0, structuredClone(generado), structuredClone(lista))).toBeNull();
+  });
+
+  it("sin menú activo, sin esa semana o con el plan vacío, nada", () => {
+    const editado = { g1: { "Lun-Comida": { recipeId: "pescados_002" } } };
+    expect(semanaVivaPorGuardar(menus, null, 0, editado, lista)).toBeNull();
+    expect(semanaVivaPorGuardar(menus, "m", 3, editado, lista)).toBeNull();
+    expect(semanaVivaPorGuardar(menus, "m", 0, {}, lista)).toBeNull();
+  });
+
+  // Si loadMenuDetail falla (red), el archivo solo tiene el rango de la semana
+  // (loadMenuWeekRanges): sin plan, ni horario, ni días. Guardarla pisaba la
+  // fila con el plan del blob, schedule {} y active_days null.
+  it("una semana de la que solo se cargó el rango no se guarda", () => {
+    const soloRango = {
+      m: { id: "m", weeks: { "2026-10-05": { offset: 0, startDayIdx: 0, startISO: "2026-10-05", endISO: "2026-10-11" } } },
+    };
+    const editado = { g1: { "Lun-Comida": { recipeId: "pescados_002" } } };
+    expect(semanaVivaPorGuardar(soloRango, "m", 0, editado, lista)).toBeNull();
+  });
+});
+
+describe("recipeIdsDeOtrasSemanas", () => {
+  const semana = (offset, ...ids) => ({ offset, plan: { g1: Object.fromEntries(ids.map((id, i) => [`Lun-${i}`, { recipeId: id }])), _warnings: [] } });
+  const menu = { weeks: { a: semana(0, "x1", "x2"), b: semana(1, "g1__y1", "y2"), c: semana(2, "z1") } };
+
+  it("junta los platos de las demás semanas y deja fuera la abierta", () => {
+    expect([...recipeIdsDeOtrasSemanas(menu, 0)].sort()).toEqual(["g1__y1", "y2", "z1"]);
+  });
+
+  it("sin menú o sin semanas devuelve un conjunto vacío", () => {
+    expect(recipeIdsDeOtrasSemanas(undefined, 0).size).toBe(0);
+    expect(recipeIdsDeOtrasSemanas({}, 0).size).toBe(0);
+  });
+});
+
+describe("planDeHoy", () => {
+  const estaSemana = { offset: 0, startISO: "2026-10-26", endISO: "2026-11-01", plan: { a: "hoy" } };
+  const laSiguiente = { offset: 1, startISO: "2026-11-02", endISO: "2026-11-04", plan: { a: "lunes" } };
+  const menus = { m: { weeks: { [estaSemana.startISO]: estaSemana, [laSiguiente.startISO]: laSiguiente } } };
+  const hoy = "2026-10-31";
+
+  it("mirando otra semana, devuelve la de hoy", () => {
+    expect(planDeHoy(menus, "m", 1, laSiguiente.plan, hoy)).toBe(estaSemana.plan);
+  });
+
+  it("mirando la de hoy, gana el plan en vivo", () => {
+    const vivo = { a: "editado" };
+    expect(planDeHoy(menus, "m", 0, vivo, hoy)).toBe(vivo);
+  });
+
+  it("si ninguna semana contiene hoy, no hay platos de hoy", () => {
+    expect(planDeHoy(menus, "m", 0, estaSemana.plan, "2026-12-01")).toEqual({});
+  });
+
+  it("si de la semana de hoy solo se cargó el rango, sin platos", () => {
+    const soloRango = { m: { weeks: { a: { offset: 0, startISO: "2026-10-26", endISO: "2026-11-01" }, b: laSiguiente } } };
+    expect(planDeHoy(soloRango, "m", 1, laSiguiente.plan, hoy)).toEqual({});
+  });
+
+  it("sin semanas archivadas, el plan en vivo", () => {
+    const vivo = { a: 1 };
+    expect(planDeHoy({}, null, 0, vivo, hoy)).toBe(vivo);
   });
 });

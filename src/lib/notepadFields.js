@@ -27,11 +27,19 @@
  * Los GRUPOS (niños/adultos/bebés) sí están: no son personas, son un concepto
  * de primera clase que la app ya maneja (`freqsByGroup`, roleOf, kcalByGroup),
  * y además es como habla la gente — nadie dice "para Lucía", dice "los niños".
+ *
+ * ── Cada campo, un dato de la ficha Preferencia ───────────────────────────
+ * `eje` es el eje de src/data/axisRegistry.js que el campo expresa (plan
+ * fichas con estado, trozo 24). Los dos que no tenían (`esfuerzo` y
+ * `tandaPlatos`) lo tienen desde el trozo 14, porque una preferencia lleva
+ * siempre el suyo: son ejes de la casa. registroFicha.js los registra como DATOS_PREFERENCIA, y el
+ * trozo 14 los pasa a filas de `preferencia` sin traducir a mano.
  */
 
-import basesCatalog from "../data/recipes/bases.json";
+import basesCatalog from "../data/recipes/bases.json" with { type: "json" };
 import { COCINAS, MAIN_BASES, TECNICAS } from "../data/recipeSchema.js";
 import { CLAVES_PLATO } from "./tandaFamiliasDefs.js";
+import { enOrden } from "./enOrden.js";
 
 /**
  * El dominio del eje `base`: las féculas más TODA base del catálogo que no lo
@@ -66,6 +74,9 @@ export const SERVICIOS = ["ambos", "comida", "cena"];
  */
 export const FAMILIAS = ["carne", "pescado", "legumbres", "pasta_arroz", "huevos", "verdura"];
 
+/** Las familias en el orden en que se pintan (reparto del asistente y su control). */
+export const FAMILIAS_EN_PANTALLA = enOrden(FAMILIAS, ["carne", "pescado", "pasta_arroz", "legumbres", "huevos"]);
+
 /**
  * Etiqueta visible de cada familia. Vive junto a FAMILIAS porque es SU
  * etiqueta: estuvo copiada en menuInsights.js y profileSummary.js, y una
@@ -83,6 +94,7 @@ export const FAMILIA_LABELS = {
 export const CAMPOS = [
   {
     id: "freqs",
+    eje: "composicion",
     grupo: "familia",
     etiqueta: "Cuánto de cada cosa",
     dominio: FAMILIAS,
@@ -94,6 +106,7 @@ export const CAMPOS = [
   },
   {
     id: "reparto",
+    eje: "composicion",
     grupo: "familia",
     etiqueta: "El reparto de la semana",
     dominio: FAMILIAS,
@@ -114,6 +127,7 @@ export const CAMPOS = [
   },
   {
     id: "base",
+    eje: "basePrincipal",
     grupo: "base",
     etiqueta: "Pasta, arroz o patata",
     // Consume `mainBase` del catálogo (46 %). Es el único eje que separa la
@@ -136,6 +150,7 @@ export const CAMPOS = [
   },
   {
     id: "tanda",
+    eje: "basePrincipal",
     grupo: "base",
     etiqueta: "Lo que cocinas en tanda",
     // El MISMO dominio que `base`, y ahí está justo la razón de que sean dos
@@ -163,6 +178,8 @@ export const CAMPOS = [
   },
   {
     id: "tandaPlatos",
+    // Sus familias salen del nombre del plato (tandaFamiliasDefs.js): el eje es de la casa (axisRegistry.js).
+    eje: "familiaTanda",
     grupo: "base",
     etiqueta: "Los platos que dejas hechos o a medias",
     // Hermano de `tanda`, y aparte por el VOCABULARIO: aquel cuenta BASES
@@ -186,6 +203,7 @@ export const CAMPOS = [
   },
   {
     id: "cocina",
+    eje: "cocina",
     grupo: "cocina",
     etiqueta: "De dónde es el plato",
     // Consume `cocina`. Ausente = española, así que "española" no está en el
@@ -199,6 +217,7 @@ export const CAMPOS = [
   },
   {
     id: "tecnica",
+    eje: "tecnica",
     grupo: "estilo",
     etiqueta: "Cómo está hecho",
     dominio: TECNICAS,
@@ -208,6 +227,7 @@ export const CAMPOS = [
   },
   {
     id: "salsa",
+    eje: "llevaSalsa",
     grupo: "estilo",
     etiqueta: "Platos con salsa",
     // Consume `llevaSalsa` (172 recetas). Aquí NO se combinan platos con
@@ -219,6 +239,8 @@ export const CAMPOS = [
   },
   {
     id: "esfuerzo",
+    // Ningún campo del plato lo representa sin ambigüedad (sesgos.js): el eje es de la casa y silencioso.
+    eje: "esfuerzo",
     grupo: "esfuerzo",
     etiqueta: "Lo que cuesta cocinarlo",
     dominio: ["facil", "rapido", "elaborado"],
@@ -228,6 +250,7 @@ export const CAMPOS = [
   },
   {
     id: "favoritos",
+    eje: "subtipoIngrediente",
     grupo: "ingrediente",
     etiqueta: "Lo que os gusta mucho",
     // El espejo de `excluidos`, que solo sabia quitar. Sin esto, "quiero mas
@@ -241,6 +264,7 @@ export const CAMPOS = [
   },
   {
     id: "excluidos",
+    eje: "subtipoIngrediente",
     grupo: "ingrediente",
     etiqueta: "Lo que no queréis ver",
     // Lista abierta: se resuelve contra ingredients.json, no contra un enum.

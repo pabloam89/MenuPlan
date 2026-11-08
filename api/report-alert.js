@@ -8,7 +8,7 @@ import { BASE_URL, signReport, supabaseConfig } from "./_moderation.js";
 // reportes se quedaban en su tabla esperando a que alguien entrase a mirar —
 // que es justo lo que ReportSheet.jsx admitía en su docstring.
 //
-// Lo dispara un trigger de Postgres al insertarse la fila (migración 0054).
+// Lo dispara un trigger de Postgres al insertarse la fila (migración 0100).
 // El trigger manda SOLO el id: así no hay ningún secreto guardado en la base
 // ni en el repo. Todo lo demás se lee aquí con la service-role key.
 //

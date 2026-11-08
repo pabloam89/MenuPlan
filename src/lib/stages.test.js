@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import {
+  isFamilyGroup,
   findAccountMember,
   memberAvatarSrc,
   resolveMemberAge,
@@ -133,5 +134,23 @@ describe("findAccountMember", () => {
     expect(findAccountMember(members, "Marta")).toBeNull();
     expect(findAccountMember(members, "")).toBeNull();
     expect(findAccountMember([{ id: "a", name: "Pablo" }, { id: "b", name: "Pablo" }], "Pablo")).toBeNull();
+  });
+});
+
+describe("isFamilyGroup", () => {
+  // Comparaba claves ("papa") con lo que devuelve migrateHomeRole ("Papá"):
+  // nunca coincidía y el menú común salía siempre como «Todos».
+  it("con un papel de familia, es familia", () => {
+    expect(isFamilyGroup([{ homeRole: "Papá", age: 40 }, { homeRole: "Adulto", age: 38 }])).toBe(true);
+    expect(isFamilyGroup([{ homeRole: "Abuelo/a", age: 70 }])).toBe(true);
+  });
+
+  it("un niño sin papel cuenta como hijo, y por tanto como familia", () => {
+    expect(isFamilyGroup([{ age: 35 }, { age: 6 }])).toBe(true);
+  });
+
+  it("adultos y amigos solos no son familia", () => {
+    expect(isFamilyGroup([{ homeRole: "Adulto", age: 30 }, { homeRole: "Amigo/a", age: 29 }])).toBe(false);
+    expect(isFamilyGroup([])).toBe(false);
   });
 });

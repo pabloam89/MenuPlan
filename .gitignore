@@ -1,6 +1,8 @@
 # Logs
 logs
 *.log
+# Sí va al repo: el registro de los ensayos de restauración de las copias (#247).
+!ops/copias/ensayos.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -28,9 +30,6 @@ dist-ssr
 # Image-generation pipeline — large local-only artifacts (~2.5GB)
 /output/
 /public/dishes/
-dish-gallery/node_modules/
-dish-gallery/dist/
-dish-gallery/.vercel/
 # Midjourney originals (~250MB of 1024x1024 renders). Only the processed output
 # under public/ ships; regenerate it with the scripts/make_*_cards.py scripts.
 /Avatares/
@@ -43,8 +42,8 @@ scripts/.enrich-base-done.json
 scripts/.enrich-parts-done.json
 scripts/.enrich-basesteps-done.json
 
-# Salidas de las pruebas de generación de fotos: son cientos de MB de imágenes
-# descartables que se regeneran con scripts/gen-test-photos.mjs.
+# Salidas de las pruebas de generación de fotos: cientos de MB, fuera de git.
+# NO son descartables: costaron dinero (Gemini). Sus copias, en docs/medios.md.
 scripts/test-photos/
 scripts/prompt-test/
 
@@ -66,3 +65,25 @@ vs-modelo.json
 
 # Motor empaquetado para el bot (scripts/build-bot-core.mjs); se regenera en cada build
 /api/_bot/core.mjs
+/api/_bot/dominiosGustos.json
+
+# Frases reales de usuarios sin revisar (scripts/router-feedback.mjs, scripts/lola-feedback.mjs)
+scripts/router-evals-candidatos.json
+scripts/bot-evals-candidatos.json
+
+# Resultados de las evals de Lola, un intento por línea (scripts/bot-evals.mjs, #268)
+.evals-out/
+
+# Material de trabajo local que no es código de la app: el vídeo (descartado
+# el 7 oct) y las capturas y PDFs de feedback de UX.
+/video/
+/ux feedback/
+
+# Motivos del juez por caso de la última pasada de pago (test-del-juez): material de trabajo.
+ops/test-del-juez/ultima-pasada.json
+
+# Pruebas de punta a punta (Playwright)
+test-results/
+playwright-report/
+# La tabla receta × eje se escribe en el build (scripts/compilar-ejes.mjs).
+src/data/derived/recipeEjes.json

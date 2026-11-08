@@ -1,6 +1,7 @@
+import { GUIAS_ACTIVAS, GENTE_ACTIVA } from "../lib/frontalBot.js";
 import { Fragment, useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { Users, Compass, Search, Bell, Plus, Check, CalendarDays, X, Lock, FolderPlus, Heart, Meh, Ban, Ban as BlockIcon, Share2, Flag, MoreVertical, ChefHat, Layers2, ChevronDown, ChevronLeft, Info } from "../components/icons.jsx";
-import { BottomNav, bottomNavSpacer, Avatar, EmptyIllustration, GroupAvatarStack } from "../components/ui.jsx";
+import { BottomNav, bottomNavSpacer, safeTop, Avatar, EmptyIllustration, GroupAvatarStack } from "../components/ui.jsx";
 import { RecipePoster, PosterCorners, ActionButton } from "../components/SwipeCard.jsx";
 import { ProfileDrawer } from "../components/ProfileDrawer.jsx";
 import { PersonSheet } from "../components/PersonSheet.jsx";
@@ -23,6 +24,7 @@ import { deckImg } from "../lib/dishPhotoOptimize.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { memberAvatarColor } from "../lib/stages.js";
 import { DAYS } from "../lib/planner.js";
+import { diaDeFecha } from "../lib/dias.js";
 import { loadPublicRecipe } from "../lib/userRecipesSync.js";
 import { folderArt, ALL_ID } from "./CatalogBrowserSheet.jsx";
 import { allFolders } from "../lib/recipeCollections.js";
@@ -362,8 +364,9 @@ export function FeedScreen({
     // para nada que además acababa en "no disponible".
     const local = recipeCatalogById[id]
       ?? items.find((i) => i.kind === "recipe" && i.recipe.id === id)?.recipe;
-    const r = local ?? await loadPublicRecipe(id);
-    if (r) onOpenRecipe?.(r);
+    const carga = local ? { data: local, error: null } : await loadPublicRecipe(id);
+    if (carga.data) onOpenRecipe?.(carga.data);
+    else if (carga.error) onToast?.("No se pudo cargar la receta. Revisa la conexión.");
     else onToast?.("Esa receta ya no está disponible");
   };
 
@@ -406,7 +409,7 @@ export function FeedScreen({
       try {
         if (localStorage.getItem(VIS_PROMPT_KEY)) return;
       } catch { /* modo privado: se preguntara otra vez, mal menor */ }
-      const prof = await loadMyProfile(user.id);
+      const { data: prof } = await loadMyProfile(user.id);
       // Sin perfil todavia no se pregunta: el handle se crea al abrir Mi
       // perfil, y preguntar antes seria hablar de algo que aun no existe.
       if (!alive || !prof) return;
@@ -575,6 +578,10 @@ export function FeedScreen({
         <div
           style={{
             padding: "20px 18px 14px",
+            // La campana y el avatar viven en la esquina de arriba, que es justo
+            // donde el iPhone pone el reloj: sin esto quedan debajo y no se
+            // pueden pulsar. Ver safeTop() en ui.jsx.
+            paddingTop: safeTop(20),
             maxWidth: 420, margin: "0 auto", width: "100%", boxSizing: "border-box",
             display: "flex", alignItems: "center", justifyContent: "space-between",
           }}
@@ -952,7 +959,7 @@ export function FeedScreen({
           apunta. Se reusa el coach-mark de la casa -mismo recorte, misma
           burbuja- para que se vea como el resto de explicaciones de la app y
           no como un aviso pegado encima. */}
-      {publishHint && !publishOpen && onPublishRecipe && (
+      {GUIAS_ACTIVAS && publishHint && !publishOpen && onPublishRecipe && (
         <CoachTour
           steps={[{
             selector: '[data-coach="feed-publish"]',
@@ -1273,7 +1280,8 @@ export function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBloc
       days.flatMap((d) => (d.meals ?? []).flatMap((meal) => (meal.dishes ?? []).map((x) => x.recipeId)))
         .filter(Boolean),
     )];
-    if (ids.length === 0) return undefined;
+    // [GENTE-APAGADA] Los 👍 👎 🍲 💬 de cada plato son de Gente.
+    if (ids.length === 0 || !GENTE_ACTIVA) return undefined;
     let alive = true;
     loadRecipeStats(ids).then((real) => {
       if (alive) setDishStats(FIXTURES_ENABLED ? { ...FIXTURE_STATS, ...real } : real);
@@ -1309,10 +1317,14 @@ export function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBloc
             <ChevronLeft size={20} strokeWidth={2.6} />
           </button>
 
+          {/* [GENTE-APAGADA] «Reportar menú» y «Bloquear» son de Gente: un menú
+              que te llega por enlace te lo ha mandado alguien que conoces. */}
+          {GENTE_ACTIVA && (
           <button type="button" className="mp-press" onClick={() => setMoreOpen((v) => !v)} aria-label="Más opciones" style={{ ...peekBarIcon, order: 3 }}>
             <MoreVertical size={16} strokeWidth={2.6} />
           </button>
-          {moreOpen && (
+          )}
+          {GENTE_ACTIVA && moreOpen && (
             <div style={peekMenu}>
               <button type="button" onClick={() => { setMoreOpen(false); setReporting(true); }} style={peekMenuItem}>
                 <Flag size={13} strokeWidth={2.5} /> Reportar menú
@@ -1327,7 +1339,9 @@ export function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBloc
             </div>
           )}
 
-          <button type="button" className="mp-press" onClick={onOpenPerson} style={peekWho} aria-label={`Ver el perfil de ${name}`}>
+          {/* [GENTE-APAGADA] Quién lo manda se sigue viendo, pero ya no es un
+              botón: «Ver el perfil» llevaba a Gente. */}
+          <button type="button" className="mp-press" onClick={GENTE_ACTIVA ? onOpenPerson : undefined} disabled={!GENTE_ACTIVA} style={{ ...peekWho, ...(GENTE_ACTIVA ? {} : { cursor: "default", color: "inherit" }) }} aria-label={GENTE_ACTIVA ? `Ver el perfil de ${name}` : `Menú de ${name}`}>
             <Avatar name={profile?.display_name ?? "?"} photo={profile?.avatar_url} size={34} color={TEAL} />
             <span style={{ minWidth: 0 }}>
               <span style={peekWhoName}>{name}</span>
@@ -1378,9 +1392,12 @@ export function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBloc
             </button>
           )}
 
+          {/* [GENTE-APAGADA] Los comentarios del menú son de Gente. */}
+          {GENTE_ACTIVA && (
           <div style={{ marginTop: 18, paddingTop: 14, borderTop: "1px solid #eef3f0" }}>
             <CommentThread user={user} targetType="menu" targetId={m.id} targetOwnerId={m.owner_id} />
           </div>
+          )}
         </div>
       </div>
 
@@ -1435,7 +1452,7 @@ function SharedMenuDeck({ days, weekStart, scopes, roleFilter, onRole, stats, on
   // que la semana de otro pareciera un documento archivado en vez de algo que
   // está pasando — y es lo que más barato costaba arreglar.
   const [dayIdx, setDayIdx] = useState(() => {
-    const hoy = DAYS[(new Date().getDay() + 6) % 7];
+    const hoy = diaDeFecha(new Date());
     const i = days.findIndex((d) => d.day === hoy);
     return i === -1 ? 0 : i;
   });
@@ -1786,7 +1803,8 @@ function SharedDishTile({ item, stats = null, onPick, onOpen, height, compact = 
   // Ceros explicitos, como en el rio: sin ellos la columna de la derecha no se
   // pinta y parece que el plato no tiene datos, en vez de tener cero. Un plato
   // cerrado no lleva ninguna: no hay receta de la que contar nada.
-  const dishStats = dish.recipeId ? (stats?.[dish.recipeId] ?? EMPTY_STATS) : null;
+  // [GENTE-APAGADA] Sin Gente no hay contadores: ni siquiera a cero.
+  const dishStats = GENTE_ACTIVA && dish.recipeId ? (stats?.[dish.recipeId] ?? EMPTY_STATS) : null;
   return (
     <button
       type="button"
@@ -2339,7 +2357,7 @@ const peekBar = {
   // se le pusiera.
   flexShrink: 0,
   padding: "20px 16px 14px",
-  paddingTop: "calc(20px + env(safe-area-inset-top, 0px))",
+  paddingTop: safeTop(20),
   background: HEADER_BAND,
   borderBottom: "1px solid #dfeae3",
 };

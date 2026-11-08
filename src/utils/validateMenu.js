@@ -13,6 +13,9 @@ import {
 } from "./reglasNoRepetir.js";
 import { esCasqueria } from "../lib/casqueria.js";
 import { clavesDeReceta } from "../lib/bases.js";
+import { chocaConHueco, textoDeItem } from "../lib/excluirHueco.js";
+import { SLUGS_DIA, DIAS_LABORABLES, slugDeDia } from "../lib/dias.js";
+import { rompe } from "../lib/preferenciasSistema.js";
 
 // Health profiles that trigger a correctable violation below. `anemia` is a
 // presence-based profile ("must contain iron-rich flag") rather than
@@ -20,7 +23,7 @@ import { clavesDeReceta } from "../lib/bases.js";
 // would flag almost every slot in the week as a violation and fight the
 // variety/carb-repetition rules. It stays pure LLM soft-bias, matching the
 // "prioriza" (not "excluye") wording in the SYSTEM_PROMPT.
-const CORRECTABLE_HEALTH_PROFILES = new Set(
+export const CORRECTABLE_HEALTH_PROFILES = new Set(
   Object.keys(HEALTH_PROFILE_BADGE).filter((id) => id !== "anemia"),
 );
 
@@ -128,8 +131,12 @@ export function carbTypeFromText(text) {
  *
  * El `mainBase` declarado manda sobre el regex, traducido por la tabla
  * CARB_TYPE_BY_BASE (data/recipeSchema.js), que es donde se explica el porqué
- * de sus dos únicas entradas no-identidad (boniato → "patatas", legumbre →
- * null). Antes se ignoraba el campo declarado y se clasificaba SIEMPRE por
+ * de su única entrada no-identidad (boniato → "patatas") y del `null` de
+ * `legumbre`. Por delante de la tabla va LA REGLA DE LA LEGUMBRE (#896,
+ * decisión de Álvaro del 20 oct 2026): un plato con `mainProtein: "legumbre"`
+ * y más hidrato que proteína (`carbs_g > protein_g`) es hidrato `"legumbre"`,
+ * y choca con arroz, pasta y patatas según `chocanHidratos`. Es el único sitio
+ * que mira esos gramos. Antes se ignoraba el campo declarado y se clasificaba SIEMPRE por
  * regex sobre nombre + ingredientes, y eso hacía dos cosas mal:
  *
  *   · leía un ingrediente secundario como si fuera la base del plato — el
@@ -153,6 +160,7 @@ export function carbTypeFromText(text) {
 const CARB_TYPE_BY_PREPARACION = { masa_pasta: "pasta", masa_pan: "pan" };
 
 export function getCarbType(recipe) {
+  if (recipe?.mainProtein === "legumbre" && recipe.carbs_g > recipe.protein_g) return "legumbre";
   if (recipe?.mainBase && Object.hasOwn(CARB_TYPE_BY_BASE, recipe.mainBase)) {
     return CARB_TYPE_BY_BASE[recipe.mainBase];
   }
@@ -185,16 +193,53 @@ export function getCarbType(recipe) {
   return carbTypeFromText(deIngredientes.join(" "));
 }
 
+/**
+ * ¿Chocan dos hidratos (dos valores de `getCarbType`) en el mismo día?
+ *
+ * La única comparación de hidratos del motor (#896): todo sitio que antes
+ * preguntaba por igualdad, `Set.has` o `.includes` pasa por aquí. Dos iguales
+ * chocan, como siempre. La legumbre-hidrato choca además con arroz, pasta y
+ * patatas: un plato de lentejas y un arroz el mismo día son dos platos de
+ * hidrato. Con pan, quinoa, cuscús o avena no (la decisión nombra solo esos
+ * tres). Arroz y pasta siguen sin chocar entre sí: eso no lo cambia #896.
+ */
+const CHOCAN_CON_LEGUMBRE = new Set(["legumbre", "arroz", "pasta", "patatas"]);
+export function chocanHidratos(a, b) {
+  if (!a || !b) return false;
+  if (a === b) return true;
+  if (a === "legumbre") return CHOCAN_CON_LEGUMBRE.has(b);
+  if (b === "legumbre") return CHOCAN_CON_LEGUMBRE.has(a);
+  return false;
+}
+
+/** ¿Choca el hidrato `c` con alguno de una colección de hidratos (Set o array)? */
+export const chocaConAlguno = (c, hidratos) => !!c && [...(hidratos ?? [])].some((u) => chocanHidratos(c, u));
+
+// Los choques de hidrato entre dos platos (#896). Devuelven el hidrato del
+// segundo plato si choca (la violación lo cita) o `null`.
+//   · `choqueDeHidrato`: cualquier choque según chocanHidratos.
+//   · `choqueConLegumbre` / `choqueSinLegumbre`: el mismo, partido en dos para
+//     que el cruce con la legumbre sea su propia regla, relajable.
+const choqueDeHidrato = (ra, rb) => {
+  const a = getCarbType(ra), b = getCarbType(rb);
+  return a && b && chocanHidratos(a, b) ? b : null;
+};
+const choqueConLegumbre = (ra, rb) => {
+  const v = choqueDeHidrato(ra, rb);
+  return v && (v === "legumbre" || getCarbType(ra) === "legumbre") ? v : null;
+};
+const choqueSinLegumbre = (ra, rb) => (choqueConLegumbre(ra, rb) ? null : choqueDeHidrato(ra, rb));
+
 // ── Meal ordering (chronological across the whole week) ─────────
 // Shared by rule 3 (consecutive-protein) below and by applyFallback's
 // targeted fix for that same rule, so both agree on what "adjacent meal"
 // means — a slot's neighbors in this array are always its true chronological
 // prev/next main meal, including across a day boundary (cena day N ->
 // comida day N+1).
-const DAY_ORDER = ["lun", "mar", "mie", "jue", "vie", "sab", "dom"];
+const DAY_ORDER = SLUGS_DIA;
 // De lunes a viernes se come lo de diario; el fin de semana es donde caben la
 // paella de marisco y el arroz de bogavante (ver la regla 3f).
-const WEEKDAY_SLUGS = new Set(["lun", "mar", "mie", "jue", "vie"]);
+const WEEKDAY_SLUGS = new Set(DIAS_LABORABLES.map(slugDeDia));
 
 // Coarse protein grouping shared by the school-conflict rule (4), the new
 // same-day clash rule (3c) and applyFallback, so "no repetir carne/pescado el
@@ -218,6 +263,11 @@ function proteinGroupsOf(recipe) {
   for (const p of recipe?.extraProteins ?? []) add(p);
   return groups;
 }
+
+// Los grupos (de PROTEIN_GROUP_BY_MAIN_PROTEIN) que cuentan como proteína
+// principal de un segundo: carne, pescado (marisco incluido) y huevo. La
+// legumbre no (regla `segundo_sin_proteina_principal`).
+const GRUPOS_DE_PROTEINA_PRINCIPAL = new Set(["carne", "pescado", "huevos"]);
 
 // Raw protein VALUES a dish carries (mainProtein + extraProteins), UNGROUPED —
 // unlike proteinGroupsOf, "pollo" and "cerdo" stay distinct here. Used by rule
@@ -374,7 +424,7 @@ function dishFamily(recipe) {
  *
  * Si algún día se decide que el orden da igual, se juntan y se borra el campo.
  */
-const NO_REPETIR = [
+export const NO_REPETIR = [
   {
     bloque: 1,
     rule: "proteina_consecutiva",
@@ -445,6 +495,22 @@ const NO_REPETIR = [
     ventana: mismoDia,
     soloUnaPorSlot: true,
     extractor: deValor(getCarbType),
+    comparador: choqueSinLegumbre,
+    mensaje: ({ rb, antes, despues, valor }) =>
+      `"${rb.name}" tiene base "${valor}" repetida el ${despues.daySlug} (también en ${antes.slotId})`,
+  },
+  {
+    // EL CRUCE CON LA LEGUMBRE, APARTE Y RELAJABLE (#896). Un plato de
+    // legumbre-hidrato con arroz, pasta, patatas u otra legumbre el mismo día.
+    // Es su propia regla para que el solver pueda saltársela (REGLAS_RELAJABLES)
+    // cuando ningún plato la cumple —una casa vegana vive de legumbre— sin
+    // relajar con ella los dos arroces de `guarnicion_repetida`.
+    bloque: 2,
+    rule: "guarnicion_legumbre",
+    ventana: mismoDia,
+    soloUnaPorSlot: true,
+    extractor: deValor(getCarbType),
+    comparador: choqueConLegumbre,
     mensaje: ({ rb, antes, despues, valor }) =>
       `"${rb.name}" tiene base "${valor}" repetida el ${despues.daySlug} (también en ${antes.slotId})`,
   },
@@ -480,6 +546,7 @@ const NO_REPETIR = [
     rule: "guarnicion_cena_consecutiva",
     ventana: cenasAdyacentes,
     extractor: deValor(getCarbType),
+    comparador: choqueDeHidrato,
     mensaje: ({ ra, rb, antes, valor }) =>
       `"${rb.name}" tiene base "${valor}" igual que la cena del ${antes.daySlug} ("${ra.name}")`,
   },
@@ -571,7 +638,7 @@ export const UNARIAS = [
   {
     // LO QUE NO PEGA DE NOCHE ES EL GUISO, NO LA LEGUMBRE.
     //
-    // La regla vetaba las 102 recetas de legumbre del catálogo, y entre ellas
+    // La regla vetaba las 101 recetas de legumbre del catálogo, y entre ellas
     // hay un cocido madrileño y una ensalada de alubias blancas. Las kcal no
     // los separan —guiso 428 de mediana, ensalada 400, plato seco 420—, así
     // que un umbral de carga tampoco habría servido: lo que los separa es el
@@ -627,10 +694,16 @@ export const UNARIAS = [
     rule: "school_carb_conflict",
     cumple: (r, h) => {
       if (!h.schoolCarbsToAvoid?.length) return true;
-      const carb = getCarbType(r);
-      return !carb || !h.schoolCarbsToAvoid.includes(carb);
+      return !chocaConAlguno(getCarbType(r), h.schoolCarbsToAvoid);
     },
     mensaje: (r) => `"${r.name}" tiene base "${getCarbType(r)}" que el menú escolar ya cubrió`,
+  },
+  {
+    // Lo que una regla quita SOLO de este hueco («los lunes, sin carne»). Dura:
+    // la reparación no se la salta (ver lib/excluirHueco.js).
+    rule: "excluido_en_hueco",
+    cumple: (r, h) => !chocaConHueco(r, h.excluirHueco),
+    mensaje: (r, h) => `"${r.name}" lleva ${textoDeItem(chocaConHueco(r, h.excluirHueco))}, que este día no toca`,
   },
   {
     // Unaria respecto al PLATO, pero su parámetro es del hogar y no del hueco,
@@ -647,6 +720,21 @@ export const UNARIAS = [
       const violados = (h.activeHealthProfiles ?? []).filter((id) => !HEALTH_PROFILE_BADGE[id].matches(flags));
       return `"${r.name}" no cumple el/los perfil(es) de salud activos: ${violados.join(", ")}`;
     },
+  },
+  {
+    // El segundo de una franja de dos platos lleva la proteína principal
+    // (#894, fondo #891). Vivía solo en el prompt del planificador («ESTRUCTURA
+    // DE UN DÍA»): el solver no la conocía y salía arroz con tomate + ensalada
+    // de lentejas. Cuenta `extraProteins` (garbanzos con atún, portobello con
+    // cerdo), por eso va por `proteinGroupsOf` y no por `mainProtein`.
+    //
+    // RELAJABLE y fuera de la poda del solver, como el perfil de salud: una
+    // casa vegana no tiene ningún segundo que la cumpla, y podada no podría
+    // relajarse y se quedaría sin segundos (ver REGLAS_RELAJABLES en solver.js).
+    rule: "segundo_sin_proteina_principal",
+    cumple: (r, h) => !(h.position === "2" || h.position === "segundo")
+      || [...proteinGroupsOf(r)].some((g) => GRUPOS_DE_PROTEINA_PRINCIPAL.has(g)),
+    mensaje: (r) => `"${r.name}" va de segundo y no lleva carne, pescado, marisco ni huevo`,
   },
 ];
 
@@ -676,6 +764,7 @@ export function huecoDe(slotId, ctx = {}, extra = {}) {
     mode: ctx.mode,
     schoolProteinsToAvoid: ctx.schoolProteinsToAvoid,
     schoolCarbsToAvoid: ctx.schoolCarbsToAvoid,
+    excluirHueco: ctx.excluirHueco,
     ...extra,
   };
 }
@@ -688,6 +777,9 @@ export function huecoDe(slotId, ctx = {}, extra = {}) {
  * ordenada por día y `slotAssignments` viene como la devolvió quien la montó.
  * Cambiar cuál usa cada regla cambiaría el orden de `violations`, y de eso
  * depende qué hueco repara `applyFallback` primero.
+ *
+ * Cada unaria es una preferencia del sistema (preferenciasSistema.js): en su
+ * hueco, como mucho 0 platos que no la cumplen. El veredicto lo da `rompe`.
  */
 function evaluarUnaria(regla, huecos, poolById, contextBySlot, extra) {
   const out = [];
@@ -695,7 +787,7 @@ function evaluarUnaria(regla, huecos, poolById, contextBySlot, extra) {
     const receta = poolById[recipeId];
     if (!receta) continue;
     const hueco = huecoDe(slotId, contextBySlot[slotId] ?? {}, extra);
-    if (regla.cumple(receta, hueco)) continue;
+    if (!rompe(regla.rule, regla.cumple(receta, hueco) ? 0 : 1)) continue;
     out.push({ rule: regla.rule, slotId, message: regla.mensaje(receta, hueco) });
   }
   return out;
@@ -1131,6 +1223,10 @@ export function validateMenu(
     UNARIA_POR_REGLA.tupper_not_friendly, slotAssignments, poolById, contextBySlot, unariaExtra,
   ));
 
+  violations.push(...evaluarUnaria(
+    UNARIA_POR_REGLA.excluido_en_hueco, slotAssignments, poolById, contextBySlot, unariaExtra,
+  ));
+
   // 6. No repeated recipeId in the week
   //
   //    Con UNA excepción, y es la olla de sopa: la entrada de una cena de dos
@@ -1265,6 +1361,10 @@ export function validateMenu(
     UNARIA_POR_REGLA.health_profile_conflict, slotAssignments, poolById, contextBySlot, unariaExtra,
   ));
 
+  violations.push(...evaluarUnaria(
+    UNARIA_POR_REGLA.segundo_sin_proteina_principal, slotAssignments, poolById, contextBySlot, unariaExtra,
+  ));
+
   // 11. Weekly frequency CAPS (config.freqs) — soft, correctable MAXIMUMS for
   // how many times each food-group key (carne/pescado/legumbres/huevos/
   // pasta_arroz/verdura) may appear across the week. The configured number is
@@ -1300,8 +1400,9 @@ export function validateMenu(
     // ANY key still over its cap — resolves both without a redundant swap.
     const claimedExcess = new Set();
     for (const [key, target] of Object.entries(freqs)) {
+      // «Como mucho `target`» de la familia en la semana (preferenciasSistema.js).
+      if (!rompe("freq_max_exceeded", freqCounts[key] ?? 0, target)) continue;
       const excess = (freqCounts[key] ?? 0) - target;
-      if (excess <= 0) continue;
 
       // Offenders: slots counting toward this over-cap key, not already
       // claimed by another key's excess this pass. Walked in mealOrder for a
@@ -1431,6 +1532,7 @@ export function buildCorrectionMessage(violations, slotsShape = '{"slots":[...]}
  */
 export const GUARD_FOR_RULE = {
   guarnicion_repetida: "carb",
+  guarnicion_legumbre: "carb",
   guarnicion_cena_consecutiva: "carb",
   school_carb_conflict: "carb",
   proteina_consecutiva: "protein",
@@ -1453,6 +1555,10 @@ export const GUARD_FOR_RULE = {
   // soltar, el arreglo elegiría un plato sin la base y dejaría la violación
   // exactamente igual que estaba, habiendo cambiado la cena de sitio.
   base_pedida_insuficiente: null,
+  // Dura, como el tiempo y el táper: se comprueba en la parte que no se relaja.
+  excluido_en_hueco: null,
+  // El sustituto tiene que cumplirla: se comprueba en la parte que no se relaja.
+  segundo_sin_proteina_principal: null,
 };
 
 /**
@@ -1530,7 +1636,7 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
     // — the user then saw a day with one dish instead of the two they'd
     // configured, silently. A slightly repetitive second course beats a missing
     // one, so relax these progressively instead of giving up.
-    const carbOk = (r) => { const c = getCarbType(r); return !(c && dayCarbsUsed.has(c)); };
+    const carbOk = (r) => !chocaConAlguno(getCarbType(r), dayCarbsUsed);
     const cucharaOk = (r) => !(dayHasCuchara && isPlatoCuchara(r));
     const typeOk = (r) => ctx.preferType === "cena_rapida" || !isMontaje(r);
 
@@ -1800,8 +1906,7 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
     // — relaxing it would defeat the whole repair.
     const softGuards = {
       carb: (r) => {
-        const carb = getCarbType(r);
-        return !(carb && dayCarbsUsed.has(carb));
+        return !chocaConAlguno(getCarbType(r), dayCarbsUsed);
       },
       protein: (r) => ![...proteinTokensOf(r)].some((p) => neighborProteins.has(p)),
       sibling: (r) => !(siblingProtein && r.mainProtein === siblingProtein),
@@ -1890,6 +1995,9 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
         r, huecoDe(slot.slotId, { ...(ctx ?? {}), mealType: ctx?.mealType ?? mealType }),
       )) return false;
       if (v.rule === "tupper_not_friendly" && !r.tupperFriendly) return false;
+      // Lo que una regla quita de este día no vuelve por la reparación de otra
+      // cosa: arreglar un pescado repetido no puede meter carne un lunes sin carne.
+      if (chocaConHueco(r, ctx?.excluirHueco)) return false;
 
       // Same shared helper as the validation rule — see slotAcceptsRole.
       if (!slotAcceptsRole(r, {
@@ -1909,8 +2017,7 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
       }
 
       if (ctx?.schoolCarbsToAvoid) {
-        const carb = getCarbType(r);
-        if (carb && ctx.schoolCarbsToAvoid.includes(carb)) return false;
+        if (chocaConAlguno(getCarbType(r), ctx.schoolCarbsToAvoid)) return false;
       }
 
       if (v.rule === "freq_max_exceeded" && v.targetKey) {
@@ -1943,6 +2050,9 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
       // that's actually about health profiles — never reject an otherwise-fine
       // replacement for a legumbres_en_cena/tupper/etc. violation just because
       // it also happens to be non-compliant with an unrelated active profile.
+      if (v.rule === "segundo_sin_proteina_principal"
+        && !UNARIA_POR_REGLA.segundo_sin_proteina_principal.cumple(r, huecoDe(slot.slotId, ctx ?? {}))) return false;
+
       if (v.rule === "health_profile_conflict") {
         const profileIds = Array.from(new Set(activeHealthProfiles ?? [])).filter((id) =>
           CORRECTABLE_HEALTH_PROFILES.has(id),

@@ -1,0 +1,4 @@
+# Claves públicas age que pueden descifrar las copias de la base (encargo #247).
+# Una por línea. La privada de cada una vive SOLO en 1Password, nunca en el
+# servidor ni en el repo. La añade `node scripts/copias-clave.mjs` (skill hetzner).
+# Mientras no haya ninguna, ops/copias/copia-base.sh falla con motivo «config».

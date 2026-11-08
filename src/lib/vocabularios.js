@@ -1,0 +1,726 @@
+/**
+ * Los vocabularios cerrados del modelo de datos, en un solo sitio.
+ *
+ * Cada lista vive AQUÍ y los módulos que la usan la importan de aquí (no al
+ * revés): así la app, el bot (vía botCore), los CHECK de las migraciones y el
+ * `dominio` de registro_campo (la ficha) hablan de la misma lista. Un test
+ * compara el CHECK de lista vigente de cada columna de las migraciones con su
+ * lista de aquí (src/lib/vocabularios.test.js).
+ *
+ * Un valor no se borra ni se reutiliza (#497): si deja de ofrecerse, se quita
+ * de la lista y se retira en ops/vocabularios-vida.json con su `pasa_a`
+ * (`producto.<nombre>`); el CHECK lo sigue admitiendo, porque hay filas de
+ * familias guardadas con él. Un valor nuevo o retirado se ancla con
+ * `npm run glosario -- --vocabularios --escribir`.
+ *
+ * Sin dependencias: el bot lo importa sin arrastrar el motor ni el JSX.
+ * Solo ids, tal como se guardan; las etiquetas para pintar viven en su
+ * pantalla o módulo, encima de estos ids.
+ *
+ * Fuera de aquí, a propósito: alérgenos, intolerancias, estados y perfiles de
+ * salud (los lleva otra sesión con su propio catálogo), y los formatos de id
+ * (src/lib/ids.js).
+ *
+ * Criterio (docs/datos/PRINCIPIOS.md, regla 4): text + CHECK con la lista de
+ * aquí; tabla catálogo solo si el valor lleva atributos con lector.
+ */
+import { KITCHEN_TOOL_IDS } from "./electrodomesticos.js";
+import { COMIDAS_PLANIFICABLES } from "./comidas.js";
+import { SUPERMERCADOS } from "./supermercados.js";
+import { FALLOS_ENCARGO_MERCADONA, FALLO_ENCARGO_MERCADONA } from "./mercadonaFallos.js";
+
+/** Días de la semana tal como se guardan (claves del plan, active_days de 0086). En NFC. */
+export const DIAS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+
+/** Envases de la despensa (user_pantry.pack_kind, 0086). */
+export const ENVASES = ["bote", "lata", "paquete", "bolsa", "brick", "botella", "carton"];
+
+/** Para qué sirve una receta propia (user_recipes.usage_tags, 0086). */
+export const USOS_RECETA = ["plato_unico", "plato_normal", "guarnicion"];
+
+/** Carpetas fijas de recetas (recipe_collections.collection_id, 0086; las del usuario son fld_…). */
+export const CARPETAS_FIJAS = ["dia_a_dia", "ocasion_especial", "cena_rapida", "hijos"];
+
+/** Aparatos que una casa puede declarar (kitchenTools, user_recipes.required_appliances de 0086). */
+export const APARATOS = KITCHEN_TOOL_IDS;
+
+/** De qué es un grupo de menú (src/lib/groups.js tipoDeGrupo). */
+export const TIPOS_GRUPO = ["familia", "adultos", "ninos", "bebe", "adhoc"];
+
+/** Canales del bot (channel en las tablas bot_*, 0057/0058/0085). */
+export const CANALES = ["telegram", "whatsapp"];
+
+/** Idiomas que la app y Lola saben hablar (user_profiles.ui_lang, household_invites.lang). */
+export const IDIOMAS = ["es", "en"];
+
+/**
+ * Un canal o un idioma concreto por su nombre (CANAL.TELEGRAM, IDIOMA.EN), sacado de su
+ * lista y no copiado: así un escritor fija el suyo sin un literal suelto (#549). Si el valor
+ * se retira de la lista, su nombre desaparece de aquí, y vocabularios.test.js falla en cada
+ * `CANAL.X` o `IDIOMA.X` del código que ya no existe.
+ */
+/** Una lista cerrada como mapa por nombre: ['a_b'] → { A_B: 'a_b' }. */
+export const porNombre = (lista) => Object.freeze(Object.fromEntries(lista.map((v) => [v.toUpperCase(), v])));
+export const CANAL = porNombre(CANALES);
+export const IDIOMA = porNombre(IDIOMAS);
+
+/**
+ * Por qué camino llega un intento de conectar un chat con una casa (bot_enlaces.camino_enlace, 0126; #1238):
+ * app (el código de Ajustes), grupo (el de /grupo, el de la app o el botón del grupo), email (el código por correo),
+ * alta_telegram (la cuenta nace en Telegram), invitacion (inv_…) y reenganche (un Telegram que ya es una cuenta).
+ */
+export const CAMINOS_ENLACE = ["app", "grupo", "email", "alta_telegram", "invitacion", "reenganche"];
+export const CAMINO_ENLACE = porNombre(CAMINOS_ENLACE);
+
+/**
+ * Cómo acaba ese intento (bot_enlaces.resultado_enlace, 0126). Enlazado: nuevo (el chat no tenía casa), ya_estaba (ya estaba
+ * en esa), casa_cambiada (estaba en otra y lo mueve quien lo enlazó), identidad_de_otra (se enlaza, pero ese Telegram ya
+ * es de otra cuenta y no se cambia). Rechazado: ocupado (el chat es de otra casa y otra cuenta), caducado (código
+ * vencido o ya usado), no_miembro (quien firmó ya no está en la casa o no puede enlazar un grupo), codigo_de_grupo
+ * (uno de grupo usado en un privado).
+ */
+export const RESULTADOS_ENLACE = ["nuevo", "ya_estaba", "casa_cambiada", "identidad_de_otra", "ocupado", "caducado", "no_miembro", "codigo_de_grupo"];
+export const RESULTADO_ENLACE = porNombre(RESULTADOS_ENLACE);
+/** Los que dejan el chat enlazado (los demás son rechazos). */
+export const ENLAZADOS = Object.freeze(new Set([RESULTADO_ENLACE.NUEVO, RESULTADO_ENLACE.YA_ESTABA, RESULTADO_ENLACE.CASA_CAMBIADA, RESULTADO_ENLACE.IDENTIDAD_DE_OTRA]));
+
+/**
+ * Con qué prueba se apuntó que un Telegram ES una cuenta (bot_identities.prueba_identidad, 0129; #1238): nacida (la
+ * cuenta se creó en ese Telegram), codigo_email (el código del correo de la cuenta, escrito en el chat), ajustes (el enlace de
+ * «Conectar Telegram» que sacó una sesión de la cuenta, pulsado en el privado de ese Telegram) y cambio (el mismo
+ * enlace, cuando ese Telegram era de otra cuenta y la persona lo confirmó en su privado).
+ */
+export const PRUEBAS_IDENTIDAD = ["nacida", "codigo_email", "ajustes", "cambio"];
+export const PRUEBA_IDENTIDAD = porNombre(PRUEBAS_IDENTIDAD);
+/**
+ * Las que abren sesión con «Entrar con Telegram» en una cuenta que no nació en Telegram (specs/auth.md §7, trozo 3):
+ * solo las que salen de una sesión de esa cuenta. El código del email no: prueba el correo, no la sesión.
+ */
+export const ABREN_SESION = Object.freeze(new Set([PRUEBA_IDENTIDAD.AJUSTES, PRUEBA_IDENTIDAD.CAMBIO]));
+
+// ── Los de la ficha de la casa (auditoría de tipos de menuplan-1e, 7 oct 2026).
+// Tal como se guardan hoy en producción: pasar a una forma canónica (minúscula,
+// sin tildes) es un paso aparte, con alias, nunca reescribiendo lo guardado.
+
+/** Comidas del día (claves del plan «Lun-Comida», meals). */
+// Las que el motor planifica (el aperitivo aún no): salen de comidas.js (#939).
+export const COMIDAS = COMIDAS_PLANIFICABLES;
+
+/** Cómo se sirve una comida, por nombre: dos platos o uno. */
+export const ESTRUCTURA = Object.freeze({ dosPlatos: "primero_segundo", unPlato: "1_plato" });
+/** Cómo se sirve una comida. ficha.js traduce plato_unico/unico, que no existen en producción. */
+export const ESTRUCTURA_PLATOS = Object.values(ESTRUCTURA);
+
+/** Dónde come cada uno en un hueco (horario). */
+export const DONDE_COME = ["casa", "tupper", "fuera", "cole", "off"];
+
+/** Cómo es un hueco del horario (slotType, «Lun|Comida»); «normal» es lo que vale sin decir nada (en data.slotType, la clave que falta). */
+export const TIPOS_HUECO = ["normal", "unico", "rapida"];
+
+/**
+ * Las dimensiones del ámbito de un sobre (trozo 55), en este orden: grupo, semana (su lunes), día (DIAS) y comida
+ * (COMIDAS). registro_campo.ambito dice las de cada campo (CHECK, 0114) y el sobre tiene una columna por cada una.
+ */
+export const DIMENSIONES_AMBITO = ["grupo", "semana", "dia", "comida"];
+
+/** Cuánto tiempo hay para cocinar. */
+export const RITMO_COCINA = ["con_prisa", "normal", "con_tiempo", "depende"];
+
+/**
+ * Nivel de quien cocina. OJO: la libreta tiene otro eje de esfuerzo
+ * (facil/rapido/elaborado) para lo mismo; hay que unificarlos, no añadir un tercero.
+ */
+export const NIVEL_COCINA = ["basic", "normal", "pro"];
+
+/** En qué punto de la alimentación está el bebé. */
+export const ETAPA_BEBE = ["cremas", "mixto", "solidos"];
+
+/** Todos comen lo mismo o menús separados. */
+export const MODELO_MENU = ["same", "separate"];
+
+/**
+ * La vía abierta de una lista cerrada de la casa: lo que no casa con la lista se
+ * guarda como OTRO y su nombre va a la nota del campo (kitchenToolsNota,
+ * supermarketsNota en registroFicha.js). Con mayúscula, como el resto de esas
+ * dos listas y como ya lo guarda el Onboarding en supermarkets.
+ */
+export const OTRO = "Otro";
+
+/**
+ * Los aparatos que una casa declara (kitchenTools, registro_campo): APARATOS y
+ * OTRO. Lista aparte porque APARATOS es también el CHECK de
+ * user_recipes.required_appliances, y una receta no exige «otro» aparato.
+ */
+export const APARATOS_CASA = [...APARATOS, OTRO];
+
+/** Dónde compra la casa (supermarkets, registro_campo): los de supermercados.js y OTRO. */
+export const SUPERMERCADOS_CASA = [...SUPERMERCADOS, OTRO];
+
+/** Cómo usa el menú la despensa (pantryMode): los modos que entiende el motor (modoDespensa.js los lee de aquí). */
+export const MODOS_DESPENSA = ["strict", "only", "prefer", "off"];
+
+/** De dónde sale un dato de la ficha (registro «sobre»). */
+export const ORIGEN_DATO = ["dicho", "supuesto", "visto", "derivado", "por_defecto", "delegado", "no_quiere_decirlo"];
+export const ORIGEN = porNombre(ORIGEN_DATO);
+
+/**
+ * De dónde sale el «ninguna» de las alergias de una persona (#229). `dicha`:
+ * lo dijo alguien (o lo marcó la app); `por_silencio`: Lola preguntó avisando
+ * («si no me dices nada, entiendo que ninguna») y no contestaron a eso. Solo
+ * se guarda `por_silencio` (member.alergiasOrigen); sin el campo, es dicha.
+ * `dicha` lo usa la línea de log `bot_alergias` (api/_bot/silencio.js).
+ */
+export const ORIGEN_ALERGIAS = ["dicha", "por_silencio"];
+
+/** Por dónde llegó un dato de la ficha (sobre.canal, 0097): los canales del bot, la app y el sistema. */
+export const CANALES_DATO = ["app", ...CANALES, "sistema"];
+export const CANAL_DATO = porNombre(CANALES_DATO);
+
+/**
+ * Cuánto se tira de golpe al regenerar (receta_descartes.alcance, 0102): un plato
+ * suelto, un día o la semana. Tirar uno suelto es una señal más fuerte que tirar veinte.
+ */
+export const ALCANCES_DESCARTE = ["plato", "dia", "menu"];
+export const ALCANCE_DESCARTE = porNombre(ALCANCES_DESCARTE);
+
+// ── Los de la operación (plan fichas con estado, trozo 7; tabla operacion de la 0105).
+
+/** De qué viene una operación (operacion.ref_tipo): un mensaje, una pantalla de la app, una tarea, un cron o el motor. */
+export const REFS_OPERACION = ["mensaje", "pantalla", "tarea", "cron", "motor"];
+export const REF_OPERACION = porNombre(REFS_OPERACION);
+
+/**
+ * En qué punto está una operación (operacion.estado): pendiente (le falta algo y no se aplicó), hecha
+ * (se aplicó, quizá con algo sin hacer), rechazada (no se escribió nada) o deshecha (se aplicó su inversa).
+ */
+export const ESTADOS_OPERACION = ["pendiente", "hecha", "rechazada", "deshecha"];
+export const ESTADO_OPERACION = porNombre(ESTADOS_OPERACION);
+
+/**
+ * Los orígenes del sobre (ORIGEN_DATO) que pone la familia (lo que dice una persona); el resto los pone el
+ * sistema. aplicar_operacion (0106) los usa para el registro y para que lo supuesto no pise lo dicho.
+ */
+export const ORIGENES_DE_LA_FAMILIA = ["dicho", "delegado", "no_quiere_decirlo"];
+
+/** El estado de un dato de la ficha para quien la lee (ficha_casa v2, 0107): vacío, por defecto, supuesto, aprendido o dicho. */
+export const ESTADOS_DATO = ["vacio", "por_defecto", "supuesto", "aprendido", "dicho"];
+export const ESTADO_DATO = porNombre(ESTADOS_DATO);
+
+/** El estado que da ficha_casa v2 a un sobre vigente según su origen (ORIGEN_DATO); datoConSobre.test.js compara su case. */
+export const ESTADO_DE_ORIGEN = Object.freeze({
+  dicho: "dicho", delegado: "dicho", visto: "aprendido", supuesto: "supuesto", derivado: "supuesto",
+  por_defecto: "por_defecto", no_quiere_decirlo: "vacio",
+});
+
+/** Por qué aplicar_operacion no escribió un dato (operacion.sin_hacer[].motivo, 0106; ambito_no_cuadra, 0115). */
+export const MOTIVOS_SIN_HACER_DATO = ["no_es_hecho", "persona_no_cuadra", "ambito_no_cuadra", "no_se_supone", "no_lo_escribe", "tiene_columna", "ya_lo_dijo_la_familia"];
+
+/**
+ * Por qué deshacer_operacion (0111) no deshizo una operación: `no_existe` (no es de esa casa), `no_es_suya`
+ * (solo se deshace lo propio, como bot_deshacer), `no_esta_hecha` (pendiente o rechazada) y `cambio_despues`
+ * (un dato que tocó cambió después o ya no está: no se pisa). No van a ninguna tabla: vuelven en sin_hacer.
+ */
+export const MOTIVOS_SIN_DESHACER = ["no_existe", "no_es_suya", "no_esta_hecha", "cambio_despues"];
+
+/**
+ * El riesgo de cada herramienta de Lola, en su ficha (api/_bot/agente.js, trozo 42). `lee`: no cambia nada;
+ * `escribe_reversible`: cambia algo que «deshaz» vuelve atrás; `escribe_irreversible`: cambia algo que «deshaz» no
+ * vuelve atrás (se cambia otra vez, a mano); `quita_proteccion`: puede quitar una alergia, una intolerancia, un estado
+ * o a alguien de la casa, y por eso el vigilante (api/_bot/supervisor.js) lo contrasta con lo que escribió la persona.
+ * No va a ninguna tabla.
+ */
+export const RIESGOS_HERRAMIENTA = ["lee", "escribe_reversible", "escribe_irreversible", "quita_proteccion"];
+export const RIESGO_HERRAMIENTA = porNombre(RIESGOS_HERRAMIENTA);
+
+/** Lo que Lola puede mirar con `consultar` (trozo 46 de #1037). No va a ninguna tabla. */
+export const QUE_CONSULTAS = ["casa", "ajustes", "despensa", "compra", "cole", "recordatorios"];
+
+/**
+ * Cómo deshace «deshaz» lo que escribe una herramienta de Lola (su ficha, trozo 42; deshacer en api/_bot/casa.js).
+ * `foto`: vuelve a la foto de la casa de antes del cambio (bot_deshacer), con lo que apuntó fuera de la casa;
+ * `operacion`: no deja foto de la casa, y deshace los pasos que apuntó su operación (la receta guardada); `no`: no
+ * lo deshace y lo dice. No va a ninguna tabla.
+ */
+export const FORMAS_DE_DESHACER = ["foto", "operacion", "no"];
+export const DESHACE = porNombre(FORMAS_DE_DESHACER);
+
+/**
+ * Por qué escribirDato no guardó un dato (plan fichas con estado, trozo 8: src/lib/escribirDato.js y
+ * api/_bot/datos.js). No va a ninguna tabla: va en la respuesta de api/operacion.js y en la línea de log
+ * `dato_sin_guardar`, para contarlos. `rpc_ausente`: la base aún no tiene aplicar_operacion (0106 sin
+ * aplicar); `invalido`: el dato no cuadra con el registro o con su vocabulario; `sin_permiso`: quien lo
+ * pide no puede escribir en esa casa; `sin_sesion`: la app no tiene sesión; `sin_red`: no llegó;
+ * `servidor`: la base o el servidor fallaron de otra forma.
+ */
+export const FALLOS_DATO = ["rpc_ausente", "invalido", "sin_permiso", "sin_sesion", "sin_red", "servidor"];
+export const FALLO_DATO = porNombre(FALLOS_DATO);
+
+/**
+ * Por qué la puerta de la tubería (src/lib/operaciones/puerta.js, trozo 26) para una operación antes de
+ * aplicarla; van a operacion.sin_hacer[].motivo, al lado de MOTIVOS_SIN_HACER_DATO, que son los de la base.
+ * `sin_permiso`: quien la pide no es de la casa o no tiene un papel que edita; `origen_no_vale`: el sistema
+ * no habla por la familia, ni la app pone lo supuesto; `salud_sin_familia`: un dato de salud que no dice
+ * una persona de la casa.
+ */
+export const MOTIVOS_PUERTA = ["sin_permiso", "origen_no_vale", "salud_sin_familia"];
+export const MOTIVO_PUERTA = porNombre(MOTIVOS_PUERTA);
+
+// ── Los del método de choques (specs/arquitectura-objetivo.md, «Choques», su única fuente; trozo 33). Su orden y
+// sus respuestas, con su test, en src/lib/choques.js.
+
+/** Qué clase de cosa choca, de la que más manda a la que menos: la seguridad no se rompe nunca; el sistema cede ante lo dicho. */
+export const CLASES_CHOQUE = ["seguridad", "hecho", "deseo", "aprendido", "supuesto", "sistema"];
+export const CLASE_CHOQUE = porNombre(CLASES_CHOQUE);
+/** Los siete criterios que deciden un choque, en su orden: gana el primero que distingue a las dos cosas. */
+export const CRITERIOS_CHOQUE = ["riesgo", "clase", "fuerza", "autoridad", "alcance", "tiempo", "peso_aprendido"];
+export const CRITERIO_CHOQUE = porNombre(CRITERIOS_CHOQUE);
+/** Cómo se responde a un choque: aplicar sin decir nada, aplicar y avisar en una línea, preguntar, o una tarea de decisión. */
+export const RESPUESTAS_CHOQUE = ["aplicar_en_silencio", "aplicar_y_avisar", "preguntar", "tarea_de_decision"];
+export const RESPUESTA_CHOQUE = porNombre(RESPUESTAS_CHOQUE);
+/** Cuándo se ve un choque: al guardar (la puerta), al generar (el motor), al ejecutar (comprar, cocinar) o al pasar el tiempo. */
+export const MOMENTOS_CHOQUE = ["al_guardar", "al_generar", "al_ejecutar", "al_pasar_el_tiempo"];
+export const MOMENTO_CHOQUE = porNombre(MOMENTOS_CHOQUE);
+
+/**
+ * Las marcas de la familia sobre un artículo de la compra (trozo 18, src/lib/compraMarcas.js): la lista sale del menú
+ * y solo se guarda esto. `anadido`: apuntado a mano; `comprado`: tachado; `en_casa`: no hace falta comprarlo;
+ * `quitado`: el menú lo pide, pero la familia lo quitó de la lista.
+ */
+export const MARCAS_COMPRA = ["anadido", "comprado", "en_casa", "quitado"];
+export const MARCA_COMPRA = porNombre(MARCAS_COMPRA);
+
+// ── Los del eje de la ficha (plan fichas con estado, trozo 5): columnas de registroFicha.js; la 0105 los lleva a registro_campo.
+
+/**
+ * Las fichas (entidades con sobre) del plan: de cuál es cada dato del registro (registroFicha.js ficha).
+ * `preferencia` se llamó `gusto` hasta el trozo 24 (el plan ampliado la renombra); ninguna tabla la guardaba.
+ */
+export const FICHAS = ["persona", "grupo", "casa", "rutina", "preferencia", "regla", "trato", "semana", "compra", "despensa", "receta", "tarea", "senal"];
+export const FICHA = porNombre(FICHAS);
+
+/** Quién puede escribir un dato: la familia (lo que dice), el sistema (lo que deriva o ve) o los dos. */
+export const ESCRITORES = ["familia", "sistema", "ambos"];
+export const ESCRITOR = porNombre(ESCRITORES);
+
+/** Qué postura tiene un gusto sobre un valor (tabla gusto, trozo 14): siempre, más, menos o nunca. */
+export const POSTURAS = ["siempre", "mas", "menos", "nunca"];
+
+/** Si dos escrituras del mismo dato chocan: el último gana (casi todo), el más restrictivo (salud: añadir gana a quitar) o se suman (señales). */
+export const CHOQUES = ["ultimo_gana", "mas_restrictivo", "suma"];
+export const CHOQUE = porNombre(CHOQUES);
+
+/**
+ * La clase de un dato del registro (plan, «Las cuatro clases de dato», trozo 6): hecho (lo que la casa
+ * dice o la app ve), derivado (se calcula de otros; `funcion` dice con qué), marca (estado de una
+ * interfaz, no de la casa) o historial (solo se añade, con poda). Cada clase se guarda de una forma.
+ */
+export const CLASES_DATO = ["hecho", "derivado", "marca", "historial"];
+export const CLASE = porNombre(CLASES_DATO);
+
+// ── Los del registro de ejes (src/data/axisRegistry.js; plan fichas con estado, trozo 24).
+
+/**
+ * Cómo se junta un eje de receta sobre los platos de un día o una semana: se suma (kcal, coste,
+ * minutos), se hace la media, se cuentan los platos que lo cumplen, o no se junta.
+ */
+export const AGREGABLES = ["suma", "media", "cuenta", "no"];
+export const AGREGABLE = porNombre(AGREGABLES);
+
+/** La unidad de un eje numérico, por ración: las de los nutrientes (src/data/nutrientes.js), minutos, euros y raciones. */
+export const UNIDADES_EJE = ["kcal", "g", "mg", "ug", "min", "eur", "racion"];
+export const UNIDAD_EJE = porNombre(UNIDADES_EJE);
+
+/** El tipo de un eje (axisRegistry.js; registro_eje.tipo, 0109): con él la base comprueba el valor de una preferencia. */
+export const TIPOS_EJE = ["enum", "jerarquico", "tags", "numerico", "booleano", "derivado"];
+
+// ── Los de la preferencia (tabla preferencia, 0109; plan fichas con estado, «Las fichas», fila Preferencia).
+
+/** Sobre qué se mide una preferencia: un plato, una comida, un día o la semana. */
+export const NIVELES_PREFERENCIA = ["plato", "comida", "dia", "semana"];
+/** Qué se mide: el valor del eje en cada plato, o su suma, su media o cuántos platos lo cumplen en el nivel. */
+export const MEDIDAS_PREFERENCIA = ["valor", "suma", "media", "cuenta"];
+/** Cómo se compara: es, no es, al menos, como mucho, más o menos (los dos últimos ordenan, no cortan). */
+export const OPERADORES_PREFERENCIA = ["es", "no_es", "al_menos", "como_mucho", "mas", "menos"];
+export const OPERADOR_PREFERENCIA = porNombre(OPERADORES_PREFERENCIA);
+/** Cuánto manda: obligatoria (nunca se rompe) o una preferencia con peso alto, medio o bajo (el solver, trozo 31). */
+export const FUERZAS_PREFERENCIA = ["obligatoria", "alto", "medio", "bajo"];
+/**
+ * Por qué escribir_preferencias (0109) no escribió una preferencia (operacion.sin_hacer[].motivo):
+ * `ya_lo_dijo_la_familia` (lo supuesto o visto no pisa lo dicho, como en el sobre), `ya_lo_rechazo` (lo
+ * supuesto que la familia rechazó no se vuelve a suponer) y `no_existe` (rechazar algo que no está).
+ */
+export const MOTIVOS_SIN_HACER_PREFERENCIA = ["ya_lo_dijo_la_familia", "ya_lo_rechazo", "no_existe"];
+
+// ── Los de los historiales (0109; los escribe el trozo 22).
+
+/** De dónde sale un precio observado (precio_observado.fuente): los de priceObs[].source de hoy, sin traducir. */
+export const FUENTES_PRECIO = ["manual", "receipt"];
+/** Qué es una línea de ticket o un gasto (precio_observado.tipo; priceObs[].kind). */
+export const TIPOS_LINEA_TICKET = ["food", "prefab", "nonfood"];
+
+// ── Los de las tareas de Lola (bot_tareas, 0076-0080): registroTareas.js los proyecta en ENUMS, y
+// de ahí salen los enum de sus herramientas (api/_bot/agente.js) y la paridad con los CHECK.
+// Fuera de VOCABULARIOS a propósito: aún no tienen ciclo de vida (retirados con su sucesor) ni
+// escáner de escritores (scripts/lib/columnasVocabulario.mjs, «Fuera, a propósito»).
+
+/** Qué era una tarea en el bot viejo (bot_tareas.kind, 0076); `tipo` lo sustituye (0080). */
+export const KINDS_TAREA = ["seguimiento", "pregunta"];
+export const KIND_TAREA = porNombre(KINDS_TAREA);
+
+/** Tipo de una tarea (bot_tareas.tipo, 0080). */
+export const TIPOS_TAREA = ["espera", "falta_saber", "decision", "seguimiento", "recordatorio"];
+export const TIPO_TAREA = porNombre(TIPOS_TAREA);
+/** Si un recordatorio (tarea de tipo recordatorio, 0122) se repite: cada día o cada semana; null, una vez. */
+export const REPITES_RECORDATORIO = ["diario", "semanal"];
+export const REPITE_RECORDATORIO = porNombre(REPITES_RECORDATORIO);
+/** Qué aviso es un recordatorio (0122; antes bot_reminders.tipo, 0085): el que pidió la familia o el de la víspera (vispera.js). */
+export const AVISOS_RECORDATORIO = ["libre", "vispera"];
+export const AVISO_RECORDATORIO = porNombre(AVISOS_RECORDATORIO);
+
+/** De quién es una tarea (bot_tareas.scope): de la casa, o personal si es algo suyo y en privado. */
+export const AMBITOS_TAREA = ["casa", "personal"];
+
+/** Cómo se cierra una tarea (cerrar_tarea.estado): son también estados de bot_tareas.status. */
+export const CIERRES_TAREA = ["hecha", "descartada", "rechazada"];
+
+/** El estado de una tarea (bot_tareas.status): abierta, aplazada («ahora te digo», 0080), cerrada o caducada. */
+export const ESTADOS_TAREA = ["abierta", "aplazada", ...CIERRES_TAREA, "caducada"];
+export const ESTADO_TAREA = porNombre(ESTADOS_TAREA);
+
+/** Qué pasó con lo que la tarea proponía (bot_tareas.resultado, 0080). */
+export const RESULTADOS_TAREA = ["aceptada", "mantenida"];
+
+/** Cómo de a fondo se pidió un menú (menu_generado.camino, 0130): los ids de CAMINOS, src/lib/caminos.js. */
+export const CAMINOS_MENU = ["basico", "medio", "avanzado"];
+/** Cómo está la cuenta de Mercadona de una casa (mercadona_cuenta.estado, 0131). */
+export const ESTADOS_CUENTA_MERCADONA = ["conectada", "caducada"];
+export const ESTADO_CUENTA_MERCADONA = porNombre(ESTADOS_CUENTA_MERCADONA);
+/** Por dónde se pidió rellenar la lista (mercadona_encargo.canal, 0131). */
+export const CANALES_ENCARGO = ["app", ...CANALES];
+/** Por dónde va un encargo de Mercadona (mercadona_encargo.status, 0131). */
+export const ESTADOS_ENCARGO_MERCADONA = ["pendiente", "rellenando", "hecho", "fallido"];
+export const ESTADO_ENCARGO_MERCADONA = porNombre(ESTADOS_ENCARGO_MERCADONA);
+export { FALLOS_ENCARGO_MERCADONA, FALLO_ENCARGO_MERCADONA };
+/** Por qué no se ha encolado un encargo (api/_bot/mercadonaEncargos.js): lo que la app y Lola tienen que explicar. */
+export const NO_ENCARGADO = Object.freeze({
+  SIN_SERVICIO: "sin_servicio",
+  SIN_CUENTA: FALLO_ENCARGO_MERCADONA.SIN_CUENTA,
+  SESION_CADUCADA: FALLO_ENCARGO_MERCADONA.SESION_CADUCADA,
+  EN_MARCHA: "en_marcha",
+  TOPE: "tope",
+});
+/** Para qué es una tarea de objetivo (bot_tareas.objetivo, 0080). */
+export const OBJETIVOS_TAREA = ["ideas_plato", "calorias", "generar_menu"];
+export const OBJETIVO_TAREA = porNombre(OBJETIVOS_TAREA);
+
+/** De qué va una pregunta en anotar_tarea (`sobre`); registroTareas.js SOBRE_A_CAMPO dice su campo de la ficha. */
+export const SOBRES_TAREA = ["alergias", "etapa_bebe", "otra"];
+export const SOBRE_TAREA = porNombre(SOBRES_TAREA);
+
+/** Las órdenes de tareas que guardan su respuesta en bot_idempotencia (bot_idempotencia.rpc, 0080). */
+export const RPCS_IDEMPOTENCIA = ["anotar_tarea", "cerrar_tarea", "editar_tarea"];
+
+/** Sexo de una persona: campo nuevo de la ficha v18, solo para calorías y nunca se pregunta. */
+export const SEXO = ["mujer", "hombre", "sin_dato"];
+
+/** Con qué frecuencia vive alguien en casa (custodia): campo nuevo de la ficha v18, nunca se pregunta. */
+export const PATRON_SEMANAS = ["siempre", "alternas"];
+
+// ── Los del registro de fallos del bot (#211). No se guardan en ninguna tabla:
+// van en la línea de log `bot_fallo` (api/_bot/avisar.js) y los cuenta
+// `npm run fallos` (scripts/bot-fallos.mjs). Cerrados para poder agruparlos.
+
+/**
+ * Por qué falló algo: lo deduce `motivoDe` (api/_bot/avisar.js) del error.
+ * `telegram` y `modelo` dicen de qué servicio vino; el resto, qué le pasó a la
+ * base (o a la red hasta ella). `otro` es lo que no se sabe clasificar.
+ */
+export const MOTIVOS_FALLO = [
+  "red", "tiempo", "sin_sesion", "permiso", "no_existe", "conflicto",
+  "datos_invalidos", "limite", "servidor", "telegram", "modelo", "otro",
+];
+export const MOTIVO_FALLO = porNombre(MOTIVOS_FALLO);
+
+/**
+ * Dónde falló: el primer argumento de cada `seguirCon` y `fallaCon` del bot.
+ * Un sitio nuevo se añade aquí; api/_bot/avisar.test.js falla si se usa uno
+ * que no está.
+ */
+export const SITIOS_FALLO = [
+  "mercadona",
+  "mercadona_aviso",
+  // api/_bot/agente.js
+  "agente_casa", "agente_dueno", "agente_huecos", "agente_idioma", "agente_papel", "agente_pedido", "generar_apuntar", "agente_segunda_semana", "agente_unir_cuenta", "apuntar_operacion", "uso_enrutador",
+  // api/bot/telegram.js
+  "aclarar_via_rapida", "alta_adjunto", "apuntar_falta_via_rapida", "aviso_de_espera",
+  "aviso_del_enrutador", "aviso_del_modo", "borrarcuenta_identidad", "borrarcuenta_nacida_aqui",
+  "bot_telegram_aviso", "boton_nacida_aqui", "boton_quitar", "boton_responder", "chat_migrar", "chat_salida",
+  "eleccion_via_rapida", "entregar_casa", "entregar_pintar", "escribiendo", "fallo_dueno", "fallo_tras_escribir",
+  "grupo_casa", "grupo_nombre_del_bot", "idioma", "invitacion",
+  "invitacion_cuentas", "lola", "lola_cancelada", "limite", "papel", "reconocer", "relevo", "relevo_llamar", "ruta",
+  "reporte_charla", "reporte_espera", "reporte_ruta", "ruta_dueno", "ultima_de_lola", "uso", "vivo_borrar_aviso", "vivo_borrar_cortado", "vivo_editar", "vivo_enviar",
+  // api/bot/entrar.js
+  "bot_entrar",
+  // el resto de api/_bot/
+  "borrar_tanda", "cambio_de_cuenta", "casa_deshacer", "casa_del_turno", "compartir_llave", "cuentas_hogar", "cuentas_conectada_app", "cuentas_json", "cuentas_nacida_aqui",
+  "caducidades_personas_ilegibles",
+  "despensa_noche",
+  // api/_bot/borrarPersona.js
+  "borrar_persona_fotos",
+  "caducidades_rotas_demasiadas",
+  "db_usuario", "deshacer_paso", "deshacer_primer_menu", "embudo_dueno", "entradas_ya_vista", "ficharpc_casa", "generar_borrar_menu_a_medias",
+  "generar_describir", "generar_despensa", "generar_recetas_propias", "generar_semanas_anteriores",
+  "idempotencia_guardar_resultado", "idempotencia_soltar_la_llave", "invitacion_unirse", "invitacion_vigente",
+  "menu_describir", "menu_foto_de_la_receta", "menu_senales", "pintar_huecos", "pintar_recetas", "pista_adelanto",
+  "enlace_apuntar", "enlace_prueba", "receta_ya_estaba", "recetas_borrar_propia", "recetas_busqueda", "recetas_carpetas", "recetas_descartes", "recetas_subir_foto", "recordatorios_reclamar", "recordatorios_soltar", "silencio_apuntar", "silencio_cerrar", "telegram_json",
+  "traducir_memoria", "turno_casa", "turno_tras_escribir", "turnos_mirar_cola", "turnos_soltar_candado", "uso_limite", "vispera_casa", "vispera_huecos",
+  "voz_json",
+];
+
+// ── Lo que apuntan los probadores con /fallo (api/_bot/reporte.js). No va a
+// ninguna columna: va en metadata.tipo del evento `bot_reporte` de user_events.
+
+/**
+ * Qué falló en un mensaje de Lola, según quien lo reporta: no le entendió,
+ * hizo otra cosa de la pedida, un dato mal (un plato, una cantidad, un día),
+ * el formato, tardó, u otro. Las etiquetas de los botones viven en reporte.js.
+ */
+export const TIPOS_REPORTE = ["no_entendio", "hizo_otra_cosa", "dato_mal", "formato", "lento", "otro"];
+
+// ── Los del vigía y el canario de Lola (#267). No van a ninguna tabla: van en
+// las líneas `vigia_aviso` y `canario` del log (scripts/vigia.mjs,
+// api/bot/canario.js), para contar cuántos avisos hubo y de qué.
+
+/**
+ * Qué aviso manda el vigía al grupo de avisos. `incidente_*`: una regla de
+ * scripts/lib/vigia-config.mjs se pasó (o volvió a su sitio); `vigia_parado`:
+ * hubo un hueco sin pasadas; `resumen_diario`: las cifras del día;
+ * `vigia_falla` y `vigia_vuelve`: la propia pasada rompió o vuelve a ir (los
+ * manda el workflow, .github/workflows/vigia-lola.yml); `vigia_sin_estado`:
+ * empezó sin el estado de la pasada anterior (primera vez o caché perdida).
+ */
+export const TIPOS_AVISO_VIGIA = ["incidente_abierto", "incidente_resuelto", "resumen_diario", "vigia_parado", "vigia_falla", "vigia_vuelve", "vigia_sin_estado"];
+
+/**
+ * Qué comprueba el canario (api/bot/canario.js). `canario` es el propio
+ * endpoint, visto desde el vigía; `logs`, la lectura de logs del vigía.
+ */
+export const CHEQUEOS_CANARIO = ["canario", "webhook_guardia", "webhook_vivo", "webhook_info", "base", "via_rapida", "modelo", "logs"];
+
+/**
+ * Por qué falla un chequeo del canario cuando no es un error con motivo de
+ * MOTIVOS_FALLO: lo que devolvió no es lo esperado.
+ */
+export const MOTIVOS_CANARIO = ["respuesta_inesperada", "respuesta_vacia", "escribio", "lento", "webhook_otra_url", "webhook_atascado", "webhook_con_errores", "sin_configurar"];
+
+// ── Los del mapa de módulos (ops/MODULOS.json, #157). No van a ninguna tabla:
+// los lee el panel de la factoría (#158) y ops/modulos.test.js.
+
+/**
+ * Cuánto está hecho un módulo. La definición y el criterio objetivo de cada
+ * grado viven UNA vez, en `vocabularios.grados_desarrollo` de ops/MODULOS.json;
+ * ops/modulos.test.js comprueba que las claves de allí son esta lista.
+ */
+export const GRADOS_DESARROLLO = ["idea", "en_marcha", "usable", "estable"];
+
+/** De quién es un módulo: la app, Lola, o lo que usan los dos. */
+export const AMBITOS_MODULO = ["app", "lola", "compartido"];
+
+/** Si una métrica de uso ya se mide hoy o sería posible medirla. */
+export const ESTADOS_METRICA = ["medida", "posible"];
+
+/** Por qué una tabla no tiene puerta (fichero único) en un lado, app o servidor: no la usa, la toca por RPC o por trigger, la tocan fuera de su dueño o está en desuso. */
+export const MOTIVOS_SIN_PUERTA = ["no_la_usa", "por_rpc", "por_trigger", "fuera_del_dueno", "en_desuso"];
+
+/**
+ * Qué pasó con las alergias en la línea de log `bot_alergias`
+ * (api/_bot/silencio.js): `apuntada`, el «ninguna» que apunta el código tras
+ * la pregunta con aviso; `recordada`, el recordatorio del primer menú.
+ */
+export const ACCIONES_ALERGIAS = ["apuntada", "recordada"];
+
+/**
+ * Por qué el tope diario de IA (api/_guard.js, dailyBudget) no deja pasar, en
+ * la línea de log `tope_diario`: `tope_alcanzado`, ya se gastó lo del día;
+ * `sin_redis` y `error_redis`, no se puede contar y el tope falla cerrado.
+ */
+export const MOTIVOS_TOPE_DIARIO = ["tope_alcanzado", "sin_redis", "error_redis"];
+
+// ── Los de la ficha Trato (plan fichas con estado, trozo 16): cómo quiere cada cuenta que le hable Lola.
+
+/** Ritmo con Lola: directo (decide y avisa, pregunta lo justo) o guiado (va paso a paso y pregunta más). */
+export const RITMOS_TRATO = ["directo", "guiado"];
+export const RITMO_TRATO = porNombre(RITMOS_TRATO);
+
+/** Cuánto se afina antes de generar un menú: nada (lo hace ya), poco, mucho, o preguntar cada vez (la pregunta del trozo 17). */
+export const PROFUNDIDADES_TRATO = ["nada", "poco", "mucho", "preguntar"];
+export const PROFUNDIDAD_TRATO = porNombre(PROFUNDIDADES_TRATO);
+
+/** Largo de los mensajes de Lola: corto (lo justo) o largo (con explicación). */
+export const LARGOS_TRATO = ["corto", "largo"];
+export const LARGO_TRATO = porNombre(LARGOS_TRATO);
+
+/**
+ * Qué hizo la escritura con un valor en la línea de log `vocabulario_escritura` (paraEscribir,
+ * más abajo, #539): `quitado`, un retirado sin sucesor que no se escribe.
+ */
+export const ACCIONES_ESCRITURA = ["quitado"];
+
+/**
+ * El mapa nombre → lista. Es lo que referencia `registro_campo.vocabulario`
+ * (la ficha): guarda el nombre, nunca una copia de los valores.
+ */
+export const VOCABULARIOS = Object.freeze({
+  dias: DIAS,
+  envases: ENVASES,
+  usos_receta: USOS_RECETA,
+  carpetas_fijas: CARPETAS_FIJAS,
+  aparatos: APARATOS,
+  aparatos_casa: APARATOS_CASA,
+  supermercados: SUPERMERCADOS_CASA,
+  modo_despensa: MODOS_DESPENSA,
+  tipos_grupo: TIPOS_GRUPO,
+  canales: CANALES,
+  caminos_enlace: CAMINOS_ENLACE,
+  resultados_enlace: RESULTADOS_ENLACE,
+  pruebas_identidad: PRUEBAS_IDENTIDAD,
+  idiomas: IDIOMAS,
+  comidas: COMIDAS,
+  estructura_platos: ESTRUCTURA_PLATOS,
+  donde_come: DONDE_COME,
+  tipo_hueco: TIPOS_HUECO,
+  dimensiones_ambito: DIMENSIONES_AMBITO,
+  ritmo_cocina: RITMO_COCINA,
+  nivel_cocina: NIVEL_COCINA,
+  etapa_bebe: ETAPA_BEBE,
+  modelo_menu: MODELO_MENU,
+  origen_dato: ORIGEN_DATO,
+  origen_alergias: ORIGEN_ALERGIAS,
+  refs_operacion: REFS_OPERACION,
+  estados_operacion: ESTADOS_OPERACION,
+  motivos_sin_hacer_dato: MOTIVOS_SIN_HACER_DATO,
+  motivos_sin_deshacer: MOTIVOS_SIN_DESHACER,
+  riesgos_herramienta: RIESGOS_HERRAMIENTA,
+  que_consultas: QUE_CONSULTAS,
+  formas_de_deshacer: FORMAS_DE_DESHACER,
+  fallos_dato: FALLOS_DATO,
+  motivos_puerta: MOTIVOS_PUERTA,
+  clases_choque: CLASES_CHOQUE,
+  criterios_choque: CRITERIOS_CHOQUE,
+  respuestas_choque: RESPUESTAS_CHOQUE,
+  momentos_choque: MOMENTOS_CHOQUE,
+  marcas_compra: MARCAS_COMPRA,
+  origenes_de_la_familia: ORIGENES_DE_LA_FAMILIA,
+  estados_dato: ESTADOS_DATO,
+  fichas: FICHAS,
+  escritores: ESCRITORES,
+  postura: POSTURAS,
+  choque: CHOQUES,
+  clase_dato: CLASES_DATO,
+  agregables: AGREGABLES,
+  unidades_eje: UNIDADES_EJE,
+  alcances_descarte: ALCANCES_DESCARTE,
+  tipos_eje: TIPOS_EJE,
+  niveles_preferencia: NIVELES_PREFERENCIA,
+  medidas_preferencia: MEDIDAS_PREFERENCIA,
+  operadores_preferencia: OPERADORES_PREFERENCIA,
+  fuerzas_preferencia: FUERZAS_PREFERENCIA,
+  motivos_sin_hacer_preferencia: MOTIVOS_SIN_HACER_PREFERENCIA,
+  fuentes_precio: FUENTES_PRECIO,
+  tipos_linea_ticket: TIPOS_LINEA_TICKET,
+  canales_dato: CANALES_DATO,
+  sexo: SEXO,
+  patron_semanas: PATRON_SEMANAS,
+  motivos_fallo: MOTIVOS_FALLO,
+  sitios_fallo: SITIOS_FALLO,
+  tipos_aviso_vigia: TIPOS_AVISO_VIGIA,
+  chequeos_canario: CHEQUEOS_CANARIO,
+  motivos_canario: MOTIVOS_CANARIO,
+  acciones_alergias: ACCIONES_ALERGIAS,
+  grados_desarrollo: GRADOS_DESARROLLO,
+  ambitos_modulo: AMBITOS_MODULO,
+  estados_metrica: ESTADOS_METRICA,
+  motivos_sin_puerta: MOTIVOS_SIN_PUERTA,
+  motivos_tope_diario: MOTIVOS_TOPE_DIARIO,
+  acciones_escritura: ACCIONES_ESCRITURA,
+  ritmos_trato: RITMOS_TRATO,
+  profundidades_trato: PROFUNDIDADES_TRATO,
+  largos_trato: LARGOS_TRATO,
+  repites_recordatorio: REPITES_RECORDATORIO,
+  avisos_recordatorio: AVISOS_RECORDATORIO,
+  tipos_reporte: TIPOS_REPORTE,
+  caminos_menu: CAMINOS_MENU,
+  estados_cuenta_mercadona: ESTADOS_CUENTA_MERCADONA,
+  canales_encargo: CANALES_ENCARGO,
+  estados_encargo_mercadona: ESTADOS_ENCARGO_MERCADONA,
+  fallos_encargo_mercadona: FALLOS_ENCARGO_MERCADONA,
+});
+
+/** La lista de un vocabulario por su nombre, o null si no existe. */
+export const vocabulario = (nombre) => VOCABULARIOS[nombre] ?? null;
+
+/**
+ * Los valores retirados de cada vocabulario, con su sucesor: { nombre: { valor: pasa_a } }
+ * (pasa_a null: retirado sin sucesor). Es la única fuente desde #878 (antes era la proyección
+ * de ops/vocabularios-vida.json): al retirar un valor se apunta aquí, y el test de paridad de
+ * src/lib/vocabularios.test.js exige que el CHECK de su columna lo siga admitiendo (#539).
+ */
+export const RETIRADOS = Object.freeze({});
+
+/** Un valor que no se puede escribir porque no es de su vocabulario (ni vivo ni retirado): el CHECK lo rechazaría. */
+export class FueraDeVocabulario extends Error {
+  constructor(nombre, valor) {
+    super(`«${valor}» no es un valor de ${nombre}, ni vivo ni retirado`);
+    this.name = "FueraDeVocabulario";
+    this.vocabulario = nombre;
+    this.valor = valor;
+  }
+}
+
+/**
+ * La línea de log de un retirado sin sucesor que no se escribe, con la forma de las líneas de
+ * evento del bot (JSON en una línea, como `bot_alergias`), para poder contarla:
+ * {"evento":"vocabulario_escritura","vocabulario":"envases","valor":"tetra","accion":"quitado"}.
+ */
+export const avisarQuitado = (nombre, valor) =>
+  console.warn(JSON.stringify({ evento: "vocabulario_escritura", vocabulario: nombre, valor: String(valor), accion: ACCIONES_ESCRITURA[0] }));
+
+/**
+ * Las dos funciones con las que todo módulo dueño escribe una columna de vocabulario
+ * (PRINCIPIOS §4 y §15, #539). El CHECK admite los retirados (filas viejas de familias), así
+ * que la base no impide volver a escribirlos: lo impide pasar por aquí.
+ *   - paraEscribir(nombre, valor): el valor si está vivo; su `pasa_a` si está retirado. Un
+ *     retirado sin sucesor no se escribe: da null (columna opcional) y deja la línea
+ *     `vocabulario_escritura` con accion `quitado`. Un valor desconocido lanza
+ *     FueraDeVocabulario: el CHECK también lo rechazaría, y tiene que fallar claro.
+ *     null/undefined pasan tal cual.
+ *   - listaParaEscribir(nombre, valores): lo mismo para una columna array; el retirado sin
+ *     sucesor se quita de la lista (con su línea), un desconocido lanza, y sin repetidos (dos
+ *     retirados pueden ir al mismo sucesor, o uno al que ya estaba).
+ * `crearEscritor` existe para probarlo con un registro de prueba (vocabularios.test.js).
+ */
+export function crearEscritor(vocabularios = VOCABULARIOS, retirados = RETIRADOS, avisar = avisarQuitado) {
+  const paraEscribir = (nombre, valor) => {
+    const lista = vocabularios[nombre];
+    if (!lista) throw new Error(`no existe el vocabulario «${nombre}»`);
+    if (valor == null || lista.includes(valor)) return valor;
+    const deEse = retirados[nombre] ?? {};
+    if (!Object.prototype.hasOwnProperty.call(deEse, valor)) throw new FueraDeVocabulario(nombre, valor);
+    if (deEse[valor] != null) return deEse[valor];
+    avisar(nombre, valor);
+    return null;
+  };
+  const listaParaEscribir = (nombre, valores) => {
+    if (valores == null) return valores;
+    const out = [];
+    for (const v of valores) {
+      if (v == null) continue;
+      const w = paraEscribir(nombre, v);
+      if (w != null && !out.includes(w)) out.push(w);
+    }
+    return out;
+  };
+  return { paraEscribir, listaParaEscribir };
+}
+
+export const { paraEscribir, listaParaEscribir } = crearEscritor();

@@ -5,7 +5,40 @@ import {
   planAdaptations,
   isCompatibleWith,
   adaptationsNeededFor,
+  isAdaptedFor,
+  allergensAfterAdaptation,
 } from "./substitutions.js";
+
+describe("allergensAfterAdaptation", () => {
+  const tosta = {
+    name: "Tosta de tomate",
+    allergens: ["gluten", "pescado"],
+    ingredients: [{ name: "Pan de payés" }, { name: "Tomate" }],
+  };
+
+  it("quita el gluten de un plato adaptado sin gluten, y solo el gluten", () => {
+    const { adaptations } = buildAdaptationMap(tosta, ["sin_gluten"]);
+    const adaptada = { ...tosta, adaptations };
+    expect(isAdaptedFor(adaptada, "sin_gluten")).toBe(true);
+    expect(allergensAfterAdaptation(adaptada)).toEqual(["pescado"]);
+  });
+
+  it("deja el gluten si el plato no está adaptado", () => {
+    expect(isAdaptedFor(tosta, "sin_gluten")).toBe(false);
+    expect(allergensAfterAdaptation(tosta)).toEqual(["gluten", "pescado"]);
+  });
+
+  it("«sin lactosa» no quita la leche: sigue teniendo su proteína", () => {
+    const arroz = {
+      name: "Arroz con leche",
+      allergens: ["leche"],
+      ingredients: [{ name: "Leche entera" }, { name: "Arroz" }],
+    };
+    const { adaptations } = buildAdaptationMap(arroz, ["lactosa_fina"]);
+    expect(adaptations.length).toBeGreaterThan(0);
+    expect(allergensAfterAdaptation({ ...arroz, adaptations })).toEqual(["leche"]);
+  });
+});
 
 const recipe = (name, ingredientNames = []) => ({
   name,

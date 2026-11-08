@@ -10,18 +10,21 @@
  * por comas: el piloto con los socios) se cambian en Vercel sin tocar código.
  */
 
+import { seguirCon } from "./avisar.js";
 import { select, rpc, eq } from "./db.js";
+import { isoDeCasa } from "../../src/lib/dias.js";
 
 export const limiteMensual = () => Number(process.env.BOT_LIMITE_MENSUAL) || 100;
 const sinLimite = (householdId) => (process.env.BOT_SIN_LIMITE ?? "").split(",").map((s) => s.trim()).includes(householdId);
 
 export const mesActual = () =>
-  new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" }).format(new Date()).slice(0, 7) + "-01";
+  isoDeCasa().slice(0, 7) + "-01";
 
 /** null si puede seguir; si no, el texto con el que se contesta. */
 export async function fueraDeLimite(householdId) {
   if (sinLimite(householdId)) return null;
-  const [fila] = await select("bot_usage", `household_id=${eq(householdId)}&month=eq.${mesActual()}`, "messages").catch(() => []);
+  // a propósito: sin poder leer el uso, mejor contestar que bloquear
+  const [fila] = await select("bot_usage", `household_id=${eq(householdId)}&month=eq.${mesActual()}`, "messages").catch(seguirCon("uso_limite", []));
   if ((fila?.messages ?? 0) < limiteMensual()) return null;
   return `Este mes ya hemos hablado ${limiteMensual()} veces, que es el límite de la versión gratis 🙈. `
     + "El día 1 se reinicia. Mientras, el menú, la compra y las recetas siguen en la app (/app).";

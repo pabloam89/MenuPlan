@@ -1,4 +1,6 @@
+import { sellarCambios } from "./sobreHueco.js";
 import { getWeekDatesByMenuWeek, mondayISOForOffset } from "./weekCalendar.js";
+import * as ids from "./ids.js";
 
 // A "menú" used to mean exactly one calendar week. It can now span several
 // weeks generated in one go (`data.menuWeekOffsets`, not necessarily
@@ -39,7 +41,7 @@ export function clampWeekCount(n) {
 }
 
 export function createMenuId() {
-  return `menu_${Math.random().toString(36).slice(2, 10)}${Date.now().toString(36)}`;
+  return ids.menu.nuevo();
 }
 
 function isoDate(date) {
@@ -102,6 +104,18 @@ export function weekEntry(mapa, offset) {
   // Compatibilidad: un blob guardado antes de la migración, o escrito por una
   // pestaña vieja abierta desde antes del despliegue.
   return mapa[offset];
+}
+
+/**
+ * El horario de una semana del menú. La semana ancla (la primera) y, con
+ * «igual en todas las semanas», cualquiera usan el de la casa; con «distinto en
+ * cada semana» el resto lleva el suyo (`menuWeekOverrides`) si lo tiene. Lo
+ * usan el generador (`prepararSemana`) y la pizarra (`semanaEnBlanco`).
+ */
+export function horarioDeSemana(data, offset, esAncla) {
+  return esAncla || data.menuScheduleSameForAllWeeks !== false
+    ? data.schedule
+    : (weekEntry(data.menuWeekOverrides, offset) ?? data.schedule);
 }
 
 /**
@@ -226,6 +240,20 @@ function planRecipeIds(plan, into) {
 }
 
 /**
+ * Los ids de receta de las semanas de un menú menos la que está abierta (cuyo
+ * plan vivo va aparte). Cuentan los de todos los grupos: un plato que otro
+ * grupo come otra semana también es un plato repetido para quien mira el menú.
+ */
+export function recipeIdsDeOtrasSemanas(menu, offsetAbierto) {
+  const ids = new Set();
+  for (const week of Object.values(menu?.weeks ?? {})) {
+    if (week?.offset === offsetAbierto) continue;
+    planRecipeIds(week?.plan, ids);
+  }
+  return ids;
+}
+
+/**
  * Every recipe id referenced by any week of any menú in the archive. Used to
  * prune the AI-generated recipe cache down to what's still reachable, so it
  * doesn't accumulate dishes from menús that have since been trimmed.
@@ -295,6 +323,44 @@ export function toggleMenuFavorite(menus, menuId) {
  * mirrored into the live `menuPlan`. Returns the new map plus the snapshotted
  * { weekStart, week } so callers can mirror it to the cloud. Pure.
  */
+/**
+ * La semana [lunes, semana] de un menú con ese `offset`, solo si es UNA. Con
+ * dos (menús de Lola de antes de #958, que copiaban el offset viejo de las
+ * semanas conservadas) no se sabe cuál se ve, y guardar en la primera pisaba
+ * lo que Lola acababa de generar: mejor no guardar que pisar la otra.
+ */
+export function semanaPorOffset(weeks, offset) {
+  const todas = Object.entries(weeks ?? {}).filter(([, w]) => w?.offset === offset);
+  // No en silencio (revisor de #966, C5): queda en la consola por qué no se guardó.
+  if (todas.length > 1) console.warn("[menu] semana sin guardar: el offset", offset, "es de varias semanas", todas.map(([lunes]) => lunes));
+  return todas.length === 1 ? todas[0] : null;
+}
+
+/**
+ * El puntero `data.menuWeek` de una semana del archivo: dice qué semana está
+ * copiada en `menuPlan`/`shopping` (la viva). Quien pone una semana en vivo
+ * pone a la vez este puntero, y lo saca de aquí.
+ */
+export function punteroDeSemana(week) {
+  return { offset: week.offset, startDayIdx: week.startDayIdx ?? 0, days: week.days ?? null };
+}
+
+/**
+ * El puntero de la semana abierta, reparado (#1063). Si `menuWeek` no señala
+ * ninguna semana del menú activo (null tras generar sin cuenta, o el offset de
+ * un menú anterior), la compra, el guardado y los favoritos leen la copia
+ * archivada y no la viva. Sin puntero, la semana en vivo es la primera: la que
+ * pone en vivo quien genera el menú. Un offset que sí está (aunque sea de dos
+ * semanas, ver semanaPorOffset) no se toca.
+ */
+export function semanaAbiertaDe(menus, activeMenuId, menuWeek) {
+  const menu = menus?.[activeMenuId];
+  const semanas = orderedWeeks(menu);
+  if (semanas.length === 0) return menuWeek;
+  if (menuWeek && semanas.some((w) => w.offset === menuWeek.offset)) return menuWeek;
+  return punteroDeSemana(semanas[0]);
+}
+
 export function saveActivePlanAsFavorite(menus, activeMenuId, livePlan, activeOffset) {
   const menu = menus?.[activeMenuId];
   if (!menu) return { menus, weekStart: null, week: null };
@@ -302,7 +368,7 @@ export function saveActivePlanAsFavorite(menus, activeMenuId, livePlan, activeOf
   let weekStart = null;
   let week = null;
   if (livePlan && Object.keys(livePlan).length > 0) {
-    const entry = Object.entries(weeks).find(([, w]) => w?.offset === activeOffset);
+    const entry = semanaPorOffset(weeks, activeOffset);
     if (entry) {
       weekStart = entry[0];
       week = { ...entry[1], plan: livePlan };
@@ -311,4 +377,58 @@ export function saveActivePlanAsFavorite(menus, activeMenuId, livePlan, activeOf
   }
   const nextMenus = { ...menus, [activeMenuId]: { ...menu, weeks, isFavorite: true } };
   return { menus: nextMenus, weekStart, week };
+}
+
+/**
+ * La semana que se ve, con el plan y la lista que hay ahora en pantalla, si
+ * difieren de lo que tiene guardado. Los cambios de plato de la app solo
+ * tocaban `menuPlan`: la fila de la semana (lo que se carga al volver y lo
+ * único que lee Lola) seguía con el plan de cuando se generó, y el cambio se
+ * perdía al recargar. `activeOffset` es data.menuWeek.offset, como en
+ * saveActivePlanAsFavorite. Un plan vacío no se guarda: es un estado de paso
+ * (borrar, cambiar de menú) y vaciaría la semana. Devuelve null si no hay nada
+ * que guardar; si no, el archivo ya al día y la semana para la nube. Pura.
+ */
+export function semanaVivaPorGuardar(menus, activeMenuId, activeOffset, livePlanSinSellar, liveShopping, sobre = null) {
+  const menu = activeMenuId ? menus?.[activeMenuId] : null;
+  if (!menu || !livePlanSinSellar || Object.keys(livePlanSinSellar).length === 0) return null;
+  const entry = semanaPorOffset(menu.weeks, activeOffset);
+  if (!entry) return null;
+  const [weekStart, actual] = entry;
+  // Sin plan, de la semana solo se cargó el rango (loadMenuWeekRanges: falló
+  // loadMenuDetail). Guardarla pisaría la fila con un horario y unos días que
+  // no se leyeron (weekToRow: schedule {}, active_days null).
+  if (!actual || actual.plan === undefined) return null;
+  // Cada hueco que cambió de plato lleva quién, cuándo y por dónde (sobreHueco.js, trozo 18). Si sella algo, el plan
+  // vivo cambia: quien llama lo pone en vivo (`week.plan`), y la vuelta siguiente ya no ve diferencia.
+  const livePlan = sobre ? sellarCambios(actual.plan, livePlanSinSellar, sobre) : livePlanSinSellar;
+  const shopping = liveShopping ?? actual.shopping ?? { items: [] };
+  const igual = (a, b) => a === b || JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+  if (igual(actual.plan, livePlan) && igual(actual.shopping, shopping)) return null;
+  const week = { ...actual, plan: livePlan, shopping };
+  const nextMenus = { ...menus, [activeMenuId]: { ...menu, weeks: { ...menu.weeks, [weekStart]: week } } };
+  return { menus: nextMenus, weekStart, week };
+}
+
+/** La semana que contiene `hoyISO`, o undefined. */
+export function semanaDeHoy(semanas, hoyISO) {
+  return semanas.find((w) => w?.startISO <= hoyISO && hoyISO <= w?.endISO);
+}
+
+/**
+ * El plan de la semana que contiene `hoyISO`, para «Hoy toca». `menuPlan` en
+ * vivo es la semana que se está MIRANDO en Menú, no la de hoy: leerlo aquí
+ * dejaba Inicio sin platos (o con los de otra semana) hasta recargar, que es
+ * cuando el plan vuelve a la semana de hoy. Pura.
+ */
+export function planDeHoy(menus, activeMenuId, activeOffset, livePlan, hoyISO) {
+  const semanas = Object.values(menus?.[activeMenuId]?.weeks ?? {});
+  // Sin semanas archivadas (menú antiguo) solo queda el plan en vivo.
+  if (semanas.length === 0) return livePlan;
+  const hoy = semanaDeHoy(semanas, hoyISO);
+  if (!hoy) return {};
+  // La semana a la vista va por delante del archivo.
+  if (hoy.offset === activeOffset) return livePlan;
+  // Si solo se cargó el rango, sin platos: mejor nada que los de otra semana.
+  return hoy.plan ?? {};
 }

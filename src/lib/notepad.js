@@ -21,7 +21,10 @@
  *
  *   fijado     Lo dijiste tú. Se respeta y no se pregunta.
  *   inferido   Lo dedujimos de tu texto. Se pinta pre-rellenado PARA QUE LO
- *              CONFIRMES — nunca llega al planner como si lo hubieras dicho.
+ *              CONFIRMES. Ojo: el canon decía que nunca llegaba al planner, y
+ *              `proyectar` siempre lo ha proyectado — lo que se escribe en el
+ *              panel lo escribe la propia familia. Lo que de verdad no se dijo
+ *              lleva `fuente` (ver `matizDe`) y entra solo como sesgo.
  *   delegado   "Lo que tú veas". No es un hueco: es permiso.
  *   vacío      No sabemos nada. Se pregunta, o cae a un default visible.
  *
@@ -40,6 +43,8 @@ import { z } from "zod";
 export const ORIGENES = ["texto", "pregunta", "default", "perfil", "arquetipo"];
 export const ESTADOS = ["vacio", "inferido", "delegado", "fijado"];
 export const NOTEPAD_VERSION = 1;
+/** De dónde sale un apunte (`fuente`; ver `matizDe`): dicho, visto o supuesto. */
+export const FUENTES = ["dicho", "visto", "supuesto"];
 
 const ProcedenciaSchema = z.object({
   // La frase literal del usuario, entera y sin tocar: es lo que se le enseña
@@ -58,6 +63,17 @@ const CampoSchema = z.object({
   // El valor original, para poder deshacer mañana y no solo en los dos
   // segundos que dura un toast.
   anterior: z.unknown().optional(),
+  // De dónde sale, con matiz (ver `matizDe`). Sin campo = dicho: así estaba
+  // todo lo escrito antes de que existiera, y era lo que el panel trataba como
+  // dicho al proyectarlo.
+  fuente: z.enum(FUENTES).optional(),
+  // Cuándo se apuntó (lo supuesto caduca si no se repite) y cuándo vale.
+  apuntado: z.string().optional(),
+  desde: z.string().optional(),
+  hasta: z.string().optional(),
+  // Lo que Lola supuso y la familia dijo que no. No se vuelve a suponer
+  // (`poner` lo bloquea), y la ficha y el analista lo leen.
+  rechazos: z.array(z.object({ valor: z.unknown(), fecha: z.string() })).optional(),
 });
 
 export const NotepadSchema = z.object({
@@ -89,6 +105,48 @@ export function estadoDe(notepad, path) {
   return "inferido";
 }
 
+/**
+ * El matiz de un apunte: de dónde sale y, por tanto, cuánto manda.
+ *
+ *   dicho     Lo dijo la familia (o lo confirmó). Manda siempre.
+ *   visto     Lola lo dedujo de lo que HACEN (cambios, descartes). Pesa, pero
+ *             solo como sesgo, y caduca si no se repite.
+ *   supuesto  Lola lo dedujo de lo que DICEN de pasada. Sesgo suave, caduca
+ *             antes, y Lola no lo da por hecho.
+ *   delegado  «Lo que tú veas».
+ *
+ * Lo visto y lo supuesto nunca excluyen: no quitan un ingrediente ni bajan una
+ * familia a cero (decisión de Pablo, 1 oct 2026: «solo como sesgo»).
+ */
+export function matizDe(campo) {
+  if (!campo) return null;
+  if (campo.delegado) return "delegado";
+  if (campo.confirmado || campo.origen === "pregunta" || campo.bloqueado) return "dicho";
+  return campo.fuente ?? "dicho";
+}
+
+const DIAS_DE_VIDA = { supuesto: 90, visto: 180 };
+const diasEntre = (a, b) => Math.round((Date.parse(`${b}T12:00:00Z`) - Date.parse(`${a}T12:00:00Z`)) / 86_400_000);
+
+/**
+ * ¿Vale este apunte el día `hoy` (ISO)? Fuera de su ventana desde/hasta, no;
+ * y lo visto o supuesto que nadie ha repetido en su tiempo de vida, tampoco.
+ * Sin `hoy` no se mira el calendario (la proyección de siempre).
+ */
+export function vigente(campo, hoy) {
+  if (!campo || !hoy) return true;
+  if (campo.desde && hoy < campo.desde) return false;
+  if (campo.hasta && hoy > campo.hasta) return false;
+  const vida = DIAS_DE_VIDA[matizDe(campo)];
+  if (vida && campo.apuntado && diasEntre(campo.apuntado, hoy) > vida) return false;
+  return true;
+}
+
+/** ¿Hay algo en la libreta que dependa del día? Si no, la proyección guardada vale. */
+export function dependeDelDia(notepad) {
+  return Object.values(notepad?.campos ?? {}).some((c) => c.desde || c.hasta || (c.fuente && c.fuente !== "dicho"));
+}
+
 /** ¿Se puede volver a preguntar por esto? Un no-go dice que no, para siempre. */
 export function sePuedePreguntar(notepad, path) {
   const campo = notepad?.campos?.[path];
@@ -100,9 +158,15 @@ export function sePuedePreguntar(notepad, path) {
  * Escribe un valor. Devuelve una libreta NUEVA — nunca muta la que recibe,
  * porque estas llegan del estado de React y mutarlas se traga los re-renders.
  */
-export function poner(notepad, path, valor, { origen, frase, fecha, confirmado = false } = {}) {
+export function poner(notepad, path, valor, { origen, frase, fecha, confirmado = false, fuente, desde, hasta } = {}) {
   const b = base(notepad);
   const previo = b.campos[path];
+  // Una suposición nunca pisa lo dicho: si la familia corrigió a Lola, lo que
+  // dijo se queda aunque Lola vuelva a suponer lo contrario. Es el «rechazado»
+  // en la práctica, sin una lista aparte que nadie leería todavía.
+  if (fuente && fuente !== "dicho" && previo && previo.valor !== undefined && matizDe(previo) === "dicho") return b;
+  // Ni lo que ya le rechazaron: «no, eso no es así» vale para siempre.
+  if (fuente && fuente !== "dicho" && (previo?.rechazos ?? []).some((x) => mismoValor(x.valor, valor))) return b;
   return {
     ...b,
     campos: {
@@ -116,6 +180,12 @@ export function poner(notepad, path, valor, { origen, frase, fecha, confirmado =
         // tema que el usuario cerró a propósito.
         bloqueado: previo?.bloqueado ?? false,
         ...(frase ? { procedencia: { frase, fecha } } : {}),
+        // El matiz y las fechas solo los pone quien los sabe (el bot, por
+        // ahora). Una escritura sin `fuente` es la de siempre: dicho.
+        ...(fuente ? { fuente, apuntado: fecha } : {}),
+        ...(desde ? { desde } : {}),
+        ...(hasta ? { hasta } : {}),
+        ...(previo?.rechazos ? { rechazos: previo.rechazos } : {}),
         // Solo se guarda el valor de la PRIMERA escritura de una tanda: si no,
         // dos cambios seguidos dejarían el deshacer a medio camino.
         ...(previo?.anterior !== undefined
@@ -126,6 +196,33 @@ export function poner(notepad, path, valor, { origen, frase, fecha, confirmado =
       },
     },
   };
+}
+
+const mismoValor = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+
+/**
+ * «No, eso no es así»: la familia desmiente algo que Lola SUPUSO (o vio). El
+ * apunte deja de valer y su valor queda en `rechazos`, para no volver a
+ * suponerlo. Lo dicho no se rechaza así: si la familia cambia de idea, lo dice
+ * y se escribe encima.
+ * @returns {{ libreta, rechazado: boolean }}
+ */
+export function rechazar(notepad, path, { fecha } = {}) {
+  const b = base(notepad);
+  const campo = b.campos[path];
+  if (!campo || campo.valor === undefined || matizDe(campo) === "dicho") return { libreta: b, rechazado: false };
+  const rechazos = [...(campo.rechazos ?? []), { valor: campo.valor, fecha: fecha ?? "" }];
+  const { fuente, apuntado, desde, hasta, ...resto } = campo;
+  return {
+    libreta: { ...b, campos: { ...b.campos, [path]: { ...resto, valor: undefined, rechazos } } },
+    rechazado: true,
+  };
+}
+
+/** Lo rechazado de toda la libreta, para la ficha y el analista. */
+export function rechazadosDe(notepad) {
+  return Object.entries(notepad?.campos ?? {}).flatMap(([path, c]) =>
+    (c.rechazos ?? []).map((r) => ({ path, valor: r.valor, fecha: r.fecha })));
 }
 
 /** "Lo que tú veas": resuelto, no vacío. Es lo único que acorta el wizard. */
@@ -196,7 +293,7 @@ export function porQue(notepad, path) {
  * Lo `delegado` NO se proyecta: "lo que tú veas" es permiso para que decida el
  * planner, no un número que imponerle.
  */
-export function proyectar(notepad) {
+export function proyectar(notepad, { hoy } = {}) {
   const freqs = {};
   const freqsByGroup = {};
   const sesgos = {};
@@ -208,14 +305,18 @@ export function proyectar(notepad) {
 
   for (const [path, campo] of Object.entries(notepad?.campos ?? {})) {
     if (campo.delegado || campo.valor === undefined) continue;
+    if (!vigente(campo, hoy)) continue;
+    // Lo visto y lo supuesto solo sesgan: nunca excluyen ni bajan a cero.
+    const blando = matizDe(campo) !== "dicho";
     const [campoId, valorId, ...resto] = path.split(".");
     const grupo = resto.find((p) => p.startsWith("@"))?.slice(1);
 
     if (campoId === "freqs") {
+      const valor = blando && campo.valor === 0 ? 1 : campo.valor;
       if (grupo) {
-        (freqsByGroup[grupo] ??= {})[valorId] = campo.valor;
+        (freqsByGroup[grupo] ??= {})[valorId] = valor;
       } else {
-        freqs[valorId] = campo.valor;
+        freqs[valorId] = valor;
       }
     } else if (campoId === "reparto") {
       // Sale APARTE de `freqs` y no se mezcla aquí a propósito. Son dos cosas
@@ -224,7 +325,9 @@ export function proyectar(notepad) {
       // `freqsEfectivos()` en lib/reparto.js, donde se puede leer y cambiar.
       // Mezclarlas aquí habría movido en silencio los freqs de quien ya tenía
       // el wizard viejo contestado.
-      reparto[valorId] = campo.valor;
+      // Un 0 % supuesto sería quitar la familia entera: no entra, y esa
+      // familia vuelve a su parte por defecto.
+      if (!(blando && campo.valor === 0)) reparto[valorId] = campo.valor;
     } else if (campoId === "tanda") {
       // Aparte de `base` y por el mismo motivo que `reparto` sale aparte de
       // `freqs`: son dos cosas distintas sobre el mismo vocabulario. `base` es
@@ -239,7 +342,7 @@ export function proyectar(notepad) {
       // Ver la cabecera del campo en notepadFields.js.
       tandaPlatos[valorId] = campo.valor;
     } else if (campoId === "excluidos") {
-      if (campo.valor) excluidos.push(valorId);
+      if (campo.valor && !blando) excluidos.push(valorId);
     } else if (campoId === "favoritos") {
       if (campo.valor) favoritos.push(valorId);
     } else {

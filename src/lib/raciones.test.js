@@ -1,14 +1,28 @@
 import { describe, it, expect } from "vitest";
-import { factorRacion, racionesDe } from "./raciones.js";
+import { factorRacion, racionesDe, racionPorEdad } from "./raciones.js";
 import { catalogToFrontendRecipe } from "./aiPlanner.js";
 import { buildShoppingList } from "./shoppingBuilder.js";
 import { registerRecipes } from "../data/recipes.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 
 describe("factorRacion", () => {
-  it("sin peso ni altura, 1: el menú de quien no los da no cambia", () => {
+  it("sin peso ni altura, un adulto o alguien sin edad cuenta 1", () => {
     expect(factorRacion({}, 40)).toBe(1);
     expect(factorRacion({ pesoKg: 70 }, 40)).toBe(1);
+    expect(factorRacion({}, null)).toBe(1);
+  });
+  it("sin peso ni altura, un niño cuenta por su edad: no come lo de un adulto", () => {
+    expect(racionPorEdad(2)).toBe(0.5);
+    expect(racionPorEdad(6)).toBe(0.65);
+    expect(racionPorEdad(11)).toBe(0.75);
+    expect(racionPorEdad(14)).toBe(1);
+    expect(factorRacion({}, 3)).toBe(0.5);
+    // Con peso y altura sigue mandando el cálculo fino.
+    expect(factorRacion({ pesoKg: 22, alturaCm: 118 }, 6)).toBeCloseTo(0.75, 2);
+  });
+  it("una casa de dos adultos y dos niños pequeños compra para tres, no para cuatro", () => {
+    const casa = [{ edad: 38 }, { edad: 36 }, { edad: 4 }, { edad: 2 }];
+    expect(racionesDe(casa, (m) => m.edad)).toBeCloseTo(3.15, 2);
   });
   it("un adulto grande come más que uno pequeño", () => {
     const grande = factorRacion({ pesoKg: 95, alturaCm: 190 }, 35);

@@ -1,18 +1,23 @@
 import { supabase } from "./supabase.js";
+import { leerFamiliaDeCasa, conFamiliaLeida, sinFamilia } from "./familiaCasa.js";
+import { esSinFuncion } from "./postgrest.js";
 
 /**
  * Cloud mirror for household_state (see 0017_households.sql).
  * Replaces user_state for planning data scoped to a household.
  *
- * `botRev` (0057): contador que solo sube cuando escribe el bot de Telegram.
- * La app guarda condicionada al que vio al cargar; si el bot ha escrito
+ * `botRev` (0057, 0068): la versión de la casa. Sube con cada escritura, sea
+ * de Lola o de la app. La app guarda condicionada a la última que conoce (la
+ * cola de versionCasa.js lleva la cuenta de las suyas); si otro ha escrito
  * entretanto, el guardado vuelve con `conflict` y la app recarga la nube en
- * vez de pisar el cambio del bot.
+ * vez de pisar el cambio.
  */
 
 /**
+ * null = la casa no tiene fila todavía. Si la lectura falla (sin red), vuelve
+ * con `error: true`: no es lo mismo una casa vacía que no saber qué tiene.
  * @param {string} householdId
- * @returns {Promise<{ state: any, updatedAt: string, botRev: number | null } | null>}
+ * @returns {Promise<{ state: any, updatedAt: string | null, botRev: number | null, error?: boolean } | null>}
  */
 export async function loadHouseholdState(householdId) {
   if (!supabase || !householdId) return null;
@@ -31,7 +36,7 @@ export async function loadHouseholdState(householdId) {
   }
   if (error) {
     console.warn("[householdState] load failed", error.message);
-    return null;
+    return { state: null, updatedAt: null, botRev: null, error: true };
   }
   if (!data) return null;
   return {
@@ -42,7 +47,7 @@ export async function loadHouseholdState(householdId) {
 }
 
 /**
- * Solo el contador, para mirar barato si el bot ha escrito (al volver a la app).
+ * Solo el contador, para mirar barato si alguien ha escrito (al volver a la app).
  * @param {string} householdId
  * @returns {Promise<number | null>}
  */
@@ -58,12 +63,12 @@ export async function loadHouseholdBotRev(householdId) {
 }
 
 // PostgREST: la función no existe (base sin la 0057).
-const sinFuncion = (error) => error?.code === "PGRST202" || /save_household_state/.test(error?.message ?? "");
+const sinFuncion = (error) => esSinFuncion(error) || /save_household_state/.test(error?.message ?? "");
 
 /**
  * @param {string} householdId
  * @param {any} state
- * @param {number | null} botRev  el que la app vio al cargar; null = sin condición
+ * @param {number | null} botRev  la última versión que la app conoce; null = sin condición
  * @returns {Promise<{ ok: boolean, conflict?: boolean, botRev?: number | null }>}
  */
 export async function saveHouseholdState(householdId, state, botRev = null) {
@@ -79,7 +84,7 @@ export async function saveHouseholdState(householdId, state, botRev = null) {
     return { ok: false };
   }
   if (data?.ok === false) {
-    // Mismo contador que el enviado: no ha escrito el bot, es que la fila no
+    // Mismo contador que el enviado: no ha escrito nadie, es que la fila no
     // se pudo actualizar (permisos). No es conflicto: recargar entraría en bucle.
     if (Number(data.bot_rev) === botRev) {
       console.warn("[householdState] save rejected");
@@ -88,6 +93,36 @@ export async function saveHouseholdState(householdId, state, botRev = null) {
     return { ok: false, conflict: true, botRev: Number(data.bot_rev) };
   }
   return { ok: true, botRev: data?.bot_rev == null ? botRev : Number(data.bot_rev) };
+}
+
+/** Lo que pasó al dejar vacía la casa que queda tras vaciar un hogar (empezarCasaVacia). */
+export const CASA_VACIA = Object.freeze({
+  GUARDADA: "guardada",
+  TENIA_CASA: "tenia_casa",
+  SIN_LEER: "sin_leer",
+  CONFLICTO: "conflicto",
+  FALLO: "fallo",
+});
+
+/**
+ * Tras vaciar un hogar, la casa que queda activa empieza vacía, pero solo si
+ * de verdad no tiene a nadie, y condicionada a su versión (#958). La que queda
+ * no tiene por qué ser una recién creada: si la persona estaba en otra casa,
+ * es esa, con su familia y su menú, y antes se guardaba encima sin versión.
+ * Si no se puede leer, no se escribe: no saber qué tiene no es estar vacía. La familia, de sus filas si vive
+ * ahí (trozo 10, lib/familiaCasa.js): el documento ya no la lleva, y sin mirarlas una casa con gente pasaría
+ * por vacía.
+ * @param {string} householdId
+ * @param {any} state  la casa vacía
+ * @returns {Promise<string>}  de CASA_VACIA
+ */
+export async function empezarCasaVacia(householdId, state, { cargar = loadHouseholdState, guardar = saveHouseholdState, leerFamilia = leerFamiliaDeCasa } = {}) {
+  const [actual, familia] = await Promise.all([cargar(householdId), leerFamilia(householdId)]);
+  if (actual?.error || familia?.error) return CASA_VACIA.SIN_LEER;
+  if ((conFamiliaLeida(actual?.state?.data, familia)?.members ?? []).length) return CASA_VACIA.TENIA_CASA;
+  const r = await guardar(householdId, { ...state, data: sinFamilia(state.data, familia?.modo) }, actual?.botRev ?? null);
+  if (r?.ok) return CASA_VACIA.GUARDADA;
+  return r?.conflict ? CASA_VACIA.CONFLICTO : CASA_VACIA.FALLO;
 }
 
 async function upsertLegacy(householdId, state, botRev) {

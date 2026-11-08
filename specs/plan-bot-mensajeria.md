@@ -1,6 +1,6 @@
 # Plan — HoMenu en el chat (Telegram → WhatsApp)
 
-Borrador del 29 sep 2026. Recoge las decisiones cerradas en las rondas de preguntas con Pablo y lo que el código actual obliga a resolver antes. Aún no hay nada construido.
+Borrador del 29 sep 2026. Recoge las decisiones cerradas en las rondas de preguntas con Pablo y lo que el código actual obliga a resolver antes. Lo que se decidió y construyó después, hasta el 8 oct, está en la sección 15.
 
 ## 1. La idea en una frase
 
@@ -15,7 +15,7 @@ Principio que no se toca: **el modelo traduce y el solver decide los platos.** E
 | Canales | Telegram para probar (Pablo y socios) → WhatsApp después |
 | Alcance | Todo, en conversación libre: onboarding guiado, consultar/cambiar menú, recetas, ingredientes, lista de la compra, menú del cole, recordatorios, pendientes |
 | Quién habla | Chat privado con cualquiera; se puede meter en cualquier grupo. En grupo solo contesta si le mencionan o responden a un mensaje suyo; en privado, a todo |
-| Permisos en grupo | Los dos padres pueden hacerlo todo; el bot confirma cada cambio en el grupo diciendo quién lo pidió, con opción de deshacer |
+| Permisos en grupo | Los dos padres pueden hacerlo todo; el bot confirma cada cambio en el grupo diciendo quién lo pidió. Sin botón de deshacer (ver 15.5): si no gusta, se pide otra cosa |
 | Alta | Por el chat o por la app, y luego se enlazan |
 | Proactividad | Nunca escribe primero sin permiso. Sí puede *ofrecer* un recordatorio dentro de una conversación («¿te aviso el miércoles para descongelar?») |
 | Voz | Entiende notas de voz; contesta en texto |
@@ -156,11 +156,11 @@ Onboarding por chat: ~1 $ una sola vez. Voz: céntimos al mes. WhatsApp: gratis 
 
 ## 12. Decisiones abiertas
 
-1. Nombre y personalidad del bot (para probar: `@HoMenuBot`).
-2. Proveedor de transcripción de voz.
+1. ~~Nombre y personalidad del bot.~~ Cerrada el 30 sep: **Lola** (15.1).
+2. ~~Proveedor de transcripción de voz.~~ Cerrada el 30 sep: Whisper turbo en Groq (`api/_bot/voz.js`).
 3. Qué pasa al llegar al límite gratis. Propuesta: aviso al 80 %; al tope, las consultas siguen y lo que usa IA invita a premium.
-4. Días que se guarda la charla (propuesta: 7).
-5. Si Telegram lleva Mini App en el futuro (avatares, semana entera).
+4. ~~Días que se guarda la charla.~~ Cerrada: 15 días, purga diaria `bot-retencion` (0065).
+5. ~~Si Telegram lleva Mini App.~~ Cerrada el 30 sep: se probó y se retiró; los botones llevan a la app con `?ir=`.
 6. Regla exacta de fusión app ↔ servidor (fase 0).
 
 ## 13. Qué se reutiliza del stash (`wizard/generativo`, `stash@{0}`)
@@ -184,3 +184,74 @@ Pendiente antes de que el bot ESCRIBA (fase 1), salido de la revisión adversari
 1. **El bot puede pisar a la app.** `bot_save_casa` solo compara `bot_rev`, que no sube con las escrituras de la app: lo que la app guarde entre que el bot lee y escribe se pierde. Hace falta una migración nueva que compare también el `updated_at` leído (casa y semana).
 2. **`bot_save_casa` no comprueba que la semana exista**: sube el contador y devuelve `ok` aunque no haya actualizado ninguna fila.
 3. **El código de enlace se marca usado antes de enlazar**: si falla la inserción, se pierde y hay que pedir otro.
+
+## 15. Lo que se decidió después (30 sep – 8 oct 2026)
+
+Cómo se escribe y se prueba el código de Lola (evals, modelos, plan B,
+supervisor, enrutador) está en `.claude/rules/lola.md`; cómo se opera
+Telegram, en la skill `telegram`. Aquí, solo las decisiones de producto y el
+porqué.
+
+### 15.1 Lola
+
+El bot se llama **Lola** (30 sep): mujer, española, cocinera de casa con
+delantal verde; habla de sí en femenino. Nombre visible «Lola · HoMenu».
+
+**Chatbot first** (30 sep): el chat es el mando y la app es para VER (menú,
+compra). La app ya no lanza wizards; se mantiene la pizarra para quien quiera
+rellenar a mano, y en Ajustes queda lo fino (avatares, peso y altura). Lola
+tiene que poder tocar todos los ejes del menú, más de los que permitía el
+wizard largo.
+
+### 15.2 Velocidad
+
+Por qué hay enrutador y vías rápidas: lo lento eran las vueltas del modelo y
+la red, no el solver. Medido el 30 sep: ráfaga de 2 s, ida y vuelta a Supabase
+(de ahí `fra1`) y Haiku ~1,1 s. Quitarle al enrutador el contexto de la casa
+para ganar 0,3 s empeoró las decisiones (84/92 frente a 135/138), y se dejó.
+En producción el enrutador sigue apagado hasta probarlo en modo sombra.
+
+### 15.3 Buscar recetas
+
+Desde el 1 oct, `buscar_recetas` va por `api/_bot/buscador.js`: rasgos por
+reglas (`src/lib/rasgosBusqueda.js`), vector de la frase sin lo negado
+(`api/_bot/vectores.js`, voyage-4, índice en `api/_bot/recetasVectores.json`,
+se rehace con `scripts/build-vectores.mjs`) y Haiku (`api/_bot/significado.js`)
+solo de reserva. Por qué: los vectores solos acertaban el 76 % y fallaban en
+rasgos y en el «no»; el híbrido, 89 % con mediana 0,45 s, frente a 91 % y
+1,1 s de Haiku solo. Ojo: ese examen ciego (`scripts/vectores-aparte.mjs`) lo
+escribió quien hizo las reglas y solo tiene 3 negaciones; falta uno con
+frases de Pablo. No se ajustan reglas mirando el ciego.
+
+### 15.4 Tareas abiertas
+
+Principio (3 oct): **toda garantía que importe va en la base o en código
+determinista; el modelo es opcional.** Cada vez que una garantía dependió del
+modelo, las evals fallaron 1 de cada 3.
+
+- Dos capas: `api/_bot/pendientes.js` (la pregunta del turno, dura 2 turnos) y
+  la tabla `bot_tareas` (lo que sobrevive a la charla). Las preguntas con
+  clave de estado (`alergias:<id>`, `etapa:<id>`, en `api/_bot/estadoCasa.js`)
+  las sube el código a la tabla y se cierran solas al resolverse.
+- Una abierta por casa y clave; tope de 8 seguimientos que **rechaza** la
+  novena (nunca borra en silencio: Lola pregunta cuál quitar); purga a 7 días.
+- `rechazada` es «no quiere decirlo»: no se purga ni se repregunta, y nunca
+  equivale a «ninguna».
+- Seguimientos, solo con el sí. Lola no promete enterarse de lo que no ve:
+  ofrece un aviso con fecha.
+
+**Alergias sin revisar** (8 oct, PR #107): mientras las alergias de una
+persona estén sin revisar, el menú esquiva los 14 alérgenos y Lola pregunta.
+Antes el motor las trataba como «ninguna».
+
+### 15.5 Decisiones de comportamiento
+
+Viven en `api/_bot/conocimiento.md`, que es lo que Lola lee, y se vigilan con
+`scripts/bot-evals.json`. Aquí, la fecha y el porqué.
+
+| Decisión | Fecha | Por qué | Dónde se vigila |
+|---|---|---|---|
+| **Solo comida**: compra, tareas y recordatorios no aceptan velas, pilas, pañales, limpieza, citas ni recados | 3 oct | El alcance es lo que come la casa; lo demás diluye el producto | `conocimiento.md`, «Solo comida»; evals de pilas, velas y cita médica |
+| **Sin botón «Deshacer»** (PR #25). «Deshaz» dicho con palabras sigue funcionando | 2 oct | Era un lío, y el botón deshacía lo último de la casa, no de ese chat | Sin eval. El código que pintaría el botón sigue en `api/bot/telegram.js`; no se reactiva |
+| **Bebé**: si no se sabe si come el menú de la familia o el suyo, Lola pregunta antes de tocar nada suyo | 1 oct | No se supone en ningún sentido | `conocimiento.md`, «El bebé». Falta la herramienta que pase al bebé al menú de la familia |
+| **No preguntar datos invasivos** (el colegio de un niño, y lo parecido): solo se guardan si se infieren de lo que mandan | 1 oct | Junto al nombre y la edad, localiza a un menor y espanta a las familias | **Falta en `conocimiento.md`** (F3 del plan maestro). El campo colegio aún no existe |

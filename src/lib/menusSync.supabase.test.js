@@ -17,6 +17,10 @@ import {
   deleteMenu,
   toggleMenuFavorite,
   activateMenu,
+  saveAndActivateMenu,
+  descartarMenuNuevo,
+  deactivateMenu,
+  queueSaveMenuWeek,
 } from "./menusSync.js";
 
 // A minimal chainable query-builder stand-in: every method records the call
@@ -136,19 +140,23 @@ describe("saveMenu (mocked client)", () => {
 describe("loadMenuSummaries (mocked client)", () => {
   it("maps rows to camelCase summaries", async () => {
     const row = {
-      id: "menu_abc", variety_pref: "strict", is_favorite: false, is_active: true,
+      id: "menu_abc", user_id: "user-1", variety_pref: "strict", is_favorite: false, is_active: true,
       created_at: "2026-07-01T00:00:00.000Z", updated_at: "2026-07-01T00:00:00.000Z",
     };
     Object.assign(supabase, mockClient({ user_menus: [{ data: [row], error: null }] }));
-    const summaries = await loadMenuSummaries("user-1");
+    const { data: summaries, error } = await loadMenuSummaries("user-1");
+    expect(error).toBeNull();
     expect(summaries).toEqual([
-      { id: "menu_abc", varietyPref: "strict", isFavorite: false, isActive: true, createdAt: Date.parse(row.created_at), updatedAt: Date.parse(row.updated_at) },
+      { id: "menu_abc", userId: "user-1", varietyPref: "strict", isFavorite: false, isActive: true, createdAt: Date.parse(row.created_at), updatedAt: Date.parse(row.updated_at) },
     ]);
   });
 
-  it("returns an empty array on error instead of throwing", async () => {
+  // #317: en error no devuelve [] («no hay menús»): App.jsx subía el blob encima.
+  it("on error returns the error, not an empty list", async () => {
     Object.assign(supabase, mockClient({ user_menus: [{ data: null, error: { message: "boom" } }] }));
-    expect(await loadMenuSummaries("user-1")).toEqual([]);
+    const r = await loadMenuSummaries("user-1");
+    expect(r.data).toBeNull();
+    expect(r.error).toMatchObject({ message: "boom" });
   });
 });
 
@@ -160,7 +168,7 @@ describe("loadMenuWeekRanges (mocked client)", () => {
       { menu_id: "menu_b", week_start: "2026-06-01", week_end: "2026-06-07", week_offset: 0, start_day_idx: 2 },
     ];
     Object.assign(supabase, mockClient({ user_menu_weeks: [{ data: rows, error: null }] }));
-    const result = await loadMenuWeekRanges("user-1");
+    const { data: result } = await loadMenuWeekRanges("user-1");
     expect(result).toEqual({
       menu_a: {
         "2026-07-13": { offset: 0, startDayIdx: 0, startISO: "2026-07-13", endISO: "2026-07-19" },
@@ -175,9 +183,11 @@ describe("loadMenuWeekRanges (mocked client)", () => {
     expect(result.menu_a["2026-07-13"]).not.toHaveProperty("plan");
   });
 
-  it("returns an empty object on error", async () => {
+  it("on error returns the error, not an empty map", async () => {
     Object.assign(supabase, mockClient({ user_menu_weeks: [{ data: null, error: { message: "boom" } }] }));
-    expect(await loadMenuWeekRanges("user-1")).toEqual({});
+    const r = await loadMenuWeekRanges("user-1");
+    expect(r.data).toBeNull();
+    expect(r.error).toMatchObject({ message: "boom" });
   });
 });
 
@@ -199,7 +209,7 @@ describe("loadMenuDetail (mocked client)", () => {
       user_menu_recipes: [{ data: [recipeRow], error: null }],
     }));
 
-    const detail = await loadMenuDetail("user-1", "menu_abc");
+    const { data: detail } = await loadMenuDetail("user-1", "menu_abc");
     expect(detail.menu.id).toBe("menu_abc");
     expect(detail.menu.weeks["2026-07-13"]).toEqual({
       offset: 0, startDayIdx: 0, days: null, startISO: "2026-07-13", endISO: "2026-07-19",
@@ -214,16 +224,18 @@ describe("loadMenuDetail (mocked client)", () => {
       user_menu_weeks: [{ data: [], error: null }],
       user_menu_recipes: [{ data: [], error: null }],
     }));
-    expect(await loadMenuDetail("user-1", "menu_missing")).toBeNull();
+    expect(await loadMenuDetail("user-1", "menu_missing")).toEqual({ data: null, error: null });
   });
 
-  it("returns null if any of the three parallel reads errors", async () => {
+  it("returns the error (data null) if any of the three parallel reads errors", async () => {
     Object.assign(supabase, mockClient({
       user_menus: [{ data: { id: "menu_abc" }, error: null }],
       user_menu_weeks: [{ data: null, error: { message: "boom" } }],
       user_menu_recipes: [{ data: [], error: null }],
     }));
-    expect(await loadMenuDetail("user-1", "menu_abc")).toBeNull();
+    const r = await loadMenuDetail("user-1", "menu_abc");
+    expect(r.data).toBeNull();
+    expect(r.error).toMatchObject({ message: "boom" });
   });
 });
 
@@ -257,5 +269,95 @@ describe("deleteMenu / toggleMenuFavorite / activateMenu (mocked client)", () =>
   it("activateMenu reports success", async () => {
     Object.assign(supabase, mockClient({ __rpc: [{ error: null }] }));
     expect(await activateMenu("menu_abc")).toEqual({ ok: true });
+  });
+});
+
+// Al generar, saveAndActivateMenu sube el menú sin esperar; si entretanto se
+// tacha algo de la lista, la semana se guardaba por su cuenta: antes que la
+// fila del menú (falla por FK) o justo antes de que saveMenu la pisara con la
+// lista de cuando se generó (el tachado se perdía).
+describe("queueSaveMenuWeek espera a que el menú recién generado esté subido (mocked client)", () => {
+  it("la semana se escribe después de saveMenu y de activarlo", async () => {
+    let soltar;
+    const menuSubiendo = new Promise((r) => { soltar = () => r({ error: null }); });
+    const client = mockClient({
+      user_menus: [menuSubiendo],
+      user_menu_weeks: [{ error: null }, { error: null }],
+      __rpc: [{ error: null }],
+    });
+    Object.assign(supabase, client);
+    const semana = { offset: 0, endISO: "2026-07-19", plan: {}, shopping: { items: [] }, schedule: {} };
+    const menu = { id: "menu_nuevo", weeks: { "2026-07-13": semana } };
+    const subida = saveAndActivateMenu("user-1", menu, [], "casa-1");
+    const tachada = { ...semana, shopping: { items: [{ id: "pollo|g", have: true }] } };
+    queueSaveMenuWeek("user-1", "menu_nuevo", "2026-07-13", tachada, 0, "casa-1");
+    await new Promise((r) => setTimeout(r, 20));
+    soltar();
+    await subida;
+    await new Promise((r) => setTimeout(r, 20));
+    const orden = client.log.filter((c) => c.method === "upsert" || c.method === "rpc").map((c) => c.table);
+    expect(orden).toEqual(["user_menus", "user_menu_weeks", "rpc:activate_user_menu", "user_menu_weeks"]);
+    expect(client.log.filter((c) => c.method === "upsert").at(-1).args[0].shopping).toEqual(tachada.shopping);
+  });
+});
+
+describe("descartarMenuNuevo (mocked client)", () => {
+  it("espera a la subida del menú nuevo, reactiva el de antes y lo borra", async () => {
+    const client = mockClient({ __rpc: [{ error: null }, { error: null }] });
+    Object.assign(supabase, client);
+    const subida = saveAndActivateMenu("user-1", { id: "blanco", weeks: {} }, [], "casa-1");
+    const r = await descartarMenuNuevo("user-1", "blanco", "anterior", "casa-1");
+    await subida;
+    expect(r.ok).toBe(true);
+    const pasos = client.log
+      .filter((l) => l.method === "rpc" || l.method === "delete")
+      .map((l) => (l.method === "rpc" ? l.args[0].p_menu_id : "borrar"));
+    expect(pasos).toEqual(["blanco", "anterior", "borrar"]);
+  });
+
+  it("sin menú anterior solo borra", async () => {
+    const client = mockClient({});
+    Object.assign(supabase, client);
+    expect((await descartarMenuNuevo("user-1", "blanco", null)).ok).toBe(true);
+    expect(client.rpc).not.toHaveBeenCalled();
+    expect(client.log.some((l) => l.method === "delete")).toBe(true);
+  });
+
+  it("si no puede reactivar, borra igual y avisa del fallo", async () => {
+    const client = mockClient({ __rpc: [{ error: { message: "no" } }] });
+    Object.assign(supabase, client);
+    expect((await descartarMenuNuevo("user-1", "blanco", "anterior")).ok).toBe(false);
+    expect(client.log.some((l) => l.method === "delete")).toBe(true);
+  });
+});
+
+describe("el resultado de saveAndActivateMenu (mocked client)", () => {
+  it("no rechaza si una semana no se puede montar", async () => {
+    Object.assign(supabase, mockClient({}));
+    const r = await saveAndActivateMenu("user-1", { id: "m", weeks: { "2026-10-26": { days: ["Nada"] } } }, []);
+    expect(r.ok).toBe(false);
+  });
+
+  it("dice que falló si no se pudo activar", async () => {
+    Object.assign(supabase, mockClient({ __rpc: [{ error: { message: "no" } }] }));
+    const r = await saveAndActivateMenu("user-1", { id: "m", weeks: {} }, []);
+    expect(r.ok).toBe(false);
+  });
+});
+
+describe("deactivateMenu (mocked client)", () => {
+  it("deja el menú inactivo, solo en su casa", async () => {
+    const client = mockClient({ user_menus: [{ data: null, error: null }] });
+    Object.assign(supabase, client);
+    const { log } = client;
+    expect(await deactivateMenu("user-1", "menu_abc", "casa-1")).toEqual({ ok: true });
+    expect(log).toContainEqual({ table: "user_menus", method: "update", args: [{ is_active: false }] });
+    expect(log).toContainEqual({ table: "user_menus", method: "eq", args: ["household_id", "casa-1"] });
+    expect(log).toContainEqual({ table: "user_menus", method: "eq", args: ["id", "menu_abc"] });
+  });
+
+  it("dice que falló si la base no deja", async () => {
+    Object.assign(supabase, mockClient({ user_menus: [{ data: null, error: { message: "no" } }] }));
+    expect((await deactivateMenu("user-1", "menu_abc")).ok).toBe(false);
   });
 });

@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { veloFoto } from "../design/tokens.js";
 import { ArrowLeftRight, CalendarOff, Check, Clock3, CopyPlus, Fish, History, RotateCw, Search, Shuffle, Sparkles, ThumbsDown, Trash2 } from "../components/icons.jsx";
+import { safeTop } from "../components/ui.jsx";
 import { OnboardingMembers, OnboardingRestrictions, OnboardingSchoolMenu, OnboardingSchedule, OnboardingMealStyle } from "./Onboarding.jsx";
 import { DishDetail, MenuScreen, RoscoMenu } from "./Menu.jsx";
 import { DashboardScreen } from "./Dashboard.jsx";
@@ -10,6 +12,7 @@ import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { registerRecipes } from "../data/recipes.js";
 import heroProducePhoto from "../assets/dashboard/hero-produce.jpg";
 import demoState from "../dev/demoState.json";
+import { DIAS } from "../lib/dias.js";
 
 // First-run value-prop carousel. Hard rule (per product feedback): NO invented
 // UI — every slide embeds a REAL app screen fed with realistic data, rendered
@@ -264,8 +267,8 @@ const MENU_DEMO_PLAN = {
   },
 };
 
-// RECIPES_BY_ID se construye desde BASE_RECIPES (recetas legacy), NO desde el
-// catálogo — el catálogo solo entra en runtime vía `registerRecipes` (planner).
+// RECIPES_BY_ID arranca vacío — el catálogo solo entra en runtime vía
+// `registerRecipes`.
 // En el carrusel de bienvenida el planner no corre, así que registramos aquí las
 // recetas de catálogo que usa el menú demo, para que resuelvan nombre + FOTO.
 const DEMO_MENU_RECIPE_IDS = Array.from(
@@ -308,7 +311,7 @@ const HOME_DEMO_GROUP = {
   memberIds: HOME_DEMO_MEMBERS.map((m) => m.id),
   color: "#2d5a3d",
 };
-const WEEK_DAYS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+const WEEK_DAYS = DIAS;
 const buildScheduleDemo = () => {
   const s = {};
   for (const day of WEEK_DAYS) {
@@ -1058,6 +1061,7 @@ export function ValuePropsCarousel({ onFinish }) {
             position: "relative", zIndex: 3, flexShrink: 0,
             minHeight: 30,
             padding: "12px 22px 0",
+            paddingTop: safeTop(12),
             display: "flex", alignItems: "center", gap: 8,
           }}
         >
@@ -1127,7 +1131,7 @@ export function ValuePropsCarousel({ onFinish }) {
               <div
                 style={{
                   position: "absolute", inset: 0,
-                  background: "linear-gradient(180deg, rgba(10,22,13,0) 45%, rgba(10,22,13,.7) 100%)",
+                  background: `linear-gradient(180deg, ${veloFoto(0)} 45%, ${veloFoto(.7)} 100%)`,
                 }}
               />
               <div style={{ position: "absolute", left: 0, right: 0, bottom: 26, textAlign: "center" }}>

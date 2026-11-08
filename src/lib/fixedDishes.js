@@ -1,6 +1,6 @@
 import { recipeCatalog, recipeCatalogById } from "../data/recipeCatalog.js";
 import { recipeViolatesHardSafety } from "../utils/filterRecipes.js";
-import { getCarbType } from "../utils/validateMenu.js";
+import { getCarbType, chocaConAlguno } from "../utils/validateMenu.js";
 import { PROTEIN_GROUP_BY_MAIN_PROTEIN } from "../data/recipeSchema.js";
 
 // Mirrors validateMenu.js rule 4's grouping (pollo/pavo/cerdo/ternera -> carne,
@@ -23,8 +23,7 @@ function conflictsWithSchoolMenu(recipe, ctx) {
     if (ctx.schoolProteinsToAvoid.includes(group)) return true;
   }
   if (ctx.schoolCarbsToAvoid?.length) {
-    const carb = getCarbType(recipe);
-    if (carb && ctx.schoolCarbsToAvoid.includes(carb)) return true;
+    if (chocaConAlguno(getCarbType(recipe), ctx.schoolCarbsToAvoid)) return true;
   }
   return false;
 }

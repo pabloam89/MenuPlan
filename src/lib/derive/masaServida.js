@@ -27,7 +27,7 @@
  *      salió que `judia-blanca` se llamaba «cocidas» y traía 322,9 kcal, que
  *      es composición de alubia seca.
  */
-import fraccionComestibleJson from "../../data/fraccionComestible.json";
+import fraccionComestibleJson from "../../data/fraccionComestible.json" with { type: "json" };
 
 const norm = (s) => String(s ?? "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 

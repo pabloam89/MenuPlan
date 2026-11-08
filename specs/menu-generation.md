@@ -35,12 +35,7 @@ Todas con `household_id` (nullable, sin uso real — ver `auth.md`).
 RLS: `Users manage own menus/weeks/recipes` (`auth.uid() = user_id`), más las políticas `Household owners/members ...` inertes descritas en `auth.md`.
 
 ### Catálogo (`recipes` — ver detalle completo en `recipe-catalog.md`)
-**Corrección tras verificar `src/data/recipeCatalog.js`**: la generación SÍ puede acabar sirviéndose de la tabla `recipes` de Supabase, vía un mecanismo de hot-swap con caída segura, resuelto una única vez al cargar el módulo (`export const recipeCatalog = withHealthFlags(await loadRecipes())`, `recipeCatalog.js:174`):
-1. El JSON bundleado (`src/data/recipes/*.json`) se valida siempre, incondicionalmente, al importar el módulo — si está roto, la app falla al arrancar (`throw` en `recipeCatalog.js:63`).
-2. Si hay sesión Supabase, se compara `catalog_meta.version` (remoto) contra `BUNDLED_CATALOG_VERSION` (constante en el bundle). Si el remoto está **por detrás**, se ignora y se usa el JSON local — invariante explícita: *"una base de datos desactualizada no puede degradar silenciosamente el catálogo revisado"*.
-3. Si el remoto está al día, se valida con el mismo `validateCatalog()` que el JSON; si falla la validación, o hay timeout (3000ms), error de red, o resultado vacío, cae al JSON local. **Nunca lanza** — la generación de menú siempre tiene un catálogo utilizable.
-
-Esto significa que `aiPlanner.js` sí puede operar sobre datos de `recipes` (Supabase), aunque no la consulte directamente — la consulta ocurre una capa antes, en `recipeCatalog.js`, y `aiPlanner.js` solo ve el resultado ya resuelto (`recipeCatalog`/`recipeCatalogById`).
+**Corrección del 9 oct 2026** (issue #249): lo que aquí se describía —un hot-swap que dejaba a la tabla `recipes` de Supabase servir el catálogo si `catalog_meta.version` iba por delante— **ya no existe**. Desde el 30 sep 2026 (migración 0064) la generación se sirve **solo del JSON** bundleado (`src/data/recipes/*.json`), validado siempre, incondicionalmente, al importar `recipeCatalog.js`; si está roto, la app falla al arrancar. Las tablas `recipes`, `recipe_ingredients`, `dish_images` y `catalog_meta` eran una *copia retirada* (v27, 8 sep 2026) que nadie lee y que la migración 0093 (#303) borra de la base; `ops/lecturasRetiradas.test.js` vigila que nadie las vuelva a leer. `aiPlanner.js` ve el resultado ya resuelto (`recipeCatalog`/`recipeCatalogById`). Qué recetas se proponen: el **Recetario** (`estrella:true`); la **Reserva** (el resto) no sale. Roles de cada fuente: `src/data/model.js` (`TABLAS`).
 
 ## 3. Dependencias externas
 
@@ -64,6 +59,55 @@ Esto significa que `aiPlanner.js` sí puede operar sobre datos de `recipes` (Sup
 
 1. **Duplicación de reglas de negocio** entre prompt (lenguaje natural, server-side) y código determinista (`validateMenu.js`, `filterRecipes.js`) — ver arriba. Alto riesgo de divergencia silenciosa con el tiempo.
 2. **Lista de modelos permitidos duplicada** entre `aiModels.js` (cliente) y `api/generate.js` (servidor) sin mecanismo de sincronización automática.
-3. **`recipes` (tabla Supabase) no se usa en el flujo real de generación** pese a existir con RLS y datos — coste de mantenimiento sin beneficio claro en este dominio. [AMBIGUO — preguntar si tiene otro consumidor no localizado.]
+3. **`recipes` (tabla Supabase) es copia retirada**: no se usa en la generación ni la lee nadie (0064, 30 sep 2026) pese a existir con RLS y datos. Pendiente de borrar, decisión de Pablo.
 4. ~~La invariante "solo un menú activo" vive en una función RPC, no en un constraint DB~~ — **descartado, ver §2**: sí hay un índice único parcial que la garantiza a nivel de motor.
 5. ~~Importación de menú escolar sin fallback determinista~~ — **descartado, ver §1**: sí cae a extracción de texto + regex sin IA; el riesgo real es que ese fallo es silencioso (el usuario no se entera de que el resultado es del fallback, más pobre, en vez de la lectura por IA).
+
+## 6. El solver y la puerta de cocinas (decisiones, sep–oct 2026)
+
+**Por qué hay solver.** En septiembre de 2026 se midió que el modelo nunca
+había escrito un menú que viera un usuario: 19 de 19 unidades grupo×semana
+fallaron la validación a la primera y acabaron en `applyFallback` (~31 s,
+~50 llamadas). El banco «modelo frente a solver» con 12 casas reales lo
+confirmó: el modelo, 144 violaciones y p50 de 40 s; el solver, 0 violaciones
+y p50 de 0,7 s.
+
+**Estado.** `src/lib/solver.js` está ENCENDIDO desde el 30 sep 2026 en
+staging y producción (ramas `staging` y `main`), apagado en local y en
+previews (`VITE_MOTOR`, que vive en `.env.development.local`). El bot lo usa
+siempre (fijado en `scripts/build-bot-core.mjs`). Un fallo del solver afecta,
+por tanto, a menús reales.
+
+- Tres fases: backtracking con `validateMenu` como oráculo, B&B que salta
+  huecos, y relleno que solo relaja perfiles de salud y topes
+  (`REGLAS_RELAJABLES`), devuelto con nombre (`relajados`, `vacios`).
+- Con el solver NO corren `breakProteinClusters` ni `ajustarCuota`: re-elegían
+  sin validar y rompían menús válidos.
+- Reintentos con otras semillas y presupuesto corto (PR #14, 1 oct 2026).
+- **Holgura de topes 1,4** (`HOLGURA_TOPES`): un plato gasta 1,4 topes de
+  media, así que topes = huecos exactos no tiene solución. `DEFAULT_FREQS`
+  (suma 14) tampoco la tenía.
+- Los máximos leen la identidad del plato (categoría, proteína, fécula), no el
+  `aporte`; contar `aporte` convertía «verdura: 3» en «evita la verdura».
+- Telemetría en `menu_generated`: `motor`, `solverNodos`, `solverMs`,
+  `solverCompleto`, `solverRelajados`, `solverSemilla`.
+
+`src/lib/solver.test.js` vuelve al CI el 9 oct 2026 (#140). Su casa de
+prueba lleva las alergias preguntadas: sin ellas, desde #107 el menú esquiva
+los 14 alérgenos, quedan 27 platos y la semana no cierra (#229).
+
+**Pendiente de producto:** una casa con 25 min entre semana y cocina básica
+solo tiene primeros de montaje, y la regla `cena_rapida_no_solicitada` los
+prohíbe fuera de la cena: ¿puede una ensalada de bote ser primero de comida?
+Es el primer caso para una pantalla de ajuste (solo inviabilidad).
+
+**La puerta de cocinas (15 sep 2026).** Son dos interruptores distintos:
+
+- `estrella` decide si un plato PUEDE salir (sin foto no puede ser estrella).
+- La puerta de `filterRecipes` decide si sale SIN pedirlo: una cocina
+  extranjera está apagada salvo que la casa la marque.
+
+La puerta se aplica siempre, también a la casa sin preferencias guardadas
+(«no me has pedido nada» = «me has pedido cero»). `italiana` está en
+`SIEMPRE_ENCENDIDAS` porque en este catálogo significa pasta, que ya se pide
+por el reparto; `francesa`, no.

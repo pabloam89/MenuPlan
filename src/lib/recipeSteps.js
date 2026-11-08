@@ -260,6 +260,79 @@ export function markerIngredientNames(text) {
   return names;
 }
 
+// Una palabra entera, con letras de cualquier idioma: `\b` no sabe que la «ñ»
+// o la «á» son letras, y «pan» casaría dentro de «panceta» (ver la memoria
+// «substring sin frontera»).
+//
+// Con `conArticulo`, el artículo de delante entra en la coincidencia: el
+// marcador de un ingrediente se pinta con su cantidad, y «picar la {{Cebolla}}»
+// se leería «picar la 2 cebollas».
+function wholeWordRe(phrase, { conArticulo = false } = {}) {
+  const escaped = String(phrase).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const articulo = conArticulo ? "(?:(el|la|los|las|un|una|unos|unas|del|al)\\s+)?" : "";
+  return new RegExp(`(?<![\\p{L}\\p{N}])${articulo}${escaped}(?![\\p{L}\\p{N}])`, "iu");
+}
+
+// Lo que queda del artículo al quitarlo: «del agua» → «de 1 l de agua».
+const RESTO_DEL_ARTICULO = { del: "de ", al: "a " };
+
+/**
+ * Vuelve a poner los {{marcadores}} en un paso que el usuario ha editado como
+ * texto limpio (el editor del creador de recetas ya no enseña llaves, review
+ * de UX lámina 31).
+ *
+ * Primero repone, en su sitio, los marcadores que el paso ya tenía (con su
+ * modo, {{Aceite de oliva|chorrito}}, y los utensilios, {{@Sartén}}), buscando
+ * su nombre como palabra entera. Luego enlaza la PRIMERA mención de cada
+ * ingrediente de la lista que aún no estuviera enlazado. Lo que el usuario
+ * borró no se repone: si el nombre ya no está en el texto, su marcador se va.
+ *
+ * @param {string} plain - el texto tal como lo deja el usuario
+ * @param {string} previous - el texto con marcadores antes de editar
+ * @param {string[]} ingredientNames - los ingredientes de la receta
+ * @returns {string}
+ */
+export function relinkStepMarkers(plain, previous, ingredientNames = []) {
+  const linked = [];
+  let work = String(plain ?? "");
+  const hold = (marker) => {
+    linked.push(marker);
+    return `\uE000${linked.length - 1}\uE000`;
+  };
+  const linkFirst = (label, marker) => {
+    const esUtensilio = marker.slice(2).trim().startsWith("@");
+    const re = wholeWordRe(label, { conArticulo: !esUtensilio });
+    // Sin tocar lo ya enlazado: los huecos \uE000N\uE000 no tienen letras.
+    if (!re.test(work)) return false;
+    // Sin grupo de artículo (utensilios), el segundo argumento es la posición.
+    work = work.replace(re, (_, art) =>
+      (typeof art === "string" ? RESTO_DEL_ARTICULO[art.toLowerCase()] ?? "" : "") + hold(marker));
+    return true;
+  };
+
+  const yaEnlazados = new Set();
+  MARKER_RE.lastIndex = 0;
+  let m;
+  const previos = [];
+  while ((m = MARKER_RE.exec(String(previous ?? ""))) !== null) previos.push(m[0]);
+  for (const marker of previos) {
+    const label = stripStepMarkers(marker);
+    if (label && linkFirst(label, marker)) {
+      const inner = marker.slice(2, -2).trim();
+      if (!inner.startsWith("@")) yaEnlazados.add(inner.split("|")[0].trim().toLowerCase());
+    }
+  }
+
+  const porLargo = [...new Set(ingredientNames.map((n) => String(n ?? "").trim()).filter(Boolean))]
+    .sort((a, b) => b.length - a.length);
+  for (const name of porLargo) {
+    if (yaEnlazados.has(name.toLowerCase())) continue;
+    if (linkFirst(name, `{{${name}}}`)) yaEnlazados.add(name.toLowerCase());
+  }
+
+  return work.replace(/\uE000(\d+)\uE000/g, (_, i) => linked[Number(i)]);
+}
+
 /**
  * El ingrediente de `ingredients` al que se refiere un marcador — coincidencia
  * exacta primero, si no la primera que lo contenga o esté contenida (variantes

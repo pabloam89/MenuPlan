@@ -9,6 +9,7 @@
 // based on the kitchen tools they declared in onboarding.
 
 import { Wind, Flame, Microwave, Bot, CookingPot, Layers2 } from "../components/icons.jsx";
+import { KITCHEN_TOOL_IDS } from "./electrodomesticos.js";
 
 /**
  * Los trastos que una casa declara tener, con su ilustración.
@@ -18,18 +19,16 @@ import { Wind, Flame, Microwave, Bot, CookingPot, Layers2 } from "../components/
  * pinte los MISMOS seis aparatos con las MISMAS fotos sin arrastrar el
  * asistente entero detrás. Las claves son las de `REQUIRED_APPLIANCE_ICONS`,
  * en español y con mayúscula, porque así están guardadas ya en producción.
+ * Los nombres salen de electrodomesticos.js; aquí solo se les pone la foto
+ * ("Olla rápida" → olla_rapida.webp).
  */
-export const KITCHEN_TOOLS = [
-  { id: "Airfryer", img: "/avatares/cards/electrodomesticos/airfryer.webp" },
-  { id: "Horno", img: "/avatares/cards/electrodomesticos/horno.webp" },
-  { id: "Microondas", img: "/avatares/cards/electrodomesticos/microondas.webp" },
-  { id: "Olla rápida", img: "/avatares/cards/electrodomesticos/olla_rapida.webp" },
-  { id: "Thermomix", img: "/avatares/cards/electrodomesticos/thermomix.webp" },
-  { id: "Vaporera", img: "/avatares/cards/electrodomesticos/vaporera.webp" },
-];
+export const KITCHEN_TOOLS = KITCHEN_TOOL_IDS.map((id) => ({
+  id,
+  img: `/avatares/cards/electrodomesticos/${id.toLowerCase().normalize("NFD").replace(/\p{M}/gu, "").replace(/\s+/g, "_")}.webp`,
+}));
 
 /** Solo los nombres, para quien compara contra `data.kitchenTools`. */
-export const KITCHEN_TOOL_IDS = KITCHEN_TOOLS.map((t) => t.id);
+export { KITCHEN_TOOL_IDS };
 
 export const APPLIANCE_LABELS = {
   airfryer: "Airfryer",

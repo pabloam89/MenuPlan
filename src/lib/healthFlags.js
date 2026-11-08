@@ -27,6 +27,12 @@ const PATTERNS = {
   azucar_anadido: /\b(azucar|miel|chocolate|nocilla|nutella|caramelo|sirope|jarabe|mermelada|leche condensada|galleta|bizcocho|reposteria|flan|natilla|helado|dulce de leche)/,
 };
 
+/** ¿Este texto nombra algo picante? Mismo patrón que la marca `picante`. */
+export function nombraPicante(text) {
+  const s = String(text ?? "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+  return PATTERNS.picante.test(s);
+}
+
 /**
  * VRN de hierro: 14 mg. Reglamento (UE) 1169/2011, Anexo XIII, parte A
  * («Ingestas de referencia de vitaminas y minerales» para adultos).

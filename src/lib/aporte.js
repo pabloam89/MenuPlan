@@ -48,11 +48,13 @@
  */
 
 import { compileKeywordRegex, normalizeText } from "./recipeText.js";
+import { enOrden } from "./enOrden.js";
+import { APORTES } from "../data/recipeSchema.js";
 
 /** Las familias que se pueden entregar. Mismo vocabulario que `freqs`. */
-export const FAMILIAS_APORTE = [
-  "carne", "pescado", "legumbres", "huevos", "pasta_arroz", "patata", "verdura",
-];
+export const FAMILIAS_APORTE = APORTES;
+// En qué orden se prueba cada familia al leer un texto: gana la primera que casa.
+const PRIORIDAD_FAMILIA = enOrden(APORTES, ["legumbres", "pescado", "carne", "huevos", "pasta_arroz", "patata"]);
 
 /**
  * Gramos por ración a partir de los cuales una familia cuenta como entregada.
@@ -201,7 +203,7 @@ export function familiaDeIngrediente(nombre) {
   // Antes que nada: "judía verde" es verdura y "judía" a secas es legumbre, así
   // que la frase entera tiene que ganarle a la palabra suelta.
   if (/\bjudias? verdes?/.test(n)) return "verdura";
-  for (const familia of ["legumbres", "pescado", "carne", "huevos", "pasta_arroz", "patata", "verdura"]) {
+  for (const familia of PRIORIDAD_FAMILIA) {
     if (RE_FAMILIA[familia].test(n)) return familia;
   }
   return null;

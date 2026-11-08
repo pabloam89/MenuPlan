@@ -56,6 +56,13 @@ describe("rowToMenuSummary", () => {
     expect(summary.createdAt).toBe(Date.parse(row.created_at));
     expect(summary.updatedAt).toBe(Date.parse(row.updated_at));
   });
+
+  // La semana se guarda con el user_id del menú (FK (user_id, menu_id) →
+  // user_menus), no con el de quien la toca: en una casa, un cotitular edita
+  // menús que generó el titular o Lola.
+  it("lleva el dueño del menú", () => {
+    expect(rowToMenuSummary({ id: "m", user_id: "titular" }).userId).toBe("titular");
+  });
 });
 
 describe("weekToRow / rowToWeek round-trip", () => {
@@ -134,16 +141,16 @@ describe("public API degrades to no-op without a Supabase session (no client con
     expect(result.ok).toBe(false);
   });
 
-  it("loadMenuSummaries returns an empty array", async () => {
-    expect(await loadMenuSummaries("user-1")).toEqual([]);
+  it("loadMenuSummaries returns an empty list, without error", async () => {
+    expect(await loadMenuSummaries("user-1")).toEqual({ data: [], error: null });
   });
 
-  it("loadMenuWeekRanges returns an empty object", async () => {
-    expect(await loadMenuWeekRanges("user-1")).toEqual({});
+  it("loadMenuWeekRanges returns an empty map, without error", async () => {
+    expect(await loadMenuWeekRanges("user-1")).toEqual({ data: {}, error: null });
   });
 
-  it("loadMenuDetail returns null", async () => {
-    expect(await loadMenuDetail("user-1", "menu_abc")).toBeNull();
+  it("loadMenuDetail returns no menú, without error", async () => {
+    expect(await loadMenuDetail("user-1", "menu_abc")).toEqual({ data: null, error: null });
   });
 
   it("deleteMenu returns ok:false without throwing", async () => {
@@ -163,8 +170,8 @@ describe("public API degrades to no-op without a Supabase session (no client con
 
   it("every function is also a no-op with a missing userId/menuId", async () => {
     expect((await saveMenu(null, { id: "x", weeks: {} })).ok).toBe(false);
-    expect(await loadMenuSummaries(null)).toEqual([]);
-    expect(await loadMenuDetail("user-1", null)).toBeNull();
+    expect((await loadMenuSummaries(null)).data).toEqual([]);
+    expect((await loadMenuDetail("user-1", null)).data).toBeNull();
     expect((await activateMenu(null)).ok).toBe(false);
   });
 });

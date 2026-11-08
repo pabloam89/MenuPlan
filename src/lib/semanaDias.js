@@ -24,6 +24,7 @@
 import { DAYS } from "./planner.js";
 import { weekEntry } from "./menuArchive.js";
 import { mondayISOForOffset, todayDayIdx } from "./weekCalendar.js";
+import { indiceDeFecha } from "./dias.js";
 
 /**
  * Las `count` semanas del calendario a partir de la de hoy, cada una con su
@@ -32,8 +33,7 @@ import { mondayISOForOffset, todayDayIdx } from "./weekCalendar.js";
 export function buildCalendarWeeks(count = 4) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const dow = today.getDay();
-  const toMonday = dow === 0 ? -6 : 1 - dow;
+  const toMonday = -indiceDeFecha(today);
   const thisMonday = new Date(today);
   thisMonday.setDate(today.getDate() + toMonday);
 

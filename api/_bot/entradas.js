@@ -1,0 +1,55 @@
+/**
+ * Cada mensaje que llega de fuera se atiende una sola vez (0088).
+ *
+ * Telegram reintenta una actualización si no le llega un 200 a tiempo, con el
+ * mismo `update_id`. Sin esto, Lola atendía las dos: dos veces lo mismo en la
+ * compra o en las tareas. Al llegar se apunta el id; si ya estaba, es un
+ * reintento y no se hace nada.
+ *
+ * El código no depende de que la 0088 esté aplicada: si la tabla no existe o
+ * la base falla, se atiende el mensaje como antes. Mejor un repetido raro que
+ * un mensaje perdido.
+ */
+
+import { insert, select, eq } from "./db.js";
+import { fallaCon, SIN_LEER } from "./avisar.js";
+import { paraEscribir } from "../../src/lib/vocabularios.js";
+
+/** ¿La fila ya estaba (clave única, 23505)? Uno solo para todo el bot (#958). Un 409 por clave ajena (23503), no. */
+export const esDuplicado = (e) => {
+  if (e?.codigo) return e.codigo === "23505";
+  const m = String(e?.message ?? e);
+  return /23505|duplicate key/i.test(m) || (/\b409\b/.test(m) && !/23503|foreign key/i.test(m));
+};
+
+/**
+ * ¿Es la primera vez que llega esta entrada? `true` = atiéndela; `false` = ya
+ * llegó antes, ignórala. Sin id (nada que comparar) o si la base falla, `true`.
+ * @param {"telegram"|"whatsapp"} proveedor
+ * @param {string|number|null|undefined} xid
+ */
+export async function primeraVez(proveedor, xid) {
+  if (xid == null || String(xid).trim() === "") return true;
+  try {
+    await insert("bot_entradas", [{ proveedor: paraEscribir("canales", proveedor), entrada_xid: String(xid).trim() }]);
+    return true;
+  } catch (e) {
+    if (esDuplicado(e)) return false;
+    console.warn("[bot/entradas] sin comprobar repetidos:", String(e?.message ?? e).slice(0, 160));
+    return true;
+  }
+}
+
+/**
+ * ¿Ya se apuntó esta entrada? Sin apuntarla. La usa un [[Reintentar]] para no
+ * repetir una escritura del intento fallido (operacion.js claveDeEscritura), y
+ * la despensa para no sumar dos veces la misma lista.
+ * @returns {Promise<boolean | typeof SIN_LEER>}  SIN_LEER si la base falla: quien
+ *   llama no escribe a ciegas (sería justo la escritura doble que se evita, #958).
+ */
+export async function yaVista(proveedor, xid) {
+  if (xid == null || String(xid).trim() === "") return false;
+  return select("bot_entradas", `proveedor=${eq(paraEscribir("canales", proveedor))}&entrada_xid=${eq(String(xid).trim())}&limit=1`, "id")
+    .then((filas) => filas.length > 0)
+    .catch(fallaCon("entradas_ya_vista", SIN_LEER));
+}

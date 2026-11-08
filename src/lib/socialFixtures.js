@@ -16,6 +16,8 @@
  * dato que la app promete no compartir.
  */
 
+import { indiceDeFecha } from "./dias.js";
+
 export const FIXTURES_ENABLED = import.meta.env.DEV;
 
 const day = (n) => {
@@ -27,7 +29,7 @@ const day = (n) => {
 // Lunes de esta semana, para que el menú caiga dentro del rango "vigente".
 function weekBounds() {
   const now = new Date();
-  const dow = (now.getDay() + 6) % 7; // 0 = lunes
+  const dow = indiceDeFecha(now);
   const start = new Date(now);
   start.setDate(now.getDate() - dow);
   const end = new Date(start);

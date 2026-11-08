@@ -102,6 +102,15 @@
         "difficulty": "facil",
         "prepSummary": "Vierte el kéfir, plátano troceado y fresas en el vaso. Programa a velocidad 4-5 durante 30-40 segundos hasta obtener una textura homogénea y cremosa. Añade miel al final y mezcla brevemente."
       }
+    ],
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "suave"
     ]
   },
   {
@@ -478,6 +487,14 @@
         "difficulty": "facil",
         "prepSummary": "Corta la fruta en trozos, calienta en microondas a máxima potencia durante 2-3 min hasta que se ablande. Sirve inmediatamente con los frutos secos crudos o tostados para contrastar texturas."
       }
+    ],
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "dulce"
     ]
   },
   {

@@ -1,5 +1,11 @@
 import { supabase } from "./supabase.js";
 import { uploadRecipePhoto, deleteRecipePhoto, isDataUrl } from "./recipePhotos.js";
+import { recipeToRow, rowToRecipe, esRecetaDelTitular, marcarDelTitular, subibles } from "./userRecipesFila.js";
+import { mergeUserRecipesAfterCloudLoad } from "./profileMerge.js";
+import { withoutDeletedRecipes } from "./deletedRecipeIds.js";
+import { recetaPropia } from "./ids.js";
+import { NO_EXISTE } from "./postgrest.js";
+
 
 /**
  * Cloud persistence for user-created recipes (see user_recipes in
@@ -14,130 +20,17 @@ import { uploadRecipePhoto, deleteRecipePhoto, isDataUrl } from "./recipePhotos.
  * localStorage (data.userRecipes) stays the working source of truth offline.
  */
 
-const num = (v) => (v == null ? null : Number(v));
+export { recipeToRow, rowToRecipe };
 
-/** Frontend recipe object → user_recipes row. */
-export function recipeToRow(recipe, userId) {
-  return {
-    id: recipe.id,
-    owner_id: userId,
-    name: recipe.name,
-    category: recipe.category,
-    main_protein: recipe.mainProtein ?? "none",
-    meal_roles: recipe.mealRole ?? [],
-    usage_tags: recipe.usageTags ?? [],
-    type: recipe.type,
-    base_dish_id: recipe.baseDishId ?? null,
-    linked_catalog_id: recipe.linkedCatalogId ?? null,
-    pinned_garnish_id: recipe.pinnedGarnishId ?? null,
-    required_appliances: recipe.requiredAppliances ?? null,
-    time_minutes: num(recipe.time),
-    difficulty: recipe.difficulty ?? null,
-    season: recipe.season ?? "all",
-    kcal: num(recipe.kcal),
-    protein_g: num(recipe.protein_g),
-    carbs_g: num(recipe.carbs_g),
-    fat_g: num(recipe.fat_g),
-    // Fase 9 (0042_user_recipes_nutrition.sql): rellenos solo cuando
-    // computeRecipeNutrition (ingredients.js) los calculó de verdad — ver
-    // generateUserRecipeDraft, userRecipes.js.
-    fiber_g: num(recipe.fiber_g),
-    sugar_g: num(recipe.sugar_g),
-    saturated_fat_g: num(recipe.saturated_fat_g),
-    sodium_mg: num(recipe.sodium_mg),
-    nutrition_source: recipe.nutritionSource ?? null,
-    base_servings: num(recipe.baseServings),
-    kid_friendly: Boolean(recipe.kidFriendly),
-    tupper_friendly: Boolean(recipe.tupperFriendly),
-    allergens: recipe.allergens ?? [],
-    ingredients: recipe.ingredients ?? [],
-    steps: recipe.steps ?? [],
-    // Paso a paso estructurado (ver 0013_user_recipes_steps_rich.sql). Opcional:
-    // `steps` sigue siendo el fallback para las recetas que no lo tengan.
-    steps_rich: recipe.stepsRich ?? null,
-    // Ejes separados (ver 0023_recipe_axes.sql). `?? null` en vez de Boolean()
-    // porque "sin clasificar" y "clasificado como false" no son lo mismo: el
-    // primero deja que isMontaje() caiga al fallback de category, el segundo es
-    // un juicio explícito del usuario que debe ganar.
-    montaje: recipe.montaje ?? null,
-    apetecible: recipe.apetecible ?? null,
-    can_be_garnish: recipe.canBeGarnish ?? null,
-    main_ingredients: recipe.mainIngredients ?? null,
-    sauce_id: recipe.sauceId ?? null,
-    description: recipe.description ?? null,
-    methods: recipe.methods ?? null,
-    photo: recipe.photo ?? null,
-    owner_snapshot: recipe.owner ?? null,
-    visibility: recipe.visibility ?? "private",
-    // Atribución de copia (0027_social_feed.sql). Instantánea: la copia no
-    // se resincroniza con el original, esto solo sirve para firmar el "de @X".
-    copied_from_recipe_id: recipe.copiedFromRecipeId ?? null,
-    copied_from_owner_id: recipe.copiedFromOwnerId ?? null,
-    created_at: recipe.createdAt
-      ? new Date(recipe.createdAt).toISOString()
-      : new Date().toISOString(),
-  };
-}
-
-/** user_recipes row → frontend recipe object (catalog-compatible shape). */
-export function rowToRecipe(row) {
-  return {
-    id: row.id,
-    name: row.name,
-    category: row.category,
-    mainProtein: row.main_protein,
-    mealRole: row.meal_roles ?? [],
-    usageTags: row.usage_tags ?? [],
-    type: row.type,
-    baseDishId: row.base_dish_id ?? null,
-    linkedCatalogId: row.linked_catalog_id ?? null,
-    pinnedGarnishId: row.pinned_garnish_id ?? null,
-    requiredAppliances: row.required_appliances ?? [],
-    time: row.time_minutes,
-    difficulty: row.difficulty,
-    season: row.season ?? "all",
-    kcal: num(row.kcal),
-    protein_g: num(row.protein_g),
-    carbs_g: num(row.carbs_g),
-    fat_g: num(row.fat_g),
-    // Fase 9: ausentes (undefined, no null) en una fila guardada antes de
-    // 0042_user_recipes_nutrition.sql — mismo criterio que montaje/apetecible
-    // arriba, para no confundir "no calculado nunca" con "cero real".
-    fiber_g: row.fiber_g != null ? num(row.fiber_g) : undefined,
-    sugar_g: row.sugar_g != null ? num(row.sugar_g) : undefined,
-    saturated_fat_g: row.saturated_fat_g != null ? num(row.saturated_fat_g) : undefined,
-    sodium_mg: row.sodium_mg != null ? num(row.sodium_mg) : undefined,
-    nutritionSource: row.nutrition_source ?? undefined,
-    baseServings: row.base_servings,
-    kidFriendly: Boolean(row.kid_friendly),
-    tupperFriendly: Boolean(row.tupper_friendly),
-    allergens: row.allergens ?? [],
-    ingredients: row.ingredients ?? [],
-    steps: row.steps ?? [],
-    stepsRich: row.steps_rich ?? undefined,
-    // Ejes separados: se omiten (undefined) cuando la columna viene null, para
-    // que isMontaje() distinga "sin clasificar" de un false explícito.
-    montaje: row.montaje ?? undefined,
-    apetecible: row.apetecible ?? undefined,
-    canBeGarnish: row.can_be_garnish ?? undefined,
-    mainIngredients: row.main_ingredients ?? undefined,
-    sauceId: row.sauce_id ?? undefined,
-    description: row.description ?? "",
-    methods: row.methods ?? [],
-    photo: row.photo ?? null,
-    owner: row.owner_snapshot ?? null,
-    visibility: row.visibility ?? "private",
-    copiedFromRecipeId: row.copied_from_recipe_id ?? undefined,
-    copiedFromOwnerId: row.copied_from_owner_id ?? undefined,
-    createdAt: row.created_at ? Date.parse(row.created_at) : Date.now(),
-    rating: { up: 0, down: 0, score: 0 },
-    source: "user",
-  };
-}
-
-/** Loads all recipes owned by the user. */
+/**
+ * Las recetas del usuario. Si la lectura falla, `data` es null y `error` lo
+ * dice: «no tienes ninguna en la nube» y «no se ha podido mirar» no son lo
+ * mismo, y tratarlos igual subía todas las locales encima de las de la nube
+ * (#316). Quien suba algo comparando con esto mira antes `error`.
+ * @returns {Promise<{ data: object[]|null, error: object|null }>}
+ */
 export async function loadUserRecipes(userId) {
-  if (!supabase || !userId) return [];
+  if (!supabase || !userId) return { data: [], error: null };
   const { data, error } = await supabase
     .from("user_recipes")
     .select("*")
@@ -145,19 +38,135 @@ export async function loadUserRecipes(userId) {
     .order("created_at", { ascending: true });
   if (error) {
     console.warn("[userRecipes] load failed", error.message);
-    return [];
+    return { data: null, error };
   }
-  return (data ?? []).map(rowToRecipe);
+  return { data: (data ?? []).map(rowToRecipe), error: null };
+}
+
+/**
+ * Las recetas del titular de la casa, para un cotitular (#958). Las deja leer
+ * la política de la 0104; sin ella, la RLS devuelve solo las publicadas
+ * (ninguna desde la 0103) y esto da una lista vacía: plan B. Van marcadas de
+ * solo lectura y nunca entran en `data.userRecipes`.
+ *
+ * Como loadUserRecipes (#316), «no tiene ninguna» y «no se ha podido mirar» no
+ * son lo mismo: si la lectura falla o lanza, `data` es null y `error` lo dice,
+ * para que la app avise. Nunca lanza: lo del titular no puede tumbar la carga
+ * de lo propio, que va aparte.
+ * @returns {Promise<{ data: object[]|null, error: object|null }>}
+ */
+export async function loadRecetasDelTitular(titularId) {
+  try {
+    const { data, error } = await loadUserRecipes(titularId);
+    if (error) return { data: null, error };
+    return { data: marcarDelTitular(data ?? []), error: null };
+  } catch (e) {
+    console.warn("[userRecipes] recetas del titular", e?.message);
+    return { data: null, error: e ?? new Error("sin respuesta") };
+  }
+}
+
+// ── Lápidas en la nube (user_recipe_deletions, 0094, #355) ──────────────
+//
+// Al borrar, borrar_receta_propia quita la fila y deja la lápida en la misma
+// transacción. Cada dispositivo las lee al cargar y quita su copia local: si
+// no, el que no borró la volvía a subir como «solo local». La base, además,
+// no deja volver a entrar un id con lápida (trigger trg_user_recipes_no_revivir).
+
+/**
+ * Tope de lápidas que se leen: las más recientes. No se purgan (0094): si
+ * algún dueño se acerca, se revisa. Lola no usa tope: pide solo las lápidas
+ * de los ids que tiene delante (api/_bot/propias.js).
+ */
+export const TOPE_LAPIDAS = 2000;
+
+// Sin la 0094 aplicada, PostgREST contesta que la tabla o la función no
+// existen. Eso no es un fallo de red: es «todavía no hay lápidas en la nube»,
+// y todo sigue como antes (plan B).
+const noExiste = (error) => NO_EXISTE.has(error?.code);
+
+/**
+ * Los ids de las recetas propias borradas, según la nube.
+ * - Bien: `{ data: Set, error: null }`.
+ * - Sin la 0094 aplicada: `{ data: Set vacío, error: null }`, como hasta ahora.
+ * - Fallo de lectura: `{ data: null, error }`; quien suba algo mira `error`.
+ * @returns {Promise<{ data: Set<string>|null, error: object|null }>}
+ */
+export async function loadRecetasBorradas(userId) {
+  if (!supabase || !userId) return { data: new Set(), error: null };
+  const { data, error } = await supabase
+    .from("user_recipe_deletions")
+    .select("recipe_id")
+    .eq("owner_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(TOPE_LAPIDAS);
+  if (error) {
+    if (noExiste(error)) return { data: new Set(), error: null };
+    console.warn("[userRecipes] deletions load failed", error.message);
+    return { data: null, error };
+  }
+  return { data: new Set((data ?? []).map((f) => f.recipe_id).filter(Boolean)), error: null };
+}
+
+/**
+ * Las lápidas con las que trabaja la carga: las de este dispositivo más las
+ * de la nube (si se pudieron leer).
+ * @param {Set<string>} locales  las de deletedRecipeIds.js
+ * @param {{ data: Set<string>|null }} [cargaLapidas]  lo de loadRecetasBorradas
+ */
+export function lapidasDeRecetas(locales, cargaLapidas) {
+  const nube = cargaLapidas?.data;
+  if (!nube?.size) return locales ?? new Set();
+  return new Set([...(locales ?? []), ...nube]);
+}
+
+/**
+ * Las recetas que se quedan tras cargar: las de la nube y las solo locales,
+ * sin ninguna con lápida (ni la copia local de una que se borró en otro
+ * dispositivo).
+ */
+export function recetasTrasCarga(local, remote, lapidas) {
+  return mergeUserRecipesAfterCloudLoad(
+    withoutDeletedRecipes(local ?? [], lapidas),
+    withoutDeletedRecipes(remote ?? [], lapidas),
+    lapidas,
+  );
+}
+
+/**
+ * Sube las recetas que este dispositivo tiene y la nube no (primer login en
+ * el dispositivo, o creadas sin red). `carga` es lo que acaba de devolver
+ * loadUserRecipes: si falló, no sube nada (#317). Con la nube «vacía» por un
+ * 5xx, todas las locales parecían solo locales y el upsert por id pisaba la
+ * versión editada en otro dispositivo. Las borradas aquí (`deletedIds`) no se
+ * suben. Devuelve cuántas ha mandado subir.
+ *
+ * @param {{ userId: string, local: object[], carga: { data: object[]|null, error: object|null },
+ *   deletedIds?: Set<string> }} args
+ */
+export async function subirRecetasSoloLocales({ userId, local, carga, cargaLapidas, deletedIds = new Set() }) {
+  if (!carga || carga.error || !carga.data) return 0;
+  // Sin poder leer las lápidas de la nube no se sabe si una «solo local» es
+  // nueva o la borró otro dispositivo (#355): mejor no subir nada esta vez.
+  if (cargaLapidas?.error) return 0;
+  const enNube = new Set(carga.data.map((r) => r.id));
+  const soloLocales = subibles(local).filter(
+    (r) => r.id && !enNube.has(r.id) && !deletedIds.has(r.id ?? r.name),
+  );
+  if (soloLocales.length) await upsertUserRecipes(userId, soloLocales);
+  return soloLocales.length;
 }
 
 /**
  * Una receta ajena que este usuario puede leer: la RLS de user_recipes deja
  * pasar las 'public' a cualquiera y las 'friends' a seguidores mutuos. Si no
- * tienes permiso no da error, devuelve null — y el que copia se entera de
- * que ya no está disponible, no de que existe.
+ * tienes permiso no da error, `data` es null — y el que copia se entera de
+ * que ya no está disponible, no de que existe. Si la lectura falla, viene
+ * además `error`, para decir «sin conexión» y no «ya no está» (#317).
+ * @returns {Promise<{ data: object|null, error: object|null }>}
  */
 export async function loadPublicRecipe(recipeId) {
-  if (!supabase || !recipeId) return null;
+  if (!supabase || !recipeId) return { data: null, error: null };
   const { data, error } = await supabase
     .from("user_recipes")
     .select("*")
@@ -165,9 +174,9 @@ export async function loadPublicRecipe(recipeId) {
     .maybeSingle();
   if (error) {
     console.warn("[userRecipes] public load failed", error.message);
-    return null;
+    return { data: null, error };
   }
-  return data ? rowToRecipe(data) : null;
+  return { data: data ? rowToRecipe(data) : null, error: null };
 }
 
 /**
@@ -221,30 +230,39 @@ export async function createRecipeShareToken(recipeId) {
 /** Inserts or updates a single recipe. */
 export async function upsertUserRecipe(userId, recipe) {
   if (!supabase || !userId || !recipe?.id) return;
+  // Una del titular que ve un cotitular no se sube nunca a su nombre (#958).
+  if (esRecetaDelTitular(recipe)) return;
   // La foto va a Storage y en la fila queda su URL. Se hace aqui, en el unico
   // sitio por el que pasan TODAS las escrituras, para que ninguna via -el
   // asistente, una edicion, una copia del feed- pueda volver a incrustar dos
   // megas de imagen dentro de la fila. Ver lib/recipePhotos.js.
+  // La fila, antes que la foto (#539): si un vocabulario no se puede escribir, recipeToRow
+  // lanza aqui y no queda en Storage una foto sin receta.
+  const fila = recipeToRow(recipe, userId);
   const photo = await uploadRecipePhoto(userId, recipe.id, recipe.photo);
   const { error } = await supabase
     .from("user_recipes")
-    .upsert(recipeToRow({ ...recipe, photo }, userId), { onConflict: "id" });
+    .upsert({ ...fila, photo: photo ?? null }, { onConflict: "id" });
   if (error) console.warn("[userRecipes] upsert failed", error.message);
   return photo;
 }
 
 /** Backfills several local-only recipes to the cloud (first login on device). */
-export async function upsertUserRecipes(userId, recipes) {
-  if (!supabase || !userId || !recipes?.length) return;
+export async function upsertUserRecipes(userId, todas) {
+  // Las del titular, fuera (#958): una sola rechazada tumbaría el upsert entero.
+  const recipes = subibles(todas);
+  if (!supabase || !userId || !recipes.length) return;
   // De una en una y no en paralelo: cada foto son un par de megas y disparar
   // diez subidas a la vez desde un movil es la mejor forma de que fallen.
-  const withPhotos = [];
-  for (const r of recipes) {
-    withPhotos.push(isDataUrl(r.photo)
-      ? { ...r, photo: await uploadRecipePhoto(userId, r.id, r.photo) }
-      : r);
+  // Las filas, antes que las fotos (#539): un vocabulario que no se puede escribir lanza
+  // antes de subir nada.
+  const filas = recipes.map((r) => recipeToRow(r, userId));
+  const rows = [];
+  for (const [i, r] of recipes.entries()) {
+    rows.push(isDataUrl(r.photo)
+      ? { ...filas[i], photo: (await uploadRecipePhoto(userId, r.id, r.photo)) ?? null }
+      : filas[i]);
   }
-  const rows = withPhotos.map((r) => recipeToRow(r, userId));
   const { error } = await supabase
     .from("user_recipes")
     .upsert(rows, { onConflict: "id" });
@@ -267,6 +285,20 @@ export async function deleteUserRecipe(userId, recipeId) {
   // Primero el fichero: si se borra la fila y falla esto, la foto se queda
   // para siempre en el cubo sin nadie que sepa a que receta pertenecia.
   await deleteRecipePhoto(userId, recipeId);
+  // Borra y deja la lápida en la nube en una sola transacción (0094, #355),
+  // para que los demás dispositivos no la vuelvan a subir.
+  // Un id fuera del formato de ids.recetaPropia no cabe en la lápida (CHECK
+  // de la 0094): ese va directo al borrado de siempre.
+  if (recetaPropia.es(recipeId)) {
+    const borrado = await supabase.rpc("borrar_receta_propia", { p_receta: recipeId });
+    if (!borrado.error) return true;
+    if (!noExiste(borrado.error)) {
+      console.warn("[userRecipes] delete failed", borrado.error.message);
+      return false;
+    }
+  }
+  // Plan B: sin la 0094 aplicada (o con un id viejo fuera de formato), el
+  // borrado de siempre, sin lápida en la nube.
   const { error } = await supabase
     .from("user_recipes")
     .delete()

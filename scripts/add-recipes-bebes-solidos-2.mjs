@@ -42,9 +42,9 @@
  * ── Por qué solo ingredientes del catálogo ────────────────────────────────
  * Todos los ingredientes salen de los 383 de `ingredients.json`. La tentación
  * era meter harina de garbanzo o polenta, que en BLW se usan mucho, pero un
- * ingrediente nuevo obliga a pasar `seed_ingredients.sql` ANTES que las
- * recetas, y saltarse ese orden es lo que reventó la carga la vez pasada con
- * un 23503 a mitad. No merece la pena por un rebozado.
+ * ingrediente nuevo obliga a darlo de alta en `ingredients.json` ANTES que las
+ * recetas (antes de la 0093 también había que sembrarlo en Supabase, y saltarse
+ * ese orden reventó la carga con un 23503 a mitad). No merece la pena por un rebozado.
  *
  * Uso:
  *   node scripts/add-recipes-bebes-solidos-2.mjs           (informe)

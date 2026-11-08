@@ -1,4 +1,8 @@
 import { supabase } from "./supabase.js";
+import { allFolders, carpetaParaEscribir, isBuiltInCollection } from "./carpetas.js";
+
+// Las fijas, el id que se escribe y el de una nueva viven en carpetas.js (sin navegador, para Lola).
+export { BUILT_IN_COLLECTIONS, BUILT_IN_IDS, DISCARDED_ID, allFolders, carpetaParaEscribir, folderLabel, isBuiltInCollection, newFolderId } from "./carpetas.js";
 
 /**
  * Carpetas de recetas, dentro de "Mis recetas". Son de dos clases:
@@ -21,46 +25,6 @@ import { supabase } from "./supabase.js";
  * @typedef {{ id: string, name: string, createdAt?: string }} Folder
  */
 
-export const BUILT_IN_COLLECTIONS = [
-  { id: "dia_a_dia", label: "Día a día" },
-  { id: "ocasion_especial", label: "Ocasión especial" },
-  { id: "cena_rapida", label: "Cena rápida" },
-  { id: "hijos", label: "Para mis hijos" },
-];
-
-export const BUILT_IN_IDS = BUILT_IN_COLLECTIONS.map((c) => c.id);
-
-/**
- * "Descartados" no es una carpeta de este mapa: se pinta como una más en Mis
- * recetas, pero sus ids salen de `data.discards` (los rechazos de menú, que ya
- * excluyen del generador vía activeDiscardIds). Se queda fuera de
- * BUILT_IN_COLLECTIONS a propósito para que nunca aparezca como destino en el
- * selector de "guardar en…": ahí no se guarda, de ahí se recupera.
- */
-export const DISCARDED_ID = "descartados";
-
-const BUILT_IN = new Set(BUILT_IN_IDS);
-
-export function isBuiltInCollection(id) {
-  return BUILT_IN.has(id);
-}
-
-/** Las 4 fijas seguidas de las del usuario, ya etiquetadas para pintar. */
-export function allFolders(customFolders = []) {
-  return [
-    ...BUILT_IN_COLLECTIONS.map((c) => ({ ...c, builtIn: true })),
-    ...customFolders.map((f) => ({ id: f.id, label: f.name, builtIn: false })),
-  ];
-}
-
-export function folderLabel(folderId, customFolders = []) {
-  return allFolders(customFolders).find((f) => f.id === folderId)?.label ?? folderId;
-}
-
-export function newFolderId() {
-  const rand = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}_${Math.random().toString(16).slice(2)}`;
-  return `fld_${rand}`;
-}
 
 // ── Pertenencia (recipeId → folder ids) ──────────────────────────────────────
 
@@ -149,34 +113,40 @@ export function mergeFolders(local = [], remote = []) {
 // Mismo patrón que recipeVotes.js: no-op sin sesión, y localStorage sigue
 // siendo la fuente de verdad de trabajo.
 
-/** @returns {Promise<CollectionMap>} */
+/**
+ * En error, `data` null y `error` (#317): «sin carpetas» no es «no se sabe».
+ * @returns {Promise<{ data: CollectionMap|null, error: object|null }>}
+ */
 export async function loadRecipeCollections(userId) {
-  if (!supabase || !userId) return {};
+  if (!supabase || !userId) return { data: {}, error: null };
   const { data, error } = await supabase
     .from("recipe_collections")
     .select("recipe_id, collection_id")
     .eq("user_id", userId);
   if (error) {
     console.warn("[recipeCollections] load failed", error.message);
-    return {};
+    return { data: null, error };
   }
   const map = {};
   for (const row of data ?? []) (map[row.recipe_id] ??= []).push(row.collection_id);
-  return map;
+  return { data: map, error: null };
 }
 
-/** @returns {Promise<Folder[]>} */
+/**
+ * En error, `data` null y `error` (#317).
+ * @returns {Promise<{ data: Folder[]|null, error: object|null }>}
+ */
 export async function loadRecipeFolders(userId) {
-  if (!supabase || !userId) return [];
+  if (!supabase || !userId) return { data: [], error: null };
   const { data, error } = await supabase
     .from("recipe_folders")
     .select("id, name, created_at")
     .eq("user_id", userId);
   if (error) {
     console.warn("[recipeCollections] folders load failed", error.message);
-    return [];
+    return { data: null, error };
   }
-  return (data ?? []).map((r) => ({ id: r.id, name: r.name, createdAt: r.created_at }));
+  return { data: (data ?? []).map((r) => ({ id: r.id, name: r.name, createdAt: r.created_at })), error: null };
 }
 
 export async function saveRecipeFolder(userId, folder) {
@@ -187,8 +157,20 @@ export async function saveRecipeFolder(userId, folder) {
   if (error) console.warn("[recipeCollections] folder save failed", error.message);
 }
 
+/**
+ * Borra una carpeta del usuario y, con ella, sus pertenencias en
+ * recipe_collections (collection_id no tiene FK, ver 0026: nada las borra en
+ * cascada). Sin esto, loadRecipeCollections las volvía a traer en la carga
+ * siguiente y deshacía el purgeFolder local. Las 4 fijas no se borran.
+ */
 export async function deleteRecipeFolder(userId, folderId) {
-  if (!supabase || !userId || !folderId) return;
+  if (!supabase || !userId || !folderId || isBuiltInCollection(folderId)) return;
+  const { error: membersError } = await supabase
+    .from("recipe_collections")
+    .delete()
+    .eq("user_id", userId)
+    .eq("collection_id", folderId);
+  if (membersError) console.warn("[recipeCollections] folder members delete failed", membersError.message);
   const { error } = await supabase
     .from("recipe_folders")
     .delete()
@@ -197,33 +179,54 @@ export async function deleteRecipeFolder(userId, folderId) {
   if (error) console.warn("[recipeCollections] folder delete failed", error.message);
 }
 
+/**
+ * Sin filas repetidas (receta y carpeta): tras traducir, un retirado y su sucesor son la
+ * misma fila, y el upsert no deja tocar una fila dos veces en la misma orden.
+ */
+function sinRepetidas(rows) {
+  const vistas = new Set();
+  return rows.filter((r) => {
+    const k = `${r.recipe_id}\u0000${r.collection_id}`;
+    if (vistas.has(k)) return false;
+    vistas.add(k);
+    return true;
+  });
+}
+
+/**
+ * Las filas de las carpetas de una receta, cada una por la lista viva. Una carpeta que no se
+ * puede escribir (desconocida, o «Descartados») se salta sola y se avisa; una retirada sin
+ * sucesor ya la quitó paraEscribir con su línea. Así una carpeta mala no se lleva las buenas.
+ */
+function filasDeCarpetas(userId, recipeId, folderIds) {
+  const rows = [];
+  const saltadas = [];
+  for (const id of folderIds ?? []) {
+    try {
+      rows.push({ user_id: userId, recipe_id: recipeId, collection_id: carpetaParaEscribir(id) });
+    } catch {
+      saltadas.push(id);
+    }
+  }
+  if (saltadas.length) console.warn("[recipeCollections] carpetas fuera del vocabulario, no se guardan", [...new Set(saltadas)]);
+  return sinRepetidas(rows.filter((r) => r.collection_id != null));
+}
+
 /** Replaces the stored folder set of one recipe (picker save). */
 export async function saveRecipeCollections(userId, recipeId, folderIds) {
   if (!supabase || !userId || !recipeId) return;
+  // Las filas, antes de borrar: lo que no se puede escribir ya está fuera, y el upsert no
+  // falla después del delete (antes una carpeta mala dejaba la receta sin ninguna).
+  const rows = filasDeCarpetas(userId, recipeId, folderIds);
   const { error: delError } = await supabase
     .from("recipe_collections")
     .delete()
     .eq("user_id", userId)
     .eq("recipe_id", recipeId);
   if (delError) console.warn("[recipeCollections] save (clear) failed", delError.message);
-  const rows = (folderIds ?? []).map((collection_id) => ({ user_id: userId, recipe_id: recipeId, collection_id }));
   if (rows.length === 0) return;
   const { error } = await supabase
     .from("recipe_collections")
     .upsert(rows, { onConflict: "user_id,recipe_id,collection_id" });
   if (error) console.warn("[recipeCollections] save failed", error.message);
-}
-
-/** Backfills the whole local map to the cloud (first login on a device). */
-export async function upsertRecipeCollections(userId, map) {
-  if (!supabase || !userId) return;
-  const rows = [];
-  for (const [recipe_id, folders] of Object.entries(map ?? {})) {
-    for (const collection_id of folders) rows.push({ user_id: userId, recipe_id, collection_id });
-  }
-  if (rows.length === 0) return;
-  const { error } = await supabase
-    .from("recipe_collections")
-    .upsert(rows, { onConflict: "user_id,recipe_id,collection_id" });
-  if (error) console.warn("[recipeCollections] bulk upsert failed", error.message);
 }

@@ -1,0 +1,51 @@
+{
+  "public_endpoints": [
+    {
+      "file": "api/generate.js",
+      "reason": "El onboarding genera un menú completo antes de que la persona inicie sesión (api/_guard.js, cabecera): exigir sesión rompería el producto para quien aún no tiene cuenta.",
+      "protected_by": "blocked(): rechazo de origen cruzado y límite por IP; modelo y max_tokens fijados en el servidor; tope diario global con Redis que falla cerrado."
+    },
+    {
+      "file": "api/generate-dish-photo.js",
+      "reason": "Misma decisión que generate: se usa al guardar una receta, también sin sesión.",
+      "protected_by": "blocked() con límite por IP muy bajo (20 por hora); tope diario global (dish-photo) que falla cerrado."
+    },
+    {
+      "file": "api/recipe-steps.js",
+      "reason": "Misma decisión que generate: los pasos por electrodoméstico se piden también sin sesión.",
+      "protected_by": "blocked() con límite por IP; caché en Redis; tope diario global (recipe-steps) que falla cerrado."
+    },
+    {
+      "file": "api/track.js",
+      "reason": "Telemetría de visitantes anónimos: por definición no tienen sesión.",
+      "protected_by": "blocked() con límite por IP; lotes de 20 eventos como mucho; nombres de evento validados; nunca fija user_id; metadatos acotados."
+    },
+    {
+      "file": "api/share-menu.js",
+      "reason": "Enlace para compartir un menú: lo abren personas y robots de previsualización sin cuenta, a propósito.",
+      "protected_by": "Identificador uuid más token opcional en la dirección (quien no los tiene no ve nada); límite por IP; solo GET y HEAD; respuesta sin caché."
+    },
+    {
+      "file": "api/share-recipe.js",
+      "reason": "Enlace para compartir una receta: público a propósito, igual que el de menús.",
+      "protected_by": "Identificador y token opcional en la dirección; límite por IP; solo GET y HEAD; respuesta sin caché."
+    },
+    {
+      "file": "api/bot/entrar.js",
+      "reason": "Es la puerta de entrada de la app desde Telegram: lo que presenta quien llama es un código de un solo uso o la firma de Telegram, que viajan en el cuerpo y no en una cabecera. Sin ellos contesta 410 o 403, no 401.",
+      "protected_by": "Código de un solo uso con caducidad (gastarCodigo) o firma de login de Telegram verificada con el token del bot; límite de 20 intentos por 10 minutos; solo abre cuentas nacidas en ese Telegram."
+    }
+  ],
+  "pending_cases": [
+    {
+      "file": "api/report-alert.js",
+      "status_without_credential": 404,
+      "reason": "No lleva credencial: el disparador de Postgres manda solo el id para no guardar un secreto en la base, y lo acotan el límite por IP y la forma del id. Falta decidir si la llamada se firma (caso #596)."
+    },
+    {
+      "file": "api/moderate.js",
+      "status_without_credential": 200,
+      "reason": "Contesta sin sesión. Comentar ya exige sesión en la base y no se encontró quién lo llama desde la app; lo acotan el límite por IP y el tope diario global. Falta decidir si exige sesión o se retira (caso #597)."
+    }
+  ]
+}

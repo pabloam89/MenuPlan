@@ -38,6 +38,18 @@ const ficheros = fs
  */
 const DUPLICADOS_HEREDADOS = new Set(["0003", "0006", "0051"]);
 
+/**
+ * Números reservados para una migración que está en otra rama y aún no ha
+ * entrado. No es un hueco perdido: tiene dueño y se borra de aquí en cuanto
+ * su fichero exista.
+ *   0093: datos/303-borrar-copias-catalogo (0093_borrar_copias_catalogo), PR del #303.
+ *   0110: el plan de fichas con estado (specs/plan-fichas-con-estado.md, «Qué hace cada
+ *     migración») la daba al trozo 34; la numeración siguió (la 0108, la 0109 y la 0111 a la 0121
+ *     llegaron antes) y el trozo 34 fue a la 0122 (0122_recordatorios_en_tareas). No se usará:
+ *     queda aquí para que el hueco esté explicado.
+ */
+const RESERVADOS = new Set(["0093", "0110"]);
+
 describe("las migraciones se pueden nombrar sin ambigüedad", () => {
   it("ningún número nuevo repetido", () => {
     const porNumero = new Map();
@@ -81,7 +93,8 @@ describe("las migraciones se pueden nombrar sin ambigüedad", () => {
     const nums = [...new Set(ficheros.map((f) => Number(f.slice(0, 4))))].sort((a, b) => a - b);
     const huecos = [];
     for (let n = nums[0]; n < nums[nums.length - 1]; n++) {
-      if (!nums.includes(n)) huecos.push(String(n).padStart(4, "0"));
+      const num = String(n).padStart(4, "0");
+      if (!nums.includes(n) && !RESERVADOS.has(num)) huecos.push(num);
     }
     expect(huecos, `Huecos en la numeración: ${huecos.join(", ")}`).toEqual([]);
   });

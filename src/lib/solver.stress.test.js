@@ -32,7 +32,7 @@ export async function medirUnidad(data, group, crossWeek, { format = "compact" }
   const t = Date.now();
   try {
     const res = await generateGroupMenu(data, group, undefined, [], crossWeek, undefined, "prefer", { stats, format });
-    fila.wallMs = Date.now() - t;
+    fila.wallMs = Date.now() - t; // tiempo: sin tope — banco de resistencia (STRESS=1): se informa, no se compara
     const ctx = buildGroupContext(data, group);
     fila.bebe = !!ctx.isBabyGroup;
     fila.slots = ctx.slots.length;
@@ -90,7 +90,7 @@ export async function medirUnidad(data, group, crossWeek, { format = "compact" }
     // del motor, es una casa que el catálogo no cubre. Se cuenta aparte.
     if (msg.startsWith("Solo quedan")) fila.poolInsuficiente = true;
     else fila.error = msg.slice(0, 200);
-    fila.wallMs = Date.now() - t;
+    fila.wallMs = Date.now() - t; // tiempo: sin tope — banco de resistencia: se informa, no se compara
   }
   return fila;
 }
@@ -151,10 +151,10 @@ describe.skipIf(!process.env.STRESS)("resistencia del solver", () => {
       const data = casaAleatoria(1000 + i);
       const crossWeek = crossWeekAleatorio(1000 + i);
       for (const group of data.groups) filas.push({ i, ...(await medirUnidad(data, group, crossWeek)) });
-      if ((i + 1) % 100 === 0) console.log(`… ${i + 1}/${N} casas, ${Math.round((Date.now() - t0) / 1000)} s`);
+      if ((i + 1) % 100 === 0) console.log(`… ${i + 1}/${N} casas, ${Math.round((Date.now() - t0) / 1000)} s`); // tiempo: sin tope — progreso
     }
     const resumen = resumir(filas);
-    resumen.totalSeg = Math.round((Date.now() - t0) / 1000);
+    resumen.totalSeg = Math.round((Date.now() - t0) / 1000); // tiempo: sin tope — se informa, no se compara
     fs.writeFileSync(SALIDA, JSON.stringify({ resumen, filas }, null, 1));
     console.log("RESUMEN " + JSON.stringify(resumen, null, 1));
     expect(resumen.errores).toBe(0);

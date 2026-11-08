@@ -8,9 +8,15 @@
 // en la app. Código movido sin cambios de comportamiento.
 
 import { aplicarOpcion } from "./panelParser.js";
-import { poner, proyectar, valorDe } from "./notepad.js";
+import { poner, proyectar, valorDe, dependeDelDia, normalizar } from "./notepad.js";
+import { hayTandasPedidas, abrirFindeParaTanda } from "./cookTime.js";
 import { freqsEfectivos, presupuestoDeTopes, repartoConFreq, repartoVisible, rutaDeReparto } from "./reparto.js";
 import { weeklySlotBudget } from "./planner.js";
+import { libretaDeFilas, cambiosDeLibreta, PreferenciaInvalida } from "./preferencias.js";
+import { presupuestoDeFilas, cambiosDePresupuesto } from "./presupuestoCasa.js";
+import { estilosDeFilas, cambiosDeEstilos } from "./estiloEnFilas.js";
+import { pequesDeFilas, cambiosDePeques } from "./pequesEnFilas.js";
+import { reglasDeFilas, cambiosDeReglas, esReglaDePreferencia } from "./reglasEnFilas.js";
 
 /** El reparto que se ve (y que ajusta el panel), a partir de la libreta. */
 export function repartoDeLaCasa(data, libreta) {
@@ -22,8 +28,8 @@ export function repartoDeLaCasa(data, libreta) {
 }
 
 /** `data` con la libreta nueva y su vista ya proyectada. */
-export function dataConLibreta(data, libreta) {
-  const vista = proyectar(libreta);
+export function dataConLibreta(data, libreta, { hoy } = {}) {
+  const vista = proyectar(libreta, { hoy });
   return {
     ...data,
     notepad: libreta,
@@ -56,14 +62,18 @@ export function dataConLibreta(data, libreta) {
     // motivo. Hasta el 11 sep 2026 `sesgos` (tecnica, salsa, base),
     // `favoritos` y `excluidos` se calculaban aquí y morían en la UI: el
     // usuario pedía "más horno" o "nada de coliflor" y el menú salía igual.
-    // Ahora los lee aiPlanner —excluidos se suma a los dislikes; sesgos y
-    // favoritos ordenan candidatos vía lib/sesgos.js— sin saber que la
-    // libreta existe.
+    // Ahora sesgos y favoritos los lee aiPlanner (ordenan candidatos vía
+    // lib/sesgos.js) sin saber que la libreta existe.
     sesgos: vista.sesgos ?? {},
     // Las tandas pedidas, aparte de los sesgos: es una CUENTA que el validador
     // exige como minimo (regla 11b), no una preferencia que ordena candidatos.
     tanda: vista.tanda ?? {},
+    tandaPlatos: vista.tandaPlatos ?? {},
     favoritos: vista.favoritos ?? [],
+    // Los vetos NO se leen de aquí: lib/vetos.js los calcula de la libreta al
+    // leer, con fecha. Se sigue escribiendo SOLO para los clientes con el
+    // bundle de antes del 8 oct 2026, que aún leen `data.excluidos`; cuando
+    // no quede ninguno, fuera.
     excluidos: vista.excluidos ?? [],
   };
 }
@@ -72,8 +82,8 @@ export function dataConLibreta(data, libreta) {
  * Aplica ajustes del panel (`AjusteSchema`) a la libreta de `data`.
  * @returns {{ libreta, tocadas: { reparto: string[], cocina: string[] } }}
  */
-export function aplicarAjustes(data, libretaActual, ajustes, { frase, fecha }) {
-  let libreta = aplicarOpcion(libretaActual, { ajustes }, { frase, fecha });
+export function aplicarAjustes(data, libretaActual, ajustes, { frase, fecha, fuente, desde, hasta }) {
+  let libreta = aplicarOpcion(libretaActual, { ajustes }, { frase, fecha, fuente, desde, hasta });
   const tocadas = { reparto: [], cocina: [] };
   let repartoNuevo = repartoDeLaCasa(data, libretaActual);
 
@@ -92,8 +102,97 @@ export function aplicarAjustes(data, libretaActual, ajustes, { frase, fecha }) {
 
   if (tocadas.reparto.length > 0) {
     for (const [familia, valor] of Object.entries(repartoNuevo)) {
-      libreta = poner(libreta, rutaDeReparto(familia), valor, { origen: "texto", frase, fecha });
+      libreta = poner(libreta, rutaDeReparto(familia), valor, { origen: "texto", frase, fecha, fuente, desde, hasta });
     }
   }
   return { libreta, tocadas };
+}
+
+/**
+ * Pedir una tanda: `tanda.<base>` (sofrito, arroz…) o `tandaPlatos.<familia>`
+ * (croquetas, cremas…) a `n` por semana; 0 la quita. Es lo que hacía a mano la
+ * pantalla de bases (BasesPreferidas.jsx#escribir), sacado aquí el 1 oct 2026
+ * para que pedirlo en el chat escriba EXACTAMENTE lo mismo que en la app.
+ *
+ * Lo pedido es DICHO (origen "pregunta"): una tanda es una petición con
+ * consecuencias duras (regla 11b del validador), nunca una suposición.
+ */
+export function conTandaPedida(data, ruta, n) {
+  const actual = normalizar(data?.notepad);
+  const siguiente = poner(actual, ruta, n, { origen: "pregunta" });
+  const vista = proyectar(siguiente);
+  const conLibreta = {
+    ...data,
+    notepad: siguiente,
+    sesgos: vista.sesgos ?? {},
+    tanda: vista.tanda ?? {},
+    tandaPlatos: vista.tandaPlatos ?? {},
+  };
+  // El día de la tanda necesita sitio, y pedir la primera es lo que lo pide.
+  // Solo se toca el finde cuando CAMBIA el sí/no —de ninguna tanda a alguna, o
+  // al revés— para no reescribir a cada arrastre un tiempo ajustado a mano.
+  const antes = hayTandasPedidas(data);
+  const ahora = hayTandasPedidas(conLibreta);
+  return antes === ahora ? conLibreta : abrirFindeParaTanda(conLibreta, ahora);
+}
+
+/**
+ * `data` con la vista recalculada para el día `hoy`, si la libreta tiene algo
+ * que dependa del día (desde/hasta, o algo supuesto que caduca). Sin eso, la
+ * vista que se guardó al escribir sigue valiendo y se devuelve `data` tal cual:
+ * a las casas de siempre no les cambia nada.
+ */
+export function dataVigente(data, hoy) {
+  if (!hoy || !data?.notepad || !dependeDelDia(data.notepad)) return data;
+  return dataConLibreta(data, data.notepad, { hoy });
+}
+
+/**
+ * Lo que la libreta pone en `data`: ella y su proyección (dataConLibreta, conTandaPedida). Con la libreta en filas de
+ * preferencia (0109, trozo 14) nada de esto va al documento: se calcula al leer (conLibretaDeFilas) y se quita al
+ * guardar (sinLibreta). El test comprueba que dataConLibreta no pone ninguna otra.
+ */
+export const CLAVES_DE_LA_LIBRETA = Object.freeze(["notepad", "freqs", "reparto", "freqsPedidos", "cocinas", "sesgos", "tanda", "tandaPlatos", "favoritos", "excluidos"]);
+
+/** Las reglas que se quedan en el documento: las que no son preferencias (`presente`, quién come dónde). */
+const reglasDelDocumento = (reglas) => (Array.isArray(reglas) ? reglas.filter((r) => !esReglaDePreferencia(r)) : reglas);
+
+/** Lo que pone en `data` y lo que se guarda en filas de preferencia: un escritor que no trae ninguna, no las cambia. */
+export const CLAVES_EN_PREFERENCIAS = Object.freeze(["notepad", "reglas", "presupuesto", "mealStyleByGroup", "kidDinnerConfig"]);
+
+/** Las de CLAVES_EN_PREFERENCIAS que se calculan enteras de sus filas: el documento no las guarda. */
+const DE_SUS_FILAS = Object.freeze(["presupuesto", "mealStyleByGroup", "kidDinnerConfig"]);
+
+/**
+ * Pura. `data` con la libreta de sus filas de preferencia (preferencias_de_casa, 0109) y su proyección, en vez de lo
+ * que el documento aún guarde de ella (sin convivencia: una casa sin filas estrena la libreta vacía), y con las reglas
+ * de veto y sesgo de sus filas tras las presente del documento. Los ámbitos salen de los grupos de `data`.
+ */
+export function conLibretaDeFilas(data, filas, { hoy } = {}) {
+  const ctx = { grupos: data?.groups };
+  const reglas = [...(reglasDelDocumento(data?.reglas) ?? []), ...reglasDeFilas(filas, ctx)];
+  return { ...dataConLibreta(data, libretaDeFilas(filas, ctx), { hoy }), reglas, presupuesto: presupuestoDeFilas(filas),
+    mealStyleByGroup: estilosDeFilas(filas), kidDinnerConfig: pequesDeFilas(filas) };
+}
+
+/** Pura. Lo que va al documento: sin la libreta ni su proyección, ni las reglas de veto y sesgo (viven en sus filas). */
+export function sinLibreta(data) {
+  if (!data) return data;
+  const resto = Object.fromEntries(Object.entries(data).filter(([k]) => !CLAVES_DE_LA_LIBRETA.includes(k) && !DE_SUS_FILAS.includes(k)));
+  return "reglas" in resto ? { ...resto, reglas: reglasDelDocumento(resto.reglas) } : resto;
+}
+
+/**
+ * Pura. Lo que cambió en las preferencias (libreta y reglas de veto y sesgo) entre los datos leídos y los que se
+ * guardan, como la lista de escribir_preferencias; lo que `despues` no trae no cambia. PreferenciaInvalida si no cabe.
+ */
+export function cambiosDePreferencias(antes, despues, filas) {
+  const ctx = { grupos: despues?.groups ?? antes?.groups ?? [], miembros: despues?.members ?? antes?.members ?? [] };
+  return [
+    ...(despues?.notepad === undefined ? [] : cambiosDeLibreta(antes?.notepad, despues.notepad, filas, ctx)),
+    ...(despues?.reglas === undefined ? [] : cambiosDeReglas(antes?.reglas, despues.reglas, filas, ctx)),
+    ...cambiosDePresupuesto(antes?.presupuesto, despues?.presupuesto, filas, PreferenciaInvalida),
+    ...cambiosDeEstilos(antes?.mealStyleByGroup, despues?.mealStyleByGroup, filas, ctx.grupos),
+    ...cambiosDePeques(antes?.kidDinnerConfig, despues?.kidDinnerConfig, filas, ctx.miembros),
+  ];
 }

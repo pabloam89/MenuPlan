@@ -2,9 +2,31 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import { ErrorBoundary } from './components/ErrorBoundary.jsx'
-import { InstallPwaBanner } from './components/InstallPwaBanner.jsx'
 import { PanelPlayground } from './dev/PanelPlayground.jsx'
+import './design/tokens.css'
 import './index.css'
+import { registerSW } from 'virtual:pwa-register'
+
+// El service worker, registrado aquí y no con el script que inyecta el plugin:
+// con ese, una versión nueva se instalaba por detrás y la página seguía con la
+// vieja hasta la SIGUIENTE visita. Abrir la app desde un botón del bot tras un
+// despliegue enseñaba la app de antes (con la pestaña «Gente», ya quitada) y
+// su menú guardado en el móvil. Con `immediate` y registerType autoUpdate,
+// en cuanto la versión nueva toma el control la página se recarga sola; y se
+// mira si hay versión nueva cada hora, por si la app se queda abierta.
+registerSW({
+  immediate: true,
+  onRegisteredSW(_url, registro) {
+    if (registro) window.setInterval(() => registro.update().catch(() => {}), 60 * 60 * 1000)
+  },
+})
+
+// Apartar el contenido de la barra de estado y del indicador de inicio del
+// iPhone ya NO se hace aqui. Se hacia cambiando el viewport en caliente, y
+// llegaba tarde: este `import(...)` es asincrono, mientras que el `render()` de
+// abajo es sincrono, asi que la primera pantalla se pintaba con el viewport
+// viejo. Ahora `viewport-fit=cover` va fijo en index.html y el hueco lo aparta
+// el CSS de cada cabecera con safeTop() (ver ui.jsx).
 
 // A tab left open across a deploy still holds the OLD index.html, which
 // references hashed chunk filenames (e.g. MenusScreen-CiI8Z4up.js) that the
@@ -31,18 +53,23 @@ const PANEL_SUELTO =
   import.meta.env.DEV &&
   new URLSearchParams(window.location.search).get('panel') === '1'
 
-// `?mini=semana|compra`: la Mini App de Telegram (src/mini/MiniApp.jsx). Va
-// sola, sin la app detrás: dentro de Telegram no hay sesión de la app que
-// abrir, y la semana y la compra no la necesitan.
-const MINI = new URLSearchParams(window.location.search).get('mini')
-const MiniApp = React.lazy(() => import('./mini/MiniApp.jsx'))
+// Comparador de diseño (#825): ?comparador=1, solo en dev. Va con un import
+// diferido dentro de la rama de dev: en el build de producción
+// `import.meta.env.DEV` es false, la rama se cae y ni la página ni el dato que
+// lee (lint-tokens-base.json) llegan al bundle.
+const ComparadorDiseno = import.meta.env.DEV
+  ? React.lazy(() => import('./dev/ComparadorDiseno.jsx'))
+  : null
+const COMPARADOR =
+  ComparadorDiseno &&
+  new URLSearchParams(window.location.search).get('comparador') === '1'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <ErrorBoundary>
-      {MINI ? (
-        <React.Suspense fallback={null}><MiniApp pestanaInicial={MINI} /></React.Suspense>
-      ) : PANEL_SUELTO ? <PanelPlayground /> : <><App /><InstallPwaBanner /></>}
+      {COMPARADOR
+        ? <React.Suspense fallback={null}><ComparadorDiseno /></React.Suspense>
+        : PANEL_SUELTO ? <PanelPlayground /> : <App />}
     </ErrorBoundary>
   </React.StrictMode>,
 )

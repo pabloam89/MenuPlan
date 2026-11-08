@@ -1,0 +1,344 @@
+// La tubería de operaciones (plan fichas con estado, trozos 26 y 41): entender, comprobar,
+// aplicar, apuntar, contar y deshacer, con una base falsa (rpc) que apunta lo que le llega.
+import { describe, it, expect, vi, afterEach } from "vitest";
+import { operar, operarPersonas, operarPreferencias, deshacer, RPC_OPERACION, RPC_DESHACER, RPC_PERSONA, RPC_PREFERENCIAS, RPC_LEER_PREFERENCIAS, SUFIJO_CLAVE_PERSONA, SUFIJO_CLAVE_PREFERENCIAS } from "./tuberia.js";
+import { CANAL_DATO, REF_OPERACION, ESTADO_OPERACION, FALLO_DATO, MOTIVO_PUERTA, SEXO } from "../vocabularios.js";
+
+const CASA = "3f2b8c1e-7a4d-4e0b-9c5a-1d2e3f4a5b6c";
+const PEDIDO = {
+  casa: CASA, clave: "tg:7:sexo", accion: "ver_ajustes", canal: CANAL_DATO.TELEGRAM,
+  ref: { tipo: REF_OPERACION.MENSAJE, id: "7" }, autor: { user_id: "u1" },
+  dato: { campo: "sexo", persona_id: "p1", valor: SEXO[0], origen: "dicho" },
+};
+const HECHA = { operacion_id: "op1", estado: ESTADO_OPERACION.HECHA, repetida: false, hecho: [{ campo: "sexo", persona_id: "p1", sobre_id: "s1" }], sin_hacer: [], choques: [], rev: 3 };
+
+// Lo que contesta preferencias_de_casa (0109) para una casa sin preferencias.
+const CASA_SIN_PREFERENCIAS = { v: 1, preferencias: [], planes: [] };
+
+function base(responder = () => HECHA, leer = () => CASA_SIN_PREFERENCIAS) {
+  const llegan = [];
+  const rpc = vi.fn(async (funcion, args) => {
+    // Leer las preferencias de la casa (choques al guardar, trozo 33) no escribe: no se apunta en `llegan`.
+    if (funcion === RPC_LEER_PREFERENCIAS) return leer();
+    llegan.push({ funcion, op: args.p_operacion });
+    return responder(args.p_operacion, funcion);
+  });
+  return { llegan, servidor: (papel) => ({ papel, rpc, falloDeError: () => ({ fallo: FALLO_DATO.RPC_AUSENTE, motivo: "no_existe" }) }) };
+}
+const silenciar = () => vi.spyOn(console, "error").mockImplementation(() => {});
+const lineas = (espia) => espia.mock.calls.map((a) => JSON.parse(a[0]));
+
+afterEach(() => vi.restoreAllMocks());
+
+describe("tubería: lo que pasa la puerta", () => {
+  it("se aplica con una sola llamada a aplicar_operacion y se cuenta sin pedido ni inversa", async () => {
+    const { llegan, servidor } = base(() => ({ ...HECHA, pedido: { datos: [] }, inversa: {} }));
+    const r = await operar(PEDIDO, servidor("editor"));
+    expect(llegan).toHaveLength(1);
+    expect(llegan[0]).toMatchObject({ funcion: RPC_OPERACION, op: { casa: CASA, clave: "tg:7:sexo", canal: "telegram", autor_user_id: "u1" } });
+    expect(llegan[0].op).not.toHaveProperty("estado");
+    expect(r).toEqual({ guardado: true, ...HECHA });
+  });
+
+  it("sin la RPC (0106 sin aplicar): no se guarda, vuelve rpc_ausente y queda en el log", async () => {
+    const log = silenciar();
+    const { servidor } = base(() => { throw new Error("PGRST202"); });
+    expect(await operar(PEDIDO, servidor("owner"))).toEqual({ guardado: false, fallo: FALLO_DATO.RPC_AUSENTE });
+    expect(lineas(log)).toEqual([{ evento: "dato_sin_guardar", fallo: "rpc_ausente", motivo: "no_existe", canal: "telegram", campo: "sexo" }]);
+  });
+});
+
+describe("tubería: lo que no entiende o para la puerta no llega como dato", () => {
+  it("un dato que no cuadra con el registro no sale hacia la base", async () => {
+    silenciar();
+    const { llegan, servidor } = base();
+    const r = await operar({ ...PEDIDO, dato: { ...PEDIDO.dato, valor: "otro_valor" } }, servidor("owner"));
+    expect(r).toMatchObject({ guardado: false, fallo: FALLO_DATO.INVALIDO });
+    expect(llegan).toEqual([]);
+  });
+
+  it("un lector: se apunta como rechazada, con el motivo y sin el valor, y se dice sin_permiso", async () => {
+    const log = silenciar();
+    const { llegan, servidor } = base((op) => ({ operacion_id: "op9", estado: op.estado, hecho: [], sin_hacer: op.sin_hacer }));
+    const r = await operar(PEDIDO, servidor("viewer"));
+    expect(r).toEqual({ guardado: false, fallo: FALLO_DATO.SIN_PERMISO, error: MOTIVO_PUERTA.SIN_PERMISO, operacion_id: "op9" });
+    expect(llegan).toHaveLength(1);
+    expect(llegan[0].op).toMatchObject({ estado: ESTADO_OPERACION.RECHAZADA, sin_hacer: [{ motivo: MOTIVO_PUERTA.SIN_PERMISO }] });
+    expect(llegan[0].op.pedido.datos).toEqual([{ campo: "sexo", persona_id: "p1", origen: "dicho" }]);
+    expect(lineas(log)).toEqual([{ evento: "dato_sin_guardar", fallo: "sin_permiso", motivo: "sin_permiso", canal: "telegram", campo: "sexo" }]);
+  });
+
+  it("alguien de fuera de la casa: ni dato ni apunte (la base no acepta autores de fuera)", async () => {
+    silenciar();
+    const { llegan, servidor } = base();
+    expect(await operar(PEDIDO, servidor(null))).toMatchObject({ guardado: false, fallo: FALLO_DATO.SIN_PERMISO, operacion_id: null });
+    expect(llegan).toEqual([]);
+  });
+
+  it("una alergia que supone el motor solo llega a la base como rechazada", async () => {
+    silenciar();
+    const { llegan, servidor } = base((op) => ({ operacion_id: "op5", estado: op.estado }));
+    const pedido = { ...PEDIDO, canal: CANAL_DATO.SISTEMA, ref: { tipo: REF_OPERACION.MOTOR, id: "m" }, autor: {},
+      dato: { campo: "alergias", persona_id: "p1", valor: [], origen: "supuesto" } };
+    expect(await operar(pedido, servidor(null))).toMatchObject({ guardado: false, fallo: FALLO_DATO.INVALIDO, error: MOTIVO_PUERTA.SALUD_SIN_FAMILIA });
+    expect(llegan.map((l) => l.op.estado)).toEqual([ESTADO_OPERACION.RECHAZADA]);
+  });
+
+  it("si apuntar el rechazo falla, se dice el motivo de la puerta igual", async () => {
+    silenciar();
+    const { servidor } = base(() => { throw new Error("caída"); });
+    expect(await operar(PEDIDO, servidor("viewer"))).toEqual({ guardado: false, fallo: FALLO_DATO.SIN_PERMISO, error: MOTIVO_PUERTA.SIN_PERMISO, operacion_id: null });
+  });
+});
+
+describe("tubería: deshacer una operación (trozo 41)", () => {
+  const OP = "7c9e6679-7425-40de-944b-e07fc1f90ae7";
+  const DESHACER = { casa: CASA, operacion_id: OP, canal: CANAL_DATO.APP, autor: { user_id: "u1" } };
+  const DESHECHA = { operacion_id: OP, estado: ESTADO_OPERACION.DESHECHA, repetida: false, deshecho: [{ campo: "sexo", persona_id: "p1" }], sin_hacer: [], rev: 4 };
+  // Una base falsa para deshacer: apunta función y argumentos, y contesta lo que se le dé.
+  function baseDeshacer(responder = () => DESHECHA) {
+    const llegan = [];
+    const rpc = vi.fn(async (funcion, args) => { llegan.push({ funcion, args }); return responder(); });
+    return { llegan, servidor: (papel) => ({ papel, rpc, falloDeError: () => ({ fallo: FALLO_DATO.RPC_AUSENTE, motivo: "no_existe" }) }) };
+  }
+
+  it("va a deshacer_operacion con casa, operación y quien la pide, y cuenta lo que devuelve la base", async () => {
+    const { llegan, servidor } = baseDeshacer(() => ({ ...DESHECHA, inversa: { datos: [] } }));
+    const r = await deshacer(DESHACER, servidor("editor"));
+    expect(llegan).toEqual([{ funcion: RPC_DESHACER, args: { p_casa: CASA, p_operacion_id: OP, p_autor_user_id: "u1" } }]);
+    expect(r).toEqual({ guardado: true, ...DESHECHA });
+  });
+
+  it("si la base no la deshace (un dato cambió después), vuelve sin guardar y con su motivo", async () => {
+    const sinHacer = [{ campo: "sexo", persona_id: "p1", motivo: "cambio_despues" }];
+    const { servidor } = baseDeshacer(() => ({ ...DESHECHA, estado: ESTADO_OPERACION.HECHA, deshecho: [], sin_hacer: sinHacer, rev: null }));
+    expect(await deshacer(DESHACER, servidor("owner"))).toMatchObject({ guardado: false, estado: "hecha", sin_hacer: sinHacer });
+  });
+
+  it("sin la RPC (0111 sin aplicar): no hace nada, vuelve rpc_ausente y queda en el log", async () => {
+    const log = silenciar();
+    const { servidor } = baseDeshacer(() => { throw new Error("PGRST202"); });
+    expect(await deshacer(DESHACER, servidor("owner"))).toEqual({ guardado: false, fallo: FALLO_DATO.RPC_AUSENTE });
+    expect(lineas(log)).toEqual([{ evento: "dato_sin_guardar", fallo: "rpc_ausente", motivo: "no_existe", canal: "app", campo: null }]);
+  });
+
+  it("un lector o alguien de fuera no deshacen: la puerta lo para y no llega a la base", async () => {
+    silenciar();
+    const { llegan, servidor } = baseDeshacer();
+    for (const papel of ["viewer", null]) {
+      expect(await deshacer(DESHACER, servidor(papel))).toEqual({ guardado: false, fallo: FALLO_DATO.SIN_PERMISO, error: MOTIVO_PUERTA.SIN_PERMISO });
+    }
+    expect(llegan).toEqual([]);
+  });
+
+  it("sin quien la pide no hay nada propio que deshacer: invalido, sin llegar a la base", async () => {
+    const log = silenciar();
+    const { llegan, servidor } = baseDeshacer();
+    const r = await deshacer({ ...DESHACER, canal: CANAL_DATO.SISTEMA, autor: {} }, servidor(null));
+    expect(r).toMatchObject({ guardado: false, fallo: FALLO_DATO.INVALIDO });
+    expect(llegan).toEqual([]);
+    expect(lineas(log)).toEqual([{ evento: "dato_sin_guardar", fallo: "invalido", motivo: null, canal: "sistema", campo: "autor" }]);
+  });
+});
+
+describe("tubería: un cambio de la familia (escribir_persona, 0108)", () => {
+  const P = "00000000-0000-4000-8000-00000000000a";
+  const FAMILIA = {
+    casa: CASA, clave: "app:1", accion: "editar_persona", canal: CANAL_DATO.APP,
+    ref: { tipo: REF_OPERACION.PANTALLA, id: "familia" }, autor: { user_id: "u1" },
+    personas: [{ id: P, alergias: ["Gluten"], alergias_revisadas: true }],
+  };
+
+  it("va a escribir_persona con su propia clave (no choca con un dato del mismo mensaje) y se cuenta sin pedido ni inversa", async () => {
+    const { llegan, servidor } = base(() => ({ ...HECHA, pedido: {}, inversa: {} }));
+    const r = await operarPersonas(FAMILIA, servidor("editor"));
+    expect(llegan).toEqual([{ funcion: RPC_PERSONA, op: expect.objectContaining({
+      casa: CASA, clave: "app:1" + SUFIJO_CLAVE_PERSONA, canal: "app", ref_tipo: "pantalla", autor_user_id: "u1", personas: FAMILIA.personas,
+    }) }]);
+    expect(llegan[0].op).not.toHaveProperty("grupos");
+    expect(r).toEqual({ guardado: true, ...HECHA });
+  });
+
+  it("quien no edita la casa no escribe la familia, y no llega a la base", async () => {
+    const log = silenciar();
+    const { llegan, servidor } = base();
+    expect(await operarPersonas(FAMILIA, servidor("viewer"))).toMatchObject({ guardado: false, fallo: FALLO_DATO.SIN_PERMISO });
+    expect(llegan).toEqual([]);
+    expect(lineas(log)[0]).toMatchObject({ fallo: "sin_permiso", motivo: MOTIVO_PUERTA.SIN_PERMISO, campo: "persona" });
+  });
+
+  it("la salud de la familia la dice una persona de la casa: sin quien habla no pasa, ni con papel de dueño", async () => {
+    silenciar();
+    const { llegan, servidor } = base();
+    for (const canal of [CANAL_DATO.APP, CANAL_DATO.TELEGRAM]) {
+      expect(await operarPersonas({ ...FAMILIA, canal, autor: {} }, servidor("owner")))
+        .toMatchObject({ guardado: false, fallo: FALLO_DATO.SIN_PERMISO, error: MOTIVO_PUERTA.SIN_PERMISO });
+    }
+    expect(llegan).toEqual([]);
+  });
+
+  it("el sistema no escribe la familia (la 0108 tampoco lo admite)", async () => {
+    silenciar();
+    const { llegan, servidor } = base();
+    const r = await operarPersonas({ ...FAMILIA, canal: CANAL_DATO.SISTEMA, autor: {} }, servidor(null));
+    expect(r).toMatchObject({ guardado: false, fallo: FALLO_DATO.INVALIDO });
+    expect(llegan).toEqual([]);
+  });
+
+  it("sin la RPC (0108 sin aplicar): no se guarda, vuelve rpc_ausente y queda en el log", async () => {
+    const log = silenciar();
+    const { servidor } = base(() => { throw new Error("PGRST202"); });
+    expect(await operarPersonas(FAMILIA, servidor("owner"))).toEqual({ guardado: false, fallo: FALLO_DATO.RPC_AUSENTE });
+    expect(lineas(log)).toEqual([{ evento: "dato_sin_guardar", fallo: "rpc_ausente", motivo: "no_existe", canal: "app", campo: "persona" }]);
+  });
+
+  it("nada que escribir o una persona sin id no sale hacia la base", async () => {
+    silenciar();
+    const { llegan, servidor } = base();
+    expect(await operarPersonas({ ...FAMILIA, personas: [] }, servidor("owner"))).toMatchObject({ fallo: FALLO_DATO.INVALIDO });
+    expect(await operarPersonas({ ...FAMILIA, personas: [{ nombre: "X" }] }, servidor("owner"))).toMatchObject({ fallo: FALLO_DATO.INVALIDO });
+    expect(llegan).toEqual([]);
+  });
+
+  it("los grupos solos también son un cambio (la lista entera)", async () => {
+    const { llegan, servidor } = base();
+    await operarPersonas({ ...FAMILIA, personas: [], grupos: [] }, servidor("owner"));
+    expect(llegan[0].op).toMatchObject({ personas: [], grupos: [] });
+  });
+});
+
+// Un horario son varios datos en una operación (trozo 13): llegan juntos a aplicar_operacion, en una llamada.
+describe("tubería: varios datos en una operación", () => {
+  const hueco = (dia, valor) => ({ campo: "schedule", persona_id: "p1", dia, comida: "Comida", valor, origen: "dicho" });
+
+  it("los huecos van juntos en una sola llamada, con su ámbito", async () => {
+    const { llegan, servidor } = base();
+    const { dato: _uno, ...sinDato } = PEDIDO;
+    const r = await operar({ ...sinDato, datos: [hueco("Lun", "fuera"), hueco("Mar", null)] }, servidor("editor"));
+    expect(r.guardado).toBe(true);
+    expect(llegan).toHaveLength(1);
+    expect(llegan[0].op.datos).toEqual([hueco("Lun", "fuera"), hueco("Mar", null)]);
+  });
+
+  it("si uno no cuadra con el registro, no sale ninguno y el log dice el campo", async () => {
+    const log = silenciar();
+    const { llegan, servidor } = base();
+    const { dato: _uno, ...sinDato } = PEDIDO;
+    const r = await operar({ ...sinDato, datos: [hueco("Lun", "fuera"), hueco("Lunes", "fuera")] }, servidor("editor"));
+    expect(r).toMatchObject({ guardado: false, fallo: FALLO_DATO.INVALIDO });
+    expect(llegan).toEqual([]);
+    expect(lineas(log)).toEqual([{ evento: "dato_sin_guardar", fallo: "invalido", motivo: null, canal: "telegram", campo: "schedule" }]);
+  });
+});
+
+describe("tubería: las preferencias (trozo 14, escribir_preferencias)", () => {
+  const PESCADO = { nivel: "semana", eje: "composicion", medida: "cuenta", operador: "como_mucho", valor: "pescado", cantidad: 2, fuerza: "obligatoria" };
+  const LIBRETA = {
+    casa: CASA, clave: "tg:8", accion: "ajustar_menu", canal: CANAL_DATO.TELEGRAM,
+    ref: { tipo: REF_OPERACION.MENSAJE, id: "8" }, autor: { user_id: "u1" }, preferencias: [PESCADO],
+  };
+
+  it("va a escribir_preferencias con su propia clave y se cuenta sin pedido ni inversa", async () => {
+    const { llegan, servidor } = base(() => ({ ...HECHA, pedido: {}, inversa: {} }));
+    const r = await operarPreferencias(LIBRETA, servidor("editor"));
+    expect(llegan).toEqual([{ funcion: RPC_PREFERENCIAS, op: expect.objectContaining({
+      casa: CASA, clave: "tg:8" + SUFIJO_CLAVE_PREFERENCIAS, canal: "telegram", autor_user_id: "u1", preferencias: [PESCADO],
+    }) }]);
+    expect(r).toEqual({ guardado: true, ...HECHA });
+  });
+
+  it("la puerta de siempre: quien no edita no escribe, y desde una pantalla nada supuesto; no llega a la base", async () => {
+    silenciar();
+    const { llegan, servidor } = base();
+    expect(await operarPreferencias(LIBRETA, servidor("viewer"))).toMatchObject({ guardado: false, fallo: FALLO_DATO.SIN_PERMISO });
+    const supuesta = { ...LIBRETA, canal: CANAL_DATO.APP, ref: { tipo: REF_OPERACION.PANTALLA, id: "libreta" }, preferencias: [{ ...PESCADO, origen: "supuesto" }] };
+    expect(await operarPreferencias(supuesta, servidor("owner"))).toMatchObject({ guardado: false, error: MOTIVO_PUERTA.ORIGEN_NO_VALE });
+    expect(llegan).toEqual([]);
+  });
+
+  it("el sistema retira lo que vio (borrar visto, sin autor; trozo 15), pero no borra lo dicho ni rechaza; una pantalla tampoco borra como visto", async () => {
+    silenciar();
+    const { llegan, servidor } = base();
+    const sistema = { ...LIBRETA, canal: CANAL_DATO.SISTEMA, ref: { tipo: REF_OPERACION.CRON, id: "senales" }, autor: {} };
+    expect(await operarPreferencias({ ...sistema, preferencias: [{ id: "p1", borrar: true, origen: "visto" }] }, servidor(null))).toMatchObject({ guardado: true });
+    expect(llegan).toHaveLength(1);
+    for (const p of [{ id: "p1", borrar: true }, { id: "p1", rechazar: true, origen: "visto" }]) {
+      expect(await operarPreferencias({ ...sistema, preferencias: [p] }, servidor(null)), JSON.stringify(p)).toMatchObject({ guardado: false, error: MOTIVO_PUERTA.ORIGEN_NO_VALE });
+    }
+    const pantalla = { ...LIBRETA, canal: CANAL_DATO.APP, ref: { tipo: REF_OPERACION.PANTALLA, id: "libreta" }, preferencias: [{ id: "p1", borrar: true, origen: "visto" }] };
+    expect(await operarPreferencias(pantalla, servidor("owner"))).toMatchObject({ guardado: false, error: MOTIVO_PUERTA.ORIGEN_NO_VALE });
+    expect(llegan).toHaveLength(1);
+  });
+
+  it("borrar o rechazar sin id, o sin nada que escribir, no se entiende y no llega a la base", async () => {
+    silenciar();
+    const { llegan, servidor } = base();
+    for (const preferencias of [[{ borrar: true }], [{ rechazar: true }], []]) {
+      expect(await operarPreferencias({ ...LIBRETA, preferencias }, servidor("owner")), JSON.stringify(preferencias)).toMatchObject({ guardado: false, fallo: FALLO_DATO.INVALIDO });
+    }
+    expect(llegan).toEqual([]);
+  });
+
+  it("sin la RPC (0109 sin aplicar): no se guarda, vuelve rpc_ausente y queda en el log", async () => {
+    const log = silenciar();
+    const { servidor } = base(() => { throw new Error("PGRST202"); });
+    expect(await operarPreferencias(LIBRETA, servidor("owner"))).toEqual({ guardado: false, fallo: FALLO_DATO.RPC_AUSENTE });
+    expect(lineas(log)[0]).toMatchObject({ fallo: "rpc_ausente", campo: "preferencia" });
+  });
+});
+
+describe("tubería: choques al guardar una preferencia (trozo 33)", () => {
+  const MAS = { nivel: "plato", eje: "tecnica", medida: "valor", operador: "mas", valor: "horno", fuerza: "medio", origen: "dicho" };
+  const MENOS = { ...MAS, operador: "menos" };
+  const pedido = (preferencias, extra = {}) => ({
+    casa: CASA, clave: "tg:9", accion: "ajustar_menu", canal: CANAL_DATO.TELEGRAM,
+    ref: { tipo: REF_OPERACION.MENSAJE, id: "9" }, autor: { user_id: "u1" }, pedida_at: "2026-11-02T10:00:00Z", preferencias, ...extra,
+  });
+  const conGuardadas = (guardadas) => base(undefined, () => ({ ...CASA_SIN_PREFERENCIAS, preferencias: guardadas }));
+  const contar = () => vi.spyOn(console, "log").mockImplementation(() => {});
+
+  it("la misma persona cambia de idea: se escribe lo nuevo, se borra lo viejo en la misma operación, y el choque va con ella", async () => {
+    const log = contar();
+    const { llegan, servidor } = conGuardadas([{ ...MAS, id: "g1", dicho_by: "u1", updated_at: "2026-10-01T10:00:00Z" }]);
+    const r = await operarPreferencias(pedido([MENOS]), servidor("owner"));
+    expect(llegan).toHaveLength(1);
+    expect(llegan[0].op.preferencias).toEqual([MENOS, { id: "g1", borrar: true }]);
+    expect(llegan[0].op.choques).toMatchObject([{ momento: "al_guardar", criterio: "tiempo", respuesta: "aplicar_y_avisar" }]);
+    expect(r).toMatchObject({ guardado: true, apartadas: [], choques: [{ respuesta: "aplicar_y_avisar" }] });
+    expect(lineas(log)).toEqual([{ evento: "choque", momento: "al_guardar", clases: ["deseo", "deseo"], gana: "a", criterio: "tiempo", respuesta: "aplicar_y_avisar", canal: "telegram" }]);
+  });
+
+  it("otra persona dijo lo contrario: no se pisa; no llega a la base y vuelve para decidirlo", async () => {
+    contar();
+    const { llegan, servidor } = conGuardadas([{ ...MAS, id: "g1", dicho_by: "u2", updated_at: "2026-10-01T10:00:00Z" }]);
+    const r = await operarPreferencias(pedido([MENOS]), servidor("owner"));
+    expect(llegan).toEqual([]);
+    expect(r).toMatchObject({ guardado: false, apartadas: [0], choques: [{ gana: null, respuesta: "tarea_de_decision" }] });
+  });
+
+  it("lo que Lola vio no pisa lo dicho: se aparta y lo demás de la operación se escribe", async () => {
+    contar();
+    const sistema = { canal: CANAL_DATO.SISTEMA, ref: { tipo: REF_OPERACION.CRON, id: "senales" }, autor: {} };
+    const visto = { ...MENOS, origen: "visto", fuerza: "bajo" };
+    const otra = { ...MAS, valor: "plancha", origen: "visto", fuerza: "bajo" };
+    const { llegan, servidor } = conGuardadas([{ ...MAS, id: "g1", dicho_by: "u1" }]);
+    const r = await operarPreferencias(pedido([visto, otra], sistema), servidor(null));
+    expect(llegan[0].op.preferencias).toEqual([otra]);
+    expect(r).toMatchObject({ guardado: true, apartadas: [0], choques: [{ clases: ["aprendido", "deseo"], gana: "b" }] });
+  });
+
+  it("sin poder leer lo que tiene la casa no se escribe (no se sabe con qué choca)", async () => {
+    silenciar();
+    const { llegan, servidor } = base(undefined, () => { throw new Error("PGRST202"); });
+    expect(await operarPreferencias(pedido([MAS]), servidor("owner"))).toEqual({ guardado: false, fallo: FALLO_DATO.RPC_AUSENTE });
+    expect(llegan).toEqual([]);
+  });
+
+  it.each([[null], [{}], [{ v: 2, preferencias: [] }], [{ v: 1, preferencias: null }]])("una lectura sin la forma v1 (%j) no es una casa sin preferencias: no se escribe", async (leida) => {
+    const log = silenciar();
+    const { llegan, servidor } = base(undefined, () => leida);
+    expect(await operarPreferencias(pedido([MAS]), servidor("owner"))).toEqual({ guardado: false, fallo: FALLO_DATO.SERVIDOR });
+    expect(llegan).toEqual([]);
+    expect(lineas(log)).toEqual([{ evento: "dato_sin_guardar", fallo: FALLO_DATO.SERVIDOR, motivo: null, canal: "telegram", campo: "preferencia" }]);
+  });
+});

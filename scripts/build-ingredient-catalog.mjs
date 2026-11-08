@@ -43,13 +43,10 @@
  *   · y PIERDE las 87 filas de `nutrition`, porque la proyección de abajo no
  *     incluye ese campo (lo rellena scripts/bedca-nutrition.mjs, después)
  *
- * Y los ids de ingrediente NO son internos: son claves publicadas con
- * integridad referencial en Postgres.
- *   · recipe_ingredients.ingredient_id → references ingredients(id)
- *     ON DELETE RESTRICT   (supabase/migrations/0030_recipe_ingredients.sql:33)
+ * Y los ids de ingrediente NO son internos: son claves publicadas.
  *   · user_pantry.ingredient_id        (0041_pantry_ingredient_id.sql)
- *   · seed_ingredients.sql, seed_recipe_ingredients.sql,
- *     seed_ingredient_substitutions.sql
+ *   · (hasta la 0093 también las tablas copia ingredients, recipe_ingredients e
+ *     ingredient_substitutions de Supabase, que ya no existen)
  * Renombrar o borrar un id es una MIGRACIÓN DE DATOS, nunca un paso de build:
  * la despensa que un usuario guardó apunta a ese id.
  *

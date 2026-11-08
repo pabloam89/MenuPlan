@@ -1,0 +1,139 @@
+/**
+ * columnasVocabulario.mjs — las columnas de la base con un CHECK de lista de un vocabulario
+ * del producto, en una sola lista (#549, fondo #479).
+ *
+ * La leen dos sitios, y por eso vive aquí y no en un test:
+ *   - src/lib/vocabularios.test.js (COLUMNA_A_VOCABULARIO): la paridad del CHECK vigente de
+ *     cada columna con su lista de src/lib/vocabularios.js, vivos y retirados;
+ *   - scripts/lib/escritoresVocabulario.mjs (COLUMNAS): quién escribe cada una y si pasa por
+ *     la lista viva (paraEscribir / listaParaEscribir).
+ * Una columna nueva con vocabulario del producto se añade aquí, y las dos comprobaciones la
+ * vigilan a la vez: no hay una segunda lista que se pueda olvidar.
+ *
+ * Cada entrada, «tabla.columna» → { lista, patrones?, comun?, rpc? }:
+ *   - `lista`: el nombre en VOCABULARIOS (src/lib/vocabularios.js);
+ *   - `patrones`: los `like` que el CHECK admite además de la lista (las carpetas del
+ *     usuario, `fld_…`);
+ *   - `comun`: el nombre de la columna lo usan también objetos que no son filas (`channel` en
+ *     el contexto de un chat del bot, `lang` en el de Telegram, `origen` en la libreta). El
+ *     escáner solo la mira en los escritores de su tabla (supabase/cableado.json) y en los
+ *     objetos con forma de fila (otra clave en snake_case al lado, como `chat_id`);
+ *   - `rpc`: { función: parámetro } cuando el valor entra a la tabla por una RPC desde JS: el
+ *     escáner mira ese parámetro en los ficheros que llaman a la función.
+ *
+ * Fuera, a propósito: las listas que no son del producto (la ficha, `registro_campo.*`, y las
+ * tareas del bot, `bot_tareas.kind/scope/…`), que no tienen ciclo de vida todavía; su paridad
+ * la mira vocabularios.test.js con `valores`.
+ */
+export const COLUMNAS_VOCABULARIO = Object.freeze({
+  "user_menu_weeks.active_days": { lista: "dias" },
+  "user_pantry.pack_kind": { lista: "envases" },
+  "user_recipes.required_appliances": { lista: "aparatos" },
+  "user_recipes.usage_tags": { lista: "usos_receta" },
+  "recipe_collections.collection_id": { lista: "carpetas_fijas", patrones: ["fld\\_%"] },
+  "bot_entradas.proveedor": { lista: "canales", comun: true },
+  "bot_identities.channel": { lista: "canales", comun: true },
+  "bot_chats.channel": { lista: "canales", comun: true },
+  // El registro de intentos de enlace (0126, #1238).
+  "bot_enlaces.camino_enlace": { lista: "caminos_enlace" },
+  "bot_enlaces.resultado_enlace": { lista: "resultados_enlace" },
+  // La prueba de cada identidad (0129, #1238): qué Telegram abre una cuenta que no nació en él.
+  "bot_identities.prueba_identidad": { lista: "pruebas_identidad" },
+  "bot_codigos.channel": { lista: "canales", comun: true },
+  "bot_messages.channel": { lista: "canales", comun: true },
+  "bot_tareas.channel": { lista: "canales", comun: true },
+  // Los recordatorios en tareas (0122, trozo 34). Comunes: «repite» y «aviso» son también claves de otros objetos.
+  "bot_tareas.repite": { lista: "repites_recordatorio", comun: true },
+  "bot_tareas.aviso": { lista: "avisos_recordatorio", comun: true },
+  "bot_cola.channel": { lista: "canales", comun: true },
+  "user_profiles.ui_lang": { lista: "idiomas" },
+  "household_invites.lang": { lista: "idiomas", comun: true, rpc: { create_household_invite: "p_lang" } },
+  "sobre.origen": { lista: "origen_dato", comun: true },
+  "sobre.canal": { lista: "canales_dato", comun: true },
+  "receta_descartes.alcance": { lista: "alcances_descarte" },
+  // Cómo se pidió cada menú (0130, trozo 70). Común: «camino» es también clave de objetos que no son filas.
+  "menu_generado.camino": { lista: "caminos_menu", comun: true },
+  // Comprar en Mercadona (0131). Comunes: «estado», «status», «canal» y «fallo» son también claves de otras cosas.
+  "mercadona_cuenta.estado": { lista: "estados_cuenta_mercadona", comun: true },
+  "mercadona_encargo.canal": { lista: "canales_encargo", comun: true },
+  "mercadona_encargo.status": { lista: "estados_encargo_mercadona", comun: true },
+  "mercadona_encargo.fallo": { lista: "fallos_encargo_mercadona", comun: true },
+  // Las columnas del eje de registro_campo (0105): listas del producto que registroFicha.js usa en cada dato.
+  // Comunes: «ficha», «clase», «escribe» y «choque» son también claves de objetos que no son filas.
+  "registro_campo.ficha": { lista: "fichas", comun: true },
+  "registro_campo.clase": { lista: "clase_dato", comun: true },
+  "registro_campo.escribe": { lista: "escritores", comun: true },
+  "registro_campo.choque": { lista: "choque", comun: true },
+  // El ámbito (0114, trozo 55): las dimensiones de cada campo, y el día y la comida de cada sobre. Comunes: «dia»,
+  // «comida» y «ambito» son también claves de objetos que no son filas (el plan, los huecos, la libreta).
+  "registro_campo.ambito": { lista: "dimensiones_ambito", comun: true },
+  "sobre.dia": { lista: "dias", comun: true },
+  "sobre.comida": { lista: "comidas", comun: true },
+  // La operación (0105): la escribe solo aplicar_operacion (0106), desde el jsonb que le pasa escribirDato (api/_bot/datos.js, trozo 8; la tubería del trozo 26 se pone delante).
+  "operacion.canal": { lista: "canales_dato", comun: true },
+  "operacion.ref_tipo": { lista: "refs_operacion", comun: true },
+  "operacion.estado": { lista: "estados_operacion", comun: true },
+  // El tipo de grupo (0108): lo escribe solo escribir_persona, desde el jsonb que le pasa la tubería (src/lib/operaciones/).
+  "grupo.tipo": { lista: "tipos_grupo", comun: true },
+  // La preferencia (0109, trozo 14): la escribe solo escribir_preferencias, desde el jsonb que le pasa la tubería; los
+  // historiales, el trozo 22; registro_eje, las migraciones. Comunes: son también claves de la libreta y del plan.
+  "registro_eje.tipo": { lista: "tipos_eje", comun: true },
+  "preferencia.nivel": { lista: "niveles_preferencia", comun: true },
+  "preferencia.medida": { lista: "medidas_preferencia", comun: true },
+  "preferencia.operador": { lista: "operadores_preferencia", comun: true },
+  "preferencia.fuerza": { lista: "fuerzas_preferencia", comun: true },
+  "preferencia.origen": { lista: "origen_dato", comun: true },
+  "preferencia.canal": { lista: "canales_dato", comun: true },
+  "preferencia.dias": { lista: "dias", comun: true },
+  "preferencia.salvo_dias": { lista: "dias", comun: true },
+  "preferencia.comidas": { lista: "comidas", comun: true },
+  "preferencia.salvo_comidas": { lista: "comidas", comun: true },
+  "precio_observado.fuente": { lista: "fuentes_precio", comun: true },
+  "precio_observado.tipo": { lista: "tipos_linea_ticket", comun: true },
+  "cocinado.dia": { lista: "dias", comun: true },
+  "cocinado.comida": { lista: "comidas", comun: true },
+});
+
+/**
+ * Las columnas que se escriben desde SQL además de (o en vez de) desde JS, con quién y por qué
+ * la lista viva las cubre igual. El escáner solo lee JS: esto deja a la vista lo que no ve, y
+ * vocabularios.test.js falla si un `update … set <col>`, un `insert into <tabla> (… <col> …)` o
+ * un `default '<valor>'` de las migraciones sobre una columna de arriba no está aquí.
+ */
+export const ESCRITORES_SQL = Object.freeze({
+  "mercadona_encargo.status": "tomar_encargo_mercadona (0131) escribe el valor fijo 'rellenando', de la lista; el default 'pendiente' lo pone la base",
+  "mercadona_encargo.canal": "solo la autoprueba de la 0131 ('app', en un bloque que se deshace); encargar lo pasa por paraEscribir",
+  "mercadona_encargo.fallo": "solo la autoprueba de la 0131 (caducado, en un bloque que se deshace); cerrar y barrerCaducados lo pasan por paraEscribir",
+  "mercadona_cuenta.estado": "el default 'conectada' de la 0131; conectar y cerrar (api/_bot/mercadonaEncargos.js) escriben valores de la lista",
+  "bot_tareas.aviso": "solo la autoprueba de la 0122 ('libre', en un bloque que se deshace); el código lo escribe con el PR 2 del trozo 34",
+  "bot_tareas.repite": "solo la autoprueba de la 0122 ('semanal', en un bloque que se deshace); el código lo escribe con el PR 2 del trozo 34",
+  "bot_tareas.channel": "la autoprueba de la 0122 (0122_recordatorios_en_tareas) inserta 'telegram' a mano, en un bloque que se deshace: no queda ninguna fila",
+  "bot_cola.channel": "el default 'telegram' de la 0063 lo pondría la base si una fila llegara sin channel; encolar (api/_bot/turnos.js) lo pasa explícito por paraEscribir, así que hoy no actúa",
+  "user_menu_weeks.active_days": "la RPC de guardar semana (0057, 0068) inserta el active_days de la fila que monta weekToRow (src/lib/menusSync.js), que ya pasa por listaParaEscribir",
+  "household_invites.lang": "create_household_invite (0071) inserta su p_lang, que householdsSync.js pasa por paraEscribir",
+  "user_profiles.ui_lang": "bot_unirse_por_invitacion y accept_household_invite (0073, 0087) copian household_invites.lang, que ya entró por la lista viva",
+  "registro_campo.ficha": "los INSERT de la 0105, la 0112, la 0113 y la 0114, generados de REGISTRO_CAMPOS (registroCampos.test.js lo compara); ningún JS escribe la tabla",
+  "registro_campo.clase": "los INSERT de la 0105, la 0112, la 0113 y la 0114, generados de REGISTRO_CAMPOS (registroCampos.test.js lo compara); ningún JS escribe la tabla",
+  "registro_campo.escribe": "los INSERT de la 0105, la 0112, la 0113 y la 0114, generados de REGISTRO_CAMPOS (registroCampos.test.js lo compara); ningún JS escribe la tabla",
+  "registro_campo.choque": "los INSERT de la 0105, la 0112, la 0113 y la 0114, generados de REGISTRO_CAMPOS (registroCampos.test.js lo compara); ningún JS escribe la tabla",
+  "registro_campo.ambito": "el INSERT de la 0114, generado de REGISTRO_CAMPOS (registroCampos.test.js lo compara, y registroCampos.js comprueba que cada ámbito es de DIMENSIONES_AMBITO); ningún JS escribe la tabla",
+  "sobre.dia": "solo la autoprueba de la 0114, que se deshace siempre, con días de DIAS; aplicar_operacion los escribirá con la migración del trozo 56, desde el jsonb que le pasa la tubería",
+  "sobre.comida": "solo la autoprueba de la 0114, que se deshace siempre, con comidas de COMIDAS; aplicar_operacion las escribirá con la migración del trozo 56, desde el jsonb que le pasa la tubería",
+  "sobre.origen": "aplicar_operacion (0106) escribe el origen de cada dato de p_operacion; su único llamador es escribirDato (api/_bot/datos.js, trozo 8), que lo pasa por paraEscribir (src/lib/escribirDato.js); escribir_persona (0108) escribe el de su operación, que la propia función limita a dicho, delegado o no_quiere_decirlo",
+  "sobre.canal": "aplicar_operacion (0106) escribe el canal de p_operacion; su único llamador es escribirDato (api/_bot/datos.js, trozo 8), que lo pasa por paraEscribir (src/lib/escribirDato.js); escribir_persona (0108) escribe el canal de su operación, que le pasa la tubería (src/lib/operaciones/)",
+  "operacion.canal": "aplicar_operacion (0106) inserta el canal de p_operacion; su único llamador es escribirDato (api/_bot/datos.js, trozo 8), que lo pasa por paraEscribir (src/lib/escribirDato.js); escribir_persona (0108) inserta el de su operación, que le pasa la tubería (src/lib/operaciones/)",
+  "operacion.ref_tipo": "aplicar_operacion (0106) inserta el ref_tipo de p_operacion; su único llamador es escribirDato (api/_bot/datos.js, trozo 8), que lo pasa por paraEscribir (src/lib/escribirDato.js); escribir_persona (0108) inserta el de su operación, que le pasa la tubería (src/lib/operaciones/)",
+  "grupo.tipo": "escribir_persona (0108) inserta el tipo de cada grupo de su operación; se lo pasa la tubería (src/lib/operaciones/), que lo saca de data.groups ya escrito por groups.js con TIPOS_GRUPO",
+  "operacion.estado": "aplicar_operacion (0106) escribe pendiente, hecha o rechazada (de ESTADOS_OPERACION; datoConSobre.test.js lo comprueba), y escribir_persona (0108) y escribir_preferencias (0109) pendiente y hecha (personaFuente.test.js, preferencia.test.js); ningún JS escribe la tabla",
+  "registro_eje.tipo": "los INSERT de la 0109 y la 0117, generados de EJES (axisRegistry.test.js comprueba que cada tipo está en TIPOS_EJE; preferencia.test.js, que los INSERT son EJES); ningún JS escribe la tabla",
+  "precio_observado.fuente": "api/_bot/historialCompra.js (guardarTicket, guardarPrecios), con filas de filaDePrecio (src/lib/historialCompra.js), que exige un valor de FUENTES_PRECIO; la autoprueba de la 0109 también, y se deshace",
+  "precio_observado.tipo": "api/_bot/historialCompra.js (guardarTicket, guardarPrecios), con filas de filaDePrecio (src/lib/historialCompra.js), que exige un valor de TIPOS_LINEA_TICKET; la autoprueba de la 0109 también, y se deshace",
+  "cocinado.dia": "solo la autoprueba de la 0109, que se deshace siempre, con un día de DIAS; la escribirá el trozo 22",
+  "cocinado.comida": "solo la autoprueba de la 0109, que se deshace siempre, con una comida de COMIDAS; la escribirá el trozo 22",
+  "preferencia.nivel": "escribir_preferencias (0109), desde el jsonb que le pasa la tubería; y la autoprueba de la 0117, que se deshace siempre, con «semana» y «comida», de NIVELES_PREFERENCIA",
+  "preferencia.medida": "escribir_preferencias (0109), desde el jsonb que le pasa la tubería; y la autoprueba de la 0117, que se deshace siempre, con «valor», de MEDIDAS_PREFERENCIA",
+  "preferencia.operador": "escribir_preferencias (0109), desde el jsonb que le pasa la tubería; y la autoprueba de la 0117, que se deshace siempre, con «es», de OPERADORES_PREFERENCIA",
+  "preferencia.fuerza": "escribir_preferencias (0109), desde el jsonb que le pasa la tubería; y la autoprueba de la 0117, que se deshace siempre, con «alto» y «obligatoria», de FUERZAS_PREFERENCIA",
+  "preferencia.origen": "escribir_preferencias (0109), desde el jsonb que le pasa la tubería; y la autoprueba de la 0117, que se deshace siempre, con «dicho», de ORIGEN_DATO",
+  "preferencia.canal": "escribir_preferencias (0109), desde el jsonb que le pasa la tubería; y la autoprueba de la 0117, que se deshace siempre, con «sistema», de CANALES_DATO",
+});

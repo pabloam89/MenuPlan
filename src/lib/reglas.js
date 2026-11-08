@@ -11,8 +11,9 @@
  * ── Lo que NO es ──────────────────────────────────────────────────────────
  * No es un segundo motor. Una regla no elige platos ni habla con el planner:
  * se PROYECTA sobre `data.*` —el mismo truco que ya usa la libreta— y lo que
- * el motor lee sigue siendo `data.schedule`, `data.members`, `data.excluidos`
- * y `data.sesgos`, exactamente como antes. `aiPlanner` sigue sin saber que
+ * el motor lee sigue siendo `data.schedule`, `data.members`, `data.sesgos` y,
+ * para los vetos de la casa, `data.excluidosReglas` (que lib/vetos.js suma a
+ * los de la libreta), exactamente como antes. `aiPlanner` sigue sin saber que
  * esto existe, y esa es la propiedad que hace que se pueda apagar entero
  * borrando una línea en la generación.
  *
@@ -106,9 +107,10 @@
  * queda escrito para que no se lea como un fallo de las reglas.
  *
  * ── Las alergias no pasan por aquí ────────────────────────────────────────
- * Ni de lejos. `efecto.excluir` proyecta a `dislikes`, que es SOFT y tiene
- * fallback para no vaciar el pool (filterRecipes.js). Una alergia es una
- * invariante dura y vive en `member.allergies`. Una regla no puede crear,
+ * Ni de lejos. `efecto.excluir` proyecta a un VETO (lib/vetos.js): duro en
+ * comida y cena, blando con caída en desayuno, merienda y postre, y siempre
+ * por nombre de ingrediente, sin saber de trazas ni de derivados. Una alergia
+ * es una invariante de seguridad y vive en `member.allergies`. Una regla no puede crear,
  * aflojar ni sustituir una alergia, y por eso "alergia" no es un tipo de
  * efecto: si lo fuera, alguien acabaría escribiendo una desde una frase.
  *
@@ -148,8 +150,11 @@
 
 import { z } from "zod";
 import { DAYS, SLOT_VALUES, slotKey, getMeals, getDayMeals } from "./planner.js";
-import { uid, membersOfGroup } from "./groups.js";
+import { DIAS, indiceDeFecha } from "./dias.js";
+import { membersOfGroup, tipoDeGrupo } from "./groups.js";
+import * as ids from "./ids.js";
 import { CAMPOS_POR_ID } from "./notepadFields.js";
+import { itemValido } from "./excluirHueco.js";
 
 export const REGLAS_VERSION = 1;
 
@@ -212,7 +217,7 @@ const SujetoSchema = z.object({
 
 /** Dónde aplica. Todo opcional; lo que falta significa "siempre". */
 const AmbitoSchema = z.object({
-  dias: z.array(z.enum(["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"])).min(1).optional(),
+  dias: z.array(z.enum(DIAS)).min(1).optional(),
   comidas: z.array(z.string().min(1)).min(1).optional(),
   // El LUNES de cada semana, en ISO. Ver decisión 4 de la cabecera.
   semanas: z.array(iso).min(1).optional(),
@@ -329,7 +334,7 @@ export function normalizarReglas(raw) {
 /** Una regla nueva, con su id y su fecha. */
 export function nuevaRegla({ sujeto, efecto, ambito = {}, vigencia = {}, salvedad, origen = "manual", frase, hoy }) {
   const regla = {
-    id: uid(),
+    id: ids.regla.nuevo(),
     sujeto,
     ambito,
     vigencia,
@@ -497,7 +502,7 @@ export function hastaEnDias(dias, hoyISO) {
 export function lunesDe(fechaISO) {
   const d = new Date(`${fechaISO}T00:00:00`);
   // getDay(): 0 domingo … 6 sábado. La semana empieza en lunes, como DAYS.
-  const desplazamiento = (d.getDay() + 6) % 7;
+  const desplazamiento = indiceDeFecha(d);
   d.setDate(d.getDate() - desplazamiento);
   return isoLocal(d);
 }
@@ -688,7 +693,7 @@ function grupoAnfitrion(groups, grupoRef) {
     const elegido = lista.find((g) => g.id === grupoRef);
     if (elegido) return elegido;
   }
-  return lista.find((g) => !g.adHoc && g.label !== "Bebé") ?? lista[0] ?? null;
+  return lista.find((g) => !["adhoc", "bebe"].includes(tipoDeGrupo(g))) ?? lista[0] ?? null;
 }
 
 /**
@@ -703,7 +708,7 @@ function grupoAnfitrion(groups, grupoRef) {
  *   no el `data` global: `groups` ya reconstruidos, `schedule` = el
  *   `weekSchedule` de ESA semana (el override de `menuWeekOverrides[offset]`
  *   cuando lo hay, NUNCA `data.schedule` a secas), más `meals`, `extraMeals`,
- *   `members`, `excluidos`, `sesgos` y `cocinas`.
+ *   `members`, `excluidosReglas`, `sesgos` y `cocinas`.
  *
  * @param {object} ctx
  *   `{ hoy: "YYYY-MM-DD", semana: { inicioISO, finISO, dias } }`. Esos tres
@@ -793,12 +798,17 @@ export function proyectarReglas(reglas, data, ctx = {}) {
   const porId = new Map(miembros.map((m, i) => [m.id, i]));
   const grupos = (data?.groups ?? []).map((g) => ({ ...g, memberIds: [...(g.memberIds ?? [])] }));
   const schedule = { ...(data?.schedule ?? {}) };
-  const excluidos = [...(data?.excluidos ?? [])];
+  // Solo los vetos de las REGLAS, en su propia clave: los de la libreta los
+  // calcula lib/vetos.js al leer, y `data.excluidos` (la proyección guardada)
+  // ya no la lee nadie.
+  const excluidos = [...(data?.excluidosReglas ?? [])];
   const sesgos = Object.fromEntries(
     Object.entries(data?.sesgos ?? {}).map(([k, v]) => [k, { ...v }]),
   );
   const cocinas = { ...(data?.cocinas ?? {}) };
+  const excluirPorHueco = { ...(data?.excluirPorHueco ?? {}) };
 
+  let tocaPorHueco = false;
   let tocaMiembros = false;
   let tocaGrupos = false;
   let tocaSchedule = false;
@@ -990,13 +1000,47 @@ export function proyectarReglas(reglas, data, ctx = {}) {
     // ── excluir: un ingrediente fuera, con el alcance del sujeto ──────────
     if (efecto.tipo === "excluir") {
       const valor = String(efecto.valor).trim().toLowerCase();
-      // El eje de destino (`dislikes` / `data.excluidos`) es por semana, no por
-      // día: si la regla pedía menos, se aplica de más y se dice.
+
+      // POR HUECO (1 oct 2026): «los lunes, sin carne», «nada de fritos salvo
+      // los viernes». Para la casa, si la regla no cubre la semana entera, lleva
+      // salvedad o habla de un grupo o una técnica («grupo:carne»,
+      // «tecnica:sarten», que `excluidos` no sabe leer), ya no se ensancha a
+      // toda la semana: va a `excluirPorHueco` y la comprueba la regla
+      // `excluido_en_hueco` de validateMenu (lib/excluirHueco.js). Solo comida
+      // y cena: es lo que se planifica.
+      const conPrefijo = valor.includes(":");
+      if (sujeto.tipo === "casa" && (conPrefijo || regla.salvedad || cobertura === "parcial" || ambitoRecorta(regla, comidasPlanificadas))) {
+        if (!itemValido(valor)) {
+          aviso(regla, "no_soportado", `no sé quitar «${valor}»`);
+          continue;
+        }
+        let huecos = huecosDe(regla.ambito, regla.salvedad, comidasPlanificadas, diasActivos);
+        if (cobertura === "parcial" && fechas) {
+          const { desde, hasta } = regla.vigencia ?? {};
+          huecos = huecos.filter(({ dia }) => {
+            const f = fechas[dia];
+            return !f || ((!desde || f >= desde) && (!hasta || f <= hasta));
+          });
+        }
+        for (const { dia, comida } of huecos) {
+          const k = `${dia}|${comida}`;
+          const ya = excluirPorHueco[k] ?? [];
+          if (!ya.includes(valor)) excluirPorHueco[k] = [...ya, valor];
+          tocaPorHueco = true;
+        }
+        aplicadas.push(regla.id);
+        continue;
+      }
+      if (conPrefijo) {
+        aviso(regla, "no_soportado", "quitar un grupo o una técnica solo se sabe hacer para toda la casa");
+        continue;
+      }
+      // El eje de destino (`dislikes` / `data.excluidosReglas`) es por semana,
+      // no por día: si la regla pedía menos, se aplica de más y se dice.
       //
       // Y se mide contra TODAS las comidas, no solo contra las que planifica
       // el LLM. `planExtraMealsForGroup` construye sus dislikes con
-      // `...(data.excluidos ?? [])` y `members.flatMap(m => m.dislikes)`
-      // (aiPlanner.js:1472), así que una exclusión llega también al desayuno,
+      // `vetosDe(data, { grupo })` (lib/vetos.js), que suma los dos, así que una exclusión llega también al desayuno,
       // la merienda y el postre. En una casa con desayuno activo, una regla
       // que nombra "comida y cena" acaba aplicándose a cinco comidas: eso es
       // aplicar de más, y hay que decirlo. (El `sesgo` de abajo se mide
@@ -1077,7 +1121,8 @@ export function proyectarReglas(reglas, data, ctx = {}) {
   if (tocaMiembros) delta.members = miembros;
   if (tocaGrupos) delta.groups = grupos;
   if (tocaSchedule) delta.schedule = schedule;
-  if (tocaExcluidos) delta.excluidos = excluidos;
+  if (tocaExcluidos) delta.excluidosReglas = excluidos;
+  if (tocaPorHueco) delta.excluirPorHueco = excluirPorHueco;
   if (tocaSesgos) {
     delta.sesgos = sesgos;
     delta.cocinas = cocinas;
@@ -1119,49 +1164,8 @@ export function necesitaMenuPropio(regla, data) {
   return arrastra.length === 0 ? null : { miembro, grupo, arrastra };
 }
 
-const ETIQUETA_EFECTO = {
-  excluir: "sin",
-  presente: "come",
-  sesgo: "ajusta",
-};
-
-/**
- * La regla en cristiano, para el recibo de la UI. Se compone de los datos, no
- * de un texto guardado: así renombrar a alguien renombra su regla sola.
- */
-export function describirRegla(regla, data) {
-  if (!regla) return "";
-  const quien = (() => {
-    const s = regla.sujeto;
-    if (s.tipo === "casa") return "En casa";
-    if (s.tipo === "invitado") return s.n > 1 ? `${s.n} invitados` : (s.nombre ?? "Un invitado");
-    if (s.tipo === "grupo") {
-      return (data?.groups ?? []).find((g) => g.id === s.ref)?.label ?? "Un menú";
-    }
-    const m = (data?.members ?? []).find((x) => x.id === s.ref);
-    return m?.name || "Alguien";
-  })();
-
-  const que = (() => {
-    if (regla.efecto.tipo === "excluir") return `${ETIQUETA_EFECTO.excluir} ${regla.efecto.valor}`;
-    if (regla.efecto.tipo === "presente") return `${ETIQUETA_EFECTO.presente} ${regla.efecto.valor === "casa" ? "en casa" : regla.efecto.valor}`;
-    const { campo, valor, peso } = regla.efecto.valor;
-    return `${peso >= 0 ? "más" : "menos"} ${valor} (${campo})`;
-  })();
-
-  const donde = (() => {
-    const partes = [];
-    if (regla.ambito?.dias) partes.push(`los ${regla.ambito.dias.join(", ")}`);
-    if (regla.ambito?.comidas) partes.push(`en ${regla.ambito.comidas.join(" y ").toLowerCase()}`);
-    if (regla.ambito?.semanas) partes.push(regla.ambito.semanas.length === 1 ? "solo esa semana" : "solo esas semanas");
-    return partes.join(" ");
-  })();
-
-  const cuando = regla.vigencia?.hasta ? `hasta el ${regla.vigencia.hasta}` : "";
-  const salvo = regla.salvedad?.dias ? `salvo los ${regla.salvedad.dias.join(", ")}` : "";
-
-  return [quien, que, donde, salvo, cuando].filter(Boolean).join(" ");
-}
+// describirRegla vive en reglasTexto.js (sin dependencias, para la ficha del bot).
+export { describirRegla } from "./reglasTexto.js";
 
 // ── El contrato del panel, para cuando el dueño lo active ──────────────────
 

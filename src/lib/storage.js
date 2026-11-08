@@ -6,6 +6,13 @@ import {
 
 const KEY = "menuplan.state.v1";
 
+// La copia se ha borrado y la página se va a recargar: un guardado retardado de
+// la app que aún corre no debe volver a escribirla.
+let copiaCongelada = false;
+export function congelarCopia() {
+  copiaCongelada = true;
+}
+
 export function loadState() {
   try {
     const raw = localStorage.getItem(KEY);
@@ -37,16 +44,8 @@ function recipeIdsFromPlan(plan) {
 function compactState(state, level) {
   const data = { ...(state.data ?? {}) };
   const maxMenus = level === "hard" ? 3 : 10;
-  const maxObs = level === "hard" ? 40 : 120;
-  const maxReceipts = level === "hard" ? 5 : 20;
 
   data.menus = pruneMenuHistory(data.menus, maxMenus);
-  if (Array.isArray(data.priceObs) && data.priceObs.length > maxObs) {
-    data.priceObs = data.priceObs.slice(-maxObs);
-  }
-  if (Array.isArray(data.receipts) && data.receipts.length > maxReceipts) {
-    data.receipts = data.receipts.slice(-maxReceipts);
-  }
 
   let aiRecipes = Array.isArray(state.aiRecipes) ? state.aiRecipes : [];
   if (level === "hard") {
@@ -71,6 +70,7 @@ function tryWrite(payload) {
  * @returns {{ ok: boolean, pruned: boolean, saved: object|null }}
  */
 export function saveState(state) {
+  if (copiaCongelada) return { ok: true, pruned: false, saved: null };
   const attempts = [
     { pruned: false, payload: state },
     { pruned: true, payload: compactState(state, "light") },

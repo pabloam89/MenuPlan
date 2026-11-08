@@ -1,4 +1,6 @@
-export const SCHOOL_DAYS = ["Lun", "Mar", "Mié", "Jue", "Vie"];
+import { DIAS_LABORABLES, indiceDeISO, isoDeCasa, semanasEntre, sumarDiasISO } from "./dias.js";
+
+export const SCHOOL_DAYS = DIAS_LABORABLES;
 export const SCHOOL_COURSES = ["Primero", "Segundo", "Postre"];
 
 // ─── Multi-week school menus ───────────────────────────────────────────────
@@ -63,6 +65,28 @@ export function schoolWeekCount(sm) {
  * the index exceeds the number of stored weeks so a 4-week menú can rotate
  * through, e.g. 2 uploaded school weeks.
  */
+/**
+ * Qué semana del cole toca en la semana de `fechaISO`: las semanas guardadas
+ * rotan desde `lunesSemana1`, el lunes en que vale la primera (lo pone
+ * replaceSchoolWeeks al guardarlas). Sin ancla (menús del cole de antes), la
+ * primera, como siempre. Antes Lola usaba siempre la semana 1 (#958).
+ */
+export function indiceSemanaCole(sm, fechaISO) {
+  const ancla = sm?.lunesSemana1;
+  if (!ancla || !fechaISO || !/^\d{4}-\d{2}-\d{2}$/.test(ancla)) return 0;
+  return semanasEntre(ancla, fechaISO);
+}
+
+/**
+ * El lunes en que vale la primera semana de un menú del cole que se guarda
+ * `hoyISO`: el de esta semana, o el siguiente si ya es fin de semana (lo que
+ * se sube un domingo es para la que empieza).
+ */
+export function lunesParaCole(hoyISO) {
+  const i = indiceDeISO(hoyISO);
+  return sumarDiasISO(hoyISO, i >= 5 ? 7 - i : -i);
+}
+
 export function schoolMenusForWeekIndex(sm, idx = 0) {
   const weeks = normalizeSchoolMenus(sm).weeks;
   if (weeks.length === 0) return { shared: {}, byMember: {} };
@@ -72,32 +96,40 @@ export function schoolMenusForWeekIndex(sm, idx = 0) {
 
 /**
  * Replace the whole ordered list of weeks for a given scope with the supplied
- * per-week entry maps (each an "Lun-Primero"→dish object). The other scope's
- * data is preserved where weeks overlap.
+ * per-week entry maps (each an "Lun-Primero"→dish object). The other scopes
+ * are preserved in every week, including weeks beyond the new list: uploading
+ * one week for one kid must not drop the shared menú or another kid's weeks.
  *
  *   scope === "shared"     → sets weeks[i].shared
  *   scope === "individual" → sets weeks[i].byMember[kidId]
  */
-export function replaceSchoolWeeks(sm, { scope, kidId, weeksEntries, weeksCatalogIds }) {
+// `hoy`: el día en que se guarda, para el ancla de la rotación (lunesSemana1,
+// ver indiceSemanaCole). La lista de semanas es nueva, así que el ancla se
+// vuelve a poner siempre: una vieja alinearía mal las semanas recién subidas.
+export function replaceSchoolWeeks(sm, { scope, kidId, weeksEntries, weeksCatalogIds, hoy = isoDeCasa() }) {
   const norm = normalizeSchoolMenus(sm);
   const list = Array.isArray(weeksEntries) ? weeksEntries : [];
   const catList = Array.isArray(weeksCatalogIds) ? weeksCatalogIds : [];
-  const out = list.map((entries, i) => {
+  const total = Math.max(list.length, norm.weeks.length);
+  const out = [];
+  for (let i = 0; i < total; i++) {
     const prev = norm.weeks[i] ?? { shared: {}, byMember: {}, catalogIds: {} };
+    // Past the new list this scope is emptied; the other scopes stay.
+    const entries = i < list.length ? cloneEntries(list[i]) : {};
     // Prefer freshly-computed catalog ids; fall back to previously stored ones.
     const catalogIds = catList[i] ?? prev.catalogIds ?? {};
-    if (scope === "shared") {
-      return { label: `Semana ${i + 1}`, shared: cloneEntries(entries), byMember: cloneByMember(prev.byMember), catalogIds };
-    }
-    return {
-      label: `Semana ${i + 1}`,
-      shared: cloneEntries(prev.shared),
-      byMember: { ...cloneByMember(prev.byMember), [kidId]: cloneEntries(entries) },
-      catalogIds,
-    };
-  });
+    const byMember = cloneByMember(prev.byMember);
+    let shared = cloneEntries(prev.shared);
+    if (scope === "shared") shared = entries;
+    else if (i < list.length) byMember[kidId] = entries;
+    else delete byMember[kidId];
+    out.push({ label: `Semana ${i + 1}`, shared, byMember, catalogIds });
+  }
+  // Trailing weeks that ended up with nothing in any scope are dropped.
+  const vacia = (w) => !Object.keys(w.shared).length && Object.values(w.byMember).every((e) => !Object.keys(e ?? {}).length);
+  while (out.length > 1 && vacia(out[out.length - 1])) out.pop();
   const weeks = out.length ? out : [{ label: "Semana 1", shared: {}, byMember: {}, catalogIds: {} }];
-  return { ...norm, shared: weeks[0].shared, byMember: weeks[0].byMember, weeks };
+  return { ...norm, shared: weeks[0].shared, byMember: weeks[0].byMember, weeks, lunesSemana1: lunesParaCole(hoy) };
 }
 
 /** Set a single cell for a scope + week, adding empty weeks if needed. */

@@ -20,7 +20,7 @@ function Chip({ color, background, children }) {
       display: "inline-flex", alignItems: "center",
       padding: "2px 8px", borderRadius: 999,
       background, color,
-      fontSize: 10.5, fontWeight: 800,
+      fontSize: 11, fontWeight: 800,
     }}>
       {children}
     </span>
@@ -33,15 +33,24 @@ function Chip({ color, background, children }) {
  * siempre con `plain` (string[]).
  * `ingredients`: lista escalada para resolver {{marcadores}} de cantidad en el text.
  * `kitchenTools`: electrodomésticos/utensilios del usuario (p. ej. Plancha custom).
+ * `accent`: color del componente al que pertenecen estos pasos (la guarnición,
+ * la salsa…). Sin él, verde; y un paso con `part` toma el color de su parte.
+ *
+ * Review de UX (lámina 5): el número del paso ya no cambia de color según el
+ * TIPO de paso (preparación, reposo…), que no se entendía; el color dice de qué
+ * componente es el paso. Y la etiqueta del tipo va en neutro, con contraste de
+ * texto suficiente (≥4,5:1): antes era su color sobre ese mismo color al 10 %.
  */
-export function RecipeStepList({ rich = null, plain = [], ingredients = null, kitchenTools = [] }) {
+const STEP_GREEN = "#2d5a3d";
+
+export function RecipeStepList({ rich = null, plain = [], ingredients = null, kitchenTools = [], accent = null }) {
   const hasRich = Array.isArray(rich)
     && rich.length > 0
     && rich.every((s) => s && typeof s.text === "string" && s.text.length > 0);
 
   if (!hasRich) {
     return (
-      <ol style={{ margin: 0, paddingLeft: 18, color: "#526057", fontSize: 13, lineHeight: 1.6 }}>
+      <ol style={{ margin: 0, paddingLeft: 18, color: "#526057", fontSize: 15, lineHeight: 1.6 }}>
         {plain.map((step, i) => (
           <li key={`${i}-${step.slice(0, 24)}`} style={{ marginBottom: 6 }}>{step}</li>
         ))}
@@ -84,9 +93,9 @@ export function RecipeStepList({ rich = null, plain = [], ingredients = null, ki
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
                 <span style={{
                   minWidth: 24, height: 24, padding: "0 4px", borderRadius: 999, flexShrink: 0,
-                  background: meta.color, color: "#fff",
+                  background: partMeta?.color ?? accent ?? STEP_GREEN, color: "#fff",
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: label.length > 1 ? 10 : 12, fontWeight: 900, lineHeight: 1,
+                  fontSize: label.length > 1 ? 11 : 12, fontWeight: 900, lineHeight: 1,
                 }}>
                   {label}
                 </span>
@@ -96,7 +105,7 @@ export function RecipeStepList({ rich = null, plain = [], ingredients = null, ki
               </div>
               <div style={{ flex: 1, minWidth: 0, paddingBottom: 2 }}>
                 <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 6, marginBottom: 4 }}>
-                  <Chip color={meta.color} background={`${meta.color}1a`}>
+                  <Chip color="#3f5a4b" background="#eef3f0">
                     {isParallel ? "En paralelo" : meta.label}
                   </Chip>
                   {mins && <Chip color="#5a7066" background="#f4f7f4">{mins}</Chip>}
@@ -105,10 +114,10 @@ export function RecipeStepList({ rich = null, plain = [], ingredients = null, ki
                       "esto ya lo hiciste el domingo": sin la etiqueta, un
                       "calienta el sofrito un minuto" parece un paso más. */}
                   {s.deReactivacion && (
-                    <Chip color="#8a6d3b" background="#f6efe0">De la tanda</Chip>
+                    <Chip color="#6e5326" background="#f6efe0">De la tanda</Chip>
                   )}
                 </div>
-                <div style={{ fontSize: 13, lineHeight: 1.55, color: "#48564e" }}>
+                <div style={{ fontSize: 15, lineHeight: 1.55, color: "#48564e" }}>
                   {renderStepText(s.text, ingredients, kitchenTools)}
                 </div>
               </div>

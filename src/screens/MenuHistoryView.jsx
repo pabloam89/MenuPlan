@@ -2,14 +2,15 @@ import { useState } from "react";
 import { ChevronLeft } from "../components/icons.jsx";
 import { getWeekDatesFromStartISO, calendarDayNumber } from "../lib/weekCalendar.js";
 import { getMeals, isLunchMeal } from "../lib/planner.js";
+import { DIA_LETRA } from "../lib/dias.js";
 import { membersOfGroup } from "../lib/groups.js";
 import { eatersForSlot } from "../lib/slotEaters.js";
 import { RECIPES_BY_ID } from "../data/recipes.js";
 import { orderedWeeks, formatISODateShort } from "../lib/menuArchive.js";
-import { bottomNavSpacer } from "../components/ui.jsx";
+import { bottomNavSpacer, safeTop } from "../components/ui.jsx";
 import { DishCard, dishesFromSlot, DishDetail } from "./Menu.jsx";
 
-const DAY_LETTERS = { Lun: "L", Mar: "M", Mié: "X", Jue: "J", Vie: "V", Sáb: "S", Dom: "D" };
+const DAY_LETTERS = DIA_LETRA;
 
 /** Read-only viewer for a history entry: no editing, no swap, no shopping list. */
 export function MenuHistoryView({ menu, data, onBack }) {
@@ -25,7 +26,8 @@ export function MenuHistoryView({ menu, data, onBack }) {
       <div
         style={{
           position: "sticky", top: 0, zIndex: 5, background: "#f7f9f7",
-          padding: "16px 16px 8px", display: "flex", alignItems: "center", gap: 10,
+          padding: "16px 16px 8px", paddingTop: safeTop(16),
+          display: "flex", alignItems: "center", gap: 10,
         }}
       >
         <button

@@ -5,7 +5,7 @@
 import { estimateListCost } from "./priceHistory.js";
 import { MATCH_HIGH, matchProductForIngredient, productIndexFor } from "./productMatcher.js";
 import { isMercadonaStore, loadStoreCatalog } from "./storeCatalog.js";
-import { PACK_KIND_LABEL, wantsPackFields } from "./packUnits.js";
+import { etiquetaEnvase, wantsPackFields } from "./packUnits.js";
 import { guessShoppingAisle } from "./ingredientCategories.js";
 import { gramsPerPiece } from "./kitchenUnits.js";
 
@@ -82,17 +82,8 @@ function isPieceSoldFresh(name) {
   );
 }
 
-function pluralKind(kind, count) {
-  const label = PACK_KIND_LABEL[kind] ?? kind;
-  if (count === 1) return label;
-  if (kind === "lata") return "latas";
-  if (kind === "bolsa") return "bolsas";
-  if (kind === "botella") return "botellas";
-  if (kind === "bote") return "botes";
-  if (kind === "paquete") return "paquetes";
-  if (kind === "carton") return "cartones";
-  return label;
-}
+// Los plurales viven con sus ids en packUnits.js (#539): aquí no se escribe ningún envase a mano.
+const pluralKind = (kind, count) => etiquetaEnvase(kind, count);
 
 /** How many units you take home (packs × SKU size). */
 function totalQtyText(product, packs, item) {
@@ -288,6 +279,7 @@ function priceOneItem(item, catalogProducts, priceObs) {
           storePackLabel: buy.packLabel,
           storeTotalQty: buy.totalQtyText,
           storeUnitSize: buy.unitSizeText,
+          storeProductId: match.product.id,
           storePacks: buy.packs,
           storeConfidence: match.confidence,
           storePriceSource: "mercadona",
@@ -390,40 +382,4 @@ export async function estimateShoppingList(storeName, items = [], priceObs = [])
 export async function priceMapForItems(storeName, items = [], priceObs = []) {
   const { map } = await priceShoppingList(storeName, items, priceObs);
   return map;
-}
-
-/**
- * Coste estimado de UNA receta, por ración — mismo motor que la lista de la
- * compra (`priceShoppingList`), aplicado a los ingredientes ya escalados de
- * un plato en vez de a la lista agregada de la semana.
- * @param {{ingredients: object[]}} recipe con `ingredients` ya escalados
- *   (p. ej. salida de `scaledIngredients(recipe, eaters)`: cada uno con
- *   `id`, `name`, `unit` y la cantidad ya lista para comprar en `qtyScaled`
- *   — `null` en unidades cualitativas, "al gusto").
- * @param {number} servings raciones que cubren esos ingredientes ya escalados
- * @param {object[]} [priceObs] precios que el usuario ha registrado
- * @param {string} [store]
- * @returns {Promise<{perServing: number, confidence: number, matchedCount: number, totalCount: number} | null>}
- *   `null` si ningún ingrediente tiene precio — nunca se inventa un coste.
- */
-export async function estimateRecipeCost(recipe, servings, priceObs = [], store = "Mercadona") {
-  const ingredients = recipe?.ingredients ?? [];
-  if (ingredients.length === 0 || !(servings > 0)) return null;
-
-  const items = ingredients.map((ing) => ({
-    id: ing.id,
-    name: ing.name,
-    unit: ing.unit,
-    qty: ing.qtyScaled ?? ing.qty ?? null,
-  }));
-
-  const { estimate } = await priceShoppingList(store, items, priceObs);
-  if (estimate.matched === 0) return null;
-
-  return {
-    perServing: Math.round((estimate.total / servings) * 100) / 100,
-    confidence: estimate.matched / estimate.count,
-    matchedCount: estimate.matched,
-    totalCount: estimate.count,
-  };
 }

@@ -54,7 +54,7 @@
  * «malo».
  */
 
-import alimentos from "../../data/alimentos.json";
+import alimentos from "../../data/alimentos.json" with { type: "json" };
 
 /**
  * GRUPO 2 — ingredientes culinarios. Se reconocen por el `rol` que ya declara

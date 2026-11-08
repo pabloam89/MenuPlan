@@ -1,0 +1,175 @@
+import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+import { CONSULTAS, SOBRECARGA, conexionDeLaBase, leerMigraciones, leerSinAplicar, sentencias, testigos, veredictos } from "./verificar-estado.mjs";
+
+const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
+const ids = (sql) => testigos(sql).crea.map((t) => `${t.tipo}|${t.id}`);
+
+describe("leer el SQL", () => {
+  it("no parte por los ; de un cuerpo $$ ni de una cadena", () => {
+    const sql = "create function f() returns int as $$ begin; return 1; end $$ language plpgsql;\nselect ';';\n-- comentario; con punto y coma\nselect 2;";
+    expect(sentencias(sql)).toHaveLength(3);
+  });
+
+  it("saca tabla, columnas, constraint con sus literales, política, índice, trigger, enum y cron", () => {
+    const sql = `
+      create table if not exists public.bot_cola (id uuid primary key);
+      alter table public.bot_cola add column if not exists tipo text, add column "Raro" int;
+      alter table bot_cola add constraint bot_cola_tipo_check check (tipo in ('a', 'b'));
+      create policy "Leer lo suyo" on public.bot_cola for select using (true);
+      create unique index if not exists bot_cola_tipo on public.bot_cola (tipo);
+      create trigger t_cola before insert on public.bot_cola for each row execute function f();
+      create type public.papel as enum ('owner', 'viewer');
+      alter type public.papel add value if not exists 'editor';
+      select cron.schedule('bot-retencion', '17 3 * * *', 'select 1');
+    `;
+    expect(ids(sql)).toEqual([
+      "tabla|public.bot_cola",
+      "columna|public.bot_cola.tipo",
+      "columna|public.bot_cola.Raro",
+      "constraint|public.bot_cola:bot_cola_tipo_check",
+      "política|public.bot_cola:Leer lo suyo",
+      "índice|public.bot_cola_tipo",
+      "trigger|public.bot_cola:t_cola",
+      "tipo|public.papel",
+      "valor|public.papel:owner",
+      "valor|public.papel:viewer",
+      "valor|public.papel:editor",
+      "cron|bot-retencion",
+    ]);
+    expect(testigos(sql).crea.find((t) => t.tipo === "constraint").literales).toEqual(["a", "b"]);
+  });
+
+  it("guarda el cuerpo de la función para compararlo", () => {
+    const [f] = testigos("create or replace function public.g(x int) returns int language sql as $f$ select   x + 1 $f$;").crea;
+    expect(f).toMatchObject({ tipo: "función", id: "public.g", cuerpo: "select x + 1" });
+  });
+
+  it("saca el rol que se crea, también dentro de un do $$ (0051, 0092)", () => {
+    const sql = "do $$ begin if not exists (select 1 from pg_roles where rolname = 'consulta_lectura') then create role consulta_lectura; end if; end $$;\nalter role consulta_lectura with login;";
+    expect(ids(sql)).toEqual(["rol|consulta_lectura"]);
+    expect(testigos("drop role if exists consulta_lectura;").quita.map((t) => `${t.tipo}|${t.id}`)).toEqual(["rol|consulta_lectura"]);
+  });
+
+  // La 0091 salía «parcial 1/3» recién aplicada: buscaba sus funciones de
+  // pg_temp, que mueren con la sesión que las crea.
+  it("lo de pg_temp no es testigo: no sobrevive a la migración", () => {
+    const { crea, quita } = testigos("create function pg_temp.f() returns int language sql as $f$ select 1 $f$; create table pg_temp_3.t (a int); create table public.t (a int); drop function pg_temp.f();");
+    expect(crea.map((t) => t.id)).toEqual(["public.t"]);
+    expect(quita).toEqual([]);
+  });
+
+  it("apunta lo que se quita", () => {
+    const { quita } = testigos("alter table public.t drop constraint t_check; drop policy if exists \"p\" on public.t; drop function public.g(int);");
+    expect(quita.map((t) => `${t.tipo}|${t.id}`)).toEqual(["constraint|public.t:t_check", "política|public.t:p", "función|public.g"]);
+  });
+});
+
+describe("decidir", () => {
+  const migs = [
+    { nombre: "0001_a", ...testigos("create table public.a (id int); alter table public.a add constraint a_check check (x in ('uno'));") },
+    { nombre: "0002_b", ...testigos("alter table public.a drop constraint a_check; alter table public.a add constraint a_check check (x in ('uno','dos'));") },
+    { nombre: "0003_c", ...testigos("create table public.c (id int);") },
+    { nombre: "0004_d", ...testigos("create table public.d (id int); create table public.e (id int);") },
+  ];
+  const catalogo = {
+    tabla: new Map([["public.a", ""], ["public.d", ""]]),
+    constraint: new Map([["public.a:a_check", "CHECK ((x = ANY (ARRAY['uno'::text])))"]]),
+  };
+  const v = Object.fromEntries(veredictos(migs, catalogo, new Set(["0003_c"])).map((x) => [x.nombre, x]));
+
+  it("lo que redefine una migración posterior no cuenta para la anterior", () => {
+    expect(v["0001_a"].estado).toBe("aplicada");
+    expect(v["0001_a"].filas.find((f) => f.tipo === "constraint").resultado).toBe("después");
+  });
+  it("una constraint con la definición vieja sale distinta, no aplicada", () => {
+    expect(v["0002_b"].estado).toBe("parcial");
+    expect(v["0002_b"].choca).toBe(true);
+  });
+  it("sin aplicar y ESTADO.md de acuerdo: no choca", () => {
+    expect(v["0003_c"]).toMatchObject({ estado: "sin aplicar", choca: false });
+  });
+  it("a medias: parcial y choca", () => {
+    expect(v["0004_d"]).toMatchObject({ estado: "parcial", choca: true });
+  });
+});
+
+it("una función con dos versiones vale si coincide cualquiera", () => {
+  const migs = [{ nombre: "0001_f", ...testigos("create function public.f(a int) returns int language sql as $$ select 2 $$;") }];
+  const catalogo = { función: new Map([["public.f", `select 1${SOBRECARGA}select 2`]]) };
+  expect(veredictos(migs, catalogo, new Set())[0].estado).toBe("aplicada");
+});
+
+describe("con el usuario de solo lectura (#328)", () => {
+  it("lo que el usuario no puede ver (cron) sale «sin ver» y no cuenta: ni aplicada ni sin aplicar", () => {
+    const migs = [
+      { nombre: "0001_t", ...testigos("create table public.t (id int); select cron.schedule('job-x', '* * * * *', 'select 1');") },
+      { nombre: "0002_solo_cron", ...testigos("select cron.schedule('job-y', '* * * * *', 'select 1');") },
+    ];
+    const catalogo = { tabla: new Map([["public.t", ""]]), cron: null };
+    const v = Object.fromEntries(veredictos(migs, catalogo, new Set()).map((x) => [x.nombre, x]));
+    expect(v["0001_t"].estado).toBe("aplicada");
+    expect(v["0001_t"].filas.find((f) => f.tipo === "cron").resultado).toBe("sin ver");
+    expect(v["0002_solo_cron"]).toMatchObject({ estado: "sin ver", choca: false });
+  });
+
+  it("las columnas salen del catálogo y no de information_schema, que esconde las que el usuario no lee", () => {
+    expect(CONSULTAS.columna).not.toMatch(/information_schema/);
+    expect(CONSULTAS.columna).toMatch(/pg_attribute/);
+  });
+
+  it("entra con la URL de lectura; la de administrador, solo con --admin", () => {
+    const leer = (k) => ({ SUPABASE_DB_URL: "postgresql://admin@h/db", SUPABASE_DB_URL_LECTURA: "postgresql://consulta_lectura@h/db" })[k];
+    expect(conexionDeLaBase(leer, [])).toMatchObject({ url: "postgresql://consulta_lectura@h/db", rol: "consulta_lectura" });
+    expect(conexionDeLaBase(leer, ["--admin"]).url).toBe("postgresql://admin@h/db");
+    expect(() => conexionDeLaBase((k) => (k === "SUPABASE_DB_URL" ? "postgresql://admin@h/db" : undefined), [])).toThrow(/SUPABASE_DB_URL_LECTURA/);
+  });
+});
+
+describe("con el repo de verdad", () => {
+  const migraciones = leerMigraciones();
+
+  it("ve testigos en casi todas las migraciones", () => {
+    // Si un cambio en el lector deja de ver objetos, esto cae en picado.
+    const con = migraciones.filter((m) => m.crea.length > 0).length;
+    expect(con / migraciones.length).toBeGreaterThan(0.85);
+  });
+
+  it("la 0084 trae su constraint nueva con 'alta' dentro", () => {
+    const m = migraciones.find((x) => x.nombre === "0084_bot_codigo_alta");
+    const c = m.crea.find((t) => t.id === "public.bot_codigos:bot_codigos_tipo_check");
+    expect(c.literales).toContain("alta");
+  });
+
+  it("lee la lista «Sin aplicar» de ESTADO.md", () => {
+    const lista = leerSinAplicar(readFileSync(join(RAIZ, "supabase", "ESTADO.md"), "utf8"));
+    expect(lista.has("0021_store_products")).toBe(true);
+    expect(lista.has("0080_bot_tareas_v2")).toBe(false); // aplicada el 8 oct 2026
+  });
+});
+
+describe("privilegios por defecto quitados (0096)", () => {
+  const sql = "alter default privileges for role postgres in schema public revoke all on tables from anon;\n"
+    + "alter default privileges for role postgres in schema public revoke all on sequences from anon, public;";
+  const migs = [{ nombre: "0096_x", ...testigos(sql) }];
+
+  it("cada rol quitado es un testigo negativo", () => {
+    expect(migs[0].quita.map((t) => `${t.tipo}|${t.id}`)).toEqual([
+      "permiso_defecto|tables:anon", "permiso_defecto|sequences:anon", "permiso_defecto|sequences:public",
+    ]);
+    expect(migs[0].crea).toEqual([]);
+  });
+  it("aplicada si la plantilla ya no lleva a anon; sin aplicar si todavía sí", () => {
+    const sin = { permiso_defecto: new Map([["tables:anon", ""], ["tables:authenticated", ""], ["sequences:anon", ""], ["sequences:public", ""]]) };
+    expect(veredictos(migs, sin, new Set())[0].estado).toBe("sin aplicar");
+    const con = { permiso_defecto: new Map([["tables:authenticated", ""], ["functions:anon", ""]]) };
+    expect(veredictos(migs, con, new Set())[0].estado).toBe("aplicada");
+  });
+  it("lo de las funciones no cuenta: functions:anon en la plantilla no desmiente a tables:anon", () => {
+    const con = { permiso_defecto: new Map([["functions:anon", ""]]) };
+    expect(veredictos(migs, con, new Set())[0].estado).toBe("aplicada");
+  });
+});

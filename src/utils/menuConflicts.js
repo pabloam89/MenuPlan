@@ -84,14 +84,19 @@ export function findMenuRestrictionConflicts(data, menuPlan, recipesById = RECIP
         const recipe = recipesById[recipeId];
         if (!recipe) continue;
 
-        if (blockedAllergens.size > 0) {
+        // Un plato «adaptado sin gluten» no levanta la alergia al gluten: no hay
+        // certificado que lo garantice (ver filterRecipes.js), así que el aviso
+        // se mantiene aunque el plato tenga el recambio.
+        const recipeBlocked = blockedAllergens;
+
+        if (recipeBlocked.size > 0) {
           const declaredHit = (recipe.allergens ?? [])
             .map(normalizeAllergenId)
-            .find((id) => blockedAllergens.has(id));
+            .find((id) => recipeBlocked.has(id));
           const names = (recipe.ingredients ?? []).map((ing) => ing.name);
           const ingredientHitId = declaredHit
             ? null
-            : Array.from(blockedAllergens).find((id) =>
+            : Array.from(recipeBlocked).find((id) =>
                 recipeIngredientsHitAllergens(names, new Set([id])),
               );
           const hitId = declaredHit ?? ingredientHitId;

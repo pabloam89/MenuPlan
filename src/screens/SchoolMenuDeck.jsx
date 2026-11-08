@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Plus, Check, Pencil, Fish, Drumstick, Egg, Soup, Wheat, Leaf, ChefHat, Apple, X, Trash2 } from "../components/icons.jsx";
 import { SCHOOL_DAYS, SCHOOL_COURSES } from "../lib/schoolMenu.js";
+import { DIA_LARGO } from "../lib/dias.js";
 import { visualForRecipe } from "../assets/dishes/dishVisuals.js";
 import { dishImageForRecipe, dishImageUrl } from "../assets/dishes/dishImages.js";
 import { deckImg, deckSrcSet } from "../lib/dishPhotoOptimize.js";
@@ -13,13 +14,7 @@ import { memberAvatarColor, memberAvatarThumbSrc } from "../lib/stages.js";
 // Fast lookup by catalog id — built once at module init.
 const CATALOG_BY_ID = Object.fromEntries(recipeCatalog.map((r) => [r.id, r]));
 
-const SCHOOL_DAY_LABELS = {
-  Lun: "Lunes",
-  Mar: "Martes",
-  "Mié": "Miércoles",
-  Jue: "Jueves",
-  Vie: "Viernes",
-};
+const SCHOOL_DAY_LABELS = DIA_LARGO;
 
 const COURSE_LABEL = { Primero: "1º", Segundo: "2º", Postre: "Postre" };
 

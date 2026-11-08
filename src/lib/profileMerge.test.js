@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { shouldAdoptRemoteProfile, mergeUserRecipesById, mergeUserRecipesAfterCloudLoad } from "./profileMerge.js";
+import { shouldAdoptRemoteProfile, soloNubeAlCargar, mergeUserRecipesById, mergeUserRecipesAfterCloudLoad } from "./profileMerge.js";
 
 // Fase 5, punto 5: "Entrar sin cuenta" → completa onboarding localmente →
 // luego "Continuar con Google" no debe perder el perfil local (miembros,
@@ -85,5 +85,36 @@ describe("mergeUserRecipesById", () => {
     expect(mergeUserRecipesById()).toEqual([]);
     expect(mergeUserRecipesById([{ id: "x" }], undefined)).toHaveLength(1);
     expect(mergeUserRecipesById(undefined, [{ id: "y" }])).toHaveLength(1);
+  });
+});
+
+// C-1: dos casas en el mismo dispositivo. Así decide App.jsx al cargar una
+// casa si la familia que se queda es la de la nube o la que hay en memoria.
+describe("soloNubeAlCargar", () => {
+  const adoptaNube = ({ esMia, casaLocal, casa, local, remota }) =>
+    soloNubeAlCargar({ esMia, casaLocal, casa })
+    || shouldAdoptRemoteProfile({ localMemberCount: local, remoteMemberCount: remota });
+
+  it("al abrir la casa compartida de otro, no se queda TU familia", () => {
+    // Tu casa (A) con 3, abres la de tu pareja (B) con 2: antes ganaba lo
+    // local y el primer guardado subía tus 3 encima de sus 2.
+    expect(adoptaNube({ esMia: false, casaLocal: "A", casa: "B", local: 3, remota: 2 })).toBe(true);
+  });
+
+  it("al volver a tu casa, no te traes la familia de la otra", () => {
+    expect(adoptaNube({ esMia: true, casaLocal: "B", casa: "A", local: 2, remota: 3 })).toBe(true);
+  });
+
+  it("en tu casa y con lo local de tu casa, lo de siempre: gana lo local con familia", () => {
+    expect(adoptaNube({ esMia: true, casaLocal: "A", casa: "A", local: 3, remota: 1 })).toBe(false);
+  });
+
+  it("sin casa apuntada (sin cuenta, o de antes) en tu casa: lo de siempre", () => {
+    expect(adoptaNube({ esMia: true, casaLocal: null, casa: "A", local: 3, remota: 1 })).toBe(false);
+    expect(adoptaNube({ esMia: true, casaLocal: null, casa: "A", local: 0, remota: 2 })).toBe(true);
+  });
+
+  it("sin casa apuntada en una casa ajena: manda la nube", () => {
+    expect(adoptaNube({ esMia: false, casaLocal: null, casa: "B", local: 3, remota: 2 })).toBe(true);
   });
 });

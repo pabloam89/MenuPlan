@@ -1,0 +1,57 @@
+{
+  "skill": "1password",
+  "casos": [
+    {
+      "id": "worktree-sin-env",
+      "peticion": "He creado una carpeta de trabajo nueva y no tiene .env.local. ¿Qué hago?",
+      "skill": "1password",
+      "debe_salir": [
+        "Dice que no hace falta: los scripts y Vite leen las direcciones de ops/env.1password, en git",
+        "No propone copiar ningún .env.local"
+      ]
+    },
+    {
+      "id": "clave-en-script",
+      "peticion": "Estoy escribiendo un script que necesita la SUPABASE_DB_URL. ¿Cómo la leo?",
+      "skill": "1password",
+      "debe_salir": [
+        "Propone leerEnv de scripts/lib/env.mjs",
+        "Dice que no se lea .env.local a mano con readFileSync",
+        "No imprime ni escribe el valor de la clave"
+      ]
+    },
+    {
+      "id": "valor-cambiado-en-ficha",
+      "peticion": "He cambiado el valor de una clave en su ficha de 1Password. ¿Tengo que tocar algo en mi .env.local?",
+      "skill": "1password",
+      "debe_salir": [
+        "Dice que no: .env.local guarda direcciones op:// y no cambian al cambiar el valor de la ficha",
+        "Si la clave está en la lista COPIAR, dice que hay que cambiarla también en HoMenu-sesiones",
+        "Remite el cambio de punta a punta de la clave (servicio, caducidad, destinos) a la skill alta-de-secreto"
+      ]
+    },
+    {
+      "id": "frontera-rotar-clave",
+      "peticion": "Hay que rotar la clave de la API de Anthropic.",
+      "skill": "alta-de-secreto",
+      "nota": "Casi-fallo: es una clave que vive en 1Password, pero rotarla de punta a punta (servicio, ficha, destinos, revocar la vieja) es de alta-de-secreto, y 1password lo excluye en su descripción."
+    },
+    {
+      "id": "frontera-logged-out",
+      "peticion": "Al intentar entrar al servidor del panel, Tailscale dice Logged out.",
+      "skill": "tailscale"
+    },
+    {
+      "id": "frontera-alta-completa",
+      "peticion": "Ya tengo creada la ficha de 1Password del servicio nuevo; falta decidir el ámbito y la caducidad del token, subirlo al environment de GitHub y apuntarlo en el inventario.",
+      "skill": "alta-de-secreto",
+      "nota": "Casi-fallo: nombra 1Password y su ficha, pero la ficha es solo un paso; el alta de punta a punta (ámbito, caducidad, destino, inventario) es de alta-de-secreto, y 1password lo excluye en su descripción."
+    },
+    {
+      "id": "frontera-actualizar-servidor",
+      "peticion": "Quiero actualizar los paquetes del servidor del panel; entro con la llave que guarda 1Password, ¿qué hago?",
+      "skill": "hetzner",
+      "nota": "Casi-fallo: menciona la llave de 1Password, pero actualizar el servidor es de hetzner."
+    }
+  ]
+}

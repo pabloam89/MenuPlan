@@ -1,0 +1,4 @@
+# Ensayos de restauración de las copias de la base (encargo #247).
+# Una línea por ensayo, la escribe scripts/copias-ensayo.mjs (sin datos de familias:
+# tablas y recuentos). Cadencia y cómo lanzarlo: skill hetzner. Se cuenta con
+# leerLinea de scripts/lib/copias.mjs; las líneas con # no cuentan.

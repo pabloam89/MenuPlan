@@ -1,0 +1,592 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { mkdtempSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+// `op` de mentira: responde a `op inject` con «VALOR-de-<dirección>» y apunta
+// cada llamada, para ver cuántas se hacen y con qué token.
+const llamadas = [];
+vi.mock("node:child_process", () => ({
+  execFileSync: (cmd, args, opts) => {
+    llamadas.push({ cmd, args, token: opts?.env?.OP_SERVICE_ACCOUNT_TOKEN, input: opts?.input });
+    if (cmd !== "op") throw new Error(`no se esperaba ${cmd}`);
+    if (!opts?.input) {
+      // Una llamada sin plantilla (opPorLaApp): apunta y devuelve o falla a voluntad.
+      if (globalThis.__sinOp) throw Object.assign(new Error("spawn op ENOENT"), { code: "ENOENT" });
+      if (globalThis.__falloApp) throw Object.assign(new Error("Command failed"), { status: 1, stdout: "", stderr: "[ERROR] no autorizado\nsegunda linea" });
+      return `salida de op ${args.join(" ")}`;
+    }
+    if (globalThis.__sinOp) throw Object.assign(new Error("spawn op ENOENT"), { code: "ENOENT" });
+    if (globalThis.__limite) throw Object.assign(new Error("Command failed: op inject"), { status: 1, stderr: "[ERROR] 2026/10/11 08:36:59 Too many requests. Your client has been rate-limited. Try again in  seconds\n" });
+    // Un fallo que pasa (red caída): no dice que la dirección no exista.
+    const caida = [...(globalThis.__redCaida ?? [])].find((ref) => opts.input.includes(`{{ ${ref} }}`));
+    if (caida) throw Object.assign(new Error("Command failed: op inject"), { status: 1, stderr: "[ERROR] dial tcp: connection refused\n" });
+    // Como `op inject`: basta una dirección que no existe para que falle entera.
+    const mala = [...globalThis.__noExisten].find((ref) => opts.input.includes(`{{ ${ref} }}`));
+    if (mala) throw Object.assign(new Error("Command failed: op inject"), { status: 1, stderr: `[ERROR] could not resolve item UUID for ${mala}\n` });
+    return opts.input.split("\n").map((l) => l.replace(/\{\{ (op:\/\/[^}]+) \}\}/, (_, ref) => `VALOR-de-${ref.trim()}`)).join("\n");
+  },
+}));
+
+const { BOVEDA_SESIONES, cargarEnv, direcciones, enOtraBoveda, esReferencia, leerEnv, leerFichero, opPorLaApp, MOTIVOS_AVISO, VAR_OP_PABLO } = await import("./env.mjs");
+
+const NOMBRES = ["PRUEBA_A", "PRUEBA_B", "PRUEBA_C", "PRUEBA_LLANA", "PRUEBA_D", "PRUEBA_E", "PRUEBA_F", "PRUEBA_G"];
+beforeEach(() => {
+  llamadas.length = 0;
+  globalThis.__sinOp = false;
+  globalThis.__noExisten = new Set();
+  process.env.OP_SERVICE_ACCOUNT_TOKEN = "ops_de_prueba";
+});
+afterEach(() => {
+  for (const k of NOMBRES) delete process.env[k];
+  delete process.env.OP_SERVICE_ACCOUNT_TOKEN;
+});
+
+describe("leerFichero", () => {
+  it("quita comillas, ignora comentarios y líneas sin valor", () => {
+    const dir = mkdtempSync(join(tmpdir(), "env-"));
+    const ruta = join(dir, ".env.local");
+    writeFileSync(ruta, '# comentario\nA="con comillas"\nB=op://HoMenu/Item/B\r\nSOLO_NOMBRE\nVACIA=\nC=\'simples\'\n');
+    expect(leerFichero(ruta)).toEqual({ A: "con comillas", B: "op://HoMenu/Item/B", C: "simples" });
+  });
+
+  it("sin fichero, vacío (el CI no tiene .env.local)", () => {
+    expect(leerFichero(join(tmpdir(), "no-existe", ".env.local"))).toEqual({});
+  });
+});
+
+describe("direcciones: la plantilla de git manda, .env.local solo añade lo de cada PC", () => {
+  const SESIONES = "op://HoMenu-sesiones/Supabase lectura/URL";
+  const VIEJA = "op://HoMenu/Supabase lectura/URL";
+  const ADMIN = "op://HoMenu/Supabase/ADMIN";
+  function ficheros(local) {
+    const dir = mkdtempSync(join(tmpdir(), "dir-"));
+    writeFileSync(join(dir, "plantilla"), `# comentario\nLECTURA=${SESIONES}\nOTRA=op://HoMenu-sesiones/X/OTRA\n`);
+    if (local !== undefined) writeFileSync(join(dir, ".env.local"), local);
+    return { plantilla: join(dir, "plantilla"), local: join(dir, ".env.local"), entorno: {} };
+  }
+
+  it("sin .env.local, las de la plantilla (una carpeta nueva no copia nada)", () => {
+    expect(direcciones(ficheros())).toEqual({ LECTURA: SESIONES, OTRA: "op://HoMenu-sesiones/X/OTRA" });
+  });
+
+  it("una dirección vieja de .env.local no pisa a la plantilla, y lo avisa con su nombre y sin la dirección", () => {
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      const d = direcciones(ficheros(`LECTURA=${VIEJA}\nADMIN=${ADMIN}\n`));
+      expect(d.LECTURA).toBe(SESIONES);
+      expect(d.ADMIN).toBe(ADMIN);
+      expect(err).toHaveBeenCalledTimes(1);
+      expect(err.mock.calls[0][0]).toMatch(/env-direcciones: .*LECTURA/);
+      expect(err.mock.calls[0][0]).not.toContain("op://");
+    } finally {
+      err.mockRestore();
+    }
+  });
+
+  it("un valor en claro de .env.local sí manda (una prueba a mano), y la misma dirección no avisa", () => {
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      expect(direcciones(ficheros(`LECTURA=postgres://a-mano\nOTRA=op://HoMenu-sesiones/X/OTRA\n`)).LECTURA).toBe("postgres://a-mano");
+      expect(err).not.toHaveBeenCalled();
+    } finally {
+      err.mockRestore();
+    }
+  });
+
+  it("en el CI y en Vercel no hay plantilla: solo lo que hubiera en .env.local", () => {
+    for (const entorno of [{ CI: "true" }, { VERCEL: "1" }]) {
+      expect(direcciones({ ...ficheros(), entorno })).toEqual({});
+    }
+  });
+
+  it("la plantilla de verdad solo nombra HoMenu-sesiones: lo que lee una carpeta nueva lo ve la cuenta de las sesiones", () => {
+    const d = direcciones({ local: join(tmpdir(), "no-existe", ".env.local"), entorno: {} });
+    const refs = Object.values(d).filter(esReferencia);
+    expect(refs.length).toBeGreaterThan(0);
+    expect(refs.filter((r) => !r.startsWith(`op://${BOVEDA_SESIONES}/`))).toEqual([]);
+  });
+});
+
+describe("leerEnv", () => {
+  it("un valor en claro del entorno sale tal cual, sin llamar a op", () => {
+    process.env.PRUEBA_LLANA = "clave-en-claro";
+    expect(leerEnv("PRUEBA_LLANA")).toBe("clave-en-claro");
+    expect(llamadas).toEqual([]);
+  });
+
+  it("una dirección op:// se pide a 1Password con el token de la service account", () => {
+    process.env.PRUEBA_A = "op://HoMenu/Uno/PRUEBA_A";
+    expect(leerEnv("PRUEBA_A")).toBe("VALOR-de-op://HoMenu/Uno/PRUEBA_A");
+    expect(llamadas).toHaveLength(1);
+    expect(llamadas[0].token).toBe("ops_de_prueba");
+  });
+
+  it("sin el comando op, el error lo dice en llano", () => {
+    globalThis.__sinOp = true;
+    process.env.PRUEBA_B = "op://HoMenu/Otro/PRUEBA_B";
+    expect(() => leerEnv("PRUEBA_B")).toThrow(/no encuentro el comando `op`/);
+  });
+
+  it("obligatoria y ausente, lanza", () => {
+    expect(() => leerEnv("PRUEBA_NO_EXISTE_NUNCA", { obligatoria: true })).toThrow(/Falta PRUEBA_NO_EXISTE_NUNCA/);
+  });
+});
+
+describe("cargarEnv", () => {
+  it("resuelve varias direcciones en UNA sola llamada y deja lo llano como está", () => {
+    process.env.PRUEBA_A = "op://HoMenu/Varias/PRUEBA_A";
+    process.env.PRUEBA_C = "op://HoMenu/Varias/PRUEBA_C";
+    process.env.PRUEBA_LLANA = "llana";
+    cargarEnv(["PRUEBA_A", "PRUEBA_C", "PRUEBA_LLANA"]);
+    expect(llamadas).toHaveLength(1);
+    expect(process.env.PRUEBA_A).toBe("VALOR-de-op://HoMenu/Varias/PRUEBA_A");
+    expect(process.env.PRUEBA_C).toBe("VALOR-de-op://HoMenu/Varias/PRUEBA_C");
+    expect(process.env.PRUEBA_LLANA).toBe("llana");
+    expect(Object.values(process.env).some(esReferencia)).toBe(false);
+  });
+});
+
+describe("plan B entre bóvedas (#299): HoMenu-sesiones y HoMenu", () => {
+  it("enOtraBoveda cambia solo entre las dos bóvedas de MenuPlan", () => {
+    expect(enOtraBoveda("op://HoMenu-sesiones/Groq/GROQ_API_KEY")).toBe("op://HoMenu/Groq/GROQ_API_KEY");
+    expect(enOtraBoveda("op://HoMenu/Groq/GROQ_API_KEY")).toBe("op://HoMenu-sesiones/Groq/GROQ_API_KEY");
+    expect(enOtraBoveda("op://Panel HoMenu/Postgres del panel/password")).toBeNull();
+    expect(enOtraBoveda("op://Private/Hetzner/password")).toBeNull();
+  });
+
+  it("una dirección de HoMenu-sesiones que aún no existe se lee de HoMenu y lo avisa en una línea", () => {
+    const aviso = vi.spyOn(console, "error").mockImplementation(() => {});
+    globalThis.__noExisten.add("op://HoMenu-sesiones/Nueva/PRUEBA_D");
+    process.env.PRUEBA_D = "op://HoMenu-sesiones/Nueva/PRUEBA_D";
+    process.env.PRUEBA_E = "op://HoMenu-sesiones/Ya/PRUEBA_E";
+    cargarEnv(["PRUEBA_D", "PRUEBA_E"]);
+    expect(process.env.PRUEBA_D).toBe("VALOR-de-op://HoMenu/Nueva/PRUEBA_D");
+    expect(process.env.PRUEBA_E).toBe("VALOR-de-op://HoMenu-sesiones/Ya/PRUEBA_E");
+    expect(aviso).toHaveBeenCalledTimes(1);
+    expect(aviso.mock.calls[0][0]).toBe(`env-boveda clave: PRUEBA_D de: HoMenu-sesiones a: HoMenu motivo: ${MOTIVOS_AVISO.RESPALDO}`);
+    // Nunca el valor en el aviso.
+    expect(aviso.mock.calls[0][0]).not.toMatch(/VALOR/);
+    aviso.mockRestore();
+  });
+
+  it("un .env.local viejo (HoMenu) sigue leyendo cuando la clave ya se movió a HoMenu-sesiones", () => {
+    const aviso = vi.spyOn(console, "error").mockImplementation(() => {});
+    globalThis.__noExisten.add("op://HoMenu/Movida/PRUEBA_F");
+    process.env.PRUEBA_F = "op://HoMenu/Movida/PRUEBA_F";
+    expect(leerEnv("PRUEBA_F")).toBe("VALOR-de-op://HoMenu-sesiones/Movida/PRUEBA_F");
+    aviso.mockRestore();
+  });
+
+  it("si no está en ninguna de las dos, falla con su nombre y no avisa de ningún respaldo", () => {
+    const aviso = vi.spyOn(console, "error").mockImplementation(() => {});
+    globalThis.__noExisten.add("op://HoMenu-sesiones/Nada/PRUEBA_G");
+    globalThis.__noExisten.add("op://HoMenu/Nada/PRUEBA_G");
+    process.env.PRUEBA_G = "op://HoMenu-sesiones/Nada/PRUEBA_G";
+    expect(() => leerEnv("PRUEBA_G")).toThrow(/No pude leer de 1Password PRUEBA_G: \[ERROR\] could not resolve/);
+    expect(aviso).not.toHaveBeenCalled();
+    aviso.mockRestore();
+  });
+
+  it("tolerante (Vite): la que no se puede leer queda vacía, con aviso y sin la dirección; las demás se leen", () => {
+    const aviso = vi.spyOn(console, "error").mockImplementation(() => {});
+    globalThis.__noExisten.add("op://HoMenu/Admin/PRUEBA_B");
+    globalThis.__noExisten.add("op://HoMenu-sesiones/Admin/PRUEBA_B");
+    process.env.PRUEBA_B = "op://HoMenu/Admin/PRUEBA_B";
+    process.env.PRUEBA_C = "op://HoMenu-sesiones/Tolerante/PRUEBA_C";
+    cargarEnv(["PRUEBA_B", "PRUEBA_C"], { tolerante: true });
+    expect(process.env.PRUEBA_B).toBe("");
+    expect(process.env.PRUEBA_C).toBe("VALOR-de-op://HoMenu-sesiones/Tolerante/PRUEBA_C");
+    const avisos = aviso.mock.calls.map((c) => c[0]);
+    expect(avisos[0]).toBe(`env-boveda clave: PRUEBA_B motivo: ${MOTIVOS_AVISO.SIN_ACCESO}`);
+    // El detalle dice lo que dijo 1Password, sin la dirección.
+    expect(avisos.join("\n")).not.toContain("op://");
+    aviso.mockRestore();
+  });
+
+  it("sin tolerante, la misma clave para el script con su nombre", () => {
+    globalThis.__noExisten.add("op://HoMenu/Admin2/PRUEBA_B");
+    globalThis.__noExisten.add("op://HoMenu-sesiones/Admin2/PRUEBA_B");
+    process.env.PRUEBA_B = "op://HoMenu/Admin2/PRUEBA_B";
+    expect(() => cargarEnv(["PRUEBA_B"])).toThrow(/No pude leer de 1Password PRUEBA_B/);
+  });
+
+  it("con MENUPLAN_OP_PABLO=1, op va sin la service account (app de escritorio, aprobación de Pablo)", () => {
+    process.env.MENUPLAN_OP_PABLO = "1";
+    try {
+      process.env.PRUEBA_A = "op://HoMenu/Pablo/PRUEBA_A";
+      leerEnv("PRUEBA_A");
+      expect(llamadas.at(-1).token).toBeUndefined();
+    } finally {
+      delete process.env.MENUPLAN_OP_PABLO;
+    }
+    process.env.PRUEBA_C = "op://HoMenu/Pablo/PRUEBA_C";
+    leerEnv("PRUEBA_C");
+    expect(llamadas.at(-1).token).toBe("ops_de_prueba");
+  });
+
+  it("de cualquier otra bóveda no hay respaldo", () => {
+    globalThis.__noExisten.add("op://Panel HoMenu/X/PRUEBA_A");
+    process.env.PRUEBA_A = "op://Panel HoMenu/X/PRUEBA_A";
+    expect(() => leerEnv("PRUEBA_A")).toThrow(/PRUEBA_A/);
+    expect(llamadas.some((l) => l.input.includes("HoMenu-sesiones"))).toBe(false);
+  });
+});
+
+describe("sin token, falla cerrado (#328)", () => {
+  it("sin token ni MENUPLAN_OP_PABLO no llama a op (ni cae a la app de escritorio); con la variable, sí y sin token", async () => {
+    delete process.env.OP_SERVICE_ACCOUNT_TOKEN;
+    vi.resetModules();
+    const fresco = await import("./env.mjs");
+    process.env.PRUEBA_A = "op://HoMenu-sesiones/X/PRUEBA_A";
+    expect(() => fresco.leerEnv("PRUEBA_A")).toThrow(/No pude leer de 1Password PRUEBA_A: no hay token de la service account/);
+    expect(() => fresco.cargarEnv(["PRUEBA_A"], { tolerante: true })).toThrow(/no hay token/);
+    expect(() => fresco.entornoOp()).toThrow(/MENUPLAN_OP_PABLO=1/);
+    expect(llamadas.filter((l) => l.cmd === "op")).toEqual([]);
+    process.env.MENUPLAN_OP_PABLO = "1";
+    try {
+      expect(fresco.leerEnv("PRUEBA_A")).toBe("VALOR-de-op://HoMenu-sesiones/X/PRUEBA_A");
+      expect(llamadas.filter((l) => l.cmd === "op").at(-1).token).toBeUndefined();
+    } finally {
+      delete process.env.MENUPLAN_OP_PABLO;
+    }
+  });
+});
+
+describe("opPorLaApp: el único camino a la app de escritorio (#328)", () => {
+  it("sin MENUPLAN_OP_PABLO=1 no llama a op: la app solo es de Pablo", () => {
+    const r = opPorLaApp(["vault", "list"]);
+    expect(r.status).not.toBe(0);
+    expect(r.stderr).toMatch(/MENUPLAN_OP_PABLO=1/);
+    expect(llamadas).toEqual([]);
+  });
+
+  it("con la variable, llama a op sin token aunque lo haya, y devuelve estado, salida y error", () => {
+    process.env.MENUPLAN_OP_PABLO = "1";
+    try {
+      const bien = opPorLaApp(["vault", "list"]);
+      expect(bien).toMatchObject({ status: 0, stdout: "salida de op vault list" });
+      expect(llamadas.at(-1).token).toBeUndefined();
+      globalThis.__falloApp = true;
+      expect(opPorLaApp(["read", "op://x/y/z"])).toMatchObject({ status: 1, stderr: expect.stringContaining("no autorizado") });
+      globalThis.__sinOp = true;
+      expect(opPorLaApp(["whoami"]).error?.code).toBe("ENOENT");
+    } finally {
+      delete process.env.MENUPLAN_OP_PABLO;
+      globalThis.__falloApp = false;
+    }
+  });
+
+  it("no queda ningún otro camino a la app en los scripts: nadie borra el token a mano", () => {
+    const aqui = dirname(fileURLToPath(import.meta.url));
+    const sueltos = [];
+    for (const f of ["..", "."].flatMap((d) => readdirSync(join(aqui, d)).filter((x) => x.endsWith(".mjs")).map((x) => join(aqui, d, x)))) {
+      if (f.endsWith("env.mjs")) continue;
+      if (/delete\s+\w+\.OP_SERVICE_ACCOUNT_TOKEN|OP_SERVICE_ACCOUNT_TOKEN:\s*_/.test(readFileSync(f, "utf8"))) sueltos.push(f);
+    }
+    expect(sueltos).toEqual([]);
+  });
+
+  // El token vive en el llavero, no en process.env: un `op` lanzado sin `entornoOp()` ya va por la
+  // app de escritorio (y le saca una ventana a Pablo) aunque nadie borre nada.
+  it("toda llamada a `op` desde scripts/ lleva entornoOp() (o pasa por opPorLaApp)", () => {
+    const aqui = dirname(fileURLToPath(import.meta.url));
+    const recorre = (d) => readdirSync(d, { withFileTypes: true }).flatMap((e) =>
+      e.isDirectory() ? recorre(join(d, e.name)) : /\.(mjs|js)$/.test(e.name) && !/\.test\.js$/.test(e.name) ? [join(d, e.name)] : []);
+    const sueltas = [];
+    for (const f of recorre(join(aqui, ".."))) {
+      if (f.endsWith("env.mjs")) continue;
+      const t = readFileSync(f, "utf8");
+      for (const m of t.matchAll(/\b(?:spawnSync|spawn|execFileSync|execFile|execSync)\(\s*["']op["']/g)) {
+        const ventana = t.slice(Math.max(0, m.index - 500), m.index + 400);
+        if (!/entornoOp\(/.test(ventana)) sueltas.push(`${f}:${t.slice(0, m.index).split("\n").length}`);
+      }
+    }
+    expect(sueltas).toEqual([]);
+  });
+});
+
+describe("registro de lecturas (#556)", () => {
+  const leerLog = (ruta) => readFileSync(ruta, "utf8").trim().split("\n").map((l) => JSON.parse(l));
+
+  it("cada llamada a op inject deja una línea con cuántas claves pidió y si fue un reintento, sin valores ni direcciones", () => {
+    const ruta = join(mkdtempSync(join(tmpdir(), "oplog-")), "lecturas.jsonl");
+    process.env.MENUPLAN_OP_LOG = ruta;
+    const aviso = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      process.env.PRUEBA_H = "op://HoMenu-sesiones/Log/PRUEBA_H";
+      process.env.PRUEBA_I = "op://HoMenu-sesiones/Log/PRUEBA_I";
+      cargarEnv(["PRUEBA_H", "PRUEBA_I"]);
+      const lineas = leerLog(ruta);
+      expect(lineas).toHaveLength(1);
+      expect(lineas[0]).toMatchObject({ claves: 2, reintento: false });
+      expect(typeof lineas[0].script).toBe("string");
+      expect(JSON.stringify(lineas)).not.toMatch(/VALOR|op:\/\//);
+    } finally {
+      delete process.env.MENUPLAN_OP_LOG;
+      delete process.env.PRUEBA_H;
+      delete process.env.PRUEBA_I;
+      aviso.mockRestore();
+    }
+  });
+
+  it("si una dirección falla, las lecturas de una en una quedan apuntadas como reintentos", () => {
+    const ruta = join(mkdtempSync(join(tmpdir(), "oplog-")), "lecturas.jsonl");
+    process.env.MENUPLAN_OP_LOG = ruta;
+    const aviso = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      globalThis.__noExisten.add("op://HoMenu-sesiones/Log/PRUEBA_J");
+      process.env.PRUEBA_J = "op://HoMenu-sesiones/Log/PRUEBA_J";
+      process.env.PRUEBA_K = "op://HoMenu-sesiones/Log/PRUEBA_K";
+      cargarEnv(["PRUEBA_J", "PRUEBA_K"]);
+      const lineas = leerLog(ruta);
+      expect(lineas[0]).toMatchObject({ claves: 2, reintento: false });
+      expect(lineas.slice(1).every((l) => l.reintento === true && l.claves === 1)).toBe(true);
+      expect(lineas.length).toBeGreaterThan(2);
+    } finally {
+      delete process.env.MENUPLAN_OP_LOG;
+      delete process.env.PRUEBA_J;
+      delete process.env.PRUEBA_K;
+      aviso.mockRestore();
+    }
+  });
+
+  it("sin MENUPLAN_OP_LOG y bajo vitest no escribe nada en el disco del usuario", () => {
+    expect(process.env.VITEST).toBeTruthy();
+    expect(process.env.MENUPLAN_OP_LOG).toBeUndefined();
+    process.env.PRUEBA_L = "op://HoMenu-sesiones/Log/PRUEBA_L";
+    try {
+      expect(leerEnv("PRUEBA_L")).toBe("VALOR-de-op://HoMenu-sesiones/Log/PRUEBA_L");
+    } finally {
+      delete process.env.PRUEBA_L;
+    }
+  });
+
+  it("el límite de lecturas de 1Password se explica con dónde mirar cuándo se reinicia", () => {
+    globalThis.__limite = true;
+    process.env.PRUEBA_M = "op://HoMenu-sesiones/Limite/PRUEBA_M";
+    try {
+      expect(() => leerEnv("PRUEBA_M")).toThrow(/Too many requests.*service-account ratelimit/);
+    } finally {
+      globalThis.__limite = false;
+      delete process.env.PRUEBA_M;
+    }
+  });
+});
+
+describe("una clave de la otra bóveda cuesta una lectura (cupo diario de la cuenta)", () => {
+  const movida = "op://HoMenu/Ruta/PRUEBA_N";
+  const buena = "op://HoMenu-sesiones/Ruta/PRUEBA_N";
+  // Otro proceso: lo leído en este se olvida y la dirección vuelve a venir de .env.local.
+  const arrancar = async () => {
+    vi.resetModules();
+    llamadas.length = 0;
+    process.env.PRUEBA_N = movida;
+    return import("./env.mjs");
+  };
+  const conRutas = async (fn) => {
+    const ruta = join(mkdtempSync(join(tmpdir(), "oprutas-")), "rutas.json");
+    process.env.MENUPLAN_OP_RUTAS = ruta;
+    const aviso = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      return await fn(ruta);
+    } finally {
+      delete process.env.MENUPLAN_OP_RUTAS;
+      delete process.env.PRUEBA_N;
+      aviso.mockRestore();
+    }
+  };
+
+  it("como consulta.mjs dos veces: la primera, tres lecturas y aprende la ruta, sin valores; la segunda, una, sin reintentos", async () => {
+    await conRutas(async (ruta) => {
+      globalThis.__noExisten.add(movida);
+      expect((await arrancar()).leerEnv("PRUEBA_N")).toBe(`VALOR-de-${buena}`);
+      expect(llamadas).toHaveLength(3);
+      expect(JSON.parse(readFileSync(ruta, "utf8"))).toEqual({ [movida]: buena });
+
+      expect((await arrancar()).leerEnv("PRUEBA_N")).toBe(`VALOR-de-${buena}`);
+      expect(llamadas).toHaveLength(1);
+      expect(llamadas[0].input).toContain(buena);
+    });
+  });
+
+  it("si la clave vuelve a su sitio, la lee y olvida la ruta", async () => {
+    await conRutas(async (ruta) => {
+      writeFileSync(ruta, JSON.stringify({ [movida]: buena }));
+      globalThis.__noExisten.add(buena);
+      expect((await arrancar()).leerEnv("PRUEBA_N")).toBe(`VALOR-de-${movida}`);
+      expect(JSON.parse(readFileSync(ruta, "utf8"))).toEqual({});
+    });
+  });
+
+  it("una ruta que no es entre las dos bóvedas no se obedece", async () => {
+    await conRutas(async (ruta) => {
+      writeFileSync(ruta, JSON.stringify({ [movida]: "op://Personal/Otra/PRUEBA_N" }));
+      expect((await arrancar()).leerEnv("PRUEBA_N")).toBe(`VALOR-de-${movida}`);
+      expect(llamadas[0].input).not.toContain("Personal");
+    });
+  });
+
+  it("con la app de Pablo no se mira ni se apunta", async () => {
+    await conRutas(async (ruta) => {
+      writeFileSync(ruta, JSON.stringify({ [movida]: buena }));
+      process.env[VAR_OP_PABLO] = "1";
+      try {
+        expect((await arrancar()).leerEnv("PRUEBA_N")).toBe(`VALOR-de-${movida}`);
+      } finally {
+        delete process.env[VAR_OP_PABLO];
+      }
+    });
+  });
+});
+
+describe("lo que no se puede leer no se vuelve a pedir (cupo diario de la cuenta)", () => {
+  const conFichero = (fn) => {
+    const ruta = join(mkdtempSync(join(tmpdir(), "opsin-")), "sin-acceso.json");
+    process.env.MENUPLAN_OP_SIN_ACCESO = ruta;
+    const aviso = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      return fn(ruta, aviso);
+    } finally {
+      delete process.env.MENUPLAN_OP_SIN_ACCESO;
+      aviso.mockRestore();
+      for (const k of ["PRUEBA_N", "PRUEBA_O", "PRUEBA_P"]) delete process.env[k];
+    }
+  };
+  const administracion = "op://HoMenu/Admin3/PRUEBA_N";
+
+  it("como Vite al arrancar dos veces: la segunda, la clave de administración no se pide y las demás van en una sola lectura", () => {
+    conFichero((ruta, aviso) => {
+      globalThis.__noExisten.add(administracion);
+      globalThis.__noExisten.add("op://HoMenu-sesiones/Admin3/PRUEBA_N");
+      process.env.PRUEBA_N = administracion;
+      process.env.PRUEBA_O = "op://HoMenu-sesiones/Vite/PRUEBA_O";
+      cargarEnv(["PRUEBA_N", "PRUEBA_O"], { tolerante: true });
+      // Las dos juntas, y luego una a una (la de administración, también en la otra bóveda).
+      expect(llamadas).toHaveLength(4);
+      expect(Object.keys(JSON.parse(readFileSync(ruta, "utf8")))).toEqual([administracion]);
+      expect(readFileSync(ruta, "utf8")).not.toMatch(/VALOR/);
+
+      llamadas.length = 0;
+      aviso.mockClear();
+      process.env.PRUEBA_N = administracion; // otro arranque: la dirección vuelve a venir de .env.local
+      process.env.PRUEBA_P = "op://HoMenu-sesiones/Vite/PRUEBA_P";
+      cargarEnv(["PRUEBA_N", "PRUEBA_P"], { tolerante: true });
+      expect(llamadas).toHaveLength(1);
+      expect(llamadas[0].input).not.toContain(administracion);
+      expect(process.env.PRUEBA_N).toBe("");
+      expect(process.env.PRUEBA_P).toBe("VALOR-de-op://HoMenu-sesiones/Vite/PRUEBA_P");
+      const avisos = aviso.mock.calls.map((c) => c[0]);
+      expect(avisos).toContain(`env-boveda clave: PRUEBA_N motivo: ${MOTIVOS_AVISO.APUNTADA}`);
+      expect(avisos.at(-1)).toMatch(/^env-boveda: sin acceso desde .*borra /);
+    });
+  });
+
+  it("con la app de Pablo (MENUPLAN_OP_PABLO=1), lo apuntado por la cuenta de servicio no frena ni se apunta", () => {
+    conFichero((ruta) => {
+      const deLaApp = administracion.replace("Admin3", "Admin5");
+      const antes = JSON.stringify({ [deLaApp]: new Date().toISOString() });
+      writeFileSync(ruta, antes);
+      process.env.PRUEBA_N = deLaApp;
+      process.env[VAR_OP_PABLO] = "1";
+      try {
+        cargarEnv(["PRUEBA_N"]);
+        expect(process.env.PRUEBA_N).toBe(`VALOR-de-${deLaApp}`);
+        expect(llamadas.length).toBeGreaterThan(0);
+        globalThis.__noExisten.add("op://HoMenu/Otra/PRUEBA_O");
+        globalThis.__noExisten.add("op://HoMenu-sesiones/Otra/PRUEBA_O");
+        process.env.PRUEBA_O = "op://HoMenu/Otra/PRUEBA_O";
+        cargarEnv(["PRUEBA_O"], { tolerante: true });
+        expect(readFileSync(ruta, "utf8")).toBe(antes);
+      } finally {
+        delete process.env[VAR_OP_PABLO];
+      }
+    });
+  });
+
+  it("un script que la necesita falla con su nombre y dice qué borrar si ya hay acceso, sin llamar a op", () => {
+    conFichero((ruta) => {
+      writeFileSync(ruta, JSON.stringify({ [administracion]: new Date().toISOString() }));
+      process.env.PRUEBA_N = administracion;
+      let error = null;
+      try {
+        cargarEnv(["PRUEBA_N"]);
+      } catch (e) {
+        error = e.message;
+      }
+      expect(error).toMatch(/No pude leer de 1Password PRUEBA_N: sin acceso desde /);
+      expect(error).toContain(`borra ${ruta}`);
+      expect(llamadas).toHaveLength(0);
+    });
+  });
+
+  it("un fallo que pasa (red, token) no se apunta: la próxima vez se vuelve a pedir", () => {
+    conFichero((ruta) => {
+      globalThis.__redCaida = new Set(["op://HoMenu-sesiones/Red/PRUEBA_O", enOtraBoveda("op://HoMenu-sesiones/Red/PRUEBA_O")]);
+      try {
+        process.env.PRUEBA_O = "op://HoMenu-sesiones/Red/PRUEBA_O";
+        const aviso = vi.spyOn(console, "error").mockImplementation(() => {});
+        cargarEnv(["PRUEBA_O"], { tolerante: true });
+        const avisos = aviso.mock.calls.map((c) => c[0]);
+        aviso.mockRestore();
+        expect(avisos).toContain(`env-boveda clave: PRUEBA_O motivo: ${MOTIVOS_AVISO.FALLO}`);
+        expect(avisos.at(-1)).toMatch(/connection refused/);
+        expect(process.env.PRUEBA_O).toBe("");
+        expect(() => readFileSync(ruta, "utf8")).toThrow();
+      } finally {
+        globalThis.__redCaida = null;
+      }
+    });
+  });
+
+  it("en un script, cada clave que falla lleva su motivo: la apuntada no tapa el de la nueva", () => {
+    conFichero((ruta) => {
+      writeFileSync(ruta, JSON.stringify({ [administracion]: new Date().toISOString() }));
+      globalThis.__noExisten.add("op://HoMenu-sesiones/Nueva/PRUEBA_Q");
+      globalThis.__noExisten.add(enOtraBoveda("op://HoMenu-sesiones/Nueva/PRUEBA_Q"));
+      process.env.PRUEBA_N = administracion;
+      process.env.PRUEBA_Q = "op://HoMenu-sesiones/Nueva/PRUEBA_Q";
+      let error = null;
+      try {
+        cargarEnv(["PRUEBA_N", "PRUEBA_Q"]);
+      } catch (e) {
+        error = e.message;
+      }
+      expect(error).toMatch(/PRUEBA_Q: \[ERROR\] could not resolve item UUID/);
+      expect(error).toMatch(/PRUEBA_N: sin acceso desde /);
+    });
+  });
+
+  it("pasado un día se vuelve a probar (el acceso puede haber cambiado)", () => {
+    conFichero((ruta) => {
+      const vieja = administracion.replace("Admin3", "Admin4"); // otra dirección: ninguna lectura de otro test la tiene en memoria
+      writeFileSync(ruta, JSON.stringify({ [vieja]: new Date(Date.now() - 25 * 3600e3).toISOString() }));
+      process.env.PRUEBA_N = vieja;
+      expect(leerEnv("PRUEBA_N")).toBe(`VALOR-de-${vieja}`);
+      expect(llamadas).toHaveLength(1);
+    });
+  });
+
+  it("sin cupo no se reintenta una a una ni se apunta como sin acceso", () => {
+    conFichero((ruta) => {
+      globalThis.__limite = true;
+      try {
+        process.env.PRUEBA_O = "op://HoMenu-sesiones/Cupo/PRUEBA_O";
+        process.env.PRUEBA_P = "op://HoMenu-sesiones/Cupo/PRUEBA_P";
+        const aviso = vi.spyOn(console, "error").mockImplementation(() => {});
+        cargarEnv(["PRUEBA_O", "PRUEBA_P"], { tolerante: true });
+        const avisos = aviso.mock.calls.map((c) => c[0]);
+        aviso.mockRestore();
+        expect(avisos).toContain(`env-boveda clave: PRUEBA_O motivo: ${MOTIVOS_AVISO.SIN_CUPO}`);
+        expect(avisos).not.toContain(`env-boveda clave: PRUEBA_O motivo: ${MOTIVOS_AVISO.SIN_ACCESO}`);
+        expect(avisos.at(-1)).toMatch(/^env-boveda: .*Too many requests/);
+        expect(llamadas).toHaveLength(1);
+        expect(process.env.PRUEBA_O).toBe("");
+        expect(() => readFileSync(ruta, "utf8")).toThrow();
+      } finally {
+        globalThis.__limite = false;
+      }
+    });
+  });
+});

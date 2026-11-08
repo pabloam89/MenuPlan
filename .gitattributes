@@ -1,0 +1,26 @@
+# Saltos de línea: LF en el repo y en la copia de trabajo, en Windows también.
+#
+# Sin esto, git en Windows (core.autocrlf=true) saca los ficheros con CRLF y
+# las herramientas que escriben LF (vitest con sus snapshots, los scripts de
+# node) dejan ficheros «modificados» que no lo están, más un aviso de CRLF en
+# cada commit. Medido el 8 oct 2026: todo el índice ya está en LF, así que esto
+# no reescribe nada.
+* text=auto eol=lf
+
+# Los .bat y .cmd de Windows sí necesitan CRLF.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binarios: ni se tocan ni se diffean.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.mp4 binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.p12 binary

@@ -1,0 +1,141 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`con BOT_FICHA_RPC apagado, lo que lee Lola es lo de antes > grupo (con BOT_TAREAS_V2): la ficha y las tareas, byte a byte 1`] = `
+{
+  "entrada": "[Tareas abiertas de la casa. No las ha escrito la persona.]
+- [a1b2c3d4] Falta saber: ¿Vega tiene alguna alergia? (se pidió en otro chat)
+- [b1b2c3d4] Seguimiento: Comprar pan sin gluten para el sábado (para Lucas; se encarga Marta; antes del 2026-10-10)
+Ciérralas con cerrar_tarea y su referencia solo si lo que dicen ahora la resuelve sin duda. Si hay más de una a la que podría referirse, pregunta cuál.
+Lo de «Falta saber» ya lo preguntaste y te dijeron que luego: no lo repitas en cada mensaje. Sácalo solo cuando vayas a proponer o generar algo para esa persona, y entonces una vez, de pasada.
+
+[Pablo]: ¿qué cenamos?",
+  "ficha": [
+    "FICHA DE LA CASA (datos para ti, no un formato: tú contesta siempre en HTML de Telegram, nunca con ** ni guiones. Es lo guardado ahora y manda sobre lo dicho en charlas de otros días)
+SEGURIDAD
+- Lucas: alergia a frutos de cáscara. Pablo y Marta: ninguna. Vega y Leo: SIN PREGUNTAR.
+- Lo de Lucas aplica a todo «Mayores».
+- Marta: lactancia hasta 31/12.
+- Lucas: Intolerancia a la fructosa.
+- Vega (12 m): bebé, ya come sólidos (trozos que coge con la mano).
+CASA
+- Pablo 39 · Marta 37 · Lucas 7 (no le gusta: champiñón) · Vega 1 · Leo 40.
+- Menús: «Mayores» (Pablo, Marta, Lucas y Leo) y «Vega» (Vega).
+- Lucas: cole L–V a mediodía.
+COCINA
+- Se planifican: comida y cena. Comida: primero y segundo.
+- Despensa: el menú se hace sin mirar lo de casa (la compra sigue descontando lo que tengas).",
+    "TRATO CON QUIEN ESCRIBE (se cambia con ajustar_trato si lo pide): ritmo guiado: ve paso a paso y, antes de decidir algo que no es obvio, pregúntale; al pedir un menú, ofrece los tres caminos; mensajes cortos, lo justo. La seguridad (alergias, salud) se pregunta siempre, sea cual sea el trato.
+jue 8 oct (2026-10-08)
+ESTADO DEL MENÚ (manda sobre la charla): hoy=2026-10-08 · menu_hoy=ninguno · ultimo_dia_con_menu=ninguno · proximo_dia_con_menu=ninguno
+MENÚ: todavía no hay ninguno.
+PENDIENTE
+- ¿Vega tiene alguna alergia o intolerancia?",
+  ],
+}
+`;
+
+exports[`con BOT_FICHA_RPC apagado, lo que lee Lola es lo de antes > grupo: la ficha y las tareas, byte a byte 1`] = `
+{
+  "entrada": "[Tareas abiertas de la casa. No las ha escrito la persona.]
+- [a1b2c3d4] Falta saber: ¿Vega tiene alguna alergia? (se pidió en otro chat)
+- [b1b2c3d4] Seguimiento: Comprar pan sin gluten para el sábado (para Lucas; se encarga Marta; antes del 2026-10-10)
+Ciérralas con cerrar_tarea y su referencia solo si lo que dicen ahora la resuelve sin duda. Si hay más de una a la que podría referirse, pregunta cuál.
+Lo de «Falta saber» ya lo preguntaste y te dijeron que luego: no lo repitas en cada mensaje. Sácalo solo cuando vayas a proponer o generar algo para esa persona, y entonces una vez, de pasada.
+
+[Pablo]: ¿qué cenamos?",
+  "ficha": [
+    "FICHA DE LA CASA (datos para ti, no un formato: tú contesta siempre en HTML de Telegram, nunca con ** ni guiones. Es lo guardado ahora y manda sobre lo dicho en charlas de otros días)
+SEGURIDAD
+- Lucas: alergia a frutos de cáscara. Pablo y Marta: ninguna. Vega y Leo: SIN PREGUNTAR.
+- Lo de Lucas aplica a todo «Mayores».
+- Marta: lactancia hasta 31/12.
+- Lucas: Intolerancia a la fructosa.
+- Vega (12 m): bebé, ya come sólidos (trozos que coge con la mano).
+CASA
+- Pablo 39 · Marta 37 · Lucas 7 (no le gusta: champiñón) · Vega 1 · Leo 40.
+- Menús: «Mayores» (Pablo, Marta, Lucas y Leo) y «Vega» (Vega).
+- Lucas: cole L–V a mediodía.
+COCINA
+- Se planifican: comida y cena. Comida: primero y segundo.
+- Despensa: el menú se hace sin mirar lo de casa (la compra sigue descontando lo que tengas).",
+    "TRATO CON QUIEN ESCRIBE (se cambia con ajustar_trato si lo pide): ritmo guiado: ve paso a paso y, antes de decidir algo que no es obvio, pregúntale; al pedir un menú, ofrece los tres caminos; mensajes cortos, lo justo. La seguridad (alergias, salud) se pregunta siempre, sea cual sea el trato.
+jue 8 oct (2026-10-08)
+ESTADO DEL MENÚ (manda sobre la charla): hoy=2026-10-08 · menu_hoy=ninguno · ultimo_dia_con_menu=ninguno · proximo_dia_con_menu=ninguno
+MENÚ: todavía no hay ninguno.
+PENDIENTE
+- ¿Vega tiene alguna alergia o intolerancia?",
+  ],
+}
+`;
+
+exports[`con BOT_FICHA_RPC apagado, lo que lee Lola es lo de antes > privado (con BOT_TAREAS_V2): la ficha y las tareas, byte a byte 1`] = `
+{
+  "entrada": "[Tareas abiertas de la casa. No las ha escrito la persona.]
+- [a1b2c3d4] Falta saber: ¿Vega tiene alguna alergia?
+- [b1b2c3d4] Seguimiento: Comprar pan sin gluten para el sábado (para Lucas; se encarga Marta; antes del 2026-10-10; se pidió en otro chat)
+- [c1b2c3d4] Seguimiento: Pedir el cordero al carnicero (personal)
+Ciérralas con cerrar_tarea y su referencia solo si lo que dicen ahora la resuelve sin duda. Si hay más de una a la que podría referirse, pregunta cuál.
+Lo de «Falta saber» ya lo preguntaste y te dijeron que luego: no lo repitas en cada mensaje. Sácalo solo cuando vayas a proponer o generar algo para esa persona, y entonces una vez, de pasada.
+
+¿qué cenamos?",
+  "ficha": [
+    "FICHA DE LA CASA (datos para ti, no un formato: tú contesta siempre en HTML de Telegram, nunca con ** ni guiones. Es lo guardado ahora y manda sobre lo dicho en charlas de otros días)
+SEGURIDAD
+- Lucas: alergia a frutos de cáscara. Pablo y Marta: ninguna. Vega y Leo: SIN PREGUNTAR.
+- Lo de Lucas aplica a todo «Mayores».
+- Marta: lactancia hasta 31/12.
+- Lucas: Intolerancia a la fructosa.
+- Vega (12 m): bebé, ya come sólidos (trozos que coge con la mano).
+CASA
+- Pablo 39 · Marta 37 · Lucas 7 (no le gusta: champiñón) · Vega 1 · Leo 40.
+- Menús: «Mayores» (Pablo, Marta, Lucas y Leo) y «Vega» (Vega).
+- Lucas: cole L–V a mediodía.
+COCINA
+- Se planifican: comida y cena. Comida: primero y segundo.
+- Despensa: el menú se hace sin mirar lo de casa (la compra sigue descontando lo que tengas).",
+    "TE ESCRIBE: no sé quién de la casa es (su cuenta no está unida a ninguna persona). Si para algo hace falta saberlo, pregúntaselo una vez por su nombre y dile que lo puede dejar marcado en la app, en Mi perfil («¿Quién eres?»).
+TRATO CON QUIEN ESCRIBE (se cambia con ajustar_trato si lo pide): ritmo guiado: ve paso a paso y, antes de decidir algo que no es obvio, pregúntale; al pedir un menú, ofrece los tres caminos; mensajes cortos, lo justo. La seguridad (alergias, salud) se pregunta siempre, sea cual sea el trato.
+jue 8 oct (2026-10-08)
+ESTADO DEL MENÚ (manda sobre la charla): hoy=2026-10-08 · menu_hoy=ninguno · ultimo_dia_con_menu=ninguno · proximo_dia_con_menu=ninguno
+MENÚ: todavía no hay ninguno.
+PENDIENTE
+- ¿Vega tiene alguna alergia o intolerancia?",
+  ],
+}
+`;
+
+exports[`con BOT_FICHA_RPC apagado, lo que lee Lola es lo de antes > privado: la ficha y las tareas, byte a byte 1`] = `
+{
+  "entrada": "[Tareas abiertas de la casa. No las ha escrito la persona.]
+- [a1b2c3d4] Falta saber: ¿Vega tiene alguna alergia?
+- [b1b2c3d4] Seguimiento: Comprar pan sin gluten para el sábado (para Lucas; se encarga Marta; antes del 2026-10-10; se pidió en otro chat)
+- [c1b2c3d4] Seguimiento: Pedir el cordero al carnicero (personal)
+Ciérralas con cerrar_tarea y su referencia solo si lo que dicen ahora la resuelve sin duda. Si hay más de una a la que podría referirse, pregunta cuál.
+Lo de «Falta saber» ya lo preguntaste y te dijeron que luego: no lo repitas en cada mensaje. Sácalo solo cuando vayas a proponer o generar algo para esa persona, y entonces una vez, de pasada.
+
+¿qué cenamos?",
+  "ficha": [
+    "FICHA DE LA CASA (datos para ti, no un formato: tú contesta siempre en HTML de Telegram, nunca con ** ni guiones. Es lo guardado ahora y manda sobre lo dicho en charlas de otros días)
+SEGURIDAD
+- Lucas: alergia a frutos de cáscara. Pablo y Marta: ninguna. Vega y Leo: SIN PREGUNTAR.
+- Lo de Lucas aplica a todo «Mayores».
+- Marta: lactancia hasta 31/12.
+- Lucas: Intolerancia a la fructosa.
+- Vega (12 m): bebé, ya come sólidos (trozos que coge con la mano).
+CASA
+- Pablo 39 · Marta 37 · Lucas 7 (no le gusta: champiñón) · Vega 1 · Leo 40.
+- Menús: «Mayores» (Pablo, Marta, Lucas y Leo) y «Vega» (Vega).
+- Lucas: cole L–V a mediodía.
+COCINA
+- Se planifican: comida y cena. Comida: primero y segundo.
+- Despensa: el menú se hace sin mirar lo de casa (la compra sigue descontando lo que tengas).",
+    "TE ESCRIBE: no sé quién de la casa es (su cuenta no está unida a ninguna persona). Si para algo hace falta saberlo, pregúntaselo una vez por su nombre y dile que lo puede dejar marcado en la app, en Mi perfil («¿Quién eres?»).
+TRATO CON QUIEN ESCRIBE (se cambia con ajustar_trato si lo pide): ritmo guiado: ve paso a paso y, antes de decidir algo que no es obvio, pregúntale; al pedir un menú, ofrece los tres caminos; mensajes cortos, lo justo. La seguridad (alergias, salud) se pregunta siempre, sea cual sea el trato.
+jue 8 oct (2026-10-08)
+ESTADO DEL MENÚ (manda sobre la charla): hoy=2026-10-08 · menu_hoy=ninguno · ultimo_dia_con_menu=ninguno · proximo_dia_con_menu=ninguno
+MENÚ: todavía no hay ninguno.
+PENDIENTE
+- ¿Vega tiene alguna alergia o intolerancia?",
+  ],
+}
+`;

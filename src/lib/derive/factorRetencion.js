@@ -39,7 +39,7 @@
  * y el operador lo dice, en vez de asumirles un 100 % que nadie ha medido.
  */
 
-import tabla from "../../data/retencion.json";
+import tabla from "../../data/retencion.json" with { type: "json" };
 
 const SIN_FACTOR = new Set(tabla._meta.nutrientesSinFactor);
 
