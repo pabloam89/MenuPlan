@@ -10,9 +10,10 @@ devolvió la redirección al banco, que no se completó.
 
 La grabación en crudo vive fuera del repo (`~/.menuplan/`) y ya va sin datos de
 la persona (`scripts/lib/mercadonaGrabacion.mjs`). Aquí no hay ni un id real:
-`:cliente`, `:pedido`, `:direccion`, `:lista` son marcadores. Todas las rutas
-llevan `?lang=es&wh=<almacén>` y la cabecera de autorización con el token de la
-sesión, como ya hace `scripts/lib/mercadonaPagina.mjs`.
+`:cliente`, `:pedido`, `:direccion`, `:lista` son marcadores. La web pone en
+todas las rutas `?lang=es&wh=<almacén>` y la cabecera de autorización con el
+token de la sesión. `scripts/lib/mercadonaPagina.mjs` manda la misma cabecera,
+pero solo `?lang=es`, sin `wh`.
 
 Lo que no dice esta pasada, en «Sin comprobar», al final.
 
@@ -110,4 +111,6 @@ Lo que no dice esta pasada, en «Sin comprobar», al final.
 - Si un pedido a medias creado por el trabajador aparece en la app de Mercadona
   para pagarlo allí.
 - Qué valores lleva `sources` en las líneas del carrito.
+- Si el carrito, el pedido o las franjas fallan sin `wh=<almacén>`, que el
+  trabajador hoy no manda.
 - Qué se hace tras `confirm` en la página del banco, y cómo se vuelve.
