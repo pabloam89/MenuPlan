@@ -48,10 +48,11 @@ function Fila({ nombre, primera, children, nota }) {
  * Dos interruptores. «Rellenar la lista» es estar dentro de la cuenta de Mercadona: encenderlo lleva a entrar y apagarlo
  * es salir; no se guarda nada aparte. «Pagar la compra» se ve, apagado y sin poder encenderse: HoMenu no paga (skill
  * `mercadona`), y no hay dato que guardar hasta que un plan propio lo pruebe.
- * @param {{ m: ReturnType<typeof import("./useRellenarMercadona.js").useRellenarMercadona> }} props
+ * En la hoja de la primera vez (`encendido`), «Rellenar la lista» empieza encendido: es lo que se pidió al pulsar Comprar.
+ * @param {{ m: ReturnType<typeof import("./useRellenarMercadona.js").useRellenarMercadona>, encendido?: boolean }} props
  */
-export function AjustesMercadona({ m }) {
-  const [entrando, setEntrando] = useState(false);
+export function AjustesMercadona({ m, encendido = false }) {
+  const [entrando, setEntrando] = useState(encendido);
   const cambiarLista = (encender) => {
     setEntrando(encender);
     if (!encender && m.conectada) m.desconectar();
