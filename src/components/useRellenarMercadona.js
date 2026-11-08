@@ -69,6 +69,9 @@ export function useRellenarMercadona(casa, lista) {
     else setAviso("No se ha podido desconectar. Inténtalo otra vez.");
   };
 
+  /** Vuelve a leer el estado: tras entrar en Mercadona desde la app, la cuenta ya está. */
+  const recargar = async () => setEstado(await leerEstado(casa));
+
   /** Cambia hasta dónde llega el bot. Devuelve lo que falta (`faltaPara`) o []. */
   const cambiarLlegaHasta = async (valor) => {
     setAviso(null);
@@ -99,6 +102,7 @@ export function useRellenarMercadona(casa, lista) {
 
   const servicio = Boolean(estado?.ok && estado.disponible && estado.clave_publica);
   return {
+    casa,
     servicio,
     conectada: servicio && estado.cuenta === ESTADO_CUENTA_MERCADONA.CONECTADA,
     caducada: estado?.cuenta === ESTADO_CUENTA_MERCADONA.CADUCADA,
@@ -110,6 +114,7 @@ export function useRellenarMercadona(casa, lista) {
     rellenar,
     mirar: () => setSinNoticias(false),
     desconectar,
+    recargar,
     // Lo de la cuenta ya viene resumido del servidor (deUnaCuenta en estadoDeCasa).
     llega_hasta: llegaHastaDe(estado?.llega_hasta),
     tiene_direccion: estado?.tiene_direccion ?? null,
