@@ -1521,8 +1521,8 @@ export function datoDeBoton(o) {
 // Empieza por lo que ofrece, no por la cuenta: quien escribe «somos cuatro»
 // ya está dando el alta. A quien ya conocemos por su Telegram ni se le
 // pregunta (reconocer); uno que nunca se ha conectado es nuevo casi siempre, y
-// quien ya usa la app entra por «Conecta con Lola» en Inicio (o escribe aquí su
-// email: pedirAcceso lo sigue atendiendo, sin botón que lo anuncie).
+// quien ya usa la app entra por «Conecta con Lola» en Inicio o por «Ya uso
+// HoMenu» aquí (su email, que atiende pedirAcceso).
 // A quien prefiere tocar a escribir, un botón secundario: el alta de la app
 // (botonAlta). El texto sigue invitando a escribir; el botón es la otra vía.
 // Y a quien ya usa la app, «Ya uso HoMenu» (#1238): sin él, su primer mensaje
@@ -1751,6 +1751,12 @@ async function comprobarCodigo(msg, chatId, token) {
   if (!(await gastarCodigo(pendiente.codigo, "vincular"))) return bienvenida(chatId);
   const hogar = await casaPropia(userId);
   if (!hogar) {
+    // Con una casa abierta en la app que no es suya (está invitada): el código del email solo conecta al titular, y
+    // lo que la lleva a la misma casa es la invitación; crear otra la dejaría en dos sitios (#1238).
+    const [perfil] = await select("user_profiles", `user_id=${eq(userId)}`, "active_household_id").catch(seguirCon("cuentas_hogar", []));
+    if (perfil?.active_household_id) {
+      return enviar(chatId, "Tu cuenta está en una casa que lleva otra persona. Pídele que te mande la invitación de vuestra casa desde la app y pulsa su enlace aquí: así veis lo mismo.");
+    }
     return enviar(chatId, "Tu cuenta no gestiona ninguna casa todavía. Entra en la app de HoMenu para crear la tuya y vuelve a escribirme.");
   }
   const r = await enlazarChat({

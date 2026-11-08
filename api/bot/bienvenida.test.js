@@ -138,6 +138,41 @@ describe("«Ya uso HoMenu» en el saludo", () => {
     expect(crearCuentaTelegram).not.toHaveBeenCalled();
     expect(enlazarChat).not.toHaveBeenCalled();
   });
+
+  it("con el chat ya conectado, no pide el email", async () => {
+    t.tablas = { bot_chats: [{ household_id: "h1" }] };
+    await pulsa("cuenta:si");
+    expect(t.enviados.at(-1).texto).toContain("ya está conectado");
+    expect(t.enviados.at(-1).texto).not.toContain("email");
+  });
+
+  // El camino entero: el código que llegó al correo de su cuenta de Google conecta ESA cuenta, sin crear otra.
+  const conCodigoPendiente = (extra = {}) => ({ bot_codigos: [{ codigo: "C", email: "ana@gmail.com", intentos: 0 }], ...extra });
+
+  it("con el código del correo, el chat se conecta a su cuenta de la app (la de Google), sin crear la de Telegram", async () => {
+    const { verificarCodigoEmail } = await import("../_bot/cuentas.js");
+    const { gastarCodigo, casaPropia } = await import("../_bot/enlace.js");
+    t.tablas = conCodigoPendiente();
+    verificarCodigoEmail.mockResolvedValueOnce("g1");
+    gastarCodigo.mockResolvedValueOnce({ codigo: "C" });
+    casaPropia.mockResolvedValueOnce({ id: "h1" });
+    await escribe("123456");
+    expect(enlazarChat).toHaveBeenCalledWith(expect.objectContaining({ chatId: "7", kind: "private", householdId: "h1", userId: "g1", identidad: "codigo_email" }));
+    expect(crearCuentaTelegram).not.toHaveBeenCalled();
+  });
+
+  it("si su cuenta está invitada en la casa de otra persona, le dice que pida la invitación, no que cree otra casa", async () => {
+    const { verificarCodigoEmail } = await import("../_bot/cuentas.js");
+    const { gastarCodigo, casaPropia } = await import("../_bot/enlace.js");
+    t.tablas = conCodigoPendiente({ user_profiles: [{ active_household_id: "h-ajena" }] });
+    verificarCodigoEmail.mockResolvedValueOnce("g2");
+    gastarCodigo.mockResolvedValueOnce({ codigo: "C" });
+    casaPropia.mockResolvedValueOnce(null);
+    await escribe("123456");
+    expect(enlazarChat).not.toHaveBeenCalled();
+    expect(t.enviados.at(-1).texto).toMatch(/lleva otra persona/);
+    expect(t.enviados.at(-1).texto).not.toMatch(/crear la tuya/);
+  });
 });
 
 describe("«Prefiero rellenarlo en la app»", () => {
