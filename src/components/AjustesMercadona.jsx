@@ -12,7 +12,11 @@ const caja = {
   overflow: "hidden",
 };
 
+<<<<<<< HEAD
 // Una insignia como «Plan Free» del perfil: texto  sobre , en píldora.
+=======
+// Una insignia como «Plan Free» del perfil: texto `marca` sobre `marca-fondo`, en píldora.
+>>>>>>> ux/ajustes-mercadona
 const pildora = {
   display: "inline-block",
   marginLeft: espaciado["esp-8"],
