@@ -88,7 +88,7 @@ export const ENLAZADOS = Object.freeze(new Set([RESULTADO_ENLACE.NUEVO, RESULTAD
  * Con qué prueba se apuntó que un Telegram ES una cuenta (bot_identities.prueba_identidad, 0129; #1238): nacida (la
  * cuenta se creó en ese Telegram), codigo_email (el código del correo de la cuenta, escrito en el chat), ajustes (el enlace de
  * «Conectar Telegram» que sacó una sesión de la cuenta, pulsado en el privado de ese Telegram) y cambio (el mismo
- * enlace, cuando ese Telegram era de otra cuenta y la persona lo confirmó en su privado).
+ * enlace, cuando ese Telegram era de otra cuenta: manda la de la app, sin preguntar).
  */
 export const PRUEBAS_IDENTIDAD = ["nacida", "codigo_email", "ajustes", "cambio"];
 export const PRUEBA_IDENTIDAD = porNombre(PRUEBAS_IDENTIDAD);
