@@ -31,7 +31,7 @@ const lola = await import("./mercadonaLola.js");
 const { abrir, ALGORITMO_CLAVE } = await import("../../src/lib/mercadonaSello.js");
 
 const error = (codigo) => Object.assign(new Error("x"), { codigo });
-const cuenta = (o = {}) => [{ estado: "conectada", sesion_cifrada: "sellada", llega_hasta: "lista", tiene_direccion: true, tiene_pago: true, telefono_sellado: "tel", ...o }];
+const cuenta = (o = {}) => [{ estado: "conectada", sesion_cifrada: "sellada", llega_hasta: "lista", revisada_at: "2026-11-08T20:00:00Z", tiene_direccion: true, tiene_pago: true, telefono_sellado: "tel", ...o }];
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -81,6 +81,12 @@ describe("tomar: el trabajador sabe hasta dónde llegar", () => {
     db.fallaSelect = error("42703");
     db.cuenta = [{ sesion_cifrada: "sellada" }];
     expect(await m.tomar()).toMatchObject({ sesion_cifrada: "sellada", llega_hasta: "lista", telefono_sellado: null });
+  });
+
+  it("con lo que miró el trabajador: sin revisar, «sin mirar» (null), no false", async () => {
+    expect(await m.tomar()).toMatchObject({ llega_hasta: "lista", tiene_direccion: true, tiene_pago: true, tiene_telefono: true, telefono_sellado: "tel" });
+    db.cuenta = cuenta({ revisada_at: null, tiene_direccion: false, tiene_pago: false });
+    expect(await m.tomar()).toMatchObject({ tiene_direccion: null, tiene_pago: null });
   });
 
   it("otro fallo no se traga", async () => {

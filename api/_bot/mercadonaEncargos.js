@@ -198,7 +198,7 @@ export async function tomar() {
  */
 async function hastaDondeDe(casa) {
   try {
-    const [cuenta] = await select("mercadona_cuenta", `household_id=${eq(casa)}`, "llega_hasta,telefono_sellado");
+    const [cuenta] = await select("mercadona_cuenta", `household_id=${eq(casa)}`, DE_LA_CUENTA);
     return { ...deUnaCuenta(cuenta), telefono_sellado: cuenta?.telefono_sellado ?? null };
   } catch (e) {
     if (e?.codigo !== PG_SIN_COLUMNA) throw e;
