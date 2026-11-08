@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@capgo/capacitor-inappbrowser", () => ({ InAppBrowser: {}, ToolBarType: { COMPACT: "compact" } }));
-const { CADA_MS, ESPERA_ENTRAR_MS, MIRAR_SESION, NO_ENTRADO, UA_ORDENADOR, entrarEnMercadona, textoDeCookies } = await import("./mercadonaEntrarApp.js");
+const { CADA_MS, ESPERA_ENTRAR_MS, MIRAR_SESION, UA_ORDENADOR, entrarEnMercadona, textoDeCookies } = await import("./mercadonaEntrarApp.js");
+const { NO_ENTRADO_MERCADONA: NO_ENTRADO } = await import("./vocabularios.js");
 const { ORIGEN_TIENDA } = await import("./mercadonaConectar.js");
 
 const MO = JSON.stringify({ token: "t", uuid: "u" });
