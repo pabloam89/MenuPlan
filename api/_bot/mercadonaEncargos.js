@@ -19,7 +19,7 @@ import { NO_EXISTE, PG_SIN_COLUMNA, PG_VIOLA_CHECK } from "../../src/lib/postgre
 import * as ids from "../../src/lib/ids.js";
 import { LLEGA_HASTA, LLEGA_HASTA_MERCADONA, deUnaCuenta, faltaPara } from "../../src/lib/mercadonaLlegaHasta.js";
 import { esSello } from "../../src/lib/mercadonaSello.js";
-import { textoDeFranja } from "../../src/lib/mercadonaFranja.js";
+import { textoDeHoraEntrega } from "../../src/lib/mercadonaHoraEntrega.js";
 import { momentoDeCasa, nombreDia } from "../../src/lib/dias.js";
 
 const { PENDIENTE, RELLENANDO, ELIGIENDO, RESERVANDO, HECHO, FALLIDO } = ESTADO_ENCARGO_MERCADONA;
@@ -30,7 +30,7 @@ export const TOPE_DIARIO = 10;
 export const CADUCA_PENDIENTE_MIN = 15;
 /** Cogido y sin acabar: el trabajador murió. Mayor que su tope por encargo (TOPE_ENCARGO_MS); un test los ata. */
 export const CADUCA_RELLENANDO_MIN = 10;
-/** Reservar la hora (0134, cabecera): sin elegir, las franjas ya no valen. */
+/** Reservar la hora (0134, cabecera): sin elegir, las horas de entrega ya no valen. */
 export const CADUCA_ELIGIENDO_MIN = 30;
 /** Elegida y sin coger: el mismo plazo que tomar_reserva_mercadona en la 0134; un test los ata. */
 export const CADUCA_RESERVA_SIN_COGER_MIN = 15;
@@ -42,9 +42,9 @@ export const TOPE_SESION = 64 * 1024;
 
 const VISIBLES = "id,status,entraron,faltan,fallo,lista_xid,created_at";
 /** Con la 0134: lo de reservar que enseñan la app y Lola. El id del pedido en Mercadona, no: es del trabajador. */
-const VISIBLES_RESERVA = `${VISIBLES},total,franjas,franja,cambiable_hasta`;
+const VISIBLES_RESERVA = `${VISIBLES},total,horas_entrega,hora_entrega,cambiable_hasta`;
 
-/** Por qué no se ha podido elegir la hora (elegirFranja). No va a ninguna tabla: lo explican la app y Lola. */
+/** Por qué no se ha podido elegir la hora (elegirHoraEntrega). No va a ninguna tabla: lo explican la app y Lola. */
 export const NO_ELEGIDA = Object.freeze({ SIN_ELEGIR: "sin_elegir", NO_OFRECIDA: "no_ofrecida" });
 
 /** Lo que quien llama ha mandado mal: 400, sin aviso. El resto es fallo nuestro. */
@@ -65,8 +65,8 @@ export function casaPermitida(casa, entorno = process.env.MERCADONA_CASAS) {
 export const TRAS_LA_LISTA = Object.freeze({
   [FALLO_ENCARGO_MERCADONA.BAJO_MINIMO]: "no llega al pedido mínimo de Mercadona. Añade algo y tramítalo allí.",
   [FALLO_ENCARGO_MERCADONA.SIN_DIRECCION]: "tu cuenta de Mercadona no tiene dirección. Añádela allí y elige la hora.",
-  [FALLO_ENCARGO_MERCADONA.SIN_FRANJAS]: "ahora no hay horas de entrega libres. Mira en la app de Mercadona más tarde.",
-  [FALLO_ENCARGO_MERCADONA.FRANJA_OCUPADA]: "esa hora se acaba de ocupar. Elige otra en la app de Mercadona.",
+  [FALLO_ENCARGO_MERCADONA.SIN_HORAS]: "ahora no hay horas de entrega libres. Mira en la app de Mercadona más tarde.",
+  [FALLO_ENCARGO_MERCADONA.HORA_OCUPADA]: "esa hora se acaba de ocupar. Elige otra en la app de Mercadona.",
   [FALLO_ENCARGO_MERCADONA.CADUCADO]: "no se ha elegido la hora a tiempo. Elígela en la app de Mercadona.",
 });
 const TRAS_LA_LISTA_OTRO = "no he podido reservar la hora de entrega. Elígela en la app de Mercadona.";
@@ -79,14 +79,14 @@ function cuandoSeCambia(instante) {
   return m ? `el ${nombreDia(m.dia, { minusculas: true })} ${Number(m.iso.slice(8))} a las ${m.hora}` : null;
 }
 
-/** El prefijo del botón de cada franja en Telegram: `mfr:<encargo>:<posición>` (64 bytes como mucho). */
-export const PREFIJO_BOTON_FRANJA = "mfr:";
-/** Pura. Los botones para elegir la hora, uno por franja, en la hora de la casa. */
-export const botonesDeFranjas = (fila) =>
-  (fila.franjas ?? []).map((f, i) => [{ texto: textoDeFranja(f), dato: `${PREFIJO_BOTON_FRANJA}${fila.id}:${i}` }]);
-/** Pura. El encargo y la posición de un botón de franja, o null si no es uno. */
-export function leerBotonFranja(dato) {
-  const m = /^mfr:([0-9a-f-]{36}):(\d)$/.exec(String(dato ?? ""));
+/** El prefijo del botón de cada hora de entrega en Telegram: `mhe:<encargo>:<posición>` (64 bytes como mucho). */
+export const PREFIJO_BOTON_HORA = "mhe:";
+/** Pura. Los botones para elegir la hora, uno por hora de entrega, en la hora de la casa. */
+export const botonesDeHoras = (fila) =>
+  (fila.horas_entrega ?? []).map((f, i) => [{ texto: textoDeHoraEntrega(f), dato: `${PREFIJO_BOTON_HORA}${fila.id}:${i}` }]);
+/** Pura. El encargo y la posición de un botón de hora de entrega, o null si no es uno. */
+export function leerBotonHora(dato) {
+  const m = /^mhe:([0-9a-f-]{36}):(\d)$/.exec(String(dato ?? ""));
   return m ? { encargo: m[1], posicion: Number(m[2]) } : null;
 }
 
@@ -97,10 +97,10 @@ export function avisoDeCierre(fila) {
     const total = fila.total == null ? "" : `, ${euros(fila.total)}`;
     return `Ya tienes la compra en tu carro de Mercadona${total}. ¿A qué hora te la llevan?`;
   }
-  if (fila.status === HECHO && fila.franja) {
+  if (fila.status === HECHO && fila.hora_entrega) {
     const hasta = cuandoSeCambia(fila.cambiable_hasta);
     const cambiar = hasta ? ` Puedes cambiar el pedido hasta ${hasta}.` : "";
-    return `Hecho: te lo llevan el ${textoDeFranja(fila.franja)}.${cambiar} Pagar lo haces tú, en la app de Mercadona.`;
+    return `Hecho: te lo llevan el ${textoDeHoraEntrega(fila.hora_entrega)}.${cambiar} Pagar lo haces tú, en la app de Mercadona.`;
   }
   if (fila.status === FALLIDO && fila.lista_xid) {
     return `Ya tienes la lista en Mercadona, pero ${TRAS_LA_LISTA[fila.fallo] ?? TRAS_LA_LISTA_OTRO}\n${enlaceDeLista(fila.lista_xid)}`;
@@ -123,7 +123,7 @@ async function avisar(fila) {
   const texto = avisoDeCierre(fila);
   // Solo Telegram por ahora: `enviar` no sabe de otro canal.
   if (!texto || fila.canal !== CANAL.TELEGRAM) return;
-  const opciones = fila.status === ELIGIENDO ? { botones: botonesDeFranjas(fila) } : {};
+  const opciones = fila.status === ELIGIENDO ? { botones: botonesDeHoras(fila) } : {};
   await enviar(fila.chat_id, texto, opciones).catch((e) => avisarFallo("mercadona_aviso", e, { grave: false }));
 }
 
@@ -157,11 +157,11 @@ export async function barrerCaducados({ casa = null, ahora = Date.now() } = {}) 
 const DE_LA_0133 = ["llega_hasta", "revisada_at", "tiene_direccion", "tiene_pago", "telefono_sellado"];
 /**
  * Lo de reservar que lleva demasiado (0134, cabecera): sin elegir, elegida y sin coger, o cogida y sin acabar. El que
- * se cierra eligiendo suelta sus franjas en el mismo cambio, o la base lo rechaza. Sin la 0134 (42703), nada.
+ * se cierra eligiendo suelta sus horas de entrega en el mismo cambio, o la base lo rechaza. Sin la 0134 (42703), nada.
  */
 async function barrerReservas(deCasa, cierre, antes) {
   const tandas = [
-    [`status=eq.${ELIGIENDO}&eligiendo_at=lt.${antes(CADUCA_ELIGIENDO_MIN)}`, { franjas: null }],
+    [`status=eq.${ELIGIENDO}&eligiendo_at=lt.${antes(CADUCA_ELIGIENDO_MIN)}`, { horas_entrega: null }],
     [`status=eq.${RESERVANDO}&reserva_tomada_at=is.null&reservando_at=lt.${antes(CADUCA_RESERVA_SIN_COGER_MIN)}`, {}],
     [`status=eq.${RESERVANDO}&reserva_tomada_at=lt.${antes(CADUCA_RESERVANDO_MIN)}`, {}],
   ];
@@ -308,7 +308,7 @@ export async function apuntarRevision(casa, { tiene_direccion, tiene_pago }, cua
  * Pura. Lo que se escribe al cerrar, según de dónde viene el encargo y lo que trae el trabajador:
  *   · de `reservando`: `{ cambiable_hasta }` → hecho con la hora; `{ fallo }` → fallido, con la lista que ya tenía;
  *   · de `rellenando` (o un caducado): `{ fallo }` sin lista → fallido; `{ lista_xid, entraron, faltan }` → hecho; con
- *     `pedido` (`{ pedido_xid, total, franjas }`) → eligiendo; con lista y `fallo` → fallido con la lista (0134).
+ *     `pedido` (`{ pedido_xid, total, horas de entrega }`) → eligiendo; con lista y `fallo` → fallido con la lista (0134).
  * `sinReservar`: lo mismo que la 0131 sabía guardar (la lista, hecha o no), para el plan B sin la 0134.
  */
 export function cambiosDeCierre(antes, resultado, cuando, { sinReservar = false } = {}) {
@@ -329,8 +329,8 @@ export function cambiosDeCierre(antes, resultado, cuando, { sinReservar = false 
   if (fallo) return { ...fallido(), ...lista };
   // Un caducado no vuelve a abrirse para elegir: el hecho tardío solo cierra la lista (0134, trigger).
   if (resultado.pedido && antes.status === RELLENANDO) {
-    const { pedido_xid, total, franjas } = resultado.pedido;
-    return { status: paraEscribir("estados_encargo_mercadona", ELIGIENDO), ...lista, pedido_xid: String(pedido_xid), total, franjas, eligiendo_at: cuando };
+    const { pedido_xid, total, horas_entrega } = resultado.pedido;
+    return { status: paraEscribir("estados_encargo_mercadona", ELIGIENDO), ...lista, pedido_xid: String(pedido_xid), total, horas_entrega, eligiendo_at: cuando };
   }
   return hecho;
 }
@@ -374,36 +374,36 @@ export async function cerrar(id, resultado, ahora = Date.now()) {
 }
 
 /**
- * La persona elige la hora, en la app o en el chat: una de las franjas que se le ofrecieron, por su `id` o por su
+ * La persona elige la hora, en la app o en el chat: una de las horas de entrega que se le ofrecieron, por su `id` o por su
  * `posicion` (el botón de Telegram). Solo el encargo `eligiendo` de su casa. Devuelve `{ encargo }` o `{ fallo }`
  * (NO_ELEGIDA). El trigger de la 0134 vuelve a mirar que sea una de las ofrecidas, entera.
  */
-export async function elegirFranja({ casa, encargo, franja = undefined, posicion = undefined }, ahora = Date.now()) {
+export async function elegirHoraEntrega({ casa, encargo, hora_entrega = undefined, posicion = undefined }, ahora = Date.now()) {
   if (!ids.operacion.esNuevo(encargo)) throw new PeticionMala("encargo no válido");
   let filas;
   try {
-    filas = await select("mercadona_encargo", `id=${eq(encargo)}&household_id=${eq(casa)}&status=eq.${ELIGIENDO}`, "id,franjas");
+    filas = await select("mercadona_encargo", `id=${eq(encargo)}&household_id=${eq(casa)}&status=eq.${ELIGIENDO}`, "id,horas_entrega");
   } catch (e) {
     if (e?.codigo !== PG_SIN_COLUMNA && !sinMigracion(e)) throw e;
     return { fallo: NO_ELEGIDA.SIN_ELEGIR }; // a propósito: sin la 0134 no hay nada que elegir
   }
-  const ofrecidas = filas[0]?.franjas ?? null;
+  const ofrecidas = filas[0]?.horas_entrega ?? null;
   if (!ofrecidas) return { fallo: NO_ELEGIDA.SIN_ELEGIR };
-  const elegida = posicion !== undefined ? ofrecidas[posicion] : ofrecidas.find((f) => String(f.id) === String(franja));
+  const elegida = posicion !== undefined ? ofrecidas[posicion] : ofrecidas.find((f) => String(f.id) === String(hora_entrega));
   if (!elegida) return { fallo: NO_ELEGIDA.NO_OFRECIDA };
   const [fila] = await update("mercadona_encargo", `id=${eq(encargo)}&status=eq.${ELIGIENDO}`, {
     status: paraEscribir("estados_encargo_mercadona", RESERVANDO),
-    franja: elegida,
-    franjas: null,
+    hora_entrega: elegida,
+    horas_entrega: null,
     reservando_at: new Date(ahora).toISOString(),
   });
   // Dos toques a la vez, o el barrido entre medias: el segundo ya no la encuentra eligiendo.
   if (!fila) return { fallo: NO_ELEGIDA.SIN_ELEGIR };
-  return { encargo: { id: fila.id, status: fila.status, franja: fila.franja } };
+  return { encargo: { id: fila.id, status: fila.status, hora_entrega: fila.hora_entrega } };
 }
 
 /**
- * El trabajador coge la siguiente reserva: `{ reserva: { id, pedido_xid, franja }, sesion_cifrada, telefono_sellado }`,
+ * El trabajador coge la siguiente reserva: `{ reserva: { id, pedido_xid, hora de entrega }, sesion_cifrada, telefono_sellado }`,
  * o null si no hay. Sin la 0134, nunca hay.
  */
 export async function tomarReserva() {
@@ -416,7 +416,7 @@ export async function tomarReserva() {
     return null;
   }
   const { telefono_sellado } = await hastaDondeDe(reserva.household_id);
-  return { reserva: { id: reserva.id, pedido_xid: reserva.pedido_xid, franja: reserva.franja }, sesion_cifrada: cuenta.sesion_cifrada, telefono_sellado };
+  return { reserva: { id: reserva.id, pedido_xid: reserva.pedido_xid, hora_entrega: reserva.hora_entrega }, sesion_cifrada: cuenta.sesion_cifrada, telefono_sellado };
 }
 
 /**

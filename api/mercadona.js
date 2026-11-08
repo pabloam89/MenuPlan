@@ -7,7 +7,7 @@
  *   POST { casa, encargar: { lista } }         { encargo } o { fallo }; quien edita la casa
  *   POST { casa, conectar: { sesion_cifrada } }  guarda la sesión ya sellada en el navegador; quien edita la casa
  *   POST { casa, desconectar: true }           borra la sesión; quien edita la casa
- *   POST { casa, elegir: { encargo, franja } }  la hora de entrega, una de las ofrecidas (0134); quien edita la casa
+ *   POST { casa, elegir: { encargo, hora de entrega } }  la hora de entrega, una de las ofrecidas (0134); quien edita la casa
  *
  * El trabajador, con MERCADONA_TRABAJADOR_TOKEN, que solo vale aquí (?trabajador=1):
  *   POST { accion: "tomar" }                   { siguiente: { encargo, sesion_cifrada, … } | null }
@@ -21,10 +21,10 @@ import { timingSafeEqual } from "node:crypto";
 import { cors, blocked } from "./_guard.js";
 import { usuarioDeToken } from "./_bot/db.js";
 import { papelDeUsuario } from "./_bot/papel.js";
-import { casaPermitida, cerrar, conectar, contarFallo, desconectar, elegirFranja, encargar, estadoDeCasa, PeticionMala, tomar, tomarReserva } from "./_bot/mercadonaEncargos.js";
+import { casaPermitida, cerrar, conectar, contarFallo, desconectar, elegirHoraEntrega, encargar, estadoDeCasa, PeticionMala, tomar, tomarReserva } from "./_bot/mercadonaEncargos.js";
 import { FALLOS_ENCARGO_MERCADONA } from "../src/lib/vocabularios.js";
 import { esRevision } from "../src/lib/mercadonaLlegaHasta.js";
-import { esPedido } from "../src/lib/mercadonaFranja.js";
+import { esPedido } from "../src/lib/mercadonaHoraEntrega.js";
 import { puede } from "../src/lib/papeles.js";
 import * as ids from "../src/lib/ids.js";
 
@@ -85,7 +85,7 @@ async function app(req, res) {
   }
   if (!puede(papel, "editar_casa")) return res.status(403).json({ error: "sin permiso" });
   const { encargar: pedido, conectar: conexion, desconectar: quitar, elegir } = req.body;
-  if (elegir) return res.status(200).json(await elegirFranja({ casa, encargo: elegir.encargo, franja: elegir.franja }));
+  if (elegir) return res.status(200).json(await elegirHoraEntrega({ casa, encargo: elegir.encargo, hora_entrega: elegir.hora_entrega }));
   if (pedido) return res.status(200).json(await encargar({ casa, por: user.id, canal: "app", lista: pedido.lista }));
   // Desconectar no pasa por esta puerta: una casa fuera de la lista tiene que poder borrar su sesión.
   if (conexion && !casaPermitida(casa)) return res.status(403).json({ error: "sin permiso" });

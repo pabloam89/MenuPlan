@@ -4,8 +4,8 @@
  */
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { NO_ELEGIDA, cambiarLlegaHasta, elegirFranja, encargar, estadoDeCasa, guardarTelefono } from "./mercadonaEncargos.js";
-import { textoDeFranja } from "../../src/lib/mercadonaFranja.js";
+import { NO_ELEGIDA, cambiarLlegaHasta, elegirHoraEntrega, encargar, estadoDeCasa, guardarTelefono } from "./mercadonaEncargos.js";
+import { textoDeHoraEntrega } from "../../src/lib/mercadonaHoraEntrega.js";
 import { lineasPorComprar, motor } from "./menu.js";
 import { NOMBRE_LISTA_MERCADONA, listaParaMercadona } from "../../src/lib/mercadonaList.js";
 import { NO_ENCARGADO } from "../../src/lib/vocabularios.js";
@@ -140,9 +140,9 @@ export const TEXTO_NO_ELEGIDA = Object.freeze({
   [NO_ELEGIDA.NO_OFRECIDA]: "Esa hora no estaba entre las que te ofrecí. Elige una de los botones.",
 });
 
-/** El botón de una franja (botonesDeFranjas): la reserva y dice qué pasa. */
+/** El botón de una hora de entrega (botonesDeHoras): la reserva y dice qué pasa. */
 export async function elegirHoraConBoton({ householdId, encargo, posicion }) {
-  const r = await elegirFranja({ casa: householdId, encargo, posicion });
+  const r = await elegirHoraEntrega({ casa: householdId, encargo, posicion });
   if (r.fallo) return TEXTO_NO_ELEGIDA[r.fallo];
-  return `Reservando el ${textoDeFranja(r.encargo.franja)}. Te aviso aquí en un momento.`;
+  return `Reservando el ${textoDeHoraEntrega(r.encargo.hora_entrega)}. Te aviso aquí en un momento.`;
 }

@@ -16,7 +16,7 @@ vi.mock("./_bot/mercadonaEncargos.js", () => ({
   estadoDeCasa: vi.fn(async () => ({ disponible: true, cuenta: "conectada", encargo: null })),
   tomar: vi.fn(async () => null),
   tomarReserva: vi.fn(async () => null),
-  elegirFranja: vi.fn(async () => ({ encargo: { id: "e1", status: "reservando" } })),
+  elegirHoraEntrega: vi.fn(async () => ({ encargo: { id: "e1", status: "reservando" } })),
 }));
 
 const { default: handler } = await import("./mercadona.js");
@@ -85,12 +85,12 @@ describe("la app", () => {
   });
 
   it("elige la hora de entrega quien edita la casa; quien solo la ve, no", async () => {
-    const cuerpo = { casa: CASA, elegir: { encargo: "e1", franja: "f1" } };
+    const cuerpo = { casa: CASA, elegir: { encargo: "e1", hora_entrega: "f1" } };
     expect((await llamar({ token: "buena", body: cuerpo })).datos).toEqual({ encargo: { id: "e1", status: "reservando" } });
-    expect(e.elegirFranja).toHaveBeenCalledWith({ casa: CASA, encargo: "e1", franja: "f1" });
+    expect(e.elegirHoraEntrega).toHaveBeenCalledWith({ casa: CASA, encargo: "e1", hora_entrega: "f1" });
     papelDeUsuario.mockResolvedValue("viewer");
     expect((await llamar({ token: "buena", body: cuerpo })).statusCode).toBe(403);
-    expect(e.elegirFranja).toHaveBeenCalledTimes(1);
+    expect(e.elegirHoraEntrega).toHaveBeenCalledTimes(1);
   });
 
   it("quién encarga sale del token, nunca del cuerpo", async () => {
@@ -154,8 +154,8 @@ describe("el trabajador", () => {
   });
 
   // 0134: reservar la hora de entrega.
-  const FRANJA = { id: "f1", start: "2026-11-12T14:00:00Z", end: "2026-11-12T15:00:00Z", price: "7.21", available: true };
-  const PEDIDO = { pedido_xid: "p9", total: 64.1, franjas: [FRANJA] };
+  const HORA = { id: "f1", start: "2026-11-12T14:00:00Z", end: "2026-11-12T15:00:00Z", price: "7.21", available: true };
+  const PEDIDO = { pedido_xid: "p9", total: 64.1, horas_entrega: [HORA] };
 
   it("toma la siguiente reserva", async () => {
     e.tomarReserva.mockResolvedValueOnce({ reserva: { id: "e1" }, sesion_cifrada: "s", telefono_sellado: null });
@@ -167,15 +167,15 @@ describe("el trabajador", () => {
     [{ lista_xid: "1", entraron: 2, faltan: [], fallo: "bajo_minimo" }],
     [{ cambiable_hasta: "2026-11-11T18:59:00Z" }],
     [{ cambiable_hasta: null }],
-    [{ fallo: "franja_ocupada" }],
+    [{ fallo: "hora_ocupada" }],
   ])("cierra lo de reservar: %j", async (resultado) => {
     expect((await trabajador({ accion: "cerrar", id: CASA, resultado })).statusCode).toBe(200);
   });
 
   it.each([
-    [{ lista_xid: "1", entraron: 2, faltan: [], pedido: { ...PEDIDO, franjas: [] } }],
-    [{ lista_xid: "1", entraron: 2, faltan: [], pedido: { ...PEDIDO, franjas: [FRANJA, FRANJA, FRANJA, FRANJA, FRANJA] } }],
-    [{ lista_xid: "1", entraron: 2, faltan: [], pedido: { ...PEDIDO, franjas: [{ id: "f1", start: "mañana" }] } }],
+    [{ lista_xid: "1", entraron: 2, faltan: [], pedido: { ...PEDIDO, horas_entrega: [] } }],
+    [{ lista_xid: "1", entraron: 2, faltan: [], pedido: { ...PEDIDO, horas_entrega: [HORA, HORA, HORA, HORA, HORA] } }],
+    [{ lista_xid: "1", entraron: 2, faltan: [], pedido: { ...PEDIDO, horas_entrega: [{ id: "f1", start: "mañana" }] } }],
     [{ lista_xid: "1", entraron: 2, faltan: [], pedido: { ...PEDIDO, pedido_xid: 9 } }],
     [{ lista_xid: "1", entraron: 2, faltan: [], pedido: { ...PEDIDO, total: -1 } }],
     [{ lista_xid: "1", entraron: -1, faltan: [], fallo: "bajo_minimo" }],
