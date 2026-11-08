@@ -117,13 +117,13 @@ describe("RellenarMercadona", () => {
     app.leerEstado.mockResolvedValue({ ...BASE, cuenta: null });
     await pintar(<RellenarMercadona casa="c" lista={LISTA} />);
     expect(contenedor.querySelector("a").getAttribute("href")).toMatch(/^javascript:/);
-    expect(contenedor.textContent).toContain("Nunca veo tu contraseña");
+    expect(contenedor.textContent).toContain("HoMenu no ve ni guarda tu contraseña");
   });
 
-  it("con la sesión caducada pide conectar otra vez", async () => {
+  it("con la sesión caducada pide entrar otra vez", async () => {
     app.leerEstado.mockResolvedValue({ ...BASE, cuenta: "caducada" });
     await pintar(<RellenarMercadona casa="c" lista={LISTA} />);
-    expect(contenedor.textContent).toContain("ha cerrado la sesión");
+    expect(contenedor.textContent).toContain("Vuelve a entrar en Mercadona");
   });
 
   it("pide la lista y espera", async () => {
@@ -193,7 +193,7 @@ describe("RellenarMercadona", () => {
     app.pedirLista.mockResolvedValue({ ok: true, fallo: "sesion_caducada" });
     await pintar(<RellenarMercadona casa="c" lista={LISTA} />);
     await pulsar(boton("Rellenar mi lista"));
-    expect(contenedor.textContent).toContain("ha cerrado la sesión");
+    expect(contenedor.textContent).toContain("Vuelve a entrar en Mercadona");
   });
 
   it("sin casa no pregunta nada", async () => {
@@ -206,6 +206,6 @@ describe("RellenarMercadona", () => {
     await pintar(<RellenarMercadona casa="c" lista={LISTA} />);
     await pulsar(boton("Desconectar"));
     expect(app.quitarCuenta).toHaveBeenCalledWith("c");
-    expect(contenedor.textContent).toContain("Conecta tu cuenta");
+    expect(contenedor.textContent).toContain("Entra en tu cuenta de Mercadona");
   });
 });
