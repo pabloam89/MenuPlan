@@ -16,7 +16,7 @@ export const PASO_COMPRAR = Object.freeze({
 
 /** Los textos de Ajustes → Mercadona (trozo 9 de specs/plan-comprar-mercadona.md). */
 export const AJUSTE_MERCADONA = Object.freeze({
-  LISTA: "Hacer la lista en Mercadona",
+  LISTA: "Rellenar la lista en Mercadona",
   PAGAR: "Pagar la compra",
   PRONTO: "Pronto",
 });
