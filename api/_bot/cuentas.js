@@ -112,6 +112,28 @@ export async function cuentaNacidaAqui(telegramId) {
 }
 
 /**
+ * La cuenta que nació en este Telegram aunque su identidad ya apunte a otra (#1238): tras pasar el Telegram a la
+ * cuenta de la app, cuentaNacidaAqui ya no la ve, y sin esto quedaba perdida. Se busca por su email sintético en
+ * user_profiles y se comprueba en Auth. Cada fila con ese email, no la primera: cada uno puede escribir el email de su
+ * propio perfil, y una fila falsa no tiene que tapar la buena. Un fallo de la base o de Auth, lanza: quien llama no
+ * decide a ciegas.
+ * @returns {Promise<{ id: string, email: string } | null>}
+ */
+export async function cuentaNacidaDe(telegramId) {
+  const email = emailSintetico(telegramId);
+  const perfiles = await select("user_profiles", `email=${eq(email)}`, "user_id");
+  const { url, headers } = config();
+  for (const { user_id: id } of perfiles) {
+    if (!id) continue;
+    const res = await fetch(`${url}/auth/v1/admin/users/${id}`, { headers });
+    if (!res.ok) throw new Error(`auth admin/users → ${res.status}`);
+    const u = await res.json();
+    if (u?.id === id && u?.email === email) return { id, email };
+  }
+  return null;
+}
+
+/**
  * La cuenta (de Google, de Apple) a la que este Telegram se conectó DESDE DENTRO de ella, o null (#1238, trozo 3 de
  * specs/auth.md §7): su fila de bot_identities se apuntó con una prueba que sale de una sesión de esa cuenta
  * (ABREN_SESION: el enlace de «Conectar Telegram» pulsado en el privado de este Telegram). El código del email, una
