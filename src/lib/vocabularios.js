@@ -412,6 +412,8 @@ export const NO_ENCARGADO = Object.freeze({
   EN_MARCHA: "en_marcha",
   TOPE: "tope",
 });
+/** Por qué no se ha guardado la sesión al entrar en Mercadona desde la app (src/lib/mercadonaEntrarApp.js): lo que la hoja tiene que explicar. */
+export const NO_ENTRADO_MERCADONA = Object.freeze({ CERRADA: "cerrada", TIEMPO: "tiempo", SIN_CLAVE: "sin_clave", NO_GUARDADA: "no_guardada" });
 /** Para qué es una tarea de objetivo (bot_tareas.objetivo, 0080). */
 export const OBJETIVOS_TAREA = ["ideas_plato", "calorias", "generar_menu"];
 export const OBJETIVO_TAREA = porNombre(OBJETIVOS_TAREA);
