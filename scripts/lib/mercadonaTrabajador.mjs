@@ -10,7 +10,7 @@ import { erroresDeLista } from "../../src/lib/mercadonaLista.js";
 import { crearLista, entrarEnTienda, llenarCarro, revisarCuenta } from "./mercadonaPagina.mjs";
 import { LLEGA_HASTA, llegaA } from "../../src/lib/mercadonaLlegaHasta.js";
 import { FALLO_ENCARGO_MERCADONA as FALLO } from "../../src/lib/mercadonaFallos.js";
-import { pedirFranjas, reservarFranja } from "./mercadonaPedido.mjs";
+import { pedirHorasEntrega, reservarHoraEntrega } from "./mercadonaPedido.mjs";
 
 /** Lo que se permite por encargo: pasado esto, lo da por fallido y sigue. Menor que CADUCA_RELLENANDO_MIN; un test los ata. */
 export const TOPE_ENCARGO_MS = 5 * 60 * 1000;
@@ -113,7 +113,7 @@ export async function atender({ encargo, sesion_cifrada, llega_hasta }, { abrirS
 /**
  * Atiende una reserva (0134): la hora que eligió la persona, en el pedido que ya está a medias en Mercadona, y el
  * teléfono que pide el repartidor, abierto del sello con la misma clave que la sesión. `{ cambiable_hasta }` o `{ fallo }`.
- * @param {{ reserva: { id: string, pedido_xid: string, franja: object }, sesion_cifrada: string, telefono_sellado: string|null }} siguiente
+ * @param {{ reserva: { id: string, pedido_xid: string, hora de entrega: object }, sesion_cifrada: string, telefono_sellado: string|null }} siguiente
  */
 export async function atenderReserva({ reserva, sesion_cifrada, telefono_sellado }, { abrirSesion, abrirNavegador, log = () => {}, topeMs = TOPE_ENCARGO_MS }) {
   let estado;
@@ -138,7 +138,7 @@ export async function atenderReserva({ reserva, sesion_cifrada, telefono_sellado
       (async () => {
         const portada = await entrarEnTienda(pagina);
         if (portada.resultado) return resultadoDeEncargo(portada);
-        return reservarFranja(pagina, { pedido_xid: reserva.pedido_xid, franja: reserva.franja, telefono }, log);
+        return reservarHoraEntrega(pagina, { pedido_xid: reserva.pedido_xid, hora_entrega: reserva.hora_entrega, telefono }, log);
       })(),
       topeMs,
     );

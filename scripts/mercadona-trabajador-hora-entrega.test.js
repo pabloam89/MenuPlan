@@ -2,43 +2,43 @@
 // Nunca se confirma el pedido: eso es pagar (trozo 21).
 import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
-import { enPaginaPedido, franjasParaOfrecer, pedirFranjas, reservarFranja } from "./lib/mercadonaPedido.mjs";
+import { enPaginaPedido, horasParaOfrecer, pedirHorasEntrega, reservarHoraEntrega } from "./lib/mercadonaPedido.mjs";
 import { atenderReserva, unaVuelta } from "./lib/mercadonaTrabajador.mjs";
 import { PEDIDO_MINIMO_MERCADONA } from "../src/lib/mercadonaLista.js";
 
-// Como las de pedido.md, «Franjas», con datos inventados.
-const franja = (n, o = {}) => ({ id: `f${n}`, start: `2026-11-1${n}T14:00:00Z`, end: `2026-11-1${n}T15:00:00Z`, price: "7.21", available: true, open: true, timezone: "Europe/Madrid", ...o });
+// Como las de pedido.md, «Horas de entrega», con datos inventados.
+const hora_entrega = (n, o = {}) => ({ id: `f${n}`, start: `2026-11-1${n}T14:00:00Z`, end: `2026-11-1${n}T15:00:00Z`, price: "7.21", available: true, open: true, timezone: "Europe/Madrid", ...o });
 const CARRO = { id: "carro-1", version: 14, lines: [{ product_id: "10", quantity: 2 }], summary: { total: "64.10" } };
 
-describe("franjasParaOfrecer", () => {
+describe("horasParaOfrecer", () => {
   it("solo las libres, por hora, cuatro como mucho y sin campos de más", () => {
-    const todas = [franja(5), franja(2, { available: false }), franja(3), franja(4), franja(6), franja(7), { ...franja(8), extra: "x" }];
-    const r = franjasParaOfrecer(todas);
+    const todas = [hora_entrega(5), hora_entrega(2, { available: false }), hora_entrega(3), hora_entrega(4), hora_entrega(6), hora_entrega(7), { ...hora_entrega(8), extra: "x" }];
+    const r = horasParaOfrecer(todas);
     expect(r.map((f) => f.id)).toEqual(["f3", "f4", "f5", "f6"]);
     expect(Object.keys(r[0]).sort()).toEqual(["available", "end", "id", "open", "price", "start", "timezone"]);
-    expect(franjasParaOfrecer([{ ...franja(8), extra: "x" }])[0]).not.toHaveProperty("extra");
+    expect(horasParaOfrecer([{ ...hora_entrega(8), extra: "x" }])[0]).not.toHaveProperty("extra");
   });
 
-  it("lo que no se lee como franja no se ofrece", () => {
-    expect(franjasParaOfrecer([{ id: "x", available: true, start: "mañana" }, null, franja(3, { id: null })])).toEqual([]);
-    expect(franjasParaOfrecer(undefined)).toEqual([]);
+  it("lo que no se lee como hora_entrega no se ofrece", () => {
+    expect(horasParaOfrecer([{ id: "x", available: true, start: "mañana" }, null, hora_entrega(3, { id: null })])).toEqual([]);
+    expect(horasParaOfrecer(undefined)).toEqual([]);
   });
 });
 
 /** Una página falsa que contesta a enPaginaPedido. */
 const pagina = (respuesta) => ({ evaluate: vi.fn(async (_f, orden) => (typeof respuesta === "function" ? respuesta(orden) : respuesta)) });
 
-describe("pedirFranjas", () => {
+describe("pedirHorasEntrega", () => {
   it("por debajo del pedido mínimo no crea el pedido", async () => {
     const p = pagina({});
-    expect(await pedirFranjas(p, { ...CARRO, summary: { total: String(PEDIDO_MINIMO_MERCADONA - 0.01) } })).toEqual({ fallo: "bajo_minimo" });
-    expect(await pedirFranjas(p, { ...CARRO, summary: {} })).toEqual({ fallo: "bajo_minimo" });
+    expect(await pedirHorasEntrega(p, { ...CARRO, summary: { total: String(PEDIDO_MINIMO_MERCADONA - 0.01) } })).toEqual({ fallo: "bajo_minimo" });
+    expect(await pedirHorasEntrega(p, { ...CARRO, summary: {} })).toEqual({ fallo: "bajo_minimo" });
     expect(p.evaluate).not.toHaveBeenCalled();
   });
 
   it("crea el pedido con el carro escrito y da sus horas libres", async () => {
-    const p = pagina({ paso: "franjas", status: 200, pedido_xid: "p9", summary: { total: "66.30" }, franjas: [franja(4), franja(3)] });
-    expect(await pedirFranjas(p, CARRO)).toEqual({ pedido: { pedido_xid: "p9", total: 66.3, franjas: [franja(3), franja(4)] } });
+    const p = pagina({ paso: "horas_entrega", status: 200, pedido_xid: "p9", summary: { total: "66.30" }, horas_entrega: [hora_entrega(4), hora_entrega(3)] });
+    expect(await pedirHorasEntrega(p, CARRO)).toEqual({ pedido: { pedido_xid: "p9", total: 66.3, horas_entrega: [hora_entrega(3), hora_entrega(4)] } });
     expect(p.evaluate.mock.calls[0][1]).toEqual({ crear: CARRO });
   });
 
@@ -47,32 +47,32 @@ describe("pedirFranjas", () => {
     [{ paso: "crear_pedido", status: 429 }, "bloqueado"],
     [{ paso: "crear_pedido", status: 500 }, "error"],
     [{ paso: "sin_direccion", status: 201, pedido_xid: "p9" }, "sin_direccion"],
-    [{ paso: "franjas", status: 503, pedido_xid: "p9" }, "error"],
-    [{ paso: "franjas", status: 200, pedido_xid: "p9", franjas: [franja(3, { available: false })] }, "sin_franjas"],
+    [{ paso: "horas_entrega", status: 503, pedido_xid: "p9" }, "error"],
+    [{ paso: "horas_entrega", status: 200, pedido_xid: "p9", horas_entrega: [hora_entrega(3, { available: false })] }, "sin_horas"],
   ])("%j → %s", async (r, fallo) => {
-    expect(await pedirFranjas(pagina(r), CARRO)).toEqual({ fallo });
+    expect(await pedirHorasEntrega(pagina(r), CARRO)).toEqual({ fallo });
   });
 });
 
-describe("reservarFranja", () => {
+describe("reservarHoraEntrega", () => {
   const TELEFONO = { phone_country_code: "34", phone_national_number: "600112233" };
 
-  it("reserva con la franja tal como vino y el teléfono abierto", async () => {
+  it("reserva con la hora_entrega tal como vino y el teléfono abierto", async () => {
     const p = pagina({ paso: "reservado", status: 200, cambiable_hasta: "2026-11-11T19:59:00+01:00", telefono: 200 });
-    expect(await reservarFranja(p, { pedido_xid: "p9", franja: franja(3), telefono: TELEFONO })).toEqual({ cambiable_hasta: "2026-11-11T18:59:00.000Z" });
-    expect(p.evaluate.mock.calls[0][1]).toEqual({ reservar: { pedido: "p9", franja: franja(3), telefono: TELEFONO } });
+    expect(await reservarHoraEntrega(p, { pedido_xid: "p9", hora_entrega: hora_entrega(3), telefono: TELEFONO })).toEqual({ cambiable_hasta: "2026-11-11T18:59:00.000Z" });
+    expect(p.evaluate.mock.calls[0][1]).toEqual({ reservar: { pedido: "p9", hora_entrega: hora_entrega(3), telefono: TELEFONO } });
   });
 
-  it("si se ocupó entre medias, franja_ocupada; otro no, su fallo", async () => {
-    for (const status of [400, 409, 422]) expect(await reservarFranja(pagina({ paso: "reservar", status }), { pedido_xid: "p9", franja: franja(3) })).toEqual({ fallo: "franja_ocupada" });
-    expect(await reservarFranja(pagina({ paso: "reservar", status: 401 }), { pedido_xid: "p9", franja: franja(3) })).toEqual({ fallo: "sesion_caducada" });
-    expect(await reservarFranja(pagina({ paso: "ver_pedido", status: 500 }), { pedido_xid: "p9", franja: franja(3) })).toEqual({ fallo: "error" });
+  it("si se ocupó entre medias, hora_ocupada; otro no, su fallo", async () => {
+    for (const status of [400, 409, 422]) expect(await reservarHoraEntrega(pagina({ paso: "reservar", status }), { pedido_xid: "p9", hora_entrega: hora_entrega(3) })).toEqual({ fallo: "hora_ocupada" });
+    expect(await reservarHoraEntrega(pagina({ paso: "reservar", status: 401 }), { pedido_xid: "p9", hora_entrega: hora_entrega(3) })).toEqual({ fallo: "sesion_caducada" });
+    expect(await reservarHoraEntrega(pagina({ paso: "ver_pedido", status: 500 }), { pedido_xid: "p9", hora_entrega: hora_entrega(3) })).toEqual({ fallo: "error" });
   });
 
   it("un teléfono que no entra no deshace la reserva: se dice en el log", async () => {
     const log = vi.fn();
     const p = pagina({ paso: "reservado", status: 200, cambiable_hasta: null, telefono: 400 });
-    expect(await reservarFranja(p, { pedido_xid: "p9", franja: franja(3), telefono: TELEFONO }, log)).toEqual({ cambiable_hasta: null });
+    expect(await reservarHoraEntrega(p, { pedido_xid: "p9", hora_entrega: hora_entrega(3), telefono: TELEFONO }, log)).toEqual({ cambiable_hasta: null });
     expect(log).toHaveBeenCalledWith("teléfono sin poner: 400");
   });
 });
@@ -108,7 +108,7 @@ function navegador(respuestas) {
     abrirNavegador: async () => ({ pagina: p, cerrar: async () => {} }),
   };
 }
-const RESERVA = { reserva: { id: "e1", pedido_xid: "p9", franja: franja(3) }, sesion_cifrada: "sellada", telefono_sellado: "tel-sellado" };
+const RESERVA = { reserva: { id: "e1", pedido_xid: "p9", hora_entrega: hora_entrega(3) }, sesion_cifrada: "sellada", telefono_sellado: "tel-sellado" };
 
 describe("atenderReserva", () => {
   it("abre la sesión y el teléfono, reserva y dice hasta cuándo se cambia", async () => {
