@@ -1,45 +1,12 @@
 /**
  * Match MenuPlan shopping ingredients → Mercadona store products.
- * Rule-based (token overlap + aliases + category filters). No ML.
+ * Rule-based (token overlap + category filters). No ML. Solo para texto que no
+ * resuelve a un ingrediente: lo demás lo decide productoPorIngrediente.json.
  */
 
 import { normalizeName, guessShoppingAisle, isPerishableAisle } from "./ingredientCategories.js";
-import productoBuscadoJson from "../data/productoBuscado.json" with { type: "json" };
 
 /** @typedef {{ id: string, name: string, price?: number|null, unitSize?: number|null, unitFormat?: string|null, section?: string, category?: string, subcategory?: string }} StoreProduct */
-
-export const MERCADONA_SEARCH_ALIASES = {
-  boniato: ["batata"],
-  espaguetis: ["spaghetti"],
-  cuscus: ["cous cous"],
-  calamares: ["calamar"],
-  gambas: ["gamba"],
-  judiones: ["alubia grande", "alubia blanca"],
-  fabes: ["alubia grande", "fabada"],
-  "fideos n°2": ["fideo mediano", "fideo grueso"],
-  "escalopines de ternera": ["escalopin de vacuno", "escalopin"],
-  "pescadilla en lomos": ["pescadilla de merluza", "pescadilla"],
-  "rosada en lomos": ["merluza en lomos", "lomo de merluza"],
-  lombarda: ["col lombarda", "repollo morado"],
-  maicena: ["fecula de maiz", "maizena"],
-  "alubias de bote": ["alubia cocida blanca", "alubia cocida"],
-  "pan de hamburguesa": ["pan de burger", "pan burger"],
-  huevo: ["huevos"],
-  // Mercadona lo escribe con b y el catálogo con v. Es la misma hortaliza, y
-  // un alias es más honrado que enseñarle al emparejador que la b y la v son
-  // intercambiables, porque no lo son: «baca» y «vaca» tampoco.
-  endivia: ["endibia", "endibias"],
-  tirabuzones: ["fusilli", "helices", "espiral"],
-  nabo: ["nabo"],
-  // La lista de la compra empareja el nombre tal como lo escribe la casa, y
-  // «Carne picada» a secas no es un ingrediente del catálogo, así que no puede
-  // ir en productoBuscado.json. El súper la vende como «Preparado de carne
-  // picada …», con la picada detrás; la mixta es la genérica.
-  "carne picada": ["preparado de carne picada vacuno y cerdo"],
-  // Lo mismo con «Pollo» a secas (en el catálogo es «Pollo troceado»): empataba
-  // a 0,75 con «Pollo teriyaki» y «Pollo asado», y ganaba el envase barato.
-  pollo: ["pollo entero"],
-};
 
 // «preparado de» lleva un hueco a propósito: Mercadona llama «Preparado de
 // carne picada cerdo» a la carne picada CRUDA, que es exactamente lo que pide
@@ -452,16 +419,6 @@ export function shouldSkipProduct(ingredientId, product) {
 }
 
 /**
- * Cómo llama el súper a cada ingrediente cuando no lo llama por su nombre.
- * Decisiones tomadas a mano y con motivo escrito, en src/data/productoBuscado.json.
- */
-export const PRODUCTO_BUSCADO = Object.fromEntries(
-  Object.entries(productoBuscadoJson)
-    .filter(([clave]) => !clave.startsWith("_"))
-    .map(([clave, v]) => [clave, v.buscar]),
-);
-
-/**
  * Puntúa cada producto candidato con SU MEJOR término, y los devuelve ordenados.
  *
  * Aquí había un `seen` que descartaba el producto en cuanto un término lo había
@@ -492,14 +449,13 @@ function coincidencias(ingredientId, terms, pool, minConfidence) {
   );
 }
 
+// Solo el nombre: cómo llama el súper a cada ingrediente cuando no lo llama por
+// su nombre ya no se apunta aquí, sino en productoPorIngrediente.json, con el id
+// del producto. Lo que llega a este emparejador es texto que no resuelve a ningún
+// ingrediente del catálogo.
 function searchTermsForIngredient(ingredientName) {
-  const id = normalizeName(ingredientName);
-  const terms = [
-    ingredientName,
-    ...(MERCADONA_SEARCH_ALIASES[id] ?? []),
-    ...(PRODUCTO_BUSCADO[id] ?? []),
-  ];
-  return [...new Set(terms.map((t) => normalizeName(t)).filter(Boolean))];
+  const t = normalizeName(ingredientName);
+  return t ? [t] : [];
 }
 
 /**
