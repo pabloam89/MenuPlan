@@ -7,7 +7,8 @@
  *
  * --sin-tabla mide con la tabla vacía: lo que daba el emparejador solo.
  */
-import { ESTADOS_PRODUCTO_LINEA, productoDeLinea } from "../src/lib/productoDeLinea.js";
+import { ESTADOS_PRODUCTO_LINEA, DINERO_DE_MAS_MAX, envaseDesproporcionado, gramosDeReferencia, productoDeLinea, RACIONES_DE_REFERENCIA } from "../src/lib/productoDeLinea.js";
+import { gramsForRecipeQuantity } from "../src/lib/kitchenUnits.js";
 import { productIndexFor } from "../src/lib/productMatcher.js";
 import { lineasEstrella, productosMercadona } from "./lib/recetarioYCatalogo.mjs";
 
@@ -18,11 +19,17 @@ productIndexFor(productos);
 const porEstado = Object.fromEntries(ESTADOS_PRODUCTO_LINEA.map((e) => [e, 0]));
 const nombres = Object.fromEntries(ESTADOS_PRODUCTO_LINEA.map((e) => [e, new Set()]));
 const opciones = sinTabla ? { filas: [] } : {};
+// Lo que pide cada línea en una compra de casa (RACIONES_DE_REFERENCIA), para
+// ver si el envase elegido tiene sentido.
+const desproporcionados = new Set();
 let lineas = 0;
 for (const l of lineasEstrella()) {
-  const { estado } = productoDeLinea(l.name, productos, opciones);
+  const g = gramsForRecipeQuantity(l.name, Number(l.amount), l.unit);
+  const gramos = gramosDeReferencia(g, l.raciones);
+  const { estado, product } = productoDeLinea(l.name, productos, { ...opciones, gramos });
   porEstado[estado]++;
   nombres[estado].add(l.name);
+  if (product && gramos && envaseDesproporcionado(product, gramos)) desproporcionados.add(`${l.name} → ${product.name}`);
   lineas++;
 }
 console.log(`líneas de recetas estrella: ${lineas}${sinTabla ? " (sin tabla)" : ""}`);
@@ -30,3 +37,5 @@ console.log("estado               líneas   %     nombres distintos");
 for (const e of ESTADOS_PRODUCTO_LINEA) {
   console.log(`${e.padEnd(20)} ${String(porEstado[e]).padStart(6)} ${(100 * porEstado[e] / lineas).toFixed(1).padStart(5)}   ${nombres[e].size}`);
 }
+console.log(`envase desproporcionado (${DINERO_DE_MAS_MAX} € o más de lo pedido a ${RACIONES_DE_REFERENCIA} raciones): ${desproporcionados.size}`);
+for (const d of desproporcionados) console.log(`  ${d}`);
