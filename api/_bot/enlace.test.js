@@ -209,17 +209,15 @@ describe("cambiar de cuenta desde la app (#1238)", () => {
     expect(pideCambioDeCuenta({ esGrupo: true, deAntes: ANTES, userId: APP })).toBe(false);
   });
 
-  it("el aviso dice con qué cuenta habla y cómo volver, sin preguntar", () => {
-    const conVuelta = avisoDeCambioDeCuenta({ email: "ana@gmail.com", volver: true });
-    expect(conVuelta).toContain("<b>ana@gmail.com</b>");
-    expect(conVuelta).toContain(VOLVER_A_LA_DE_ANTES);
-    expect(conVuelta).not.toMatch(/\?/);
-    expect(avisoDeCambioDeCuenta({ email: "ana@gmail.com" })).toMatch(/entra en la app con ella/);
+  it("el aviso es una línea con la cuenta; la vuelta, solo si la de antes nació aquí (Álvaro: «Cuenta: y el mail»)", () => {
+    expect(avisoDeCambioDeCuenta({ email: "ana@gmail.com" })).toBe("✅ Cuenta: <b>ana@gmail.com</b>");
+    expect(avisoDeCambioDeCuenta({ email: "ana@gmail.com", volver: true }))
+      .toBe(`✅ Cuenta: <b>ana@gmail.com</b>\nVolver a la anterior: ${VOLVER_A_LA_DE_ANTES}`);
   });
 
   it("el email sintético de una cuenta de Telegram no se enseña, y sin email el aviso sale igual", () => {
-    expect(avisoDeCambioDeCuenta({ email: "tg777@usuarios.menuplanai.com" })).not.toContain("usuarios.menuplanai.com");
-    expect(avisoDeCambioDeCuenta({})).toMatch(/Ahora hablo con la cuenta/);
+    expect(avisoDeCambioDeCuenta({ email: "tg777@usuarios.menuplanai.com" })).toBe("✅ Cuenta de la app conectada");
+    expect(avisoDeCambioDeCuenta({})).toBe("✅ Cuenta de la app conectada");
   });
 });
 
