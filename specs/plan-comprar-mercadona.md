@@ -223,7 +223,7 @@ npx vitest run src/components/AjustesMercadona.test.jsx && grep -q "Reservar la 
 ```
 
 ### 18. Lola: los mismos tres pasos, con el mismo dato
-Files: `api/_bot/mercadonaEncargos.js`, `api/_bot/agente.js`, `api/_bot/mercadonaLlegaHasta.test.js`
+Files: `api/_bot/mercadonaEncargos.js`, `api/_bot/mercadonaEncargos.test.js`, `api/_bot/agente.js`, `api/_bot/mercadonaLola.js`, `api/_bot/mercadonaLola.test.js`, `api/_bot/mercadonaLlegaHasta.test.js`, `api/_bot/herramientasAgrupadas.test.js`, `api/_bot/__snapshots__/fichas.test.js.snap`, `src/lib/mercadonaTelefono.js`, `src/lib/mercadonaTelefono.test.js`, `src/lib/capacidades.js`, `src/lib/vocabularios.js`
 Depends on: 15
 Blocked by: none
 Existing: Lola ya encarga listas (`api/_bot/mercadonaEncargos.js`), pero no sabe hasta dónde puede llegar.
