@@ -1,5 +1,7 @@
 import { ArrowUpRight } from "./icons.jsx";
 import { AjustesMercadona } from "./AjustesMercadona.jsx";
+import { ElegirHoraEntrega } from "./ElegirHoraEntrega.jsx";
+import { ESTADO_ENCARGO_MERCADONA } from "../lib/vocabularios.js";
 import { BOTON, TEXTO } from "./mercadonaEstilos.js";
 import { enlaceDeLista } from "../lib/mercadonaList.js";
 import { PASO_COMPRAR, textoDeEncargo } from "../lib/mercadonaApp.js";
@@ -9,6 +11,21 @@ export function RellenarMercadona({ m }) {
   const { encargo, esperando, sinNoticias, aviso, rellenar } = m;
   if (!m.servicio) return null;
   if (!m.conectada) return <AjustesMercadona m={m} encendido />;
+  // Con la lista en el carro, la hoja es la hora de entrega (0134): elegirla, reservándola, o ya reservada.
+  const reservada = encargo?.status === ESTADO_ENCARGO_MERCADONA.HECHO && encargo.hora_entrega;
+  if (m.eligiendoHora || encargo?.status === ESTADO_ENCARGO_MERCADONA.RESERVANDO || reservada) {
+    return (
+      <div style={{ display: "grid", gap: "var(--esp-12)" }}>
+        <ElegirHoraEntrega m={m} />
+        {aviso && <p style={TEXTO}>{aviso}</p>}
+        {reservada && (
+          <a href={enlaceDeLista(encargo.lista_xid)} target="_blank" rel="noreferrer" style={BOTON}>
+            Abrir en Mercadona <ArrowUpRight size={16} color="currentColor" />
+          </a>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: "grid", gap: "var(--esp-8)" }}>

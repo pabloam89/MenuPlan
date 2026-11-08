@@ -19,9 +19,8 @@ import { NO_EXISTE, PG_SIN_COLUMNA } from "../../src/lib/postgrest.js";
 import * as ids from "../../src/lib/ids.js";
 import { LLEGA_HASTA, LLEGA_HASTA_MERCADONA, deUnaCuenta, faltaPara } from "../../src/lib/mercadonaLlegaHasta.js";
 import { esSello } from "../../src/lib/mercadonaSello.js";
-import { TRAS_LA_LISTA, TRAS_LA_LISTA_OTRO, textoDeHoraEntrega } from "../../src/lib/mercadonaHoraEntrega.js";
+import { NO_ELEGIDA, TRAS_LA_LISTA, TRAS_LA_LISTA_OTRO, hastaCuandoSeCambia, textoDeHoraEntrega } from "../../src/lib/mercadonaHoraEntrega.js";
 import { formatEuro } from "../../src/lib/euros.js";
-import { momentoDeCasa, nombreDia } from "../../src/lib/dias.js";
 
 const { PENDIENTE, RELLENANDO, ELIGIENDO, RESERVANDO, HECHO, FALLIDO } = ESTADO_ENCARGO_MERCADONA;
 
@@ -45,8 +44,7 @@ const VISIBLES = "id,status,entraron,faltan,fallo,lista_xid,created_at";
 /** Lo de reservar que enseñan la app y Lola (0134). El id del pedido en Mercadona, no: es del trabajador. */
 const VISIBLES_RESERVA = `${VISIBLES},total,horas_entrega,hora_entrega,cambiable_hasta`;
 
-/** Por qué no se ha podido elegir la hora (elegirHoraEntrega). No va a ninguna tabla: lo explican la app y Lola. */
-export const NO_ELEGIDA = Object.freeze({ SIN_ELEGIR: "sin_elegir", NO_OFRECIDA: "no_ofrecida" });
+export { NO_ELEGIDA };
 
 /** Lo que quien llama ha mandado mal: 400, sin aviso. El resto es fallo nuestro. */
 export class PeticionMala extends Error {}
@@ -62,11 +60,6 @@ export function casaPermitida(casa, entorno = process.env.MERCADONA_CASAS) {
   return String(entorno ?? "").split(",").map((c) => c.trim()).includes(casa);
 }
 
-/** Pura. «el martes 11 a las 19:59»: hasta cuándo se puede cambiar el pedido, en la hora de la casa. */
-function cuandoSeCambia(instante) {
-  const m = momentoDeCasa(instante);
-  return m ? `el ${nombreDia(m.dia, { minusculas: true })} ${Number(m.iso.slice(8))} a las ${m.hora}` : null;
-}
 
 /** El prefijo del botón de cada hora de entrega en Telegram: `mhe:<encargo>:<posición>` (64 bytes como mucho). */
 export const PREFIJO_BOTON_HORA = "mhe:";
@@ -88,7 +81,7 @@ export function avisoDeCierre(fila) {
     return `Ya tienes la compra en tu carro de Mercadona${total}. ¿A qué hora te la llevan?`;
   }
   if (fila.status === HECHO && fila.hora_entrega) {
-    const hasta = cuandoSeCambia(fila.cambiable_hasta);
+    const hasta = hastaCuandoSeCambia(fila.cambiable_hasta);
     const cambiar = hasta ? ` Puedes cambiar el pedido hasta ${hasta}.` : "";
     return `Hecho: te lo llevan el ${textoDeHoraEntrega(fila.hora_entrega)}.${cambiar} Pagar lo haces tú, en la app de Mercadona.`;
   }

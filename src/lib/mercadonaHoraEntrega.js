@@ -57,6 +57,13 @@ export function textoDeHoraEntrega(hora_entrega) {
   return `${p.dia}, ${p.horas}${p.precio ? ` · ${p.precio}` : ""}`;
 }
 
+/** Por qué no se ha podido elegir la hora (elegirHoraEntrega). No va a ninguna tabla: lo explican la app y Lola. */
+export const NO_ELEGIDA = Object.freeze({ SIN_ELEGIR: "sin_elegir", NO_OFRECIDA: "no_ofrecida" });
+export const TEXTO_NO_ELEGIDA = Object.freeze({
+  [NO_ELEGIDA.SIN_ELEGIR]: "Esas horas ya no valen: ha pasado demasiado tiempo o ya se eligió otra. Elígela en la app de Mercadona.",
+  [NO_ELEGIDA.NO_OFRECIDA]: "Esa hora no estaba entre las que se ofrecieron. Elige una de las de la lista.",
+});
+
 /** Lo que se dice cuando falla reservar la hora, con la lista ya en Mercadona (0134): lo mismo en la app y en Lola. */
 export const TRAS_LA_LISTA = Object.freeze({
   [FALLO_ENCARGO_MERCADONA.BAJO_MINIMO]: "no llega al pedido mínimo de Mercadona. Añade algo y tramítalo allí.",
@@ -66,3 +73,9 @@ export const TRAS_LA_LISTA = Object.freeze({
   [FALLO_ENCARGO_MERCADONA.CADUCADO]: "no se ha elegido la hora a tiempo. Elígela en la app de Mercadona.",
 });
 export const TRAS_LA_LISTA_OTRO = "no he podido reservar la hora de entrega. Elígela en la app de Mercadona.";
+
+/** Pura. «el miércoles 11 a las 19:59»: hasta cuándo se puede cambiar el pedido, en la hora de la casa; null sin fecha. */
+export function hastaCuandoSeCambia(instante) {
+  const m = momentoDeCasa(instante);
+  return m ? `el ${nombreDia(m.dia, { minusculas: true })} ${Number(m.iso.slice(8))} a las ${m.hora}` : null;
+}

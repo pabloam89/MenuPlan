@@ -4,8 +4,8 @@
  */
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { NO_ELEGIDA, cambiarLlegaHasta, elegirHoraEntrega, encargar, estadoDeCasa, guardarTelefono } from "./mercadonaEncargos.js";
-import { textoDeHoraEntrega } from "../../src/lib/mercadonaHoraEntrega.js";
+import { cambiarLlegaHasta, elegirHoraEntrega, encargar, estadoDeCasa, guardarTelefono } from "./mercadonaEncargos.js";
+import { TEXTO_NO_ELEGIDA, textoDeHoraEntrega } from "../../src/lib/mercadonaHoraEntrega.js";
 import { lineasPorComprar, motor } from "./menu.js";
 import { NOMBRE_LISTA_MERCADONA, listaParaMercadona } from "../../src/lib/mercadonaList.js";
 import { NO_ENCARGADO } from "../../src/lib/vocabularios.js";
@@ -134,11 +134,7 @@ export async function guardarTelefonoMercadona({ householdId, telefono, esGrupo 
 
 // ── La hora de entrega (trozo 20 de #1407): se elige con un botón del aviso, sin pasar por el modelo ──
 
-/** Lo que Lola dice si la hora no se ha podido elegir (NO_ELEGIDA). */
-export const TEXTO_NO_ELEGIDA = Object.freeze({
-  [NO_ELEGIDA.SIN_ELEGIR]: "Esas horas ya no valen: ha pasado demasiado tiempo o ya se eligió otra. Elígela en la app de Mercadona.",
-  [NO_ELEGIDA.NO_OFRECIDA]: "Esa hora no estaba entre las que te ofrecí. Elige una de los botones.",
-});
+export { TEXTO_NO_ELEGIDA };
 
 /** El botón de una hora de entrega (botonesDeHoras): la reserva y dice qué pasa. */
 export async function elegirHoraConBoton({ householdId, encargo, posicion }) {

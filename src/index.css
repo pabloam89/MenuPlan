@@ -193,6 +193,14 @@ textarea::placeholder {
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
+/* La hora de entrega de Mercadona (0134): las horas libres entran en cascada (el retraso de cada una lo pone
+   ElegirHoraEntrega) y la reservada se asienta con un pequeño rebote, que es la buena noticia. */
+.mp-hora-entra { animation: mpIngredienteEntra .34s cubic-bezier(.25,.46,.45,.94) backwards; }
+.mp-hora-reservada { animation: mpBaldosaEntra .38s cubic-bezier(.34,1.4,.64,1) backwards; }
+@media (prefers-reduced-motion: reduce) {
+  .mp-hora-entra, .mp-hora-reservada { animation: mpFadeIn .12s ease both; }
+}
+
 /* ── Los dos temas de la pizarra ───────────────────────────────────────────
    El oscuro NO es el tema de la app: el resto vive de ilustraciones Pixar
    sobre blanco y en negro se rompen. Es un tema de ESTE tablero, que se pide
