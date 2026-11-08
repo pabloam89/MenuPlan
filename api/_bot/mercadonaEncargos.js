@@ -15,7 +15,8 @@ import { avisarFallo } from "./avisar.js";
 import { erroresDeLista } from "../../src/lib/mercadonaLista.js";
 import { CANAL, ESTADO_CUENTA_MERCADONA, ESTADO_ENCARGO_MERCADONA, FALLO_ENCARGO_MERCADONA, NO_ENCARGADO, paraEscribir } from "../../src/lib/vocabularios.js";
 import { enlaceDeLista } from "../../src/lib/mercadonaList.js";
-import { NO_EXISTE } from "../../src/lib/postgrest.js";
+import { NO_EXISTE, PG_SIN_COLUMNA } from "../../src/lib/postgrest.js";
+import { ALCANCES_MERCADONA, ALCANCE_MERCADONA, alcanceDe, faltaPara } from "../../src/lib/mercadonaAlcance.js";
 import { esSello } from "../../src/lib/mercadonaSello.js";
 
 const { PENDIENTE, RELLENANDO, HECHO, FALLIDO } = ESTADO_ENCARGO_MERCADONA;
@@ -111,7 +112,7 @@ export async function estadoDeCasa(casa, ahora = Date.now()) {
 }
 
 /**
- * Encola rellenar `lista`. Devuelve `{ encargo }` o `{ fallo }`, uno de NO_ENCARGADO.
+ * Encola rellenar `lista`. Devuelve `{ encargo, alcance }` (hasta dónde llegará el trabajador) o `{ fallo }`, uno de NO_ENCARGADO.
  * Una lista mal formada lanza: es un fallo de quien llama, no de la familia. De ella solo se guarda lo que se usa.
  */
 export async function encargar({ casa, por, canal, chat_id = null, lista }, ahora = Date.now()) {
@@ -132,7 +133,7 @@ export async function encargar({ casa, por, canal, chat_id = null, lista }, ahor
     const [encargo] = await insert("mercadona_encargo", [
       { household_id: casa, created_by: por, canal: paraEscribir("canales_encargo", canal), chat_id, lista: limpia },
     ]);
-    return { encargo: { id: encargo.id, status: encargo.status } };
+    return { encargo: { id: encargo.id, status: encargo.status }, alcance: estado.alcance ?? ALCANCE_MERCADONA.LISTA };
   } catch (e) {
     // El índice único: dos toques a la vez. Gana el primero.
     if (e?.codigo === "23505") return { fallo: NO_ENCARGADO.EN_MARCHA };
@@ -167,7 +168,21 @@ export async function tomar() {
     await cerrar(encargo.id, { fallo: FALLO_ENCARGO_MERCADONA.SIN_CUENTA });
     return null;
   }
-  return { encargo: { id: encargo.id, lista: encargo.lista }, sesion_cifrada: cuenta.sesion_cifrada };
+  return { encargo: { id: encargo.id, lista: encargo.lista }, sesion_cifrada: cuenta.sesion_cifrada, ...(await hastaDondeDe(encargo.household_id)) };
+}
+
+/**
+ * Para el trabajador: hasta dónde llega y el teléfono sellado (0133). Sin las columnas (42703), solo la lista y sin
+ * teléfono: lo que el bot hacía antes. Otro fallo, lanza.
+ */
+async function hastaDondeDe(casa) {
+  try {
+    const [cuenta] = await select("mercadona_cuenta", `household_id=${eq(casa)}`, "alcance,telefono_sellado");
+    return { alcance: alcanceDe(cuenta?.alcance), telefono_sellado: cuenta?.telefono_sellado ?? null };
+  } catch (e) {
+    if (e?.codigo !== PG_SIN_COLUMNA) throw e;
+    return { alcance: ALCANCE_MERCADONA.LISTA, telefono_sellado: null }; // a propósito: plan B de la 0133
+  }
 }
 
 /**
@@ -206,4 +221,43 @@ export async function cerrar(id, resultado, ahora = Date.now()) {
   if (!fila) return false;
   await avisar(fila);
   return true;
+}
+
+/**
+ * Cambia hasta dónde llega el bot (0133), el mismo dato para la app (api/mercadona.js) y Lola. Bajar siempre se puede;
+ * subir, solo si la cuenta tiene lo que pide el paso (faltaPara). Devuelve `{ alcance }`, `{ falta }` (FALTAS_MERCADONA)
+ * o `{ fallo }` (NO_ENCARGADO). Sin la 0133, `sin_servicio`: el bot solo sabe rellenar la lista.
+ */
+export async function cambiarAlcance({ casa, alcance }, ahora = Date.now()) {
+  if (!ALCANCES_MERCADONA.includes(alcance)) throw new PeticionMala(`alcance no válido: ${alcance}`);
+  const estado = await estadoDeCasa(casa, ahora);
+  if (!estado.disponible) return { fallo: NO_ENCARGADO.SIN_SERVICIO };
+  if (!estado.cuenta) return { fallo: NO_ENCARGADO.SIN_CUENTA };
+  const falta = faltaPara(estado, alcance);
+  if (falta.length) return { falta };
+  try {
+    const filas = await update("mercadona_cuenta", `household_id=${eq(casa)}`, { alcance: paraEscribir("alcances_mercadona", alcance) });
+    if (!filas?.length) return { fallo: NO_ENCARGADO.SIN_CUENTA }; // se desconectó entre medias
+    return { alcance };
+  } catch (e) {
+    if (e?.codigo !== PG_SIN_COLUMNA) throw e;
+    return { fallo: NO_ENCARGADO.SIN_SERVICIO }; // a propósito: plan B de la 0133
+  }
+}
+
+/**
+ * Guarda el teléfono del pedido, ya sellado (src/lib/mercadonaTelefono.js): aquí nunca llega en claro. Devuelve
+ * `{ guardado: true }` o `{ fallo }` (NO_ENCARGADO).
+ */
+export async function guardarTelefono({ casa, telefono_sellado }) {
+  const valido = typeof telefono_sellado === "string" && telefono_sellado.length <= TOPE_SESION && esSello(telefono_sellado);
+  if (!valido) throw new PeticionMala("teléfono no sellado");
+  if (!casaPermitida(casa)) return { fallo: NO_ENCARGADO.SIN_SERVICIO };
+  try {
+    const filas = await update("mercadona_cuenta", `household_id=${eq(casa)}`, { telefono_sellado });
+    return filas?.length ? { guardado: true } : { fallo: NO_ENCARGADO.SIN_CUENTA };
+  } catch (e) {
+    if (e?.codigo !== PG_SIN_COLUMNA && !sinMigracion(e)) throw e;
+    return { fallo: NO_ENCARGADO.SIN_SERVICIO }; // a propósito: sin la 0131 o la 0133
+  }
 }
