@@ -6,7 +6,7 @@
 
 import { select, eq } from "./db.js";
 import { crearCuentaTelegram, cuentaNacidaAqui, cuentaNacidaDe } from "./cuentas.js";
-import { enlazarChat, casaPropia, cuentaDeTelegram } from "./enlace.js";
+import { enlazarChat, casaPropia, cuentaDeTelegram, casaQueLeNacio } from "./enlace.js";
 import { CAMINO_ENLACE, PRUEBA_IDENTIDAD } from "../../src/lib/vocabularios.js";
 import { sembrarCasa } from "./ajustes.js";
 
@@ -61,8 +61,8 @@ export async function volverACuentaNacida({ telegramId, chatId, nombre = null })
   const nacida = await cuentaNacidaDe(telegramId);
   if (!nacida) return { sin: true };
   if ((await cuentaDeTelegram(telegramId)) === nacida.id) return { ya: true };
-  // La casa que le nació (households.propia, única por titular desde la 0075): la activa puede ser una ajena.
-  const [hogar] = await select("households", `owner_user_id=${eq(nacida.id)}&propia=is.true`, "id");
+  // La casa que le nació, no la activa: esa puede ser una ajena.
+  const hogar = await casaQueLeNacio(nacida.id);
   if (!hogar) throw new Error("cuenta nacida sin casa propia");
   const r = await enlazarChat({
     camino: CAMINO_ENLACE.REENGANCHE,

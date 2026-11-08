@@ -270,6 +270,15 @@ export async function gastarCodigo(codigo, tipo) {
   return filas?.[0] ?? null;
 }
 
+/**
+ * La casa que le nació a un usuario (households.propia, única por titular desde la 0075), o null. No es la activa: esa
+ * puede ser una ajena. La usa /cuentadeantes (volverACuentaNacida). Un fallo de la base, lanza.
+ */
+export async function casaQueLeNacio(userId) {
+  const [hogar] = await select("households", `owner_user_id=${eq(userId)}&propia=is.true`, "id");
+  return hogar ?? null;
+}
+
 /** El dueño de la casa activa de un usuario (el bot escribe como dueño). */
 export async function casaPropia(userId) {
   const [perfil] = await select("user_profiles", `user_id=${eq(userId)}`, "active_household_id");

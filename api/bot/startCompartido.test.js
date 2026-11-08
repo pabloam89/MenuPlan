@@ -44,6 +44,7 @@ vi.mock("../_bot/ajustes.js", () => ({ sembrarCasa: vi.fn() }));
 vi.mock("../_bot/enlace.js", async (original) => ({
   ...(({ pideCambioDeCuenta, preguntaDeCambio, personasDeCasa, NO_SE_PASA_LA_LLAVE, CAMBIO }) => ({ pideCambioDeCuenta, preguntaDeCambio, personasDeCasa, NO_SE_PASA_LA_LLAVE, CAMBIO }))(await original()),
   cuentaDeTelegram: vi.fn(async () => t.deAntes),
+  casaQueLeNacio: vi.fn(async () => (t.tablas.households ?? [])[0] ?? null),
   dejariaCasaSinEntrada: vi.fn(async () => t.atrapa),
   personasDeCasas: vi.fn(async () => []),
   enlazarChat: vi.fn(async () => ({ ok: true })), apuntarEnlace: vi.fn(async () => {}), crearCodigo: vi.fn(), gastarCodigo: vi.fn(), baseDe: () => "https://x", confirmarEnlace: vi.fn(async () => ({})), casaPropia: vi.fn(), idDePersona: (f) => (f?.id ? String(f.id) : null), codigoDeGrupo: vi.fn(), esCodigoDeGrupo: () => t.deGrupo }));
