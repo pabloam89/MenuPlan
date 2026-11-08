@@ -12,26 +12,16 @@
 
 import { gramsForRecipeQuantity, gramsPerPiece } from "../kitchenUnits.js";
 import { matchProductForIngredient } from "../productMatcher.js";
-import { resolveIngredient } from "../ingredients.js";
+import { productoDeLinea } from "../productoDeLinea.js";
 
-const CONFIANZA = 0.7;
-
-// Lo que dice la receta («Perejil fresco», «Tomate maduro») no siempre es como
-// se llama en la tienda. Se prueba primero tal cual, luego con el nombre
-// canónico del catálogo de ingredientes, y por último sin los adjetivos de
-// cocina que no cambian el producto.
-const ADJETIVOS = /\b(fresc[oa]s?|madur[oa]s?|picad[oa]s?|troceado|en hebras|en rodajas|en lonchas( finas)?|en tacos|pelad[oa]s?|seco|molid[oa]|natural|variad[oa]s?)\b/gi;
-function nombresDe(nombre) {
-  const canonico = resolveIngredient(nombre)?.name;
-  const limpio = String(nombre).replace(ADJETIVOS, "").replace(/\s+/g, " ").trim();
-  return [...new Set([nombre, canonico, limpio].filter(Boolean))];
-}
+// El producto sale del mismo sitio que en la lista de la compra: la decisión
+// guardada en productoPorIngrediente.json, y el emparejador por nombre solo para
+// lo que no tiene fila (recetas de la familia escritas a mano). Antes aquí había
+// una cadena propia —nombre, nombre canónico, nombre sin adjetivos de cocina—
+// que podía elegir otro producto que la compra para el mismo ingrediente.
 function emparejar(nombre, productos, match) {
-  for (const n of nombresDe(nombre)) {
-    const e = match(n, productos, { minConfidence: CONFIANZA });
-    if (e?.product) return e;
-  }
-  return null;
+  const r = productoDeLinea(nombre, productos, { emparejar: match });
+  return r.product ? r : null;
 }
 const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : null);
 

@@ -1472,7 +1472,8 @@
     "id": "carne-picada",
     "name": "Carne picada de ternera",
     "aliases": [
-      "Carne picada de ternera y cerdo"
+      "Carne picada de ternera y cerdo",
+      "Carne picada"
     ],
     "aisle": "Carne",
     "category": "Carnes y pescados",
