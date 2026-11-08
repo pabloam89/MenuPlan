@@ -16,7 +16,7 @@ const { NOMBRE_LISTA_MERCADONA } = await import("../../src/lib/mercadonaList.js"
 
 const CATALOGO = {
   store: "Mercadona",
-  products: [{ id: "10379", name: "Leche entera Hacendado", price: "5.76", unitSize: 6, unitFormat: "l", bulkPrice: "0.96", section: "Huevos, leche y mantequilla", category: "Leche y bebidas vegetales" }],
+  products: [{ id: "10380", name: "Leche entera Hacendado", price: "0.96", unitSize: 1, unitFormat: "l", bulkPrice: "0.96", section: "Huevos, leche y mantequilla", category: "Leche y bebidas vegetales" }],
 };
 const leerCatalogo = async () => CATALOGO;
 const QUIEN = { householdId: "h", userId: "u", chatId: "7", canal: "telegram" };
@@ -46,7 +46,7 @@ describe("pasarAMercadona", () => {
     const texto = await pasarAMercadona(QUIEN, { leerCatalogo });
     expect(encargar).toHaveBeenCalledWith({
       casa: "h", por: "u", canal: "telegram", chat_id: "7",
-      lista: { name: NOMBRE_LISTA_MERCADONA, products: [{ merca_code: "10379", quantity: 1 }] },
+      lista: { name: NOMBRE_LISTA_MERCADONA, products: [{ merca_code: "10380", quantity: 1 }] },
     });
     expect(texto).toContain("con 1 producto.");
     expect(texto).toContain("Unicornio");

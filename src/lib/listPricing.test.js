@@ -3,9 +3,11 @@ import { priceShoppingList } from "./listPricing.js";
 import { resetStoreCatalogCache } from "./storeCatalog.js";
 
 // El total de caja: envases enteros (el €/ración a granel es lib/coste.js).
+// Los ids son los que decide productoPorIngrediente.json para la merluza y el
+// aceite de oliva: la lista busca el producto decidido por id, no por nombre.
 const PRODUCTS = [
-  { id: "1", name: "Merluza en lomos congelada", price: 4.5, unitSize: 500, unitFormat: "g" },
-  { id: "2", name: "Aceite de oliva virgen extra", price: 5, unitSize: 1, unitFormat: "l" },
+  { id: "62113", name: "Merluza en lomos congelada", price: 4.5, unitSize: 500, unitFormat: "g" },
+  { id: "4640", name: "Aceite de oliva virgen extra", price: 5, unitSize: 1, unitFormat: "l" },
 ];
 
 function mockCatalog(products = PRODUCTS) {
