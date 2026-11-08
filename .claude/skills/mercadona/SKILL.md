@@ -60,6 +60,11 @@ cierra el encargo. No tiene acceso a la base. Con el servidor de 1 GB, de uno en
 - **Variables.** En Vercel: `MERCADONA_TRABAJADOR_TOKEN` (secreto), `MERCADONA_CLAVE_PUBLICA`
   y `MERCADONA_CASAS`. En el servidor, `/opt/mercadona/.env` (600): `MERCADONA_API`, el
   mismo token y `MERCADONA_CLAVE_PRIVADA`, que solo vive ahí y en 1Password.
+  **El 8 nov 2026 Vercel no tenía ninguna variable `MERCADONA_*`**, en ningún entorno:
+  Comprar no está encendido. Se prueba en producción (`https://homenu.vercel.app`,
+  decisión de Pablo del 8 nov), así que van en el entorno Production, y
+  `MERCADONA_API` es `https://homenu.vercel.app/api/mercadona` (trozo 11 de
+  `specs/plan-comprar-mercadona.md`).
 - **Rotar la clave** deja fuera las cuentas conectadas: hay que volver a conectarlas.
 
 ## Operaciones
