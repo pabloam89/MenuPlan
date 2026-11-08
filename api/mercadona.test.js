@@ -15,6 +15,8 @@ vi.mock("./_bot/mercadonaEncargos.js", () => ({
   encargar: vi.fn(async () => ({ encargo: { id: "e1" } })),
   estadoDeCasa: vi.fn(async () => ({ disponible: true, cuenta: "conectada", encargo: null })),
   tomar: vi.fn(async () => null),
+  tomarReserva: vi.fn(async () => null),
+  elegirFranja: vi.fn(async () => ({ encargo: { id: "e1", status: "reservando" } })),
 }));
 
 const { default: handler } = await import("./mercadona.js");
@@ -82,6 +84,15 @@ describe("la app", () => {
     expect(r.datos).toMatchObject({ cuenta: "conectada", clave_publica: "clave" });
   });
 
+  it("elige la hora de entrega quien edita la casa; quien solo la ve, no", async () => {
+    const cuerpo = { casa: CASA, elegir: { encargo: "e1", franja: "f1" } };
+    expect((await llamar({ token: "buena", body: cuerpo })).datos).toEqual({ encargo: { id: "e1", status: "reservando" } });
+    expect(e.elegirFranja).toHaveBeenCalledWith({ casa: CASA, encargo: "e1", franja: "f1" });
+    papelDeUsuario.mockResolvedValue("viewer");
+    expect((await llamar({ token: "buena", body: cuerpo })).statusCode).toBe(403);
+    expect(e.elegirFranja).toHaveBeenCalledTimes(1);
+  });
+
   it("quién encarga sale del token, nunca del cuerpo", async () => {
     await llamar({ token: "buena", body: { casa: CASA, por: "otro", encargar: { lista: { name: "x" } } } });
     expect(e.encargar.mock.calls[0][0]).toMatchObject({ por: "u1", canal: "app" });
@@ -140,6 +151,39 @@ describe("el trabajador", () => {
   it("una lista que no se pudo releer se cierra sin cifras", async () => {
     const r = await trabajador({ accion: "cerrar", id: CASA, resultado: { lista_xid: "1", entraron: null, faltan: null } });
     expect(r.statusCode).toBe(200);
+  });
+
+  // 0134: reservar la hora de entrega.
+  const FRANJA = { id: "f1", start: "2026-11-12T14:00:00Z", end: "2026-11-12T15:00:00Z", price: "7.21", available: true };
+  const PEDIDO = { pedido_xid: "p9", total: 64.1, franjas: [FRANJA] };
+
+  it("toma la siguiente reserva", async () => {
+    e.tomarReserva.mockResolvedValueOnce({ reserva: { id: "e1" }, sesion_cifrada: "s", telefono_sellado: null });
+    expect((await trabajador({ accion: "tomar_reserva" })).datos.siguiente.reserva.id).toBe("e1");
+  });
+
+  it.each([
+    [{ lista_xid: "1", entraron: 2, faltan: [], pedido: PEDIDO }],
+    [{ lista_xid: "1", entraron: 2, faltan: [], fallo: "bajo_minimo" }],
+    [{ cambiable_hasta: "2026-11-11T18:59:00Z" }],
+    [{ cambiable_hasta: null }],
+    [{ fallo: "franja_ocupada" }],
+  ])("cierra lo de reservar: %j", async (resultado) => {
+    expect((await trabajador({ accion: "cerrar", id: CASA, resultado })).statusCode).toBe(200);
+  });
+
+  it.each([
+    [{ lista_xid: "1", entraron: 2, faltan: [], pedido: { ...PEDIDO, franjas: [] } }],
+    [{ lista_xid: "1", entraron: 2, faltan: [], pedido: { ...PEDIDO, franjas: [FRANJA, FRANJA, FRANJA, FRANJA, FRANJA] } }],
+    [{ lista_xid: "1", entraron: 2, faltan: [], pedido: { ...PEDIDO, franjas: [{ id: "f1", start: "mañana" }] } }],
+    [{ lista_xid: "1", entraron: 2, faltan: [], pedido: { ...PEDIDO, pedido_xid: 9 } }],
+    [{ lista_xid: "1", entraron: 2, faltan: [], pedido: { ...PEDIDO, total: -1 } }],
+    [{ lista_xid: "1", entraron: -1, faltan: [], fallo: "bajo_minimo" }],
+    [{ cambiable_hasta: "el martes" }],
+    [{ cambiable_hasta: "2026-11-11T18:59:00Z", lista_xid: "1", entraron: 1, faltan: [] }],
+  ])("lo de reservar mal formado no se cierra: %j", async (resultado) => {
+    expect((await trabajador({ accion: "cerrar", id: CASA, resultado })).statusCode).toBe(400);
+    expect(e.cerrar).not.toHaveBeenCalled();
   });
 
   it.each([

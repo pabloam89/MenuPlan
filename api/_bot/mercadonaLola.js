@@ -4,7 +4,8 @@
  */
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { cambiarLlegaHasta, encargar, estadoDeCasa, guardarTelefono } from "./mercadonaEncargos.js";
+import { NO_ELEGIDA, cambiarLlegaHasta, elegirFranja, encargar, estadoDeCasa, guardarTelefono } from "./mercadonaEncargos.js";
+import { textoDeFranja } from "../../src/lib/mercadonaFranja.js";
 import { lineasPorComprar, motor } from "./menu.js";
 import { NOMBRE_LISTA_MERCADONA, listaParaMercadona } from "../../src/lib/mercadonaList.js";
 import { NO_ENCARGADO } from "../../src/lib/vocabularios.js";
@@ -129,4 +130,19 @@ export async function guardarTelefonoMercadona({ householdId, telefono, esGrupo 
   const r = await guardarTelefono({ casa: householdId, telefono_sellado: await sellar(textoParaSellar(t), publica) });
   if (r.fallo) return TEXTO_SIN_ENCARGO[r.fallo];
   return `Guardado, el acabado en ${t.phone_national_number.slice(-3)}. Solo lo usa el repartidor de Mercadona.`;
+}
+
+// ── La hora de entrega (trozo 20 de #1407): se elige con un botón del aviso, sin pasar por el modelo ──
+
+/** Lo que Lola dice si la hora no se ha podido elegir (NO_ELEGIDA). */
+export const TEXTO_NO_ELEGIDA = Object.freeze({
+  [NO_ELEGIDA.SIN_ELEGIR]: "Esas horas ya no valen: ha pasado demasiado tiempo o ya se eligió otra. Elígela en la app de Mercadona.",
+  [NO_ELEGIDA.NO_OFRECIDA]: "Esa hora no estaba entre las que te ofrecí. Elige una de los botones.",
+});
+
+/** El botón de una franja (botonesDeFranjas): la reserva y dice qué pasa. */
+export async function elegirHoraConBoton({ householdId, encargo, posicion }) {
+  const r = await elegirFranja({ casa: householdId, encargo, posicion });
+  if (r.fallo) return TEXTO_NO_ELEGIDA[r.fallo];
+  return `Reservando el ${textoDeFranja(r.encargo.franja)}. Te aviso aquí en un momento.`;
 }

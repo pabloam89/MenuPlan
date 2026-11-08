@@ -75,6 +75,8 @@ import { CANAL, CAMINO_ENLACE, RESULTADO_ENLACE, PRUEBA_IDENTIDAD } from "../../
 import { conOperacion, operacion } from "../_bot/operacion.js";
 import { RE_BOTON } from "../_bot/formatoMensaje.js";
 import { BOTON_ELEGIDO, tecladoElegido } from "../_bot/botonElegido.js";
+import { leerBotonFranja } from "../_bot/mercadonaEncargos.js";
+import { elegirHoraConBoton } from "../_bot/mercadonaLola.js";
 import { esProbador, comandoFallo, abrirReporte, completarReporte, esBotonReporte, pulsarReporte, EVENTO_RUTA } from "../_bot/reporte.js";
 
 const EMAIL_RE = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]{2,}$/;
@@ -1621,6 +1623,13 @@ async function pulsado(cq, base, host = "") {
     if (!esGrupo) await avisarSiCambio(chatId, chat.household_id);
     return enTurno(chatId, itemDe(cq.from, re ? re.texto : cq.data.slice(2), { responderA: esGrupo ? cq.message.message_id : undefined, inmediato: true, mid, reintento: Boolean(re) }),
       atenderCola({ chatId, householdId: chat.household_id, esGrupo, base }), { alSobrar: relevo(chatId, host) });
+  }
+
+  // La hora de entrega de Mercadona (0134): el botón la elige en la casa del turno, sin pasar por Lola.
+  const franjaPulsada = leerBotonFranja(cq.data);
+  if (franjaPulsada) {
+    if (!chat) return bienvenida(chatId, cq.from, base);
+    return enviar(chatId, await elegirHoraConBoton({ householdId: chat.household_id, ...franjaPulsada }));
   }
 
   // El botón de un recordatorio: se hace en la casa del recordatorio, y solo si es la del turno (#1238).
