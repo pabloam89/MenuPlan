@@ -201,8 +201,8 @@ npx vitest run src/lib/mercadonaLlegaHasta.test.js && node scripts/verificar-est
 ```
 
 ### 16. Al conectar, el trabajador mira si la cuenta tiene dirección y medio de pago
-Files: `scripts/lib/mercadonaTrabajador.mjs`, `scripts/lib/mercadonaPagina.mjs`, `scripts/mercadona-trabajador-revisar.test.js`, `api/mercadona.js`
-Depends on: 13, 15
+Files: `scripts/lib/mercadonaTrabajador.mjs`, `scripts/lib/mercadonaPagina.mjs`, `scripts/mercadona-trabajador-revisar.test.js`, `api/mercadona.js`, `api/mercadona.test.js`, `api/_bot/mercadonaEncargos.js`, `api/_bot/mercadonaEncargos.test.js`, `src/lib/mercadonaLlegaHasta.js`
+Depends on: 13, 15, 19
 Blocked by: none
 Existing: el trabajador entra con la sesión de la casa y rellena listas (`scripts/lib/mercadonaTrabajador.mjs`); no lee direcciones ni medios de pago. `api/mercadona.js` no tiene dónde guardar «tiene dirección». `ls scripts/mercadona-trabajador-revisar.test.js` → No such file or directory.
 Not done: lo hace esta sesión (`menuplan-8b`). Al conectarse una cuenta, y en cada encargo, el trabajador pide a Mercadona `GET …/addresses/` (`count` mayor que 0 es «tiene dirección») y el perfil `GET /api/customers/:cliente/` (`has_active_billing` es «tiene medio de pago»), según `.claude/skills/mercadona/referencias/pedido.md` (#1410), y guarda solo `tiene_direccion` y `tiene_pago`, con la fecha. Ni la dirección ni la tarjeta salen del navegador del trabajador. Si la llamada falla, se queda `null` («sin mirar»), no `false`.
@@ -235,7 +235,7 @@ npx vitest run api/_bot/mercadonaLlegaHasta.test.js
 
 ### 19. Al carro: la lista se suma a lo que ya hay
 Files: `scripts/lib/mercadonaPagina.mjs`, `scripts/lib/mercadonaTrabajador.mjs`, `scripts/mercadona-trabajador-carro.test.js`
-Depends on: 12, 13, 14, 15, 16
+Depends on: 12, 13, 14, 15
 Blocked by: none
 Existing: el trabajador escribe una lista nueva y no toca el carro (`scripts/lib/mercadonaPagina.mjs`), porque escribir el carro lo sustituye entero (skill, «Lista y no carrito»).
 Not done: lo hace la sesión `menuplan-f4`; se puede escribir antes de la 0133 (sin la columna no se llega al carro) y entra después del trozo 14. Con `llega_hasta` en `reservar` o `pagar`, el trabajador lee el carro (`GET …/cart/`, con su `version`), le suma la lista (mismo producto: se suman las cantidades) y lo escribe una sola vez (`PUT …/cart/` con el carrito entero y la `version` leída; `.claude/skills/mercadona/referencias/pedido.md` (#1410), «Carrito»). Lo que había sigue ahí. Comprueba que el total pasa del pedido mínimo (trozo 12) antes de seguir.
