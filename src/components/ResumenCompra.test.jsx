@@ -14,7 +14,8 @@ const pintar = async (props) => {
   raiz = createRoot(caja);
   await act(async () => raiz.render(<ResumenCompra conPrecio={12} sinPrecio={0} total="45 €" {...props} />));
 };
-const renglones = () => [...caja.firstChild.children].map((r) => r.textContent);
+// Las celdas de la tabla, en orden: concepto, cifra, concepto, cifra…; la raya sale como «—».
+const celdas = () => [...caja.firstChild.children].map((c) => (c.tagName === "DIV" ? "—" : c.textContent));
 
 afterEach(async () => {
   await act(async () => raiz.unmount());
@@ -22,18 +23,18 @@ afterEach(async () => {
 });
 
 describe("ResumenCompra", () => {
-  it("lo que tiene precio con su total y, debajo, lo que no, sin total", async () => {
-    await pintar({ sinPrecio: 3 });
-    expect(renglones()).toEqual(["12 productos con precio45 €", "3 productos sin precio"]);
+  it("con precio y su total; debajo, sin precio y sin cifra; raya y presupuesto", async () => {
+    await pintar({ sinPrecio: 3, presupuesto: "80 €" });
+    expect(celdas()).toEqual(["12 productos con precio", "45 €", "3 productos sin precio", "", "—", "Presupuesto", "80 €"]);
   });
 
-  it("sin productos sin precio, un solo renglón", async () => {
+  it("sin productos sin precio ni presupuesto, una sola fila", async () => {
     await pintar();
-    expect(renglones()).toEqual(["12 productos con precio45 €"]);
+    expect(celdas()).toEqual(["12 productos con precio", "45 €"]);
   });
 
-  it("el presupuesto va al lado del total, y en singular dice producto", async () => {
-    await pintar({ conPrecio: 1, sinPrecio: 1, presupuesto: "80 €" });
-    expect(renglones()).toEqual(["1 producto con precio45 €de 80 €", "1 producto sin precio"]);
+  it("en singular dice producto", async () => {
+    await pintar({ conPrecio: 1, sinPrecio: 1 });
+    expect(celdas()).toEqual(["1 producto con precio", "45 €", "1 producto sin precio", ""]);
   });
 });
