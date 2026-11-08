@@ -800,16 +800,13 @@ export function ShoppingScreen({
     () => (buyTab === "bought" ? null : listaParaMercadona(visibleItems, linePrices, NOMBRE_LISTA_MERCADONA)),
     [buyTab, visibleItems, linePrices],
   );
-  // La hoja se abre de dos formas: desde el total, con la lista («lista»), o
-  // desde Comprar, que ya da la lista por buena y solo enseña cómo comprarla
-  // («comprar»). false, cerrada.
   const [comprarAbierto, setComprarAbierto] = useState(false);
   const mercadona = useRellenarMercadona(pantryHouseholdId, paraComprar?.lista);
   const paso = pasoDeComprar(mercadona);
   // Con la cuenta conectada, comprar va directo; sin ella, lo que se puede hacer está en la hoja.
   const comprar = async () => {
     if (paso.mirar) return mercadona.mirar();
-    if (!mercadona.conectada || !(await mercadona.rellenar())) setComprarAbierto("comprar");
+    if (!mercadona.conectada || !(await mercadona.rellenar())) setComprarAbierto(true);
     return undefined;
   };
 
@@ -1462,7 +1459,7 @@ export function ShoppingScreen({
             productos={paraComprar.lineas.length}
             paso={paso}
             onComprar={comprar}
-            onDetalle={() => setComprarAbierto("lista")}
+            onDetalle={() => setComprarAbierto(true)}
             onLola={FRONTAL_BOT ? () => abrirLola() : undefined}
           />
         )}
@@ -1474,12 +1471,7 @@ export function ShoppingScreen({
       )}
 
       {comprarAbierto && paraComprar && (
-        <ComprarSheet
-          compra={paraComprar}
-          mercadona={mercadona}
-          conLista={comprarAbierto === "lista"}
-          onClose={() => setComprarAbierto(false)}
-        />
+        <ComprarSheet compra={paraComprar} mercadona={mercadona} onClose={() => setComprarAbierto(false)} />
       )}
 
       {showCapture && (
@@ -2711,10 +2703,7 @@ function ActionBtn({ icon: Icon, label, onClick, active, muted, readOnly, coach 
 // onboarding's big decision moments, so every "choose one of these paths"
 // popup in the app reads the same.
 // Lo que se va a comprar, con su ficha en Mercadona: en el móvil abre su app.
-// Desde Comprar (`conLista` false) la lista ya está vista: solo va cómo
-// rellenarla. Sin el servicio, la lista es la única forma de comprar y sale.
-function ComprarSheet({ compra, mercadona, conLista, onClose }) {
-  const lista = conLista || !mercadona.servicio;
+function ComprarSheet({ compra, mercadona, onClose }) {
   return (
     <WizardSheet
       icon={ShoppingCart}
@@ -2723,53 +2712,51 @@ function ComprarSheet({ compra, mercadona, conLista, onClose }) {
       onClose={onClose}
     >
       {mercadona.servicio && (
-        <div style={{ marginBottom: lista ? "var(--esp-16)" : 0 }}>
+        <div style={{ marginBottom: "var(--esp-16)" }}>
           <RellenarMercadona m={mercadona} />
         </div>
       )}
-      {lista && (
-        <div style={{ display: "grid", maxHeight: "55vh", overflowY: "auto" }}>
-          {compra.lineas.map((l) => (
-            <a
-              key={l.id}
-              href={fichaMercadona(l.id)}
-              target="_blank"
-              rel="noreferrer"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "var(--esp-8)",
-                minHeight: 44,
-                padding: "var(--esp-8) 0",
-                borderBottom: "1px solid var(--color-linea-suave)",
-                color: "var(--color-tinta)",
-                textDecoration: "none",
-                fontSize: "var(--tipo-paso-13)",
-                fontWeight: "var(--tipo-peso-700)",
-              }}
-            >
-              <span style={{ flex: 1, minWidth: 0 }}>
-                {l.paquetes > 1 ? `${l.paquetes} × ` : ""}
-                {l.nombre}
-              </span>
-              <span style={{ color: "var(--color-tinta-suave)", fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>{conCentimos(l.precio)}</span>
-            </a>
-          ))}
-          {compra.sinProducto.length > 0 && (
-            <p
-              style={{
-                margin: 0,
-                paddingTop: "var(--esp-8)",
-                borderTop: "1px solid var(--color-linea-suave)",
-                color: "var(--color-tinta-suave)",
-                fontSize: "var(--tipo-paso-13)",
-              }}
-            >
-              Sin producto: {compra.sinProducto.join(", ")}
-            </p>
-          )}
-        </div>
-      )}
+      <div style={{ display: "grid", maxHeight: "55vh", overflowY: "auto" }}>
+        {compra.lineas.map((l) => (
+          <a
+            key={l.id}
+            href={fichaMercadona(l.id)}
+            target="_blank"
+            rel="noreferrer"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "var(--esp-8)",
+              minHeight: 44,
+              padding: "var(--esp-8) 0",
+              borderBottom: "1px solid var(--color-linea-suave)",
+              color: "var(--color-tinta)",
+              textDecoration: "none",
+              fontSize: "var(--tipo-paso-13)",
+              fontWeight: "var(--tipo-peso-700)",
+            }}
+          >
+            <span style={{ flex: 1, minWidth: 0 }}>
+              {l.paquetes > 1 ? `${l.paquetes} × ` : ""}
+              {l.nombre}
+            </span>
+            <span style={{ color: "var(--color-tinta-suave)", fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>{conCentimos(l.precio)}</span>
+          </a>
+        ))}
+        {compra.sinProducto.length > 0 && (
+          <p
+            style={{
+              margin: 0,
+              paddingTop: "var(--esp-8)",
+              borderTop: "1px solid var(--color-linea-suave)",
+              color: "var(--color-tinta-suave)",
+              fontSize: "var(--tipo-paso-13)",
+            }}
+          >
+            Sin producto: {compra.sinProducto.join(", ")}
+          </p>
+        )}
+      </div>
     </WizardSheet>
   );
 }
