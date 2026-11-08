@@ -26,13 +26,20 @@ pública: se usa la misma llamada que su propia web.
 
 ## Reglas
 
-- **Solo cuentas de quien lo ha pedido.** Solo las casas de `MERCADONA_CASAS`:
-  Pablo y quien él nombre, con su consentimiento. Antes de abrirlo a otra familia:
-  visto bueno de Mercadona o de un abogado (ver «Condiciones»).
+- **Solo cuentas de quien lo ha pedido.** Hoy, solo las casas de `MERCADONA_CASAS`:
+  Pablo y quien él nombre, con su consentimiento. Pablo decidió el 8 nov 2026
+  abrirlo a otras familias sin esperar a Mercadona; se abre con el trozo 8 de
+  `specs/plan-comprar-mercadona.md` (apagado general, alarma de bloqueos y aviso
+  en la pantalla de entrada), no antes. En paralelo, Pablo pide acceso a Mercadona.
 - **Sin disfraces.** Ni ocultar que es automático, ni cambiar huella o IP, ni
-  esquivar captchas. Si bloquean, se para y se cuenta: ese es el resultado.
-- **La contraseña, nunca por el chat.** La escribe la persona en la ventana del
-  navegador. Se guarda la sesión, no la contraseña.
+  repartir cuentas entre servidores, ni esquivar captchas. Si bloquean, se para y
+  se cuenta: ese es el resultado. **Única excepción** (Pablo, 8 nov 2026): la
+  página de entrada se abre en versión de ordenador dentro de la app, porque en el
+  móvil la web manda a descargar su app. Solo esa página; la persona entra ella
+  misma, con el captcha de verdad.
+- **La contraseña, nunca por el chat y nunca guardada.** La escribe la persona en
+  la página de Mercadona. Se guarda la sesión, no la contraseña: ni en el servidor
+  ni en el móvil. Volver a entrar pide el captcha, así que guardarla no serviría.
 - **La sesión es un secreto.** Lleva el token: no se abre, no se imprime y no va
   al repo. Solo se guarda sellada en `mercadona_cuenta`, y en claro vive en la
   memoria del trabajador lo que dura un encargo.
@@ -46,7 +53,11 @@ Quien toca Comprar en la app (o se lo pide a Lola) crea un encargo en `mercadona
 `api/mercadona.js?trabajador=1`, abre la sesión en un navegador limpio, crea la lista y
 cierra el encargo. No tiene acceso a la base. Con el servidor de 1 GB, de uno en uno.
 
-- **Conectar una cuenta:** desde un ordenador. La sesión se sella en el navegador
+- **El recorrido al que vamos** (solo móvil, `specs/plan-comprar-mercadona.md`): la
+  primera vez, «Comprar» → «Entra en tu cuenta de Mercadona. Solo esta vez» → la
+  página de entrada dentro de la app de HoMenu → spinner → la app de Mercadona en la
+  lista. Las demás veces, «Comprar» → spinner → la lista. Sin marcador y sin hojas.
+- **Conectar una cuenta:** hoy, desde un ordenador. La sesión se sella en el navegador
   (`src/lib/mercadonaSello.js`) y se envía sellada. Basta con el `localStorage` y las
   cookies que no son `httpOnly`: comprobado el 6 nov 2026 en un navegador limpio (leer listas, 200).
 - **Pasar a un navegador en la nube:** cambiar `abrirNavegador` en
@@ -93,9 +104,28 @@ Sin asesoría legal: no es una opinión de abogado.
 ## En el móvil
 
 - Por debajo de 992 px en un teléfono, su web manda a descargar la app (visto en
-  el Android de Pablo). Las listas no están entre las páginas permitidas.
+  el Android de Pablo, otra vez el 8 nov). Las listas no están entre las páginas
+  permitidas. Por eso la entrada se abre en versión de ordenador (excepción de «Reglas»).
 - Sus enlaces abren la app, y la sesión de la app no es la del navegador.
+- **La sesión de la app de Mercadona no se puede usar desde HoMenu:** cada app está
+  aislada. Que la persona tenga su app abierta no ahorra la entrada en HoMenu.
 - Sin importar listas por enlace, y sin llamadas desde otra web ni iframe.
+- La app de HoMenu solo existe para iPhone (`@capacitor/ios` en `package.json`, sin
+  `@capacitor/android`).
+
+## La sesión: cuánto dura
+
+Sin dato oficial. El README de [`ivorpad/mercadona-cli`](https://github.com/ivorpad/mercadona-cli)
+(no oficial, leído el 8 nov 2026) dice:
+
+- El acceso dura «~6 weeks».
+- El token de renovación «renews the session headlessly, forever», sin captcha, y
+  rota en cada renovación: hay que guardar siempre el último.
+- Entrar con contraseña pide un captcha de Google (reCAPTCHA Enterprise): la primera
+  entrada solo se puede hacer en una página real.
+
+Sin comprobar con nuestra cuenta: lo comprueba el trozo 1 del plan
+(`node scripts/mercadona-navegador.mjs --renovar`), y el resultado se apunta aquí.
 
 ## Lo que falló y por qué
 
@@ -115,5 +145,7 @@ lista desde el servidor de Hetzner, con la sesión exportada (3 de 3).
 La respuesta de su lista no trae cantidades: `products_quantity` cuenta productos distintos. La cantidad sí se guarda: una lista con cantidad 3 sale en su web como «Añadir 3 uds. al carro» (visto el 6 nov). El script solo comprueba productos.
 
 Sin comprobar: pasar la lista al carrito, una compra de ~30 productos, cuánto dura
-la sesión, varias familias a la vez, y qué hace Mercadona con un uso repetido. Dos
-pasadas no demuestran que no vayan a bloquearlo.
+la sesión (ver «La sesión: cuánto dura»), varias familias a la vez, qué hace
+Mercadona con un uso repetido, la entrada en versión de ordenador dentro de la app,
+y si el enlace de una lista abre la app en la lista o en su portada. Dos pasadas no
+demuestran que no vayan a bloquearlo.
