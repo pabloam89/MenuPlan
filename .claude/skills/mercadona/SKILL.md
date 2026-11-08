@@ -136,9 +136,10 @@ Sin comprobar con nuestra cuenta: lo comprueba el trozo 1 del plan
   contraseña de Mercadona (con «¿Has olvidado tu contraseña?» si no tiene).
 - **2026-11-06 · aviso `--no-sandbox` en Chrome.** Causa: valor por defecto de
   Playwright. Arreglo: `chromiumSandbox: true` en el PC.
-- **2026-11-08 · el contenedor del trabajador se reiniciaba sin parar.** Causa: en el
-  servidor, la copia del repo se hizo con `umask 077`, y el usuario del contenedor
-  (`pwuser`) no podía leer el script. Arreglo: `chmod -R a+rX /opt/mercadona/repo` y
+- **2026-11-08 · el contenedor del trabajador se reiniciaba sin parar.** Causa: el
+  contenedor no podía abrir su script (`docker compose logs`: `syscall: 'open'`,
+  `path: '/app/scripts/mercadona-trabajador.mjs'`), porque la copia del repo en el
+  servidor no dejaba leer a otros usuarios (sin comprobar si por el `umask`). Arreglo: `chmod -R a+rX /opt/mercadona/repo` y
   reconstruir; el comando de «Levantar el trabajador» ya lo lleva.
 - **2026-11-08 · el trabajador recibía `HTTP 401`.** Causa: el token pegado en Vercel no
   era el del servidor. Arreglo: copiarlo del servidor al portapapeles sin verlo
