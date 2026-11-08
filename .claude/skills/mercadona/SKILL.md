@@ -50,12 +50,8 @@ Quien toca Comprar en la app (o se lo pide a Lola) crea un encargo en `mercadona
 `api/mercadona.js?trabajador=1`, abre la sesión en un navegador limpio, crea la lista y
 cierra el encargo. No tiene acceso a la base. Con el servidor de 1 GB, de uno en uno.
 
-- **El recorrido al que vamos** (solo móvil, `specs/plan-comprar-mercadona.md`): la
-  primera vez, «Comprar» → «Entra en tu cuenta de Mercadona. Solo esta vez» → la
-  página de entrada dentro de la app de HoMenu → spinner → la app de Mercadona en la
-  lista. Las demás veces, «Comprar» → spinner → la lista. Sin marcador y sin hojas.
-  Mientras no haya app de Android, Pablo prueba con la web de HoMenu en su Android
-  (trozo 6 del plan).
+- **El recorrido al que vamos** (solo móvil, sin marcador ni hojas): está en
+  «El recorrido que se construye» de `specs/plan-comprar-mercadona.md`.
 - **Conectar una cuenta:** hoy, desde un ordenador. La sesión se sella en el navegador
   (`src/lib/mercadonaSello.js`) y se envía sellada. Basta con el `localStorage` y las
   cookies que no son `httpOnly`: comprobado el 6 nov 2026 en un navegador limpio (leer listas, 200).
