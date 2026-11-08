@@ -1753,8 +1753,10 @@ async function comprobarCodigo(msg, chatId, token) {
   if (!hogar) {
     // Con una casa abierta en la app que no es suya (está invitada): el código del email solo conecta al titular, y
     // lo que la lleva a la misma casa es la invitación; crear otra la dejaría en dos sitios (#1238).
-    const [perfil] = await select("user_profiles", `user_id=${eq(userId)}`, "active_household_id").catch(seguirCon("cuentas_hogar", []));
-    if (perfil?.active_household_id) {
+    // Sin poder leerlo, no se adivina: «crea la tuya» sería justo la segunda casa que esto quiere evitar.
+    const filas = await select("user_profiles", `user_id=${eq(userId)}`, "active_household_id").catch(fallaCon("cuentas_hogar", SIN_LEER));
+    if (filas === SIN_LEER) return enviar(chatId, noPude("cuenta", msg.from?.language_code));
+    if (filas[0]?.active_household_id) {
       return enviar(chatId, "Tu cuenta está en una casa que lleva otra persona. Pídele que te mande la invitación de vuestra casa desde la app y pulsa su enlace aquí: así veis lo mismo.");
     }
     return enviar(chatId, "Tu cuenta no gestiona ninguna casa todavía. Entra en la app de HoMenu para crear la tuya y vuelve a escribirme.");

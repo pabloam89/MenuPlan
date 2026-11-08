@@ -173,6 +173,25 @@ describe("«Ya uso HoMenu» en el saludo", () => {
     expect(t.enviados.at(-1).texto).toMatch(/lleva otra persona/);
     expect(t.enviados.at(-1).texto).not.toMatch(/crear la tuya/);
   });
+
+  it("si no puede leer en qué casa está, lo dice: no le manda a crear otra", async () => {
+    const { verificarCodigoEmail } = await import("../_bot/cuentas.js");
+    const { gastarCodigo, casaPropia } = await import("../_bot/enlace.js");
+    const { select } = await import("../_bot/db.js");
+    t.tablas = conCodigoPendiente();
+    verificarCodigoEmail.mockResolvedValueOnce("g3");
+    gastarCodigo.mockResolvedValueOnce({ codigo: "C" });
+    casaPropia.mockResolvedValueOnce(null);
+    select.mockImplementation(async (tabla) => {
+      if (tabla === "user_profiles") throw new Error("base caída");
+      return t.tablas[tabla] ?? [];
+    });
+    await escribe("123456");
+    select.mockImplementation(async (tabla) => t.tablas[tabla] ?? []);
+    expect(enlazarChat).not.toHaveBeenCalled();
+    expect(t.enviados.at(-1).texto).not.toMatch(/crear la tuya/);
+    expect(t.enviados.at(-1).texto).toMatch(/No he podido comprobar/);
+  });
 });
 
 describe("«Prefiero rellenarlo en la app»", () => {
