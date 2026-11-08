@@ -1,33 +1,41 @@
 # Plan: Comprar en Mercadona — pulsar «Comprar» y encontrar la lista hecha en la app de Mercadona
 
-Verdict: viable a pequeña escala y sin permiso de Mercadona (11 trozos, sin migraciones; el 11, encenderlo en producción, va primero); probado con la cuenta de Pablo el 6 nov 2026 (lista de 3 productos, vista en su app), sin probar en el móvil ni con la sesión renovada. Pablo decidió el 8 nov 2026 abrirlo a otras familias antes de tener una API de Mercadona, con las condiciones de «Decisions taken».
+Verdict: viable a pequeña escala y sin permiso de Mercadona (11 trozos, sin migraciones nuevas; el 11, encenderlo en producción, va primero; la 0131 la aplicó Pablo el 8 nov por la tarde); probado con la cuenta de Pablo el 6 nov 2026 (lista de 3 productos, vista en su app), sin probar en el móvil ni con la sesión renovada. Pablo decidió el 8 nov 2026 abrirlo a otras familias antes de tener una API de Mercadona, con las condiciones de «Decisions taken».
 
-Fecha: 8 nov 2026. Base leída: `origin/staging` en `87c0735a` (#1375). Escrito en la forma del estándar de planes de la Fábrica (`standards/plan.md`).
+Fecha: 8 nov 2026. Base leída: `origin/staging` en `87c0735a` (#1375); revisado contra `origin/staging` en `468ea792` (#1380), la base de producción y las variables de Vercel el mismo día, por la tarde. Escrito en la forma del estándar de planes de la Fábrica (`standards/plan.md`).
 
 Origen: la conversación con Pablo del 6 al 8 nov 2026 (feedback de un usuario: «el valor es el proceso entero, que me llegue la compra»), la skill `mercadona` (`.claude/skills/mercadona/SKILL.md`) y el README del proyecto no oficial [`ivorpad/mercadona-cli`](https://github.com/ivorpad/mercadona-cli).
 
 ## El recorrido que se construye
 
-Solo móvil, con la app de HoMenu y la de Mercadona instaladas. **Se prueba en producción, `https://homenu.vercel.app`** (Pablo, 8 nov 2026): con la web en el Chrome del Android de Pablo y con la app de Google Play, que es una TWA que carga esa misma web. La app de Mercadona, la de Android.
+Solo móvil y **sobre todo en las apps** (Pablo, 8 nov 2026: el 99 % del tráfico es móvil y la web desaparecerá): **primero la app de iPhone** (los cofundadores tienen iPhone; ya es nativa, con Capacitor: `ios/`, `@capacitor/ios` en `package.json:58`), **luego la de Android** cuando la app nativa exista (otra sesión). Nada se hace desde un ordenador. Pulsar «Comprar» es comprar online en Mercadona: no se pregunta dónde se compra. Se prueba en producción, `https://homenu.vercel.app` (Pablo, 8 nov 2026), que es la web que cargan las apps.
 
-- **La primera vez:** «Comprar» → «Entra en tu cuenta de Mercadona. Solo esta vez» (con «HoMenu no guarda tu contraseña») → la página de entrada de Mercadona dentro de HoMenu, con correo y contraseña y el autorrelleno del móvil → spinner «Llenando tu lista en Mercadona…» → se abre la app de Mercadona en la lista.
-- **Las demás veces:** «Comprar» → spinner → la app de Mercadona en la lista. La sesión se renueva sola.
-- **Si falla:** sesión que no se renueva → vuelve la entrada; Mercadona bloquea → «Ahora no he podido. Tu lista está en HoMenu».
-- **Ajustes → Mercadona:** «Rellenar la lista en Mercadona» (interruptor) y «Salir de Mercadona».
+- **La primera vez:**
+  1. «Comprar · 87 €».
+  2. La hoja de Comprar, «Comprar en Mercadona» (`src/components/HojaComprar.jsx`, ya en staging), con lo que HoMenu podrá hacer: los dos interruptores de Ajustes, «Rellenar la lista» (encendido) y «Pagar la compra» (apagado, «Pronto», no se puede encender); debajo, «HoMenu no ve ni guarda tu contraseña» y el botón «Entrar en Mercadona». Los permisos quedan claros antes de entrar, y son los mismos que luego se cambian en Ajustes (Pablo, 8 nov).
+  3. La página de entrada de Mercadona, dentro de HoMenu, en versión de ordenador (la app la pide así sola): correo y contraseña, con el autorrelleno del móvil.
+  4. Al entrar, la página se cierra sola y vuelve a Compra con spinner: «Rellenando tu lista en Mercadona…».
+  5. «Listo: 23 productos en tu lista de Mercadona» (y «2 sin producto: burrata, pesto» si hace falta). Botón «Abrir Mercadona»: abre la app de Mercadona en la lista. Allí la persona pasa la lista al carro, elige hora y paga.
+- **Las demás veces:** «Comprar» → spinner → «Abrir Mercadona». La sesión se renueva sola. La app de Mercadona se abre con ese toque y no sola: un móvil no deja abrir otra app sin un gesto de la persona (Not verified).
+- **Si falla:** sesión que no se renueva → vuelve la hoja del paso 2 («Vuelve a entrar en Mercadona»); Mercadona bloquea → «Ahora no he podido. Tu lista está en HoMenu»; entraba con Google → la hoja lo dice y enlaza a «¿Has olvidado tu contraseña?» de Mercadona.
+- **Ajustes → Mercadona** (Pablo, 8 nov), en el perfil: los mismos dos interruptores; apagar «Rellenar la lista» es salir.
+- **En la web** (sin app): la hoja enseña los interruptores y dice que para entrar en Mercadona se abra la app de HoMenu. El marcador de ordenador sigue donde está, sin cambios, pero no es un camino del producto.
 
 ## Lo desagradable primero
 
 - **Mercadona no da permiso para esto.** Sus condiciones (`https://tienda.mercadona.es/terms.html`, leídas en la skill) prohíben extraer información «mediante alguna técnica de programación» y el uso comercial sin autorización, y dicen que la contraseña es «personal e intransferible». Puede bloquearlo cuando quiera; el plan lo da por hecho y lo prepara (trozo 10).
-- **La primera entrada solo se puede hacer en una página real**, por el captcha de Google (README de `ivorpad/mercadona-cli`: «password login needs a Google reCAPTCHA Enterprise token»). Con «Continuar con Google», Google rechaza un navegador automático (skill, «Lo que falló», 6 nov). En el móvil, la web de Mercadona manda a descargar su app (skill, «En el móvil»; comprobado por Pablo en su Android el 8 nov). La salida es abrir la entrada en versión de ordenador: a mano en Chrome mientras se prueba en la web (trozo 6), y dentro de la app después (trozo 8).
-- **Comprar en Mercadona no está encendido en ningún sitio.** El proyecto `homenu` de Vercel no tiene ninguna variable `MERCADONA_*` en ningún entorno (lista de variables del proyecto, 8 nov 2026: 78 entradas y 49 nombres, ninguno con `MERCADONA`), aunque el código las lee (`api/mercadona.js:32` y `:68`, `api/_bot/mercadonaEncargos.js:45`) y la skill las da por puestas. Sin ellas, nadie puede encargar. Lo enciende en producción el trozo 11, que va primero.
-- **La app de Android de Google Play no sirve para entrar en Mercadona.** Es una TWA, la web de producción a pantalla completa (`public/.well-known/assetlinks.json`, paquete `com.homenu.app`), y su código no está en el repo; una TWA es Chrome por dentro y no puede abrir la página de Mercadona y leerla. Sí sirve para «Comprar» una vez conectada la cuenta, porque es la misma web. La app nativa de Android la lleva otra sesión (Pablo, 8 nov 2026); este plan solo depende de ella en el trozo 8.
+- **La primera entrada solo se puede hacer en una página real**, por el captcha de Google (README de `ivorpad/mercadona-cli`: «password login needs a Google reCAPTCHA Enterprise token»). Con «Continuar con Google», Google rechaza un navegador automático (skill, «Lo que falló», 6 nov). En el móvil, la web de Mercadona manda a descargar su app (skill, «En el móvil»; comprobado por Pablo en su Android el 8 nov). La salida es abrir la entrada en versión de ordenador dentro de la app: en iPhone (trozo 8) y en Android cuando exista su app nativa (trozo 7).
+- **Comprar en Mercadona no estaba encendido en ningún sitio.** Al revisar el plan (8 nov 2026, tarde), el proyecto `homenu` de Vercel no tenía ninguna variable `MERCADONA_*` en ningún entorno (78 entradas, ninguna con `MERCADONA`), aunque el código las lee (`api/mercadona.js:32` y `:68`, `api/_bot/mercadonaEncargos.js:45`) y la skill las daba por puestas. Ese mismo día Pablo puso las tres en Production y volvió a desplegar; el trabajador del servidor dejó de recibir `HTTP 401` en cuanto acabó el despliegue que empezó a las 18:38 UTC (último 401 a las 18:42:26). Es el trozo 11.
+- **La migración 0131 no estaba aplicada al revisar el plan.** Sus tablas no existían: `npm run consulta -- "select to_regclass('public.mercadona_cuenta'), to_regclass('public.mercadona_encargo')"` → `null`, `null` (8 nov 2026, tarde). Sin ella, encargar contesta `sin_servicio` («Esto aún no está en marcha») aunque estén las variables. La aplicó Pablo ese mismo día con ensayo y `--si --pablo`; después, la misma consulta → `'mercadona_cuenta'`, `'mercadona_encargo'`, y `node scripts/verificar-estado.mjs --solo 0131` → `aplicada 14/14`.
+- **El trabajador no estaba en marcha.** La imagen y el runbook estaban (`ops/mercadona-trabajador/compose.yaml`, skill `mercadona`, «Levantar el trabajador»), pero nadie lo había levantado. Pablo lo levantó el 8 nov por la tarde (`docker compose ps` → `Up`; `docker compose logs` → `en marcha`), con su `.env` en `/opt/mercadona/` y las claves creadas en el servidor.
+- **La app de Android de Google Play no sirve para entrar en Mercadona.** Es una TWA, la web de producción a pantalla completa (`public/.well-known/assetlinks.json`, paquete `com.homenu.app`), y su código no está en el repo; una TWA es Chrome por dentro y no puede abrir la página de Mercadona y leerla. Sí sirve para «Comprar» una vez conectada la cuenta, porque es la misma web. La app nativa de Android la lleva otra sesión (Pablo, 8 nov 2026); este plan solo depende de ella en el trozo 7.
 - **La lista sale mal si la despensa está mal.** «3 cabezas de ajo» se guardó como 3 dientes (15 g): la herramienta solo acepta `ud`, `g`, `kg`, `ml`, `l` (`api/_bot/agente.js:492`) y, para el ajo, una `ud` es un diente de 5 g (`src/lib/kitchenUnits.js:103`). Lo arreglan los trozos 3 y 4.
 
 ## Chunks
 
 ### 1. Comprobar que la sesión de Mercadona se renueva sola
 Files: `scripts/mercadona-navegador.mjs`, `scripts/lib/mercadonaPagina.mjs`, `scripts/mercadona-renovar.test.js`, `.claude/skills/mercadona/SKILL.md`
-Depends on: 11
+Depends on: 8, 11
 Blocked by: none
 Existing: lo que se guarda al conectar es `MO-user` del `localStorage` y las cookies que no son `httpOnly` (`src/lib/mercadonaConectar.js:21` y `:34-41`). Ningún código renueva la sesión: `git grep -n -i "refresh\|renov" -- scripts/mercadona-trabajador.mjs scripts/lib/mercadona*.mjs src/lib/mercadona*.js api/_bot/mercadona*.js` → sin salida. La skill tiene «cuánto dura la sesión» como «Sin comprobar». El README de `ivorpad/mercadona-cli` dice que el acceso dura «~6 weeks» y que el token de renovación «renews the session headlessly, forever», sin captcha, y que rota en cada renovación. `ls scripts/mercadona-renovar.test.js` → No such file or directory.
 Not done: renovar en el trabajador (trozo 2). Este trozo solo añade `--renovar` al script de la skill: mira si la sesión guardada trae un token de renovación, renueva una vez y dice si el token cambió. Lo corre Pablo con su cuenta, y el resultado (fecha de entrada, si renueva, si rota) se apunta en la skill. Si la sesión no trae token de renovación, el trozo 2 cambia: hay que guardarlo al conectar, y eso se escribe aquí antes de seguir.
@@ -70,58 +78,58 @@ npx vitest run api/_bot/despensaRecibo.test.js api/_bot/despensaTodo.test.js
 ```
 
 ### 5. «Comprar» en un toque: spinner y la lista abierta en la app de Mercadona
-Files: `src/components/ComprarMercadona.jsx`, `src/components/BarraComprar.jsx`, `src/screens/Shopping.jsx`, `src/components/ComprarUnToque.test.jsx`
-Depends on: 11
+Files: `src/components/ComprarMercadona.jsx`, `src/components/BarraComprar.jsx`, `src/screens/Shopping.jsx`, `src/components/useRellenarMercadona.js`, `src/lib/mercadonaApp.js`, `src/components/ComprarUnToque.test.jsx`
+Depends on: 6, 9, 11
 Blocked by: none
-Existing: hoy «Comprar» abre la hoja «Tu lista en Mercadona» con la lista de productos (`src/screens/Shopping.jsx`, `ComprarSheet`), y el enlace a la lista ya existe (`src/lib/mercadonaList.js:58`, `https://tienda.mercadona.es/shopping-lists/<id>`). La skill dice que los enlaces de Mercadona abren su app. `ls src/components/ComprarUnToque.test.jsx` → No such file or directory.
-Not done: la entrada en la cuenta (trozo 6). Con la cuenta ya conectada, pulsar «Comprar» no abre ninguna hoja: el botón enseña un spinner con «Llenando tu lista en Mercadona…» y, al terminar, abre `enlaceDeLista` (en la app nativa, con `@capacitor/app`; en la web, un enlace). Lo que no entró sale en una línea bajo el botón. Sin probar si el enlace abre la lista o la portada de la app de Mercadona (Not verified).
+Existing: con la cuenta conectada, «Comprar» ya va directo, sin hoja (#1371): `comprar` en `src/screens/Shopping.jsx:806-808` llama a `mercadona.rellenar()`, y el botón pasa por «Rellenando…» y «Abrir lista» (`PASO_COMPRAR` en `src/lib/mercadonaApp.js`, `pasoDeComprar` en `src/components/useRellenarMercadona.js`), con el enlace a la lista (`src/lib/mercadonaList.js:58`, `https://tienda.mercadona.es/shopping-lists/<id>`). La hoja solo sale sin cuenta, si la sesión caducó o al tocar el importe. Lo que dice el encargo acabado ya existe (`textoDeEncargo`, «Lista creada con N productos. M no han entrado.»). La skill dice que los enlaces de Mercadona abren su app. `ls src/components/ComprarUnToque.test.jsx` → No such file or directory.
+Not done: la entrada en la cuenta (trozo 6). Lo que cambia es la forma: spinner en el botón mientras se rellena, con «Rellenando tu lista en Mercadona…» debajo; al acabar, «Listo: N productos en tu lista de Mercadona» y el botón «Abrir Mercadona» (hoy «Abrir lista»). La app de Mercadona se abre con ese toque, no sola al terminar: un enlace que salta a otra app necesita un gesto de la persona (Not verified en Chrome de Android y en la app de iPhone). Lo que no entró sale en una línea bajo el botón. Sin probar si el enlace abre la lista o la portada de la app de Mercadona (Not verified).
 Done:
 ```sh
 npx vitest run src/components/ComprarUnToque.test.jsx src/components/BarraComprar.test.jsx src/components/ComprarMercadona.test.jsx
 ```
 
-### 6. Conectar Mercadona desde el móvil en la web de producción (Android y Chrome), mientras no haya app
-Files: `src/components/ConectarMercadona.jsx`, `src/lib/mercadonaConectar.js`, `src/components/ConectarMercadonaMovil.test.jsx`, `.claude/skills/mercadona/SKILL.md`
-Depends on: 1, 5
+### 6. La hoja de la primera vez: qué podrá hacer HoMenu, y entrar
+Files: `src/components/ConectarMercadona.jsx`, `src/components/ComprarMercadona.jsx`, `src/components/AjustesMercadona.jsx`, `src/components/ConectarMercadonaHoja.test.jsx`, `src/screens/Shopping.jsx`
+Depends on: 9
 Blocked by: none
-Existing: conectar se explica solo para un ordenador (`src/lib/mercadonaConectar.js:2`: «desde un ordenador»). En el móvil, la web de Mercadona manda a descargar su app (skill, «En el móvil»; visto por Pablo en su Android el 8 nov). Las pruebas son con la web de producción (`https://homenu.vercel.app`) en el Android de Pablo; el marcador se genera para el origen de la web que lo da (`marcador(origen)` en `src/lib/mercadonaConectar.js`), así que el de producción no vale en staging ni al revés. `ls src/components/ConectarMercadonaMovil.test.jsx` → No such file or directory.
-Not done: la app nativa (trozos 7 y 8). Es el camino para probar ya, no el del producto. En un móvil, la pantalla de conectar da tres pasos: abrir tienda.mercadona.es en Chrome con «Sitio de ordenador», entrar con correo y contraseña, y lanzar el marcador escribiendo su nombre en la barra de direcciones. El marcador, la sesión sellada y `guardarSesion` no cambian. Sin comprobar que un marcador se lance así en el Chrome de Android (Not verified). Este trozo escribe en la skill la excepción a «sin disfraces» (la versión de ordenador, solo para la página de entrada): es rebajar una regla de `.claude/`, así que el PR lleva la decisión de Pablo del 8 nov y necesita su Approve (C13).
+Existing: hoy la hoja dice «Conecta tu cuenta una vez y yo te relleno la lista» y «Arrastra el botón a tu barra de marcadores» (`src/components/ConectarMercadona.jsx:15` y `:21`): jerga que Pablo rechazó el 8 nov, y un gesto que en un móvil no existe; en un móvil solo dice «Se hace una sola vez, desde un ordenador» (`:16`). Los interruptores de Ajustes son `AjustesMercadona` (trozo 9). `ls src/components/ConectarMercadonaHoja.test.jsx` → No such file or directory.
+Not done: entrar desde la app (trozo 8); hasta entonces el botón «Entrar en Mercadona» no sale. La hoja usa el mismo componente que Ajustes (`AjustesMercadona`), no una copia: los permisos se ven igual en los dos sitios. Sin cuenta, la parte de Comprar que rellena (`RellenarMercadona`, `src/components/ComprarMercadona.jsx:11`) pinta `AjustesMercadona` con «Rellenar la lista» ya encendido, y `AjustesMercadona` pinta debajo la forma de entrar (`Conectar`); en Ajustes el mismo interruptor empieza en el estado de la cuenta. Textos: el título de la hoja sigue siendo «Comprar en Mercadona» (`HojaComprar`), y su línea de debajo pasa de «21 productos · 109,14 €» a dos cifras sin el punto separador, como la cabecera de Compra; «HoMenu no ve ni guarda tu contraseña», «Entrar en Mercadona»; con la sesión caducada, «Vuelve a entrar en Mercadona». Con «Rellenar la lista» apagado no hay nada que hacer: el botón no sale. En la web, en lugar del botón, «Para entrar en Mercadona, abre la app de HoMenu». El marcador de ordenador se queda como está, sin textos nuevos. Pablo descartó el 8 nov el camino de Chrome con «Sitio de ordenador» y marcador en el móvil: demasiados pasos para una familia, y la web desaparecerá.
 Done:
 ```sh
-npx vitest run src/components/ConectarMercadonaMovil.test.jsx src/components/ConectarMercadona.test.jsx
+npx vitest run src/components/ConectarMercadonaHoja.test.jsx src/components/ConectarMercadona.test.jsx
 ```
 
-### 7. La app de HoMenu para Android
-Files: `package.json`, `package-lock.json`, `capacitor.config.json`, `android/app/build.gradle`, `android/app/src/main/AndroidManifest.xml`, `scripts/android-app.test.js`
+### 7. Entrar en Mercadona desde la app de Android
+Files: `src/lib/mercadonaEntrarApp.js`, `src/lib/mercadonaEntrarAndroid.test.js`, `android/app/src/main/AndroidManifest.xml`
+Depends on: 8
+Blocked by: none
+Existing: `ls android` en `origin/staging` → No such file or directory; la app de Google Play es hoy una TWA (`public/.well-known/assetlinks.json`, paquete `com.homenu.app`), que no puede abrir otra web dentro y leerla.
+Not done: la app de Android en sí, que construye otra sesión fuera de este plan (rama `feat/app-android`; Pablo, 8 nov 2026): hasta que exista, este trozo no empieza. Cuando exista, este trozo enciende para Android lo que el 8 hace en iPhone (el mismo `mercadonaEntrarApp.js`) y añade lo que pida el complemento en el manifiesto. El complemento ya lo añade el 8 a `package.json`. `mercadonaEntrarAndroid.test.js` comprueba que en Android se abre la misma página, con el mismo puente y la versión de ordenador, y que el manifiesto deja abrirla; `ls src/lib/mercadonaEntrarAndroid.test.js` → No such file or directory.
+Done:
+```sh
+npx vitest run src/lib/mercadonaEntrarAndroid.test.js && npx cap sync android
+```
+
+### 8. Entrar en Mercadona desde la app de iPhone, sin marcador
+Files: `src/lib/mercadonaEntrarApp.js`, `src/lib/mercadonaEntrarApp.test.js`, `src/components/ConectarMercadona.jsx`, `src/components/ConectarMercadona.test.jsx`, `package.json`, `package-lock.json`, `ios/App/CapApp-SPM/Package.swift`, `.claude/skills/mercadona/SKILL.md`
+Depends on: 6, 11
+Blocked by: none
+Existing: `@capacitor/browser` (`package.json:56`) abre el navegador del sistema y no deja leer la página, así que no sirve para guardar la sesión. La app de iPhone ya es Capacitor y está en la App Store (`ios/App/`, `@capacitor/ios` en `package.json:58`, complementos por Swift Package Manager en `ios/App/CapApp-SPM/Package.swift`; versión 1.1 en el PR #1381). El complemento `@capgo/capacitor-inappbrowser` (v8, para Capacitor 8, licencia MPL-2.0; leído en su README el 8 nov) abre una página dentro de la app (`openWebView`), con `customUserAgent`, aviso de cambio de dirección (`urlChangeEvent`), `executeScript`, `getCookies` con `includeHttpOnly` y `close`. `ls src/lib/mercadonaEntrarApp.js` → No such file or directory.
+Not done: Android (trozo 7). «Entrar en Mercadona» abre la página de entrada dentro de la app, en versión de ordenador (`customUserAgent`; decisión de Pablo, 8 nov), solo para esta página. La persona escribe su correo y su contraseña en la página de Mercadona; la app no lee esas casillas. Cuando la dirección deja la de entrada, la app lee `MO-user` (`executeScript`) y las cookies (`getCookies`), cierra la ventana, las sella con `mercadonaSello.js` y las guarda con `guardarSesion`, como el marcador; y encarga la lista. La versión nueva de la app pasa por la revisión de Apple (1–2 días; la envía Pablo con el workflow de iOS). Este trozo escribe en la skill la excepción a «sin disfraces» (la versión de ordenador, solo para la página de entrada): es rebajar una regla de `.claude/`, así que el PR lleva la decisión de Pablo del 8 nov y necesita su Approve (C13). Toca `package.json`, que es de la puerta: solo añade una dependencia, no cambia scripts ni checks (C13 se mantiene); si pone `tests` en rojo, se revierte el PR desde una rama nueva.
+Done:
+```sh
+npx vitest run src/lib/mercadonaEntrarApp.test.js src/components/ConectarMercadona.test.jsx && npm run -s consulta -- "select status from mercadona_encargo order by created_at desc limit 1" | grep hecho
+```
+
+### 9. Ajustes → Mercadona: hacer la lista y pagar (apagado)
+Files: `src/components/AjustesMercadona.jsx`, `src/components/AjustesMercadona.test.jsx`, `src/lib/mercadonaApp.js`, `src/screens/HomeProfileScreen.jsx`, `src/screens/HomeProfileScreen.mercadona.test.jsx`
 Depends on: none
 Blocked by: none
-Existing: `package.json:55-59` trae `@capacitor/ios` y no `@capacitor/android`; `ls android` → No such file or directory. `capacitor.config.json:2` tiene `"appId": "com.homenu.app"`, el mismo paquete que la TWA de Google Play (`public/.well-known/assetlinks.json`). Pablo y las pruebas van en Android.
-Not done: este trozo lo construye otra sesión (Pablo, 8 nov 2026), con lo que decida sobre Google Play y la TWA; aquí queda solo como lo que necesita el trozo 8: una app de Android con Capacitor que pueda abrir una página web dentro y leerla. La entrada en Mercadona es el trozo 8. Toca `package.json`, que es de la puerta: solo añade dependencias, no cambia scripts ni checks (C13 se mantiene); si pone `tests` en rojo, se revierte el PR desde una rama nueva.
+Existing: los ajustes que ve la familia son la pantalla de perfil (`src/screens/HomeProfileScreen.jsx`, filas como «Formas de entrar», que abren una hoja con interruptores); `SettingsScreen` (`src/screens/Settings.jsx`) solo se pinta con `screen === "settings"` y ningún botón lleva ahí (`grep -n 'setScreen("settings")' src/App.jsx` → solo la vuelta desde «account»). Ninguna de las dos tiene nada de Mercadona (`grep -c -i mercadona src/screens/Settings.jsx src/screens/HomeProfileScreen.jsx` → 0 y 0). Desconectar ya existe en el endpoint (`quitarCuenta` en `src/lib/mercadonaApp.js`, `desconectar` en `api/mercadona.js`) y en la hoja de Comprar («Desconectar mi cuenta de Mercadona», `src/components/ComprarMercadona.jsx:48`). `ls src/components/AjustesMercadona.jsx` → No such file or directory.
+Not done: «Avisar cuando esté lista», que necesita notificaciones de la app (no comprobadas), y pagar de verdad. Dos interruptores (Pablo, 8 nov). «Rellenar la lista en Mercadona» es el estado de la cuenta: encendido si está conectada; encenderlo lleva a entrar en Mercadona y apagarlo es salir; no se guarda un dato aparte. «Pagar la compra» se pinta apagado, sin poder encenderse y con «Pronto»: no se guarda nada, porque no habría quién lo leyera (un dato sin lector); cuando un plan propio pruebe el carrito y el pago, ese plan le da su dato y su lector. Apagar «Rellenar la lista» es salir: no hace falta un botón «Salir de Mercadona» aparte (Pablo, 8 nov: simplicidad). La fila «Mercadona» solo sale si el servicio está abierto para la casa (`servicio` de `useRellenarMercadona`), y abre una hoja como «Formas de entrar». Los textos van en `AJUSTE_MERCADONA` de `src/lib/mercadonaApp.js`, junto a `PASO_COMPRAR`. Vale igual en la web y en la app. El test comprueba que «Pagar la compra» no se puede encender y que no llama a nada.
 Done:
 ```sh
-npx vitest run scripts/android-app.test.js && npx cap sync android
-```
-
-### 8. Entrar en Mercadona desde la app de HoMenu (Android e iPhone), sin marcador
-Files: `src/lib/mercadonaEntrarApp.js`, `src/lib/mercadonaEntrarApp.test.js`, `src/components/ConectarMercadona.jsx`, `src/components/ConectarMercadona.test.jsx`, `package.json`, `package-lock.json`, `ios/App/Podfile`
-Depends on: 2, 6, 7
-Blocked by: none
-Existing: `@capacitor/browser` (`package.json:56`) abre el navegador del sistema y no deja leer la página, así que no sirve para guardar la sesión. `ls src/lib/mercadonaEntrarApp.js` → No such file or directory.
-Not done: la entrada se abre en una ventana web dentro de la app, en versión de ordenador (decisión de Pablo, 8 nov), solo para esta página. La persona escribe su correo y su contraseña en la página de Mercadona; la app no lee esas casillas. Al entrar, la app lee `MO-user` y las cookies, las sella con `mercadonaSello.js` y las guarda con `guardarSesion`, como el marcador. Con «Continuar con Google» no funciona (lo rechaza Google): la pantalla lo dice y enlaza a «¿Has olvidado tu contraseña?». El plugin para leer la página se elige en este trozo y se escribe en el PR. Toca `package.json`, que es de la puerta: solo añade una dependencia, no cambia scripts ni checks (C13 se mantiene); si pone `tests` en rojo, se revierte el PR desde una rama nueva.
-Done:
-```sh
-npx vitest run src/lib/mercadonaEntrarApp.test.js src/components/ConectarMercadona.test.jsx
-```
-
-### 9. Ajustes → Mercadona: rellenar la lista o no, y salir
-Files: `src/components/AjustesMercadona.jsx`, `src/components/AjustesMercadona.test.jsx`, `src/screens/Settings.jsx`
-Depends on: 6
-Blocked by: none
-Existing: Ajustes no tiene nada de Mercadona (`grep -c -i mercadona src/screens/Settings.jsx` → 0). Desconectar ya existe en el endpoint (`quitarCuenta` en `src/lib/mercadonaApp.js`, `desconectar` en `api/mercadona.js`). `ls src/components/AjustesMercadona.jsx` → No such file or directory.
-Not done: «Avisar cuando esté lista», que necesita notificaciones de la app (no comprobadas). El interruptor «Rellenar la lista en Mercadona» es el estado de la cuenta: encendido si está conectada, y apagarlo es salir; no se guarda un dato aparte. Textos en infinitivo: «Rellenar la lista en Mercadona», «Salir de Mercadona». Vale igual en la web y en la app.
-Done:
-```sh
-npx vitest run src/components/AjustesMercadona.test.jsx
+npx vitest run src/components/AjustesMercadona.test.jsx src/screens/HomeProfileScreen.mercadona.test.jsx
 ```
 
 ### 10. Abrirlo a otras familias, con interruptor de apagado y alarma de bloqueos
@@ -139,11 +147,11 @@ npx vitest run api/_bot/mercadonaApagado.test.js api/_bot/mercadonaEncargos.test
 Files: `.claude/skills/mercadona/SKILL.md`
 Depends on: none
 Blocked by: none
-Existing: el proyecto `homenu` de Vercel no tiene ninguna variable `MERCADONA_*` en ningún entorno (lista de variables del proyecto, 8 nov 2026: 78 entradas, ninguna con `MERCADONA`). El código lee `MERCADONA_TRABAJADOR_TOKEN` (`api/mercadona.js:32`), `MERCADONA_CLAVE_PUBLICA` (`:68`) y `MERCADONA_CASAS` (`api/_bot/mercadonaEncargos.js:45`); el trabajador lee `MERCADONA_API` (`scripts/mercadona-trabajador.mjs:5` y `:70`). La skill dice que están en Vercel.
-Not done: ningún cambio de código. Lo hace Pablo, porque son secretos (CLAUDE.md, «crear, rotar o cambiar secretos»): en Vercel, entorno Production, `MERCADONA_TRABAJADOR_TOKEN`, `MERCADONA_CLAVE_PUBLICA` y `MERCADONA_CASAS` (su casa), con la skill `alta-de-secreto`; en el servidor, `MERCADONA_API=https://homenu.vercel.app/api/mercadona` en `/opt/mercadona/.env` y reiniciar el trabajador (skill `hetzner`). Antes del Done, Pablo pulsa «Comprar» en `https://homenu.vercel.app`. Un encargo solo llega a `hecho` si el trabajador lo cerró con su token, y solo producción tendrá `MERCADONA_TRABAJADOR_TOKEN` (`api/mercadona.js:32`): así el Done prueba las tres variables, el token y que el trabajador apunta a producción. La skill pasa a decir que se prueba en producción y deja de dar las variables por puestas. Las cuentas que se conecten en producción se guardan en la misma base (solo hay una), selladas con la misma clave pública.
+Existing: al empezar el 8 nov 2026, el proyecto `homenu` de Vercel no tenía ninguna variable `MERCADONA_*` (78 entradas, ninguna con `MERCADONA`); esa tarde Pablo puso las tres en Production, la 0131 quedó aplicada y el trabajador quedó en marcha en el servidor. Este trozo es solo encenderlo; la prueba de punta a punta (un encargo `hecho`) es el Done del trozo 8, que depende de este. El código lee `MERCADONA_TRABAJADOR_TOKEN` (`api/mercadona.js:32`), `MERCADONA_CLAVE_PUBLICA` (`:68`) y `MERCADONA_CASAS` (`api/_bot/mercadonaEncargos.js:45`); el trabajador lee `MERCADONA_API` (`scripts/mercadona-trabajador.mjs:5` y `:70`). La skill dice que están en Vercel.
+Not done: ningún cambio de código. Lo hace Pablo, porque son secretos (CLAUDE.md). La 0131 ya está aplicada (8 nov). En Vercel, entorno Production, `MERCADONA_TRABAJADOR_TOKEN`, `MERCADONA_CLAVE_PUBLICA` y `MERCADONA_CASAS` (su casa), con la skill `alta-de-secreto`; en el servidor, `MERCADONA_API=https://homenu.vercel.app/api/mercadona` en `/opt/mercadona/.env` y levantar el trabajador, o reiniciarlo si ya corría (skill `mercadona`, «Levantar el trabajador»; skill `hetzner`). El Done del trozo 8 lo prueba de punta a punta: un encargo solo llega a `hecho` si el trabajador lo cerró con su token, y solo producción tiene `MERCADONA_TRABAJADOR_TOKEN` (`api/mercadona.js:32`). La skill deja de decir que Vercel no tenía ninguna variable y pasa a decir que las tres están «en Production desde el 8 nov 2026» y que se prueba en producción: es lo que comprueba el Done, que hoy falla (`.claude/skills/mercadona/SKILL.md:63` aún dice «Vercel no tenía ninguna variable»). Las cuentas que se conecten en producción se guardan en la misma base (solo hay una), selladas con la misma clave pública.
 Done:
 ```sh
-for v in MERCADONA_TRABAJADOR_TOKEN MERCADONA_CLAVE_PUBLICA MERCADONA_CASAS; do npx vercel env ls production | grep -q "$v" || exit 1; done && npm run -s consulta -- "select status from mercadona_encargo order by created_at desc limit 1" | grep hecho
+grep -q "en Production desde el 8 nov 2026" .claude/skills/mercadona/SKILL.md && ! grep -q "Vercel no tenía ninguna variable" .claude/skills/mercadona/SKILL.md && for v in MERCADONA_TRABAJADOR_TOKEN MERCADONA_CLAVE_PUBLICA MERCADONA_CASAS; do npx vercel env ls production | grep -q "$v" || exit 1; done
 ```
 
 ## Decisions taken
@@ -154,16 +162,28 @@ for v in MERCADONA_TRABAJADOR_TOKEN MERCADONA_CLAVE_PUBLICA MERCADONA_CASAS; do 
 - principio 6 | eligió: la primera entrada en versión de ordenador, solo para la página de entrada (Pablo, 8 nov 2026) | descartó: entrar solo desde un ordenador con el marcador, porque los usuarios solo tienen el móvil | motivo: decidido
 - principio 4 | eligió: la contraseña vive solo en la cuenta de Mercadona; HoMenu guarda la sesión | descartó: guardar también la contraseña en el servidor o en el móvil, una segunda copia que además no sirve (volver a entrar pide el captcha) | motivo: decidido
 - principio 1 | eligió: no esconder que es automático (una sola IP, sin cambiar de servidor por cuenta, sin esquivar captchas) | descartó: repartir cuentas entre varios servidores para que no se note, que es maquillar lo que hacemos ante Mercadona | motivo: decidido
-- principio 4 | eligió: el interruptor de Ajustes es el estado de la cuenta conectada | descartó: un dato aparte «rellenar sí o no», que diría lo mismo que tener o no la cuenta | motivo: decidido
+- principio 4 | eligió: el interruptor «Rellenar la lista en Mercadona» es el estado de la cuenta conectada | descartó: un dato aparte «rellenar sí o no», que diría lo mismo que tener o no la cuenta | motivo: decidido
+- principio 6 | eligió: empezar solo con la lista; «Pagar la compra» se ve en Ajustes desde el principio, apagado y sin poder encenderse (Pablo, 8 nov 2026) | descartó: pagar ya, con o sin confirmación, y no enseñar el ajuste | motivo: decidido
+- principio 4 | eligió: «Pagar la compra» sin dato guardado hasta que exista el pago | descartó: guardar ya un «pagar sí o no» que nadie lee | motivo: decidido
+- principio 4 | eligió: apagar «Rellenar la lista en Mercadona» es salir, sin botón «Salir de Mercadona» aparte | descartó: un botón que haría lo mismo que el interruptor, dos sitios para una sola acción | motivo: decidido
+- principio 6 | eligió: pulsar «Comprar» es comprar online en Mercadona, sin preguntar dónde se compra (Pablo, 8 nov 2026) | descartó: «¿Dónde haces la compra?» con tienda u online | motivo: decidido
+- principio 6 | eligió: primero la app de iPhone y luego la de Android; nada desde un ordenador ni desde Chrome con marcador (Pablo, 8 nov 2026: los cofundadores tienen iPhone y la web desaparecerá) | descartó: guiar a la familia por Chrome con «Sitio de ordenador» y un marcador, seis pasos a mano | motivo: decidido
+- principio 4 | eligió: la hoja de la primera vez enseña los mismos interruptores que Ajustes, con el mismo componente (Pablo, 8 nov 2026: los permisos, claros desde el primer recorrido) | descartó: una copia de los interruptores para la hoja, dos sitios que se pueden separar | motivo: decidido
+- principio 1 | eligió: entrar con la página real de Mercadona abierta dentro de la app (`@capgo/capacitor-inappbrowser`, v8, MPL-2.0), donde la persona ve que escribe en Mercadona | descartó: una pantalla nuestra que pida correo y contraseña y entre por detrás, que escondería que la contraseña pasa por HoMenu | motivo: decidido
+- principio 1 | eligió: Ajustes → Mercadona en el perfil (`HomeProfileScreen.jsx`), que es el ajuste que ve la familia | descartó: `Settings.jsx`, donde el ajuste estaría en el código sin que ninguna familia pudiera verlo: parecería hecho sin estarlo | motivo: decidido
+- principio 4 | eligió: «rellenar» para lo que hace HoMenu en la lista de Mercadona, en la UI («Rellenar la lista», «Rellenando…»), en el código (`useRellenarMercadona`) y en los datos (`mercadona_encargo.status` = `rellenando`) (Pablo, 8 nov 2026: una palabra, un significado) | descartó: «hacer», «llenar» y «rellenar» a la vez para lo mismo | motivo: decidido
+- principio 4 | eligió: la hoja de Comprar se queda con el título que ya tiene en staging, «Comprar en Mercadona» (`HojaComprar`, #1394), y su línea de debajo pierde el punto separador, como el resto de la app (Pablo, 8 nov 2026) | descartó: un título nuevo, «Tu lista en Mercadona», para la misma hoja | motivo: decidido
 - principio 4 | eligió: la pieza dicha («cabeza») se convierte con el peso del catálogo (`piezaPorAlias`) | descartó: una tabla de pesos propia en `despensa.js`, que sería una segunda fuente | motivo: decidido
 
 ## Not verified
 
 - La renovación «para siempre» y las seis semanas salen del README de un proyecto no oficial; el trozo 1 lo comprueba con la cuenta de Pablo.
-- Que la página de entrada en versión de ordenador deje entrar dentro de una app en el móvil (ni en el Chrome de Pablo ni en la app).
+- Que la página de entrada en versión de ordenador deje entrar dentro de una app en el móvil.
+- El trozo 1 espera al 8: sin entrar desde la app no hay sesión que renovar, y los dos escriben en la skill.
+- Que `@capgo/capacitor-inappbrowser` lea `MO-user` y las cookies de la página de Mercadona en iPhone: solo se ha leído su README.
 - Si `https://tienda.mercadona.es/shopping-lists/<id>` abre la app de Mercadona en la lista o en su portada.
+- Que un enlace a otra app solo se abra con un toque de la persona (por eso el botón «Abrir Mercadona» y no abrirla sola), en Chrome de Android y en la app de iPhone.
 - Una lista de unos 30 productos, varias familias a la vez y qué hace Mercadona con el uso repetido (la skill: «Dos pasadas no demuestran que no vayan a bloquearlo»).
-- Que un marcador se lance en el Chrome de Android escribiendo su nombre en la barra de direcciones (trozo 6).
 - La app de Android: no existe; la construye otra sesión.
 - Los nombres de las variables de Vercel se han mirado; sus valores, no.
 - Aguacate y espárragos aparecieron en «En casa» sin que Pablo los apuntara (7 nov). Hipótesis sin comprobar: la devolución a la despensa al activarse el menú nuevo (`src/lib/activarSolo.js:50`). Necesita leer `user_pantry` con el usuario de solo lectura antes de ser un trozo.
