@@ -9,6 +9,7 @@ import {
   qualitativeUnitLabel,
 } from "./ingredientCategories.js";
 import { DAYS } from "./planner.js";
+import { listaParaMercadona } from "./mercadonaList.js";
 
 export function formatDisplay(qty, unit) {
   if (isQualitativeUnit(unit)) return qualitativeUnitLabel(unit);
@@ -120,6 +121,26 @@ export function mergeShoppingItems(items) {
     ...it,
     displayQty: formatDisplay(it.qty, it.unit),
   }));
+}
+
+/**
+ * La compra de la pantalla, en dos pasos: `aPreciar` (lo que se manda a
+ * priceShoppingList) y `cuenta(priceMap, nombre)` (listaParaMercadona).
+ * Lo mismo de varias semanas (la pantalla lo enseña por semana) va junto y
+ * con la cantidad sumada, para redondear a paquetes una vez: sin juntar, cada
+ * semana redondeaba por su cuenta y listaParaMercadona se quedaba con la
+ * mayor (dos semanas de 300 g de merluza compraban un paquete de 500 g).
+ * `aPreciar` son las filas de la pantalla, que siguen enseñando su precio por
+ * semana, más las líneas juntas que no son ya una de ellas; con una sola
+ * semana, las mismas filas.
+ */
+export function compraDeLaLista(items) {
+  const lineas = mergeShoppingItems(items);
+  const ids = new Set(items.map((i) => i.id));
+  return {
+    aPreciar: [...items, ...lineas.filter((l) => !ids.has(l.id))],
+    cuenta: (priceMap, nombre) => listaParaMercadona(lineas, priceMap, nombre),
+  };
 }
 
 export function itemsByAisle(items) {
