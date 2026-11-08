@@ -45,7 +45,7 @@ describe("Ajustes → Mercadona (trozo 9)", () => {
     await act(async () => { lista.click(); });
     expect(lista.getAttribute("aria-checked")).toBe("true");
     // La pantalla de entrar (Conectar) ya está en el árbol: en jsdom, sin puntero fino, da su texto de móvil.
-    expect(caja.textContent).toContain("Se hace una sola vez");
+    expect(caja.textContent).toContain("Solo te lo pido esta vez");
     expect(desconectar).not.toHaveBeenCalled();
   });
 
