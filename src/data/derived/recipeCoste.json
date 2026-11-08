@@ -511,9 +511,9 @@
       "nivel": "caro"
     },
     "carnes_017": {
-      "porRacion": 2.02,
-      "cobertura": 1,
-      "nivel": "medio"
+      "porRacion": 0.34,
+      "cobertura": 0.833,
+      "nivel": "economico"
     },
     "carnes_018": {
       "porRacion": 4.63,
@@ -1381,9 +1381,9 @@
       "nivel": "caro"
     },
     "pescados_021": {
-      "porRacion": 2,
+      "porRacion": 3.1,
       "cobertura": 1,
-      "nivel": "medio"
+      "nivel": "caro"
     },
     "pescados_022": {
       "porRacion": 2.44,
@@ -1391,7 +1391,7 @@
       "nivel": "medio"
     },
     "pescados_023": {
-      "porRacion": 2.36,
+      "porRacion": 2.43,
       "cobertura": 1,
       "nivel": "medio"
     },
@@ -1411,7 +1411,7 @@
       "nivel": "caro"
     },
     "pescados_027": {
-      "porRacion": 3.02,
+      "porRacion": 3.27,
       "cobertura": 0.818,
       "nivel": "caro"
     },
@@ -1501,7 +1501,7 @@
       "nivel": "caro"
     },
     "pescados_045": {
-      "porRacion": 4.6,
+      "porRacion": 4.98,
       "cobertura": 1,
       "nivel": "caro"
     },
@@ -1516,9 +1516,9 @@
       "nivel": "caro"
     },
     "pescados_048": {
-      "porRacion": 2.31,
+      "porRacion": 4.87,
       "cobertura": 1,
-      "nivel": "medio"
+      "nivel": "caro"
     },
     "pescados_049": {
       "porRacion": 2.6,
@@ -1531,7 +1531,7 @@
       "nivel": "economico"
     },
     "pescados_051": {
-      "porRacion": 3.39,
+      "porRacion": 3.69,
       "cobertura": 0.75,
       "nivel": null
     },
@@ -1571,7 +1571,7 @@
       "nivel": "caro"
     },
     "pescados_059": {
-      "porRacion": 3.68,
+      "porRacion": 3.98,
       "cobertura": 1,
       "nivel": "caro"
     },
@@ -1671,7 +1671,7 @@
       "nivel": "caro"
     },
     "pescados_079": {
-      "porRacion": 3.78,
+      "porRacion": 4.13,
       "cobertura": 0.75,
       "nivel": null
     },
@@ -2476,9 +2476,9 @@
       "nivel": "caro"
     },
     "pasta_arroces_019": {
-      "porRacion": 2.38,
+      "porRacion": 3.48,
       "cobertura": 1,
-      "nivel": "medio"
+      "nivel": "caro"
     },
     "pasta_arroces_020": {
       "porRacion": 0.7,
@@ -2486,7 +2486,7 @@
       "nivel": "economico"
     },
     "pasta_arroces_021": {
-      "porRacion": 1.76,
+      "porRacion": 2.34,
       "cobertura": 1,
       "nivel": "medio"
     },
@@ -2541,12 +2541,12 @@
       "nivel": "caro"
     },
     "pasta_arroces_032": {
-      "porRacion": 3.3,
+      "porRacion": 4.04,
       "cobertura": 1,
       "nivel": "caro"
     },
     "pasta_arroces_033": {
-      "porRacion": 2.88,
+      "porRacion": 3.62,
       "cobertura": 1,
       "nivel": "caro"
     },
@@ -2711,7 +2711,7 @@
       "nivel": "medio"
     },
     "pasta_arroces_066": {
-      "porRacion": 2.91,
+      "porRacion": 3.16,
       "cobertura": 1,
       "nivel": "caro"
     },
@@ -2761,12 +2761,12 @@
       "nivel": "medio"
     },
     "pasta_arroces_076": {
-      "porRacion": 2.43,
+      "porRacion": 3.53,
       "cobertura": 1,
-      "nivel": "medio"
+      "nivel": "caro"
     },
     "pasta_arroces_077": {
-      "porRacion": 2.84,
+      "porRacion": 3.57,
       "cobertura": 1,
       "nivel": "caro"
     },
@@ -2926,8 +2926,8 @@
       "nivel": "caro"
     },
     "sopas_cremas_001": {
-      "porRacion": 0.43,
-      "cobertura": 0.8,
+      "porRacion": 0.51,
+      "cobertura": 1,
       "nivel": "economico"
     },
     "sopas_cremas_002": {
@@ -3141,7 +3141,7 @@
       "nivel": "medio"
     },
     "sopas_cremas_044": {
-      "porRacion": 5.95,
+      "porRacion": 7.05,
       "cobertura": 1,
       "nivel": "caro"
     },
@@ -3266,9 +3266,9 @@
       "nivel": "medio"
     },
     "sopas_cremas_069": {
-      "porRacion": 2.21,
+      "porRacion": 3.68,
       "cobertura": 1,
-      "nivel": "medio"
+      "nivel": "caro"
     },
     "sopas_cremas_070": {
       "porRacion": 2.07,
@@ -3326,7 +3326,7 @@
       "nivel": "economico"
     },
     "sopas_cremas_081": {
-      "porRacion": 5.69,
+      "porRacion": 6.42,
       "cobertura": 0.929,
       "nivel": "caro"
     },
@@ -3371,9 +3371,9 @@
       "nivel": null
     },
     "sopas_cremas_090": {
-      "porRacion": 1.56,
+      "porRacion": 3.03,
       "cobertura": 0.917,
-      "nivel": "medio"
+      "nivel": "caro"
     },
     "ensaladas_verduras_001": {
       "porRacion": 0.55,
@@ -4101,7 +4101,7 @@
       "nivel": "medio"
     },
     "platos_unicos_018": {
-      "porRacion": 4.4,
+      "porRacion": 5.5,
       "cobertura": 1,
       "nivel": "caro"
     },
@@ -4236,7 +4236,7 @@
       "nivel": "economico"
     },
     "bebes_010": {
-      "porRacion": 0.9,
+      "porRacion": 0.98,
       "cobertura": 1,
       "nivel": "economico"
     },
@@ -4271,7 +4271,7 @@
       "nivel": "economico"
     },
     "bebes_019": {
-      "porRacion": 1.01,
+      "porRacion": 1.08,
       "cobertura": 1,
       "nivel": "medio"
     },
