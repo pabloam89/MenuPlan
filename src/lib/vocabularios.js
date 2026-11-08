@@ -234,7 +234,7 @@ export const RIESGOS_HERRAMIENTA = ["lee", "escribe_reversible", "escribe_irreve
 export const RIESGO_HERRAMIENTA = porNombre(RIESGOS_HERRAMIENTA);
 
 /** Lo que Lola puede mirar con `consultar` (trozo 46 de #1037). No va a ninguna tabla. */
-export const QUE_CONSULTAS = ["casa", "ajustes", "despensa", "compra", "cole", "recordatorios"];
+export const QUE_CONSULTAS = ["casa", "ajustes", "despensa", "compra", "cole", "mercadona", "recordatorios"];
 
 /**
  * Cómo deshace «deshaz» lo que escribe una herramienta de Lola (su ficha, trozo 42; deshacer en api/_bot/casa.js).

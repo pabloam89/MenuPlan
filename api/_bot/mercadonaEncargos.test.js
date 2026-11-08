@@ -37,7 +37,7 @@ beforeEach(() => {
 
 describe("encargar", () => {
   it("encola la lista con quién y por dónde", async () => {
-    expect(await m.encargar(pedido)).toEqual({ encargo: { id: "e1", status: "pendiente" } });
+    expect(await m.encargar(pedido)).toEqual({ encargo: { id: "e1", status: "pendiente" }, llega_hasta: "lista" });
     expect(insert.mock.calls[0][1][0]).toMatchObject({ household_id: "c1", created_by: "u1", canal: "app", lista });
   });
 
@@ -175,9 +175,11 @@ describe("tomar y cerrar", () => {
     expect(await m.tomar()).toBeNull();
   });
 
-  it("da solo el id, la lista y la sesión sellada", async () => {
+  it("da solo el id, la lista, la sesión sellada, hasta dónde llega y el teléfono sellado", async () => {
     db.tomado = [{ id: "e1", household_id: "c1", lista, created_by: "u1", chat_id: "9" }];
-    expect(await m.tomar()).toEqual({ encargo: { id: "e1", lista }, sesion_cifrada: "sellada" });
+    expect(await m.tomar()).toEqual({ encargo: { id: "e1", lista }, sesion_cifrada: "sellada", llega_hasta: "lista", tiene_direccion: null, tiene_pago: null, tiene_telefono: false, telefono_sellado: null });
+    db.cuenta = [{ estado: "conectada", sesion_cifrada: "sellada", llega_hasta: "reservar", telefono_sellado: "tel-sellado" }];
+    expect(await m.tomar()).toMatchObject({ llega_hasta: "reservar", telefono_sellado: "tel-sellado" });
   });
 
   it("si la cuenta ya no está, lo cierra como sin_cuenta", async () => {
