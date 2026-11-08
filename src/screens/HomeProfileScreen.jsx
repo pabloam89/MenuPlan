@@ -8,6 +8,7 @@ import {
   Info,
   ShieldCheck,
   Download,
+  ShoppingBasket,
 } from "../components/icons.jsx";
 import { Avatar, AppleGlyph, BottomNav, bottomNavSpacer, GoogleGlyph, safeTop, SignInOptions, TelegramGlyph, ToggleSwitch, WizardSheet } from "../components/ui.jsx";
 import { googleInfo } from "./Settings.jsx";
@@ -17,6 +18,8 @@ import { esTitular } from "../lib/householdsSync.js";
 import { fileToAvatarDataUrl } from "../lib/avatarImage.js";
 import { FORMA_DE_ENTRAR, NOMBRE_FORMA, resumenDeFormas } from "../lib/cuentaTelegram.js";
 import { color as tono, tipografia, espaciado, radio, tamano } from "../design/tokens.js";
+import { AjustesMercadona } from "../components/AjustesMercadona.jsx";
+import { useRellenarMercadona } from "../components/useRellenarMercadona.js";
 
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
@@ -291,6 +294,25 @@ function FormasDeEntrar({ formas, onAnadir, onQuitar }) {
   );
 }
 
+// ── Mercadona (trozo 9 de specs/plan-comprar-mercadona.md) ─────────────────
+
+// Solo sale si Comprar en Mercadona está abierto para esta casa: sin servicio no hay nada que ajustar.
+function FilaMercadona({ casa }) {
+  const m = useRellenarMercadona(casa, null);
+  const [abierta, setAbierta] = useState(false);
+  if (!m.servicio) return null;
+  return (
+    <>
+      <ProfileOptionRow icon={ShoppingBasket} title="Mercadona" onClick={() => setAbierta(true)} />
+      {abierta && (
+        <WizardSheet title="Mercadona" onClose={() => setAbierta(false)}>
+          <AjustesMercadona m={m} />
+        </WizardSheet>
+      )}
+    </>
+  );
+}
+
 // ── Main screen ─────────────────────────────────────────────────────────────
 
 export function HomeProfileScreen({
@@ -514,6 +536,8 @@ export function HomeProfileScreen({
             onClick={onOpenHouseholds}
           />
         )}
+
+        {user && activeHousehold?.id && <FilaMercadona casa={activeHousehold.id} />}
 
         {/* ── Cuenta y datos ─────────────────────── */}
         {/* Formas de entrar (#1238): en lugar del botón suelto «Entrar también con Google». */}
