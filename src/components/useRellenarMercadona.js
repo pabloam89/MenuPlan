@@ -88,13 +88,3 @@ export function pasoDeComprar(m) {
   if (encargo?.lista_xid) return { texto: PASO_COMPRAR.ABRIR, nota: textoDeEncargo(encargo), href: enlaceDeLista(encargo.lista_xid) };
   return { texto: PASO_COMPRAR.COMPRAR, nota: m.aviso ?? (encargo ? textoDeEncargo(encargo) : null) };
 }
-
-/** Desde dónde se abre la hoja de comprar: el total (para ver la lista) o el botón Comprar. */
-export const HOJA_COMPRAR = Object.freeze({ TOTAL: "total", COMPRAR: "comprar" });
-
-/**
- * Si la hoja enseña la lista. Desde Comprar la lista ya está vista y aprobada:
- * solo va cómo rellenarla. Sin el servicio, la lista con sus fichas es la única
- * forma de comprar, y sale siempre.
- */
-export const hojaConLista = (desde, m) => desde === HOJA_COMPRAR.TOTAL || !m.servicio;
