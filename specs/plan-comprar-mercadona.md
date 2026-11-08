@@ -13,7 +13,7 @@ Solo móvil (Pablo, 8 nov 2026: el 99 % del tráfico), con la app de HoMenu y la
 - **La primera vez:** «Comprar» → «Entra en tu cuenta de Mercadona. Solo te lo pido esta vez» (con «HoMenu no ve ni guarda tu contraseña») → botón «Entrar en Mercadona» → la página de entrada de Mercadona dentro de HoMenu, con correo y contraseña y el autorrelleno del móvil → vuelve sola, con spinner «Llenando tu lista en Mercadona…» → «Listo: 23 productos en tu lista de Mercadona» y botón «Abrir Mercadona». Nada de «conectar tu cuenta»: es jerga (Pablo, 8 nov).
 - **Las demás veces:** «Comprar» → spinner → «Abrir Mercadona». La sesión se renueva sola. La app de Mercadona se abre con ese toque y no sola: un móvil no deja abrir otra app sin un gesto de la persona (Not verified).
 - **Si falla:** sesión que no se renueva → vuelve la entrada; Mercadona bloquea → «Ahora no he podido. Tu lista está en HoMenu».
-- **Ajustes → Mercadona** (Pablo, 8 nov): dos interruptores, «Hacer la lista en Mercadona» y «Pagar la compra», y «Salir de Mercadona». «Pagar la compra» se ve desde el principio, apagado y con «Pronto», y no se puede encender: HoMenu nunca paga hasta que un plan propio lo pruebe (skill `mercadona`: «Nunca paga»).
+- **Ajustes → Mercadona** (Pablo, 8 nov), en el perfil: dos interruptores, «Hacer la lista en Mercadona» (apagarlo es salir) y «Pagar la compra». «Pagar la compra» se ve desde el principio, apagado y con «Pronto», y no se puede encender: HoMenu nunca paga hasta que un plan propio lo pruebe (skill `mercadona`: «Nunca paga»).
 
 ## Lo desagradable primero
 
@@ -116,12 +116,12 @@ Done:
 npx vitest run src/lib/mercadonaEntrarApp.test.js src/components/ConectarMercadona.test.jsx
 ```
 
-### 9. Ajustes → Mercadona: hacer la lista, pagar (apagado) y salir
-Files: `src/components/AjustesMercadona.jsx`, `src/components/AjustesMercadona.test.jsx`, `src/screens/Settings.jsx`
+### 9. Ajustes → Mercadona: hacer la lista y pagar (apagado)
+Files: `src/components/AjustesMercadona.jsx`, `src/components/AjustesMercadona.test.jsx`, `src/lib/mercadonaApp.js`, `src/screens/HomeProfileScreen.jsx`, `src/screens/HomeProfileScreen.mercadona.test.jsx`
 Depends on: 6
 Blocked by: none
-Existing: Ajustes no tiene nada de Mercadona (`grep -c -i mercadona src/screens/Settings.jsx` → 0). Desconectar ya existe en el endpoint (`quitarCuenta` en `src/lib/mercadonaApp.js`, `desconectar` en `api/mercadona.js`) y en la hoja de Comprar («Desconectar mi cuenta de Mercadona», `src/components/ComprarMercadona.jsx:48`), que pasa a decir «Salir de Mercadona». `ls src/components/AjustesMercadona.jsx` → No such file or directory.
-Not done: «Avisar cuando esté lista», que necesita notificaciones de la app (no comprobadas), y pagar de verdad. Dos interruptores (Pablo, 8 nov). «Hacer la lista en Mercadona» es el estado de la cuenta: encendido si está conectada; encenderlo lleva a entrar en Mercadona y apagarlo es salir; no se guarda un dato aparte. «Pagar la compra» se pinta apagado, sin poder encenderse y con «Pronto»: no se guarda nada, porque no habría quién lo leyera (un dato sin lector); cuando un plan propio pruebe el carrito y el pago, ese plan le da su dato y su lector. Más «Salir de Mercadona». Vale igual en la web y en la app. El test comprueba que «Pagar la compra» no se puede encender y que no llama a nada.
+Existing: los ajustes que ve la familia son la pantalla de perfil (`src/screens/HomeProfileScreen.jsx`, filas como «Formas de entrar», que abren una hoja con interruptores); `SettingsScreen` (`src/screens/Settings.jsx`) solo se pinta con `screen === "settings"` y ningún botón lleva ahí (`grep -n 'setScreen("settings")' src/App.jsx` → solo la vuelta desde «account»). Ninguna de las dos tiene nada de Mercadona (`grep -c -i mercadona src/screens/Settings.jsx src/screens/HomeProfileScreen.jsx` → 0 y 0). Desconectar ya existe en el endpoint (`quitarCuenta` en `src/lib/mercadonaApp.js`, `desconectar` en `api/mercadona.js`) y en la hoja de Comprar («Desconectar mi cuenta de Mercadona», `src/components/ComprarMercadona.jsx:48`). `ls src/components/AjustesMercadona.jsx` → No such file or directory.
+Not done: «Avisar cuando esté lista», que necesita notificaciones de la app (no comprobadas), y pagar de verdad. Dos interruptores (Pablo, 8 nov). «Hacer la lista en Mercadona» es el estado de la cuenta: encendido si está conectada; encenderlo lleva a entrar en Mercadona y apagarlo es salir; no se guarda un dato aparte. «Pagar la compra» se pinta apagado, sin poder encenderse y con «Pronto»: no se guarda nada, porque no habría quién lo leyera (un dato sin lector); cuando un plan propio pruebe el carrito y el pago, ese plan le da su dato y su lector. Apagar «Hacer la lista» es salir: no hace falta un botón «Salir de Mercadona» aparte (Pablo, 8 nov: simplicidad). La fila «Mercadona» solo sale si el servicio está abierto para la casa (`servicio` de `useRellenarMercadona`), y abre una hoja como «Formas de entrar». Los textos van en `AJUSTE_MERCADONA` de `src/lib/mercadonaApp.js`, junto a `PASO_COMPRAR`. Vale igual en la web y en la app. El test comprueba que «Pagar la compra» no se puede encender y que no llama a nada.
 Done:
 ```sh
 npx vitest run src/components/AjustesMercadona.test.jsx
@@ -160,6 +160,7 @@ for v in MERCADONA_TRABAJADOR_TOKEN MERCADONA_CLAVE_PUBLICA MERCADONA_CASAS; do 
 - principio 4 | eligió: el interruptor «Hacer la lista en Mercadona» es el estado de la cuenta conectada | descartó: un dato aparte «rellenar sí o no», que diría lo mismo que tener o no la cuenta | motivo: decidido
 - principio 6 | eligió: empezar solo con la lista; «Pagar la compra» se ve en Ajustes desde el principio, apagado y sin poder encenderse (Pablo, 8 nov 2026) | descartó: pagar ya, con o sin confirmación, y no enseñar el ajuste | motivo: decidido
 - principio 4 | eligió: «Pagar la compra» sin dato guardado hasta que exista el pago | descartó: guardar ya un «pagar sí o no» que nadie lee | motivo: decidido
+- principio 4 | eligió: apagar «Hacer la lista en Mercadona» es salir, sin botón «Salir de Mercadona» aparte | descartó: un botón que haría lo mismo que el interruptor, dos sitios para una sola acción | motivo: decidido
 - principio 6 | eligió: pulsar «Comprar» es comprar online en Mercadona, sin preguntar dónde se compra (Pablo, 8 nov 2026) | descartó: «¿Dónde haces la compra?» con tienda u online | motivo: decidido
 - principio 4 | eligió: la pieza dicha («cabeza») se convierte con el peso del catálogo (`piezaPorAlias`) | descartó: una tabla de pesos propia en `despensa.js`, que sería una segunda fuente | motivo: decidido
 
