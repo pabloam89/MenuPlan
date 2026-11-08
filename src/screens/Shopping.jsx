@@ -1399,9 +1399,10 @@ export function ShoppingScreen({
 
         {showMercadonaStrip && (
           <>
-            {/* A la izquierda, la cuenta (ResumenCompra: con precio y su total,
-                sin precio, y el presupuesto de la casa, lib/presupuesto.js,
-                #958); a la derecha, el súper y debajo las semanas, si hay. */}
+            {/* A la izquierda, el súper y debajo la cuenta (ResumenCompra:
+                productos y su total, ingredientes sin producto y el
+                presupuesto de la casa, lib/presupuesto.js, #958); a la
+                derecha, solo las semanas, si hay. */}
             <div
               style={{
                 display: "flex",
@@ -1411,19 +1412,17 @@ export function ShoppingScreen({
                 paddingBottom: 12,
               }}
             >
-              <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ flex: 1, minWidth: 0, display: "grid", justifyItems: "start", gap: "var(--esp-8)" }}>
+                <StoreBadge name="Mercadona" size={30} maxWidth={90} />
                 <ResumenCompra
-                  conPrecio={estimacionLista.matched}
-                  sinPrecio={frente.sinPrecio}
+                  productos={estimacionLista.matched}
+                  sinProducto={frente.sinProducto}
                   total={formatEuro0(frente.total)}
                   presupuesto={frente.presupuesto != null ? formatEuro0(frente.presupuesto) : null}
                   noCabe={frente.veredicto === "no_cabe"}
                 />
               </div>
-              <div style={{ display: "grid", justifyItems: "end", gap: "var(--esp-8)", flexShrink: 0 }}>
-                <StoreBadge name="Mercadona" size={30} maxWidth={90} />
-                {weekSelectorEl}
-              </div>
+              {weekSelectorEl}
             </div>
             <div style={{ borderBottom: STRIP_DIVIDER, marginBottom: 4 }} />
           </>

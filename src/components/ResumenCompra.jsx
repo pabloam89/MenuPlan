@@ -1,11 +1,16 @@
 // Lo que cuesta la lista, como una cuenta: cada concepto a la izquierda y su
-// cifra a la derecha, en columna. «Con precio» lleva el total; «sin precio»,
-// solo cuántos (no tiene total). Bajo una raya, el presupuesto de la casa.
+// cifra a la derecha, en columna. Los productos de Mercadona llevan el total;
+// los ingredientes sin producto, solo cuántos (no tienen total). Bajo una raya,
+// el presupuesto de la casa. «Producto» es siempre uno de Mercadona, como en la
+// barra de Comprar; lo de la lista es un «ingrediente».
 
 const tabla = {
   display: "grid",
-  gridTemplateColumns: "1fr auto",
-  columnGap: "var(--esp-12)",
+  // Cada cifra pegada a su concepto, no al borde: la tabla mide lo que su
+  // texto, y la parte derecha de la cabecera queda para las semanas.
+  gridTemplateColumns: "auto auto",
+  justifyContent: "start",
+  columnGap: "var(--esp-24)",
   rowGap: "var(--esp-4)",
   alignItems: "baseline",
   fontSize: "var(--tipo-paso-13)",
@@ -27,23 +32,22 @@ const raya = {
 
 const suave = { color: "var(--color-tinta-suave)" };
 
-const productos = (n) => (n === 1 ? "1 producto" : `${n} productos`);
+const cuantos = (n, uno, varios) => `${n} ${n === 1 ? uno : varios}`;
 
 /**
- * `conPrecio` y `sinPrecio` son cuántos productos; `total` y `presupuesto` ya
+ * `productos` es cuántos productos de Mercadona; `sinProducto`, cuántos
+ * ingredientes no tienen producto (listaFrenteAPresupuesto); `total` y `presupuesto` ya
  * van formateados (`presupuesto` null si la casa no tiene, y entonces no hay
  * raya ni fila). `noCabe` pinta el presupuesto en rojo.
  */
-export default function ResumenCompra({ conPrecio, sinPrecio, total, presupuesto = null, noCabe = false }) {
+export default function ResumenCompra({ productos, sinProducto, total, presupuesto = null, noCabe = false }) {
   return (
     <div style={tabla}>
-      <span>{productos(conPrecio)} con precio</span>
+      <span>{cuantos(productos, "producto", "productos")}</span>
       <span style={{ ...cifra, fontWeight: "var(--tipo-peso-900)" }}>{total}</span>
-      {sinPrecio > 0 && (
-        <>
-          <span style={suave}>{productos(sinPrecio)} sin precio</span>
-          <span />
-        </>
+      {/* Sin cifra: ocupa las dos columnas y no ensancha la de los conceptos. */}
+      {sinProducto > 0 && (
+        <span style={{ ...suave, gridColumn: "1 / -1" }}>{cuantos(sinProducto, "ingrediente sin producto", "ingredientes sin producto")}</span>
       )}
       {presupuesto && (
         <>
