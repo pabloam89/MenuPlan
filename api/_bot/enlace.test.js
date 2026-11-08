@@ -30,7 +30,7 @@ vi.mock("./db.js", () => ({
 vi.mock("./telegram.js", () => ({ enviar: vi.fn(), escaparHtml: (s) => s, TECLADO: {} }));
 vi.mock("./embudo.js", () => ({ registrar: vi.fn(), EMBUDO: {} }));
 
-const { enlazarChat, idDePersona, codigoDeGrupo, codigoNuevo, esCodigoDeGrupo, apuntarEnlace, resultadoDeEnlace, pideCambioDeCuenta, preguntaDeCambio, personasDeCasa, CAMBIO, escribePrueba } = await import("./enlace.js");
+const { enlazarChat, idDePersona, codigoDeGrupo, codigoNuevo, esCodigoDeGrupo, apuntarEnlace, resultadoDeEnlace, pideCambioDeCuenta, avisoDeCambioDeCuenta, VOLVER_A_LA_DE_ANTES, CAMBIO, escribePrueba } = await import("./enlace.js");
 const { update } = await import("./db.js");
 const { CAMINO_ENLACE, RESULTADO_ENLACE, PRUEBA_IDENTIDAD } = await import("../../src/lib/vocabularios.js");
 const { readFileSync, readdirSync } = await import("node:fs");
@@ -170,9 +170,9 @@ describe("la prueba con la que se apuntó cada Telegram (prueba_identidad)", () 
   });
 });
 
-// Cambiar de cuenta, confirmado en el privado (#1238, recorrido 4): el Telegram 777 era de ANTES, que enlazó su
-// privado a su casa; la persona entra con la cuenta de la app (APP) y confirma.
-describe("cambiar de cuenta con confirmación (#1238)", () => {
+// Cambiar de cuenta desde la app (#1238, recorrido 4): el Telegram 777 era de ANTES, que enlazó su privado a su casa;
+// la persona llega con el enlace de la cuenta de la app (APP), y manda la de la app.
+describe("cambiar de cuenta desde la app (#1238)", () => {
   const ANTES = "u-antes";
   const APP = "u-app";
   const conAntes = (linkedBy = ANTES) => {
@@ -188,7 +188,7 @@ describe("cambiar de cuenta con confirmación (#1238)", () => {
     expect(filas.bot_chats[0]).toMatchObject({ household_id: "h-app", linked_by: APP });
   });
 
-  it("sin confirmar (el enlace a secas), el chat sigue ocupado", async () => {
+  it("con el enlace a secas (sin la prueba del cambio), el chat sigue ocupado", async () => {
     conAntes();
     const r = await enlazarChat({ chatId: "777", kind: "private", householdId: "h-app", userId: APP, externalId: "777", identidad: "ajustes" });
     expect(r).toEqual({ ok: false, ocupado: true });
@@ -202,37 +202,24 @@ describe("cambiar de cuenta con confirmación (#1238)", () => {
     expect(identidadDe("777")).toBe(ANTES);
   });
 
-  it("se pregunta solo en privado y si el Telegram es de otra cuenta", () => {
+  it("solo hay cambio en privado y si el Telegram es de otra cuenta", () => {
     expect(pideCambioDeCuenta({ esGrupo: false, deAntes: ANTES, userId: APP })).toBe(true);
     expect(pideCambioDeCuenta({ esGrupo: false, deAntes: APP, userId: APP })).toBe(false);
     expect(pideCambioDeCuenta({ esGrupo: false, deAntes: null, userId: APP })).toBe(false);
     expect(pideCambioDeCuenta({ esGrupo: true, deAntes: ANTES, userId: APP })).toBe(false);
   });
 
-  it("la pregunta dice cuántas personas tiene cada casa: dos «Mi casa» no se distinguen por el nombre (#1302)", () => {
-    const p = preguntaDeCambio({ casaAntes: "Mi casa", casaApp: "Mi casa", personasAntes: 4, personasApp: 0 });
-    expect(p).toContain("<b>Mi casa</b>, con 4 personas");
-    expect(p).toContain("<b>Mi casa</b>, sin nadie");
-    expect(preguntaDeCambio({ casaAntes: "A", casaApp: "B", personasAntes: 1, personasApp: 2 })).toContain("<b>A</b>, con 1 persona");
+  it("el aviso dice con qué cuenta habla y cómo volver, sin preguntar", () => {
+    const conVuelta = avisoDeCambioDeCuenta({ email: "ana@gmail.com", volver: true });
+    expect(conVuelta).toContain("<b>ana@gmail.com</b>");
+    expect(conVuelta).toContain(VOLVER_A_LA_DE_ANTES);
+    expect(conVuelta).not.toMatch(/\?/);
+    expect(avisoDeCambioDeCuenta({ email: "ana@gmail.com" })).toMatch(/entra en la app con ella/);
   });
 
-  it("personasDeCasa: una casa sin leer o sin saber no cuenta como vacía", () => {
-    const filas = [{ household_id: "a" }, { household_id: "a" }];
-    expect(personasDeCasa(filas, "a")).toBe(2);
-    expect(personasDeCasa(filas, "b")).toBe(0);
-    expect(personasDeCasa(filas, null)).toBeNull();
-    expect(personasDeCasa(null, "a")).toBeNull();
-  });
-
-  it("sin saber cuántas, no dice que no hay nadie", () => {
-    expect(preguntaDeCambio({ casaAntes: "A", casaApp: "B" })).not.toContain("sin nadie");
-  });
-
-  it("la pregunta nombra las dos casas y dice que lo de la otra cuenta no se pasa", () => {
-    const p = preguntaDeCambio({ casaAntes: "Casa Telegram", casaApp: "Casa App" });
-    expect(p).toMatch(/la de <b>Casa Telegram<.b>/);
-    expect(p).toMatch(/(<b>Casa App<.b>)/);
-    expect(p).toMatch(/no se pasa/);
+  it("el email sintético de una cuenta de Telegram no se enseña, y sin email el aviso sale igual", () => {
+    expect(avisoDeCambioDeCuenta({ email: "tg777@usuarios.menuplanai.com" })).not.toContain("usuarios.menuplanai.com");
+    expect(avisoDeCambioDeCuenta({})).toMatch(/Ahora hablo con la cuenta/);
   });
 });
 

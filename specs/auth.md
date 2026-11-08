@@ -148,7 +148,7 @@ git grep -q "formasDeEntrar" -- src/lib/cuentaTelegram.test.js && git grep -q "F
 Decisión de Pablo (4 nov 2026, «una persona, una cuenta, varias llaves»; responde a la A de «Para Pablo»): «Entrar con
 Telegram» abre una cuenta de Google o Apple solo si ese Telegram se conectó a Lola desde dentro de esa cuenta, es decir,
 con el enlace de «Conectar Telegram» que sacó una sesión de esa cuenta (`api/bot/link.js`) y que se pulsó en el privado
-de ese Telegram (prueba `ajustes`, o `cambio` si antes era de otra cuenta y la persona lo confirmó allí). Un Telegram
+de ese Telegram (prueba `ajustes`, o `cambio` si antes era de otra cuenta, que desde el 8 nov 2026 se hace sin preguntar). Un Telegram
 atado por el código del email, por un grupo o por una invitación no la abre, y una identidad de antes de este trozo
 tampoco: no se sabe con qué prueba se apuntó. Para que la abra, se conecta otra vez desde la app.
 Files: `supabase/migrations/0129_prueba_de_identidad.sql`, `src/lib/vocabularios.js`, `scripts/lib/columnasVocabulario.mjs`, `api/_bot/enlace.js`, `api/_bot/enlace.test.js`, `api/_bot/cuentas.js`, `api/_bot/cuentas.test.js`, `api/bot/entrar.js`, `api/bot/entrar.test.js`
