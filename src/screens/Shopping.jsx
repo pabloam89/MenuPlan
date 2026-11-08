@@ -99,7 +99,7 @@ import {
   itemsByAisle,
   itemsByDayMeal,
   mergeShoppingItems,
-  lineasDeLaCompra,
+  compraDeLaLista,
   matchReceiptProducts,
   SHOPPING_DAY_WEEK,
 } from "../lib/shoppingListUtils.js";
@@ -113,7 +113,7 @@ import {
 import { shareShoppingList } from "../lib/menuExport.js";
 import { priceShoppingList } from "../lib/listPricing.js";
 import { listaFrenteAPresupuesto } from "../lib/presupuesto.js";
-import { fichaMercadona, NOMBRE_LISTA_MERCADONA, listaParaMercadona } from "../lib/mercadonaList.js";
+import { fichaMercadona, NOMBRE_LISTA_MERCADONA } from "../lib/mercadonaList.js";
 
 // Lazy (not a top-level import): Pantry.jsx already imports SwipePurchaseShell
 // from this very file, so a plain top-level import here would be circular.
@@ -765,14 +765,10 @@ export function ShoppingScreen({
   const isEmpty = sections.every((s) => s.items.length === 0);
 
   // De momento toda casa compra en Mercadona: los precios se ven siempre.
-  // Lo que se compra va junto por ingrediente aunque la pantalla lo enseñe por
-  // semana (lineasDeLaCompra): así se redondea a paquetes una vez. Se pone
-  // precio a las filas de la pantalla y, además, a las que salen de juntar.
-  const lineasCompra = useMemo(() => lineasDeLaCompra(visibleItems), [visibleItems]);
-  const aPreciar = useMemo(() => {
-    const ids = new Set(visibleItems.map((i) => i.id));
-    return [...visibleItems, ...lineasCompra.filter((l) => !ids.has(l.id))];
-  }, [visibleItems, lineasCompra]);
+  // Lo que se compra va junto por ingrediente aunque la pantalla lo enseñe
+  // por semana: así se redondea a paquetes una vez (compraDeLaLista).
+  const compraLista = useMemo(() => compraDeLaLista(visibleItems), [visibleItems]);
+  const aPreciar = compraLista.aPreciar;
   const estimateKey = useMemo(
     () => aPreciar.map((i) => `${i.id}|${i.qty}|${i.unit ?? "ud"}`).join(";"),
     [aPreciar],
@@ -800,8 +796,8 @@ export function ShoppingScreen({
   // baja el total. En «Comprado» es lo estimado de esa lista y no hay nada que
   // comprar.
   const cuenta = useMemo(
-    () => listaParaMercadona(lineasCompra, linePrices, NOMBRE_LISTA_MERCADONA),
-    [lineasCompra, linePrices],
+    () => compraLista.cuenta(linePrices, NOMBRE_LISTA_MERCADONA),
+    [compraLista, linePrices],
   );
   const paraComprar = buyTab === "bought" ? null : cuenta;
   // Desde dónde se abrió la hoja (HOJA_COMPRAR), o false si está cerrada.

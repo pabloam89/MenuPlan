@@ -1,8 +1,7 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { priceShoppingList } from "./listPricing.js";
 import { resetStoreCatalogCache } from "./storeCatalog.js";
-import { listaParaMercadona } from "./mercadonaList.js";
-import { lineasDeLaCompra } from "./shoppingListUtils.js";
+import { compraDeLaLista } from "./shoppingListUtils.js";
 
 // El total de caja: envases enteros (el €/ración a granel es lib/coste.js).
 // Los ids son los que decide productoPorIngrediente.json para la merluza y el
@@ -67,15 +66,22 @@ describe("varias semanas: se suma y se redondea una vez", () => {
 
   it("300 g + 300 g de merluza son dos paquetes de 500 g, no uno", async () => {
     mockCatalog();
-    const lineas = lineasDeLaCompra(SEMANAS);
-    const { map } = await priceShoppingList("Mercadona", lineas);
-    const compra = listaParaMercadona(lineas, map, "x");
+    const { aPreciar, cuenta } = compraDeLaLista(SEMANAS);
+    const { map } = await priceShoppingList("Mercadona", aPreciar);
+    const compra = cuenta(map, "x");
     expect(compra.lista.products).toEqual([{ merca_code: "62113", quantity: 2 }]);
     expect(compra.total).toBe(9);
   });
 
-  it("una sola semana sale igual que entra", () => {
+  it("las filas de cada semana siguen llevando su precio", async () => {
+    mockCatalog();
+    const { aPreciar } = compraDeLaLista(SEMANAS);
+    const { map } = await priceShoppingList("Mercadona", aPreciar);
+    expect(SEMANAS.map((f) => map.get(f.id)?.storePacks)).toEqual([1, 1]);
+  });
+
+  it("con una sola semana se pone precio a las mismas filas", () => {
     const una = [{ id: "merluza|g", name: "Merluza", unit: "g", qty: 300 }];
-    expect(lineasDeLaCompra(una).map((l) => [l.id, l.qty])).toEqual([["merluza|g", 300]]);
+    expect(compraDeLaLista(una).aPreciar).toEqual(una);
   });
 });
