@@ -11,7 +11,7 @@ vi.mock("../lib/mercadonaApp.js", async (original) => ({
 }));
 
 const { RellenarMercadona: Hoja } = await import("./ComprarMercadona.jsx");
-const { pasoDeComprar, useRellenarMercadona } = await import("./useRellenarMercadona.js");
+const { HOJA_COMPRAR, hojaConLista, pasoDeComprar, useRellenarMercadona } = await import("./useRellenarMercadona.js");
 const app = await import("../lib/mercadonaApp.js");
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -41,6 +41,17 @@ afterEach(() => {
   act(() => root?.unmount());
   document.body.innerHTML = "";
   delete window.opener;
+});
+
+describe("hojaConLista", () => {
+  it("desde Comprar no repite la lista; desde el total, sí", () => {
+    expect(hojaConLista(HOJA_COMPRAR.COMPRAR, { servicio: true })).toBe(false);
+    expect(hojaConLista(HOJA_COMPRAR.TOTAL, { servicio: true })).toBe(true);
+  });
+
+  it("sin el servicio, la lista sale siempre: es la única forma de comprar", () => {
+    expect(hojaConLista(HOJA_COMPRAR.COMPRAR, { servicio: false })).toBe(true);
+  });
 });
 
 describe("pasoDeComprar", () => {
