@@ -3,6 +3,7 @@ import { pedidoMenu } from "../lib/pedidoLola.js";
 import { BaldosaFranja, RayaBaldosas } from "../components/wizard/ControlRow.jsx";
 import { color as tono } from "../design/tokens.js";
 import BarraComprar, { PildoraLola } from "../components/BarraComprar.jsx";
+import ResumenCompra from "../components/ResumenCompra.jsx";
 import { RellenarMercadona } from "../components/ComprarMercadona.jsx";
 import { HOJA_COMPRAR, hojaConLista, pasoDeComprar, useRellenarMercadona } from "../components/useRellenarMercadona.js";
 import { Suspense, lazy, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
@@ -1406,49 +1407,26 @@ export function ShoppingScreen({
                 alignItems: "center",
                 gap: 10,
                 paddingTop: 4,
-                paddingBottom: 12,
+                paddingBottom: "var(--esp-8)",
               }}
             >
-              <div
-                style={{
-                  flex: 1,
-                  minWidth: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 3,
-                }}
-              >
+              <div style={{ flex: 1, minWidth: 0 }}>
                 <StoreBadge name="Mercadona" size={30} maxWidth={90} />
-                <span
-                  style={{
-                    ...aisleMetaPillStyle(true, "count"),
-                    background: AISLE_OPEN_BAND,
-                    color: "#fff",
-                  }}
-                >
-                  {formatEuro0(frente.total)}
-                </span>
-                {/* El presupuesto de la casa al lado del total (lib/presupuesto.js,
-                    #958): por semana marcada, y con lo que no tiene precio
-                    contado aparte, para que el total no parezca completo. */}
-                {frente && (frente.presupuesto != null || frente.sinPrecio > 0) && (
-                  <span
-                    style={{
-                      marginLeft: "var(--esp-6)",
-                      fontSize: "var(--tipo-paso-13)",
-                      fontWeight: "var(--tipo-peso-700)",
-                      color: frente.veredicto === "no_cabe" ? "var(--color-peligro)" : "var(--color-tinta-suave)",
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    }}
-                  >
-                    {frente.presupuesto != null ? `de ${formatEuro0(frente.presupuesto)}` : ""}
-                    {frente.sinPrecio > 0 ? `${frente.presupuesto != null ? " · " : ""}${frente.sinPrecio} sin precio` : ""}
-                  </span>
-                )}
               </div>
               {weekSelectorEl}
+            </div>
+            {/* Con precio y su total (con el presupuesto de la casa al lado,
+                lib/presupuesto.js, #958) y, debajo, lo que no tiene precio,
+                sin total: así el total no parece completo. */}
+            <div style={{ paddingBottom: 12 }}>
+              <ResumenCompra
+                conPrecio={estimacionLista.matched}
+                sinPrecio={frente.sinPrecio}
+                total={formatEuro0(frente.total)}
+                presupuesto={frente.presupuesto != null ? formatEuro0(frente.presupuesto) : null}
+                noCabe={frente.veredicto === "no_cabe"}
+                colorTotal={AISLE_OPEN_BAND}
+              />
             </div>
             <div style={{ borderBottom: STRIP_DIVIDER, marginBottom: 4 }} />
           </>
