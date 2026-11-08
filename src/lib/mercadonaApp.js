@@ -31,7 +31,6 @@ export const HORA_ENTREGA = Object.freeze({
   PREGUNTA: "¿A qué hora te la llevan?",
   RESERVANDO: "Reservando tu hora…",
   RESERVADA: "Te lo llevan",
-  CARRO: "En tu carro",
   CAMBIAR: "Puedes cambiar el pedido hasta",
   PAGAR: "Pagar lo haces tú, en la app de Mercadona.",
 });

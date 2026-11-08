@@ -53,10 +53,9 @@ afterEach(() => {
 });
 
 describe("elegir la hora de entrega", () => {
-  it("pregunta, dice el carro y enseña cada hora en la hora de Madrid, con su precio", async () => {
+  it("pregunta y enseña cada hora en la hora de Madrid, con su precio", async () => {
     await pintar(ELIGIENDO);
     expect(contenedor.textContent).toContain(HORA_ENTREGA.PREGUNTA);
-    expect(contenedor.textContent).toContain("En tu carro: 64,10 €");
     expect(horas().map((b) => b.textContent)).toEqual(["jueves 12 nov15:00–16:007,21 €", "jueves 12 nov17:00–18:00gratis"]);
     expect(horas().every((b) => b.getAttribute("aria-checked") === "false")).toBe(true);
   });

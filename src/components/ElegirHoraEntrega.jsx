@@ -7,8 +7,6 @@ import { ESTADO_ENCARGO_MERCADONA } from "../lib/vocabularios.js";
 /** Entre una hora y la siguiente al entrar: se leen como cuatro cosas, no como una fila que ya estaba. */
 const CASCADA_MS = 60;
 
-const euros = (n) => `${Number(n).toFixed(2).replace(".", ",")} €`;
-
 const titulo = {
   margin: 0,
   color: "var(--color-tinta)",
@@ -135,7 +133,6 @@ export function ElegirHoraEntrega({ m }) {
         <Clock size={18} color="var(--color-marca)" />
         {reservando || eligiendo ? HORA_ENTREGA.RESERVANDO : HORA_ENTREGA.PREGUNTA}
       </p>
-      {encargo.total != null && !reservando && <p style={TEXTO}>{`${HORA_ENTREGA.CARRO}: ${euros(encargo.total)}`}</p>}
       <div role="radiogroup" aria-label={HORA_ENTREGA.PREGUNTA} style={{ display: "grid", gap: "var(--esp-8)" }}>
         {lista.map((h, i) => (
           <Hora
