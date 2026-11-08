@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ES_API, limpiarRuta, limpiarValor, llamadaLimpia } from "./mercadonaGrabacion.mjs";
+import { esApi, limpiarRuta, limpiarValor, llamadaLimpia } from "./mercadonaGrabacion.mjs";
 
 // Una respuesta como la de una dirección guardada y sus franjas, inventada.
 const DIRECCION = {
@@ -57,8 +57,13 @@ describe("llamadaLimpia", () => {
     expect(llamadaLimpia({ metodo: "GET", url: "https://tienda.mercadona.es/api/categories/112/", status: 200, responde: '{"name":"Aceite"}' }).responde).toBeNull();
   });
 
+  it("una respuesta que no se pudo leer queda dicha, no como vacía", () => {
+    const r = llamadaLimpia({ metodo: "GET", url: "https://tienda.mercadona.es/api/customers/x/cart/", status: 200, fallo: "Target closed" });
+    expect(r).toMatchObject({ responde: null, sinRespuesta: "Target closed" });
+  });
+
   it("solo se graba la API de la tienda", () => {
-    expect(ES_API.test("https://tienda.mercadona.es/api/customers/x/cart/")).toBe(true);
-    expect(ES_API.test("https://www.google.com/recaptcha/api2/")).toBe(false);
+    expect(esApi("https://tienda.mercadona.es/api/customers/x/cart/")).toBe(true);
+    expect(esApi("https://www.google.com/recaptcha/api2/")).toBe(false);
   });
 });

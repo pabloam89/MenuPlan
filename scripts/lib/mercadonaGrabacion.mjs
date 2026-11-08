@@ -5,9 +5,10 @@
  * cada llamada, no los datos de la persona: sin cabeceras (ni Authorization ni
  * cookies) y con los textos que pueden ser personales cambiados por su tipo.
  */
+import { TIENDA } from "./mercadonaPagina.mjs";
 
-/** Lo que se graba: solo la API de la tienda. */
-export const ES_API = /^https:\/\/tienda\.mercadona\.es\/api\//;
+/** Lo que se graba: solo la API de la tienda (TIENDA, de mercadonaPagina.mjs). */
+export const esApi = (url) => String(url).startsWith(`${TIENDA}api/`);
 
 /** Llamadas del catálogo: muchas y grandes, y no dicen nada del pedido. Se apuntan sin cuerpo. */
 const CATALOGO = /\/api\/(categories|products|home|search|postal-codes\/actions)/;
@@ -59,14 +60,17 @@ const cuerpo = (texto) => {
 /**
  * Una llamada grabada, ya limpia: `{ metodo, ruta, status, pide, responde }`.
  * `pide` y `responde` son los cuerpos sin datos de la persona; del catálogo, null.
+ * Si no se pudo leer la respuesta, `fallo` dice por qué y va en el fichero
+ * (`sinRespuesta`): no se confunde con una respuesta vacía.
  */
-export function llamadaLimpia({ metodo, url, status, pide, responde }) {
+export function llamadaLimpia({ metodo, url, status, pide, responde, fallo = null }) {
   const catalogo = CATALOGO.test(url);
-  return {
+  const r = {
     metodo,
     ruta: limpiarRuta(url),
     status,
     pide: catalogo ? null : cuerpo(pide),
-    responde: catalogo ? null : cuerpo(responde),
+    responde: catalogo || fallo ? null : cuerpo(responde),
   };
+  return fallo ? { ...r, sinRespuesta: fallo } : r;
 }

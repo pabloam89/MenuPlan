@@ -27,7 +27,7 @@ import path from "node:path";
 import { chromium } from "@playwright/test";
 import { erroresDeLista } from "../src/lib/mercadonaLista.js";
 import { abrirPortada, crearLista, enPagina, entrarEnTienda, TIENDA } from "./lib/mercadonaPagina.mjs";
-import { ES_API, llamadaLimpia } from "./lib/mercadonaGrabacion.mjs";
+import { esApi, llamadaLimpia } from "./lib/mercadonaGrabacion.mjs";
 
 const ESPERA_LOGIN_MS = 5 * 60 * 1000;
 const args = process.argv.slice(2);
@@ -43,21 +43,26 @@ function listaDePrueba() {
 
 /**
  * Graba hasta que se cierra la ventana: solo las llamadas a su /api/, ya limpias
- * (mercadonaGrabacion.mjs). El script no pulsa nada: lo hace la persona.
+ * (mercadonaGrabacion.mjs). El script no pulsa nada: lo hace la persona. Antes de
+ * guardar espera a las respuestas que se estaban leyendo; la que no se pudo leer
+ * va con su motivo (`sinRespuesta`) y se cuenta en pantalla.
  */
 async function grabar(contexto, pagina) {
   const llamadas = [];
-  contexto.on("response", async (respuesta) => {
+  const leyendo = [];
+  contexto.on("response", (respuesta) => {
     const peticion = respuesta.request();
-    if (!ES_API.test(peticion.url())) return;
-    let responde = null;
-    try {
-      responde = await respuesta.text();
-    } catch {
-      responde = null; // una redirección o una página que ya se ha ido no trae cuerpo
-    }
-    llamadas.push(llamadaLimpia({ metodo: peticion.method(), url: peticion.url(), status: respuesta.status(), pide: peticion.postData(), responde }));
-    console.log(`  ${peticion.method()} ${llamadas.at(-1).ruta} → ${respuesta.status()}`);
+    if (!esApi(peticion.url())) return;
+    const base = { metodo: peticion.method(), url: peticion.url(), status: respuesta.status(), pide: peticion.postData() };
+    leyendo.push(
+      respuesta.text().then(
+        (responde) => llamadaLimpia({ ...base, responde }),
+        (e) => llamadaLimpia({ ...base, fallo: e.message }),
+      ).then((l) => {
+        llamadas.push(l);
+        console.log(`  ${l.metodo} ${l.ruta} → ${l.status}${l.sinRespuesta ? ` (sin respuesta: ${l.sinRespuesta})` : ""}`);
+      }),
+    );
   });
   const portada = await abrirPortada(pagina);
   console.log(`portada: HTTP ${portada.status}`);
@@ -65,6 +70,9 @@ async function grabar(contexto, pagina) {
   console.log("Grabando. En la ventana: carro → Ver carro → Tramitar pedido → dirección → Días de entrega.");
   console.log("Para ANTES de pagar y cierra la ventana de Chrome para terminar.");
   await new Promise((fin) => contexto.on("close", fin));
+  await Promise.all(leyendo);
+  const sinLeer = llamadas.filter((l) => l.sinRespuesta).length;
+  if (sinLeer) console.log(`${sinLeer} llamadas sin respuesta leída: van en el fichero con su motivo`);
   return { resultado: "grabacion_guardada", llamadas };
 }
 
