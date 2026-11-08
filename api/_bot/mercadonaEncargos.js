@@ -16,7 +16,7 @@ import { erroresDeLista } from "../../src/lib/mercadonaLista.js";
 import { CANAL, ESTADO_CUENTA_MERCADONA, ESTADO_ENCARGO_MERCADONA, FALLO_ENCARGO_MERCADONA, NO_ENCARGADO, paraEscribir } from "../../src/lib/vocabularios.js";
 import { enlaceDeLista } from "../../src/lib/mercadonaList.js";
 import { NO_EXISTE, PG_SIN_COLUMNA } from "../../src/lib/postgrest.js";
-import { LLEGA_HASTA, LLEGA_HASTA_MERCADONA, deUnaCuenta, faltaPara, llegaHastaDe } from "../../src/lib/mercadonaLlegaHasta.js";
+import { LLEGA_HASTA, LLEGA_HASTA_MERCADONA, deUnaCuenta, faltaPara } from "../../src/lib/mercadonaLlegaHasta.js";
 import { esSello } from "../../src/lib/mercadonaSello.js";
 
 const { PENDIENTE, RELLENANDO, HECHO, FALLIDO } = ESTADO_ENCARGO_MERCADONA;
@@ -193,16 +193,16 @@ export async function tomar() {
 }
 
 /**
- * Para el trabajador: hasta dónde llega y el teléfono sellado (0133). Sin las columnas (42703), solo la lista y sin
- * teléfono: lo que el bot hacía antes. Otro fallo, lanza.
+ * Para el trabajador: hasta dónde llega, qué tiene la cuenta y el teléfono sellado (0133). Sin las columnas (42703),
+ * solo la lista y sin teléfono: lo que el bot hacía antes. Otro fallo, lanza.
  */
 async function hastaDondeDe(casa) {
   try {
     const [cuenta] = await select("mercadona_cuenta", `household_id=${eq(casa)}`, "llega_hasta,telefono_sellado");
-    return { llega_hasta: llegaHastaDe(cuenta?.llega_hasta), telefono_sellado: cuenta?.telefono_sellado ?? null };
+    return { ...deUnaCuenta(cuenta), telefono_sellado: cuenta?.telefono_sellado ?? null };
   } catch (e) {
     if (e?.codigo !== PG_SIN_COLUMNA) throw e;
-    return { llega_hasta: LLEGA_HASTA.LISTA, telefono_sellado: null }; // a propósito: plan B de la 0133
+    return { ...deUnaCuenta(null), telefono_sellado: null }; // a propósito: plan B de la 0133, como una fila de antes
   }
 }
 

@@ -969,6 +969,11 @@ const CONSULTAS = {
     dice: "el menú del cole guardado (lo que comen los niños en el comedor)",
     leer: ({ householdId }) => verMenuCole(householdId),
   },
+  mercadona: {
+    capacidades: ["mercadona_pasos"], lee: [], lector: false, pantalla: null,
+    dice: "hasta dónde llega Lola en la cuenta de Mercadona (solo la lista; también el carro y la hora de entrega; o también pagar) y qué falta para el paso siguiente",
+    leer: ({ householdId }) => verMercadona({ householdId }),
+  },
   recordatorios: {
     capacidades: ["recordatorios"], lee: [], lector: "privado", pantalla: null,
     dice: "los recordatorios pendientes de este chat, con su id",
@@ -1097,13 +1102,7 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
     }),
     // Trozo 18 de #1407: hasta dónde llega el bot, el mismo dato que Ajustes → Mercadona. Lo que se puede encender lo
     // decide cambiarLlegaHasta (dirección, teléfono, tarjeta), no el modelo.
-    herramienta({ capacidades: ["mercadona_pasos"], lee: [], escribe: [], lector: false, riesgo: RIESGO_HERRAMIENTA.LEE, deshace: DESHACE.NO, pantalla: "perfil" }, {
-      name: "ver_mercadona",
-      description: "Dice hasta dónde llega Lola en la cuenta de Mercadona (solo rellenar la lista; también meterla en el carro y reservar la hora de entrega; o también pagar) y qué falta para el paso siguiente («¿puedes reservarme la hora?», «¿qué haces en Mercadona?»). Dile lo que devuelve, sin añadir nada.",
-      inputSchema: { type: "object", properties: {}, additionalProperties: false },
-      run: () => verMercadona({ householdId }),
-    }),
-    herramienta({ capacidades: ["mercadona_pasos"], lee: [], escribe: [], lector: false, riesgo: RIESGO_HERRAMIENTA.ESCRIBE_IRREVERSIBLE, deshace: DESHACE.NO, pantalla: "perfil" }, {
+    herramienta({ capacidades: ["mercadona_pasos"], lee: [], escribe: [], lector: false, riesgo: RIESGO_HERRAMIENTA.ESCRIBE_IRREVERSIBLE, deshace: DESHACE.NO, pantalla: null }, {
       name: "cambiar_mercadona",
       description: "Cambia hasta dónde llega Lola en Mercadona, solo si la persona lo pide: lista = solo rellenar la lista; reservar = además meterla en el carro y reservar la hora de entrega; pagar = además pagar, siempre confirmando antes el importe y con la aprobación de su banco. «Ya no pagues tú» es reservar; «solo la lista», lista. Si devuelve que falta un teléfono, pídeselo y usa guardar_telefono_mercadona; luego vuelve a llamarla. Dile lo que devuelve, sin añadir nada.",
       inputSchema: {
@@ -1114,7 +1113,7 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
       },
       run: ({ llega_hasta }) => cambiarMercadona({ householdId, llega_hasta }),
     }),
-    herramienta({ capacidades: ["mercadona_pasos"], lee: [], escribe: [], lector: false, riesgo: RIESGO_HERRAMIENTA.ESCRIBE_IRREVERSIBLE, deshace: DESHACE.NO, pantalla: null }, {
+    herramienta({ capacidades: ["mercadona_telefono"], lee: [], escribe: [], lector: false, riesgo: RIESGO_HERRAMIENTA.ESCRIBE_IRREVERSIBLE, deshace: DESHACE.NO, pantalla: null }, {
       name: "guardar_telefono_mercadona",
       description: "Guarda el teléfono que Mercadona pide para el repartidor, cuando la persona lo da para eso. Pásalo tal como lo escribió. Se guarda cerrado y no se repite: no lo escribas tú en la respuesta. Dile lo que devuelve, sin añadir nada.",
       inputSchema: {

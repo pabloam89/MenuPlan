@@ -53,6 +53,15 @@ describe("pasarAMercadona", () => {
     expect(texto).toContain("Pagar y pedir lo haces tú");
   });
 
+  it("dice hasta dónde llegará, con el mismo dato que la app (trozo 18)", async () => {
+    prueba.encargo = { encargo: { id: "e", status: "pendiente" }, llega_hasta: "reservar" };
+    const texto = await pasarAMercadona(QUIEN, { leerCatalogo });
+    expect(texto).toContain("rellenando la lista y metiéndola en el carro");
+    expect(texto).toContain("Luego eliges la hora de entrega.");
+    prueba.encargo = { encargo: { id: "e", status: "pendiente" }, llega_hasta: "pagar" };
+    expect(await pasarAMercadona(QUIEN, { leerCatalogo })).toContain("me confirmas el importe");
+  });
+
   it("sin ningún producto no encarga", async () => {
     prueba.items = [{ id: "b", name: "Unicornio", qty: 1, unit: "ud" }];
     expect(await pasarAMercadona(QUIEN, { leerCatalogo })).toContain("ningún producto");
