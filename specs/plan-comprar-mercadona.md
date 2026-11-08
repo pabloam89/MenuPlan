@@ -172,7 +172,7 @@ Files: `.claude/skills/mercadona/referencias/pedido.md`, `scripts/mercadona-nave
 Depends on: none
 Blocked by: none
 Existing: el trabajador solo rellena listas (`scripts/lib/mercadonaPagina.mjs`), y la skill prohíbe el carrito, el reparto y el pago («Lista y no carrito», «Nunca paga»). Del pedido solo se sabe lo que dice el README de `ivorpad/mercadona-cli` (leído el 8 nov): hay carrito, «checkout», direcciones y franjas, las franjas son de la dirección y no del pedido, y tramitar es irreversible; su autor dice que nunca lo ha probado de punta a punta. No da las llamadas. `ls .claude/skills/mercadona/referencias/pedido.md` → No such file or directory.
-Not done: lo hace la sesión `menuplan-f4` (lo propuso el 8 nov). Una sola pasada, a mano y sin bucles: Pablo, con su cuenta, en el navegador del prototipo (`scripts/mercadona-navegador.mjs` con una opción nueva para grabar), hace él mismo carro → Tramitar → dirección → Días de entrega, y se para antes de pagar. Playwright graba solo las llamadas a `tienda.mercadona.es/api/`; antes de guardar se quitan `Authorization`, las cookies y cualquier dato personal (dirección, teléfono, tarjeta). De ahí sale `referencias/pedido.md`, con cada llamada y lo que devuelve: leer el carrito y cambiarlo (¿se sustituye entero?), crear el pedido, las direcciones, las franjas libres de una dirección, reservar una franja (¿cuánto dura?), los medios de pago guardados y el pedido mínimo. El pago no se graba: se describe hasta la pantalla de pagar.
+Not done: lo hizo la sesión `menuplan-f4` el 8 nov (herramienta en #1408, referencia en #1410). Una sola pasada, a mano y sin bucles: Pablo, con su cuenta, en el navegador del prototipo (`scripts/mercadona-navegador.mjs` con una opción nueva para grabar), hace él mismo carro → Tramitar → dirección → Días de entrega, y se para antes de pagar. Playwright graba solo las llamadas a `tienda.mercadona.es/api/`; antes de guardar se quitan `Authorization`, las cookies y cualquier dato personal (dirección, teléfono, tarjeta). De ahí sale `referencias/pedido.md`, con cada llamada y lo que devuelve: leer el carrito y cambiarlo (¿se sustituye entero?), crear el pedido, las direcciones, las franjas libres de una dirección, reservar una franja (¿cuánto dura?), los medios de pago guardados y el pedido mínimo. El pago no se graba: se describe hasta la pantalla de pagar.
 Done:
 ```sh
 test -f .claude/skills/mercadona/referencias/pedido.md && for s in "## Carrito" "## Pedido" "## Direcciones" "## Franjas" "## Medios de pago" "## Pedido mínimo"; do grep -q "$s" .claude/skills/mercadona/referencias/pedido.md || exit 1; done && ! grep -qiE "authorization: |bearer [a-z0-9]" .claude/skills/mercadona/referencias/pedido.md
@@ -183,7 +183,7 @@ Files: `.claude/skills/mercadona/SKILL.md`
 Depends on: 13
 Blocked by: none
 Existing: la skill dice «Lista y no carrito» y «Nunca paga: no hay ningún paso de carrito, reparto ni pago» (`.claude/skills/mercadona/SKILL.md`, «Qué es»).
-Not done: la regla pasa a ser los tres pasos de Pablo (8 nov 2026): rellenar la lista, reservar la hora de entrega y pagar. Cada paso solo si la persona lo ha encendido (el dato del trozo 15), y cada uno incluye los de antes. Al carro se le suma la lista sin quitar lo que ya tenía. Nunca se paga sin que la persona confirme ese importe en ese pedido, y nunca más de lo confirmado: si no se puede leer el total, no se paga. Es rebajar una regla de `.claude/`: el PR lleva la decisión de Pablo y necesita su Approve (C13).
+Not done: la regla pasa a ser los tres pasos de Pablo (8 nov 2026): rellenar la lista, reservar la hora de entrega y pagar. Cada paso solo si la persona lo ha encendido (el dato del trozo 15), y cada uno incluye los de antes. Al carro se le suma la lista sin quitar lo que ya tenía. Nunca se paga sin que la persona confirme ese importe en ese pedido, y nunca más de lo confirmado: si no se puede leer el total, no se paga. Además el pago lo aprueba siempre la persona en su banco: confirmar en Mercadona manda a la autenticación del banco (SCA), y el bot no puede cerrarlo solo (`.claude/skills/mercadona/referencias/pedido.md` (#1410), «Pedido»). Es rebajar una regla de `.claude/`: el PR lleva la decisión de Pablo y necesita su Approve (C13).
 Done:
 ```sh
 grep -q "Nunca se paga sin que la persona confirme" .claude/skills/mercadona/SKILL.md && ! grep -q "Nunca paga" .claude/skills/mercadona/SKILL.md
@@ -194,7 +194,7 @@ Files: `supabase/migrations/0133_mercadona_alcance.sql`, `src/lib/vocabularios.j
 Depends on: none
 Blocked by: none
 Existing: `mercadona_cuenta` (0131) guarda la sesión cerrada y `estado` (`conectada`, `caducada`), y nada más de la cuenta (`supabase/migrations/0131_mercadona_encargos.sql:27`). `ls supabase/migrations | tail -1` → `0131_mercadona_encargos.sql`; la 0132 es de otro PR abierto (#1325, `0132_franjas_extra.sql`).
-Not done: tres columnas en `mercadona_cuenta`. (1) `alcance` text not null default `'lista'`, check en `('lista', 'reservar', 'pagar')`: hasta dónde llega el bot, en orden, cada uno con los de antes; de ahí salen los tres interruptores de la app y lo que Lola hace. Un solo dato y no tres casillas, porque «pagar sin reservar» no existe. (2) `tiene_direccion` y `tiene_pago`, boolean, nulos hasta que el trabajador lo mire, con `revisada_at`: deciden qué interruptores se pueden encender. La dirección y la tarjeta no se copian: viven en Mercadona; aquí solo «tiene o no». Apagar «Rellenar la lista» sigue siendo salir (borra la fila), así que no hace falta un `alcance` «nada». `ALCANCE_MERCADONA` en `src/lib/vocabularios.js` y su test contra el check. El código no puede depender de que la migración esté (la rama se despliega antes): sin la columna, todo es `lista`. La aplica Pablo.
+Not done: lo hace esta sesión (`menuplan-8b`). Cuatro columnas más `revisada_at` en `mercadona_cuenta`. (1) `alcance` text not null default `'lista'`, check en `('lista', 'reservar', 'pagar')`: hasta dónde llega el bot, en orden, cada uno con los de antes; de ahí salen los tres interruptores de la app y lo que Lola hace. Un solo dato y no tres casillas, porque «pagar sin reservar» no existe. (2) `tiene_direccion` y `tiene_pago`, boolean, nulos hasta que el trabajador lo mire, con `revisada_at`: deciden qué interruptores se pueden encender. (3) `telefono_sellado`, text, nulo hasta que la persona lo dé: Mercadona exige un teléfono en cada pedido y su perfil no lo tiene (`.claude/skills/mercadona/referencias/pedido.md` (#1410), «Pedido»), así que se pide una vez y se guarda sellado con la misma clave pública que la sesión; solo lo abre el trabajador (trozo 20). «Tiene teléfono» es que no sea nulo: no hay otra columna. La dirección y la tarjeta no se copian: viven en Mercadona; aquí solo «tiene o no». Apagar «Rellenar la lista» sigue siendo salir (borra la fila), así que no hace falta un `alcance` «nada». `ALCANCE_MERCADONA` en `src/lib/vocabularios.js` y su test contra el check. El código no puede depender de que la migración esté (la rama se despliega antes): sin la columna, todo es `lista`. La aplica Pablo.
 Done:
 ```sh
 npx vitest run src/lib/mercadonaAlcance.test.js && node scripts/verificar-estado.mjs --solo 0133
@@ -205,7 +205,7 @@ Files: `scripts/lib/mercadonaTrabajador.mjs`, `scripts/lib/mercadonaPagina.mjs`,
 Depends on: 13, 15
 Blocked by: none
 Existing: el trabajador entra con la sesión de la casa y rellena listas (`scripts/lib/mercadonaTrabajador.mjs`); no lee direcciones ni medios de pago. `api/mercadona.js` no tiene dónde guardar «tiene dirección». `ls scripts/mercadona-trabajador-revisar.test.js` → No such file or directory.
-Not done: al conectarse una cuenta, y en cada encargo, el trabajador pide a Mercadona las direcciones y los medios de pago guardados (llamadas del trozo 13) y guarda solo `tiene_direccion` y `tiene_pago`, con la fecha. Ni la dirección ni la tarjeta salen del navegador del trabajador. Si la llamada falla, se queda `null` («sin mirar»), no `false`.
+Not done: lo hace esta sesión (`menuplan-8b`). Al conectarse una cuenta, y en cada encargo, el trabajador pide a Mercadona `GET …/addresses/` (`count` mayor que 0 es «tiene dirección») y el perfil `GET /api/customers/:cliente/` (`has_active_billing` es «tiene medio de pago»), según `.claude/skills/mercadona/referencias/pedido.md` (#1410), y guarda solo `tiene_direccion` y `tiene_pago`, con la fecha. Ni la dirección ni la tarjeta salen del navegador del trabajador. Si la llamada falla, se queda `null` («sin mirar»), no `false`.
 Done:
 ```sh
 npx vitest run scripts/mercadona-trabajador-revisar.test.js
@@ -216,7 +216,7 @@ Files: `src/components/AjustesMercadona.jsx`, `src/components/AjustesMercadona.t
 Depends on: 9, 15, 16
 Blocked by: none
 Existing: Ajustes tiene dos interruptores, «Rellenar la lista» y «Pagar la compra» con «Pronto» (trozo 9).
-Not done: tres interruptores, uno por paso, en el orden en que pasan: «Rellenar la lista», «Reservar la hora de entrega» y «Pagar la compra». Se pintan desde `alcance`: encender uno enciende los de antes, y apagar uno apaga los de después. «Reservar» no se puede encender si `tiene_direccion` no es `true`, y lo dice en una línea («Añade tu dirección en la app de Mercadona»); «Pagar», igual con `tiene_pago`. La hoja de la primera vez (trozo 6) es este mismo componente, así que enseña los tres. `api/mercadona.js` cambia `alcance` y comprueba lo mismo en el servidor: no deja `reservar` sin dirección.
+Not done: lo hace esta sesión (`menuplan-8b`). Tres interruptores, uno por paso, en el orden en que pasan: «Rellenar la lista», «Reservar la hora de entrega» y «Pagar la compra». Se pintan desde `alcance`: encender uno enciende los de antes, y apagar uno apaga los de después. «Reservar» no se puede encender si `tiene_direccion` no es `true`, y lo dice en una línea («Añade tu dirección en la app de Mercadona»); «Pagar», igual con `tiene_pago`. Al encender «Reservar» sin teléfono, la hoja lo pide en una casilla («Tu teléfono para el repartidor») y lo sella en el móvil antes de enviarlo, como la sesión. La hoja de la primera vez (trozo 6) es este mismo componente, así que enseña los tres. `api/mercadona.js` cambia `alcance` y comprueba lo mismo en el servidor: no deja `reservar` sin dirección.
 Done:
 ```sh
 npx vitest run src/components/AjustesMercadona.test.jsx && grep -q "Reservar la hora de entrega" src/lib/mercadonaApp.js
@@ -227,7 +227,7 @@ Files: `api/_bot/mercadonaEncargos.js`, `api/_bot/agente.js`, `api/_bot/mercadon
 Depends on: 15
 Blocked by: none
 Existing: Lola ya encarga listas (`api/_bot/mercadonaEncargos.js`), pero no sabe hasta dónde puede llegar.
-Not done: Lola lee y cambia `alcance` (el dato del trozo 15, el mismo que Ajustes), dice qué falta («Para reservar la hora, añade tu dirección en la app de Mercadona») y, al comprar, llega hasta donde diga `alcance`. Sin ajustes propios de Lola.
+Not done: lo hace la sesión `menuplan-f4`. Se puede escribir antes de la 0133: sin la columna, `alcance` es `lista` (plan B del trozo 15). Lola lee y cambia `alcance` (el dato del trozo 15, el mismo que Ajustes), dice qué falta («Para reservar la hora, añade tu dirección en la app de Mercadona») y, al comprar, llega hasta donde diga `alcance`. Si falta el teléfono, lo pide en el chat y el servidor lo sella con la clave pública antes de guardarlo. Sin ajustes propios de Lola.
 Done:
 ```sh
 npx vitest run api/_bot/mercadonaAlcance.test.js
@@ -238,7 +238,7 @@ Files: `scripts/lib/mercadonaPagina.mjs`, `scripts/lib/mercadonaTrabajador.mjs`,
 Depends on: 12, 13, 14, 15
 Blocked by: none
 Existing: el trabajador escribe una lista nueva y no toca el carro (`scripts/lib/mercadonaPagina.mjs`), porque escribir el carro lo sustituye entero (skill, «Lista y no carrito»).
-Not done: con `alcance` en `reservar` o `pagar`, el trabajador lee el carro, le suma la lista (mismo producto: se suman las cantidades) y lo escribe una sola vez. Lo que había sigue ahí. Comprueba que el total pasa del pedido mínimo (trozo 12) antes de seguir.
+Not done: lo hace la sesión `menuplan-f4`; se puede escribir antes de la 0133 (sin la columna no se llega al carro) y entra después del trozo 14. Con `alcance` en `reservar` o `pagar`, el trabajador lee el carro (`GET …/cart/`, con su `version`), le suma la lista (mismo producto: se suman las cantidades) y lo escribe una sola vez (`PUT …/cart/` con el carrito entero y la `version` leída; `.claude/skills/mercadona/referencias/pedido.md` (#1410), «Carrito»). Lo que había sigue ahí. Comprueba que el total pasa del pedido mínimo (trozo 12) antes de seguir.
 Done:
 ```sh
 npx vitest run scripts/mercadona-trabajador-carro.test.js
@@ -249,7 +249,7 @@ Files: `supabase/migrations/0134_mercadona_franja.sql`, `scripts/lib/mercadonaTr
 Depends on: 17, 18, 19
 Blocked by: none
 Existing: `mercadona_encargo.status` acaba en `hecho` con la lista (`0131`, `status in ('pendiente', 'rellenando', 'hecho', 'fallido')`).
-Not done: tras el carro, el trabajador tramita el pedido con la dirección guardada y pide las franjas libres de esa dirección. Las franjas no se guardan en una tabla: cambian cada minuto. El encargo pasa a `eligiendo` con las 3 o 4 primeras en el propio encargo; la app (en la hoja de Comprar) y Lola (en el chat) las enseñan, y la persona elige una. El trabajador la reserva, y el encargo guarda solo la elegida y hasta cuándo dura la reserva (trozo 13). La 0134 añade a `status` los estados `eligiendo` y `reservando`, cada uno con su fecha y su check, como los de la 0131. La aplica Pablo.
+Not done: lo hace la sesión `menuplan-f4`. Tras el carro, el trabajador crea el pedido (`POST …/checkouts/` con el carrito), que nace con la dirección por defecto, y pide las franjas de esa dirección (`GET …/addresses/:direccion/slots/`; solo las `available`). Llamadas en `.claude/skills/mercadona/referencias/pedido.md` (#1410). Las franjas no se guardan en una tabla: cambian cada minuto. El encargo pasa a `eligiendo` con las 3 o 4 primeras en el propio encargo; la app (en la hoja de Comprar) y Lola (en el chat) las enseñan, y la persona elige una. El trabajador la reserva (`PUT …/delivery-info/`) y pone el teléfono abierto del sello (`PUT …/phone-number/`); el encargo guarda solo la franja elegida y su `cutoff_time`, hasta cuándo se puede cambiar el pedido. La 0134 añade a `status` los estados `eligiendo` y `reservando`, cada uno con su fecha y su check, como los de la 0131. La aplica Pablo.
 Done:
 ```sh
 npx vitest run scripts/mercadona-trabajador-franja.test.js src/components/ElegirFranja.test.jsx && node scripts/verificar-estado.mjs --solo 0134
@@ -260,7 +260,7 @@ Files: `scripts/lib/mercadonaTrabajador.mjs`, `api/mercadona.js`, `api/_bot/merc
 Depends on: 14, 20
 Blocked by: none
 Existing: no hay ningún paso de pago (skill, «Nunca paga»).
-Not done: con `alcance` en `pagar` y la franja reservada, la app y Lola enseñan el total y la persona lo confirma («Pagar 87,40 €»). El trabajador paga con el medio guardado en Mercadona, y solo si el total que lee es igual o menor que el confirmado; si no puede leerlo, no paga. Si el banco pide confirmarlo en el móvil, se le dice a la persona y se espera. Pagar es irreversible: el test prueba que sin confirmación, o con un total mayor, no se llama a pagar.
+Not done: con `alcance` en `pagar` y la franja reservada, la app y Lola enseñan el total y la persona lo confirma («Pagar 87,40 €»). Quién lo hace se decide cuando estén el 19 y el 20 (`menuplan-f4` y `menuplan-8b`). El trabajador confirma el pedido (`POST …/confirm/`) solo si el medio guardado está vigente (`payment_method.expiration_status` = `valid`) y el total que lee es igual o menor que el confirmado; si no puede leerlo, no confirma. Mercadona contesta 202 con `authentication_mode: "redirection"`: la persona aprueba el pago en su banco, desde la app o desde el enlace que le da Lola, y el trabajador mira cómo va (`GET …/status/`). Cómo se vuelve de la página del banco no se ha visto (`.claude/skills/mercadona/referencias/pedido.md` (#1410), «Sin comprobar»). Pagar es irreversible: el test prueba que sin confirmación, o con un total mayor, no se llama a pagar.
 Done:
 ```sh
 npx vitest run scripts/mercadona-trabajador-pago.test.js
@@ -273,6 +273,7 @@ npx vitest run scripts/mercadona-trabajador-pago.test.js
 - principio 4 | eligió: de la dirección y del medio de pago, solo «tiene o no» (`tiene_direccion`, `tiene_pago`) | descartó: copiar la dirección o la tarjeta, que ya viven en Mercadona y serían una segunda fuente | motivo: decidido
 - principio 1 | eligió: las franjas libres se piden en el momento y solo se guarda la elegida | descartó: una tabla de franjas, que se quedaría vieja en un minuto | motivo: decidido
 - principio 4 | eligió: «hora de entrega» en lo que se ve y `franja` en el código y los datos, cada palabra en su sitio y siempre con el mismo significado | descartó: «franja» en la pantalla, que una familia no dice | motivo: decidido
+- principio 4 | eligió: el teléfono, sellado con la clave pública y abierto solo por el trabajador (`telefono_sellado`) | descartó: guardarlo en claro, o pedirlo en cada pedido | motivo: decidido
 - principio 6 | eligió: ver primero cómo se tramita un pedido en una pasada a mano con la cuenta de Pablo (trozo 13) | descartó: escribir el trabajador a partir del README de un proyecto que nunca lo ha probado | motivo: decidido
 - principio 6 | eligió: probar Comprar en Mercadona en producción, `https://homenu.vercel.app` (Pablo, 8 nov 2026) | descartó: probar en staging, que Pablo ya no usa para esto | motivo: decidido
 - principio 6 | eligió: que la app de Android la construya otra sesión (Pablo, 8 nov 2026) | descartó: construirla desde este plan, que chocaría en `android/` con esa otra sesión | motivo: decidido
@@ -295,7 +296,7 @@ npx vitest run scripts/mercadona-trabajador-pago.test.js
 
 ## Not verified
 
-- Todo lo del pedido (carrito, tramitar, direcciones, franjas, cuánto dura una reserva, pedido mínimo de 60 €, pago y la confirmación del banco en el móvil) hasta que el trozo 13 lo vea con la cuenta de Pablo. Que un pedido a medias salga en la app de Mercadona de la persona, y si esto acelera un bloqueo.
+- Del pedido, lo que la pasada del 8 nov no vio (`.claude/skills/mercadona/referencias/pedido.md` (#1410), «Sin comprobar»): qué contesta Mercadona por debajo del mínimo, si el teléfono se rellena solo en un segundo pedido, cuánto aguanta un pedido a medias con la franja reservada, si sale en la app de Mercadona y cómo se vuelve de la página del banco. Que un pedido a medias salga en la app de Mercadona de la persona, y si esto acelera un bloqueo.
 - La renovación «para siempre» y las seis semanas salen del README de un proyecto no oficial; el trozo 1 lo comprueba con la cuenta de Pablo.
 - Que la página de entrada en versión de ordenador deje entrar dentro de una app en el móvil.
 - El trozo 1 espera al 8: sin entrar desde la app no hay sesión que renovar, y los dos escriben en la skill.
