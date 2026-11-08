@@ -370,7 +370,7 @@ const DECLARADOS = [
   {
     n: 34, id: "coste", nombre: "Coste por ración",
     ambito: AMBITO.RECETA, tipo: "numerico", agregable: AGREGABLE.SUMA, unidad: UNIDAD_EJE.EUR, estado: "activo",
-    campo: "costeNivel", vocabulario: NIVELES_COSTE, consumidores: ["menu.js"], cobertura: 0.856,
+    campo: "costeNivel", vocabulario: NIVELES_COSTE, consumidores: ["menu.js"], cobertura: 0.892,
     nota: "€ por ración con Mercadona a €/kg (lib/coste.js, modo granel → derived/recipeCoste.json, que regenera build:coste y cada sync:mercadona). Nivel solo con cobertura de precios ≥ 0,8; sin ella, sin nivel. La lee el bot («algo barato»).",
   },
   {
