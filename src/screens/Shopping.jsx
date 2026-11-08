@@ -1415,8 +1415,8 @@ export function ShoppingScreen({
             >
               <div style={{ flex: 1, minWidth: 0 }}>
                 <ResumenCompra
-                  conPrecio={estimacionLista.matched}
-                  sinPrecio={frente.sinPrecio}
+                  productos={estimacionLista.matched}
+                  sinProducto={frente.sinProducto}
                   total={formatEuro0(frente.total)}
                   presupuesto={frente.presupuesto != null ? formatEuro0(frente.presupuesto) : null}
                   noCabe={frente.veredicto === "no_cabe"}
