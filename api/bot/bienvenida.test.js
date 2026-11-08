@@ -27,7 +27,7 @@ vi.mock("../_bot/embudo.js", () => ({ registrar: vi.fn(), rastro: vi.fn(), EMBUD
 vi.mock("../_bot/router.js", () => ({ clasificar: vi.fn(), vaPorLaRapida: () => false, permitidoEn: () => true }));
 vi.mock("../_bot/turno.js", () => ({ viaRapida: vi.fn(), eleccionDe: () => null, repiteLaPropuesta: () => false, aplicarEleccion: vi.fn(), contextoDe: vi.fn() }));
 vi.mock("../_bot/uso.js", () => ({ fueraDeLimite: vi.fn(), contarUso: vi.fn() }));
-vi.mock("../_bot/papel.js", () => ({ papelDeQuien: vi.fn(), idiomaDe: vi.fn() }));
+vi.mock("../_bot/papel.js", () => ({ papelDeQuien: vi.fn(), idiomaDe: vi.fn(), casaActivaDe: vi.fn(async () => null) }));
 vi.mock("../_bot/rapido.js", () => ({ respuestaHoy: vi.fn(), respuestaSemana: vi.fn(), respuestaCompra: vi.fn(), recordar: vi.fn() }));
 vi.mock("../_bot/pintar.js", () => ({ pintarMenuEntero: vi.fn() }));
 vi.mock("../_bot/voz.js", () => ({ transcribir: vi.fn() }));
@@ -81,7 +81,7 @@ describe("/start en un privado sin enlazar", () => {
     expect(t.enviados).toHaveLength(1);
     expect(t.enviados[0].texto).toContain("quiénes coméis en casa");
     // El botón ya es el enlace: código `alta` de este Telegram, sin cuenta todavía.
-    expect(t.enviados[0].opciones.botones.flat()).toEqual([{ texto: "Prefiero rellenarlo en la app", url: "https://x/?entrar=ALTA&ir=alta" }]);
+    expect(t.enviados[0].opciones.botones.flat()).toEqual([{ texto: "Prefiero rellenarlo en la app", url: "https://x/?entrar=ALTA&ir=alta" }, { texto: "Ya uso HoMenu", dato: "cuenta:si" }]);
     expect(crearCodigo).toHaveBeenCalledWith(expect.objectContaining({ tipo: "alta", chatId: "7", externalId: "7" }));
     expect(enlazarChat).not.toHaveBeenCalled();
     expect(crearCuentaTelegram).not.toHaveBeenCalled();
@@ -90,7 +90,7 @@ describe("/start en un privado sin enlazar", () => {
   it("si el código de alta no se puede guardar (sin la 0084), el botón de dos toques: el saludo sale igual", async () => {
     crearCodigo.mockRejectedValueOnce(new Error("violates check constraint"));
     await escribe("/start");
-    expect(t.enviados[0].opciones.botones.flat()).toEqual([{ texto: "Prefiero rellenarlo en la app", dato: "alta:app" }]);
+    expect(t.enviados[0].opciones.botones.flat()).toEqual([{ texto: "Prefiero rellenarlo en la app", dato: "alta:app" }, { texto: "Ya uso HoMenu", dato: "cuenta:si" }]);
   });
 
   it("un Telegram que ya es una cuenta: se reengancha a su casa y no se le pregunta nada", async () => {
@@ -125,6 +125,70 @@ describe("/start en un privado sin enlazar", () => {
     t.tablas = { bot_identities: [{ user_id: "u1" }], household_members: [{ household_id: "h1" }] };
     await escribe("/start", { chat: 99, from: 7 });
     expect(enlazarChat).not.toHaveBeenCalled();
+  });
+});
+
+// Quien ya usa la app y escribe a Lola por su cuenta (#1238, caso 6 del mapa): sin este botón, su primer mensaje le
+// creaba otra cuenta y otra casa. El código por email lo conecta a la suya sin salir de Telegram.
+describe("«Ya uso HoMenu» en el saludo", () => {
+  it("pide el email, sin crear cuenta, y a quien no tiene cuenta propia le dice que pida la invitación", async () => {
+    await pulsa("cuenta:si");
+    expect(t.enviados.at(-1).texto).toContain("Escríbeme el <b>email</b>");
+    expect(t.enviados.at(-1).texto).toMatch(/pídele que te invite/);
+    expect(crearCuentaTelegram).not.toHaveBeenCalled();
+    expect(enlazarChat).not.toHaveBeenCalled();
+  });
+
+  it("con el chat ya conectado, no pide el email", async () => {
+    t.tablas = { bot_chats: [{ household_id: "h1" }] };
+    await pulsa("cuenta:si");
+    expect(t.enviados.at(-1).texto).toContain("ya está conectado");
+    expect(t.enviados.at(-1).texto).not.toContain("email");
+  });
+
+  // El camino entero: el código que llegó al correo de su cuenta de Google conecta ESA cuenta, sin crear otra.
+  const conCodigoPendiente = (extra = {}) => ({ bot_codigos: [{ codigo: "C", email: "ana@gmail.com", intentos: 0 }], ...extra });
+
+  it("con el código del correo, el chat se conecta a su cuenta de la app (la de Google), sin crear la de Telegram", async () => {
+    const { verificarCodigoEmail } = await import("../_bot/cuentas.js");
+    const { gastarCodigo, casaPropia } = await import("../_bot/enlace.js");
+    t.tablas = conCodigoPendiente();
+    verificarCodigoEmail.mockResolvedValueOnce("g1");
+    gastarCodigo.mockResolvedValueOnce({ codigo: "C" });
+    casaPropia.mockResolvedValueOnce({ id: "h1" });
+    await escribe("123456");
+    expect(enlazarChat).toHaveBeenCalledWith(expect.objectContaining({ chatId: "7", kind: "private", householdId: "h1", userId: "g1", identidad: "codigo_email" }));
+    expect(crearCuentaTelegram).not.toHaveBeenCalled();
+  });
+
+  it("si su cuenta está invitada en la casa de otra persona, le dice que pida la invitación, no que cree otra casa", async () => {
+    const { verificarCodigoEmail } = await import("../_bot/cuentas.js");
+    const { gastarCodigo, casaPropia } = await import("../_bot/enlace.js");
+    t.tablas = conCodigoPendiente();
+    const { casaActivaDe } = await import("../_bot/papel.js");
+    casaActivaDe.mockResolvedValueOnce("h-ajena");
+    verificarCodigoEmail.mockResolvedValueOnce("g2");
+    gastarCodigo.mockResolvedValueOnce({ codigo: "C" });
+    casaPropia.mockResolvedValueOnce(null);
+    await escribe("123456");
+    expect(enlazarChat).not.toHaveBeenCalled();
+    expect(t.enviados.at(-1).texto).toMatch(/lleva otra persona/);
+    expect(t.enviados.at(-1).texto).not.toMatch(/crear la tuya/);
+  });
+
+  it("si no puede leer en qué casa está, lo dice: no le manda a crear otra", async () => {
+    const { verificarCodigoEmail } = await import("../_bot/cuentas.js");
+    const { gastarCodigo, casaPropia } = await import("../_bot/enlace.js");
+    const { casaActivaDe } = await import("../_bot/papel.js");
+    t.tablas = conCodigoPendiente();
+    verificarCodigoEmail.mockResolvedValueOnce("g3");
+    gastarCodigo.mockResolvedValueOnce({ codigo: "C" });
+    casaPropia.mockResolvedValueOnce(null);
+    casaActivaDe.mockRejectedValueOnce(new Error("base caída"));
+    await escribe("123456");
+    expect(enlazarChat).not.toHaveBeenCalled();
+    expect(t.enviados.at(-1).texto).not.toMatch(/crear la tuya/);
+    expect(t.enviados.at(-1).texto).toMatch(/No he podido comprobar/);
   });
 });
 
