@@ -399,7 +399,8 @@ export async function elegirHoraEntrega({ casa, encargo, hora_entrega = undefine
   });
   // Dos toques a la vez, o el barrido entre medias: el segundo ya no la encuentra eligiendo.
   if (!fila) return { fallo: NO_ELEGIDA.SIN_ELEGIR };
-  return { encargo: { id: fila.id, status: fila.status, hora_entrega: fila.hora_entrega } };
+  // Lo leído, no lo escrito: el escáner de vocabularios no tiene que confundirlo con una escritura de `status`.
+  return { encargo: Object.fromEntries(["id", "status", "hora_entrega"].map((k) => [k, fila[k]])) };
 }
 
 /**
