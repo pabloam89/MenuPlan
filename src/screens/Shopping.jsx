@@ -4,8 +4,8 @@ import { BaldosaFranja, RayaBaldosas } from "../components/wizard/ControlRow.jsx
 import { color as tono } from "../design/tokens.js";
 import BarraComprar, { PildoraLola } from "../components/BarraComprar.jsx";
 import ResumenCompra from "../components/ResumenCompra.jsx";
-import { RellenarMercadona } from "../components/ComprarMercadona.jsx";
-import { HOJA_COMPRAR, hojaConLista, pasoDeComprar, useRellenarMercadona } from "../components/useRellenarMercadona.js";
+import { pasoDeComprar, useRellenarMercadona } from "../components/useRellenarMercadona.js";
+import HojaComprar from "../components/HojaComprar.jsx";
 import { Suspense, lazy, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -112,7 +112,7 @@ import {
 import { shareShoppingList } from "../lib/menuExport.js";
 import { priceShoppingList } from "../lib/listPricing.js";
 import { listaFrenteAPresupuesto } from "../lib/presupuesto.js";
-import { fichaMercadona, NOMBRE_LISTA_MERCADONA, listaParaMercadona } from "../lib/mercadonaList.js";
+import { NOMBRE_LISTA_MERCADONA, listaParaMercadona } from "../lib/mercadonaList.js";
 
 // Lazy (not a top-level import): Pantry.jsx already imports SwipePurchaseShell
 // from this very file, so a plain top-level import here would be circular.
@@ -800,14 +800,14 @@ export function ShoppingScreen({
     () => (buyTab === "bought" ? null : listaParaMercadona(visibleItems, linePrices, NOMBRE_LISTA_MERCADONA)),
     [buyTab, visibleItems, linePrices],
   );
-  // Desde dónde se abrió la hoja (HOJA_COMPRAR), o false si está cerrada.
+  // La hoja de Comprar (HojaComprar): solo el paso siguiente, nunca la lista.
   const [comprarAbierto, setComprarAbierto] = useState(false);
   const mercadona = useRellenarMercadona(pantryHouseholdId, paraComprar?.lista);
   const paso = pasoDeComprar(mercadona);
   // Con la cuenta conectada, comprar va directo; sin ella, lo que se puede hacer está en la hoja.
   const comprar = async () => {
     if (paso.mirar) return mercadona.mirar();
-    if (!mercadona.conectada || !(await mercadona.rellenar())) setComprarAbierto(HOJA_COMPRAR.COMPRAR);
+    if (!mercadona.conectada || !(await mercadona.rellenar())) setComprarAbierto(true);
     return undefined;
   };
 
@@ -1459,7 +1459,6 @@ export function ShoppingScreen({
             productos={paraComprar.lineas.length}
             paso={paso}
             onComprar={comprar}
-            onDetalle={() => setComprarAbierto(HOJA_COMPRAR.TOTAL)}
             onLola={FRONTAL_BOT ? () => abrirLola() : undefined}
           />
         )}
@@ -1471,10 +1470,9 @@ export function ShoppingScreen({
       )}
 
       {comprarAbierto && paraComprar && (
-        <ComprarSheet
-          compra={paraComprar}
+        <HojaComprar
+          resumen={`${paraComprar.lineas.length} productos · ${conCentimos(paraComprar.total)}`}
           mercadona={mercadona}
-          conLista={hojaConLista(comprarAbierto, mercadona)}
           onClose={() => setComprarAbierto(false)}
         />
       )}
@@ -2707,68 +2705,6 @@ function ActionBtn({ icon: Icon, label, onClick, active, muted, readOnly, coach 
 // bought + saves prices) or add a gasto by hand. Same wizard shell/cards as
 // onboarding's big decision moments, so every "choose one of these paths"
 // popup in the app reads the same.
-// Lo que se va a comprar, con su ficha en Mercadona: en el móvil abre su app.
-// `conLista` (hojaConLista) dice si la enseña o solo cómo rellenarla.
-function ComprarSheet({ compra, mercadona, conLista, onClose }) {
-  return (
-    <WizardSheet
-      icon={ShoppingCart}
-      title="Tu lista en Mercadona"
-      subtitle={`${compra.lineas.length} productos · ${conCentimos(compra.total)}`}
-      onClose={onClose}
-    >
-      {mercadona.servicio && (
-        <div style={{ marginBottom: conLista ? "var(--esp-16)" : 0 }}>
-          <RellenarMercadona m={mercadona} />
-        </div>
-      )}
-      {conLista && (
-        <div style={{ display: "grid", maxHeight: "55vh", overflowY: "auto" }}>
-          {compra.lineas.map((l) => (
-            <a
-              key={l.id}
-              href={fichaMercadona(l.id)}
-              target="_blank"
-              rel="noreferrer"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "var(--esp-8)",
-                minHeight: 44,
-                padding: "var(--esp-8) 0",
-                borderBottom: "1px solid var(--color-linea-suave)",
-                color: "var(--color-tinta)",
-                textDecoration: "none",
-                fontSize: "var(--tipo-paso-13)",
-                fontWeight: "var(--tipo-peso-700)",
-              }}
-            >
-              <span style={{ flex: 1, minWidth: 0 }}>
-                {l.paquetes > 1 ? `${l.paquetes} × ` : ""}
-                {l.nombre}
-              </span>
-              <span style={{ color: "var(--color-tinta-suave)", fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>{conCentimos(l.precio)}</span>
-            </a>
-          ))}
-          {compra.sinProducto.length > 0 && (
-            <p
-              style={{
-                margin: 0,
-                paddingTop: "var(--esp-8)",
-                borderTop: "1px solid var(--color-linea-suave)",
-                color: "var(--color-tinta-suave)",
-                fontSize: "var(--tipo-paso-13)",
-              }}
-            >
-              Sin producto: {compra.sinProducto.join(", ")}
-            </p>
-          )}
-        </div>
-      )}
-    </WizardSheet>
-  );
-}
-
 function CaptureSheet({ onClose, onScan, onManual }) {
   return (
     <WizardSheet icon={Wallet} iconColor="#2d5a3d" title="Registrar gasto" onClose={onClose}>
