@@ -159,8 +159,12 @@ export async function apuntarEnlace({ camino, resultado, householdId = null, use
 
 export async function enlazarChat({ channel = CANAL.TELEGRAM, camino, chatId, kind, householdId, userId, externalId, nombre, identidad = null }) {
   const [actual] = await select("bot_chats", `channel=${eq(channel)}&chat_id=${eq(chatId)}`, "household_id,linked_by");
-  // Un cambio confirmado mueve el chat que enlazó la cuenta de antes de este mismo Telegram, y ninguno más.
-  const deAntes = identidad === CAMBIO && kind === "private" ? await cuentaDeTelegram(externalId, channel) : null;
+  // Un cambio confirmado mueve el chat que enlazó la cuenta de antes de este mismo Telegram, y ninguno más. Volver a la
+  // cuenta nacida en este Telegram (/cuentadeantes), también, pero solo en su propio privado (allí el id del chat es el
+  // de la persona).
+  const propio = kind === "private" && externalId != null && String(externalId) === String(chatId);
+  const corrige = kind === "private" && (identidad === CAMBIO || (identidad === PRUEBA_IDENTIDAD.NACIDA && propio));
+  const deAntes = corrige ? await cuentaDeTelegram(externalId, channel) : null;
   if (chatOcupado(actual, householdId, userId) && !(deAntes && actual.linked_by === deAntes)) {
     await apuntarEnlace({ camino, resultado: RESULTADO_ENLACE.OCUPADO, householdId, userId });
     return { ok: false, ocupado: true };
@@ -264,6 +268,15 @@ export async function gastarCodigo(codigo, tipo) {
     { used_at: new Date().toISOString() },
   );
   return filas?.[0] ?? null;
+}
+
+/**
+ * La casa que le nació a un usuario (households.propia, única por titular desde la 0075), o null. No es la activa: esa
+ * puede ser una ajena. La usa /cuentadeantes (volverACuentaNacida). Un fallo de la base, lanza.
+ */
+export async function casaQueLeNacio(userId) {
+  const [hogar] = await select("households", `owner_user_id=${eq(userId)}&propia=is.true`, "id");
+  return hogar ?? null;
 }
 
 /** El dueño de la casa activa de un usuario (el bot escribe como dueño). */
