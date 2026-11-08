@@ -99,6 +99,7 @@ import {
   itemsByAisle,
   itemsByDayMeal,
   mergeShoppingItems,
+  compraDeLaLista,
   matchReceiptProducts,
   SHOPPING_DAY_WEEK,
 } from "../lib/shoppingListUtils.js";
@@ -112,7 +113,7 @@ import {
 import { shareShoppingList } from "../lib/menuExport.js";
 import { priceShoppingList } from "../lib/listPricing.js";
 import { listaFrenteAPresupuesto } from "../lib/presupuesto.js";
-import { NOMBRE_LISTA_MERCADONA, listaParaMercadona } from "../lib/mercadonaList.js";
+import { NOMBRE_LISTA_MERCADONA } from "../lib/mercadonaList.js";
 
 // Lazy (not a top-level import): Pantry.jsx already imports SwipePurchaseShell
 // from this very file, so a plain top-level import here would be circular.
@@ -764,42 +765,41 @@ export function ShoppingScreen({
   const isEmpty = sections.every((s) => s.items.length === 0);
 
   // De momento toda casa compra en Mercadona: los precios se ven siempre.
+  // Lo que se compra va junto por ingrediente aunque la pantalla lo enseñe
+  // por semana: así se redondea a paquetes una vez (compraDeLaLista).
+  const compraLista = useMemo(() => compraDeLaLista(visibleItems), [visibleItems]);
+  const aPreciar = compraLista.aPreciar;
   const estimateKey = useMemo(
-    () => visibleItems.map((i) => `${i.id}|${i.qty}|${i.unit ?? "ud"}`).join(";"),
-    [visibleItems],
+    () => aPreciar.map((i) => `${i.id}|${i.qty}|${i.unit ?? "ud"}`).join(";"),
+    [aPreciar],
   );
-  const [storeEstimate, setStoreEstimate] = useState(null);
   const [linePrices, setLinePrices] = useState(() => new Map());
   useEffect(() => {
-    if (!visibleItems.length) {
-      setStoreEstimate(null);
+    if (!aPreciar.length) {
       setLinePrices(new Map());
       return undefined;
     }
     let cancelled = false;
-    priceShoppingList("Mercadona", visibleItems, compra.precios)
-      .then(({ estimate, map }) => {
-        if (cancelled) return;
-        setStoreEstimate(estimate);
-        setLinePrices(map);
+    priceShoppingList("Mercadona", aPreciar, compra.precios)
+      .then(({ map }) => {
+        if (!cancelled) setLinePrices(map);
       })
       .catch(() => {
-        if (!cancelled) {
-          setStoreEstimate(null);
-          setLinePrices(new Map());
-        }
+        if (!cancelled) setLinePrices(new Map());
       });
     return () => {
       cancelled = true;
     };
   }, [estimateKey, compra.precios]);
 
-  // Lo que se compraría: sale de las líneas por comprar, así que al quitar una
-  // baja el total del botón. En «Comprado» no hay nada que comprar.
-  const paraComprar = useMemo(
-    () => (buyTab === "bought" ? null : listaParaMercadona(visibleItems, linePrices, NOMBRE_LISTA_MERCADONA)),
-    [buyTab, visibleItems, linePrices],
+  // La cuenta de la lista: sale de las líneas juntas, así que al quitar una
+  // baja el total. En «Comprado» es lo estimado de esa lista y no hay nada que
+  // comprar.
+  const cuenta = useMemo(
+    () => compraLista.cuenta(linePrices, NOMBRE_LISTA_MERCADONA),
+    [compraLista, linePrices],
   );
+  const paraComprar = buyTab === "bought" ? null : cuenta;
   // La hoja de Comprar (HojaComprar): solo el paso siguiente, nunca la lista.
   const [comprarAbierto, setComprarAbierto] = useState(false);
   const mercadona = useRellenarMercadona(pantryHouseholdId, paraComprar?.lista);
@@ -1225,18 +1225,16 @@ export function ShoppingScreen({
   // la franja de Mercadona si esta se pinta, o solo debajo de Por comprar/
   // Comprado si no hay súper seleccionado.
   const showMercadonaStrip =
-    stockReady && storeEstimate && storeEstimate.matched > 0 && !isEmpty;
+    stockReady && cuenta.lineas.length > 0 && !isEmpty;
   // El total de la lista frente al presupuesto (por semana marcada) y lo que
   // no tiene precio, aparte (lib/presupuesto.js, #958).
-  // Un solo total: el de lo que se compraría. Por comprar, lo que no se puede
-  // comprar cuenta como «sin precio»; en Comprado, lo estimado de esa lista.
-  const estimacionLista = paraComprar
-    ? {
-        total: paraComprar.total,
-        matched: paraComprar.lineas.length,
-        count: paraComprar.lineas.length + paraComprar.sinProducto.length,
-      }
-    : storeEstimate;
+  // Un solo total, el de la cuenta: lo que no se puede comprar cuenta como
+  // «sin precio».
+  const estimacionLista = {
+    total: cuenta.total,
+    matched: cuenta.lineas.length,
+    count: cuenta.lineas.length + cuenta.sinProducto.length,
+  };
   const frente = listaFrenteAPresupuesto(data, estimacionLista, selectedWeeks.length);
   const weekSelectorEl = orderedAll.length > 1 && !isEmpty && (
     <WeekChips

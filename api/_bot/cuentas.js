@@ -20,7 +20,7 @@
  */
 
 import { seguirCon, fallaCon } from "./avisar.js";
-import { config, select, eq } from "./db.js";
+import { config, select, update, eq } from "./db.js";
 import { CANAL, ABREN_SESION } from "../../src/lib/vocabularios.js";
 // El email sintético, de un solo sitio: la app lo usa para ofrecer «Entrar también con Google» (#1238).
 import { emailSintetico } from "../../src/lib/cuentaTelegram.js";
@@ -131,6 +131,31 @@ export async function cuentaNacidaDe(telegramId) {
     if (u?.id === id && u?.email === email) return { id, email };
   }
   return null;
+}
+
+/** El email de una cuenta según su perfil, o null (lo escribe la app al entrar). Un fallo de la base, lanza. */
+export async function emailDeCuenta(userId) {
+  const [perfil] = await select("user_profiles", `user_id=${eq(userId)}`, "email");
+  return perfil?.email ?? null;
+}
+
+/**
+ * ¿Pasar este Telegram de `userId` a otra cuenta tiene vuelta con /cuentadeantes? (#1238, #1302). Lo decide la misma
+ * búsqueda que hace la vuelta (cuentaNacidaDe), mirada ANTES del cambio: si no la encuentra, no hay vuelta y quien
+ * llama mantiene el freno. `userId` tiene que ser la cuenta nacida en este Telegram (su email en Auth). Su perfil puede
+ * no tener el email (solo lo escribe la app al entrar, y una cuenta nacida que nunca abrió la app no lo tiene): el
+ * servidor lo escribe entonces, solo si falta, con el email de Auth. Un fallo de la base o de Auth, lanza.
+ * @returns {Promise<boolean>}
+ */
+export async function hayVueltaALaNacida(telegramId, userId) {
+  const email = emailSintetico(telegramId);
+  const { url, headers } = config();
+  const res = await fetch(`${url}/auth/v1/admin/users/${userId}`, { headers });
+  if (!res.ok) throw new Error(`auth admin/users → ${res.status}`);
+  const u = await res.json();
+  if (u?.id !== userId || u?.email !== email) return false;
+  await update("user_profiles", `user_id=${eq(userId)}&email=is.null`, { email });
+  return (await cuentaNacidaDe(telegramId))?.id === userId;
 }
 
 /**
