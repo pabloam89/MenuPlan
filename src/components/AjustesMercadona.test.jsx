@@ -27,7 +27,7 @@ describe("Ajustes → Mercadona (trozo 9)", () => {
     document.body.innerHTML = "";
   });
 
-  it("«Hacer la lista» está encendido si la cuenta está dentro, y apagarlo sale de Mercadona", async () => {
+  it("«Rellenar la lista» está encendido si la cuenta está dentro, y apagarlo sale de Mercadona", async () => {
     const desconectar = vi.fn();
     const caja = await pintar({ conectada: true, desconectar });
     const lista = interruptor(caja, AJUSTE_MERCADONA.LISTA);
@@ -36,7 +36,7 @@ describe("Ajustes → Mercadona (trozo 9)", () => {
     expect(desconectar).toHaveBeenCalledTimes(1);
   });
 
-  it("sin cuenta, encender «Hacer la lista» lleva a entrar en Mercadona y no desconecta nada", async () => {
+  it("sin cuenta, encender «Rellenar la lista» lleva a entrar en Mercadona y no desconecta nada", async () => {
     const desconectar = vi.fn();
     const caja = await pintar({ conectada: false, desconectar });
     const lista = interruptor(caja, AJUSTE_MERCADONA.LISTA);
