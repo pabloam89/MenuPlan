@@ -1401,32 +1401,31 @@ export function ShoppingScreen({
 
         {showMercadonaStrip && (
           <>
+            {/* A la izquierda, la cuenta (ResumenCompra: con precio y su total,
+                sin precio, y el presupuesto de la casa, lib/presupuesto.js,
+                #958); a la derecha, el súper y debajo las semanas, si hay. */}
             <div
               style={{
                 display: "flex",
-                alignItems: "center",
-                gap: 10,
+                alignItems: "flex-start",
+                gap: "var(--esp-16)",
                 paddingTop: 4,
-                paddingBottom: "var(--esp-8)",
+                paddingBottom: 12,
               }}
             >
               <div style={{ flex: 1, minWidth: 0 }}>
-                <StoreBadge name="Mercadona" size={30} maxWidth={90} />
+                <ResumenCompra
+                  conPrecio={estimacionLista.matched}
+                  sinPrecio={frente.sinPrecio}
+                  total={formatEuro0(frente.total)}
+                  presupuesto={frente.presupuesto != null ? formatEuro0(frente.presupuesto) : null}
+                  noCabe={frente.veredicto === "no_cabe"}
+                />
               </div>
-              {weekSelectorEl}
-            </div>
-            {/* Con precio y su total (con el presupuesto de la casa al lado,
-                lib/presupuesto.js, #958) y, debajo, lo que no tiene precio,
-                sin total: así el total no parece completo. */}
-            <div style={{ paddingBottom: 12 }}>
-              <ResumenCompra
-                conPrecio={estimacionLista.matched}
-                sinPrecio={frente.sinPrecio}
-                total={formatEuro0(frente.total)}
-                presupuesto={frente.presupuesto != null ? formatEuro0(frente.presupuesto) : null}
-                noCabe={frente.veredicto === "no_cabe"}
-                colorTotal={AISLE_OPEN_BAND}
-              />
+              <div style={{ display: "grid", justifyItems: "end", gap: "var(--esp-8)", flexShrink: 0 }}>
+                <StoreBadge name="Mercadona" size={30} maxWidth={90} />
+                {weekSelectorEl}
+              </div>
             </div>
             <div style={{ borderBottom: STRIP_DIVIDER, marginBottom: 4 }} />
           </>
