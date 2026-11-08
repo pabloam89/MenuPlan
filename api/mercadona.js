@@ -19,7 +19,7 @@ import { timingSafeEqual } from "node:crypto";
 import { cors, blocked } from "./_guard.js";
 import { usuarioDeToken } from "./_bot/db.js";
 import { papelDeUsuario } from "./_bot/papel.js";
-import { casaPermitida, cerrar, conectar, contarFallo, desconectar, encargar, estadoDeCasa, PeticionMala, tomar } from "./_bot/mercadonaEncargos.js";
+import { cambiarLlegaHasta, casaPermitida, cerrar, conectar, contarFallo, desconectar, encargar, estadoDeCasa, guardarTelefono, PeticionMala, tomar } from "./_bot/mercadonaEncargos.js";
 import { FALLOS_ENCARGO_MERCADONA } from "../src/lib/vocabularios.js";
 import { esRevision } from "../src/lib/mercadonaLlegaHasta.js";
 import { puede } from "../src/lib/papeles.js";
@@ -71,12 +71,15 @@ async function app(req, res) {
     return res.status(200).json({ ...estado, clave_publica: process.env.MERCADONA_CLAVE_PUBLICA ?? null });
   }
   if (!puede(papel, "editar_casa")) return res.status(403).json({ error: "sin permiso" });
-  const { encargar: pedido, conectar: conexion, desconectar: quitar } = req.body;
+  const { encargar: pedido, conectar: conexion, desconectar: quitar, llega_hasta, telefono } = req.body;
   if (pedido) return res.status(200).json(await encargar({ casa, por: user.id, canal: "app", lista: pedido.lista }));
   // Desconectar no pasa por esta puerta: una casa fuera de la lista tiene que poder borrar su sesión.
   if (conexion && !casaPermitida(casa)) return res.status(403).json({ error: "sin permiso" });
   if (conexion) return res.status(200).json(await conectar({ casa, por: user.id, sesion_cifrada: conexion.sesion_cifrada }));
   if (quitar === true) return res.status(200).json(await desconectar(casa));
+  // Hasta dónde llega el bot y el teléfono del pedido (trozo 17): las mismas funciones que usa Lola.
+  if (llega_hasta !== undefined) return res.status(200).json(await cambiarLlegaHasta({ casa, llega_hasta }));
+  if (telefono) return res.status(200).json(await guardarTelefono({ casa, telefono_sellado: telefono.telefono_sellado }));
   return res.status(400).json({ error: "petición no válida" });
 }
 
