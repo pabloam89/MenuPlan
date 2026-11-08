@@ -39,7 +39,7 @@ npx vitest run scripts/mercadona-renovar.test.js && node scripts/mercadona-naveg
 Files: `scripts/lib/mercadonaTrabajador.mjs`, `scripts/lib/mercadonaPagina.mjs`, `scripts/mercadona-trabajador-renovar.test.js`, `api/mercadona.js`, `api/_bot/mercadonaEncargos.js`, `api/_bot/mercadonaSesionNueva.test.js`
 Depends on: 1
 Blocked by: none
-Existing: el trabajador abre la sesión, entra y crea la lista (`scripts/lib/mercadonaTrabajador.mjs:9`, `crearLista` y `entrarEnTienda` de `scripts/lib/mercadonaPagina.mjs:47` y `:60`). Al cerrar un encargo solo manda el resultado (`api/mercadona.js`, `accion: "cerrar"`); no hay forma de devolver una sesión nueva. El fallo `sesion_caducada` ya existe (`src/lib/mercadonaFallos.js:5`). `ls api/_bot/mercadonaSesionNueva.test.js scripts/mercadona-trabajador-renovar.test.js` → No such file or directory.
+Existing: el trabajador abre la sesión, entra y crea la lista (`scripts/lib/mercadonaTrabajador.mjs:9`, con `entrarEnTienda` en `scripts/lib/mercadonaPagina.mjs:47` y `crearLista` en `:60`). Al cerrar un encargo solo manda el resultado (`api/mercadona.js`, `accion: "cerrar"`); no hay forma de devolver una sesión nueva. El fallo `sesion_caducada` ya existe (`src/lib/mercadonaFallos.js:5`). `ls api/_bot/mercadonaSesionNueva.test.js scripts/mercadona-trabajador-renovar.test.js` → No such file or directory.
 Not done: ninguna migración: la sesión nueva sustituye a la vieja en la misma fila de `mercadona_cuenta` (0131), sellada con la clave pública como hoy (`src/lib/mercadonaSello.js`). Si Mercadona contesta «token no válido», el trabajador renueva una vez y reintenta una vez (la regla «sin bucles» de la skill); si no puede, cierra con `sesion_caducada` y la app pide entrar otra vez. La contraseña no entra en ningún paso.
 Done:
 ```sh
@@ -50,8 +50,8 @@ npx vitest run scripts/mercadona-trabajador-renovar.test.js api/_bot/mercadonaSe
 Files: `api/_bot/agente.js`, `api/_bot/despensa.js`, `api/_bot/despensaPiezas.test.js`
 Depends on: none
 Blocked by: none
-Existing: `anadir_despensa` solo acepta `ud`, `g`, `kg`, `ml`, `l` (`api/_bot/agente.js:492`), y `aStock` pasa todo lo demás a `ud` (`api/_bot/despensa.js:45`). Para el ajo, una `ud` es un diente de 5 g (`src/lib/kitchenUnits.js:103`); el catálogo sí distingue «Cabeza de ajos» por su alias (`src/lib/ingredients.js:117`, `piezaPorAlias`). Resultado visto el 7 nov en la casa de Pablo: «3 cabezas de ajo» salió en «En casa» como 3 ud y 15 g. `ls api/_bot/despensaPiezas.test.js` → No such file or directory.
-Not done: el recibo con cantidades (trozo 4) y las mayúsculas del nombre guardado (`ingredient_name: e.nombre`, `despensa.js:166`), que es solo estético. La pieza se convierte a gramos con el peso del catálogo (`pieceFor`); si el catálogo no sabe cuánto pesa esa pieza para ese alimento, no se adivina: se guarda en `ud` y el recibo lo dice. Clase del fallo: una unidad dicha que la herramienta no puede escribir y se aplasta a otra sin avisar.
+Existing: `anadir_despensa` solo acepta `ud`, `g`, `kg`, `ml`, `l` (`api/_bot/agente.js:492`), y `aStock` pasa todo lo demás a `ud` (`api/_bot/despensa.js:45`). Para el ajo, una `ud` es un diente de 5 g (`src/lib/kitchenUnits.js:103`); el catálogo sí distingue «Cabeza de ajos» por su alias (`src/lib/ingredients.js:117`, `piezaPorAlias`). Resultado visto el 7 nov en la casa de Pablo, entrando por la herramienta (`anadir_despensa`, Lola): «3 cabezas de ajo» salió en «En casa» como 3 ud y 15 g. Reproducido sin modelo con las funciones de verdad (un test de usar y tirar sobre `origin/staging`): `gramsPerPiece("ajo")` → 5; `pieceFor("ajo")` → `{ nombre: "diente", g: 5 }`; `pieceFor("Cabeza de ajos")` → `{ nombre: "cabeza", g: 50 }`; `pieceFor("cabeza de ajo")` → `{ nombre: "diente", g: 5 }` (el alias solo casa escrito tal cual). Cifra: antes, 3 cabezas = 15 g; después, 150 g. Quién más lee o escribe `user_pantry` (`git grep -n "user_pantry" -- src api scripts | grep -v test`): escriben `api/_bot/despensa.js` (Lola), `api/_bot/barridoDespensa.js` (el descuento diario), `src/lib/pantry.js` (la app) y `scripts/backfill-pantry-ingredient-ids.mjs`; leen `api/_bot/generar.js:391`, `api/_bot/menu.js:1688`, `api/_bot/plato.js:183` y `api/_bot/ficha.js:511`. La app ya guarda en g/ml/ud (`toCanonicalStockQty`), así que el fallo es solo de la entrada de Lola. `ls api/_bot/despensaPiezas.test.js` → No such file or directory.
+Not done: el recibo con cantidades (trozo 4) y las mayúsculas del nombre guardado (`ingredient_name: e.nombre`, `despensa.js:166`), que es solo estético. La pieza se convierte a gramos con el peso del catálogo (`pieceFor`); si el catálogo no sabe cuánto pesa esa pieza para ese alimento, no se adivina: se guarda en `ud` y el recibo lo dice. El test entra por `anadirDespensa` (lo que llama la herramienta) con «3 cabezas de ajo» y comprueba la fila guardada: 150 g, no 3 ud. El alias se busca sin mayúsculas ni plural, para que «cabeza de ajo» también case. Clase del fallo: una unidad dicha que la herramienta no puede escribir y se aplasta a otra sin avisar.
 Done:
 ```sh
 npx vitest run api/_bot/despensaPiezas.test.js api/_bot/despensaTodo.test.js src/lib/kitchenUnits.test.js
@@ -62,7 +62,7 @@ Files: `api/_bot/despensa.js`, `api/_bot/despensaRecibo.test.js`
 Depends on: 3
 Blocked by: none
 Existing: el recibo lista solo nombres (`api/_bot/despensa.js:198`, `hecho` es `e.nombre`); Lola contestó «Apuntado en la despensa: patatas y ajo» a «1kg de patatas y 3 cabezas de ajo» (captura de Pablo, 7 nov). `ls api/_bot/despensaRecibo.test.js` → No such file or directory.
-Not done: la pantalla «En casa» no cambia. Cada línea del recibo lleva lo guardado («patatas, 1 kg»; «ajo, 3 cabezas (150 g)»), así la persona ve al momento si se entendió mal.
+Not done: la pantalla «En casa» no cambia. Clase del fallo: una escritura que no le devuelve a la persona lo que guardó. Cada línea del recibo lleva lo guardado («patatas, 1 kg»; «ajo, 3 cabezas (150 g)»), así la persona ve al momento si se entendió mal.
 Done:
 ```sh
 npx vitest run api/_bot/despensaRecibo.test.js api/_bot/despensaTodo.test.js
@@ -80,11 +80,11 @@ npx vitest run src/components/ComprarUnToque.test.jsx src/components/BarraCompra
 ```
 
 ### 6. Conectar Mercadona desde el móvil en la web de HoMenu (Android y Chrome), mientras no haya app
-Files: `src/components/ConectarMercadona.jsx`, `src/lib/mercadonaConectar.js`, `src/components/ConectarMercadonaMovil.test.jsx`
-Depends on: 5
+Files: `src/components/ConectarMercadona.jsx`, `src/lib/mercadonaConectar.js`, `src/components/ConectarMercadonaMovil.test.jsx`, `.claude/skills/mercadona/SKILL.md`
+Depends on: 1, 5
 Blocked by: none
 Existing: conectar se explica solo para un ordenador (`src/lib/mercadonaConectar.js:2`: «desde un ordenador»). En el móvil, la web de Mercadona manda a descargar su app (skill, «En el móvil»; visto por Pablo en su Android el 8 nov). Las pruebas de hoy son con la web de HoMenu en el Android de Pablo. `ls src/components/ConectarMercadonaMovil.test.jsx` → No such file or directory.
-Not done: la app nativa (trozos 7 y 8). Es el camino para probar ya, no el del producto. En un móvil, la pantalla de conectar da tres pasos: abrir tienda.mercadona.es en Chrome con «Sitio de ordenador», entrar con correo y contraseña, y lanzar el marcador escribiendo su nombre en la barra de direcciones. El marcador, la sesión sellada y `guardarSesion` no cambian. Sin comprobar que un marcador se lance así en el Chrome de Android (Not verified).
+Not done: la app nativa (trozos 7 y 8). Es el camino para probar ya, no el del producto. En un móvil, la pantalla de conectar da tres pasos: abrir tienda.mercadona.es en Chrome con «Sitio de ordenador», entrar con correo y contraseña, y lanzar el marcador escribiendo su nombre en la barra de direcciones. El marcador, la sesión sellada y `guardarSesion` no cambian. Sin comprobar que un marcador se lance así en el Chrome de Android (Not verified). Este trozo escribe en la skill la excepción a «sin disfraces» (la versión de ordenador, solo para la página de entrada): es rebajar una regla de `.claude/`, así que el PR lleva la decisión de Pablo del 8 nov y necesita su Approve (C13).
 Done:
 ```sh
 npx vitest run src/components/ConectarMercadonaMovil.test.jsx src/components/ConectarMercadona.test.jsx
@@ -128,7 +128,7 @@ Files: `api/_bot/mercadonaEncargos.js`, `api/_bot/mercadonaApagado.test.js`, `ap
 Depends on: 2, 8, 9
 Blocked by: none
 Existing: solo pueden usarlo las casas de `MERCADONA_CASAS` (`api/_bot/mercadonaEncargos.js:45`, `casaPermitida`). El fallo `bloqueado` ya existe (`src/lib/mercadonaFallos.js:5`), pero nadie lo cuenta ni apaga nada. Hay un tope por casa y día («Has pedido muchas listas hoy», `TEXTO_NO_ENCARGADO` en `src/lib/mercadonaApp.js`). `ls api/_bot/mercadonaApagado.test.js` → No such file or directory.
-Not done: escribir a Mercadona para pedir acceso (lo hace Pablo). Cambia `MERCADONA_CASAS` por un apagado general: con `MERCADONA_APAGADO=1` nadie encarga, y la app enseña la lista en HoMenu. Si en las últimas 24 h hay 3 o más encargos con `bloqueado`, se deja de encargar solo y se avisa a Pablo. La pantalla de entrada lleva una frase honesta: «Mercadona podría pedirte que vuelvas a entrar o limitar este servicio. Tu cuenta y tus pedidos no cambian». La skill cambia su regla de cuentas en el mismo PR.
+Not done: escribir a Mercadona para pedir acceso (lo hace Pablo). Cambia `MERCADONA_CASAS` por un apagado general: con `MERCADONA_APAGADO=1` nadie encarga, y la app enseña la lista en HoMenu. Si en las últimas 24 h hay 3 o más encargos con `bloqueado`, se deja de encargar solo y se avisa a Pablo. La pantalla de entrada lleva una frase honesta: «Mercadona podría pedirte que vuelvas a entrar o limitar este servicio. Tu cuenta y tus pedidos no cambian». La skill cambia su regla de cuentas («antes de abrirlo a otra familia: visto bueno de Mercadona o de un abogado») en el mismo PR: es rebajar una regla de `.claude/`, así que lleva la decisión de Pablo del 8 nov y necesita su Approve (C13).
 Done:
 ```sh
 npx vitest run api/_bot/mercadonaApagado.test.js api/_bot/mercadonaEncargos.test.js
@@ -145,8 +145,8 @@ npx vitest run api/_bot/mercadonaApagado.test.js api/_bot/mercadonaEncargos.test
 
 - principio 6 | eligió: abrir Comprar en Mercadona a otras familias antes de tener una API de Mercadona (Pablo, 8 nov 2026: «habrá que intentarlo hasta que nos den API») | descartó: esperar al permiso de Mercadona, que puede no llegar nunca | motivo: decidido
 - principio 6 | eligió: la primera entrada en versión de ordenador, solo para la página de entrada (Pablo, 8 nov 2026) | descartó: entrar solo desde un ordenador con el marcador, porque los usuarios solo tienen el móvil | motivo: decidido
-- principio 3 | eligió: no guardar nunca la contraseña de Mercadona, ni en el servidor ni en el móvil | descartó: guardarla para volver a entrar sola, que no sirve (volver a entrar pide el captcha) y deja contraseñas que robar | motivo: decidido
-- principio 3 | eligió: sin esconder el patrón (una sola IP, sin cambiar de servidor por cuenta, sin esquivar captchas) | descartó: repartir cuentas entre varios servidores para que no se note, que es esquivar su seguridad y cierra la puerta a una API | motivo: decidido
+- principio 4 | eligió: la contraseña vive solo en la cuenta de Mercadona; HoMenu guarda la sesión | descartó: guardar también la contraseña en el servidor o en el móvil, una segunda copia que además no sirve (volver a entrar pide el captcha) | motivo: decidido
+- principio 1 | eligió: no esconder que es automático (una sola IP, sin cambiar de servidor por cuenta, sin esquivar captchas) | descartó: repartir cuentas entre varios servidores para que no se note, que es maquillar lo que hacemos ante Mercadona | motivo: decidido
 - principio 4 | eligió: el interruptor de Ajustes es el estado de la cuenta conectada | descartó: un dato aparte «rellenar sí o no», que diría lo mismo que tener o no la cuenta | motivo: decidido
 - principio 4 | eligió: la pieza dicha («cabeza») se convierte con el peso del catálogo (`piezaPorAlias`) | descartó: una tabla de pesos propia en `despensa.js`, que sería una segunda fuente | motivo: decidido
 

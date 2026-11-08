@@ -26,17 +26,14 @@ pública: se usa la misma llamada que su propia web.
 
 ## Reglas
 
-- **Solo cuentas de quien lo ha pedido.** Hoy, solo las casas de `MERCADONA_CASAS`:
-  Pablo y quien él nombre, con su consentimiento. Pablo decidió el 8 nov 2026
-  abrirlo a otras familias sin esperar a Mercadona; se abre con el trozo 10 de
-  `specs/plan-comprar-mercadona.md` (apagado general, alarma de bloqueos y aviso
-  en la pantalla de entrada), no antes. En paralelo, Pablo pide acceso a Mercadona.
+- **Solo cuentas de quien lo ha pedido.** Solo las casas de `MERCADONA_CASAS`:
+  Pablo y quien él nombre, con su consentimiento. Antes de abrirlo a otra familia:
+  visto bueno de Mercadona o de un abogado (ver «Condiciones»). El trozo 10 de
+  `specs/plan-comprar-mercadona.md` propone cambiar esta regla.
 - **Sin disfraces.** Ni ocultar que es automático, ni cambiar huella o IP, ni
   repartir cuentas entre servidores, ni esquivar captchas. Si bloquean, se para y
-  se cuenta: ese es el resultado. **Única excepción** (Pablo, 8 nov 2026): la
-  página de entrada se abre en versión de ordenador dentro de la app, porque en el
-  móvil la web manda a descargar su app. Solo esa página; la persona entra ella
-  misma, con el captcha de verdad.
+  se cuenta: ese es el resultado. El trozo 6 del plan propone una excepción (la
+  página de entrada en versión de ordenador).
 - **La contraseña, nunca por el chat y nunca guardada.** La escribe la persona en
   la página de Mercadona. Se guarda la sesión, no la contraseña: ni en el servidor
   ni en el móvil. Volver a entrar pide el captcha, así que guardarla no serviría.
@@ -57,8 +54,7 @@ cierra el encargo. No tiene acceso a la base. Con el servidor de 1 GB, de uno en
   primera vez, «Comprar» → «Entra en tu cuenta de Mercadona. Solo esta vez» → la
   página de entrada dentro de la app de HoMenu → spinner → la app de Mercadona en la
   lista. Las demás veces, «Comprar» → spinner → la lista. Sin marcador y sin hojas.
-  Mientras no haya app de Android, se prueba con la web de HoMenu en el Android de
-  Pablo: Chrome con «Sitio de ordenador», entrar en Mercadona y lanzar el marcador
+  Mientras no haya app de Android, Pablo prueba con la web de HoMenu en su Android
   (trozo 6 del plan).
 - **Conectar una cuenta:** hoy, desde un ordenador. La sesión se sella en el navegador
   (`src/lib/mercadonaSello.js`) y se envía sellada. Basta con el `localStorage` y las
@@ -108,7 +104,7 @@ Sin asesoría legal: no es una opinión de abogado.
 
 - Por debajo de 992 px en un teléfono, su web manda a descargar la app (visto en
   el Android de Pablo, otra vez el 8 nov). Las listas no están entre las páginas
-  permitidas. Por eso la entrada se abre en versión de ordenador (excepción de «Reglas»).
+  permitidas.
 - Sus enlaces abren la app, y la sesión de la app no es la del navegador.
 - **La sesión de la app de Mercadona no se puede usar desde HoMenu:** cada app está
   aislada. Que la persona tenga su app abierta no ahorra la entrada en HoMenu.
