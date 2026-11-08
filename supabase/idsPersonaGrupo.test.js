@@ -38,8 +38,8 @@ const NOMBRE_SOSPECHOSO = /persona|grupo|group|member|miembro|comensal|eater|rec
 export const NO_LLEVAN = new Map([
   ["mercadona_encargo.lista", "los códigos y cantidades de Mercadona de una lista; sin ids de la casa"],
   ["mercadona_encargo.faltan", "códigos de Mercadona que no entraron; sin ids de la casa"],
-  ["mercadona_encargo.franjas", "las franjas de entrega que ofrece Mercadona (id, horas, precio); sin ids de la casa"],
-  ["mercadona_encargo.franja", "la franja de entrega elegida, como la da Mercadona; sin ids de la casa"],
+  ["mercadona_encargo.horas_entrega", "las horas de entrega que ofrece Mercadona (id, horas, precio); sin ids de la casa"],
+  ["mercadona_encargo.hora_entrega", "la hora de entrega elegida, como la da Mercadona; sin ids de la casa"],
   ["app_feedback.metadata", "pantalla, versión y contexto del comentario; sin ids de la casa"],
   ["bot_cola.item", "el mensaje entrante mientras espera turno (texto de la persona); dura segundos"],
   ["bot_idempotencia.resultado", "la respuesta ya dada a un turno repetido; caduca sola"],

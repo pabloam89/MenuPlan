@@ -1,18 +1,18 @@
 -- AUDITADA: auditor-datos 2026-11-08 OK
 -- Reservar la hora de entrega en Mercadona (trozo 20 de specs/plan-comprar-mercadona.md, #1407). Hoy un encargo
 -- (0131) acaba en `hecho` con la lista; con `llega_hasta` en `reservar` o `pagar` (0133) sigue: el trabajador mete la
--- lista en el carro, crea el pedido en Mercadona y le pide las franjas libres; la persona elige una, en la app o con
+-- lista en el carro, crea el pedido en Mercadona y le pide las horas de entrega libres; la persona elige una, en la app o con
 -- Lola, y el trabajador la reserva. Las llamadas, en `.claude/skills/mercadona/referencias/pedido.md`.
 --
 -- Estados nuevos de `status`, en orden:
 --   · eligiendo: la lista está, el pedido existe en Mercadona y la persona tiene que elegir. Lleva `pedido_xid` (el
---     id del pedido en Mercadona, externo: sin FK), `total` (lo que dice el carro) y `franjas`: las 3 o 4 primeras
+--     id del pedido en Mercadona, externo: sin FK), `total` (lo que dice el carro) y `horas_entrega`: las 3 o 4 primeras
 --     libres, tal como las da Mercadona (`id, start, end, price, available, open, timezone`), porque para reservar
---     hay que devolver la franja entera. Las franjas cambian cada minuto: se piden justo antes y no hay tabla.
---   · reservando: la persona eligió. `franja` es la elegida, una de `franjas`, y `franjas` se vacía: solo se guarda la
+--     hay que devolver la hora de entrega entera. Las horas de entrega cambian cada minuto: se piden justo antes y no hay tabla.
+--   · reservando: la persona eligió. `hora_entrega` es la elegida, una de `horas_entrega`, y `horas_entrega` se vacía: solo se guarda la
 --     elegida. `reserva_tomada_at` dice que el trabajador la ha cogido (tomar_reserva_mercadona), como `tomado_at`
 --     para rellenar.
---   · hecho: como antes; si pasó por reservar, además `franja` y `cambiable_hasta` (el `cutoff_time` de Mercadona:
+--   · hecho: como antes; si pasó por reservar, además `hora_entrega` y `cambiable_hasta` (el `cutoff_time` de Mercadona:
 --     hasta cuándo se puede cambiar el pedido).
 -- Saltos nuevos: rellenando → eligiendo; eligiendo → reservando o fallido; reservando → hecho o fallido.
 --
@@ -21,16 +21,16 @@
 -- (src/lib/mercadonaFallos.js):
 --   · bajo_minimo: el carro no llega al pedido mínimo, y Mercadona no deja tramitar;
 --   · sin_direccion: el pedido nace sin dirección (la persona la quitó después de la revisión de la 0133);
---   · sin_franjas: ninguna franja libre;
---   · franja_ocupada: Mercadona no deja reservar la elegida (se ocupó entre medias).
+--   · sin_horas: ninguna hora de entrega libre;
+--   · hora_ocupada: Mercadona no deja reservar la elegida (se ocupó entre medias).
 --
 -- Uno activo por casa: el índice único de la 0131 pasa a contar también `eligiendo` y `reservando`. Mientras se elige
 -- la hora no se puede pedir otra lista. Por eso nada se queda activo para siempre: barrerCaducados
 -- (api/_bot/mercadonaEncargos.js, en el mismo trozo) cierra como `caducado`, con la lista que ya hubiera,
---   · un `eligiendo` de más de 30 minutos (nadie eligió; las franjas ya no valen), poniendo `franjas` a null;
+--   · un `eligiendo` de más de 30 minutos (nadie eligió; las horas de entrega ya no valen), poniendo `horas_entrega` a null;
 --   · un `reservando` sin coger de más de 15 minutos (tomar_reserva_mercadona ya no lo coge);
 --   · un `reservando` cogido de más de 10 minutos (el trabajador se cayó a medias).
--- El hecho tardío sobre un caducado de la 0131 sigue, pero solo cierra lo que ya había: no cambia franja, pedido ni
+-- El hecho tardío sobre un caducado de la 0131 sigue, pero solo cierra lo que ya había: no cambia hora de entrega, pedido ni
 -- fechas de reservar.
 --
 -- NO hace: nada de pagar (trozo 21). No toca RLS ni permisos: la tabla sigue siendo solo del servidor. No guarda la
@@ -38,28 +38,28 @@
 -- `mercadona_cuenta.telefono_sellado` (0133).
 --
 -- Plan B (regla migraciones): sin estas columnas el trabajador no pasa de `hecho` (api/_bot/mercadonaEncargos.js
--- cierra el encargo con la lista, como hoy, si al ofrecer las franjas la base dice 42703 o 23514), y la app y Lola
+-- cierra el encargo con la lista, como hoy, si al ofrecer las horas de entrega la base dice 42703 o 23514), y la app y Lola
 -- siguen enseñando solo la lista.
 --
 -- Lector: api/_bot/mercadonaEncargos.js (estadoDeCasa, que lo da a la app y a Lola: la hoja de Comprar enseña las
--- franjas y Lola las ofrece en el chat). Escriben: el mismo módulo (ofrecer las franjas, elegir, cerrar) y
+-- horas de entrega y Lola las ofrece en el chat). Escriben: el mismo módulo (ofrecer las horas de entrega, elegir, cerrar) y
 -- tomar_reserva_mercadona el trabajador.
 --
 -- Consultas previas:
---   select count(*) from information_schema.columns where table_name = 'mercadona_encargo' and column_name = 'franjas';
+--   select count(*) from information_schema.columns where table_name = 'mercadona_encargo' and column_name = 'horas_entrega';
 --     (debe dar 0)
 --   select status, count(*) from public.mercadona_encargo group by 1;
--- Objeto testigo: la columna public.mercadona_encargo.franjas.
+-- Objeto testigo: la columna public.mercadona_encargo.horas_entrega.
 
 set lock_timeout = '5s';
 
 alter table public.mercadona_encargo
   add column pedido_xid        text,
   add column total             numeric(8, 2) check (total is null or total >= 0),
-  add column franjas           jsonb check (
-    franjas is null or (jsonb_typeof(franjas) = 'array' and jsonb_array_length(franjas) >= 1 and jsonb_array_length(franjas) < 5)
+  add column horas_entrega           jsonb check (
+    horas_entrega is null or (jsonb_typeof(horas_entrega) = 'array' and jsonb_array_length(horas_entrega) >= 1 and jsonb_array_length(horas_entrega) < 5)
   ),
-  add column franja            jsonb check (franja is null or jsonb_typeof(franja) = 'object'),
+  add column hora_entrega            jsonb check (hora_entrega is null or jsonb_typeof(hora_entrega) = 'object'),
   add column cambiable_hasta   timestamptz,
   add column eligiendo_at      timestamptz,
   add column reservando_at     timestamptz,
@@ -73,7 +73,7 @@ alter table public.mercadona_encargo drop constraint mercadona_encargo_fallo_voc
 alter table public.mercadona_encargo add constraint mercadona_encargo_fallo_vocabulario check (
   fallo is null or fallo in (
     'sin_cuenta', 'sesion_caducada', 'bloqueado', 'lista_no_valida', 'caducado', 'error',
-    'bajo_minimo', 'sin_direccion', 'sin_franjas', 'franja_ocupada'
+    'bajo_minimo', 'sin_direccion', 'sin_horas', 'hora_ocupada'
   )
 ) not valid;
 
@@ -92,17 +92,17 @@ alter table public.mercadona_encargo add constraint mercadona_encargo_hecho_con_
 
 alter table public.mercadona_encargo
   add constraint mercadona_encargo_eligiendo_con_todo check (
-    (status = 'eligiendo') = (franjas is not null)
+    (status = 'eligiendo') = (horas_entrega is not null)
     and (status <> 'eligiendo' or (lista_xid is not null and pedido_xid is not null and eligiendo_at is not null))
   ) not valid,
-  add constraint mercadona_encargo_reservando_con_franja check (
-    status <> 'reservando' or (franja is not null and pedido_xid is not null and lista_xid is not null and reservando_at is not null)
+  add constraint mercadona_encargo_reservando_con_hora check (
+    status <> 'reservando' or (hora_entrega is not null and pedido_xid is not null and lista_xid is not null and reservando_at is not null)
   ) not valid,
   add constraint mercadona_encargo_pedido_al_elegir check ((pedido_xid is null and total is null) or eligiendo_at is not null) not valid,
   add constraint mercadona_encargo_eligiendo_tras_tomar check (eligiendo_at is null or tomado_at is not null) not valid,
-  add constraint mercadona_encargo_franja_con_fecha check (franja is null or reservando_at is not null) not valid,
+  add constraint mercadona_encargo_hora_con_fecha check (hora_entrega is null or reservando_at is not null) not valid,
   add constraint mercadona_encargo_tomada_con_reserva check (reserva_tomada_at is null or reservando_at is not null) not valid,
-  add constraint mercadona_encargo_cambiable_reservado check (cambiable_hasta is null or (status = 'hecho' and franja is not null)) not valid;
+  add constraint mercadona_encargo_cambiable_reservado check (cambiable_hasta is null or (status = 'hecho' and hora_entrega is not null)) not valid;
 
 -- Las filas de hoy (pendiente, rellenando, hecho, fallido) ya cumplen todo: se validan aquí mismo.
 alter table public.mercadona_encargo validate constraint mercadona_encargo_status_vocabulario;
@@ -110,8 +110,8 @@ alter table public.mercadona_encargo validate constraint mercadona_encargo_fallo
 alter table public.mercadona_encargo validate constraint mercadona_encargo_tomado_con_fecha;
 alter table public.mercadona_encargo validate constraint mercadona_encargo_hecho_con_lista;
 alter table public.mercadona_encargo validate constraint mercadona_encargo_eligiendo_con_todo;
-alter table public.mercadona_encargo validate constraint mercadona_encargo_reservando_con_franja;
-alter table public.mercadona_encargo validate constraint mercadona_encargo_franja_con_fecha;
+alter table public.mercadona_encargo validate constraint mercadona_encargo_reservando_con_hora;
+alter table public.mercadona_encargo validate constraint mercadona_encargo_hora_con_fecha;
 alter table public.mercadona_encargo validate constraint mercadona_encargo_tomada_con_reserva;
 alter table public.mercadona_encargo validate constraint mercadona_encargo_cambiable_reservado;
 alter table public.mercadona_encargo validate constraint mercadona_encargo_pedido_al_elegir;
@@ -125,11 +125,11 @@ create index mercadona_encargo_reservas_idx on public.mercadona_encargo (reserva
 
 comment on column public.mercadona_encargo.pedido_xid is 'El id del pedido a medias en Mercadona (checkout), externo: sin FK.';
 comment on column public.mercadona_encargo.total is 'El total del carro en euros, como lo da Mercadona al crear el pedido.';
-comment on column public.mercadona_encargo.franjas is
-  'Solo en eligiendo: las franjas libres que se ofrecen, tal como las da Mercadona. Se vacía al elegir.';
-comment on column public.mercadona_encargo.franja is 'La franja elegida, una de `franjas`, tal como la dio Mercadona.';
+comment on column public.mercadona_encargo.horas_entrega is
+  'Solo en eligiendo: las horas_entrega libres que se ofrecen, tal como las da Mercadona. Se vacía al elegir.';
+comment on column public.mercadona_encargo.hora_entrega is 'La hora_entrega elegida, una de `horas_entrega`, tal como la dio Mercadona.';
 comment on column public.mercadona_encargo.cambiable_hasta is
-  'El cutoff_time de la franja reservada: hasta cuándo se puede cambiar el pedido en Mercadona.';
+  'El cutoff_time de la hora_entrega reservada: hasta cuándo se puede cambiar el pedido en Mercadona.';
 
 -- Los saltos de la 0131 más los de reservar. Igual que antes: un estado final no cambia, salvo el hecho tardío sobre un
 -- caducado.
@@ -138,7 +138,7 @@ language plpgsql set search_path = public, pg_temp as $$
 begin
   if old.status = 'fallido' and old.fallo = 'caducado' and new.status = 'hecho' then
     -- El hecho tardío solo cierra lo que ya había: nada de reservar se escribe por esta puerta.
-    if new.franja is distinct from old.franja or new.pedido_xid is distinct from old.pedido_xid
+    if new.hora_entrega is distinct from old.hora_entrega or new.pedido_xid is distinct from old.pedido_xid
        or new.reservando_at is distinct from old.reservando_at or new.eligiendo_at is distinct from old.eligiendo_at then
       raise exception 'mercadona_encargo: un hecho tardío no cambia lo de reservar';
     end if;
@@ -157,16 +157,16 @@ begin
   end if;
   -- La elegida es una de las que se ofrecieron, entera: `@>` dejaría pasar un trozo de una.
   if old.status = 'eligiendo' and new.status = 'reservando'
-     and not exists (select 1 from jsonb_array_elements(old.franjas) f where f = new.franja) then
-    raise exception 'mercadona_encargo: esa franja no se ofreció';
+     and not exists (select 1 from jsonb_array_elements(old.horas_entrega) f where f = new.hora_entrega) then
+    raise exception 'mercadona_encargo: esa hora_entrega no se ofreció';
   end if;
-  -- Dentro de un estado no se cambia lo que lo define: la lista y el pedido al elegir, y además la franja al reservar.
+  -- Dentro de un estado no se cambia lo que lo define: la lista y el pedido al elegir, y además la hora de entrega al reservar.
   if old.status in ('eligiendo', 'reservando')
      and (new.lista_xid is distinct from old.lista_xid or new.pedido_xid is distinct from old.pedido_xid) then
     raise exception 'mercadona_encargo: la lista y el pedido no cambian en %', old.status;
   end if;
-  if old.status = 'reservando' and new.franja is distinct from old.franja then
-    raise exception 'mercadona_encargo: la franja reservada no cambia';
+  if old.status = 'reservando' and new.hora_entrega is distinct from old.hora_entrega then
+    raise exception 'mercadona_encargo: la hora_entrega reservada no cambia';
   end if;
   return new;
 end;
@@ -174,7 +174,7 @@ $$;
 drop trigger mercadona_encargo_saltos on public.mercadona_encargo;
 create trigger mercadona_encargo_saltos
   before update of status, lista, lista_xid, entraron, faltan, fallo, tomado_at, hecho_at, fallido_at,
-    pedido_xid, total, franjas, franja, cambiable_hasta, eligiendo_at, reservando_at, reserva_tomada_at
+    pedido_xid, total, horas_entrega, hora_entrega, cambiable_hasta, eligiendo_at, reservando_at, reserva_tomada_at
   on public.mercadona_encargo
   for each row execute function public.mercadona_encargo_saltos();
 
@@ -201,7 +201,7 @@ declare
   v_casa uuid;
   v_id uuid;
   v_paso boolean;
-  v_franja jsonb := '{"id": "f1", "start": "2026-11-12T14:00:00Z", "end": "2026-11-12T15:00:00Z", "price": "7.21"}';
+  v_hora jsonb := '{"id": "f1", "start": "2026-11-12T14:00:00Z", "end": "2026-11-12T15:00:00Z", "price": "7.21"}';
 begin
   -- Una casa sin encargo activo: así el índice único no estorba y no hay que tocar filas de verdad.
   select h.id into v_casa from public.households h
@@ -219,44 +219,44 @@ begin
     update public.mercadona_encargo set status = 'rellenando', tomado_at = now() where id = v_id;
     update public.mercadona_encargo
        set status = 'eligiendo', lista_xid = '1', pedido_xid = 'p1', total = 64.10, eligiendo_at = now(),
-           franjas = jsonb_build_array(v_franja)
+           horas_entrega = jsonb_build_array(v_hora)
      where id = v_id;
 
-    -- Una franja que no se ofreció no entra.
+    -- Una hora de entrega que no se ofreció no entra.
     v_paso := false;
     begin
       update public.mercadona_encargo
-         set status = 'reservando', franja = '{"id": "otra"}', franjas = null, reservando_at = now() where id = v_id;
+         set status = 'reservando', hora_entrega = '{"id": "otra"}', horas_entrega = null, reservando_at = now() where id = v_id;
       v_paso := true;
     exception when raise_exception then null; -- a propósito: el rechazo es lo que se prueba
     end;
     if v_paso then
-      raise exception 'autoprueba 0134: entró una franja que no se ofreció';
+      raise exception 'autoprueba 0134: entró una hora_entrega que no se ofreció';
     end if;
     v_paso := false;
     begin
       update public.mercadona_encargo
-         set status = 'reservando', franja = '{"id": "f1"}', franjas = null, reservando_at = now() where id = v_id;
+         set status = 'reservando', hora_entrega = '{"id": "f1"}', horas_entrega = null, reservando_at = now() where id = v_id;
       v_paso := true;
     exception when raise_exception then null; -- a propósito: el rechazo es lo que se prueba
     end;
     if v_paso then
-      raise exception 'autoprueba 0134: entró un trozo de una franja ofrecida';
+      raise exception 'autoprueba 0134: entró un trozo de una hora_entrega ofrecida';
     end if;
 
     update public.mercadona_encargo
-       set status = 'reservando', franja = v_franja, franjas = null, reservando_at = now() where id = v_id;
+       set status = 'reservando', hora_entrega = v_hora, horas_entrega = null, reservando_at = now() where id = v_id;
     if (select count(*) from public.tomar_reserva_mercadona() where id = v_id) <> 1 then
       raise exception 'autoprueba 0134: tomar_reserva_mercadona no la cogió';
     end if;
     v_paso := false;
     begin
-      update public.mercadona_encargo set franja = '{"id": "otra"}' where id = v_id;
+      update public.mercadona_encargo set hora_entrega = '{"id": "otra"}' where id = v_id;
       v_paso := true;
     exception when raise_exception then null; -- a propósito: el rechazo es lo que se prueba
     end;
     if v_paso then
-      raise exception 'autoprueba 0134: la franja reservada se pudo cambiar';
+      raise exception 'autoprueba 0134: la hora_entrega reservada se pudo cambiar';
     end if;
     update public.mercadona_encargo
        set status = 'hecho', hecho_at = now(), cambiable_hasta = now() + interval '1 day' where id = v_id;
@@ -272,6 +272,6 @@ begin
       raise;
     end if;
   end;
-  raise notice 'autoprueba 0134: reservar va de rellenando a hecho y una franja inventada se rechaza';
+  raise notice 'autoprueba 0134: reservar va de rellenando a hecho y una hora_entrega inventada se rechaza';
 end;
 $$;
