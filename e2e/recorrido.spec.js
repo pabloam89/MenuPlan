@@ -172,7 +172,8 @@ test("la compra sigue al plato cambiado (#1063)", async ({ page }) => {
   expect(await leerCompra(page)).not.toBe(compraAntes);
 });
 
-// El total del botón baja al marcar una línea, y la hoja enseña los productos.
+// El total del botón baja al marcar una línea, y Comprar no vuelve a enseñar la
+// lista: la hoja lleva solo el paso siguiente (HojaComprar).
 test("el botón de comprar sigue a la lista", async ({ page }) => {
   await darDeAlta(page);
   await abrirMenu(page);
@@ -205,6 +206,7 @@ test("el botón de comprar sigue a la lista", async ({ page }) => {
     expect(fila.y + fila.height).toBeLessThanOrEqual(barra.y);
   }).toPass();
   await comprar.click();
-  await expect(page.getByRole("link", { name: /€/ }).first()).toHaveAttribute("href", /tienda\.mercadona\.es\/product\//);
+  await expect(page.getByText("Comprar en Mercadona")).toBeVisible();
+  await expect(page.locator('a[href*="tienda.mercadona.es/product/"]')).toHaveCount(0);
   if (process.env.CAPTURAS) await page.screenshot({ path: `${process.env.CAPTURAS}/hoja-420.png` });
 });
