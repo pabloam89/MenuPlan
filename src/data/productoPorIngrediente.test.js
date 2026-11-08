@@ -6,6 +6,9 @@ import tabla from "./productoPorIngrediente.json";
 import ingredients from "./ingredients.json";
 import { FilaProductoSchema, TablaProductoSchema, ENCAJE_PRODUCTO } from "./productoSchema.js";
 import { normalizeName } from "../lib/ingredientCategories.js";
+import { gramsForRecipeQuantity } from "../lib/kitchenUnits.js";
+import { envaseDesproporcionado, filaDeLinea } from "../lib/productoDeLinea.js";
+import { recipeCatalog } from "./recipeCatalog.js";
 
 const tienda = JSON.parse(
   readFileSync(fileURLToPath(new URL("../../public/store/mercadona.json", import.meta.url)), "utf8"),
@@ -13,6 +16,8 @@ const tienda = JSON.parse(
 const idsMercadona = new Set(tienda.products.map((p) => String(p.id)));
 const ingPorId = new Map(ingredients.map((i) => [i.id, i]));
 const filas = tabla.filas;
+/** Las raciones de una compra de casa: con ellas se mide si un envase es desproporcionado. */
+const RACIONES_DE_REFERENCIA = 4;
 
 describe("productoPorIngrediente.json", () => {
   it("cumple el esquema (campos cerrados, motivo donde toca, producto según el encaje)", () => {
@@ -71,6 +76,26 @@ describe("productoPorIngrediente.json", () => {
   it("todo ingrediente del catálogo tiene su fila de Mercadona", () => {
     const conFila = new Set(filas.filter((f) => f.supermercado === "Mercadona" && f.alias == null).map((f) => f.ingredientId));
     expect(ingredients.map((i) => i.id).filter((id) => !conFila.has(id)).sort()).toEqual([]);
+  });
+
+  // La clase del jamón de 6,8 kg: un producto decidido cuyo envase cuesta
+  // DINERO_DE_MAS_MAX o más de lo que vale lo que pide una línea del recetario
+  // escalada a una compra de casa (4 raciones; una receta de bebé de una ración
+  // pide 30 g y la casa compra para la semana).
+  it("ningún producto decidido tiene un envase desproporcionado para lo que pide una línea", () => {
+    const productos = new Map(tienda.products.map((p) => [String(p.id), p]));
+    const malos = new Set();
+    for (const r of recipeCatalog.filter((x) => x.estrella)) {
+      for (const l of r.ingredients ?? []) {
+        const g = gramsForRecipeQuantity(l.name, Number(l.amount), l.unit);
+        const fila = filaDeLinea(l.name);
+        const p = fila?.productId ? productos.get(fila.productId) : null;
+        if (!(g > 0) || !p) continue;
+        const gramos = (g * RACIONES_DE_REFERENCIA) / (r.baseServings || RACIONES_DE_REFERENCIA);
+        if (envaseDesproporcionado(p, gramos)) malos.add(`${l.name} → ${p.name}`);
+      }
+    }
+    expect([...malos].sort()).toEqual([]);
   });
 
   it("no_se_compra no depende del súper: si una fila lo dice, lo dicen todas las del ingrediente", () => {

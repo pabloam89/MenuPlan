@@ -13,9 +13,9 @@ import { recipeCatalog } from "../../src/data/recipeCatalog.js";
 
 const ROOT = path.resolve(import.meta.dirname, "../..");
 
-/** Cada línea de cada receta estrella: `{ name, ingredientId }`. */
+/** Cada línea de cada receta estrella, con las raciones de su receta: `{ name, ingredientId, amount, unit, raciones }`. */
 export function lineasEstrella() {
-  return recipeCatalog.filter((r) => r.estrella).flatMap((r) => r.ingredients ?? []);
+  return recipeCatalog.filter((r) => r.estrella).flatMap((r) => (r.ingredients ?? []).map((l) => ({ ...l, raciones: r.baseServings })));
 }
 
 /** Los productos del catálogo de Mercadona; lanza si el fichero no los trae. */
