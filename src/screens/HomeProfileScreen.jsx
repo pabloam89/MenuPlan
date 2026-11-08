@@ -8,6 +8,7 @@ import {
   Info,
   ShieldCheck,
   Download,
+  ShoppingBasket,
 } from "../components/icons.jsx";
 import { Avatar, AppleGlyph, BottomNav, bottomNavSpacer, GoogleGlyph, safeTop, SignInOptions, TelegramGlyph, ToggleSwitch, WizardSheet } from "../components/ui.jsx";
 import { googleInfo } from "./Settings.jsx";
@@ -19,7 +20,6 @@ import { FORMA_DE_ENTRAR, NOMBRE_FORMA, resumenDeFormas } from "../lib/cuentaTel
 import { color as tono, tipografia, espaciado, radio, tamano } from "../design/tokens.js";
 import { AjustesMercadona } from "../components/AjustesMercadona.jsx";
 import { useRellenarMercadona } from "../components/useRellenarMercadona.js";
-import logoMercadona from "../assets/store-logos/mercadona.png";
 
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
@@ -303,12 +303,7 @@ function FilaMercadona({ casa }) {
   if (!m.servicio) return null;
   return (
     <>
-      <ProfileOptionRow
-        img={logoMercadona}
-        title="Mercadona"
-        subtitle={m.conectada ? "Relleno tu lista en Mercadona" : "Sin entrar en tu cuenta de Mercadona"}
-        onClick={() => setAbierta(true)}
-      />
+      <ProfileOptionRow icon={ShoppingBasket} title="Mercadona" onClick={() => setAbierta(true)} />
       {abierta && (
         <WizardSheet title="Mercadona" onClose={() => setAbierta(false)}>
           <AjustesMercadona m={m} />
