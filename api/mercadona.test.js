@@ -128,6 +128,12 @@ describe("el trabajador", () => {
     expect(r.datos).toEqual({ cerrado: true });
   });
 
+  it("cierra con la revisión de la cuenta, también si el encargo falló", async () => {
+    const revision = { tiene_direccion: false, tiene_pago: true };
+    expect((await trabajador({ accion: "cerrar", id: CASA, resultado: { lista_xid: "1", entraron: 2, faltan: [], revision } })).statusCode).toBe(200);
+    expect((await trabajador({ accion: "cerrar", id: CASA, resultado: { fallo: "error", revision } })).statusCode).toBe(200);
+  });
+
   it("una lista que no se pudo releer se cierra sin cifras", async () => {
     const r = await trabajador({ accion: "cerrar", id: CASA, resultado: { lista_xid: "1", entraron: null, faltan: null } });
     expect(r.statusCode).toBe(200);
@@ -140,6 +146,8 @@ describe("el trabajador", () => {
     [{ lista_xid: "1", entraron: -1, faltan: [] }],
     [{ lista_xid: "1", entraron: 1 }],
     [null],
+    [{ lista_xid: "1", entraron: 1, faltan: [], revision: { tiene_direccion: "sí", tiene_pago: true } }],
+    [{ lista_xid: "1", entraron: 1, faltan: [], revision: { tiene_direccion: true, tiene_pago: true, direccion: "Calle Mayor 1" } }],
   ])("un resultado mal formado no se cierra: %j", async (resultado) => {
     expect((await trabajador({ accion: "cerrar", id: CASA, resultado })).statusCode).toBe(400);
     expect(e.cerrar).not.toHaveBeenCalled();

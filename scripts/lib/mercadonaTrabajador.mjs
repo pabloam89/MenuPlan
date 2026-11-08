@@ -7,7 +7,7 @@
  * Nunca se imprime la sesión, ni se guarda en disco: vive en memoria lo que dura un encargo.
  */
 import { erroresDeLista } from "../../src/lib/mercadonaLista.js";
-import { crearLista, entrarEnTienda, llenarCarro } from "./mercadonaPagina.mjs";
+import { crearLista, entrarEnTienda, llenarCarro, revisarCuenta } from "./mercadonaPagina.mjs";
 import { LLEGA_HASTA, llegaA } from "../../src/lib/mercadonaLlegaHasta.js";
 import { FALLO_ENCARGO_MERCADONA as FALLO } from "../../src/lib/mercadonaFallos.js";
 
@@ -43,10 +43,17 @@ export function resultadoDeCarro(c) {
   return { lleno: false, motivo };
 }
 
-async function hastaLaLista(pagina, lista) {
+/**
+ * Ya dentro: mira la cuenta y rellena la lista. La revisión va con el cierre (`revision`) si se pudo mirar; si no, se
+ * dice en el log y el encargo sigue: no saber si hay dirección no impide rellenar la lista (trozo 16).
+ */
+async function hastaLaLista(pagina, lista, log) {
   const portada = await entrarEnTienda(pagina);
   if (portada.resultado) return resultadoDeEncargo(portada);
-  return resultadoDeEncargo(await crearLista(pagina, lista));
+  const revision = await revisarCuenta(pagina);
+  if (revision.fallo) log(`revisión sin hacer: ${revision.fallo} ${revision.status}`);
+  const cierre = resultadoDeEncargo(await crearLista(pagina, lista));
+  return revision.fallo ? cierre : { ...cierre, revision };
 }
 
 /**
@@ -90,7 +97,7 @@ export async function atender({ encargo, sesion_cifrada, llega_hasta }, { abrirS
   const { pagina, cerrar } = await abrirNavegador(estado);
   try {
     const fin = ahora() + topeMs;
-    const hecho = await conTope(hastaLaLista(pagina, encargo.lista), topeMs);
+    const hecho = await conTope(hastaLaLista(pagina, encargo.lista, log), topeMs);
     // Sin la lista no se toca el carro; y solo si la casa ha encendido «Reservar» o «Pagar».
     if (hecho.fallo || !llegaA(llega_hasta, LLEGA_HASTA.RESERVAR)) return hecho;
     return { ...hecho, carro: await alCarro(pagina, encargo.lista, Math.max(0, fin - ahora()), log) };
