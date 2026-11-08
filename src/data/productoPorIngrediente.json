@@ -100,6 +100,7 @@
     {"ingredientId":"carne-de-ternera-para-guisar","alias":null,"supermercado":"Mercadona","productId":"12746","encaje":"equivalente","decididoPor":"modelo","motivo":"No hay vacuno para guisar sin marinar; estos tacos de vacuno son para guiso aunque vienen marinados.","revisado":"2026-11-08"},
     {"ingredientId":"carne-de-txangurro","alias":null,"supermercado":"Mercadona","productId":"62320","encaje":"equivalente","decididoPor":"modelo","motivo":"No hay txangurro (centollo); el buey de mar cocido es otro cangrejo cuya carne se desmiga y se usa igual.","revisado":"2026-11-08"},
     {"ingredientId":"carne-picada","alias":null,"supermercado":"Mercadona","productId":"2868","encaje":"exacto","decididoPor":"modelo","motivo":null,"revisado":"2026-11-08"},
+    {"ingredientId":"carne-picada","alias":"Carne picada","supermercado":"Mercadona","productId":"2869","encaje":"exacto","decididoPor":"modelo","motivo":null,"revisado":"2026-11-08"},
     {"ingredientId":"carne-picada","alias":"Carne picada de ternera y cerdo","supermercado":"Mercadona","productId":"2869","encaje":"exacto","decididoPor":"modelo","motivo":null,"revisado":"2026-11-08"},
     {"ingredientId":"carne-picada-de-cerdo","alias":null,"supermercado":"Mercadona","productId":"2867","encaje":"exacto","decididoPor":"modelo","motivo":null,"revisado":"2026-11-08"},
     {"ingredientId":"carrillada","alias":null,"supermercado":"Mercadona","productId":"2810","encaje":"exacto","decididoPor":"modelo","motivo":null,"revisado":"2026-11-08"},
