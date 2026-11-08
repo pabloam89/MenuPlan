@@ -19,7 +19,7 @@ export function Conectar({ caducada }) {
     enlace.current?.setAttribute("href", marcador(window.location.origin));
   }, []);
   const motivo = caducada ? "Vuelve a entrar en Mercadona." : "Entra en tu cuenta de Mercadona. Solo te lo pido esta vez.";
-  if (isNativeApp) return <p style={TEXTO}>{motivo} {SIN_CONTRASENA}</p>;
+  if (isNativeApp) return <p style={TEXTO}>{caducada ? motivo : "Solo te lo pido esta vez."} {SIN_CONTRASENA}</p>;
   if (!window.matchMedia?.("(pointer: fine)").matches) return <p style={TEXTO}>{motivo} Para entrar en Mercadona, abre la app de HoMenu.</p>;
   return (
     <div style={{ display: "grid", gap: "var(--esp-8)" }}>

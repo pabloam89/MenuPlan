@@ -67,7 +67,7 @@ import { puedeBorrar, borrarCuenta, limpiarPantalla } from "../_bot/borrar.js";
 import { partirStart, fraseDePedido } from "../../src/lib/pedidoLola.js";
 import { payloadStart } from "../../src/lib/ids.js";
 import { enviarAcceso, verificarCodigoEmail, cuentaNacidaAqui } from "../_bot/cuentas.js";
-import { cuentaYChat as cuentaYChatDe } from "../_bot/altaTelegram.js";
+import { cuentaYChat as cuentaYChatDe, volverACuentaNacida } from "../_bot/altaTelegram.js";
 import { DOMINIO_LOGIN_TELEGRAM } from "../../src/lib/cuentaTelegram.js";
 import { primeraVez } from "../_bot/entradas.js";
 import { preguntoConAviso } from "../_bot/silencio.js";
@@ -380,6 +380,8 @@ async function atender(msg, base, host = "") {
   }
 
   if (/^\/grupo(?:@\w+)?$/.test(texto)) return enlaceGrupo(chatId, esGrupo, chat.household_id, msg.from);
+  // /cuentadeantes (volverACuentaNacida, altaTelegram.js): volver a la cuenta nacida en este Telegram.
+  if (/^\/cuentadeantes(?:@\w+)?$/.test(texto) && !esGrupo) return volverALaDeAntes(msg.from, chatId);
   if (/^\/nueva(?:@\w+)?$/.test(texto)) {
     // Sin pasar por el modelo: es un corte en la memoria, nada más. Y dicho de
     // forma que nadie tema haber borrado su menú.
@@ -1521,17 +1523,23 @@ export function datoDeBoton(o) {
 // Empieza por lo que ofrece, no por la cuenta: quien escribe «somos cuatro»
 // ya está dando el alta. A quien ya conocemos por su Telegram ni se le
 // pregunta (reconocer); uno que nunca se ha conectado es nuevo casi siempre, y
-// quien ya usa la app entra por «Conecta con Lola» en Inicio (o escribe aquí su
-// email: pedirAcceso lo sigue atendiendo, sin botón que lo anuncie).
+// quien ya usa la app entra por «Conecta con Lola» en Inicio o por «Ya uso
+// HoMenu» aquí (su email, que atiende pedirAcceso).
 // A quien prefiere tocar a escribir, un botón secundario: el alta de la app
 // (botonAlta). El texto sigue invitando a escribir; el botón es la otra vía.
+// Y a quien ya usa la app, «Ya uso HoMenu» (#1238): sin él, su primer mensaje
+// le creaba otra cuenta y otra casa, y Lola y la app quedaban en cuentas
+// distintas. Es el código por email, todo dentro de Telegram: un botón que
+// abriera la app no vale, porque en el navegador de Telegram Google no deja
+// entrar (specs/auth.md §7, trozo 5).
+const YA_USO_HOMENU = Object.freeze({ texto: "Ya uso HoMenu", dato: "cuenta:si" });
 async function bienvenida(chatId, from = null, base = null) {
   return enviar(chatId, [
     "¡Hola! Soy <b>Lola</b> 👩‍🍳 Te preparo el menú de la semana y la lista de la compra, y te lo cambio cuando quieras.",
     "Para empezar, cuéntame <b>quiénes coméis en casa</b> (y la edad de los peques). Escríbemelo o mándame un audio 🎙️",
     "<i>Lo que me cuentes solo sirve para vuestro menú; no se lo paso a nadie.</i>",
   ].join("\n\n"), {
-    botones: [[await botonAlta(chatId, from, base)]],
+    botones: [[await botonAlta(chatId, from, base)], [YA_USO_HOMENU]],
   });
 }
 
@@ -1666,14 +1674,16 @@ async function pulsado(cq, base, host = "") {
   if (chat) return enviar(chatId, "Este chat ya está conectado a tu casa. Escríbeme cuando quieras.");
 
   if (cq.data === "cuenta:si") {
-    return enviar(chatId, "Escríbeme el <b>email</b> con el que entras en HoMenu y te mando un código para conectarnos.");
+    // Quien no tiene cuenta propia pero su familia sí (#1238): la invitación, no otra casa vacía.
+    return enviar(chatId, "Escríbeme el <b>email</b> con el que entras en HoMenu y te mando un código para conectarnos.\n\n"
+      + "<i>Si en tu casa HoMenu lo usa otra persona, pídele que te invite desde la app y pulsa su enlace: así veis lo mismo.</i>");
   }
   // «Soy nuevo» pide confirmación: el bot no puede saber que ya tienes cuenta
   // (Telegram no nos da tu email), y crear una vacía por error despista mucho.
   if (cq.data === "cuenta:nuevo") {
     return enviar(chatId, "¿Seguro que no usas HoMenu todavía? Si ya entras en la app (por ejemplo, con Google), conecta esa cuenta para ver tu casa y tu menú.", {
       botones: [[
-        { texto: "Ya uso HoMenu", dato: "cuenta:si" },
+        YA_USO_HOMENU,
         { texto: "Es mi primera vez", dato: "cuenta:nuevo:ok" },
       ]],
     });
@@ -1743,6 +1753,14 @@ async function comprobarCodigo(msg, chatId, token) {
   if (!(await gastarCodigo(pendiente.codigo, "vincular"))) return bienvenida(chatId);
   const hogar = await casaPropia(userId);
   if (!hogar) {
+    // Con una casa abierta en la app que no es suya (está invitada): el código del email solo conecta al titular, y
+    // lo que la lleva a la misma casa es la invitación; crear otra la dejaría en dos sitios (#1238).
+    // Sin poder leerlo, no se adivina: «crea la tuya» sería justo la segunda casa que esto quiere evitar.
+    const activa = await casaActivaDe(userId).catch(fallaCon("cuentas_hogar", SIN_LEER));
+    if (activa === SIN_LEER) return enviar(chatId, noPude("cuenta", msg.from?.language_code));
+    if (activa) {
+      return enviar(chatId, "Tu cuenta está en una casa que lleva otra persona. Pídele que te mande la invitación de vuestra casa desde la app y pulsa su enlace aquí: así veis lo mismo.");
+    }
     return enviar(chatId, "Tu cuenta no gestiona ninguna casa todavía. Entra en la app de HoMenu para crear la tuya y vuelve a escribirme.");
   }
   const r = await enlazarChat({
@@ -1939,6 +1957,17 @@ async function preguntarCambioDeCuenta(chatId, token, deAntes, casaApp, { conPed
   return enviar(chatId, preguntaDeCambio({ casaAntes: nombre(casaAntes), casaApp: nombre(casaApp), personasAntes: personasDeCasa(personas, casaAntes), personasApp: personasDeCasa(personas, casaApp), conPedido }), {
     botones: [[{ texto: "Sí, pasarlo a esta cuenta", dato: `${CAMBIAR_CUENTA}${token}` }, { texto: "No", dato: `${CAMBIAR_CUENTA}no` }]],
   });
+}
+
+/** /cuentadeantes (#1238): este Telegram vuelve a la cuenta que nació en él. Solo en el privado de esa persona. */
+async function volverALaDeAntes(from, chatId) {
+  if (idDePersona(from) !== String(chatId)) return enviar(chatId, "Eso solo lo puedes pedir en tu chat privado conmigo.");
+  const r = await volverACuentaNacida({ telegramId: from.id, chatId, nombre: nombreDe(from) });
+  if (r.ya) return enviar(chatId, "Ya estoy con la cuenta que nació en este Telegram: no hay otra de antes a la que volver.", { teclado: TECLADO });
+  if (r.sin) return enviar(chatId, "Este Telegram no tiene una cuenta propia de antes a la que volver. Para cambiar de cuenta, entra en la app con la que quieras y pulsa «Pídeselo a Lola».", { teclado: TECLADO });
+  if (r.ocupado) return enviar(chatId, "No he podido volver a tu cuenta de antes: este chat lo conectó otra cuenta.");
+  // Sin nombrar la casa: si la activa de esa cuenta es otra (una a la que se unió), Lola contesta en esa.
+  return enviar(chatId, "↩️ Hecho: vuelvo a tu cuenta de antes, con todo lo que tenías. Para pasar otra vez a la de la app, pulsa «Pídeselo a Lola» desde la app.", { teclado: TECLADO });
 }
 
 function secretoValido(recibido) {

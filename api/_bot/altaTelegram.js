@@ -5,8 +5,8 @@
  */
 
 import { select, eq } from "./db.js";
-import { crearCuentaTelegram, cuentaNacidaAqui } from "./cuentas.js";
-import { enlazarChat, casaPropia } from "./enlace.js";
+import { crearCuentaTelegram, cuentaNacidaAqui, cuentaNacidaDe } from "./cuentas.js";
+import { enlazarChat, casaPropia, cuentaDeTelegram, casaQueLeNacio } from "./enlace.js";
 import { CAMINO_ENLACE, PRUEBA_IDENTIDAD } from "../../src/lib/vocabularios.js";
 import { sembrarCasa } from "./ajustes.js";
 
@@ -48,4 +48,31 @@ export async function esDeOtraCuenta(telegramId) {
   const [ident] = await select("bot_identities", `channel=eq.telegram&external_id=${eq(String(telegramId))}`, "user_id");
   if (!ident?.user_id) return false;
   return !(await cuentaNacidaAqui(telegramId));
+}
+
+/**
+ * /cuentadeantes (#1238): este Telegram vuelve a la cuenta que nació en él, después de que un enlace de la app lo
+ * pasara a otra. Es lo que hace que pasarlo sin preguntar no deje nunca una casa sin entrada. Solo en el privado de
+ * esa persona (enlazarChat lo vuelve a mirar). Un fallo de la base o de Auth, lanza.
+ * @returns {Promise<{ householdId: string } | { sin: true } | { ya: true } | { ocupado: true }>}
+ *   `sin`: este Telegram no tiene cuenta propia; `ya`: ya está en ella.
+ */
+export async function volverACuentaNacida({ telegramId, chatId, nombre = null }) {
+  const nacida = await cuentaNacidaDe(telegramId);
+  if (!nacida) return { sin: true };
+  if ((await cuentaDeTelegram(telegramId)) === nacida.id) return { ya: true };
+  // La casa que le nació, no la activa: esa puede ser una ajena.
+  const hogar = await casaQueLeNacio(nacida.id);
+  if (!hogar) throw new Error("cuenta nacida sin casa propia");
+  const r = await enlazarChat({
+    camino: CAMINO_ENLACE.REENGANCHE,
+    chatId,
+    kind: "private",
+    householdId: hogar.id,
+    userId: nacida.id,
+    externalId: String(telegramId),
+    nombre,
+    identidad: PRUEBA_IDENTIDAD.NACIDA,
+  });
+  return r.ok ? { householdId: hogar.id } : { ocupado: true };
 }
