@@ -12,34 +12,29 @@
  * `variantes` para decidir si hace falta una fila por alias.
  */
 import fs from "node:fs";
-import path from "node:path";
 
 import ingredients from "../src/data/ingredients.json" with { type: "json" };
 import tabla from "../src/data/productoPorIngrediente.json" with { type: "json" };
 import { MATCH_HIGH, matchProductsForIngredient, productIndexFor } from "../src/lib/productMatcher.js";
+import { lineasEstrella, productosMercadona } from "./lib/recetarioYCatalogo.mjs";
 
-const ROOT = path.resolve(import.meta.dirname, "..");
 const args = process.argv.slice(2);
-const salida = args.includes("--salida") ? args[args.indexOf("--salida") + 1] : null;
 const todos = args.includes("--todos");
+let salida = null;
+if (args.includes("--salida")) {
+  salida = args[args.indexOf("--salida") + 1];
+  if (!salida || salida.startsWith("--")) throw new Error("--salida necesita la ruta del fichero");
+}
 
-const catalogo = JSON.parse(fs.readFileSync(path.join(ROOT, "public/store/mercadona.json"), "utf8"));
-const productos = catalogo.products;
+const productos = productosMercadona();
 productIndexFor(productos);
 
 // Maneras de escribir cada ingrediente en las recetas estrella, con cuántas líneas.
 const maneras = new Map();
-const dir = path.join(ROOT, "src/data/recipes");
-for (const f of fs.readdirSync(dir).filter((f) => f.endsWith(".json"))) {
-  const j = JSON.parse(fs.readFileSync(path.join(dir, f), "utf8"));
-  for (const r of Array.isArray(j) ? j : (j.recipes ?? Object.values(j))) {
-    if (!r?.estrella) continue;
-    for (const l of r.ingredients ?? []) {
-      const m = maneras.get(l.ingredientId) ?? new Map();
-      m.set(l.name, (m.get(l.name) ?? 0) + 1);
-      maneras.set(l.ingredientId, m);
-    }
-  }
+for (const l of lineasEstrella()) {
+  const m = maneras.get(l.ingredientId) ?? new Map();
+  m.set(l.name, (m.get(l.name) ?? 0) + 1);
+  maneras.set(l.ingredientId, m);
 }
 
 const decididos = new Set(tabla.filas.filter((f) => f.alias == null).map((f) => `${f.supermercado}|${f.ingredientId}`));
