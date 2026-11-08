@@ -27,7 +27,7 @@ vi.mock("../_bot/embudo.js", () => ({ registrar: vi.fn(), rastro: vi.fn(), EMBUD
 vi.mock("../_bot/router.js", () => ({ clasificar: vi.fn(), vaPorLaRapida: () => false, permitidoEn: () => true }));
 vi.mock("../_bot/turno.js", () => ({ viaRapida: vi.fn(), eleccionDe: () => null, repiteLaPropuesta: () => false, aplicarEleccion: vi.fn(), contextoDe: vi.fn() }));
 vi.mock("../_bot/uso.js", () => ({ fueraDeLimite: vi.fn(), contarUso: vi.fn() }));
-vi.mock("../_bot/papel.js", () => ({ papelDeQuien: vi.fn(), idiomaDe: vi.fn() }));
+vi.mock("../_bot/papel.js", () => ({ papelDeQuien: vi.fn(), idiomaDe: vi.fn(), casaActivaDe: vi.fn(async () => null) }));
 vi.mock("../_bot/rapido.js", () => ({ respuestaHoy: vi.fn(), respuestaSemana: vi.fn(), respuestaCompra: vi.fn(), recordar: vi.fn() }));
 vi.mock("../_bot/pintar.js", () => ({ pintarMenuEntero: vi.fn() }));
 vi.mock("../_bot/voz.js", () => ({ transcribir: vi.fn() }));
@@ -164,7 +164,9 @@ describe("«Ya uso HoMenu» en el saludo", () => {
   it("si su cuenta está invitada en la casa de otra persona, le dice que pida la invitación, no que cree otra casa", async () => {
     const { verificarCodigoEmail } = await import("../_bot/cuentas.js");
     const { gastarCodigo, casaPropia } = await import("../_bot/enlace.js");
-    t.tablas = conCodigoPendiente({ user_profiles: [{ active_household_id: "h-ajena" }] });
+    t.tablas = conCodigoPendiente();
+    const { casaActivaDe } = await import("../_bot/papel.js");
+    casaActivaDe.mockResolvedValueOnce("h-ajena");
     verificarCodigoEmail.mockResolvedValueOnce("g2");
     gastarCodigo.mockResolvedValueOnce({ codigo: "C" });
     casaPropia.mockResolvedValueOnce(null);
@@ -177,17 +179,13 @@ describe("«Ya uso HoMenu» en el saludo", () => {
   it("si no puede leer en qué casa está, lo dice: no le manda a crear otra", async () => {
     const { verificarCodigoEmail } = await import("../_bot/cuentas.js");
     const { gastarCodigo, casaPropia } = await import("../_bot/enlace.js");
-    const { select } = await import("../_bot/db.js");
+    const { casaActivaDe } = await import("../_bot/papel.js");
     t.tablas = conCodigoPendiente();
     verificarCodigoEmail.mockResolvedValueOnce("g3");
     gastarCodigo.mockResolvedValueOnce({ codigo: "C" });
     casaPropia.mockResolvedValueOnce(null);
-    select.mockImplementation(async (tabla) => {
-      if (tabla === "user_profiles") throw new Error("base caída");
-      return t.tablas[tabla] ?? [];
-    });
+    casaActivaDe.mockRejectedValueOnce(new Error("base caída"));
     await escribe("123456");
-    select.mockImplementation(async (tabla) => t.tablas[tabla] ?? []);
     expect(enlazarChat).not.toHaveBeenCalled();
     expect(t.enviados.at(-1).texto).not.toMatch(/crear la tuya/);
     expect(t.enviados.at(-1).texto).toMatch(/No he podido comprobar/);
