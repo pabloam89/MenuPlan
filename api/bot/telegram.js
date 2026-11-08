@@ -1525,13 +1525,19 @@ export function datoDeBoton(o) {
 // email: pedirAcceso lo sigue atendiendo, sin botón que lo anuncie).
 // A quien prefiere tocar a escribir, un botón secundario: el alta de la app
 // (botonAlta). El texto sigue invitando a escribir; el botón es la otra vía.
+// Y a quien ya usa la app, «Ya uso HoMenu» (#1238): sin él, su primer mensaje
+// le creaba otra cuenta y otra casa, y Lola y la app quedaban en cuentas
+// distintas. Es el código por email, todo dentro de Telegram: un botón que
+// abriera la app no vale, porque en el navegador de Telegram Google no deja
+// entrar (specs/auth.md §7, trozo 5).
+const YA_USO_HOMENU = Object.freeze({ texto: "Ya uso HoMenu", dato: "cuenta:si" });
 async function bienvenida(chatId, from = null, base = null) {
   return enviar(chatId, [
     "¡Hola! Soy <b>Lola</b> 👩‍🍳 Te preparo el menú de la semana y la lista de la compra, y te lo cambio cuando quieras.",
     "Para empezar, cuéntame <b>quiénes coméis en casa</b> (y la edad de los peques). Escríbemelo o mándame un audio 🎙️",
     "<i>Lo que me cuentes solo sirve para vuestro menú; no se lo paso a nadie.</i>",
   ].join("\n\n"), {
-    botones: [[await botonAlta(chatId, from, base)]],
+    botones: [[await botonAlta(chatId, from, base)], [YA_USO_HOMENU]],
   });
 }
 
@@ -1666,14 +1672,16 @@ async function pulsado(cq, base, host = "") {
   if (chat) return enviar(chatId, "Este chat ya está conectado a tu casa. Escríbeme cuando quieras.");
 
   if (cq.data === "cuenta:si") {
-    return enviar(chatId, "Escríbeme el <b>email</b> con el que entras en HoMenu y te mando un código para conectarnos.");
+    // Quien no tiene cuenta propia pero su familia sí (#1238): la invitación, no otra casa vacía.
+    return enviar(chatId, "Escríbeme el <b>email</b> con el que entras en HoMenu y te mando un código para conectarnos.\n\n"
+      + "<i>Si en tu casa HoMenu lo usa otra persona, pídele que te invite desde la app y pulsa su enlace: así veis lo mismo.</i>");
   }
   // «Soy nuevo» pide confirmación: el bot no puede saber que ya tienes cuenta
   // (Telegram no nos da tu email), y crear una vacía por error despista mucho.
   if (cq.data === "cuenta:nuevo") {
     return enviar(chatId, "¿Seguro que no usas HoMenu todavía? Si ya entras en la app (por ejemplo, con Google), conecta esa cuenta para ver tu casa y tu menú.", {
       botones: [[
-        { texto: "Ya uso HoMenu", dato: "cuenta:si" },
+        YA_USO_HOMENU,
         { texto: "Es mi primera vez", dato: "cuenta:nuevo:ok" },
       ]],
     });

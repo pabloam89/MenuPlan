@@ -81,7 +81,7 @@ describe("/start en un privado sin enlazar", () => {
     expect(t.enviados).toHaveLength(1);
     expect(t.enviados[0].texto).toContain("quiénes coméis en casa");
     // El botón ya es el enlace: código `alta` de este Telegram, sin cuenta todavía.
-    expect(t.enviados[0].opciones.botones.flat()).toEqual([{ texto: "Prefiero rellenarlo en la app", url: "https://x/?entrar=ALTA&ir=alta" }]);
+    expect(t.enviados[0].opciones.botones.flat()).toEqual([{ texto: "Prefiero rellenarlo en la app", url: "https://x/?entrar=ALTA&ir=alta" }, { texto: "Ya uso HoMenu", dato: "cuenta:si" }]);
     expect(crearCodigo).toHaveBeenCalledWith(expect.objectContaining({ tipo: "alta", chatId: "7", externalId: "7" }));
     expect(enlazarChat).not.toHaveBeenCalled();
     expect(crearCuentaTelegram).not.toHaveBeenCalled();
@@ -90,7 +90,7 @@ describe("/start en un privado sin enlazar", () => {
   it("si el código de alta no se puede guardar (sin la 0084), el botón de dos toques: el saludo sale igual", async () => {
     crearCodigo.mockRejectedValueOnce(new Error("violates check constraint"));
     await escribe("/start");
-    expect(t.enviados[0].opciones.botones.flat()).toEqual([{ texto: "Prefiero rellenarlo en la app", dato: "alta:app" }]);
+    expect(t.enviados[0].opciones.botones.flat()).toEqual([{ texto: "Prefiero rellenarlo en la app", dato: "alta:app" }, { texto: "Ya uso HoMenu", dato: "cuenta:si" }]);
   });
 
   it("un Telegram que ya es una cuenta: se reengancha a su casa y no se le pregunta nada", async () => {
@@ -124,6 +124,18 @@ describe("/start en un privado sin enlazar", () => {
   it("solo en su propio privado: un chat que no es el suyo no se reengancha", async () => {
     t.tablas = { bot_identities: [{ user_id: "u1" }], household_members: [{ household_id: "h1" }] };
     await escribe("/start", { chat: 99, from: 7 });
+    expect(enlazarChat).not.toHaveBeenCalled();
+  });
+});
+
+// Quien ya usa la app y escribe a Lola por su cuenta (#1238, caso 6 del mapa): sin este botón, su primer mensaje le
+// creaba otra cuenta y otra casa. El código por email lo conecta a la suya sin salir de Telegram.
+describe("«Ya uso HoMenu» en el saludo", () => {
+  it("pide el email, sin crear cuenta, y a quien no tiene cuenta propia le dice que pida la invitación", async () => {
+    await pulsa("cuenta:si");
+    expect(t.enviados.at(-1).texto).toContain("Escríbeme el <b>email</b>");
+    expect(t.enviados.at(-1).texto).toMatch(/pídele que te invite/);
+    expect(crearCuentaTelegram).not.toHaveBeenCalled();
     expect(enlazarChat).not.toHaveBeenCalled();
   });
 });
