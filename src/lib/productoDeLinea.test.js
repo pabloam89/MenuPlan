@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 
 import { ESTADO_PRODUCTO_LINEA, ESTADOS_PRODUCTO_LINEA, filaDeLinea, productoDeLinea } from "./productoDeLinea.js";
 import { ENCAJES_SIN_PRODUCTO } from "../data/productoSchema.js";
@@ -56,5 +58,28 @@ describe("productoDeLinea", () => {
 
   it("los encajes sin producto son también estados de la línea (la misma palabra)", () => {
     for (const e of ENCAJES_SIN_PRODUCTO) expect(ESTADOS_PRODUCTO_LINEA).toContain(e);
+  });
+});
+
+// Lo que sabían los alias del emparejador y productoBuscado.json, ahora con la
+// tabla y el catálogo de verdad: estos nombres no casan con su producto por
+// parecido, y la decisión guardada sí los lleva.
+describe("productoDeLinea con la tabla y el catálogo de verdad", () => {
+  const catalogo = JSON.parse(
+    readFileSync(fileURLToPath(new URL("../../public/store/mercadona.json", import.meta.url)), "utf8"),
+  ).products;
+  it.each([
+    ["Boniato", /^Batata/],
+    ["Carne picada", /^Preparado de carne picada/],
+    ["Morcillo de ternera", /^Trozo de vacuno para cocido/],
+    ["Maicena", /harina fina de ma[ií]z/i],
+    ["Perejil fresco", /^Perejil/],
+  ])("«%s» sale con su producto decidido", (nombre, producto) => {
+    const r = productoDeLinea(nombre, catalogo);
+    expect(r.estado).toBe(ESTADO_PRODUCTO_LINEA.DECIDIDO);
+    expect(r.product.name).toMatch(producto);
+  });
+  it("«Pollo» no acaba en un pollo cocinado (teriyaki, asado)", () => {
+    expect(productoDeLinea("Pollo", catalogo).product.name).not.toMatch(/teriyaki|asado/i);
   });
 });

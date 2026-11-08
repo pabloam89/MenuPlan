@@ -6,10 +6,10 @@
  *
  * Por cada ingrediente que usa una receta estrella (con --todos, todos los de
  * ingredients.json) que aún no tiene fila, junta sus maneras de escribirlo en
- * las recetas y prueba el emparejador con cada una y con los términos de
- * productoBuscado.json. Saca los tres mejores candidatos y, si dos maneras de
- * escribirlo caen en productos distintos con confianza, lo marca como
- * `variantes` para decidir si hace falta una fila por alias.
+ * las recetas y prueba el emparejador con cada una. Saca los tres mejores
+ * candidatos y, si dos maneras de escribirlo caen en productos distintos con
+ * confianza, lo marca como `variantes` para decidir si hace falta una fila por
+ * alias.
  */
 import fs from "node:fs";
 
