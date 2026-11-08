@@ -107,9 +107,9 @@ npx vitest run scripts/android-app.test.js && npx cap sync android
 
 ### 8. Entrar en Mercadona desde la app de HoMenu (iPhone primero, Android cuando exista), sin marcador
 Files: `src/lib/mercadonaEntrarApp.js`, `src/lib/mercadonaEntrarApp.test.js`, `src/components/ConectarMercadona.jsx`, `src/components/ConectarMercadona.test.jsx`, `package.json`, `package-lock.json`, `ios/App/Podfile`
-Depends on: 2, 6 (y 7 solo para Android)
+Depends on: 2, 6, 7
 Blocked by: none
-Existing: `@capacitor/browser` (`package.json:56`) abre el navegador del sistema y no deja leer la página, así que no sirve para guardar la sesión. La app de iPhone ya es Capacitor y está en la App Store (`ios/App/`, `@capacitor/ios` en `package.json:58`; versión 1.1 en el PR #1381), así que en iPhone este trozo no espera al 7. `ls src/lib/mercadonaEntrarApp.js` → No such file or directory.
+Existing: `@capacitor/browser` (`package.json:56`) abre el navegador del sistema y no deja leer la página, así que no sirve para guardar la sesión. La app de iPhone ya es Capacitor y está en la App Store (`ios/App/`, `@capacitor/ios` en `package.json:58`; versión 1.1 en el PR #1381), así que la parte de iPhone no necesita nada del 7; depende de él solo porque los dos tocan `package.json` y `package-lock.json`, y no pueden ir a la vez. `ls src/lib/mercadonaEntrarApp.js` → No such file or directory.
 Not done: la entrada se abre en una ventana web dentro de la app, en versión de ordenador (decisión de Pablo, 8 nov), solo para esta página. La persona escribe su correo y su contraseña en la página de Mercadona; la app no lee esas casillas. Al entrar, la app lee `MO-user` y las cookies, las sella con `mercadonaSello.js` y las guarda con `guardarSesion`, como el marcador. Con «Continuar con Google» no funciona (lo rechaza Google): la pantalla lo dice y enlaza a «¿Has olvidado tu contraseña?». El plugin para leer la página se elige en este trozo y se escribe en el PR. Toca `package.json`, que es de la puerta: solo añade una dependencia, no cambia scripts ni checks (C13 se mantiene); si pone `tests` en rojo, se revierte el PR desde una rama nueva.
 Done:
 ```sh
