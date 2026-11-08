@@ -7,7 +7,7 @@ import ingredients from "./ingredients.json";
 import { FilaProductoSchema, TablaProductoSchema, ENCAJE_PRODUCTO } from "./productoSchema.js";
 import { normalizeName } from "../lib/ingredientCategories.js";
 import { gramsForRecipeQuantity } from "../lib/kitchenUnits.js";
-import { envaseDesproporcionado, filaDeLinea } from "../lib/productoDeLinea.js";
+import { envaseDesproporcionado, filaDeLinea, gramosDeReferencia } from "../lib/productoDeLinea.js";
 import { recipeCatalog } from "./recipeCatalog.js";
 
 const tienda = JSON.parse(
@@ -16,8 +16,6 @@ const tienda = JSON.parse(
 const idsMercadona = new Set(tienda.products.map((p) => String(p.id)));
 const ingPorId = new Map(ingredients.map((i) => [i.id, i]));
 const filas = tabla.filas;
-/** Las raciones de una compra de casa: con ellas se mide si un envase es desproporcionado. */
-const RACIONES_DE_REFERENCIA = 4;
 
 describe("productoPorIngrediente.json", () => {
   it("cumple el esquema (campos cerrados, motivo donde toca, producto según el encaje)", () => {
@@ -90,8 +88,8 @@ describe("productoPorIngrediente.json", () => {
         const g = gramsForRecipeQuantity(l.name, Number(l.amount), l.unit);
         const fila = filaDeLinea(l.name);
         const p = fila?.productId ? productos.get(fila.productId) : null;
-        if (!(g > 0) || !p) continue;
-        const gramos = (g * RACIONES_DE_REFERENCIA) / (r.baseServings || RACIONES_DE_REFERENCIA);
+        const gramos = gramosDeReferencia(g, r.baseServings);
+        if (!gramos || !p) continue;
         if (envaseDesproporcionado(p, gramos)) malos.add(`${l.name} → ${p.name}`);
       }
     }

@@ -81,6 +81,18 @@ const FORMATOS_A_GRANEL = new Set(["kg", "g", "l", "ml"]);
 /** A partir de cuántos euros de más un envase no tiene sentido para lo que se pide. */
 export const DINERO_DE_MAS_MAX = 10;
 
+/**
+ * Las raciones de una compra de casa. Con ellas se mide si un envase es
+ * desproporcionado para una receta: una de bebé de una ración pide 30 g, y a
+ * esa escala casi cualquier envase lo sería.
+ */
+export const RACIONES_DE_REFERENCIA = 4;
+
+/** Los gramos de una línea escalados a RACIONES_DE_REFERENCIA; null sin gramos. */
+export function gramosDeReferencia(gramos, raciones) {
+  return gramos > 0 ? (gramos * RACIONES_DE_REFERENCIA) / (raciones || RACIONES_DE_REFERENCIA) : null;
+}
+
 /** ¿El envase cuesta DINERO_DE_MAS_MAX o más de lo que vale lo pedido? Sin dato para saberlo, no se marca. */
 export function envaseDesproporcionado(product, gramos) {
   const demas = dineroDeMas(product, gramos);

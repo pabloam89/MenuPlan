@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-import { ESTADO_PRODUCTO_LINEA, ESTADOS_PRODUCTO_LINEA, dineroDeMas, envaseDesproporcionado, filaDeLinea, productoDeLinea } from "./productoDeLinea.js";
+import { ESTADO_PRODUCTO_LINEA, ESTADOS_PRODUCTO_LINEA, dineroDeMas, envaseDesproporcionado, filaDeLinea, gramosDeReferencia, productoDeLinea } from "./productoDeLinea.js";
 import { ENCAJES_SIN_PRODUCTO } from "../data/productoSchema.js";
 
 const productos = [
@@ -62,6 +62,13 @@ describe("productoDeLinea", () => {
     // y si solo hay el grande, sin producto antes que 57 € de más
     const solo = () => [{ product: pieza, confidence: 0.75 }];
     expect(productoDeLinea("Jamón ibérico de bellota", [pieza], { ...op, candidatos: solo, gramos: 100 }).estado).toBe("sin_producto");
+  });
+
+  it("gramosDeReferencia: lo de la línea escalado a 4 raciones; sin raciones se toma 4; sin gramos, null", () => {
+    expect(gramosDeReferencia(30, 1)).toBe(120);
+    expect(gramosDeReferencia(200, 8)).toBe(100);
+    expect(gramosDeReferencia(100, null)).toBe(100);
+    expect(gramosDeReferencia(null, 2)).toBeNull();
   });
 
   it("dineroDeMas: el envase menos lo pedido a granel; sin granel o por pieza, no se sabe", () => {
