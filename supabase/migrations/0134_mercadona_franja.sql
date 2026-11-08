@@ -1,3 +1,4 @@
+-- AUDITADA: auditor-datos 2026-11-08 OK
 -- Reservar la hora de entrega en Mercadona (trozo 20 de specs/plan-comprar-mercadona.md, #1407). Hoy un encargo
 -- (0131) acaba en `hecho` con la lista; con `llega_hasta` en `reservar` o `pagar` (0133) sigue: el trabajador mete la
 -- lista en el carro, crea el pedido en Mercadona y le pide las franjas libres; la persona elige una, en la app o con
