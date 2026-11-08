@@ -3,6 +3,7 @@
  * ni por la sesión: `{ ok: false }` y quien llama lo dice.
  */
 import { apiUrl } from "./apiUrl.js";
+import { FALTA_MERCADONA } from "./mercadonaLlegaHasta.js";
 import { tokenDeSesion } from "./familiaCasa.js";
 import { ESTADO_ENCARGO_MERCADONA, FALLO_ENCARGO_MERCADONA, NO_ENCARGADO, NO_ENTRADO_MERCADONA } from "./vocabularios.js";
 
@@ -17,6 +18,7 @@ export const PASO_COMPRAR = Object.freeze({
 /** Los textos de Ajustes → Mercadona (trozo 9 de specs/plan-comprar-mercadona.md). */
 export const AJUSTE_MERCADONA = Object.freeze({
   LISTA: "Rellenar la lista",
+  RESERVAR: "Reservar la hora",
   PAGAR: "Pagar la compra",
   PRONTO: "Pronto",
 });
@@ -56,6 +58,21 @@ export const leerEstado = (casa, o) => pedir({ casa, ...opciones(o) });
 export const pedirLista = (casa, lista, o) => pedir({ casa, cuerpo: { encargar: { lista } }, ...opciones(o) });
 export const guardarSesion = (casa, sesion_cifrada, o) => pedir({ casa, cuerpo: { conectar: { sesion_cifrada } }, ...opciones(o) });
 export const quitarCuenta = (casa, o) => pedir({ casa, cuerpo: { desconectar: true }, ...opciones(o) });
+/** `{ ok, llega_hasta }`, `{ ok, falta }` o `{ ok, fallo }`. */
+export const cambiarHasta = (casa, llega_hasta, o) => pedir({ casa, cuerpo: { llega_hasta }, ...opciones(o) });
+/** `{ ok, guardado }` o `{ ok, fallo }`. El teléfono llega ya sellado: el servidor nunca lo ve en claro. */
+export const enviarTelefono = (casa, telefono_sellado, o) => pedir({ casa, cuerpo: { telefono: { telefono_sellado } }, ...opciones(o) });
+
+/**
+ * Lo que se dice cuando a la cuenta le falta algo para un paso (`faltaPara`). El teléfono no tiene texto: se pide en
+ * una casilla. Sin mirar todavía, se dice que se mirará.
+ */
+export const TEXTO_FALTA = Object.freeze({
+  [FALTA_MERCADONA.DIRECCION]: "Añade tu dirección en la app de Mercadona.",
+  [FALTA_MERCADONA.PAGO]: "Añade una tarjeta en la app de Mercadona.",
+});
+export const SIN_MIRAR = "Miraré tu cuenta de Mercadona la próxima vez que rellene tu lista.";
+export const TELEFONO = Object.freeze({ ETIQUETA: "Teléfono para el repartidor", GUARDAR: "Guardar", MAL: "Ese teléfono no parece bien." });
 
 const enMarcha = (e) => e?.status === ESTADO_ENCARGO_MERCADONA.PENDIENTE || e?.status === ESTADO_ENCARGO_MERCADONA.RELLENANDO;
 export { enMarcha as encargoEnMarcha };

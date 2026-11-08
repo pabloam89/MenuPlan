@@ -12,6 +12,8 @@ vi.mock("./_bot/mercadonaEncargos.js", () => ({
   cerrar: vi.fn(async () => true),
   conectar: vi.fn(async () => ({ conectada: true })),
   desconectar: vi.fn(async () => ({ conectada: false })),
+  cambiarLlegaHasta: vi.fn(async ({ llega_hasta }) => ({ llega_hasta })),
+  guardarTelefono: vi.fn(async () => ({ guardado: true })),
   encargar: vi.fn(async () => ({ encargo: { id: "e1" } })),
   estadoDeCasa: vi.fn(async () => ({ disponible: true, cuenta: "conectada", encargo: null })),
   tomar: vi.fn(async () => null),
@@ -85,6 +87,22 @@ describe("la app", () => {
   it("quién encarga sale del token, nunca del cuerpo", async () => {
     await llamar({ token: "buena", body: { casa: CASA, por: "otro", encargar: { lista: { name: "x" } } } });
     expect(e.encargar.mock.calls[0][0]).toMatchObject({ por: "u1", canal: "app" });
+  });
+
+  it("cambia hasta dónde llega el bot y guarda el teléfono sellado, con las funciones que usa Lola (trozo 17)", async () => {
+    const r = await llamar({ token: "buena", body: { casa: CASA, llega_hasta: "reservar" } });
+    expect(r.datos).toEqual({ llega_hasta: "reservar" });
+    expect(e.cambiarLlegaHasta).toHaveBeenCalledWith({ casa: CASA, llega_hasta: "reservar" });
+    await llamar({ token: "buena", body: { casa: CASA, telefono: { telefono_sellado: "sello" } } });
+    expect(e.guardarTelefono).toHaveBeenCalledWith({ casa: CASA, telefono_sellado: "sello" });
+  });
+
+  it("quien solo ve la casa no cambia hasta dónde llega ni el teléfono", async () => {
+    papelDeUsuario.mockResolvedValue("viewer");
+    expect((await llamar({ token: "buena", body: { casa: CASA, llega_hasta: "pagar" } })).statusCode).toBe(403);
+    expect((await llamar({ token: "buena", body: { casa: CASA, telefono: { telefono_sellado: "s" } } })).statusCode).toBe(403);
+    expect(e.cambiarLlegaHasta).not.toHaveBeenCalled();
+    expect(e.guardarTelefono).not.toHaveBeenCalled();
   });
 
   it("una casa mal formada, 400", async () => {
