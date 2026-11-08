@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 
 import tabla from "./productoPorIngrediente.json";
 import ingredients from "./ingredients.json";
+import { recipeCatalog } from "./recipeCatalog.js";
 import { FilaProductoSchema, TablaProductoSchema, ENCAJE_PRODUCTO } from "./productoSchema.js";
 import { normalizeName } from "../lib/ingredientCategories.js";
 
@@ -62,6 +63,14 @@ describe("productoPorIngrediente.json", () => {
       .filter((f) => f.supermercado === "Mercadona" && f.productId != null && !idsMercadona.has(f.productId))
       .map((f) => `${f.ingredientId}${f.alias ? ` / ${f.alias}` : ""} → ${f.productId}`);
     expect(idos).toEqual([]);
+  });
+
+  // La puerta: un ingrediente de receta estrella sin decisión en Mercadona cae
+  // al emparejador por nombre, que es justo lo que esta tabla vino a quitar.
+  it("todo ingrediente de una receta estrella tiene su fila de Mercadona", () => {
+    const usados = new Set(recipeCatalog.filter((r) => r.estrella).flatMap((r) => (r.ingredients ?? []).map((l) => l.ingredientId)));
+    const conFila = new Set(filas.filter((f) => f.supermercado === "Mercadona" && f.alias == null).map((f) => f.ingredientId));
+    expect([...usados].filter((id) => !conFila.has(id)).sort()).toEqual([]);
   });
 
   it("no_se_compra no depende del súper: si una fila lo dice, lo dicen todas las del ingrediente", () => {
