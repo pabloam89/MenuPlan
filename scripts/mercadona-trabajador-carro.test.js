@@ -14,6 +14,7 @@ const CARRO = {
   ],
   summary: { total: "41.30" },
 };
+const FRANJA = { id: "f1", start: "2026-11-12T14:00:00Z", end: "2026-11-12T15:00:00Z", price: "7.21", available: true };
 const LISTA = { name: "Compra HoMenu", products: [{ merca_code: "20", quantity: 3 }, { merca_code: "30", quantity: 1 }] };
 
 describe("sumarAlCarro", () => {
@@ -64,6 +65,8 @@ function pagina({ leer = { paso: "leer_carro", status: 200, carro: CARRO }, escr
     waitForTimeout: vi.fn(async () => {}),
     evaluate: vi.fn(async (_f, orden) => {
       if (!orden) return true;
+      // El pedido y sus horas (trozo 20), para que «reservar» llegue hasta el final.
+      if (orden.crear) return { paso: "franjas", status: 200, pedido_xid: "p9", summary: { total: "64.10" }, franjas: [FRANJA] };
       if ("carro" in orden && orden.carro === null) return leer;
       if ("carro" in orden) {
         escrituras.push(orden.carro);
@@ -77,7 +80,7 @@ function pagina({ leer = { paso: "leer_carro", status: 200, carro: CARRO }, escr
 describe("llenarCarro", () => {
   it("lee, suma y escribe UNA vez con la versión leída", async () => {
     const p = pagina();
-    expect(await llenarCarro(p, LISTA)).toEqual({ resultado: "carro_lleno", total: 64.1, faltan: [] });
+    expect(await llenarCarro(p, LISTA)).toEqual({ resultado: "carro_lleno", total: 64.1, faltan: [], carro: expect.objectContaining({ id: "carro-1", version: 13 }) });
     expect(p.escrituras).toHaveLength(1);
     expect(p.escrituras[0].version).toBe(13);
   });
@@ -108,17 +111,17 @@ describe("atender: hasta dónde llega", () => {
     }
   });
 
-  it("con «reservar» o «pagar», la lista y además el carro", async () => {
+  it("con «reservar» o «pagar», la lista, el carro y las horas del pedido (trozo 20)", async () => {
     for (const llega_hasta of ["reservar", "pagar"]) {
       const p = pagina();
-      expect(await atender(encargo(llega_hasta), dep(p))).toEqual({ lista_xid: "7", entraron: 2, faltan: [], carro: { lleno: true, total: 64.1, faltan: [] } });
+      expect(await atender(encargo(llega_hasta), dep(p))).toEqual({ lista_xid: "7", entraron: 2, faltan: [], pedido: { pedido_xid: "p9", total: 64.1, franjas: [FRANJA] } });
       expect(p.escrituras).toHaveLength(1);
     }
   });
 
   it("un carro que falla no tumba la lista, que ya está", async () => {
     const p = pagina({ leer: { paso: "leer_carro", status: 403, carro: null } });
-    expect(await atender(encargo("reservar"), dep(p))).toEqual({ lista_xid: "7", entraron: 2, faltan: [], carro: { lleno: false, motivo: "bloqueado" } });
+    expect(await atender(encargo("reservar"), dep(p))).toEqual({ lista_xid: "7", entraron: 2, faltan: [], fallo: "bloqueado" });
   });
 });
 

@@ -1,7 +1,7 @@
 /**
  * El trabajador de Comprar: coge un encargo, abre la sesión sellada en un navegador limpio, crea la lista y, si la casa
- * ha encendido «Reservar» o «Pagar» (`llega_hasta`, trozo 15 de #1407), la suma al carro; y cuenta qué pasó (0131, skill
- * `mercadona`). Aquí la lógica; el navegador y la API se le pasan, para probarla sin ninguno de los
+ * ha encendido «Reservar» o «Pagar» (`llega_hasta`, trozo 15 de #1407), la suma al carro, crea el pedido y ofrece las
+ * horas de entrega libres; y cuenta qué pasó (0131, skill `mercadona`). Luego, con la hora elegida, la reserva (0134). Aquí la lógica; el navegador y la API se le pasan, para probarla sin ninguno de los
  * dos y para cambiar de navegador sin tocarla.
  *
  * Nunca se imprime la sesión, ni se guarda en disco: vive en memoria lo que dura un encargo.
@@ -10,6 +10,7 @@ import { erroresDeLista } from "../../src/lib/mercadonaLista.js";
 import { crearLista, entrarEnTienda, llenarCarro, revisarCuenta } from "./mercadonaPagina.mjs";
 import { LLEGA_HASTA, llegaA } from "../../src/lib/mercadonaLlegaHasta.js";
 import { FALLO_ENCARGO_MERCADONA as FALLO } from "../../src/lib/mercadonaFallos.js";
+import { pedirFranjas, reservarFranja } from "./mercadonaPedido.mjs";
 
 /** Lo que se permite por encargo: pasado esto, lo da por fallido y sigue. Menor que CADUCA_RELLENANDO_MIN; un test los ata. */
 export const TOPE_ENCARGO_MS = 5 * 60 * 1000;
@@ -33,15 +34,18 @@ export function resultadoDeEncargo(r) {
 }
 
 /**
- * Cómo fue el carro, para el encargo: `{ lleno, total, faltan }` o `{ lleno: false, motivo }`. Aún no se guarda (la
- * API lo ignora hasta el trozo 22), pero la lista ya está: un carro que falla, o que lanza o se pasa de tiempo, no
- * tumba el encargo.
+ * Cómo fue el carro: `{ lleno, total, faltan }` o `{ lleno: false, motivo }`, para el log. Un carro que falla no tumba la
+ * lista, que ya está: el cierre lleva la lista y el fallo (falloDeCarro), y el servidor guarda las dos cosas (0134).
  */
 export function resultadoDeCarro(c) {
   if (c.resultado === "carro_lleno") return { lleno: true, total: c.total, faltan: c.faltan };
   const motivo = c.resultado === "fallo_sesion" || c.status === 401 ? "sesion" : c.status === 403 || c.status === 429 ? "bloqueado" : "error";
   return { lleno: false, motivo };
 }
+
+/** Pura. El motivo de un carro que no se llenó, en el vocabulario de los fallos. */
+const FALLO_DE_CARRO = Object.freeze({ sesion: FALLO.SESION_CADUCADA, bloqueado: FALLO.BLOQUEADO, error: FALLO.ERROR });
+export const falloDeCarro = (c) => FALLO_DE_CARRO[c.motivo] ?? FALLO.ERROR;
 
 /**
  * Ya dentro: mira la cuenta y rellena la lista. La revisión va con el cierre (`revision`) si se pudo mirar; si no, se
@@ -106,6 +110,43 @@ export async function atender({ encargo, sesion_cifrada, llega_hasta }, { abrirS
   }
 }
 
+/**
+ * Atiende una reserva (0134): la hora que eligió la persona, en el pedido que ya está a medias en Mercadona, y el
+ * teléfono que pide el repartidor, abierto del sello con la misma clave que la sesión. `{ cambiable_hasta }` o `{ fallo }`.
+ * @param {{ reserva: { id: string, pedido_xid: string, franja: object }, sesion_cifrada: string, telefono_sellado: string|null }} siguiente
+ */
+export async function atenderReserva({ reserva, sesion_cifrada, telefono_sellado }, { abrirSesion, abrirNavegador, log = () => {}, topeMs = TOPE_ENCARGO_MS }) {
+  let estado;
+  try {
+    estado = JSON.parse(await abrirSesion(sesion_cifrada));
+  } catch (e) {
+    log(`sesión sin abrir: ${e.name}`); // solo el nombre: el mensaje podría traer la sesión
+    return { fallo: FALLO.SESION_CADUCADA };
+  }
+  let telefono = null;
+  if (telefono_sellado) {
+    try {
+      telefono = JSON.parse(await abrirSesion(telefono_sellado));
+    } catch (e) {
+      // Sin teléfono se reserva igual: Mercadona lo pide al pagar, y la persona lo pone allí.
+      log(`teléfono sin abrir: ${e.name}`);
+    }
+  }
+  const { pagina, cerrar } = await abrirNavegador(estado);
+  try {
+    return await conTope(
+      (async () => {
+        const portada = await entrarEnTienda(pagina);
+        if (portada.resultado) return resultadoDeEncargo(portada);
+        return reservarFranja(pagina, { pedido_xid: reserva.pedido_xid, franja: reserva.franja, telefono }, log);
+      })(),
+      topeMs,
+    );
+  } finally {
+    await cerrar();
+  }
+}
+
 const esperar = (ms) => new Promise((r) => setTimeout(r, ms));
 
 /** Espera tras `fallos` seguidos contra la API: de `base` hasta `tope`, para no insistir contra un servicio caído. */
@@ -117,12 +158,14 @@ export const esperaTrasFallos = (fallos, base, tope) => Math.min(tope, base * 2 
  * @param {{ api: { tomar: () => Promise<object|null>, cerrar: (id: string, r: object) => Promise<void> }, log: (texto: string) => void }} d
  */
 export async function unaVuelta({ api, log, dormir = esperar, entreCierresMs = ENTRE_CIERRES_MS, ...navegador }) {
-  const siguiente = await api.tomar();
+  // Primero las reservas: la persona espera mirando el chat, y la hora elegida se puede ocupar.
+  const reserva = api.tomarReserva ? await api.tomarReserva() : null;
+  const siguiente = reserva ?? (await api.tomar());
   if (!siguiente) return false;
-  const { id } = siguiente.encargo;
+  const id = reserva ? reserva.reserva.id : siguiente.encargo.id;
   let resultado;
   try {
-    resultado = await atender(siguiente, { ...navegador, log });
+    resultado = reserva ? await atenderReserva(reserva, { ...navegador, log }) : await atender(siguiente, { ...navegador, log });
   } catch (e) {
     log(`encargo ${id}: ${e.name}`);
     resultado = { fallo: FALLO.ERROR };
