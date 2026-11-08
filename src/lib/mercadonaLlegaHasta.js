@@ -14,12 +14,13 @@ export const llegaA = (hasta, paso) => LLEGA_HASTA_MERCADONA.indexOf(llegaHastaD
 
 /**
  * Pura. Lo que se dice de una fila de `mercadona_cuenta` (0133), o de ninguna: hasta dónde llega el bot y qué tiene la
- * cuenta, sin la sesión y sin el teléfono (solo si está). Una fila de antes de la 0133 llega hasta la lista, sin mirar.
+ * cuenta, sin la sesión y sin el teléfono (solo si está). «Sin mirar» (`revisada_at` null) sale como null en `tiene_*`.
+ * Una fila de antes de la 0133 llega hasta la lista, sin mirar.
  */
 export const deUnaCuenta = (cuenta) => ({
   llega_hasta: llegaHastaDe(cuenta?.llega_hasta),
-  tiene_direccion: cuenta?.tiene_direccion ?? null,
-  tiene_pago: cuenta?.tiene_pago ?? null,
+  tiene_direccion: cuenta?.revisada_at ? cuenta.tiene_direccion === true : null,
+  tiene_pago: cuenta?.revisada_at ? cuenta.tiene_pago === true : null,
   tiene_telefono: cuenta ? Boolean(cuenta.telefono_sellado) : null,
 });
 

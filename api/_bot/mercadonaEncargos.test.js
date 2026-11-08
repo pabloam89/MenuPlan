@@ -98,7 +98,7 @@ describe("encargar", () => {
 
 describe("estadoDeCasa", () => {
   it("nunca da la sesión, y del teléfono solo si está", async () => {
-    db.cuenta = [{ estado: "conectada", llega_hasta: "reservar", tiene_direccion: true, tiene_pago: false, telefono_sellado: "sellado" }];
+    db.cuenta = [{ estado: "conectada", llega_hasta: "reservar", revisada_at: "2026-11-08T20:00:00Z", tiene_direccion: true, tiene_pago: false, telefono_sellado: "sellado" }];
     const r = await m.estadoDeCasa("c1");
     expect(select.mock.calls.find((c) => c[0] === "mercadona_cuenta")[2]).not.toContain("sesion_cifrada");
     expect(r).toMatchObject({ cuenta: "conectada", llega_hasta: "reservar", tiene_direccion: true, tiene_pago: false, tiene_telefono: true });
