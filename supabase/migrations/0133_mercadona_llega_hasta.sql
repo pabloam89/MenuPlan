@@ -20,8 +20,10 @@
 --   · la revisión vuelve a «sin mirar» (revisada_at null, tiene_* false): puede ser otra cuenta de Mercadona;
 --   · si cambia `conectada_por`, llega_hasta vuelve a `lista` y el teléfono se borra: eran de la otra persona.
 -- Renovar la sesión (trozo 2: misma persona, sigue `conectada`) no cambia nada de esto. Desconectar borra la fila, y
--- volver a conectar crea una nueva con los valores por defecto. Así no hay que tocar el upsert de `conectar` (api/_bot/mercadonaEncargos.js), que con columnas nuevas rompería el
--- plan B.
+-- volver a conectar crea una nueva con los valores por defecto. Así no hay que tocar el upsert de `conectar`
+-- (api/_bot/mercadonaEncargos.js), que con columnas nuevas rompería el plan B. Límite conocido: si la misma persona
+-- entra con otra cuenta de Mercadona sin que la de antes haya caducado, la revisión no se reinicia aquí; el trabajador
+-- vuelve a mirar en cada encargo (trozo 16).
 --
 -- NO hace: no toca RLS ni permisos (la tabla sigue siendo solo del servidor), ni `mercadona_encargo`, ni los triggers
 -- de la 0131. No impide en la base `reservar` sin dirección: la dirección puede desaparecer después en Mercadona, y el
@@ -83,5 +85,6 @@ end;
 $$;
 create trigger mercadona_cuenta_al_reconectar before update of estado, conectada_por on public.mercadona_cuenta
   for each row
-  when ((old.estado = caducada and new.estado = conectada) or new.conectada_por is distinct from old.conectada_por)
+  when ((old.estado = 'caducada' and new.estado = 'conectada') or new.conectada_por is distinct from old.conectada_por)
   execute function public.mercadona_cuenta_al_reconectar();
+revoke all on function public.mercadona_cuenta_al_reconectar() from public, anon, authenticated;
