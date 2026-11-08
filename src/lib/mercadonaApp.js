@@ -4,7 +4,7 @@
  */
 import { apiUrl } from "./apiUrl.js";
 import { tokenDeSesion } from "./familiaCasa.js";
-import { ESTADO_ENCARGO_MERCADONA, FALLO_ENCARGO_MERCADONA, NO_ENCARGADO } from "./vocabularios.js";
+import { ESTADO_ENCARGO_MERCADONA, FALLO_ENCARGO_MERCADONA, NO_ENCARGADO, NO_ENTRADO_MERCADONA } from "./vocabularios.js";
 
 /** Lo que dice el botón de comprar en cada paso. */
 export const PASO_COMPRAR = Object.freeze({
@@ -73,6 +73,14 @@ export function textoDeEncargo(e) {
 }
 
 /** Lo que se le dice cuando ni se ha encolado. */
+/** Qué se dice si entrar en Mercadona desde la app no acaba bien (`entrarEnMercadona`). Cerrar la ventana no es un fallo: no se dice nada. */
+export const TEXTO_NO_ENTRADO = Object.freeze({
+  [NO_ENTRADO_MERCADONA.CERRADA]: null,
+  [NO_ENTRADO_MERCADONA.TIEMPO]: "Se ha acabado el tiempo. Vuelve a probar.",
+  [NO_ENTRADO_MERCADONA.SIN_CLAVE]: "Esto aún no está en marcha.",
+  [NO_ENTRADO_MERCADONA.NO_GUARDADA]: "No se ha podido guardar. Vuelve a probar.",
+});
+
 export const TEXTO_NO_ENCARGADO = Object.freeze({
   [NO_ENCARGADO.SIN_SERVICIO]: "Esto aún no está en marcha.",
   [NO_ENCARGADO.EN_MARCHA]: "Ya estoy rellenando una lista.",

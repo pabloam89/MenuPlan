@@ -67,7 +67,7 @@ export function AjustesMercadona({ m, encendido = false }) {
           <ToggleSwitch checked={false} disabled ariaLabel={AJUSTE_MERCADONA.PAGAR} onChange={() => {}} />
         </Fila>
       </div>
-      {entrando && !m.conectada && <Conectar caducada={m.caducada} />}
+      {entrando && !m.conectada && <Conectar caducada={m.caducada} casa={m.casa} alEntrar={m.recargar} />}
       {m.aviso && <p style={TEXTO}>{m.aviso}</p>}
     </div>
   );
