@@ -212,14 +212,14 @@ npx vitest run scripts/mercadona-trabajador-revisar.test.js
 ```
 
 ### 17. Ajustes → Mercadona con los tres pasos, en la app
-Files: `src/components/AjustesMercadona.jsx`, `src/components/AjustesMercadona.test.jsx`, `src/lib/mercadonaApp.js`, `api/mercadona.js`, `src/components/useRellenarMercadona.js`
-Depends on: 9, 15, 16
+Files: `src/components/AjustesMercadona.jsx`, `src/components/AjustesMercadonaPasos.test.jsx`, `src/lib/mercadonaApp.js`, `api/mercadona.js`, `api/mercadona.test.js`, `src/components/useRellenarMercadona.js`
+Depends on: 9, 15, 16, 18
 Blocked by: none
 Existing: Ajustes tiene dos interruptores, «Rellenar la lista» y «Pagar la compra» con «Pronto» (trozo 9).
-Not done: lo hace esta sesión (`menuplan-8b`). Tres interruptores, uno por paso, en el orden en que pasan: «Rellenar la lista», «Reservar la hora de entrega» y «Pagar la compra». Se pintan desde `llega_hasta`: encender uno enciende los de antes, y apagar uno apaga los de después. «Reservar» no se puede encender si `tiene_direccion` no es `true`, y lo dice en una línea («Añade tu dirección en la app de Mercadona»); «Pagar», igual con `tiene_pago`. Al encender «Reservar» sin teléfono, la hoja lo pide en una casilla («Tu teléfono para el repartidor») y lo sella en el móvil antes de enviarlo, como la sesión. La hoja de la primera vez (trozo 6) es este mismo componente, así que enseña los tres. `api/mercadona.js` cambia `llega_hasta` y comprueba lo mismo en el servidor: no deja `reservar` sin dirección.
+Not done: lo hace esta sesión (`menuplan-8b`). Tres interruptores, uno por paso, en el orden en que pasan: «Rellenar la lista», «Reservar la hora» (de entrega; en una línea a 375 px) y «Pagar la compra». «Pagar la compra» sigue apagado y con «Pronto» hasta el trozo 21: encenderlo antes diría que paga sin que el bot sepa pagar. Se pintan desde `llega_hasta`: encender uno enciende los de antes, y apagar uno apaga los de después. «Reservar» no se puede encender si `tiene_direccion` no es `true`, y lo dice en una línea («Añade tu dirección en la app de Mercadona»); «Pagar», igual con `tiene_pago`. Al encender «Reservar» sin teléfono, la hoja lo pide en una casilla («Tu teléfono para el repartidor») y lo sella en el móvil antes de enviarlo, como la sesión. La hoja de la primera vez (trozo 6) es este mismo componente, así que enseña los tres. `api/mercadona.js` cambia `llega_hasta` y comprueba lo mismo en el servidor: no deja `reservar` sin dirección.
 Done:
 ```sh
-npx vitest run src/components/AjustesMercadona.test.jsx && grep -q "Reservar la hora de entrega" src/lib/mercadonaApp.js
+npx vitest run src/components/AjustesMercadonaPasos.test.jsx && grep -q "Reservar la hora" src/lib/mercadonaApp.js
 ```
 
 ### 18. Lola: los mismos tres pasos, con el mismo dato
