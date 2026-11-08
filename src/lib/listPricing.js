@@ -8,7 +8,7 @@ import { productoDeLinea } from "./productoDeLinea.js";
 import { isMercadonaStore, loadStoreCatalog } from "./storeCatalog.js";
 import { etiquetaEnvase, wantsPackFields } from "./packUnits.js";
 import { guessShoppingAisle } from "./ingredientCategories.js";
-import { gramsPerPiece } from "./kitchenUnits.js";
+import { gramsForRecipeQuantity, gramsPerPiece } from "./kitchenUnits.js";
 
 function roundQty(n, decimals = 1) {
   const factor = 10 ** decimals;
@@ -259,7 +259,8 @@ function emptyEstimate(storeName, items, obs, extra = {}) {
 function priceOneItem(item, catalogProducts, priceObs) {
   const key = item.id ?? `${item.name}|${item.unit ?? "ud"}`;
   // La decisión guardada primero (productoPorIngrediente.json); el emparejador por nombre, solo sin fila.
-  const match = productoDeLinea(item.name, catalogProducts);
+  const gramos = Number(item.qty) > 0 ? gramsForRecipeQuantity(item.name, Number(item.qty), item.unit ?? "ud") : null;
+  const match = productoDeLinea(item.name, catalogProducts, { gramos });
   if (match.product) {
     const buy = buyLineFromProduct(item, match.product);
     if (buy) {

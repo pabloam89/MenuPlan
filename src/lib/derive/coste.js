@@ -11,7 +11,6 @@
 // `cobertura`. Quien lea el coste decide si una cobertura baja le vale.
 
 import { gramsForRecipeQuantity, gramsPerPiece } from "../kitchenUnits.js";
-import { matchProductForIngredient } from "../productMatcher.js";
 import { productoDeLinea } from "../productoDeLinea.js";
 
 // El producto sale del mismo sitio que en la lista de la compra: la decisión
@@ -19,19 +18,14 @@ import { productoDeLinea } from "../productoDeLinea.js";
 // lo que no tiene fila (recetas de la familia escritas a mano). Antes aquí había
 // una cadena propia —nombre, nombre canónico, nombre sin adjetivos de cocina—
 // que podía elegir otro producto que la compra para el mismo ingrediente.
-function emparejar(nombre, productos, match) {
-  const r = productoDeLinea(nombre, productos, { emparejar: match });
-  return r.product ? r : null;
-}
 const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : null);
 
 /** € de una línea, o null si no se puede saber. */
-export function costeDeLinea(linea, productos, match = matchProductForIngredient) {
+export function costeDeLinea(linea, productos) {
   const nombre = linea?.name;
   const cantidad = num(linea?.amount ?? linea?.qty);
   if (!nombre || cantidad == null || cantidad <= 0) return null;
-  const encontrado = emparejar(nombre, productos, match);
-  const p = encontrado?.product;
+  const p = productoDeLinea(nombre, productos, { gramos: gramsForRecipeQuantity(nombre, cantidad, linea.unit) }).product;
   const granel = num(p?.bulkPrice);
   if (!p || granel == null || granel <= 0) return null;
   const formato = String(p.unitFormat ?? "").toLowerCase();
@@ -55,13 +49,13 @@ export function costeDeLinea(linea, productos, match = matchProductForIngredient
  * @returns {{ porRacion: number|null, total: number, cobertura: number,
  *   lineas: number, conPrecio: number, sinPrecio: string[] }}
  */
-export function costeDeReceta(receta, productos, match = matchProductForIngredient) {
+export function costeDeReceta(receta, productos) {
   const lineas = (receta?.ingredients ?? []).filter((l) => num(l.amount ?? l.qty) > 0);
   let total = 0;
   let conPrecio = 0;
   const sinPrecio = [];
   for (const l of lineas) {
-    const c = costeDeLinea(l, productos, match);
+    const c = costeDeLinea(l, productos);
     if (c) { total += c.euros; conPrecio++; } else sinPrecio.push(l.name);
   }
   const raciones = num(receta?.baseServings) || 4;
