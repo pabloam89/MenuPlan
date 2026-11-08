@@ -183,7 +183,7 @@ Files: `.claude/skills/mercadona/SKILL.md`
 Depends on: 13
 Blocked by: none
 Existing: la skill dice «Lista y no carrito» y «Nunca paga: no hay ningún paso de carrito, reparto ni pago» (`.claude/skills/mercadona/SKILL.md`, «Qué es»).
-Not done: la regla pasa a ser los tres pasos de Pablo (8 nov 2026): rellenar la lista, reservar la hora de entrega y pagar. Cada paso solo si la persona lo ha encendido (el dato del trozo 15), y cada uno incluye los de antes. Al carro se le suma la lista sin quitar lo que ya tenía. Nunca se paga sin que la persona confirme ese importe en ese pedido, y nunca más de lo confirmado: si no se puede leer el total, no se paga. Además el pago lo aprueba siempre la persona en su banco: confirmar en Mercadona manda a la autenticación del banco (SCA), y el bot no puede cerrarlo solo (`.claude/skills/mercadona/referencias/pedido.md` (#1410), «Pedido»). Es rebajar una regla de `.claude/`: el PR lleva la decisión de Pablo y necesita su Approve (C13).
+Not done: la regla pasa a ser los tres pasos de Pablo (8 nov 2026): rellenar la lista, reservar la hora de entrega y pagar. Cada paso solo si la persona lo ha encendido (el dato del trozo 15), y cada uno incluye los de antes. Al carro se le suma la lista sin quitar lo que ya tenía. Nunca se paga sin que la persona confirme ese importe en ese pedido, y nunca más de lo confirmado: si no se puede leer el total, no se paga. Además el pago lo aprueba siempre la persona en su banco: confirmar en Mercadona manda a la autenticación del banco (SCA), y el bot no puede cerrarlo solo (`.claude/skills/mercadona/referencias/pedido.md` (#1410), «Pedido»). Es rebajar una regla de `.claude/`: el PR lleva la decisión de Pablo y necesita su Approve (C13). No toca ningún check ni workflow: los dos que miran la skill (`revisor` y `tests`) siguen igual. Si una regla así rompe algo en staging o en main, se revierte el PR desde una rama nueva con otro PR.
 Done:
 ```sh
 grep -q "Nunca se paga sin que la persona confirme" .claude/skills/mercadona/SKILL.md && ! grep -q "Nunca paga" .claude/skills/mercadona/SKILL.md
@@ -235,7 +235,7 @@ npx vitest run api/_bot/mercadonaLlegaHasta.test.js
 
 ### 19. Al carro: la lista se suma a lo que ya hay
 Files: `scripts/lib/mercadonaPagina.mjs`, `scripts/lib/mercadonaTrabajador.mjs`, `scripts/mercadona-trabajador-carro.test.js`
-Depends on: 12, 13, 14, 15
+Depends on: 12, 13, 14, 15, 16
 Blocked by: none
 Existing: el trabajador escribe una lista nueva y no toca el carro (`scripts/lib/mercadonaPagina.mjs`), porque escribir el carro lo sustituye entero (skill, «Lista y no carrito»).
 Not done: lo hace la sesión `menuplan-f4`; se puede escribir antes de la 0133 (sin la columna no se llega al carro) y entra después del trozo 14. Con `llega_hasta` en `reservar` o `pagar`, el trabajador lee el carro (`GET …/cart/`, con su `version`), le suma la lista (mismo producto: se suman las cantidades) y lo escribe una sola vez (`PUT …/cart/` con el carrito entero y la `version` leída; `.claude/skills/mercadona/referencias/pedido.md` (#1410), «Carrito»). Lo que había sigue ahí. Comprueba que el total pasa del pedido mínimo (trozo 12) antes de seguir.
@@ -274,7 +274,8 @@ npx vitest run scripts/mercadona-trabajador-pago.test.js
 - principio 4 | eligió: de la dirección y del medio de pago, solo «tiene o no» (`tiene_direccion`, `tiene_pago`) | descartó: copiar la dirección o la tarjeta, que ya viven en Mercadona y serían una segunda fuente | motivo: decidido
 - principio 1 | eligió: las franjas libres se piden en el momento y solo se guarda la elegida | descartó: una tabla de franjas, que se quedaría vieja en un minuto | motivo: decidido
 - principio 4 | eligió: «hora de entrega» en lo que se ve y `franja` en el código y los datos, cada palabra en su sitio y siempre con el mismo significado | descartó: «franja» en la pantalla, que una familia no dice | motivo: decidido
-- principio 4 | eligió: el teléfono, sellado con la clave pública y abierto solo por el trabajador (`telefono_sellado`) | descartó: guardarlo en claro, o pedirlo en cada pedido | motivo: decidido
+- principio 6 | eligió: el teléfono, sellado con la clave pública y abierto solo por el trabajador (`telefono_sellado`), como la sesión | descartó: guardarlo en claro en la base, un atajo que deja leerlo a quien lea la tabla | motivo: decidido
+- principio 4 | eligió: un campo nuevo en el paso de la barra, `bloqueado`, para «Comprar» por debajo del mínimo (trozo 12) | descartó: reutilizar `ocupado`, que ya significa «rellenando»: una palabra con dos significados | motivo: decidido
 - principio 6 | eligió: ver primero cómo se tramita un pedido en una pasada a mano con la cuenta de Pablo (trozo 13) | descartó: escribir el trabajador a partir del README de un proyecto que nunca lo ha probado | motivo: decidido
 - principio 6 | eligió: probar Comprar en Mercadona en producción, `https://homenu.vercel.app` (Pablo, 8 nov 2026) | descartó: probar en staging, que Pablo ya no usa para esto | motivo: decidido
 - principio 6 | eligió: que la app de Android la construya otra sesión (Pablo, 8 nov 2026) | descartó: construirla desde este plan, que chocaría en `android/` con esa otra sesión | motivo: decidido
