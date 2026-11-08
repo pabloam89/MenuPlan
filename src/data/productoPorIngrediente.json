@@ -1,0 +1,4 @@
+{
+  "_doc": "Qué producto de cada súper corresponde a cada ingrediente. Esquema y vocabularios en src/data/productoSchema.js; lector en src/lib/productoDeLinea.js; propuestas con scripts/proponer-producto-por-ingrediente.mjs. Una fila por (ingredientId, alias, supermercado); alias null vale para todas las maneras de escribir el ingrediente.",
+  "filas": []
+}
