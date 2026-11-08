@@ -28,7 +28,7 @@ pública: se usa la misma llamada que su propia web.
 
 - **Solo cuentas de quien lo ha pedido.** Hoy, solo las casas de `MERCADONA_CASAS`:
   Pablo y quien él nombre, con su consentimiento. Pablo decidió el 8 nov 2026
-  abrirlo a otras familias sin esperar a Mercadona; se abre con el trozo 8 de
+  abrirlo a otras familias sin esperar a Mercadona; se abre con el trozo 10 de
   `specs/plan-comprar-mercadona.md` (apagado general, alarma de bloqueos y aviso
   en la pantalla de entrada), no antes. En paralelo, Pablo pide acceso a Mercadona.
 - **Sin disfraces.** Ni ocultar que es automático, ni cambiar huella o IP, ni
@@ -57,6 +57,9 @@ cierra el encargo. No tiene acceso a la base. Con el servidor de 1 GB, de uno en
   primera vez, «Comprar» → «Entra en tu cuenta de Mercadona. Solo esta vez» → la
   página de entrada dentro de la app de HoMenu → spinner → la app de Mercadona en la
   lista. Las demás veces, «Comprar» → spinner → la lista. Sin marcador y sin hojas.
+  Mientras no haya app de Android, se prueba con la web de HoMenu en el Android de
+  Pablo: Chrome con «Sitio de ordenador», entrar en Mercadona y lanzar el marcador
+  (trozo 6 del plan).
 - **Conectar una cuenta:** hoy, desde un ordenador. La sesión se sella en el navegador
   (`src/lib/mercadonaSello.js`) y se envía sellada. Basta con el `localStorage` y las
   cookies que no son `httpOnly`: comprobado el 6 nov 2026 en un navegador limpio (leer listas, 200).
@@ -111,7 +114,8 @@ Sin asesoría legal: no es una opinión de abogado.
   aislada. Que la persona tenga su app abierta no ahorra la entrada en HoMenu.
 - Sin importar listas por enlace, y sin llamadas desde otra web ni iframe.
 - La app de HoMenu solo existe para iPhone (`@capacitor/ios` en `package.json`, sin
-  `@capacitor/android`).
+  `@capacitor/android`); Pablo prueba en Android, con la web de HoMenu. La app de
+  Android es el trozo 7 del plan, pendiente de su decisión A.
 
 ## La sesión: cuánto dura
 
