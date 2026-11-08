@@ -236,6 +236,32 @@ describe("cambiar de cuenta con confirmación (#1238)", () => {
   });
 });
 
+// /cuentadeantes (#1238): el Telegram vuelve a la cuenta que nació en él. Es lo que hace que el cambio sin preguntar no
+// deje una casa sin entrada: la cuenta nacida siempre se recupera desde su propio privado.
+describe("volver a la cuenta nacida en este Telegram", () => {
+  const APP = "u-app";
+  const NACIDA = "u-nacida";
+  const pasadoALaApp = () => {
+    filas.bot_identities = [{ channel: "telegram", external_id: "777", user_id: APP }];
+    filas.bot_chats = [{ chat_id: "777", household_id: "h-app", linked_by: APP }];
+  };
+
+  it("en su propio privado, la nacida recupera el Telegram y el chat vuelve a su casa", async () => {
+    pasadoALaApp();
+    const r = await enlazarChat({ chatId: "777", kind: "private", householdId: "h-nacida", userId: NACIDA, externalId: "777", identidad: PRUEBA_IDENTIDAD.NACIDA });
+    expect(r.ok).toBe(true);
+    expect(identidadDe("777")).toBe(NACIDA);
+    expect(filas.bot_chats[0]).toMatchObject({ household_id: "h-nacida", linked_by: NACIDA });
+  });
+
+  it("en un chat que no es el suyo, no se lleva nada", async () => {
+    filas.bot_identities = [{ channel: "telegram", external_id: "777", user_id: APP }];
+    filas.bot_chats = [{ chat_id: "c-otro", household_id: "h-app", linked_by: APP }];
+    const r = await enlazarChat({ chatId: "c-otro", kind: "private", householdId: "h-nacida", userId: NACIDA, externalId: "777", identidad: PRUEBA_IDENTIDAD.NACIDA });
+    expect(r).toEqual({ ok: false, ocupado: true });
+  });
+});
+
 describe("cada intento de enlace queda apuntado (bot_enlaces, #1238)", () => {
   it("nuevo, ya estaba y casa cambiada, según cómo estaba el chat", async () => {
     await enlazar({ chatId: "p1", kind: "private", userId: TITULAR, externalId: "555", identidad: null });
