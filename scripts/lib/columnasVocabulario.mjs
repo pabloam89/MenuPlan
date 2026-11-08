@@ -105,7 +105,7 @@ export const ESCRITORES_SQL = Object.freeze({
   "mercadona_encargo.status": "tomar_encargo_mercadona (0131) escribe el valor fijo 'rellenando', de la lista; el default 'pendiente' lo pone la base",
   "mercadona_encargo.canal": "solo la autoprueba de la 0131 ('app', en un bloque que se deshace); encargar lo pasa por paraEscribir",
   "mercadona_encargo.fallo": "solo la autoprueba de la 0131 (caducado, en un bloque que se deshace); cerrar y barrerCaducados lo pasan por paraEscribir",
-  "mercadona_cuenta.llega_hasta": "el default 'lista' de la 0133, que deja las cuentas de antes en el primer paso; la app y Lola lo cambiarán con valores de la lista (trozos 17 y 18)",
+  "mercadona_cuenta.llega_hasta": "el default 'lista' de la 0133, que deja las cuentas de antes en el primer paso; y el trigger mercadona_cuenta_al_reconectar (0133), que lo devuelve a 'lista' si conecta otra persona; la app y Lola lo cambiarán con valores de la lista (trozos 17 y 18)",
   "mercadona_cuenta.estado": "el default 'conectada' de la 0131; conectar y cerrar (api/_bot/mercadonaEncargos.js) escriben valores de la lista",
   "bot_tareas.aviso": "solo la autoprueba de la 0122 ('libre', en un bloque que se deshace); el código lo escribe con el PR 2 del trozo 34",
   "bot_tareas.repite": "solo la autoprueba de la 0122 ('semanal', en un bloque que se deshace); el código lo escribe con el PR 2 del trozo 34",

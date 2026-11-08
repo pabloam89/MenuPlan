@@ -98,7 +98,7 @@ export async function barrerCaducados({ casa = null, ahora = Date.now() } = {}) 
 }
 
 /** Lo de la cuenta que se enseña (0133): sin la sesión ni el teléfono, solo si lo hay. */
-const DE_LA_CUENTA = "estado,llega_hasta,tiene_direccion,tiene_pago,telefono_sellado";
+const DE_LA_CUENTA = "estado,llega_hasta,revisada_at,tiene_direccion,tiene_pago,telefono_sellado";
 
 /**
  * La cuenta de la casa, o undefined. Sin las columnas de la 0133 (42703), solo `estado`: el resto sale como una fila de
