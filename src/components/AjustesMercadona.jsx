@@ -12,6 +12,19 @@ const caja = {
   overflow: "hidden",
 };
 
+// Una insignia como «Plan Free» del perfil: texto `marca` sobre `marca-fondo`, en píldora.
+const pildora = {
+  display: "inline-block",
+  marginLeft: espaciado["esp-8"],
+  padding: `${espaciado["esp-2"]}px ${espaciado["esp-8"]}px`,
+  borderRadius: radio["radio-pildora"],
+  background: tono["marca-fondo"],
+  color: tono.marca,
+  fontSize: tipografia["paso-11"],
+  fontWeight: tipografia["peso-800"],
+  verticalAlign: "middle",
+};
+
 function Fila({ nombre, primera, children, nota }) {
   return (
     <div
@@ -24,11 +37,7 @@ function Fila({ nombre, primera, children, nota }) {
     >
       <span style={{ flex: 1, fontSize: tipografia["paso-14"], fontWeight: tipografia["peso-800"], color: tono.tinta }}>
         {nombre}
-        {nota && (
-          <span style={{ marginLeft: espaciado["esp-8"], fontSize: tipografia["paso-12"], fontWeight: tipografia["peso-700"], color: tono["tinta-suave"] }}>
-            {nota}
-          </span>
-        )}
+        {nota && <span style={pildora}>{nota}</span>}
       </span>
       {children}
     </div>
