@@ -1945,9 +1945,11 @@ async function enlazarDesdeAjustes(msg, chatId, esGrupo, token, { callado = fals
   if (cambia) {
     // a propósito: sin el email, el aviso sale igual, sin decir cuál es la cuenta.
     const email = await emailDeCuenta(fila.user_id).catch(seguirCon("cambio_de_cuenta", null));
-    await enviar(chatId, avisoDeCambioDeCuenta({ email, volver }));
+    // Sin el «¡Listo!» de después: el aviso ya lo dice todo (Álvaro: una línea y ya).
+    await enviar(chatId, avisoDeCambioDeCuenta({ email, volver }), callado ? {} : { teclado: TECLADO });
+    return callado ? { ok: true, cambio: true } : null;
   }
-  if (callado) return { ok: true, cambio: cambia };
+  if (callado) return { ok: true, cambio: false };
   return confirmarEnlace(chatId, fila.household_id, esGrupo);
 }
 
