@@ -306,7 +306,7 @@ function FilaMercadona({ casa }) {
       <ProfileOptionRow
         img={logoMercadona}
         title="Mercadona"
-        subtitle={m.conectada ? "Hago tu lista en Mercadona" : "Sin entrar en tu cuenta"}
+        subtitle={m.conectada ? "Relleno tu lista en Mercadona" : "Sin entrar en tu cuenta de Mercadona"}
         onClick={() => setAbierta(true)}
       />
       {abierta && (

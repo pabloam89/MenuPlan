@@ -36,7 +36,7 @@ function Fila({ nombre, primera, children, nota }) {
 }
 
 /**
- * Dos interruptores. «Hacer la lista» es estar dentro de la cuenta de Mercadona: encenderlo lleva a entrar y apagarlo
+ * Dos interruptores. «Rellenar la lista» es estar dentro de la cuenta de Mercadona: encenderlo lleva a entrar y apagarlo
  * es salir; no se guarda nada aparte. «Pagar la compra» se ve, apagado y sin poder encenderse: HoMenu no paga (skill
  * `mercadona`), y no hay dato que guardar hasta que un plan propio lo pruebe.
  * En la hoja de la primera vez (`encendido`), «Hacer la lista» empieza encendido: es lo que se pidió al pulsar Comprar.
