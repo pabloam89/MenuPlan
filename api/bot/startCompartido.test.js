@@ -120,16 +120,17 @@ describe("/start: cambiar de cuenta, solo y sin preguntar (#1238)", () => {
   const TOKEN = "Q3xk9TzA1bVwPq7yRt2uAb";
   const conCodigo = () => ({ ...codigoValido(TOKEN), user_profiles: [{ email: "ana@gmail.com" }] });
 
-  it("pasa a la cuenta de la app con la prueba del cambio, gasta el enlace y lo dice, sin botones", async () => {
+  it("pasa a la cuenta de la app con la prueba del cambio, gasta el enlace y lo dice en un solo mensaje, sin botones", async () => {
     t.tablas = conCodigo();
     t.deAntes = "u-antes";
     await escribe(`/start ${TOKEN}`);
     expect(update).toHaveBeenCalledWith("bot_link_tokens", expect.anything(), expect.anything());
     expect(enlazarChat).toHaveBeenCalledWith(expect.objectContaining({ userId: "u1", householdId: "h1", identidad: "cambio" }));
-    const aviso = t.enviados.find((e) => /Ahora hablo con la cuenta/.test(e.texto));
-    expect(aviso.texto).toContain("ana@gmail.com");
-    expect(aviso.opciones?.botones).toBeUndefined();
-    expect(t.enviados.map((e) => e.texto).join(" ")).not.toMatch(/¿Lo pasas/);
+    // Un solo mensaje, la cuenta y ya: sin el «¡Listo!» de después (Álvaro, 8 nov 2026).
+    expect(t.enviados.map((e) => e.texto)).toEqual(["✅ Cuenta: <b>ana@gmail.com</b>"]);
+    expect(t.enviados[0].opciones?.botones).toBeUndefined();
+    const { confirmarEnlace } = await import("../_bot/enlace.js");
+    expect(confirmarEnlace).not.toHaveBeenCalled();
   });
 
   it("con algo pedido desde la app: cambia y lo atiende ya en la casa nueva, con un solo aviso", async () => {
@@ -139,7 +140,7 @@ describe("/start: cambiar de cuenta, solo y sin preguntar (#1238)", () => {
     await escribe(`/start ${TOKEN}-g`);
     expect(enlazarChat).toHaveBeenCalledWith(expect.objectContaining({ identidad: "cambio" }));
     const textos = t.enviados.map((e) => e.texto).join(" ");
-    expect(textos).toMatch(/Ahora hablo con la cuenta/);
+    expect(textos).toMatch(/✅ Cuenta:/);
     expect(textos).not.toMatch(/pídemelo otra vez|Ahora estoy con/);
     expect(enTurno).toHaveBeenCalled();
   });
@@ -151,16 +152,14 @@ describe("/start: cambiar de cuenta, solo y sin preguntar (#1238)", () => {
     t.atrapa = true;
     await escribe(`/start ${TOKEN}`);
     expect(enlazarChat).toHaveBeenCalledWith(expect.objectContaining({ identidad: "cambio" }));
-    expect(t.enviados.find((e) => /Ahora hablo/.test(e.texto)).texto).toContain("/cuentadeantes");
+    expect(t.enviados.find((e) => /✅ Cuenta:/.test(e.texto)).texto).toContain("/cuentadeantes");
   });
 
-  it("si la de antes no nació aquí, el aviso dice que se vuelve entrando en la app con ella", async () => {
+  it("si la de antes no nació aquí, el aviso es solo la cuenta: se vuelve a ella entrando en la app con ella", async () => {
     t.tablas = conCodigo();
     t.deAntes = "u-antes";
     await escribe(`/start ${TOKEN}`);
-    const aviso = t.enviados.find((e) => /Ahora hablo/.test(e.texto)).texto;
-    expect(aviso).not.toContain("/cuentadeantes");
-    expect(aviso).toMatch(/entra en la app con ella/);
+    expect(t.enviados.find((e) => /✅ Cuenta:/.test(e.texto)).texto).not.toContain("/cuentadeantes");
   });
 
   it("si dejaría una casa con gente sin entrada y sin vuelta, no se mueve (#1302)", async () => {
@@ -216,7 +215,7 @@ describe("/start: cambiar de cuenta, solo y sin preguntar (#1238)", () => {
     t.deAntes = "u1";
     await escribe(`/start ${TOKEN}`);
     expect(enlazarChat).toHaveBeenCalledWith(expect.objectContaining({ identidad: "ajustes" }));
-    expect(t.enviados.map((e) => e.texto).join(" ")).not.toMatch(/Ahora hablo/);
+    expect(t.enviados.map((e) => e.texto).join(" ")).not.toMatch(/✅ Cuenta/);
   });
 });
 

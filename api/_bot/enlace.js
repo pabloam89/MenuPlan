@@ -78,17 +78,15 @@ export const pideCambioDeCuenta = ({ esGrupo, deAntes, userId }) => Boolean(!esG
 export const VOLVER_A_LA_DE_ANTES = "/cuentadeantes";
 
 /**
- * Pura. Lo que dice Lola cuando este Telegram pasa solo a la cuenta con la que se ha entrado en la app (#1238). No
- * pregunta: un «No» por despiste dejaba a la persona en la cuenta que ya no usa. Dice con cuál habla ahora y cómo
- * volver. `email`: el de la cuenta de la app (el sintético de una cuenta de Telegram no se enseña). `volver`: la de
- * antes nació en este Telegram y /cuentadeantes la recupera; si no, se vuelve entrando en la app con ella.
+ * Pura. Lo que dice Lola cuando este Telegram pasa solo a la cuenta con la que se ha entrado en la app (#1238): una
+ * línea, la cuenta y ya (Álvaro, 8 nov 2026: «súper conciso, que sea un check»). No pregunta: un «No» por despiste
+ * dejaba a la persona en la cuenta que ya no usa. `email`: el de la cuenta de la app (el sintético de una cuenta de
+ * Telegram no se enseña). `volver`: la de antes nació en este Telegram y solo /cuentadeantes la recupera, así que eso
+ * sí se dice; las demás se recuperan entrando en la app con ellas, como esta.
  */
 export function avisoDeCambioDeCuenta({ email = null, volver = false } = {}) {
-  const cual = email && !email.endsWith(`@${DOMINIO_SINTETICO}`) ? ` (<b>${escaparHtml(email)}</b>)` : "";
-  return `🔄 Ahora hablo con la cuenta con la que has entrado en la app${cual}. Lo de la otra cuenta se queda guardado en ella.`
-    + (volver
-      ? `\n\nSi quieres volver a la de antes, escríbeme ${VOLVER_A_LA_DE_ANTES}.`
-      : "\n\nPara volver a la otra, entra en la app con ella y pulsa «Pídeselo a Lola».");
+  const cuenta = email && !email.endsWith(`@${DOMINIO_SINTETICO}`) ? `✅ Cuenta: <b>${escaparHtml(email)}</b>` : "✅ Cuenta de la app conectada";
+  return cuenta + (volver ? `\nVolver a la anterior: ${VOLVER_A_LA_DE_ANTES}` : "");
 }
 
 /**
