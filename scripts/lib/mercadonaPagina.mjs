@@ -1,6 +1,7 @@
 /**
  * Lo que un navegador hace en la web de Mercadona: la misma para el prototipo a mano (scripts/mercadona-navegador.mjs)
- * y para el trabajador (scripts/mercadona-trabajador.mjs). Solo lista: no toca el carrito ni el pago.
+ * y para el trabajador (scripts/mercadona-trabajador.mjs). Rellena la lista y mira si la cuenta tiene dirección y medio
+ * de pago (referencias/pedido.md de la skill); no toca el carrito ni el pago.
  * Sin disfraces: si Mercadona bloquea, se para y se cuenta.
  */
 import { compararLista, leerGuardada } from "../../src/lib/mercadonaLista.js";
@@ -35,6 +36,39 @@ export const enPagina = async (lista) => {
   const g = await fetch(`${base}${id}/?lang=es`, { headers: cabeceras });
   return { paso: "leer", status: g.status, id, guardada: g.ok ? await g.json() : null };
 };
+
+// Corre dentro de su página: si la cuenta tiene dirección (`count` de sus direcciones) y medio de pago
+// (`has_active_billing` del perfil). Solo vuelven dos booleanos, o el paso que falló: ni la dirección ni la tarjeta salen.
+export const enPaginaRevisar = async () => {
+  let u = null;
+  try {
+    u = JSON.parse(localStorage.getItem("MO-user"));
+  } catch {
+    return { paso: "sesion" };
+  }
+  if (!u?.token || !u?.uuid) return { paso: "sesion" };
+  const cabeceras = { authorization: `Bearer ${u.token}` };
+  const base = `/api/customers/${u.uuid}/`;
+  const d = await fetch(`${base}addresses/?lang=es`, { headers: cabeceras });
+  if (!d.ok) return { paso: "direcciones", status: d.status };
+  const p = await fetch(`${base}?lang=es`, { headers: cabeceras });
+  if (!p.ok) return { paso: "perfil", status: p.status };
+  const { count } = await d.json();
+  const { has_active_billing } = await p.json();
+  return { tiene_direccion: Number(count) > 0, tiene_pago: has_active_billing === true };
+};
+
+/** Pura. Lo que vuelve de la página: la revisión (`{ tiene_direccion, tiene_pago }`) o null si no se pudo mirar. */
+export const revisionDe = (r) =>
+  typeof r?.tiene_direccion === "boolean" && typeof r?.tiene_pago === "boolean"
+    ? { tiene_direccion: r.tiene_direccion, tiene_pago: r.tiene_pago }
+    : null;
+
+/** Mira la cuenta: la revisión, o `{ fallo: paso, status }` si una llamada no contestó bien. */
+export async function revisarCuenta(pagina) {
+  const r = await pagina.evaluate(enPaginaRevisar);
+  return revisionDe(r) ?? { fallo: r?.paso ?? "desconocido", status: r?.status ?? 0 };
+}
 
 /** Abre la tienda: `{ resultado, status }`, con `resultado` null si no ha bloqueado. */
 export async function abrirPortada(pagina) {

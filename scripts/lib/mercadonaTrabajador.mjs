@@ -6,7 +6,7 @@
  * Nunca se imprime la sesión, ni se guarda en disco: vive en memoria lo que dura un encargo.
  */
 import { erroresDeLista } from "../../src/lib/mercadonaLista.js";
-import { crearLista, entrarEnTienda } from "./mercadonaPagina.mjs";
+import { crearLista, entrarEnTienda, revisarCuenta } from "./mercadonaPagina.mjs";
 import { FALLO_ENCARGO_MERCADONA as FALLO } from "../../src/lib/mercadonaFallos.js";
 
 /** Lo que se permite por encargo: pasado esto, lo da por fallido y sigue. Menor que CADUCA_RELLENANDO_MIN; un test los ata. */
@@ -30,10 +30,17 @@ export function resultadoDeEncargo(r) {
   return { fallo: FALLO.ERROR };
 }
 
-async function trabajar(pagina, lista) {
+/**
+ * Ya dentro: mira la cuenta y rellena la lista. La revisión va con el cierre (`revision`) si se pudo mirar; si no, se
+ * dice en el log y el encargo sigue: no saber si hay dirección no impide rellenar la lista.
+ */
+async function trabajar(pagina, lista, log) {
   const portada = await entrarEnTienda(pagina);
   if (portada.resultado) return resultadoDeEncargo(portada);
-  return resultadoDeEncargo(await crearLista(pagina, lista));
+  const revision = await revisarCuenta(pagina);
+  if (revision.fallo) log(`revisión sin hacer: ${revision.fallo} ${revision.status}`);
+  const cierre = resultadoDeEncargo(await crearLista(pagina, lista));
+  return revision.fallo ? cierre : { ...cierre, revision };
 }
 
 function conTope(promesa, ms) {
@@ -62,7 +69,7 @@ export async function atender({ encargo, sesion_cifrada }, { abrirSesion, abrirN
   }
   const { pagina, cerrar } = await abrirNavegador(estado);
   try {
-    return await conTope(trabajar(pagina, encargo.lista), topeMs);
+    return await conTope(trabajar(pagina, encargo.lista, log), topeMs);
   } finally {
     await cerrar();
   }
