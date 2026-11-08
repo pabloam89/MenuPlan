@@ -25,7 +25,7 @@ afterEach(async () => {
 describe("ResumenCompra", () => {
   it("productos y su total; debajo, ingredientes sin producto y sin cifra; raya y presupuesto", async () => {
     await pintar({ sinProducto: 3, presupuesto: "80 €" });
-    expect(celdas()).toEqual(["12 productos", "45 €", "3 ingredientes sin producto", "", "—", "Presupuesto", "80 €"]);
+    expect(celdas()).toEqual(["12 productos", "45 €", "3 ingredientes sin producto", "—", "Presupuesto", "80 €"]);
   });
 
   it("sin ingredientes sin producto ni presupuesto, una sola fila", async () => {
@@ -35,6 +35,6 @@ describe("ResumenCompra", () => {
 
   it("en singular, producto e ingrediente", async () => {
     await pintar({ productos: 1, sinProducto: 1 });
-    expect(celdas()).toEqual(["1 producto", "45 €", "1 ingrediente sin producto", ""]);
+    expect(celdas()).toEqual(["1 producto", "45 €", "1 ingrediente sin producto"]);
   });
 });

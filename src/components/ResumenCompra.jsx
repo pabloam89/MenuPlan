@@ -6,8 +6,11 @@
 
 const tabla = {
   display: "grid",
-  gridTemplateColumns: "1fr auto",
-  columnGap: "var(--esp-12)",
+  // Cada cifra pegada a su concepto, no al borde: la tabla mide lo que su
+  // texto, y la parte derecha de la cabecera queda para las semanas.
+  gridTemplateColumns: "auto auto",
+  justifyContent: "start",
+  columnGap: "var(--esp-24)",
   rowGap: "var(--esp-4)",
   alignItems: "baseline",
   fontSize: "var(--tipo-paso-13)",
@@ -42,11 +45,9 @@ export default function ResumenCompra({ productos, sinProducto, total, presupues
     <div style={tabla}>
       <span>{cuantos(productos, "producto", "productos")}</span>
       <span style={{ ...cifra, fontWeight: "var(--tipo-peso-900)" }}>{total}</span>
+      {/* Sin cifra: ocupa las dos columnas y no ensancha la de los conceptos. */}
       {sinProducto > 0 && (
-        <>
-          <span style={suave}>{cuantos(sinProducto, "ingrediente sin producto", "ingredientes sin producto")}</span>
-          <span />
-        </>
+        <span style={{ ...suave, gridColumn: "1 / -1" }}>{cuantos(sinProducto, "ingrediente sin producto", "ingredientes sin producto")}</span>
       )}
       {presupuesto && (
         <>
