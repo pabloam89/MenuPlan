@@ -1484,7 +1484,7 @@ export function ShoppingScreen({
 
       {comprarAbierto && paraComprar && (
         <HojaComprar
-          resumen={`${paraComprar.lineas.length} productos · ${conCentimos(paraComprar.total)}`}
+          resumen={`${paraComprar.lineas.length} productos por ${conCentimos(paraComprar.total)}`}
           mercadona={mercadona}
           onClose={() => setComprarAbierto(false)}
         />

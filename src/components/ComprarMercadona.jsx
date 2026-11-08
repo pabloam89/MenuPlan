@@ -1,5 +1,5 @@
 import { ArrowUpRight } from "./icons.jsx";
-import { Conectar } from "./ConectarMercadona.jsx";
+import { AjustesMercadona } from "./AjustesMercadona.jsx";
 import { BOTON, TEXTO } from "./mercadonaEstilos.js";
 import { enlaceDeLista } from "../lib/mercadonaList.js";
 import { PASO_COMPRAR, textoDeEncargo } from "../lib/mercadonaApp.js";
@@ -8,7 +8,7 @@ import { PASO_COMPRAR, textoDeEncargo } from "../lib/mercadonaApp.js";
 export function RellenarMercadona({ m }) {
   const { encargo, esperando, sinNoticias, aviso, rellenar } = m;
   if (!m.servicio) return null;
-  if (!m.conectada) return <Conectar caducada={m.caducada} />;
+  if (!m.conectada) return <AjustesMercadona m={m} encendido />;
 
   return (
     <div style={{ display: "grid", gap: "var(--esp-8)" }}>

@@ -12,7 +12,7 @@ const pintar = async (mercadona) => {
   caja = document.createElement("div");
   document.body.append(caja);
   raiz = createRoot(caja);
-  await act(async () => raiz.render(<HojaComprar resumen="21 productos · 109,14 €" mercadona={mercadona} onClose={() => {}} />));
+  await act(async () => raiz.render(<HojaComprar resumen="21 productos por 109,14 €" mercadona={mercadona} onClose={() => {}} />));
 };
 // Una cuenta conectada sin nada pedido: lo que pinta RellenarMercadona.
 const CONECTADA = { servicio: true, conectada: true, encargo: null, esperando: false, sinNoticias: false, aviso: null, rellenar: vi.fn(), mirar: vi.fn(), desconectar: vi.fn() };
