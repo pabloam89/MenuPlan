@@ -8,9 +8,10 @@
  * descargar su app y no deja entrar. Solo para esta página, y sin esquivar nada más.
  */
 import { InAppBrowser, ToolBarType } from "@capgo/capacitor-inappbrowser";
-import { estadoDeMarcador, ORIGEN_TIENDA } from "./mercadonaConectar.js";
+import { CLAVE_SESION_TIENDA, estadoDeMarcador, ORIGEN_TIENDA } from "./mercadonaConectar.js";
 import { sellar } from "./mercadonaSello.js";
 import { guardarSesion, leerEstado } from "./mercadonaApp.js";
+import { NO_ENTRADO_MERCADONA as NO_ENTRADO } from "./vocabularios.js";
 
 export const UA_ORDENADOR =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15";
@@ -18,12 +19,10 @@ export const UA_ORDENADOR =
 export const ESPERA_ENTRAR_MS = 5 * 60 * 1000;
 export const CADA_MS = 2000;
 
-/** Por qué no se ha guardado la sesión: lo que la hoja tiene que explicar. */
-export const NO_ENTRADO = Object.freeze({ CERRADA: "cerrada", TIEMPO: "tiempo", SIN_CLAVE: "sin_clave", NO_GUARDADA: "no_guardada" });
 
 // Corre dentro de la página de Mercadona: si ya hay sesión, se la pasa a la app por el puente del complemento.
 export const MIRAR_SESION = `(() => {
-  const mo = localStorage.getItem("MO-user");
+  const mo = localStorage.getItem(${JSON.stringify(CLAVE_SESION_TIENDA)});
   if (!mo) return;
   let s = null;
   try { s = JSON.parse(mo); } catch (e) { return; }
