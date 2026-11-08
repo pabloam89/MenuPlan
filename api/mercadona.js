@@ -7,7 +7,7 @@
  *   POST { casa, encargar: { lista } }         { encargo } o { fallo }; quien edita la casa
  *   POST { casa, conectar: { sesion_cifrada } }  guarda la sesión ya sellada en el navegador; quien edita la casa
  *   POST { casa, desconectar: true }           borra la sesión; quien edita la casa
- *   POST { casa, elegir: { encargo, hora de entrega } }  la hora de entrega, una de las ofrecidas (0134); quien edita la casa
+ *   POST { casa, elegir: { encargo, hora_id } }  la hora de entrega, una de las ofrecidas (0134); quien edita la casa
  *
  * El trabajador, con MERCADONA_TRABAJADOR_TOKEN, que solo vale aquí (?trabajador=1):
  *   POST { accion: "tomar" }                   { siguiente: { encargo, sesion_cifrada, … } | null }
@@ -85,7 +85,7 @@ async function app(req, res) {
   }
   if (!puede(papel, "editar_casa")) return res.status(403).json({ error: "sin permiso" });
   const { encargar: pedido, conectar: conexion, desconectar: quitar, elegir } = req.body;
-  if (elegir) return res.status(200).json(await elegirHoraEntrega({ casa, encargo: elegir.encargo, hora_entrega: elegir.hora_entrega }));
+  if (elegir) return res.status(200).json(await elegirHoraEntrega({ casa, encargo: elegir.encargo, hora_id: elegir.hora_id }));
   if (pedido) return res.status(200).json(await encargar({ casa, por: user.id, canal: "app", lista: pedido.lista }));
   // Desconectar no pasa por esta puerta: una casa fuera de la lista tiene que poder borrar su sesión.
   if (conexion && !casaPermitida(casa)) return res.status(403).json({ error: "sin permiso" });

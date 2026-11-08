@@ -28,6 +28,7 @@ vi.mock("./avisar.js", () => ({ avisarFallo: vi.fn() }));
 const { enviar } = await import("./telegram.js");
 const { avisarFallo } = await import("./avisar.js");
 const m = await import("./mercadonaEncargos.js");
+const { TRAS_LA_LISTA } = await import("../../src/lib/mercadonaHoraEntrega.js");
 const lola = await import("./mercadonaLola.js");
 
 const error = (codigo) => Object.assign(new Error("x"), { codigo });
@@ -115,19 +116,19 @@ describe("avisoDeCierre tras la lista", () => {
   it.each(["bajo_minimo", "sin_direccion", "sin_horas", "hora_ocupada", "caducado"])("%s: la lista está, y lo que pasó", (fallo) => {
     const t = m.avisoDeCierre({ chat_id: "9", status: "fallido", fallo, lista_xid: "77" });
     expect(t).toMatch(/^Ya tienes la lista en Mercadona, pero /);
-    expect(t).toContain(m.TRAS_LA_LISTA[fallo]);
+    expect(t).toContain(TRAS_LA_LISTA[fallo]);
   });
 
   it("los fallos de reservar tienen su frase", async () => {
     const { FALLOS_ENCARGO_MERCADONA } = await import("../../src/lib/mercadonaFallos.js");
-    expect(FALLOS_ENCARGO_MERCADONA).toEqual(expect.arrayContaining(Object.keys(m.TRAS_LA_LISTA)));
+    expect(FALLOS_ENCARGO_MERCADONA).toEqual(expect.arrayContaining(Object.keys(TRAS_LA_LISTA)));
   });
 });
 
 describe("elegir la hora", () => {
   it("una de las ofrecidas: pasa a reservando con ella entera y suelta las demás", async () => {
     db.encargo = [{ id: ID, horas_entrega: [F1, F2] }];
-    expect(await m.elegirHoraEntrega({ casa: CASA, encargo: ID, hora_entrega: "f2" }, AHORA)).toEqual({ encargo: { id: ID, status: "reservando", hora_entrega: F2 } });
+    expect(await m.elegirHoraEntrega({ casa: CASA, encargo: ID, hora_id: "f2" }, AHORA)).toEqual({ encargo: { id: ID, status: "reservando", hora_entrega: F2 } });
     expect(db.escrito[0]).toEqual({
       tabla: "mercadona_encargo", filtro: `id=eq.${ID}&status=eq.eligiendo`,
       cambios: { status: "reservando", hora_entrega: F2, horas_entrega: null, reservando_at: CUANDO },
@@ -141,16 +142,16 @@ describe("elegir la hora", () => {
 
   it("una que no se ofreció, o sin nada que elegir, no escribe", async () => {
     db.encargo = [{ id: ID, horas_entrega: [F1] }];
-    expect(await m.elegirHoraEntrega({ casa: CASA, encargo: ID, hora_entrega: "otra" })).toEqual({ fallo: "no_ofrecida" });
+    expect(await m.elegirHoraEntrega({ casa: CASA, encargo: ID, hora_id: "otra" })).toEqual({ fallo: "no_ofrecida" });
     db.encargo = [];
-    expect(await m.elegirHoraEntrega({ casa: CASA, encargo: ID, hora_entrega: "f1" })).toEqual({ fallo: "sin_elegir" });
+    expect(await m.elegirHoraEntrega({ casa: CASA, encargo: ID, hora_id: "f1" })).toEqual({ fallo: "sin_elegir" });
     db.encargo = [{ id: ID, horas_entrega: null }];
     expect(await m.elegirHoraEntrega({ casa: CASA, encargo: ID, posicion: 0 })).toEqual({ fallo: "sin_elegir" });
     expect(db.escrito).toEqual([]);
   });
 
   it("un id que no es de encargo es un fallo de quien llama", async () => {
-    await expect(m.elegirHoraEntrega({ casa: CASA, encargo: "x", hora_entrega: "f1" })).rejects.toThrow(m.PeticionMala);
+    await expect(m.elegirHoraEntrega({ casa: CASA, encargo: "x", hora_id: "f1" })).rejects.toThrow(m.PeticionMala);
   });
 
   it("el botón de Telegram lleva el encargo y la posición, y nada más", () => {

@@ -85,9 +85,9 @@ describe("la app", () => {
   });
 
   it("elige la hora de entrega quien edita la casa; quien solo la ve, no", async () => {
-    const cuerpo = { casa: CASA, elegir: { encargo: "e1", hora_entrega: "f1" } };
+    const cuerpo = { casa: CASA, elegir: { encargo: "e1", hora_id: "f1" } };
     expect((await llamar({ token: "buena", body: cuerpo })).datos).toEqual({ encargo: { id: "e1", status: "reservando" } });
-    expect(e.elegirHoraEntrega).toHaveBeenCalledWith({ casa: CASA, encargo: "e1", hora_entrega: "f1" });
+    expect(e.elegirHoraEntrega).toHaveBeenCalledWith({ casa: CASA, encargo: "e1", hora_id: "f1" });
     papelDeUsuario.mockResolvedValue("viewer");
     expect((await llamar({ token: "buena", body: cuerpo })).statusCode).toBe(403);
     expect(e.elegirHoraEntrega).toHaveBeenCalledTimes(1);

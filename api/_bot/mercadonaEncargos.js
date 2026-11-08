@@ -19,7 +19,7 @@ import { NO_EXISTE, PG_SIN_COLUMNA, PG_VIOLA_CHECK } from "../../src/lib/postgre
 import * as ids from "../../src/lib/ids.js";
 import { LLEGA_HASTA, LLEGA_HASTA_MERCADONA, deUnaCuenta, faltaPara } from "../../src/lib/mercadonaLlegaHasta.js";
 import { esSello } from "../../src/lib/mercadonaSello.js";
-import { textoDeHoraEntrega } from "../../src/lib/mercadonaHoraEntrega.js";
+import { TRAS_LA_LISTA, TRAS_LA_LISTA_OTRO, textoDeHoraEntrega } from "../../src/lib/mercadonaHoraEntrega.js";
 import { momentoDeCasa, nombreDia } from "../../src/lib/dias.js";
 
 const { PENDIENTE, RELLENANDO, ELIGIENDO, RESERVANDO, HECHO, FALLIDO } = ESTADO_ENCARGO_MERCADONA;
@@ -61,15 +61,6 @@ export function casaPermitida(casa, entorno = process.env.MERCADONA_CASAS) {
   return String(entorno ?? "").split(",").map((c) => c.trim()).includes(casa);
 }
 
-/** Lo que se dice cuando falla reservar la hora, con la lista ya en Mercadona (0134). */
-export const TRAS_LA_LISTA = Object.freeze({
-  [FALLO_ENCARGO_MERCADONA.BAJO_MINIMO]: "no llega al pedido mínimo de Mercadona. Añade algo y tramítalo allí.",
-  [FALLO_ENCARGO_MERCADONA.SIN_DIRECCION]: "tu cuenta de Mercadona no tiene dirección. Añádela allí y elige la hora.",
-  [FALLO_ENCARGO_MERCADONA.SIN_HORAS]: "ahora no hay horas de entrega libres. Mira en la app de Mercadona más tarde.",
-  [FALLO_ENCARGO_MERCADONA.HORA_OCUPADA]: "esa hora se acaba de ocupar. Elige otra en la app de Mercadona.",
-  [FALLO_ENCARGO_MERCADONA.CADUCADO]: "no se ha elegido la hora a tiempo. Elígela en la app de Mercadona.",
-});
-const TRAS_LA_LISTA_OTRO = "no he podido reservar la hora de entrega. Elígela en la app de Mercadona.";
 
 const euros = (n) => `${Number(n).toFixed(2).replace(".", ",")} €`;
 
@@ -378,7 +369,7 @@ export async function cerrar(id, resultado, ahora = Date.now()) {
  * `posicion` (el botón de Telegram). Solo el encargo `eligiendo` de su casa. Devuelve `{ encargo }` o `{ fallo }`
  * (NO_ELEGIDA). El trigger de la 0134 vuelve a mirar que sea una de las ofrecidas, entera.
  */
-export async function elegirHoraEntrega({ casa, encargo, hora_entrega = undefined, posicion = undefined }, ahora = Date.now()) {
+export async function elegirHoraEntrega({ casa, encargo, hora_id = undefined, posicion = undefined }, ahora = Date.now()) {
   if (!ids.operacion.esNuevo(encargo)) throw new PeticionMala("encargo no válido");
   let filas;
   try {
@@ -389,7 +380,7 @@ export async function elegirHoraEntrega({ casa, encargo, hora_entrega = undefine
   }
   const ofrecidas = filas[0]?.horas_entrega ?? null;
   if (!ofrecidas) return { fallo: NO_ELEGIDA.SIN_ELEGIR };
-  const elegida = posicion !== undefined ? ofrecidas[posicion] : ofrecidas.find((f) => String(f.id) === String(hora_entrega));
+  const elegida = posicion !== undefined ? ofrecidas[posicion] : ofrecidas.find((f) => String(f.id) === String(hora_id));
   if (!elegida) return { fallo: NO_ELEGIDA.NO_OFRECIDA };
   const [fila] = await update("mercadona_encargo", `id=${eq(encargo)}&status=eq.${ELIGIENDO}`, {
     status: paraEscribir("estados_encargo_mercadona", RESERVANDO),

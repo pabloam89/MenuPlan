@@ -5,6 +5,7 @@
  * servidor. El trabajador no la importa (su contenedor solo lleva lo suyo): elige las suyas en scripts/lib.
  */
 import { MESES_CORTOS, momentoDeCasa, nombreDia } from "./dias.js";
+import { FALLO_ENCARGO_MERCADONA } from "./mercadonaFallos.js";
 
 /** Lo que admite la 0134 en `horas_entrega`: de 1 a 4. Quién elige cuáles es el trabajador (scripts/lib). */
 export const TOPE_HORAS_ENTREGA = 4;
@@ -55,3 +56,13 @@ export function textoDeHoraEntrega(hora_entrega) {
   if (!p) return "";
   return `${p.dia}, ${p.horas}${p.precio ? ` · ${p.precio}` : ""}`;
 }
+
+/** Lo que se dice cuando falla reservar la hora, con la lista ya en Mercadona (0134): lo mismo en la app y en Lola. */
+export const TRAS_LA_LISTA = Object.freeze({
+  [FALLO_ENCARGO_MERCADONA.BAJO_MINIMO]: "no llega al pedido mínimo de Mercadona. Añade algo y tramítalo allí.",
+  [FALLO_ENCARGO_MERCADONA.SIN_DIRECCION]: "tu cuenta de Mercadona no tiene dirección. Añádela allí y elige la hora.",
+  [FALLO_ENCARGO_MERCADONA.SIN_HORAS]: "ahora no hay horas de entrega libres. Mira en la app de Mercadona más tarde.",
+  [FALLO_ENCARGO_MERCADONA.HORA_OCUPADA]: "esa hora se acaba de ocupar. Elige otra en la app de Mercadona.",
+  [FALLO_ENCARGO_MERCADONA.CADUCADO]: "no se ha elegido la hora a tiempo. Elígela en la app de Mercadona.",
+});
+export const TRAS_LA_LISTA_OTRO = "no he podido reservar la hora de entrega. Elígela en la app de Mercadona.";
