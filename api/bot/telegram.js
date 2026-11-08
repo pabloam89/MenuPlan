@@ -67,7 +67,7 @@ import { puedeBorrar, borrarCuenta, limpiarPantalla } from "../_bot/borrar.js";
 import { partirStart, fraseDePedido } from "../../src/lib/pedidoLola.js";
 import { payloadStart } from "../../src/lib/ids.js";
 import { enviarAcceso, verificarCodigoEmail, cuentaNacidaAqui } from "../_bot/cuentas.js";
-import { cuentaYChat as cuentaYChatDe } from "../_bot/altaTelegram.js";
+import { cuentaYChat as cuentaYChatDe, volverACuentaNacida } from "../_bot/altaTelegram.js";
 import { DOMINIO_LOGIN_TELEGRAM } from "../../src/lib/cuentaTelegram.js";
 import { primeraVez } from "../_bot/entradas.js";
 import { preguntoConAviso } from "../_bot/silencio.js";
@@ -380,6 +380,8 @@ async function atender(msg, base, host = "") {
   }
 
   if (/^\/grupo(?:@\w+)?$/.test(texto)) return enlaceGrupo(chatId, esGrupo, chat.household_id, msg.from);
+  // /cuentadeantes (volverACuentaNacida, altaTelegram.js): volver a la cuenta nacida en este Telegram.
+  if (/^\/cuentadeantes(?:@\w+)?$/.test(texto) && !esGrupo) return volverALaDeAntes(msg.from, chatId);
   if (/^\/nueva(?:@\w+)?$/.test(texto)) {
     // Sin pasar por el modelo: es un corte en la memoria, nada más. Y dicho de
     // forma que nadie tema haber borrado su menú.
@@ -1955,6 +1957,17 @@ async function preguntarCambioDeCuenta(chatId, token, deAntes, casaApp, { conPed
   return enviar(chatId, preguntaDeCambio({ casaAntes: nombre(casaAntes), casaApp: nombre(casaApp), personasAntes: personasDeCasa(personas, casaAntes), personasApp: personasDeCasa(personas, casaApp), conPedido }), {
     botones: [[{ texto: "Sí, pasarlo a esta cuenta", dato: `${CAMBIAR_CUENTA}${token}` }, { texto: "No", dato: `${CAMBIAR_CUENTA}no` }]],
   });
+}
+
+/** /cuentadeantes (#1238): este Telegram vuelve a la cuenta que nació en él. Solo en el privado de esa persona. */
+async function volverALaDeAntes(from, chatId) {
+  if (idDePersona(from) !== String(chatId)) return enviar(chatId, "Eso solo lo puedes pedir en tu chat privado conmigo.");
+  const r = await volverACuentaNacida({ telegramId: from.id, chatId, nombre: nombreDe(from) });
+  if (r.ya) return enviar(chatId, "Ya estoy con la cuenta que nació en este Telegram: no hay otra de antes a la que volver.", { teclado: TECLADO });
+  if (r.sin) return enviar(chatId, "Este Telegram no tiene una cuenta propia de antes a la que volver. Para cambiar de cuenta, entra en la app con la que quieras y pulsa «Pídeselo a Lola».", { teclado: TECLADO });
+  if (r.ocupado) return enviar(chatId, "No he podido volver a tu cuenta de antes: este chat lo conectó otra cuenta.");
+  // Sin nombrar la casa: si la activa de esa cuenta es otra (una a la que se unió), Lola contesta en esa.
+  return enviar(chatId, "↩️ Hecho: vuelvo a tu cuenta de antes, con todo lo que tenías. Para pasar otra vez a la de la app, pulsa «Pídeselo a Lola» desde la app.", { teclado: TECLADO });
 }
 
 function secretoValido(recibido) {
