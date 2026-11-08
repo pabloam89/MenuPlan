@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { priceShoppingList } from "./listPricing.js";
 import { resetStoreCatalogCache } from "./storeCatalog.js";
+import { listaParaMercadona } from "./mercadonaList.js";
+import { lineasDeLaCompra } from "./shoppingListUtils.js";
 
 // El total de caja: envases enteros (el €/ración a granel es lib/coste.js).
 // Los ids son los que decide productoPorIngrediente.json para la merluza y el
@@ -49,4 +51,31 @@ describe("priceShoppingList: lo que se paga en caja", () => {
     expect(estimate.total).toBe(0);
   });
 
+});
+
+describe("varias semanas: se suma y se redondea una vez", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    resetStoreCatalogCache();
+  });
+
+  // Como las pinta Compra con dos semanas marcadas: un fresco, una línea por semana.
+  const SEMANAS = [
+    { id: "2026-11-09::merluza|g", name: "Merluza", unit: "g", qty: 300 },
+    { id: "2026-11-16::merluza|g", name: "Merluza", unit: "g", qty: 300 },
+  ];
+
+  it("300 g + 300 g de merluza son dos paquetes de 500 g, no uno", async () => {
+    mockCatalog();
+    const lineas = lineasDeLaCompra(SEMANAS);
+    const { map } = await priceShoppingList("Mercadona", lineas);
+    const compra = listaParaMercadona(lineas, map, "x");
+    expect(compra.lista.products).toEqual([{ merca_code: "62113", quantity: 2 }]);
+    expect(compra.total).toBe(9);
+  });
+
+  it("una sola semana sale igual que entra", () => {
+    const una = [{ id: "merluza|g", name: "Merluza", unit: "g", qty: 300 }];
+    expect(lineasDeLaCompra(una).map((l) => [l.id, l.qty])).toEqual([["merluza|g", 300]]);
+  });
 });

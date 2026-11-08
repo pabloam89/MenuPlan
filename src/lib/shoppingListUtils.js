@@ -122,6 +122,18 @@ export function mergeShoppingItems(items) {
   }));
 }
 
+/**
+ * Las líneas que se compran, antes de ponerles precio: lo mismo de varias
+ * semanas (la pantalla lo enseña por semana) va junto y con la cantidad
+ * sumada, para redondear a paquetes una sola vez. Sin juntar, cada semana
+ * redondeaba por su cuenta y listaParaMercadona (mercadonaList.js) se quedaba con la mayor: dos
+ * semanas de 300 g de merluza compraban un paquete de 500 g.
+ * Una sola semana sale igual que entra (mismos ids).
+ */
+export function lineasDeLaCompra(items) {
+  return mergeShoppingItems(items);
+}
+
 export function itemsByAisle(items) {
   const byAisle = Object.fromEntries(SHOPPING_AISLES.map((a) => [a, []]));
   for (const it of items) {
