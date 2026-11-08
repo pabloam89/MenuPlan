@@ -15,6 +15,7 @@ import { ENCAJE_PRODUCTO } from "../data/productoSchema.js";
 import { normalizeName } from "./ingredientCategories.js";
 import { MATCH_HIGH, matchProductForIngredient } from "./productMatcher.js";
 import { resolveIngredientId } from "./ingredients.js";
+import { porNombre } from "./vocabularios.js";
 
 /**
  * Por qué una línea tiene o no tiene producto.
@@ -28,9 +29,7 @@ import { resolveIngredientId } from "./ingredients.js";
 export const ESTADOS_PRODUCTO_LINEA = [
   "decidido", "emparejado", ENCAJE_PRODUCTO.NO_LO_VENDE, ENCAJE_PRODUCTO.NO_SE_COMPRA, "falta_esta_semana", "sin_producto",
 ];
-export const ESTADO_PRODUCTO_LINEA = Object.freeze(
-  Object.fromEntries(ESTADOS_PRODUCTO_LINEA.map((v) => [v.toUpperCase(), v])),
-);
+export const ESTADO_PRODUCTO_LINEA = porNombre(ESTADOS_PRODUCTO_LINEA);
 
 const clave = (ingredientId, alias, supermercado) => `${supermercado}|${ingredientId}|${alias == null ? "" : normalizeName(alias)}`;
 

@@ -272,7 +272,6 @@ function priceOneItem(item, catalogProducts, priceObs) {
           buyDisplay: buy.buyDisplay,
           packs: buy.packs,
           confidence: match.confidence,
-          estado: match.estado,
           source: "mercadona",
         },
         mapEntry: {
@@ -285,7 +284,6 @@ function priceOneItem(item, catalogProducts, priceObs) {
           storeProductId: match.product.id,
           storePacks: buy.packs,
           storeConfidence: match.confidence,
-          storeEstado: match.estado,
           storePriceSource: "mercadona",
         },
       };
@@ -295,9 +293,8 @@ function priceOneItem(item, catalogProducts, priceObs) {
   if (obsLine.matched > 0) {
     return {
       key,
-      line: { name: item.name, price: obsLine.total, source: "obs", confidence: 1, estado: match.estado },
+      line: { name: item.name, price: obsLine.total, source: "obs", confidence: 1 },
       mapEntry: {
-        storeEstado: match.estado,
         storePrice: obsLine.total,
         storePriceSource: "obs",
         storeConfidence: 1,
@@ -306,7 +303,7 @@ function priceOneItem(item, catalogProducts, priceObs) {
   }
   return {
     key,
-    line: { name: item.name, price: null, source: "none", confidence: 0, estado: match.estado },
+    line: { name: item.name, price: null, source: "none", confidence: 0 },
     mapEntry: null,
   };
 }

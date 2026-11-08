@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { SUPERMERCADOS } from "../lib/supermercados.js";
+import { porNombre } from "../lib/vocabularios.js";
 
 /**
  * `productoPorIngrediente` — qué PRODUCTO de cada súper corresponde a cada
@@ -43,7 +44,7 @@ import { SUPERMERCADOS } from "../lib/supermercados.js";
  *   no_se_compra  no se compra en ningún súper (el agua del grifo). productId null.
  */
 export const ENCAJES_PRODUCTO = ["exacto", "equivalente", "no_lo_vende", "no_se_compra"];
-export const ENCAJE_PRODUCTO = Object.freeze(Object.fromEntries(ENCAJES_PRODUCTO.map((v) => [v.toUpperCase(), v])));
+export const ENCAJE_PRODUCTO = porNombre(ENCAJES_PRODUCTO);
 /** Los encajes que no llevan producto. */
 export const ENCAJES_SIN_PRODUCTO = Object.freeze([ENCAJE_PRODUCTO.NO_LO_VENDE, ENCAJE_PRODUCTO.NO_SE_COMPRA]);
 
@@ -52,7 +53,6 @@ export const ENCAJES_SIN_PRODUCTO = Object.freeze([ENCAJE_PRODUCTO.NO_LO_VENDE, 
  * pero no por una persona; `persona` pisa a `modelo` y no al revés.
  */
 export const DECISORES_PRODUCTO = ["persona", "modelo"];
-export const DECISOR_PRODUCTO = Object.freeze(Object.fromEntries(DECISORES_PRODUCTO.map((v) => [v.toUpperCase(), v])));
 
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const FECHA_RE = /^\d{4}-\d{2}-\d{2}$/;
