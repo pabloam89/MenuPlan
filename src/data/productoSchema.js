@@ -54,12 +54,12 @@ export const ENCAJES_SIN_PRODUCTO = Object.freeze([ENCAJE_PRODUCTO.NO_LO_VENDE, 
  */
 export const DECISORES_PRODUCTO = ["persona", "modelo"];
 
-const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const FECHA_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 export const FilaProductoSchema = z
   .object({
-    ingredientId: z.string().regex(SLUG_RE),
+    // Clave ajena a ingredients.json: el test de la tabla exige que exista, y eso ya dice su forma.
+    ingredientId: z.string().min(1),
     alias: z.string().min(1).nullable(),
     supermercado: z.enum(SUPERMERCADOS),
     productId: z.string().min(1).nullable(),
