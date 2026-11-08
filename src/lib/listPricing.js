@@ -3,7 +3,8 @@
  */
 
 import { estimateListCost } from "./priceHistory.js";
-import { MATCH_HIGH, matchProductForIngredient, productIndexFor } from "./productMatcher.js";
+import { productIndexFor } from "./productMatcher.js";
+import { productoDeLinea } from "./productoDeLinea.js";
 import { isMercadonaStore, loadStoreCatalog } from "./storeCatalog.js";
 import { etiquetaEnvase, wantsPackFields } from "./packUnits.js";
 import { guessShoppingAisle } from "./ingredientCategories.js";
@@ -257,8 +258,9 @@ function emptyEstimate(storeName, items, obs, extra = {}) {
 
 function priceOneItem(item, catalogProducts, priceObs) {
   const key = item.id ?? `${item.name}|${item.unit ?? "ud"}`;
-  const match = matchProductForIngredient(item.name, catalogProducts);
-  if (match && match.confidence >= MATCH_HIGH) {
+  // La decisión guardada primero (productoPorIngrediente.json); el emparejador por nombre, solo sin fila.
+  const match = productoDeLinea(item.name, catalogProducts);
+  if (match.product) {
     const buy = buyLineFromProduct(item, match.product);
     if (buy) {
       return {
