@@ -100,14 +100,14 @@ npx vitest run src/components/ConectarMercadonaHoja.test.jsx src/components/Cone
 ```
 
 ### 7. Entrar en Mercadona desde la app de Android
-Files: `src/lib/mercadonaEntrarApp.js`, `src/lib/mercadonaEntrarApp.test.js`, `android/app/src/main/AndroidManifest.xml`
+Files: `src/lib/mercadonaEntrarApp.js`, `src/lib/mercadonaEntrarAndroid.test.js`, `android/app/src/main/AndroidManifest.xml`
 Depends on: 8
-Blocked by: la app nativa de Android, que construye otra sesión fuera de este plan (rama `feat/app-android`; Pablo, 8 nov 2026)
+Blocked by: none
 Existing: `ls android` en `origin/staging` → No such file or directory; la app de Google Play es hoy una TWA (`public/.well-known/assetlinks.json`, paquete `com.homenu.app`), que no puede abrir otra web dentro y leerla.
-Not done: la app de Android en sí. Cuando exista, este trozo enciende para Android lo que el 8 hace en iPhone (el mismo `mercadonaEntrarApp.js`) y añade lo que pida el complemento en el manifiesto. Si la sesión de Android ya añadió el complemento a `package.json`, no se toca; si no, lo añade el 8.
+Not done: la app de Android en sí, que construye otra sesión fuera de este plan (rama `feat/app-android`; Pablo, 8 nov 2026): hasta que exista, este trozo no empieza. Cuando exista, este trozo enciende para Android lo que el 8 hace en iPhone (el mismo `mercadonaEntrarApp.js`) y añade lo que pida el complemento en el manifiesto. El complemento ya lo añade el 8 a `package.json`. `mercadonaEntrarAndroid.test.js` comprueba que en Android se abre la misma página, con el mismo puente y la versión de ordenador, y que el manifiesto deja abrirla; `ls src/lib/mercadonaEntrarAndroid.test.js` → No such file or directory.
 Done:
 ```sh
-npx vitest run src/lib/mercadonaEntrarApp.test.js && npx cap sync android
+npx vitest run src/lib/mercadonaEntrarAndroid.test.js && npx cap sync android
 ```
 
 ### 8. Entrar en Mercadona desde la app de iPhone, sin marcador
@@ -129,7 +129,7 @@ Existing: los ajustes que ve la familia son la pantalla de perfil (`src/screens/
 Not done: «Avisar cuando esté lista», que necesita notificaciones de la app (no comprobadas), y pagar de verdad. Dos interruptores (Pablo, 8 nov). «Hacer la lista en Mercadona» es el estado de la cuenta: encendido si está conectada; encenderlo lleva a entrar en Mercadona y apagarlo es salir; no se guarda un dato aparte. «Pagar la compra» se pinta apagado, sin poder encenderse y con «Pronto»: no se guarda nada, porque no habría quién lo leyera (un dato sin lector); cuando un plan propio pruebe el carrito y el pago, ese plan le da su dato y su lector. Apagar «Hacer la lista» es salir: no hace falta un botón «Salir de Mercadona» aparte (Pablo, 8 nov: simplicidad). La fila «Mercadona» solo sale si el servicio está abierto para la casa (`servicio` de `useRellenarMercadona`), y abre una hoja como «Formas de entrar». Los textos van en `AJUSTE_MERCADONA` de `src/lib/mercadonaApp.js`, junto a `PASO_COMPRAR`. Vale igual en la web y en la app. El test comprueba que «Pagar la compra» no se puede encender y que no llama a nada.
 Done:
 ```sh
-npx vitest run src/components/AjustesMercadona.test.jsx
+npx vitest run src/components/AjustesMercadona.test.jsx src/screens/HomeProfileScreen.mercadona.test.jsx
 ```
 
 ### 10. Abrirlo a otras familias, con interruptor de apagado y alarma de bloqueos
