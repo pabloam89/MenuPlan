@@ -19,7 +19,7 @@ Solo móvil, con la app de HoMenu y la de Mercadona instaladas. Mientras tanto, 
 
 - **Mercadona no da permiso para esto.** Sus condiciones (`https://tienda.mercadona.es/terms.html`, leídas en la skill) prohíben extraer información «mediante alguna técnica de programación» y el uso comercial sin autorización, y dicen que la contraseña es «personal e intransferible». Puede bloquearlo cuando quiera; el plan lo da por hecho y lo prepara (trozo 10).
 - **La primera entrada solo se puede hacer en una página real**, por el captcha de Google (README de `ivorpad/mercadona-cli`: «password login needs a Google reCAPTCHA Enterprise token»). Con «Continuar con Google», Google rechaza un navegador automático (skill, «Lo que falló», 6 nov). En el móvil, la web de Mercadona manda a descargar su app (skill, «En el móvil»; comprobado por Pablo en su Android el 8 nov). La salida es abrir la entrada en versión de ordenador: a mano en Chrome mientras se prueba en la web (trozo 6), y dentro de la app después (trozo 8).
-- **No hay app de Android, y se prueba en Android.** `package.json:55-59` trae `@capacitor/ios` y no `@capacitor/android`; Pablo usa Android y hoy prueba con la web de HoMenu. Por eso hay un camino para probar ya en la web (trozo 6) y la app de Android es un trozo propio (7), pendiente de la decisión A.
+- **La app de Android de Google Play no sirve para esto.** Es una TWA, la web de HoMenu a pantalla completa (`public/.well-known/assetlinks.json`, paquete `com.homenu.app`), y su código no está en el repo; una TWA es Chrome por dentro y no puede abrir la página de Mercadona y leerla. Pablo usa Android y hoy prueba con la web de HoMenu. Por eso hay un camino para probar ya en la web (trozo 6) y una app de Android con Capacitor, aparte, es un trozo propio (7).
 - **La lista sale mal si la despensa está mal.** «3 cabezas de ajo» se guardó como 3 dientes (15 g): la herramienta solo acepta `ud`, `g`, `kg`, `ml`, `l` (`api/_bot/agente.js:492`) y, para el ajo, una `ud` es un diente de 5 g (`src/lib/kitchenUnits.js:103`). Lo arreglan los trozos 3 y 4.
 
 ## Chunks
@@ -93,9 +93,9 @@ npx vitest run src/components/ConectarMercadonaMovil.test.jsx src/components/Con
 ### 7. La app de HoMenu para Android
 Files: `package.json`, `package-lock.json`, `capacitor.config.json`, `android/app/build.gradle`, `android/app/src/main/AndroidManifest.xml`, `scripts/android-app.test.js`
 Depends on: none
-Blocked by: A
-Existing: `package.json:55-59` trae `@capacitor/ios` y no `@capacitor/android`; `ls android` → No such file or directory. `capacitor.config.json:2` tiene `"appId": "com.homenu.app"`. Pablo y las pruebas van en Android.
-Not done: publicarla en Google Play (decisión A) y la entrada en Mercadona (trozo 8). Este trozo crea el proyecto Android con Capacitor, con el mismo `appId`, y lo deja instalable a mano en un móvil. Toca `package.json`, que es de la puerta: solo añade dependencias, no cambia scripts ni checks (C13 se mantiene); si pone `tests` en rojo, se revierte el PR desde una rama nueva.
+Blocked by: none
+Existing: `package.json:55-59` trae `@capacitor/ios` y no `@capacitor/android`; `ls android` → No such file or directory. `capacitor.config.json:2` tiene `"appId": "com.homenu.app"`, el mismo paquete que la TWA de Google Play (`public/.well-known/assetlinks.json`). Pablo y las pruebas van en Android.
+Not done: publicarla en Google Play o sustituir la TWA, y la entrada en Mercadona (trozo 8). Este trozo crea el proyecto Android con Capacitor con su propio paquete, `com.homenu.app.pruebas`, y el nombre «HoMenu pruebas», para instalarla a mano sin pisar la de Google Play. El APK se compila fuera de esta sesión (necesita el SDK de Android y la web compilada, que pide las claves de 1Password). Toca `package.json`, que es de la puerta: solo añade dependencias, no cambia scripts ni checks (C13 se mantiene); si pone `tests` en rojo, se revierte el PR desde una rama nueva.
 Done:
 ```sh
 npx vitest run scripts/android-app.test.js && npx cap sync android
@@ -134,15 +134,9 @@ Done:
 npx vitest run api/_bot/mercadonaApagado.test.js api/_bot/mercadonaEncargos.test.js
 ```
 
-## Decisions for Pablo
-
-### A. ¿Hacemos ya la app de HoMenu para Android?
-1. Sí, sin publicarla: se instala a mano en vuestros móviles para probar, gratis (recommended)
-2. Sí, y publicarla en Google Play, con la cuenta de desarrollador de pago (unos 25 $ una vez)
-3. No por ahora: seguir probando en la web de HoMenu con el marcador del trozo 6
-
 ## Decisions taken
 
+- principio 6 | eligió: una app de Android de pruebas aparte, `com.homenu.app.pruebas`, instalada a mano (Pablo, 8 nov 2026, sin preferencia entre las tres: la recomendada) | descartó: sustituir ya la TWA de Google Play con el mismo paquete, que obliga a tener su clave de firma y a publicar cada prueba | motivo: decidido
 - principio 6 | eligió: abrir Comprar en Mercadona a otras familias antes de tener una API de Mercadona (Pablo, 8 nov 2026: «habrá que intentarlo hasta que nos den API») | descartó: esperar al permiso de Mercadona, que puede no llegar nunca | motivo: decidido
 - principio 6 | eligió: la primera entrada en versión de ordenador, solo para la página de entrada (Pablo, 8 nov 2026) | descartó: entrar solo desde un ordenador con el marcador, porque los usuarios solo tienen el móvil | motivo: decidido
 - principio 4 | eligió: la contraseña vive solo en la cuenta de Mercadona; HoMenu guarda la sesión | descartó: guardar también la contraseña en el servidor o en el móvil, una segunda copia que además no sirve (volver a entrar pide el captcha) | motivo: decidido
@@ -157,6 +151,6 @@ npx vitest run api/_bot/mercadonaApagado.test.js api/_bot/mercadonaEncargos.test
 - Si `https://tienda.mercadona.es/shopping-lists/<id>` abre la app de Mercadona en la lista o en su portada.
 - Una lista de unos 30 productos, varias familias a la vez y qué hace Mercadona con el uso repetido (la skill: «Dos pasadas no demuestran que no vayan a bloquearlo»).
 - Que un marcador se lance en el Chrome de Android escribiendo su nombre en la barra de direcciones (trozo 6).
-- La app de Android: no existe hasta el trozo 7, que espera la decisión A.
+- La app de Android de pruebas no se ha compilado ni instalado: el APK se hace fuera de esta sesión.
 - Aguacate y espárragos aparecieron en «En casa» sin que Pablo los apuntara (7 nov). Hipótesis sin comprobar: la devolución a la despensa al activarse el menú nuevo (`src/lib/activarSolo.js:50`). Necesita leer `user_pantry` con el usuario de solo lectura antes de ser un trozo.
 - Evals de Lola en los trozos 3 y 4: no las lanza ninguna sesión (Pablo, 2 nov 2026); las corre Pablo si quiere.

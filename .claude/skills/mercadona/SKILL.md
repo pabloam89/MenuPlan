@@ -105,9 +105,10 @@ Sin asesoría legal: no es una opinión de abogado.
 - **La sesión de la app de Mercadona no se puede usar desde HoMenu:** cada app está
   aislada. Que la persona tenga su app abierta no ahorra la entrada en HoMenu.
 - Sin importar listas por enlace, y sin llamadas desde otra web ni iframe.
-- La app de HoMenu solo existe para iPhone (`@capacitor/ios` en `package.json`, sin
-  `@capacitor/android`); Pablo prueba en Android, con la web de HoMenu. La app de
-  Android es el trozo 7 del plan, pendiente de su decisión A.
+- La app de Android de Google Play es una TWA (la web a pantalla completa, paquete
+  `com.homenu.app`): no puede abrir la página de Mercadona y leerla. Para probar hay
+  una app de Android aparte, «HoMenu pruebas» (`com.homenu.app.pruebas`, carpeta
+  `android/`), que se instala a mano.
 
 ## La sesión: cuánto dura
 
