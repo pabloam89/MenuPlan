@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 // La hoja de la primera vez (trozo 6): al pulsar Comprar sin cuenta, los permisos (los mismos interruptores de Ajustes,
-// «Hacer la lista» ya encendido) y cómo entrar en Mercadona.
+// «Rellenar la lista» ya encendido) y cómo entrar en Mercadona.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
@@ -66,7 +66,7 @@ describe("la hoja de la primera vez", () => {
     expect(contenedor.textContent).toContain("Vuelve a entrar en Mercadona");
   });
 
-  it("apagar «Hacer la lista» quita la forma de entrar y no desconecta nada", async () => {
+  it("apagar «Rellenar la lista» quita la forma de entrar y no desconecta nada", async () => {
     const desconectar = vi.fn();
     await pintar({ desconectar });
     await act(async () => interruptor(AJUSTE_MERCADONA.LISTA).click());
