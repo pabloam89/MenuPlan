@@ -199,7 +199,8 @@ describe("/cuentadeantes: volver a la cuenta nacida en este Telegram", () => {
   const enlazado = (extra = {}) => ({ bot_chats: [{ household_id: "h1", kind: "private", linked_by: "u1" }], ...extra });
 
   it("con una cuenta nacida aquí y la identidad en otra, vuelve a ella y a su casa", async () => {
-    t.tablas = enlazado({ bot_identities: [{ user_id: "u1" }], households: [{ id: "hN", name: "Mi casa" }] });
+    t.tablas = enlazado({ households: [{ id: "hN" }] });
+    t.deAntes = "u1";
     t.nacida = { id: "uN" };
     await escribe("/cuentadeantes");
     expect(enlazarChat).toHaveBeenCalledWith(expect.objectContaining({ chatId: "7", kind: "private", userId: "uN", householdId: "hN", identidad: "nacida" }));
@@ -207,7 +208,8 @@ describe("/cuentadeantes: volver a la cuenta nacida en este Telegram", () => {
   });
 
   it("sin cuenta nacida aquí, o ya en ella, no toca nada", async () => {
-    t.tablas = enlazado({ bot_identities: [{ user_id: "uN" }] });
+    t.tablas = enlazado();
+    t.deAntes = "uN";
     await escribe("/cuentadeantes");
     t.nacida = { id: "uN" };
     await escribe("/cuentadeantes");
