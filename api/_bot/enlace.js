@@ -8,7 +8,7 @@
 
 import * as ids from "../../src/lib/ids.js";
 import { config, select, insert, update, eq } from "./db.js";
-import { soloEntraConTelegram } from "../../src/lib/cuentaTelegram.js";
+import { soloEntraConTelegram, DOMINIO_SINTETICO } from "../../src/lib/cuentaTelegram.js";
 import { enviar, escaparHtml, TECLADO } from "./telegram.js";
 import { registrar, EMBUDO } from "./embudo.js";
 import { CANAL, paraEscribir, RESULTADO_ENLACE, PRUEBA_IDENTIDAD, ABREN_SESION } from "../../src/lib/vocabularios.js";
@@ -36,8 +36,8 @@ export function idDePersona(from) {
  *   · `codigo_email`: escribió aquí el código que llegó al correo de la cuenta.
  *   · `ajustes`: el enlace de «Conectar Telegram» que el dueño sacó en su app,
  *     pulsado en un chat privado.
- *   · `cambio`: el mismo enlace, cuando este Telegram ya era de otra cuenta y
- *     la persona confirmó aquí, en su privado, que lo pasa a la de la app
+ *   · `cambio`: el mismo enlace, cuando este Telegram ya era de otra cuenta:
+ *     manda la última cuenta desde la que se llega de la app, sin preguntar
  *     (#1238). Quien tiene el privado es quien tenía la otra cuenta: por eso
  *     corrige la identidad y puede mover el chat que esa cuenta enlazó.
  * Sin prueba (`identidad` null), o en un grupo, solo se enlaza el chat: el
@@ -57,7 +57,7 @@ export function idDePersona(from) {
  * su casa con su código. Una sola regla para enlazarChat y para la invitación,
  * que la mira antes de unirse (invitacion.js, #958).
  */
-/** La prueba de un cambio de cuenta confirmado en el privado (#1238); con `nacida`, las únicas que corrigen una identidad. */
+/** La prueba de un cambio de cuenta desde la app (#1238); con `nacida`, las únicas que corrigen una identidad. */
 export const CAMBIO = PRUEBA_IDENTIDAD.CAMBIO;
 const CORRIGEN_IDENTIDAD = new Set([PRUEBA_IDENTIDAD.NACIDA, CAMBIO]);
 
@@ -69,32 +69,32 @@ export async function cuentaDeTelegram(externalId, channel = CANAL.TELEGRAM) {
 }
 
 /**
- * Pura. ¿Hay que preguntar antes de enlazar? En un privado, si este Telegram ya es otra cuenta que la del enlace: la
- * persona tiene las dos (el privado y la sesión de la app), y elige con cuál sigue (#1238, recorrido 4).
+ * Pura. ¿Este enlace cambia de cuenta? En un privado, si este Telegram ya es otra cuenta que la del enlace: la persona
+ * tiene las dos (el privado y la sesión de la app), y manda la de la app, sin preguntar (#1238, recorrido 4).
  */
 export const pideCambioDeCuenta = ({ esGrupo, deAntes, userId }) => Boolean(!esGrupo && deAntes && deAntes !== userId);
 
+/** El comando que devuelve este Telegram a la cuenta que nació en él (volverACuentaNacida, api/_bot/altaTelegram.js). */
+export const VOLVER_A_LA_DE_ANTES = "/cuentadeantes";
+
 /**
- * Pura. La pregunta del cambio de cuenta, con el nombre de las dos casas y cuántas personas tiene cada una, si se saben:
- * casi todas se llaman «Mi casa», y el nombre solo no deja elegir (#1302). `conPedido`: venía de un botón
- * de la app con algo pedido, que no se hace (sería en la otra casa) ni se guarda: se dice que hay que pedirlo otra vez.
+ * Pura. Lo que dice Lola cuando este Telegram pasa solo a la cuenta con la que se ha entrado en la app (#1238). No
+ * pregunta: un «No» por despiste dejaba a la persona en la cuenta que ya no usa. Dice con cuál habla ahora y cómo
+ * volver. `email`: el de la cuenta de la app (el sintético de una cuenta de Telegram no se enseña). `volver`: la de
+ * antes nació en este Telegram y /cuentadeantes la recupera; si no, se vuelve entrando en la app con ella.
  */
-export function preguntaDeCambio({ casaAntes, casaApp, personasAntes = null, personasApp = null, conPedido = false }) {
-  const cuantas = (n) => (n == null ? "" : n === 0 ? ", sin nadie" : n === 1 ? ", con 1 persona" : `, con ${n} personas`);
-  const nombre = (n, si, personas) => `${n ? `<b>${escaparHtml(n)}</b>` : si}${cuantas(personas)}`;
-  return `Este Telegram ya está conectado a otra cuenta de HoMenu (la de ${nombre(casaAntes, "otra casa", personasAntes)}). `
-    + `¿Lo pasas a la cuenta con la que has entrado en la app (${nombre(casaApp, "tu casa", personasApp)})?\n\n`
-    + "Lo de la otra cuenta se queda en ella: no se pasa a esta."
-    + (conPedido ? "\n\nLo que me has pedido desde la app no lo he hecho: cuando contestes, pídemelo otra vez." : "");
+export function avisoDeCambioDeCuenta({ email = null, volver = false } = {}) {
+  const cual = email && !email.endsWith(`@${DOMINIO_SINTETICO}`) ? ` (<b>${escaparHtml(email)}</b>)` : "";
+  return `🔄 Ahora hablo con la cuenta con la que has entrado en la app${cual}. Lo de la otra cuenta se queda guardado en ella.`
+    + (volver
+      ? `\n\nSi quieres volver a la de antes, escríbeme ${VOLVER_A_LA_DE_ANTES}.`
+      : "\n\nPara volver a la otra, entra en la app con ella y pulsa «Pídeselo a Lola».");
 }
 
-/** Las filas de persona de estas casas, para contarlas con personasDeCasa. Un fallo de la base, lanza. */
-export const personasDeCasas = (casas) => select("persona", `household_id=in.(${casas.map(encodeURIComponent).join(",")})`, "household_id");
-
-/** Pura. Cuántas personas de `filas` son de esta casa. Sin saber la casa o sin filas, null: no se sabe, no es que no haya nadie. */
-export const personasDeCasa = (filas, casa) => (casa && filas ? filas.filter((p) => p.household_id === casa).length : null);
-
-/** Por qué no se pasa este Telegram a otra cuenta: es la única llave de una casa con gente dentro (#1302). */
+/**
+ * Por qué no se pasa este Telegram a otra cuenta: es la única llave de una casa con gente dentro y no hay vuelta
+ * (#1302). Con una cuenta nacida en este Telegram sí la hay (/cuentadeantes), y entonces se pasa.
+ */
 export const NO_SE_PASA_LA_LLAVE = "No paso este Telegram a esa cuenta: es la única forma de entrar en tu casa y te quedarías fuera.\n\n"
   + "Entra en la app con Telegram y añade ahí tu Google, en Mi perfil → Formas de entrar. Si ese Google ya tiene una cuenta vacía, bórrala antes.";
 
@@ -159,8 +159,11 @@ export async function apuntarEnlace({ camino, resultado, householdId = null, use
 
 export async function enlazarChat({ channel = CANAL.TELEGRAM, camino, chatId, kind, householdId, userId, externalId, nombre, identidad = null }) {
   const [actual] = await select("bot_chats", `channel=${eq(channel)}&chat_id=${eq(chatId)}`, "household_id,linked_by");
-  // Un cambio confirmado mueve el chat que enlazó la cuenta de antes de este mismo Telegram, y ninguno más.
-  const deAntes = identidad === CAMBIO && kind === "private" ? await cuentaDeTelegram(externalId, channel) : null;
+  // Un cambio de cuenta mueve el chat que enlazó la cuenta de antes de este mismo Telegram, y ninguno más. Volver a la
+  // cuenta nacida en este Telegram, también, pero solo en su propio privado (allí el id del chat es el de la persona).
+  const propio = kind === "private" && externalId != null && String(externalId) === String(chatId);
+  const corrige = kind === "private" && (identidad === CAMBIO || (identidad === PRUEBA_IDENTIDAD.NACIDA && propio));
+  const deAntes = corrige ? await cuentaDeTelegram(externalId, channel) : null;
   if (chatOcupado(actual, householdId, userId) && !(deAntes && actual.linked_by === deAntes)) {
     await apuntarEnlace({ camino, resultado: RESULTADO_ENLACE.OCUPADO, householdId, userId });
     return { ok: false, ocupado: true };
@@ -264,6 +267,15 @@ export async function gastarCodigo(codigo, tipo) {
     { used_at: new Date().toISOString() },
   );
   return filas?.[0] ?? null;
+}
+
+/**
+ * La casa que le nació a un usuario (households.propia, única por titular desde la 0075), o null. No es la activa: esa
+ * puede ser una ajena. La usa /cuentadeantes (volverACuentaNacida). Un fallo de la base, lanza.
+ */
+export async function casaQueLeNacio(userId) {
+  const [hogar] = await select("households", `owner_user_id=${eq(userId)}&propia=is.true`, "id");
+  return hogar ?? null;
 }
 
 /** El dueño de la casa activa de un usuario (el bot escribe como dueño). */

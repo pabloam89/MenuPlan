@@ -12,7 +12,7 @@ process.env.TELEGRAM_WEBHOOK_SECRET = "secreto";
 process.env.VITE_SUPABASE_URL ||= "https://sin-base.invalid";
 process.env.SUPABASE_SERVICE_ROLE_KEY ||= "sin-clave";
 
-const t = vi.hoisted(() => ({ deAntes: null, deGrupo: false, tablas: {}, enviados: [], trabajo: [] }));
+const t = vi.hoisted(() => ({ deAntes: null, deGrupo: false, vuelta: false, nacida: null, tablas: {}, enviados: [], trabajo: [] }));
 
 vi.mock("@vercel/functions", () => ({ waitUntil: (p) => t.trabajo.push(p) }));
 vi.mock("../_bot/db.js", () => ({
@@ -29,7 +29,7 @@ vi.mock("../_bot/embudo.js", () => ({ registrar: vi.fn(), rastro: vi.fn(), EMBUD
 vi.mock("../_bot/router.js", () => ({ clasificar: vi.fn(), vaPorLaRapida: () => false, permitidoEn: () => true }));
 vi.mock("../_bot/turno.js", () => ({ viaRapida: vi.fn(), eleccionDe: () => null, repiteLaPropuesta: () => false, aplicarEleccion: vi.fn(), contextoDe: vi.fn() }));
 vi.mock("../_bot/uso.js", () => ({ fueraDeLimite: vi.fn(), contarUso: vi.fn() }));
-vi.mock("../_bot/papel.js", () => ({ papelDeQuien: vi.fn(), idiomaDe: vi.fn(), casaActivaDe: vi.fn(async () => "hAntes") }));
+vi.mock("../_bot/papel.js", () => ({ papelDeQuien: vi.fn(), idiomaDe: vi.fn(), casaActivaDe: vi.fn(async () => "hAntes"), papelDeUsuario: vi.fn(async () => "owner") }));
 vi.mock("../_bot/rapido.js", () => ({ respuestaHoy: vi.fn(), respuestaSemana: vi.fn(), respuestaCompra: vi.fn(), recordar: vi.fn() }));
 vi.mock("../_bot/pintar.js", () => ({ pintarMenuEntero: vi.fn() }));
 vi.mock("../_bot/voz.js", () => ({ transcribir: vi.fn() }));
@@ -42,16 +42,16 @@ vi.mock("../_bot/menu.js", () => ({ motor: vi.fn() }));
 vi.mock("../_bot/ajustes.js", () => ({ sembrarCasa: vi.fn() }));
 // Las piezas puras del cambio de cuenta, las de verdad; la cuenta de este Telegram, la que diga t.deAntes.
 vi.mock("../_bot/enlace.js", async (original) => ({
-  ...(({ pideCambioDeCuenta, preguntaDeCambio, personasDeCasa, NO_SE_PASA_LA_LLAVE, CAMBIO }) => ({ pideCambioDeCuenta, preguntaDeCambio, personasDeCasa, NO_SE_PASA_LA_LLAVE, CAMBIO }))(await original()),
+  ...(({ pideCambioDeCuenta, avisoDeCambioDeCuenta, VOLVER_A_LA_DE_ANTES, NO_SE_PASA_LA_LLAVE, CAMBIO }) => ({ pideCambioDeCuenta, avisoDeCambioDeCuenta, VOLVER_A_LA_DE_ANTES, NO_SE_PASA_LA_LLAVE, CAMBIO }))(await original()),
   cuentaDeTelegram: vi.fn(async () => t.deAntes),
+  casaQueLeNacio: vi.fn(async () => (t.tablas.households ?? [])[0] ?? null),
   dejariaCasaSinEntrada: vi.fn(async () => t.atrapa),
-  personasDeCasas: vi.fn(async () => []),
   enlazarChat: vi.fn(async () => ({ ok: true })), apuntarEnlace: vi.fn(async () => {}), crearCodigo: vi.fn(), gastarCodigo: vi.fn(), baseDe: () => "https://x", confirmarEnlace: vi.fn(async () => ({})), casaPropia: vi.fn(), idDePersona: (f) => (f?.id ? String(f.id) : null), codigoDeGrupo: vi.fn(), esCodigoDeGrupo: () => t.deGrupo }));
 vi.mock("../_bot/invitacion.js", () => ({ unirsePorInvitacion: vi.fn(), ES_INVITACION: /^inv_([0-9a-f]{32})$/ }));
 vi.mock("../_bot/traducir.js", () => ({ traducir: vi.fn(async (xs) => xs) }));
 vi.mock("../_bot/casa.js", () => ({ hoyISO: () => "2026-10-06", cargarCasa: vi.fn() }));
 vi.mock("../_bot/borrar.js", () => ({ puedeBorrar: () => false, borrarCuenta: vi.fn(), limpiarPantalla: vi.fn() }));
-vi.mock("../_bot/cuentas.js", () => ({ enviarAcceso: vi.fn(), verificarCodigoEmail: vi.fn(), crearCuentaTelegram: vi.fn(), cuentaNacidaAqui: vi.fn() }));
+vi.mock("../_bot/cuentas.js", () => ({ enviarAcceso: vi.fn(), verificarCodigoEmail: vi.fn(), crearCuentaTelegram: vi.fn(), cuentaNacidaAqui: vi.fn(), cuentaNacidaDe: vi.fn(async () => t.nacida), hayVueltaALaNacida: vi.fn(async () => t.vuelta), emailDeCuenta: vi.fn(async () => (t.tablas.user_profiles ?? [])[0]?.email ?? null) }));
 
 const { default: handler } = await import("./telegram.js");
 const { enlazarChat, apuntarEnlace } = await import("../_bot/enlace.js");
@@ -75,7 +75,7 @@ const codigoValido = (token) => ({
 });
 
 beforeEach(() => {
-  t.tablas = {}; t.atrapa = false; t.deAntes = null; t.deGrupo = false; t.enviados.length = 0; t.trabajo.length = 0;
+  t.tablas = {}; t.atrapa = false; t.deAntes = null; t.deGrupo = false; t.vuelta = false; t.nacida = null; t.enviados.length = 0; t.trabajo.length = 0;
   vi.clearAllMocks();
 });
 
@@ -114,83 +114,133 @@ async function pulsa(dato, { chat = 7, from = 7 } = {}) {
   await Promise.all(t.trabajo);
 }
 
-// Este Telegram ya es otra cuenta y entra con «Conectar Telegram» de la cuenta de la app (#1238, recorrido 4).
-describe("/start: cambiar de cuenta, con confirmación (#1238)", () => {
+// Este Telegram ya es otra cuenta y entra con «Conectar Telegram» de la cuenta de la app (#1238, recorrido 4): manda
+// la de la app, sin preguntar, y Lola dice con cuál habla y cómo volver.
+describe("/start: cambiar de cuenta, solo y sin preguntar (#1238)", () => {
   const TOKEN = "Q3xk9TzA1bVwPq7yRt2uAb";
+  const conCodigo = () => ({ ...codigoValido(TOKEN), user_profiles: [{ email: "ana@gmail.com" }] });
 
-  it("pregunta antes, sin gastar el enlace ni enlazar", async () => {
-    t.tablas = codigoValido(TOKEN);
+  it("pasa a la cuenta de la app con la prueba del cambio, gasta el enlace y lo dice, sin botones", async () => {
+    t.tablas = conCodigo();
     t.deAntes = "u-antes";
     await escribe(`/start ${TOKEN}`);
-    expect(enlazarChat).not.toHaveBeenCalled();
-    expect(update).not.toHaveBeenCalled();
-    const { texto, opciones } = t.enviados.at(-1);
-    expect(texto).toMatch(/ya está conectado a otra cuenta de HoMenu/);
-    expect(opciones.botones[0].map((b) => b.dato)).toEqual([`cc:${TOKEN}`, "cc:no"]);
+    expect(update).toHaveBeenCalledWith("bot_link_tokens", expect.anything(), expect.anything());
+    expect(enlazarChat).toHaveBeenCalledWith(expect.objectContaining({ userId: "u1", householdId: "h1", identidad: "cambio" }));
+    const aviso = t.enviados.find((e) => /Ahora hablo con la cuenta/.test(e.texto));
+    expect(aviso.texto).toContain("ana@gmail.com");
+    expect(aviso.opciones?.botones).toBeUndefined();
+    expect(t.enviados.map((e) => e.texto).join(" ")).not.toMatch(/¿Lo pasas/);
   });
 
-  it("con algo pedido desde la app: no se hace, y la pregunta dice que hay que pedirlo otra vez", async () => {
-    t.tablas = codigoValido(TOKEN);
+  it("con algo pedido desde la app: cambia y lo atiende ya en la casa nueva, con un solo aviso", async () => {
+    // El chat, ya en la casa de la app (como queda tras enlazarChat); la charla de antes, en la otra.
+    t.tablas = { ...conCodigo(), bot_chats: [{ household_id: "h1", kind: "private", linked_by: "u1" }], bot_messages: [{ household_id: "hViejo" }] };
     t.deAntes = "u-antes";
     await escribe(`/start ${TOKEN}-g`);
-    expect(enTurno).not.toHaveBeenCalled();
-    expect(enlazarChat).not.toHaveBeenCalled();
-    expect(t.enviados.at(-1).texto).toMatch(/no lo he hecho: cuando contestes, pídemelo otra vez/);
+    expect(enlazarChat).toHaveBeenCalledWith(expect.objectContaining({ identidad: "cambio" }));
+    const textos = t.enviados.map((e) => e.texto).join(" ");
+    expect(textos).toMatch(/Ahora hablo con la cuenta/);
+    expect(textos).not.toMatch(/pídemelo otra vez|Ahora estoy con/);
+    expect(enTurno).toHaveBeenCalled();
   });
 
-  it("sin nada pedido, la pregunta no habla de pedidos", async () => {
-    t.tablas = codigoValido(TOKEN);
+  it("si la de antes nació en este Telegram, cambia aunque su casa tenga gente, y dice cómo volver (#1302)", async () => {
+    t.tablas = conCodigo();
+    t.deAntes = "u-antes";
+    t.vuelta = true;
+    t.atrapa = true;
+    await escribe(`/start ${TOKEN}`);
+    expect(enlazarChat).toHaveBeenCalledWith(expect.objectContaining({ identidad: "cambio" }));
+    expect(t.enviados.find((e) => /Ahora hablo/.test(e.texto)).texto).toContain("/cuentadeantes");
+  });
+
+  it("si la de antes no nació aquí, el aviso dice que se vuelve entrando en la app con ella", async () => {
+    t.tablas = conCodigo();
     t.deAntes = "u-antes";
     await escribe(`/start ${TOKEN}`);
-    expect(t.enviados.at(-1).texto).not.toMatch(/pídemelo otra vez/);
+    const aviso = t.enviados.find((e) => /Ahora hablo/.test(e.texto)).texto;
+    expect(aviso).not.toContain("/cuentadeantes");
+    expect(aviso).toMatch(/entra en la app con ella/);
   });
 
-  it("con el «sí», se enlaza con la prueba del cambio", async () => {
-    t.tablas = codigoValido(TOKEN);
-    t.deAntes = "u-antes";
-    await pulsa(`cc:${TOKEN}`);
-    expect(enlazarChat).toHaveBeenCalledWith(expect.objectContaining({ userId: "u1", householdId: "h1", identidad: "cambio" }));
-  });
-
-  it("si dejaría una casa con gente sin entrada, no se pregunta ni se mueve, tampoco con un «sí» de antes (#1302)", async () => {
-    t.tablas = codigoValido(TOKEN);
+  it("si dejaría una casa con gente sin entrada y sin vuelta, no se mueve (#1302)", async () => {
+    t.tablas = conCodigo();
     t.deAntes = "u-antes";
     t.atrapa = true;
     await escribe(`/start ${TOKEN}`);
     expect(t.enviados.at(-1).texto).toMatch(/es la única forma de entrar en tu casa/);
-    expect(t.enviados.at(-1).opciones?.botones).toBeUndefined();
-    await pulsa(`cc:${TOKEN}`);
     expect(enlazarChat).not.toHaveBeenCalled();
     expect(update).not.toHaveBeenCalled();
   });
 
+  it("si no se puede saber si hay vuelta, se mira el freno: con gente y sin otra entrada, no se mueve", async () => {
+    t.tablas = conCodigo();
+    t.deAntes = "u-antes";
+    t.atrapa = true;
+    const { hayVueltaALaNacida } = await import("../_bot/cuentas.js");
+    hayVueltaALaNacida.mockRejectedValueOnce(new Error("auth caída"));
+    await escribe(`/start ${TOKEN}`);
+    expect(enlazarChat).not.toHaveBeenCalled();
+    expect(t.enviados.at(-1).texto).toMatch(/es la única forma de entrar en tu casa/);
+  });
+
   it("sin poder comprobarlo, tampoco se mueve (#1302)", async () => {
-    t.tablas = codigoValido(TOKEN);
+    t.tablas = conCodigo();
     t.deAntes = "u-antes";
     const { dejariaCasaSinEntrada } = await import("../_bot/enlace.js");
     dejariaCasaSinEntrada.mockRejectedValueOnce(new Error("base caída"));
-    await pulsa(`cc:${TOKEN}`);
+    await escribe(`/start ${TOKEN}`);
     expect(enlazarChat).not.toHaveBeenCalled();
     expect(t.enviados.at(-1).texto).toMatch(/No he podido comprobar/);
   });
 
-  it("con el «no», nada", async () => {
+  it("un «sí» de la pregunta de antes (mensajes viejos) sigue el camino de hoy; el «no», nada", async () => {
+    t.tablas = conCodigo();
+    t.deAntes = "u-antes";
+    await pulsa(`cc:${TOKEN}`);
+    expect(enlazarChat).toHaveBeenCalledWith(expect.objectContaining({ identidad: "cambio" }));
+    vi.clearAllMocks();
     await pulsa("cc:no");
     expect(enlazarChat).not.toHaveBeenCalled();
     expect(t.enviados.at(-1).texto).toMatch(/lo dejo como estaba/);
   });
 
   it("el «sí» pulsado por otra persona (en un chat que no es el suyo) no hace nada", async () => {
-    t.tablas = codigoValido(TOKEN);
+    t.tablas = conCodigo();
     await pulsa(`cc:${TOKEN}`, { chat: 7, from: 8 });
     expect(enlazarChat).not.toHaveBeenCalled();
   });
 
-  it("si el Telegram ya es de esta misma cuenta, no se pregunta", async () => {
-    t.tablas = codigoValido(TOKEN);
+  it("si el Telegram ya es de esta misma cuenta, no hay cambio ni aviso", async () => {
+    t.tablas = conCodigo();
     t.deAntes = "u1";
     await escribe(`/start ${TOKEN}`);
     expect(enlazarChat).toHaveBeenCalledWith(expect.objectContaining({ identidad: "ajustes" }));
+    expect(t.enviados.map((e) => e.texto).join(" ")).not.toMatch(/Ahora hablo/);
+  });
+});
+
+// /cuentadeantes (#1238): lo que hace que cambiar sin preguntar no deje una casa sin entrada.
+describe("/cuentadeantes: volver a la cuenta nacida en este Telegram", () => {
+  const enlazado = (extra = {}) => ({ bot_chats: [{ household_id: "h1", kind: "private", linked_by: "u1" }], ...extra });
+
+  it("con una cuenta nacida aquí y la identidad en otra, vuelve a ella y a su casa", async () => {
+    t.tablas = enlazado({ households: [{ id: "hN" }] });
+    t.deAntes = "u1";
+    t.nacida = { id: "uN" };
+    await escribe("/cuentadeantes");
+    expect(enlazarChat).toHaveBeenCalledWith(expect.objectContaining({ chatId: "7", kind: "private", userId: "uN", householdId: "hN", identidad: "nacida" }));
+    expect(t.enviados.at(-1).texto).toMatch(/vuelvo a tu cuenta de antes/);
+  });
+
+  it("sin cuenta nacida aquí, o ya en ella, no toca nada", async () => {
+    t.tablas = enlazado();
+    t.deAntes = "uN";
+    await escribe("/cuentadeantes");
+    t.nacida = { id: "uN" };
+    await escribe("/cuentadeantes");
+    expect(enlazarChat).not.toHaveBeenCalled();
+    expect(t.enviados.at(-1).texto).toMatch(/no hay otra de antes/);
   });
 });
 
