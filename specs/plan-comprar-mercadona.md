@@ -113,14 +113,14 @@ npx vitest run src/lib/mercadonaEntrarAndroid.test.js && npx cap sync android
 ```
 
 ### 8. Entrar en Mercadona desde la app de iPhone, sin marcador
-Files: `src/lib/mercadonaEntrarApp.js`, `src/lib/mercadonaEntrarApp.test.js`, `src/components/ConectarMercadona.jsx`, `src/components/ConectarMercadona.test.jsx`, `package.json`, `package-lock.json`, `ios/App/CapApp-SPM/Package.swift`, `.claude/skills/mercadona/SKILL.md`
+Files: `src/lib/mercadonaEntrarApp.js`, `src/lib/mercadonaEntrarApp.test.js`, `src/components/ConectarMercadona.jsx`, `src/components/ConectarMercadonaApp.test.jsx`, `src/components/AjustesMercadona.jsx`, `src/components/useRellenarMercadona.js`, `src/lib/mercadonaApp.js`, `src/lib/mercadonaConectar.js`, `src/lib/vocabularios.js`, `package.json`, `package-lock.json`, `ios/App/CapApp-SPM/Package.swift`, `.claude/skills/mercadona/SKILL.md`
 Depends on: 6, 11
 Blocked by: none
 Existing: `@capacitor/browser` (`package.json:56`) abre el navegador del sistema y no deja leer la página, así que no sirve para guardar la sesión. La app de iPhone ya es Capacitor y está en la App Store (`ios/App/`, `@capacitor/ios` en `package.json:58`, complementos por Swift Package Manager en `ios/App/CapApp-SPM/Package.swift`; versión 1.1 en el PR #1381). El complemento `@capgo/capacitor-inappbrowser` (v8, para Capacitor 8, licencia MPL-2.0; leído en su README el 8 nov) abre una página dentro de la app (`openWebView`), con `customUserAgent`, aviso de cambio de dirección (`urlChangeEvent`), `executeScript`, `getCookies` con `includeHttpOnly` y `close`. `ls src/lib/mercadonaEntrarApp.js` → No such file or directory.
 Not done: Android (trozo 7). «Entrar en Mercadona» abre la página de entrada dentro de la app, en versión de ordenador (`customUserAgent`; decisión de Pablo, 8 nov), solo para esta página. La persona escribe su correo y su contraseña en la página de Mercadona; la app no lee esas casillas. Cuando la dirección deja la de entrada, la app lee `MO-user` (`executeScript`) y las cookies (`getCookies`), cierra la ventana, las sella con `mercadonaSello.js` y las guarda con `guardarSesion`, como el marcador; y encarga la lista. La versión nueva de la app pasa por la revisión de Apple (1–2 días; la envía Pablo con el workflow de iOS). Este trozo escribe en la skill la excepción a «sin disfraces» (la versión de ordenador, solo para la página de entrada): es rebajar una regla de `.claude/`, así que el PR lleva la decisión de Pablo del 8 nov y necesita su Approve (C13). Toca `package.json`, que es de la puerta: solo añade una dependencia, no cambia scripts ni checks (C13 se mantiene); si pone `tests` en rojo, se revierte el PR desde una rama nueva.
 Done:
 ```sh
-npx vitest run src/lib/mercadonaEntrarApp.test.js src/components/ConectarMercadona.test.jsx && npm run -s consulta -- "select status from mercadona_encargo order by created_at desc limit 1" | grep hecho
+npx vitest run src/lib/mercadonaEntrarApp.test.js src/components/ConectarMercadonaApp.test.jsx && npm run -s consulta -- "select status from mercadona_encargo order by created_at desc limit 1" | grep hecho
 ```
 
 ### 9. Ajustes → Mercadona: hacer la lista y pagar (apagado)
