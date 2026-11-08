@@ -136,7 +136,7 @@ describe("veredicto y frase: vocabulario cerrado y honesto", () => {
 describe("listaFrenteAPresupuesto: la lista de la compra frente al presupuesto (#958)", () => {
   const est = (total, matched, count) => ({ total, matched, count });
   it("lo que no tiene precio se cuenta aparte y no deja decir «cabe»", () => {
-    expect(listaFrenteAPresupuesto(casa(80), est(60, 18, 20))).toEqual({ presupuesto: 80, total: 60, sinPrecio: 2, veredicto: "incierto" });
+    expect(listaFrenteAPresupuesto(casa(80), est(60, 18, 20))).toEqual({ presupuesto: 80, total: 60, sinProducto: 2, veredicto: "incierto" });
     expect(listaFrenteAPresupuesto(casa(80), est(60, 20, 20)).veredicto).toBe("cabe");
   });
   it("si el total con precio ya se pasa, no cabe, falte lo que falte", () => {
@@ -146,7 +146,7 @@ describe("listaFrenteAPresupuesto: la lista de la compra frente al presupuesto (
     expect(listaFrenteAPresupuesto(casa(50), est(90, 20, 20), 2)).toMatchObject({ presupuesto: 100, veredicto: "cabe" });
   });
   it("sin presupuesto, solo lo que no tiene precio; sin estimación, nada", () => {
-    expect(listaFrenteAPresupuesto(casa(null), est(60, 18, 20))).toEqual({ presupuesto: null, total: 60, sinPrecio: 2, veredicto: null });
+    expect(listaFrenteAPresupuesto(casa(null), est(60, 18, 20))).toEqual({ presupuesto: null, total: 60, sinProducto: 2, veredicto: null });
     expect(listaFrenteAPresupuesto(casa(80), null)).toBeNull();
   });
   it("su veredicto es del mismo vocabulario que el de la semana", () => {

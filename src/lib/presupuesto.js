@@ -158,11 +158,11 @@ export function veredicto(presupuesto, est) {
 
 /**
  * La lista de la compra frente al presupuesto (#958). `estimacion` es la de
- * priceShoppingList (envases enteros de Mercadona): `total` suma solo las
- * líneas con precio (`matched` de `count`), así que lo que falta se cuenta
- * aparte y nunca como 0 €. El presupuesto es por semana: con varias semanas
+ * cuenta de Compra (envases enteros de Mercadona): `total` suma solo los
+ * productos (`matched` de `count`); los ingredientes que no tienen producto
+ * (`sinProducto`, como en listaParaMercadona) se cuentan aparte y nunca como 0 €. El presupuesto es por semana: con varias semanas
  * en la lista, se multiplica.
- * @returns {{ presupuesto: number|null, total: number, sinPrecio: number, veredicto: "cabe"|"no_cabe"|"incierto"|null }|null}
+ * @returns {{ presupuesto: number|null, total: number, sinProducto: number, veredicto: "cabe"|"no_cabe"|"incierto"|null }|null}
  *   null sin estimación; `presupuesto` y `veredicto` null si la casa no tiene.
  */
 export function listaFrenteAPresupuesto(data, estimacion, semanas = 1) {
@@ -170,9 +170,9 @@ export function listaFrenteAPresupuesto(data, estimacion, semanas = 1) {
   const semanal = presupuestoSemanal(data);
   const presupuesto = semanal == null ? null : semanal * Math.max(1, semanas);
   const total = Number(estimacion.total) || 0;
-  const sinPrecio = Math.max(0, (estimacion.count ?? 0) - (estimacion.matched ?? 0));
-  const v = presupuesto == null ? null : total > presupuesto ? "no_cabe" : sinPrecio > 0 ? "incierto" : "cabe";
-  return { presupuesto, total, sinPrecio, veredicto: v };
+  const sinProducto = Math.max(0, (estimacion.count ?? 0) - (estimacion.matched ?? 0));
+  const v = presupuesto == null ? null : total > presupuesto ? "no_cabe" : sinProducto > 0 ? "incierto" : "cabe";
+  return { presupuesto, total, sinProducto, veredicto: v };
 }
 
 const fmt = (v) => `${Math.round(v)} €`;
