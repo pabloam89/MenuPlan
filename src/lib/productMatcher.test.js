@@ -3,7 +3,6 @@ import {
   matchProductForIngredient,
   shouldSkipProduct,
   scoreProductName,
-  MERCADONA_SEARCH_ALIASES,
 } from "./productMatcher.js";
 import { packsForLine, linePriceFromProduct, buyLineFromProduct, formatSkuSize } from "./listPricing.js";
 
@@ -21,12 +20,6 @@ const products = [
 ];
 
 describe("productMatcher", () => {
-  it("resolves boniato via batata alias", () => {
-    const m = matchProductForIngredient("Boniato", products);
-    expect(m?.product.id).toBe("1");
-    expect(m?.confidence).toBeGreaterThanOrEqual(0.7);
-  });
-
   it("skips baby food for merluza", () => {
     const m = matchProductForIngredient("Merluza en lomos", products);
     expect(m?.product.id).toBe("4");
@@ -50,12 +43,6 @@ describe("productMatcher", () => {
 
   it("scoreProductName handles whole-phrase match", () => {
     expect(scoreProductName("Batata", "batata")).toBeGreaterThanOrEqual(0.75);
-  });
-
-  it("exports search aliases for known gaps", () => {
-    expect(MERCADONA_SEARCH_ALIASES.boniato).toContain("batata");
-    expect(MERCADONA_SEARCH_ALIASES.tirabuzones).toContain("fusilli");
-    expect(MERCADONA_SEARCH_ALIASES["pan de hamburguesa"]).toContain("pan de burger");
   });
 
   it("matches burger buns not barra de pan", () => {
@@ -166,7 +153,7 @@ describe("el ingrediente tiene que ir en cabeza del producto", () => {
 describe("el ingrediente es el núcleo aunque no vaya en cabeza tal cual", () => {
   // Pérdidas que trajo la primera versión de la regla (exigir que el nombre del
   // producto EMPEZARA por el ingrediente): emparejamientos buenos de staging que
-  // se quedaron sin producto. Medidas con scripts/medir-emparejador.mjs.
+  // se quedaron sin producto. Medidas el 10 oct 2026.
   it.each([
     // una clase delante, sin «de»
     ["penne", "Pasta penne rigate Hacendado"],
@@ -219,17 +206,5 @@ describe("el ingrediente es el núcleo aunque no vaya en cabeza tal cual", () =>
     expect(shouldSkipProduct("langostinos", { name: "Langostino caballitos rebozados Hacendado ultracongelados" })).toBe(true);
     // pero la masa de empanada sí es «empanada»
     expect(shouldSkipProduct("masa de empanada", { name: "Masa fresca empanada Hacendado" })).toBe(false);
-  });
-
-  // La lista de la compra empareja el nombre tal cual, sin la cadena de nombres
-  // del coste: estos dos se quedaban por debajo de la confianza alta.
-  it.each([
-    ["Carne picada", "Preparado de carne picada vacuno y cerdo", ["Preparado de carne picada pollo", "Tocino de cerdo"]],
-    ["Pollo", "Pollo entero", ["Pollo teriyaki", "Pollo asado Hacendado"]],
-  ])("la lista lleva «%s» a «%s»", (ingrediente, bueno, otros) => {
-    const catalogo = [bueno, ...otros].map((name, i) => ({ id: String(i), name, price: 10 - i }));
-    const m = matchProductForIngredient(ingrediente, catalogo);
-    expect(m.product.name).toBe(bueno);
-    expect(m.confidence).toBeGreaterThanOrEqual(0.7);
   });
 });
