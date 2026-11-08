@@ -41,19 +41,19 @@ describe("Conectar", () => {
   it("con ratón, ofrece el marcador con su enlace", async () => {
     await pintar(<Conectar />);
     expect(contenedor.querySelector("a").getAttribute("href")).toMatch(/^javascript:/);
-    expect(contenedor.textContent).toContain("Nunca veo tu contraseña");
+    expect(contenedor.textContent).toContain("HoMenu no ve ni guarda tu contraseña");
   });
 
-  it("en un móvil dice que se hace desde un ordenador, sin marcador", async () => {
+  it("en la web de un móvil manda a la app, sin marcador", async () => {
     window.matchMedia = vi.fn(() => ({ matches: false }));
     await pintar(<Conectar />);
     expect(contenedor.querySelector("a")).toBeNull();
-    expect(contenedor.textContent).toContain("desde un ordenador");
+    expect(contenedor.textContent).toContain("abre la app de HoMenu");
   });
 
   it("con la sesión caducada lo dice", async () => {
     await pintar(<Conectar caducada />);
-    expect(contenedor.textContent).toContain("ha cerrado la sesión");
+    expect(contenedor.textContent).toContain("Vuelve a entrar en Mercadona");
   });
 });
 
