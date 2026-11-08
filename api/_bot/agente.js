@@ -39,7 +39,7 @@ import { isoDeCasa, diaDeISO } from "../../src/lib/dias.js";
 import { cuadre as cuadreDelTurno, medidaDelCuadre } from "./cuadre.js";
 import { avisoVispera } from "./vispera.js";
 import { cambiarMercadona, guardarTelefonoMercadona, pasarAMercadona, verMercadona } from "./mercadonaLola.js";
-import { ALCANCES_MERCADONA } from "../../src/lib/mercadonaAlcance.js";
+import { LLEGA_HASTA_MERCADONA } from "../../src/lib/mercadonaLlegaHasta.js";
 import { registrar, EMBUDO, duenoDe } from "./embudo.js";
 import {
   describirAjustes, ajustarGustos, ajustarCocina, ajustarHorario, anadirInvitado,
@@ -1096,7 +1096,7 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
       run: () => pasarAMercadona({ householdId, userId: chat.userId, chatId: chat.chatId, canal: chat.channel ?? CANAL.TELEGRAM }),
     }),
     // Trozo 18 de #1407: hasta dónde llega el bot, el mismo dato que Ajustes → Mercadona. Lo que se puede encender lo
-    // decide cambiarAlcance (dirección, teléfono, tarjeta), no el modelo.
+    // decide cambiarLlegaHasta (dirección, teléfono, tarjeta), no el modelo.
     herramienta({ capacidades: ["mercadona_pasos"], lee: [], escribe: [], lector: false, riesgo: RIESGO_HERRAMIENTA.LEE, deshace: DESHACE.NO, pantalla: "perfil" }, {
       name: "ver_mercadona",
       description: "Dice hasta dónde llega Lola en la cuenta de Mercadona (solo rellenar la lista; también meterla en el carro y reservar la hora de entrega; o también pagar) y qué falta para el paso siguiente («¿puedes reservarme la hora?», «¿qué haces en Mercadona?»). Dile lo que devuelve, sin añadir nada.",
@@ -1108,11 +1108,11 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
       description: "Cambia hasta dónde llega Lola en Mercadona, solo si la persona lo pide: lista = solo rellenar la lista; reservar = además meterla en el carro y reservar la hora de entrega; pagar = además pagar, siempre confirmando antes el importe y con la aprobación de su banco. «Ya no pagues tú» es reservar; «solo la lista», lista. Si devuelve que falta un teléfono, pídeselo y usa guardar_telefono_mercadona; luego vuelve a llamarla. Dile lo que devuelve, sin añadir nada.",
       inputSchema: {
         type: "object",
-        properties: { alcance: { type: "string", enum: ALCANCES_MERCADONA } },
-        required: ["alcance"],
+        properties: { llega_hasta: { type: "string", enum: LLEGA_HASTA_MERCADONA } },
+        required: ["llega_hasta"],
         additionalProperties: false,
       },
-      run: ({ alcance }) => cambiarMercadona({ householdId, alcance }),
+      run: ({ llega_hasta }) => cambiarMercadona({ householdId, llega_hasta }),
     }),
     herramienta({ capacidades: ["mercadona_pasos"], lee: [], escribe: [], lector: false, riesgo: RIESGO_HERRAMIENTA.ESCRIBE_IRREVERSIBLE, deshace: DESHACE.NO, pantalla: null }, {
       name: "guardar_telefono_mercadona",

@@ -97,9 +97,24 @@ describe("encargar", () => {
 });
 
 describe("estadoDeCasa", () => {
-  it("nunca da la sesión", async () => {
-    await m.estadoDeCasa("c1");
-    expect(select.mock.calls.find((c) => c[0] === "mercadona_cuenta")[2]).toBe("estado");
+  it("nunca da la sesión, y del teléfono solo si está", async () => {
+    db.cuenta = [{ estado: "conectada", llega_hasta: "reservar", tiene_direccion: true, tiene_pago: false, telefono_sellado: "sellado" }];
+    const r = await m.estadoDeCasa("c1");
+    expect(select.mock.calls.find((c) => c[0] === "mercadona_cuenta")[2]).not.toContain("sesion_cifrada");
+    expect(r).toMatchObject({ cuenta: "conectada", llega_hasta: "reservar", tiene_direccion: true, tiene_pago: false, tiene_telefono: true });
+    expect(JSON.stringify(r)).not.toContain("sellado");
+  });
+
+  it("sin las columnas de la 0133 (42703) lee solo el estado: llega hasta la lista y nada mirado", async () => {
+    select.mockRejectedValueOnce(error("42703"));
+    const r = await m.estadoDeCasa("c1");
+    expect(select.mock.calls.filter((c) => c[0] === "mercadona_cuenta").map((c) => c[2])).toEqual([expect.stringContaining("llega_hasta"), "estado"]);
+    expect(r).toMatchObject({ disponible: true, cuenta: "conectada", llega_hasta: "lista", tiene_direccion: null, tiene_pago: null, tiene_telefono: false });
+  });
+
+  it("sin cuenta, nada que decir de ella", async () => {
+    db.cuenta = [];
+    expect(await m.estadoDeCasa("c1")).toMatchObject({ cuenta: null, llega_hasta: "lista", tiene_direccion: null, tiene_pago: null, tiene_telefono: null });
   });
 
   it("cierra lo que lleva demasiado: lo cogido, por cuándo se cogió", async () => {

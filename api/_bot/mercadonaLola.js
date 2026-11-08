@@ -4,11 +4,11 @@
  */
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { cambiarAlcance, encargar, estadoDeCasa, guardarTelefono } from "./mercadonaEncargos.js";
+import { cambiarLlegaHasta, encargar, estadoDeCasa, guardarTelefono } from "./mercadonaEncargos.js";
 import { lineasPorComprar, motor } from "./menu.js";
 import { NOMBRE_LISTA_MERCADONA, listaParaMercadona } from "../../src/lib/mercadonaList.js";
 import { NO_ENCARGADO } from "../../src/lib/vocabularios.js";
-import { ALCANCE_MERCADONA, FALTA_MERCADONA, faltaPara } from "../../src/lib/mercadonaAlcance.js";
+import { LLEGA_HASTA, FALTA_MERCADONA, faltaPara } from "../../src/lib/mercadonaLlegaHasta.js";
 import { telefonoDe, textoParaSellar } from "../../src/lib/mercadonaTelefono.js";
 import { sellar } from "../../src/lib/mercadonaSello.js";
 
@@ -49,7 +49,7 @@ export async function pasarAMercadona({ householdId, userId, chatId, canal }, { 
   if (r.fallo) return TEXTO_SIN_ENCARGO[r.fallo];
   const fuera = sinProducto.length ? ` Sin producto en Mercadona, y por tanto fuera: ${sinProducto.join(", ")}.` : "";
   const cuantos = lineas.length === 1 ? "1 producto" : `${lineas.length} productos`;
-  const hasta = r.alcance ?? ALCANCE_MERCADONA.LISTA;
+  const hasta = r.llega_hasta ?? LLEGA_HASTA.LISTA;
   return `Estoy ${HACIENDO[hasta]} en tu cuenta de Mercadona con ${cuantos}.${fuera} Te aviso aquí cuando acabe.${LUEGO[hasta]}`;
 }
 
@@ -57,19 +57,19 @@ export async function pasarAMercadona({ householdId, userId, chatId, canal }, { 
 
 /** Lo que hace el bot en cada paso, para decírselo a la familia. */
 export const QUE_HACE = Object.freeze({
-  [ALCANCE_MERCADONA.LISTA]: "rellenar la lista en tu cuenta de Mercadona",
-  [ALCANCE_MERCADONA.RESERVAR]: "rellenar la lista, meterla en el carro y reservarte la hora de entrega",
-  [ALCANCE_MERCADONA.PAGAR]: "rellenar la lista, meterla en el carro, reservarte la hora de entrega y pagar, siempre con tu visto bueno al importe y en tu banco",
+  [LLEGA_HASTA.LISTA]: "rellenar la lista en tu cuenta de Mercadona",
+  [LLEGA_HASTA.RESERVAR]: "rellenar la lista, meterla en el carro y reservarte la hora de entrega",
+  [LLEGA_HASTA.PAGAR]: "rellenar la lista, meterla en el carro, reservarte la hora de entrega y pagar, siempre con tu visto bueno al importe y en tu banco",
 });
 const HACIENDO = Object.freeze({
-  [ALCANCE_MERCADONA.LISTA]: "rellenando la lista",
-  [ALCANCE_MERCADONA.RESERVAR]: "rellenando la lista y metiéndola en el carro",
-  [ALCANCE_MERCADONA.PAGAR]: "rellenando la lista y metiéndola en el carro",
+  [LLEGA_HASTA.LISTA]: "rellenando la lista",
+  [LLEGA_HASTA.RESERVAR]: "rellenando la lista y metiéndola en el carro",
+  [LLEGA_HASTA.PAGAR]: "rellenando la lista y metiéndola en el carro",
 });
 const LUEGO = Object.freeze({
-  [ALCANCE_MERCADONA.LISTA]: " Pagar y pedir lo haces tú.",
-  [ALCANCE_MERCADONA.RESERVAR]: " Luego eliges la hora de entrega.",
-  [ALCANCE_MERCADONA.PAGAR]: " Luego eliges la hora de entrega y me confirmas el importe.",
+  [LLEGA_HASTA.LISTA]: " Pagar y pedir lo haces tú.",
+  [LLEGA_HASTA.RESERVAR]: " Luego eliges la hora de entrega.",
+  [LLEGA_HASTA.PAGAR]: " Luego eliges la hora de entrega y me confirmas el importe.",
 });
 
 /** Lo que tiene que hacer la persona por cada cosa que falta (FALTAS_MERCADONA). */
@@ -85,16 +85,16 @@ export const textoDeFalta = (falta) => unir(falta.map((f) => TEXTO_FALTA[f]));
 
 /** El paso de después de cada uno, y cómo se dice. */
 const SIGUIENTE = Object.freeze({
-  [ALCANCE_MERCADONA.LISTA]: { paso: ALCANCE_MERCADONA.RESERVAR, dicho: "reservarte también la hora de entrega" },
-  [ALCANCE_MERCADONA.RESERVAR]: { paso: ALCANCE_MERCADONA.PAGAR, dicho: "pagar también" },
+  [LLEGA_HASTA.LISTA]: { paso: LLEGA_HASTA.RESERVAR, dicho: "reservarte también la hora de entrega" },
+  [LLEGA_HASTA.RESERVAR]: { paso: LLEGA_HASTA.PAGAR, dicho: "pagar también" },
 });
 
 /** Pura. Lo que Lola dice del estado: hasta dónde llega y, si lo hay, el paso siguiente y lo que le falta. */
 export function textoDeEstado(estado) {
   if (!estado.disponible) return TEXTO_SIN_ENCARGO[NO_ENCARGADO.SIN_SERVICIO];
   if (!estado.cuenta) return TEXTO_SIN_ENCARGO[NO_ENCARGADO.SIN_CUENTA];
-  const ahora = `Ahora puedo ${QUE_HACE[estado.alcance]}.`;
-  const siguiente = SIGUIENTE[estado.alcance];
+  const ahora = `Ahora puedo ${QUE_HACE[estado.llega_hasta]}.`;
+  const siguiente = SIGUIENTE[estado.llega_hasta];
   if (!siguiente) return ahora;
   const falta = faltaPara(estado, siguiente.paso);
   return falta.length ? `${ahora} Para ${siguiente.dicho}, ${textoDeFalta(falta)}.` : `${ahora} Si quieres, puedo ${siguiente.dicho}.`;
@@ -105,12 +105,12 @@ export async function verMercadona({ householdId }) {
   return textoDeEstado(await estadoDeCasa(householdId));
 }
 
-/** Cambia hasta dónde llega el bot. Lo comprueba cambiarAlcance, no Lola: aquí solo se dice. */
-export async function cambiarMercadona({ householdId, alcance }) {
-  const r = await cambiarAlcance({ casa: householdId, alcance });
+/** Cambia hasta dónde llega el bot. Lo comprueba cambiarLlegaHasta, no Lola: aquí solo se dice. */
+export async function cambiarMercadona({ householdId, llega_hasta }) {
+  const r = await cambiarLlegaHasta({ casa: householdId, llega_hasta });
   if (r.fallo) return TEXTO_SIN_ENCARGO[r.fallo];
   if (r.falta) return `Para eso, primero ${textoDeFalta(r.falta)}. Cuando esté, vuelve a pedírmelo.`;
-  return `Hecho: a partir de ahora puedo ${QUE_HACE[r.alcance]}.`;
+  return `Hecho: a partir de ahora puedo ${QUE_HACE[r.llega_hasta]}.`;
 }
 
 /** La clave pública del trabajador: la misma con la que la app sella la sesión (api/mercadona.js). */
