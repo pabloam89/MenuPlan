@@ -69,6 +69,12 @@ describe("cambiosDeCierre: qué se escribe según de dónde viene", () => {
     });
     expect(m.cambiosDeCierre({ status: "reservando" }, { fallo: "hora_ocupada" }, CUANDO)).toEqual({ status: "fallido", fallo: "hora_ocupada", fallido_at: CUANDO });
   });
+
+  it("una reserva que llega tras el barrido: hecho con la hora, sin tocar la lista", () => {
+    expect(m.cambiosDeCierre({ status: "fallido", fallo: "caducado", hora_entrega: F1 }, { cambiable_hasta: "2026-11-11T18:59:00Z" }, CUANDO)).toEqual({
+      status: "hecho", hecho_at: CUANDO, cambiable_hasta: "2026-11-11T18:59:00Z", fallo: null, fallido_at: null,
+    });
+  });
 });
 
 describe("cerrar", () => {
@@ -82,6 +88,16 @@ describe("cerrar", () => {
       [{ texto: "jueves 12 nov, 15:00–16:00 · 7,21 €", dato: `mhe:${ID}:0` }],
       [{ texto: "jueves 12 nov, 17:00–18:00 · gratis", dato: `mhe:${ID}:1` }],
     ]);
+  });
+
+  it("una reserva tardía sobre un caducado avisa de la hora; sin hora elegida, no escribe", async () => {
+    db.encargo = [{ household_id: CASA, status: "fallido", fallo: "caducado", tomado_at: CUANDO, hora_entrega: F1 }];
+    expect(await m.cerrar(ID, { cambiable_hasta: "2026-11-11T18:59:00Z" }, AHORA)).toBe(true);
+    expect(db.escrito[0].cambios).not.toHaveProperty("lista_xid");
+    db.escrito = [];
+    db.encargo = [{ household_id: CASA, status: "fallido", fallo: "caducado", tomado_at: CUANDO, hora_entrega: null }];
+    expect(await m.cerrar(ID, { cambiable_hasta: "2026-11-11T18:59:00Z" }, AHORA)).toBe(false);
+    expect(db.escrito).toEqual([]);
   });
 
   it("otro fallo de la base no se traga", async () => {
@@ -144,6 +160,9 @@ describe("elegir la hora", () => {
     expect(m.leerBotonHora(`mhe:${ID}:3`)).toEqual({ encargo: ID, posicion: 3 });
     for (const dato of ["mhe:x:1", `mhe:${ID}:10`, `t:${ID}`, undefined]) expect(m.leerBotonHora(dato)).toBeNull();
     expect(Buffer.byteLength(`mhe:${ID}:3`)).toBeLessThanOrEqual(64);
+    // Lo que escribe botonesDeHoras es lo que lee leerBotonHora: el prefijo sale de un solo sitio.
+    const botones = m.botonesDeHoras({ id: ID, horas_entrega: [F1, F2] });
+    expect(botones.map(([b]) => m.leerBotonHora(b.dato))).toEqual([{ encargo: ID, posicion: 0 }, { encargo: ID, posicion: 1 }]);
   });
 
   it("Lola, al pulsar: lo que reserva, o por qué no", async () => {

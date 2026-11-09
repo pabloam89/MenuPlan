@@ -74,8 +74,9 @@ export const PREFIJO_BOTON_HORA = "mhe:";
 export const botonesDeHoras = (fila) =>
   (fila.horas_entrega ?? []).map((f, i) => [{ texto: textoDeHoraEntrega(f), dato: `${PREFIJO_BOTON_HORA}${fila.id}:${i}` }]);
 /** Pura. El encargo y la posición de un botón de hora de entrega, o null si no es uno. */
+const BOTON_HORA = new RegExp(`^${PREFIJO_BOTON_HORA}([0-9a-f-]{36}):(\\d)$`);
 export function leerBotonHora(dato) {
-  const m = /^mhe:([0-9a-f-]{36}):(\d)$/.exec(String(dato ?? ""));
+  const m = BOTON_HORA.exec(String(dato ?? ""));
   return m ? { encargo: m[1], posicion: Number(m[2]) } : null;
 }
 
@@ -280,7 +281,9 @@ export async function apuntarRevision(casa, { tiene_direccion, tiene_pago }, cua
 
 /**
  * Pura. Lo que se escribe al cerrar, según de dónde viene el encargo y lo que trae el trabajador:
- *   · de `reservando`: `{ cambiable_hasta }` → hecho con la hora; `{ fallo }` → fallido, con la lista que ya tenía;
+ *   · de `reservando`: `{ cambiable_hasta }` → hecho con la hora; `{ fallo }` → fallido, con la lista que ya tenía. Si el
+ *     barrido lo cerró antes como caducado y la reserva llega tarde, la reserva está hecha en Mercadona: hecho con la hora,
+ *     sin tocar la lista (el trigger de la 0134 deja pasar ese hecho tardío si no cambia la hora elegida);
  *   · de `rellenando` (o un caducado): `{ fallo }` sin lista → fallido; `{ lista_xid, entraron, faltan }` → hecho; con
  *     `pedido` (`{ pedido_xid, total, horas de entrega }`) → eligiendo; con lista y `fallo` → fallido con la lista (0134).
  */
@@ -291,9 +294,9 @@ export function cambiosDeCierre(antes, resultado, cuando) {
     fallo: paraEscribir("fallos_encargo_mercadona", resultado.fallo),
     fallido_at: cuando,
   });
-  if (antes.status === RESERVANDO) {
-    return fallo ? fallido() : { status: paraEscribir("estados_encargo_mercadona", HECHO), hecho_at: cuando, cambiable_hasta: resultado.cambiable_hasta ?? null };
-  }
+  const reservada = { status: paraEscribir("estados_encargo_mercadona", HECHO), hecho_at: cuando, cambiable_hasta: resultado.cambiable_hasta ?? null };
+  if (antes.status === RESERVANDO) return fallo ? fallido() : reservada;
+  if (antes.hora_entrega && !fallo && !resultado.lista_xid) return { ...reservada, fallo: null, fallido_at: null };
   if (fallo && !resultado.lista_xid) return fallido();
   const lista = { lista_xid: String(resultado.lista_xid), entraron: resultado.entraron, faltan: resultado.faltan };
   const hecho = { status: paraEscribir("estados_encargo_mercadona", HECHO), ...lista, hecho_at: cuando, fallo: null, fallido_at: null };
@@ -315,10 +318,12 @@ export function cambiosDeCierre(antes, resultado, cuando) {
 export async function cerrar(id, resultado, ahora = Date.now()) {
   const cuando = new Date(ahora).toISOString();
   const fallo = resultado.fallo ? paraEscribir("fallos_encargo_mercadona", resultado.fallo) : null;
-  const [antes] = await select("mercadona_encargo", `id=${eq(id)}`, "household_id,status,fallo,tomado_at");
+  const [antes] = await select("mercadona_encargo", `id=${eq(id)}`, "household_id,status,fallo,tomado_at,hora_entrega");
   if (!antes) throw new Error("encargo desconocido");
   const caducado = antes.status === FALLIDO && antes.fallo === FALLO_ENCARGO_MERCADONA.CADUCADO;
   if (antes.status !== RELLENANDO && antes.status !== RESERVANDO && !(caducado && !fallo)) return false;
+  // Un caducado sin hora elegida solo admite la lista tardía; una reserva tardía necesita la hora que se reservó.
+  if (caducado && !resultado.lista_xid && !antes.hora_entrega) return false;
   if (resultado.revision) await apuntarRevision(antes.household_id, resultado.revision, cuando);
 
   if (fallo === FALLO_ENCARGO_MERCADONA.SESION_CADUCADA) {
