@@ -5119,11 +5119,21 @@ export default function App() {
    * ese hueco en todos los grupos que lo tengan libre, por el mismo camino que
    * «Elegir a mano» (`forcedRecipe`): si choca con una alergia del grupo, en
    * ese grupo no se pone.
+   *
+   * Ningún elegido se pierde en silencio: lo que no queda puesto en ningún
+   * grupo —no cabe, choca con una alergia en todos, o su id ya no está en el
+   * catálogo— se cuenta en un aviso, como hace «Elegir a mano».
    */
   const colocarClasicos = useCallback((ids) => {
     if (householdReadOnly) return;
     const groups = gruposVigentes(data).filter((g) => menuPlan?.[g.id]);
-    if (groups.length === 0) return;
+    const avisarPerdidos = (perdidos, motivo = null) => {
+      if (perdidos === 0) return;
+      showToast(perdidos === 1
+        ? motivo ?? "Un clásico no se pudo poner en la semana"
+        : `${perdidos} clásicos no se pudieron poner en la semana`);
+    };
+    if (groups.length === 0) { avisarPerdidos(ids.length); return; }
     const recetas = ids.map((id) => recipeCatalogById[id]).filter(Boolean);
     const plazas = plazasLibres(menuPlan[groups[0].id], DAYS, getDayMeals(data));
     const { colocados, sinSitio } = repartirClasicos(recetas, plazas);
@@ -5136,6 +5146,7 @@ export default function App() {
     }
     const nuevas = [];
     let puestos = 0;
+    const puestas = new Set();
     for (const { recetaId, day, meal, course } of colocados) {
       const key = `${day}-${meal}`;
       for (const g of groups) {
@@ -5148,6 +5159,7 @@ export default function App() {
         nuevas.push(r.frontendRecipe);
         trabajo[g.id][key] = { ...slot, ...r.hueco, cleared: false, warnings: [] };
         puestos++;
+        puestas.add(recetaId);
       }
     }
 
@@ -5161,11 +5173,15 @@ export default function App() {
       setMenuPlan(() => trabajo);
       if (puestos > 1) setRepartoKey((k) => k + 1);
     }
-    // Lo que no cabe se dice: en silencio parecería que el plato se ha perdido.
-    if (sinSitio.length > 0) {
-      showToast(sinSitio.length === 1 ? "Un clásico no cabía en la semana" : `${sinSitio.length} clásicos no cabían en la semana`);
-    }
-    trackEvent(user, "pizarra_clasicos", "menu", { elegidos: ids.length, colocados: colocados.length, sinSitio: sinSitio.length });
+    // Lo que no ha quedado puesto se dice: en silencio parecería que el plato
+    // se ha perdido. Si es uno solo y chocó con una alergia, con su motivo.
+    const perdidos = ids.filter((id) => !puestas.has(id));
+    const chocado = colocados.find((c) => !puestas.has(c.recetaId));
+    const motivo = perdidos.length === 1 && chocado
+      ? motivoDelChoque(recipeCatalogById[chocado.recetaId], data, groups[0], chocado.meal)
+      : null;
+    avisarPerdidos(perdidos.length, motivo);
+    trackEvent(user, "pizarra_clasicos", "menu", { elegidos: ids.length, puestos: puestas.size, sinSitio: sinSitio.length, perdidos: perdidos.length });
   }, [data, menuPlan, user, householdReadOnly, showToast]);
 
   // Se ponen en cuanto la hoja se ha ido y el tablero está montado, sobre el
