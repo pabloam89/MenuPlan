@@ -6,6 +6,8 @@
  */
 
 export const ORIGEN_TIENDA = "https://tienda.mercadona.es";
+/** Dónde guarda la web de Mercadona la sesión ({ token, uuid }) en su localStorage. */
+export const CLAVE_SESION_TIENDA = "MO-user";
 /** La pestaña de HoMenu que abre el marcador: `/?mercadona=conectar`. */
 export const PARAM_CONECTAR = "mercadona";
 export const VALOR_CONECTAR = "conectar";
@@ -18,7 +20,7 @@ export function marcador(origen) {
   const codigo = `(()=>{
 const O=${JSON.stringify(origen)};
 if(location.origin!==${JSON.stringify(ORIGEN_TIENDA)}){alert("Pulsa este marcador con tienda.mercadona.es abierta.");return}
-const mo=localStorage.getItem("MO-user");
+const mo=localStorage.getItem(${JSON.stringify(CLAVE_SESION_TIENDA)});
 if(!mo||!JSON.parse(mo).token){alert("Entra primero en tu cuenta de Mercadona.");return}
 const w=window.open(O+"/?${PARAM_CONECTAR}=${VALOR_CONECTAR}","_blank");
 const f=(e)=>{if(e.origin!==O||e.data!==${JSON.stringify(MENSAJE_LISTA)})return;removeEventListener("message",f);w.postMessage({mo,cookies:document.cookie},O)};
@@ -38,5 +40,5 @@ export function estadoDeMarcador({ mo, cookies }) {
     const i = c.indexOf("=");
     return { name: c.slice(0, i), value: c.slice(i + 1), domain: new URL(ORIGEN_TIENDA).hostname, path: "/", expires: -1, httpOnly: false, secure: true, sameSite: "Lax" };
   });
-  return JSON.stringify({ cookies: lista, origins: [{ origin: ORIGEN_TIENDA, localStorage: [{ name: "MO-user", value: mo }] }] });
+  return JSON.stringify({ cookies: lista, origins: [{ origin: ORIGEN_TIENDA, localStorage: [{ name: CLAVE_SESION_TIENDA, value: mo }] }] });
 }
