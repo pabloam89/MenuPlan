@@ -57,6 +57,7 @@
     "@capacitor/core": "^8.5.2",
     "@capacitor/ios": "^8.5.2",
     "@capacitor/status-bar": "^8.0.3",
+    "@capgo/capacitor-inappbrowser": "8.27.4",
     "@fal-ai/client": "^1.10.1",
     "@google/genai": "^2.9.0",
     "@supabase/supabase-js": "^2.108.2",

@@ -12,9 +12,13 @@ vi.mock("./_bot/mercadonaEncargos.js", () => ({
   cerrar: vi.fn(async () => true),
   conectar: vi.fn(async () => ({ conectada: true })),
   desconectar: vi.fn(async () => ({ conectada: false })),
+  cambiarLlegaHasta: vi.fn(async ({ llega_hasta }) => ({ llega_hasta })),
+  guardarTelefono: vi.fn(async () => ({ guardado: true })),
   encargar: vi.fn(async () => ({ encargo: { id: "e1" } })),
   estadoDeCasa: vi.fn(async () => ({ disponible: true, cuenta: "conectada", encargo: null })),
   tomar: vi.fn(async () => null),
+  tomarReserva: vi.fn(async () => null),
+  elegirHoraEntrega: vi.fn(async () => ({ encargo: { id: "e1", status: "reservando" } })),
 }));
 
 const { default: handler } = await import("./mercadona.js");
@@ -82,9 +86,34 @@ describe("la app", () => {
     expect(r.datos).toMatchObject({ cuenta: "conectada", clave_publica: "clave" });
   });
 
+  it("elige la hora de entrega quien edita la casa; quien solo la ve, no", async () => {
+    const cuerpo = { casa: CASA, elegir: { encargo: "e1", hora_id: "f1" } };
+    expect((await llamar({ token: "buena", body: cuerpo })).datos).toEqual({ encargo: { id: "e1", status: "reservando" } });
+    expect(e.elegirHoraEntrega).toHaveBeenCalledWith({ casa: CASA, encargo: "e1", hora_id: "f1" });
+    papelDeUsuario.mockResolvedValue("viewer");
+    expect((await llamar({ token: "buena", body: cuerpo })).statusCode).toBe(403);
+    expect(e.elegirHoraEntrega).toHaveBeenCalledTimes(1);
+  });
+
   it("quién encarga sale del token, nunca del cuerpo", async () => {
     await llamar({ token: "buena", body: { casa: CASA, por: "otro", encargar: { lista: { name: "x" } } } });
     expect(e.encargar.mock.calls[0][0]).toMatchObject({ por: "u1", canal: "app" });
+  });
+
+  it("cambia hasta dónde llega el bot y guarda el teléfono sellado, con las funciones que usa Lola (trozo 17)", async () => {
+    const r = await llamar({ token: "buena", body: { casa: CASA, llega_hasta: "reservar" } });
+    expect(r.datos).toEqual({ llega_hasta: "reservar" });
+    expect(e.cambiarLlegaHasta).toHaveBeenCalledWith({ casa: CASA, llega_hasta: "reservar" });
+    await llamar({ token: "buena", body: { casa: CASA, telefono: { telefono_sellado: "sello" } } });
+    expect(e.guardarTelefono).toHaveBeenCalledWith({ casa: CASA, telefono_sellado: "sello" });
+  });
+
+  it("quien solo ve la casa no cambia hasta dónde llega ni el teléfono", async () => {
+    papelDeUsuario.mockResolvedValue("viewer");
+    expect((await llamar({ token: "buena", body: { casa: CASA, llega_hasta: "pagar" } })).statusCode).toBe(403);
+    expect((await llamar({ token: "buena", body: { casa: CASA, telefono: { telefono_sellado: "s" } } })).statusCode).toBe(403);
+    expect(e.cambiarLlegaHasta).not.toHaveBeenCalled();
+    expect(e.guardarTelefono).not.toHaveBeenCalled();
   });
 
   it("una casa mal formada, 400", async () => {
@@ -128,9 +157,51 @@ describe("el trabajador", () => {
     expect(r.datos).toEqual({ cerrado: true });
   });
 
+  it("cierra con la revisión de la cuenta, también si el encargo falló", async () => {
+    const revision = { tiene_direccion: false, tiene_pago: true };
+    expect((await trabajador({ accion: "cerrar", id: CASA, resultado: { lista_xid: "1", entraron: 2, faltan: [], revision } })).statusCode).toBe(200);
+    expect((await trabajador({ accion: "cerrar", id: CASA, resultado: { fallo: "error", revision } })).statusCode).toBe(200);
+    // Una revisión con otra forma (un texto, o con algo más que los dos booleanos) no se acepta.
+    expect((await trabajador({ accion: "cerrar", id: CASA, resultado: { fallo: "error", revision: { tiene_direccion: "si", tiene_pago: true } } })).statusCode).toBe(400);
+    expect((await trabajador({ accion: "cerrar", id: CASA, resultado: { fallo: "error", revision: { ...revision, calle: "x" } } })).statusCode).toBe(400);
+  });
+
   it("una lista que no se pudo releer se cierra sin cifras", async () => {
     const r = await trabajador({ accion: "cerrar", id: CASA, resultado: { lista_xid: "1", entraron: null, faltan: null } });
     expect(r.statusCode).toBe(200);
+  });
+
+  // 0134: reservar la hora de entrega.
+  const HORA = { id: "f1", start: "2026-11-12T14:00:00Z", end: "2026-11-12T15:00:00Z", price: "7.21", available: true };
+  const PEDIDO = { pedido_xid: "p9", total: 64.1, horas_entrega: [HORA] };
+
+  it("toma la siguiente reserva", async () => {
+    e.tomarReserva.mockResolvedValueOnce({ reserva: { id: "e1" }, sesion_cifrada: "s", telefono_sellado: null });
+    expect((await trabajador({ accion: "tomar_reserva" })).datos.siguiente.reserva.id).toBe("e1");
+  });
+
+  it.each([
+    [{ lista_xid: "1", entraron: 2, faltan: [], pedido: PEDIDO }],
+    [{ lista_xid: "1", entraron: 2, faltan: [], fallo: "bajo_minimo" }],
+    [{ cambiable_hasta: "2026-11-11T18:59:00Z" }],
+    [{ cambiable_hasta: null }],
+    [{ fallo: "hora_ocupada" }],
+  ])("cierra lo de reservar: %j", async (resultado) => {
+    expect((await trabajador({ accion: "cerrar", id: CASA, resultado })).statusCode).toBe(200);
+  });
+
+  it.each([
+    [{ lista_xid: "1", entraron: 2, faltan: [], pedido: { ...PEDIDO, horas_entrega: [] } }],
+    [{ lista_xid: "1", entraron: 2, faltan: [], pedido: { ...PEDIDO, horas_entrega: [HORA, HORA, HORA, HORA, HORA] } }],
+    [{ lista_xid: "1", entraron: 2, faltan: [], pedido: { ...PEDIDO, horas_entrega: [{ id: "f1", start: "mañana" }] } }],
+    [{ lista_xid: "1", entraron: 2, faltan: [], pedido: { ...PEDIDO, pedido_xid: 9 } }],
+    [{ lista_xid: "1", entraron: 2, faltan: [], pedido: { ...PEDIDO, total: -1 } }],
+    [{ lista_xid: "1", entraron: -1, faltan: [], fallo: "bajo_minimo" }],
+    [{ cambiable_hasta: "el martes" }],
+    [{ cambiable_hasta: "2026-11-11T18:59:00Z", lista_xid: "1", entraron: 1, faltan: [] }],
+  ])("lo de reservar mal formado no se cierra: %j", async (resultado) => {
+    expect((await trabajador({ accion: "cerrar", id: CASA, resultado })).statusCode).toBe(400);
+    expect(e.cerrar).not.toHaveBeenCalled();
   });
 
   it.each([
@@ -140,6 +211,8 @@ describe("el trabajador", () => {
     [{ lista_xid: "1", entraron: -1, faltan: [] }],
     [{ lista_xid: "1", entraron: 1 }],
     [null],
+    [{ lista_xid: "1", entraron: 1, faltan: [], revision: { tiene_direccion: "sí", tiene_pago: true } }],
+    [{ lista_xid: "1", entraron: 1, faltan: [], revision: { tiene_direccion: true, tiene_pago: true, direccion: "Calle Mayor 1" } }],
   ])("un resultado mal formado no se cierra: %j", async (resultado) => {
     expect((await trabajador({ accion: "cerrar", id: CASA, resultado })).statusCode).toBe(400);
     expect(e.cerrar).not.toHaveBeenCalled();

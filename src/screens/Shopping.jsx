@@ -4,7 +4,7 @@ import { BaldosaFranja, RayaBaldosas } from "../components/wizard/ControlRow.jsx
 import { color as tono } from "../design/tokens.js";
 import BarraComprar, { PildoraLola } from "../components/BarraComprar.jsx";
 import ResumenCompra from "../components/ResumenCompra.jsx";
-import { pasoDeComprar, useRellenarMercadona } from "../components/useRellenarMercadona.js";
+import { pasoConMinimo, pasoDeComprar, useRellenarMercadona } from "../components/useRellenarMercadona.js";
 import HojaComprar from "../components/HojaComprar.jsx";
 import { separarFondo } from "../lib/tipoDeCompra.js";
 import { Suspense, lazy, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
@@ -823,13 +823,20 @@ export function ShoppingScreen({
   // La hoja de Comprar (HojaComprar): solo el paso siguiente, nunca la lista.
   const [comprarAbierto, setComprarAbierto] = useState(false);
   const mercadona = useRellenarMercadona(pantryHouseholdId, paraComprar?.lista);
-  const paso = pasoDeComprar(mercadona);
+  // Por debajo del pedido mínimo de Mercadona, Comprar no se pulsa (pasoConMinimo).
+  const paso = pasoConMinimo(pasoDeComprar(mercadona), paraComprar?.total);
   // Con la cuenta conectada, comprar va directo; sin ella, lo que se puede hacer está en la hoja.
   const comprar = async () => {
     if (paso.mirar) return mercadona.mirar();
+    if (paso.abrirHoja) return setComprarAbierto(true);
     if (!mercadona.conectada || !(await mercadona.rellenar())) setComprarAbierto(true);
     return undefined;
   };
+  // Cuando el carro está lleno y llegan las horas de entrega, la hoja se abre sola: la siguiente cosa es elegir una.
+  const eligiendoHora = mercadona.eligiendoHora;
+  useEffect(() => {
+    if (eligiendoHora) setComprarAbierto(true);
+  }, [eligiendoHora]);
 
   // Date label for the current selection: real span of the selected weeks in
   // menú mode; the single-week label otherwise.

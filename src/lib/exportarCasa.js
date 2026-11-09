@@ -46,7 +46,7 @@ export const TABLAS_NO_EXPORTADAS = new Map([
   ["household_invites", "secreto: el código de invitación a la casa; exportarlo dejaría entrar a otra persona"],
   ["bot_idempotencia", "técnico: las claves para no hacer dos veces el mismo mensaje; no dicen nada de la familia"],
   ["bot_enlaces", "medida: cada intento de conectar un chat (camino y resultado, 0126, #1238), para contar los rechazos; no guarda nada de lo que la familia dice o come, y leerla antes de aplicar la 0126 tumbaría la descarga entera"],
-  ["mercadona_cuenta", "secreto: la sesión de Mercadona, sellada; solo sirve al trabajador y exportarla no le dice nada a la familia"],
+  ["mercadona_cuenta", "secreto: la sesión de Mercadona y el teléfono para el pedido (0133), sellados; solo sirven al trabajador y exportarlos no le dice nada a la familia"],
   ["mercadona_encargo", "técnico: cada vez que se pidió rellenar la lista; lleva el chat de quien lo pidió, y leerla antes de aplicar la 0131 tumbaría la descarga entera"],
   ["bot_deshacer", "técnico: la copia de antes de cada cambio de Lola para deshacerlo; lo que guarda ya sale de sus tablas"],
 ]);

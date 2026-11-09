@@ -72,6 +72,17 @@ describe("separarFondo", () => {
   });
 });
 
+// Pablo, 9 nov: ninguna especia fuera del fondo de armario. El pasillo
+// «Especias» es solo de especias secas (las hierbas frescas van a Verduras),
+// y todas son de fondo de armario.
+describe("las especias, todas en el fondo de armario", () => {
+  it("cada ingrediente del pasillo Especias está en fondoDeArmario.json", () => {
+    const fondo = new Set(tabla.filas.map((f) => f.ingredientId));
+    const fuera = ingredients.filter((i) => i.aisle === "Especias" && !fondo.has(i.id)).map((i) => i.id);
+    expect(fuera).toEqual([]);
+  });
+});
+
 // La clase del azafrán de 25 €: una dosis irreal en una especia cara. Lo de
 // fondo de armario se gasta a pellizcos; si una línea cuesta más que esto por
 // ración, la cantidad de la receta está mal (el azafrán pedía 1 g para dos y

@@ -52,6 +52,7 @@ function clienteApi(url, token) {
   };
   return {
     tomar: async () => (await pedir({ accion: "tomar" })).siguiente,
+    tomarReserva: async () => (await pedir({ accion: "tomar_reserva" })).siguiente,
     cerrar: (id, resultado) => pedir({ accion: "cerrar", id, resultado }),
   };
 }
