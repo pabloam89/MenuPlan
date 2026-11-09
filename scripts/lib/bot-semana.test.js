@@ -103,7 +103,7 @@ describe("medir", () => {
 describe("medir: dónde se va el tiempo de Lola", () => {
   it("modelo = llamadas menos herramientas; resto = turno menos llamadas", () => {
     const turno = ruta(0, { rapida: false, ms: 12000, lola: lola(11000, {
-      herramientas: [["generar_menu", 2000], ["ajustar_cocina", 1000]],
+      herramientas: [["generar_menu", 2000], ["ajustar_casa", 1000]],
       llamadas: [[4000, 300, null], [7000, 500, 6500]],
     }) });
     const m = medir([turno]).latencia;
