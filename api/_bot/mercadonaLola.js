@@ -4,13 +4,11 @@
  */
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { cambiarLlegaHasta, encargar, estadoDeCasa, guardarTelefono } from "./mercadonaEncargos.js";
+import { cambiarLlegaHasta, encargar, estadoDeCasa } from "./mercadonaEncargos.js";
 import { lineasPorComprar, motor } from "./menu.js";
 import { NOMBRE_LISTA_MERCADONA, listaParaMercadona } from "../../src/lib/mercadonaList.js";
 import { NO_ENCARGADO } from "../../src/lib/vocabularios.js";
 import { LLEGA_HASTA, FALTA_MERCADONA, faltaPara } from "../../src/lib/mercadonaLlegaHasta.js";
-import { telefonoDe, textoParaSellar } from "../../src/lib/mercadonaTelefono.js";
-import { sellar } from "../../src/lib/mercadonaSello.js";
 
 const TIENDA = "Mercadona";
 
@@ -111,22 +109,4 @@ export async function cambiarMercadona({ householdId, llega_hasta }) {
   if (r.fallo) return TEXTO_SIN_ENCARGO[r.fallo];
   if (r.falta) return `Para eso, primero ${textoDeFalta(r.falta)}. Cuando esté, vuelve a pedírmelo.`;
   return `Hecho: a partir de ahora puedo ${QUE_HACE[r.llega_hasta]}.`;
-}
-
-/** La clave pública del trabajador: la misma con la que la app sella la sesión (api/mercadona.js). */
-const clavePublica = () => process.env.MERCADONA_CLAVE_PUBLICA || null;
-
-/**
- * Guarda el teléfono para el pedido: se sella aquí, con la clave pública, antes de guardarlo, y no se repite entero.
- * Solo por privado: en un grupo lo verían los demás.
- */
-export async function guardarTelefonoMercadona({ householdId, telefono, esGrupo = false }, { clave = clavePublica } = {}) {
-  if (esGrupo) return "El teléfono, mejor por privado: escríbeme a mí directamente.";
-  const t = telefonoDe(telefono);
-  if (!t) return "Ese teléfono no me cuadra. Dime uno de España, de 9 cifras.";
-  const publica = clave();
-  if (!publica) return TEXTO_SIN_ENCARGO[NO_ENCARGADO.SIN_SERVICIO];
-  const r = await guardarTelefono({ casa: householdId, telefono_sellado: await sellar(textoParaSellar(t), publica) });
-  if (r.fallo) return TEXTO_SIN_ENCARGO[r.fallo];
-  return `Guardado, el acabado en ${t.phone_national_number.slice(-3)}. Solo lo usa el repartidor de Mercadona.`;
 }

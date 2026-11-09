@@ -38,7 +38,7 @@ import { diaDe } from "./interprete.js";
 import { isoDeCasa, diaDeISO } from "../../src/lib/dias.js";
 import { cuadre as cuadreDelTurno, medidaDelCuadre } from "./cuadre.js";
 import { avisoVispera } from "./vispera.js";
-import { cambiarMercadona, guardarTelefonoMercadona, pasarAMercadona, verMercadona } from "./mercadonaLola.js";
+import { cambiarMercadona, pasarAMercadona, verMercadona } from "./mercadonaLola.js";
 import { LLEGA_HASTA_MERCADONA } from "../../src/lib/mercadonaLlegaHasta.js";
 import { registrar, EMBUDO, duenoDe } from "./embudo.js";
 import {
@@ -1104,7 +1104,7 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
     // decide cambiarLlegaHasta (dirección, teléfono, tarjeta), no el modelo.
     herramienta({ capacidades: ["mercadona_pasos"], lee: [], escribe: [], lector: false, riesgo: RIESGO_HERRAMIENTA.ESCRIBE_IRREVERSIBLE, deshace: DESHACE.NO, pantalla: null }, {
       name: "cambiar_mercadona",
-      description: "Cambia hasta dónde llega Lola en Mercadona, solo si la persona lo pide: lista = solo rellenar la lista; reservar = además meterla en el carro y reservar la hora de entrega; pagar = además pagar, siempre confirmando antes el importe y con la aprobación de su banco. «Ya no pagues tú» es reservar; «solo la lista», lista. Si devuelve que falta un teléfono, pídeselo y usa guardar_telefono_mercadona; luego vuelve a llamarla. Dile lo que devuelve, sin añadir nada.",
+      description: "Cambia hasta dónde llega Lola en Mercadona, solo si la persona lo pide: lista = solo rellenar la lista; reservar = además meterla en el carro y reservar la hora de entrega; pagar = además pagar, siempre confirmando antes el importe y con la aprobación de su banco. «Ya no pagues tú» es reservar; «solo la lista», lista. Si devuelve que falta algo, díselo tal cual. Dile lo que devuelve, sin añadir nada.",
       inputSchema: {
         type: "object",
         properties: { llega_hasta: { type: "string", enum: LLEGA_HASTA_MERCADONA } },
@@ -1112,17 +1112,6 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
         additionalProperties: false,
       },
       run: ({ llega_hasta }) => cambiarMercadona({ householdId, llega_hasta }),
-    }),
-    herramienta({ capacidades: ["mercadona_telefono"], lee: [], escribe: [], lector: false, riesgo: RIESGO_HERRAMIENTA.ESCRIBE_IRREVERSIBLE, deshace: DESHACE.NO, pantalla: null }, {
-      name: "guardar_telefono_mercadona",
-      description: "Guarda el teléfono que Mercadona pide para el repartidor, cuando la persona lo da para eso. Pásalo tal como lo escribió. Se guarda cerrado y no se repite: no lo escribas tú en la respuesta. Dile lo que devuelve, sin añadir nada.",
-      inputSchema: {
-        type: "object",
-        properties: { telefono: { type: "string" } },
-        required: ["telefono"],
-        additionalProperties: false,
-      },
-      run: ({ telefono }) => guardarTelefonoMercadona({ householdId, telefono, esGrupo: Boolean(chat.esGrupo) }),
     }),
     // Quitar de la lista (#958): no había herramienta, y Lola lo marcaba como
     // comprado o decía que lo había quitado sin quitarlo.

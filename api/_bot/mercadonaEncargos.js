@@ -254,7 +254,7 @@ export async function cerrar(id, resultado, ahora = Date.now()) {
 /**
  * Cambia hasta dónde llega el bot (0133), el mismo dato para la app (api/mercadona.js) y Lola. Bajar siempre se puede;
  * subir, solo si la cuenta tiene lo que pide el paso (faltaPara). Devuelve `{ llega_hasta }`, `{ falta }` (FALTAS_MERCADONA)
- * o `{ fallo }` (NO_ENCARGADO). Sin la 0133, `sin_servicio`: el bot solo sabe rellenar la lista.
+ * o `{ fallo }` (NO_ENCARGADO).
  */
 export async function cambiarLlegaHasta({ casa, llega_hasta }, ahora = Date.now()) {
   if (!LLEGA_HASTA_MERCADONA.includes(llega_hasta)) throw new PeticionMala(`llega_hasta no válido: ${llega_hasta}`);
@@ -266,16 +266,4 @@ export async function cambiarLlegaHasta({ casa, llega_hasta }, ahora = Date.now(
   const filas = await update("mercadona_cuenta", `household_id=${eq(casa)}`, { llega_hasta: paraEscribir("llega_hasta_mercadona", llega_hasta) });
   if (!filas?.length) return { fallo: NO_ENCARGADO.SIN_CUENTA }; // se desconectó entre medias
   return { llega_hasta };
-}
-
-/**
- * Guarda el teléfono del pedido, ya sellado (src/lib/mercadonaTelefono.js): aquí nunca llega en claro. Devuelve
- * `{ guardado: true }` o `{ fallo }` (NO_ENCARGADO).
- */
-export async function guardarTelefono({ casa, telefono_sellado }) {
-  const valido = typeof telefono_sellado === "string" && telefono_sellado.length <= TOPE_SESION && esSello(telefono_sellado);
-  if (!valido) throw new PeticionMala("teléfono no sellado");
-  if (!casaPermitida(casa)) return { fallo: NO_ENCARGADO.SIN_SERVICIO };
-  const filas = await update("mercadona_cuenta", `household_id=${eq(casa)}`, { telefono_sellado });
-  return filas?.length ? { guardado: true } : { fallo: NO_ENCARGADO.SIN_CUENTA };
 }

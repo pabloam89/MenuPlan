@@ -1,5 +1,5 @@
 // Trozo 18 de #1407: Lola dice y cambia hasta dónde llega el bot en Mercadona, con el mismo dato que Ajustes
-// (mercadona_cuenta.llega_hasta, 0133), y guarda el teléfono del pedido sellado: nunca en claro.
+// (mercadona_cuenta.llega_hasta, 0133).
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const db = vi.hoisted(() => ({ cuenta: [], encargo: [], fallaSelect: null, fallaUpdate: null, escrito: [] }));
@@ -28,7 +28,6 @@ vi.mock("./avisar.js", () => ({ avisarFallo: vi.fn() }));
 const { update } = await import("./db.js");
 const m = await import("./mercadonaEncargos.js");
 const lola = await import("./mercadonaLola.js");
-const { abrir, ALGORITMO_CLAVE } = await import("../../src/lib/mercadonaSello.js");
 
 const error = (codigo) => Object.assign(new Error("x"), { codigo });
 const cuenta = (o = {}) => [{ estado: "conectada", sesion_cifrada: "sellada", llega_hasta: "lista", revisada_at: "2026-11-08T20:00:00Z", tiene_direccion: true, tiene_pago: true, telefono_sellado: "tel", ...o }];
@@ -87,43 +86,6 @@ describe("tomar: el trabajador sabe hasta dónde llegar", () => {
   it("otro fallo no se traga", async () => {
     db.fallaSelect = error("XX000");
     await expect(m.tomar()).rejects.toThrow();
-  });
-});
-
-describe("guardarTelefono", () => {
-  it("nunca guarda un teléfono en claro", async () => {
-    await expect(m.guardarTelefono({ casa: CASA, telefono_sellado: "600112233" })).rejects.toThrow(m.PeticionMala);
-    expect(db.escrito).toEqual([]);
-  });
-});
-
-/** Un par de claves como el del trabajador, para abrir lo que Lola sella. */
-async function claves() {
-  const { subtle } = globalThis.crypto;
-  const par = await subtle.generateKey({ ...ALGORITMO_CLAVE, modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]) }, true, ["wrapKey", "unwrapKey"]);
-  const spki = new Uint8Array(await subtle.exportKey("spki", par.publicKey));
-  return { publica: btoa(String.fromCharCode(...spki)), privada: par.privateKey };
-}
-
-describe("Lola: el teléfono", () => {
-  it("lo sella con la clave pública: solo el trabajador lo abre, y no lo repite entero", async () => {
-    const { publica, privada } = await claves();
-    const texto = await lola.guardarTelefonoMercadona({ householdId: CASA, telefono: "+34 600 11 22 33" }, { clave: () => publica });
-    expect(texto).toContain("233");
-    expect(texto).not.toContain("600112233");
-    const [{ telefono_sellado }] = db.escrito;
-    expect(telefono_sellado).not.toContain("600");
-    expect(JSON.parse(await abrir(telefono_sellado, privada))).toEqual({ phone_country_code: "34", phone_national_number: "600112233" });
-  });
-
-  it("en un grupo no lo guarda, y uno que no es de España tampoco", async () => {
-    expect(await lola.guardarTelefonoMercadona({ householdId: CASA, telefono: "600112233", esGrupo: true }, { clave: () => "x" })).toMatch(/privado/);
-    expect(await lola.guardarTelefonoMercadona({ householdId: CASA, telefono: "+44 7700 900123" }, { clave: () => "x" })).toMatch(/no me cuadra/);
-    expect(db.escrito).toEqual([]);
-  });
-
-  it("sin la clave del trabajador, sin servicio", async () => {
-    expect(await lola.guardarTelefonoMercadona({ householdId: CASA, telefono: "600112233" }, { clave: () => null })).toBe(lola.TEXTO_SIN_ENCARGO.sin_servicio);
   });
 });
 
