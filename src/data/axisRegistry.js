@@ -711,6 +711,13 @@ const DECLARADOS = [
     campo: null, vocabulario: null, consumidores: [], cobertura: 0,
     nota: "`kidDinnerConfig.limited` (kidsMenu.js); lo que sí come (`safeFoods`) va en subtipoIngrediente.",
   },
+  {
+    n: 86, id: "clasico", nombre: "Clásico de casa (se pone a mano)",
+    ambito: AMBITO.RECETA, tipo: "booleano", estado: "activo",
+    campo: "clasico", vocabulario: null,
+    consumidores: ["CatalogBrowserSheet"], cobertura: 0.048,
+    nota: "Curado a mano (9 nov 2026): los platos de casa del paso «¿Qué no puede faltar?» de la pizarra. NO es `estrella` (eje 37): el motor no los propone, solo se eligen a mano. Que lleguen al catálogo, con foto y papel de menú, lo vigila src/data/clasicos.test.js.",
+  },
 ];
 
 /**
