@@ -88,6 +88,8 @@ const rolesColor = {
   info: 'azul-700',
   'info-fondo': 'azul-700-alfa10',
   telegram: 'azul-telegram', // solo los botones de Telegram: es su marca, como el blanco de Google y el negro de Apple
+  'fondo-de-armario': 'ambar-700', // la franja abierta de «Fondo de armario» en la Compra
+  'fondo-de-armario-franja': 'ambar-50', // la misma franja, plegada
   scrim: 'negro-alfa45', // modal
   velo: 'blanco-alfa92', // cristal sobre imagen
 }

@@ -50,6 +50,9 @@
     {"ingredientId":"pimienta-blanca","motivo":null},
     {"ingredientId":"romero","motivo":null},
     {"ingredientId":"tomillo","motivo":null},
+    {"ingredientId":"especia-cajun","motivo":"Mezcla de especias secas: va con el resto de especias aunque no la tenga cualquier casa."},
+    {"ingredientId":"pimiento-choricero","motivo":"Seco o en pulpa de bote, aguanta meses y cada receta gasta una o dos piezas."},
+    {"ingredientId":"sesamo","motivo":"Semilla seca que aguanta meses; cada receta gasta una cucharada del paquete."},
     {"ingredientId":"ajo","motivo":"Es fresco, pero una cabeza aguanta semanas fuera de la nevera y cada receta gasta un par de dientes."},
     {"ingredientId":"mantequilla","motivo":"Va a la nevera, pero aguanta semanas y las recetas que no son de repostería gastan una nuez del paquete."},
     {"ingredientId":"agua","motivo":"Sale del grifo: no se compra y no tiene sentido preguntarla."}

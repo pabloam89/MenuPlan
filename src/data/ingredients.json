@@ -177,7 +177,7 @@
     "id": "aji-amarillo",
     "name": "Ají amarillo",
     "aliases": [],
-    "aisle": "Especias",
+    "aisle": "Aceites y conservas",
     "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
@@ -234,7 +234,7 @@
     "aliases": [
       "Albahaca"
     ],
-    "aisle": "Especias",
+    "aisle": "Verduras",
     "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
@@ -284,7 +284,7 @@
     "id": "alcaparras",
     "name": "Alcaparras",
     "aliases": [],
-    "aisle": "Especias",
+    "aisle": "Aceites y conservas",
     "category": "Verduras y frutas",
     "allergens": [
       "sulfitos"
@@ -1657,7 +1657,7 @@
     "aliases": [
       "Cebollino fresco"
     ],
-    "aisle": "Especias",
+    "aisle": "Verduras",
     "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
@@ -1844,7 +1844,7 @@
       "Cilantro",
       "Cilantro molido"
     ],
-    "aisle": "Especias",
+    "aisle": "Verduras",
     "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
@@ -2267,7 +2267,7 @@
     "aliases": [
       "Eneldo"
     ],
-    "aisle": "Especias",
+    "aisle": "Verduras",
     "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
@@ -3002,7 +3002,7 @@
     "id": "hinojo",
     "name": "Hinojo",
     "aliases": [],
-    "aisle": "Especias",
+    "aisle": "Verduras",
     "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
@@ -3198,7 +3198,7 @@
       "Jengibre fresco rallado",
       "Jengibre"
     ],
-    "aisle": "Especias",
+    "aisle": "Verduras",
     "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
@@ -4005,7 +4005,7 @@
       "Hierbabuena fresca",
       "Menta"
     ],
-    "aisle": "Especias",
+    "aisle": "Verduras",
     "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
@@ -4982,7 +4982,7 @@
       "Perejil fresco",
       "Perejil picado"
     ],
-    "aisle": "Especias",
+    "aisle": "Verduras",
     "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
@@ -5791,7 +5791,7 @@
       "Ramita de romero",
       "Romero en rama"
     ],
-    "aisle": "Especias",
+    "aisle": "Verduras",
     "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
@@ -6076,7 +6076,7 @@
     "aliases": [
       "Hojas de salvia fresca"
     ],
-    "aisle": "Especias",
+    "aisle": "Verduras",
     "category": "Despensa",
     "allergens": [],
     "cookingAllergens": [],

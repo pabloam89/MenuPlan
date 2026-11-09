@@ -377,7 +377,7 @@ const DECLARADAS = [
     consumidores: ["src/lib/tipoDeCompra.js", "src/screens/Shopping.jsx (via tipoDeCompra)"],
     esquema: "src/data/fondoDeArmarioSchema.js",
     campos: [],
-    nota: "Solo lista los de fondo de armario; el ingrediente que no está es de receta. La Compra los junta al final, plegados.",
+    nota: "Solo lista los de fondo de armario; el ingrediente que no está es de receta. La Compra los junta arriba, plegados.",
   },
   {
     id: "fotosPlatos",
