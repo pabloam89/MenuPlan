@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
-import { planVacio, semanaEnBlanco, fotoAntesDePizarra, volverAntesDePizarra, huecosDelPlan, conHuecosAlDia, conSemanasAlDia, conHuecoAnadido, sinHueco, franjasDelDia } from "./pizarra.js";
+import { planVacio, semanaEnBlanco, fotoAntesDePizarra, volverAntesDePizarra, huecosDelPlan, conHuecosAlDia, conSemanasAlDia, conHuecoAnadido, sinHueco, franjasDelDia, copiaDeTrabajo } from "./pizarra.js";
 import { DAYS, getDayMeals, slotKey } from "./planner.js";
 import { compraQueSeVe, esCompraConMarcas } from "./compraMarcas.js";
 import { mondayISOForOffset } from "./weekCalendar.js";
@@ -313,5 +313,16 @@ describe("semanaEnBlanco: la compra sigue al menú", () => {
     expect(esCompraConMarcas(week.shopping)).toBe(true);
     const derivados = [{ id: "leche", name: "leche" }];
     expect(compraQueSeVe(week.shopping, () => derivados).items).toEqual(derivados);
+  });
+});
+
+describe("copiaDeTrabajo", () => {
+  it("copia grupos y huecos sin _warnings, y tocar la copia no toca el plan", () => {
+    const plan = { _warnings: ["x"], g1: { "lunes-Comida": { recipeId: "a" } } };
+    const copia = copiaDeTrabajo(plan);
+    expect(copia).toEqual({ g1: { "lunes-Comida": { recipeId: "a" } } });
+    copia.g1["lunes-Comida"].recipeId = "b";
+    copia.g1["martes-Cena"] = {};
+    expect(plan.g1).toEqual({ "lunes-Comida": { recipeId: "a" } });
   });
 });
