@@ -88,7 +88,7 @@ export const ENLAZADOS = Object.freeze(new Set([RESULTADO_ENLACE.NUEVO, RESULTAD
  * Con qué prueba se apuntó que un Telegram ES una cuenta (bot_identities.prueba_identidad, 0129; #1238): nacida (la
  * cuenta se creó en ese Telegram), codigo_email (el código del correo de la cuenta, escrito en el chat), ajustes (el enlace de
  * «Conectar Telegram» que sacó una sesión de la cuenta, pulsado en el privado de ese Telegram) y cambio (el mismo
- * enlace, cuando ese Telegram era de otra cuenta y la persona lo confirmó en su privado).
+ * enlace, cuando ese Telegram era de otra cuenta: manda la de la app, sin preguntar).
  */
 export const PRUEBAS_IDENTIDAD = ["nacida", "codigo_email", "ajustes", "cambio"];
 export const PRUEBA_IDENTIDAD = porNombre(PRUEBAS_IDENTIDAD);
@@ -398,7 +398,7 @@ export const ESTADO_CUENTA_MERCADONA = porNombre(ESTADOS_CUENTA_MERCADONA);
 /** Por dónde se pidió rellenar la lista (mercadona_encargo.canal, 0131). */
 export const CANALES_ENCARGO = ["app", ...CANALES];
 /** Por dónde va un encargo de Mercadona (mercadona_encargo.status, 0131). */
-export const ESTADOS_ENCARGO_MERCADONA = ["pendiente", "rellenando", "hecho", "fallido"];
+export const ESTADOS_ENCARGO_MERCADONA = ["pendiente", "rellenando", "eligiendo", "reservando", "hecho", "fallido"];
 export const ESTADO_ENCARGO_MERCADONA = porNombre(ESTADOS_ENCARGO_MERCADONA);
 export { FALLOS_ENCARGO_MERCADONA, FALLO_ENCARGO_MERCADONA };
 /** Por qué no se ha encolado un encargo (api/_bot/mercadonaEncargos.js): lo que la app y Lola tienen que explicar. */

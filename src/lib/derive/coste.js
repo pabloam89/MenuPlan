@@ -11,37 +11,21 @@
 // `cobertura`. Quien lea el coste decide si una cobertura baja le vale.
 
 import { gramsForRecipeQuantity, gramsPerPiece } from "../kitchenUnits.js";
-import { matchProductForIngredient } from "../productMatcher.js";
-import { resolveIngredient } from "../ingredients.js";
+import { productoDeLinea } from "../productoDeLinea.js";
 
-const CONFIANZA = 0.7;
-
-// Lo que dice la receta («Perejil fresco», «Tomate maduro») no siempre es como
-// se llama en la tienda. Se prueba primero tal cual, luego con el nombre
-// canónico del catálogo de ingredientes, y por último sin los adjetivos de
-// cocina que no cambian el producto.
-const ADJETIVOS = /\b(fresc[oa]s?|madur[oa]s?|picad[oa]s?|troceado|en hebras|en rodajas|en lonchas( finas)?|en tacos|pelad[oa]s?|seco|molid[oa]|natural|variad[oa]s?)\b/gi;
-function nombresDe(nombre) {
-  const canonico = resolveIngredient(nombre)?.name;
-  const limpio = String(nombre).replace(ADJETIVOS, "").replace(/\s+/g, " ").trim();
-  return [...new Set([nombre, canonico, limpio].filter(Boolean))];
-}
-function emparejar(nombre, productos, match) {
-  for (const n of nombresDe(nombre)) {
-    const e = match(n, productos, { minConfidence: CONFIANZA });
-    if (e?.product) return e;
-  }
-  return null;
-}
+// El producto sale del mismo sitio que en la lista de la compra: la decisión
+// guardada en productoPorIngrediente.json, y el emparejador por nombre solo para
+// lo que no tiene fila (recetas de la familia escritas a mano). Antes aquí había
+// una cadena propia —nombre, nombre canónico, nombre sin adjetivos de cocina—
+// que podía elegir otro producto que la compra para el mismo ingrediente.
 const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : null);
 
 /** € de una línea, o null si no se puede saber. */
-export function costeDeLinea(linea, productos, match = matchProductForIngredient) {
+export function costeDeLinea(linea, productos) {
   const nombre = linea?.name;
   const cantidad = num(linea?.amount ?? linea?.qty);
   if (!nombre || cantidad == null || cantidad <= 0) return null;
-  const encontrado = emparejar(nombre, productos, match);
-  const p = encontrado?.product;
+  const p = productoDeLinea(nombre, productos, { gramos: gramsForRecipeQuantity(nombre, cantidad, linea.unit) }).product;
   const granel = num(p?.bulkPrice);
   if (!p || granel == null || granel <= 0) return null;
   const formato = String(p.unitFormat ?? "").toLowerCase();
@@ -65,13 +49,13 @@ export function costeDeLinea(linea, productos, match = matchProductForIngredient
  * @returns {{ porRacion: number|null, total: number, cobertura: number,
  *   lineas: number, conPrecio: number, sinPrecio: string[] }}
  */
-export function costeDeReceta(receta, productos, match = matchProductForIngredient) {
+export function costeDeReceta(receta, productos) {
   const lineas = (receta?.ingredients ?? []).filter((l) => num(l.amount ?? l.qty) > 0);
   let total = 0;
   let conPrecio = 0;
   const sinPrecio = [];
   for (const l of lineas) {
-    const c = costeDeLinea(l, productos, match);
+    const c = costeDeLinea(l, productos);
     if (c) { total += c.euros; conPrecio++; } else sinPrecio.push(l.name);
   }
   const raciones = num(receta?.baseServings) || 4;

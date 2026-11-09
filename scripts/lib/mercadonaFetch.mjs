@@ -1,6 +1,6 @@
 /**
  * Fetch Mercadona food catalog from tienda.mercadona.es (unofficial API).
- * Shared by mercadona-sync.mjs and mercadona-ingredient-map.mjs.
+ * La usa mercadona-sync.mjs (el catálogo semanal).
  */
 
 const API = "https://tienda.mercadona.es/api";

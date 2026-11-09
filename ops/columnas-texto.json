@@ -636,6 +636,10 @@
     "mercadona_encargo.lista_xid": {
       "class": "identifier",
       "reason": "Id de la lista en Mercadona, lo da su web"
+    },
+    "mercadona_encargo.pedido_xid": {
+      "class": "identifier",
+      "reason": "Id del pedido a medias (checkout) en Mercadona, lo da su web"
     }
   }
 }

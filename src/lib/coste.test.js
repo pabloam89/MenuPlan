@@ -12,9 +12,10 @@ const MERCADONA = JSON.parse(
   readFileSync(fileURLToPath(new URL("../../public/store/mercadona.json", import.meta.url)), "utf8"),
 ).products;
 
-// Una botella de litro a 5 € y lomos de merluza a 4,50 € el medio kilo.
-const ACEITE = { id: "1", name: "Aceite de oliva virgen extra", price: 5, unitSize: 1, unitFormat: "l", bulkPrice: 5 };
-const MERLUZA = { id: "2", name: "Merluza en lomos congelada", price: 4.5, unitSize: 500, unitFormat: "g", bulkPrice: 9 };
+// Una botella de litro a 5 € y lomos de merluza a 4,50 € el medio kilo. Los ids
+// son los que decide productoPorIngrediente.json: el producto se busca por id.
+const ACEITE = { id: "4640", name: "Aceite de oliva virgen extra", price: 5, unitSize: 1, unitFormat: "l", bulkPrice: 5 };
+const MERLUZA = { id: "62113", name: "Merluza en lomos congelada", price: 4.5, unitSize: 500, unitFormat: "g", bulkPrice: 9 };
 const PRECIOS = [ACEITE, MERLUZA];
 
 const conPrecio = recipeCatalog.filter((r) => r.estrella && r.costeRacion != null);
@@ -95,4 +96,20 @@ describe("coste.js", () => {
     expect(nombres.some((f) => f.endsWith("/data/recipeCatalog.js"))).toBe(false);
     expect(nombres.some((f) => f.endsWith("/lib/listPricing.js"))).toBe(false);
   });
+});
+
+// Un dato, un sitio: el coste por ración y la lista de la compra eligen el mismo
+// producto para cada línea, porque los dos lo leen de productoDeLinea.
+describe("el coste y la compra eligen el mismo producto", () => {
+  it("para cada línea de las recetas estrella", async () => {
+    const { costeDeLinea } = await import("./derive/coste.js");
+    const { productoDeLinea } = await import("./productoDeLinea.js");
+    const nombres = [...new Set(recipeCatalog.filter((r) => r.estrella).flatMap((r) => r.ingredients.map((l) => l.name)))];
+    const distintos = nombres.filter((name) => {
+      const c = costeDeLinea({ name, amount: 100, unit: "g" }, MERCADONA);
+      const l = productoDeLinea(name, MERCADONA);
+      return c && l.product && c.producto !== l.product.name;
+    });
+    expect(distintos).toEqual([]);
+  }, 120_000);
 });

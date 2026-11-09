@@ -1,8 +1,8 @@
 {
   "generado_por": "scripts/build-derived.mjs",
   "hash_fuentes": {
-    "ingredientes": "0bfb824edbe5739f",
-    "recetas": "37bf62f1aadbbc14",
+    "ingredientes": "f91694e66de44c46",
+    "recetas": "ea134ef1147920ed",
     "alimentos": "effcc6d80ca0d39b",
     "operador": "aaf3f1fb4c4f1261"
   },
@@ -170,8 +170,8 @@
       "carne": 265,
       "pescado": 197,
       "legumbres": 104,
-      "huevos": 169,
       "pasta_arroz": 157,
+      "huevos": 169,
       "verdura": 194
     },
     "sin_familia": 100,
