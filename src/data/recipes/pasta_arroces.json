@@ -188,7 +188,16 @@
     ],
     "tecnica": "olla",
     "cocina": "italiana",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
+    ]
   },
   {
     "id": "pasta_arroces_002",
@@ -432,7 +441,16 @@
     "tecnica": "olla",
     "cocina": "italiana",
     "llevaSalsa": true,
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso"
+    ]
   },
   {
     "id": "pasta_arroces_003",
@@ -755,7 +773,18 @@
     "freezable": false,
     "tecnica": "horno",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "ahumado",
+      "intenso"
+    ]
   },
   {
     "id": "pasta_arroces_005",
@@ -916,7 +945,15 @@
       "huevo"
     ],
     "llevaSalsa": true,
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso"
+    ]
   },
   {
     "id": "pasta_arroces_006",
@@ -1708,7 +1745,16 @@
       "fruta"
     ],
     "tecnica": "olla",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "suave"
+    ]
   },
   {
     "id": "pasta_arroces_010",

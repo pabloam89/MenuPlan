@@ -438,7 +438,17 @@
     "basesAparte": [
       "sofrito"
     ],
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "ahumado",
+      "intenso"
+    ]
   },
   {
     "id": "legumbres_003",
@@ -645,7 +655,17 @@
     "basesAparte": [
       "salsa_tomate"
     ],
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "especiado",
+      "intenso"
+    ]
   },
   {
     "id": "legumbres_004",
@@ -881,7 +901,17 @@
     "mainBase": "legumbre",
     "baseMode": "dentro",
     "formato": "guiso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "intenso"
+    ]
   },
   {
     "id": "legumbres_005",
@@ -1109,7 +1139,16 @@
       "sofrito"
     ],
     "formato": "guiso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "intenso"
+    ]
   },
   {
     "id": "legumbres_006",
@@ -1326,7 +1365,18 @@
     ],
     "tecnica": "olla",
     "formato": "guiso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "ahumado",
+      "intenso"
+    ]
   },
   {
     "id": "legumbres_007",
