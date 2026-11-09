@@ -238,8 +238,9 @@ const AISLE_UI = {
 // y su color, para que no se confunda con un pasillo. El color es el ámbar del
 // sistema de diseño, que está cerrado (78 valores, tokens.test.js): no hay otro
 // tono cálido y un rol nuevo repetiría el valor.
-const FONDO_FRANJA = { abierta: tono.aviso, plegada: tono["aviso-fondo"] };
-AISLE_UI[SECCION_FONDO] = { Icon: Package, color: FONDO_FRANJA.abierta, img: "/categories/fondo_de_armario.png" };
+// Plegada va en blanco, como los pasillos; el color solo abierta.
+const FONDO_FRANJA = tono.aviso;
+AISLE_UI[SECCION_FONDO] = { Icon: Package, color: FONDO_FRANJA, img: "/categories/fondo_de_armario.png" };
 
 // Title-band tint shared across En casa / Menú / Recetas / Compra — a soft
 // green (accent-tinted), distinct from the white list body below it.
@@ -395,14 +396,13 @@ export function ShoppingScreen({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [openCaptureOnMount]);
 
-  // Pasillos abiertos por defecto (en el súper se va bajando la lista, no
-  // abriendo cajones): solo cuenta el `false` de los que se pliegan a mano.
+  // Todo plegado por defecto (Pablo, 9 nov 2026; antes los pasillos empezaban
+  // abiertos y solo el fondo de armario plegado): solo cuenta el `true` de lo
+  // que se abre a mano, o el pasillo que pide quien abre la pantalla.
   const [openSections, setOpenSections] = useState(
     initialOpenAisle ? { [initialOpenAisle]: true } : {},
   );
-  // Salvo el fondo de armario, que empieza plegado: cuenta su `true`.
-  const isSectionOpen = (key) =>
-    key === SECCION_FONDO ? openSections[key] === true : openSections[key] !== false;
+  const isSectionOpen = (key) => openSections[key] === true;
   const [showIconCoach, setShowIconCoach] = useState(false);
   const [receiptBusy, setReceiptBusy] = useState(false);
   // Unified spend capture: one money button → chooser (escanear / a mano).
@@ -1185,17 +1185,10 @@ export function ShoppingScreen({
             padding: "8px 12px",
             border: "none",
             position: "relative",
-            background: esFondo
-              ? (open ? FONDO_FRANJA.abierta : FONDO_FRANJA.plegada)
-              : open ? AISLE_OPEN_BAND : "#fff",
-            // Abierta, la misma forma que las demás (redondeada arriba); el
-            // fondo plegado también lleva color, así que se redondea entero
-            // en vez de quedar como un bloque de esquinas rectas.
-            borderRadius: open
-              ? "var(--radio-control) var(--radio-control) 0 0"
-              : esFondo ? "var(--radio-control)" : 0,
+            background: !open ? "#fff" : esFondo ? FONDO_FRANJA : AISLE_OPEN_BAND,
+            borderRadius: open ? "var(--radio-control) var(--radio-control) 0 0" : 0,
             borderBottom:
-              !open && !isLastSection && !esFondo ? AISLE_DIVIDER : "none",
+              !open && !isLastSection ? AISLE_DIVIDER : "none",
             cursor: "pointer",
             fontFamily: "inherit",
             textAlign: "left",
