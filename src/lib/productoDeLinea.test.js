@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-import { ESTADO_PRODUCTO_LINEA, ESTADOS_PRODUCTO_LINEA, filaDeLinea, productoDeLinea } from "./productoDeLinea.js";
+import { ESTADO_PRODUCTO_LINEA, ESTADOS_PRODUCTO_LINEA, dineroDeMas, envaseDesproporcionado, filaDeLinea, gramosDeReferencia, productoDeLinea } from "./productoDeLinea.js";
 import { ENCAJES_SIN_PRODUCTO } from "../data/productoSchema.js";
 
 const productos = [
@@ -22,7 +22,7 @@ const filas = [
 const IDS = { "perejil fresco": "perejil", perejil: "perejil", pimenton: "pimenton", "pimenton picante": "pimenton", parmesano: "parmesano", agua: "agua", sandia: "sandia" };
 const resolver = (n) => IDS[n.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase()] ?? null;
 const nunca = () => { throw new Error("no debía llamar al emparejador"); };
-const op = { filas, resolver, emparejar: nunca };
+const op = { filas, resolver, candidatos: nunca };
 
 describe("productoDeLinea", () => {
   it("«Perejil fresco» sale con el perejil decidido aunque el nombre no case (el fallo del 8 nov: 0,50 y sin producto)", () => {
@@ -46,10 +46,36 @@ describe("productoDeLinea", () => {
   });
 
   it("sin fila cae al emparejador, y lo cuenta", () => {
-    const emparejar = () => ({ product: productos[0], confidence: 0.8 });
-    expect(productoDeLinea("Cosa rara", productos, { ...op, emparejar }).estado).toBe(ESTADO_PRODUCTO_LINEA.EMPAREJADO);
-    const flojo = () => ({ product: productos[0], confidence: 0.5 });
-    expect(productoDeLinea("Cosa rara", productos, { ...op, emparejar: flojo })).toMatchObject({ estado: "sin_producto", product: null });
+    const candidatos = () => [{ product: productos[0], confidence: 0.8 }];
+    expect(productoDeLinea("Cosa rara", productos, { ...op, candidatos }).estado).toBe(ESTADO_PRODUCTO_LINEA.EMPAREJADO);
+    expect(productoDeLinea("Cosa rara", productos, { ...op, candidatos: () => [] })).toMatchObject({ estado: "sin_producto", product: null });
+  });
+
+  // El fallo del 8 nov: «Jamón serrano» acabó en la pieza entera de 6,8 kg a
+  // 58 € para 100 g, porque el emparejador elige por nombre y no mira el envase.
+  it("sin fila, el emparejador salta el envase desproporcionado para lo pedido", () => {
+    const pieza = { id: "30", name: "Jamón serrano Incarlopsa", price: 58, unitSize: 6.8, unitFormat: "kg", bulkPrice: 8.53 };
+    const lonchas = { id: "31", name: "Jamón serrano lonchas", price: 3.95, unitSize: 0.24, unitFormat: "kg", bulkPrice: 16.46 };
+    const candidatos = () => [{ product: pieza, confidence: 0.75 }, { product: lonchas, confidence: 0.7 }];
+    const r = productoDeLinea("Jamón ibérico de bellota", [pieza, lonchas], { ...op, candidatos, gramos: 100 });
+    expect(r.product.id).toBe("31");
+    // y si solo hay el grande, sin producto antes que 57 € de más
+    const solo = () => [{ product: pieza, confidence: 0.75 }];
+    expect(productoDeLinea("Jamón ibérico de bellota", [pieza], { ...op, candidatos: solo, gramos: 100 }).estado).toBe("sin_producto");
+  });
+
+  it("gramosDeReferencia: lo de la línea escalado a 4 raciones; sin raciones se toma 4; sin gramos, null", () => {
+    expect(gramosDeReferencia(30, 1)).toBe(120);
+    expect(gramosDeReferencia(200, 8)).toBe(100);
+    expect(gramosDeReferencia(100, null)).toBe(100);
+    expect(gramosDeReferencia(null, 2)).toBeNull();
+  });
+
+  it("dineroDeMas: el envase menos lo pedido a granel; sin granel o por pieza, no se sabe", () => {
+    expect(dineroDeMas({ price: 58, bulkPrice: 8.53, unitFormat: "kg" }, 100)).toBeCloseTo(57.15, 2);
+    expect(envaseDesproporcionado({ price: 5, bulkPrice: 5, unitFormat: "l" }, 30)).toBe(false);
+    expect(dineroDeMas({ price: 2, bulkPrice: null, unitFormat: "kg" }, 100)).toBeNull();
+    expect(dineroDeMas({ price: 2, bulkPrice: 2, unitFormat: "ud" }, 100)).toBeNull();
   });
 
   it("otro súper no ve las filas de Mercadona", () => {
@@ -81,5 +107,29 @@ describe("productoDeLinea con la tabla y el catálogo de verdad", () => {
   });
   it("«Pollo» no acaba en un pollo cocinado (teriyaki, asado)", () => {
     expect(productoDeLinea("Pollo", catalogo).product.name).not.toMatch(/teriyaki|asado/i);
+  });
+});
+
+// Un dato, un sitio: el producto de un ingrediente lo decide la tabla, y el
+// emparejador por nombre solo se llama desde aquí, para lo que no tiene fila.
+// Si otro módulo vuelve a emparejar por su cuenta, dos sitios pueden elegir dos
+// productos para el mismo ingrediente (pasó con la compra y el coste por ración).
+describe("nadie empareja productos fuera de productoDeLinea", () => {
+  const PERMITIDOS = new Set([
+    "src/lib/productMatcher.js",
+    "src/lib/productoDeLinea.js",
+  ]);
+  const raiz = fileURLToPath(new URL("../../", import.meta.url));
+  const ficheros = (dir) =>
+    readdirSync(raiz + dir, { withFileTypes: true }).flatMap((d) => {
+      const ruta = `${dir}/${d.name}`;
+      if (d.isDirectory()) return ficheros(ruta);
+      return /\.(m?js|jsx)$/.test(d.name) && !/\.test\./.test(d.name) && !d.name.endsWith("core.mjs") ? [ruta] : [];
+    });
+  it("ningún otro fichero de src ni api llama a matchProductForIngredient o matchProductsForIngredient", () => {
+    const fuera = [...ficheros("src"), ...ficheros("api")]
+      .filter((f) => !PERMITIDOS.has(f))
+      .filter((f) => /\bmatchProducts?ForIngredient\b/.test(readFileSync(raiz + f, "utf8")));
+    expect(fuera).toEqual([]);
   });
 });
