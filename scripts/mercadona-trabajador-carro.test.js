@@ -114,14 +114,14 @@ describe("atender: hasta dónde llega", () => {
   it("con «reservar» o «pagar», la lista, el carro y las horas del pedido (trozo 20)", async () => {
     for (const llega_hasta of ["reservar", "pagar"]) {
       const p = pagina();
-      expect(await atender(encargo(llega_hasta), dep(p))).toEqual({ lista_xid: "7", entraron: 2, faltan: [], pedido: { pedido_xid: "p9", total: 64.1, horas_entrega: [HORA] } });
+      expect(await atender(encargo(llega_hasta), dep(p))).toEqual({ lista_xid: "7", entraron: 2, faltan: [], carro: { lleno: true, total: 64.1, faltan: [] }, pedido: { pedido_xid: "p9", total: 64.1, horas_entrega: [HORA] } });
       expect(p.escrituras).toHaveLength(1);
     }
   });
 
   it("un carro que falla no tumba la lista, que ya está", async () => {
     const p = pagina({ leer: { paso: "leer_carro", status: 403, carro: null } });
-    expect(await atender(encargo("reservar"), dep(p))).toEqual({ lista_xid: "7", entraron: 2, faltan: [], fallo: "bloqueado" });
+    expect(await atender(encargo("reservar"), dep(p))).toEqual({ lista_xid: "7", entraron: 2, faltan: [], carro: { lleno: false, motivo: "bloqueado" }, fallo: "bloqueado" });
   });
 });
 
@@ -131,7 +131,7 @@ describe("unaVuelta: el carro, en el log", () => {
     const api = { tomar: async () => encargo("reservar"), cerrar: vi.fn(async () => {}) };
     const p = pagina({ leer: { paso: "leer_carro", status: 403, carro: null } });
     expect(await unaVuelta({ api, log, entreCierresMs: 0, ...dep(p) })).toBe(true);
-    expect(log).toHaveBeenCalledWith("encargo e1: hecho, carro sin llenar: bloqueado");
+    expect(log).toHaveBeenCalledWith("encargo e1: bloqueado, carro sin llenar: bloqueado");
   });
 
   it("un carro lleno también se dice", async () => {
@@ -151,7 +151,7 @@ describe("el carro no se lleva la lista por delante", () => {
       return evaluar(f, orden);
     });
     const log = vi.fn();
-    expect(await atender(encargo("reservar"), { ...dep(p), log })).toEqual({ lista_xid: "7", entraron: 2, faltan: [], carro: { lleno: false, motivo: "error" } });
+    expect(await atender(encargo("reservar"), { ...dep(p), log })).toEqual({ lista_xid: "7", entraron: 2, faltan: [], carro: { lleno: false, motivo: "error" }, fallo: "error" });
     expect(log).toHaveBeenCalledWith("carro: TypeError");
   });
 

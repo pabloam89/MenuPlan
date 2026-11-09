@@ -61,16 +61,26 @@ async function hastaLaLista(pagina, lista, log) {
 }
 
 /**
- * El carro, con lo que quede del tope del encargo (`quedaMs`): lista y carro juntos nunca pasan de TOPE_ENCARGO_MS.
- * Lo que lance aquí, o se pase de tiempo, se cuenta como carro sin llenar y no llega a `unaVuelta`, que cerraría el
- * encargo como `error` y perdería el `lista_xid` de una lista que ya está.
+ * El carro y, lleno, el pedido con sus horas libres (trozo 23), con lo que quede del tope del encargo (`quedaMs`): lista,
+ * carro y pedido juntos nunca pasan de TOPE_ENCARGO_MS. Devuelve lo que se suma al cierre de la lista: `{ carro, pedido }`
+ * o `{ carro, fallo }`. Lo que lance aquí, o se pase de tiempo, es un fallo con la lista: no llega a `unaVuelta`, que
+ * cerraría el encargo como `error` y perdería el `lista_xid` de una lista que ya está.
  */
 async function alCarro(pagina, lista, quedaMs, log) {
+  let carro = { lleno: false, motivo: "error" };
   try {
-    return resultadoDeCarro(await conTope(llenarCarro(pagina, lista), quedaMs));
+    return await conTope(
+      (async () => {
+        const lleno = await llenarCarro(pagina, lista);
+        carro = resultadoDeCarro(lleno);
+        if (!carro.lleno) return { carro, fallo: falloDeCarro(carro) };
+        return { carro, ...(await pedirHorasEntrega(pagina, lleno.carro)) };
+      })(),
+      quedaMs,
+    );
   } catch (e) {
     log(`carro: ${e.name}`);
-    return { lleno: false, motivo: "error" };
+    return { carro, fallo: FALLO.ERROR };
   }
 }
 
@@ -104,7 +114,7 @@ export async function atender({ encargo, sesion_cifrada, llega_hasta }, { abrirS
     const hecho = await conTope(hastaLaLista(pagina, encargo.lista, log), topeMs);
     // Sin la lista no se toca el carro; y solo si la casa ha encendido «Reservar» o «Pagar».
     if (hecho.fallo || !llegaA(llega_hasta, LLEGA_HASTA.RESERVAR)) return hecho;
-    return { ...hecho, carro: await alCarro(pagina, encargo.lista, Math.max(0, fin - ahora()), log) };
+    return { ...hecho, ...(await alCarro(pagina, encargo.lista, Math.max(0, fin - ahora()), log)) };
   } finally {
     await cerrar();
   }
