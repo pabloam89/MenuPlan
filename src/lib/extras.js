@@ -2,7 +2,7 @@
  * Desayuno, merienda y postre: las comidas de fuera del menú de comida y cena
  * (`data.extraMeals`), con sus valores en un solo sitio. Las pinta el asistente
  * de la app (Onboarding.jsx, con su foto y su etiqueta), las apunta Lola
- * (ajustar_extras) y las lee el motor (aiPlanner.js, postres.js).
+ * (ajustar_casa) y las lee el motor (aiPlanner.js, postres.js).
  *
  *  - desayuno: off · variado (uno distinto cada día) · findes (igual entre
  *    semana, otro el finde) · igual (siempre el mismo).
