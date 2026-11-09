@@ -152,6 +152,20 @@ export const tipoDeComida = (comida) => (String(comida ?? "").toLowerCase() === 
 /** «cena» → «Cena»; cualquier otro → «Comida». */
 export const comidaDeTipo = (tipo) => (tipo === "cena" ? "Cena" : "Comida");
 
+/**
+ * Qué papeles (`mealRole`) admite un plato de un hueco: el primer plato, solo
+ * primero; el principal de una cena, cena o plato único; el de una comida
+ * partida, segundo; el de una comida de un plato, plato único. Una sola tabla
+ * para «Cambiar plato» (pickCatalogReplacement) y el reparto de los clásicos
+ * (lib/clasicos.js). `partida`: cada uno dice cómo sabe que la comida lleva
+ * primero.
+ */
+export function papelesDelHueco({ meal, course = "main", partida = false }) {
+  if (course === "first") return ["primero"];
+  if (tipoDeComida(meal) === "cena") return ["cena", "plato_unico"];
+  return partida ? ["segundo"] : ["plato_unico"];
+}
+
 // ── Hueco del motor: «lun_comida_1», «lun_cena» ─────────────────────────────
 
 /**
