@@ -179,8 +179,7 @@
     "id": "ajo",
     "name": "Ajo",
     "aliases": [
-      "Cabeza de ajos",
-      "Ajo negro"
+      "Cabeza de ajos"
     ],
     "aisle": "Verduras",
     "allergens": [],
@@ -200,6 +199,19 @@
         "g": 50
       }
     }
+  },
+  {
+    "id": "ajo-negro",
+    "name": "Ajo negro",
+    "aliases": [],
+    "aisle": "Verduras",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 20
   },
   {
     "id": "ajo-polvo",
@@ -866,9 +878,7 @@
   {
     "id": "boletus",
     "name": "Boletus",
-    "aliases": [
-      "Boletus secos"
-    ],
+    "aliases": [],
     "aisle": "Verduras",
     "allergens": [],
     "cookingAllergens": [],
@@ -877,6 +887,19 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 200
+  },
+  {
+    "id": "boletus-secos",
+    "name": "Boletus secos",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 30
   },
   {
     "id": "boniato",
@@ -1494,11 +1517,13 @@
   },
   {
     "id": "cayena",
-    "name": "Chile fresco",
+    "name": "Guindilla fresca",
     "aliases": [
-      "Chile jalapeño"
+      "Chile fresco",
+      "Chile jalapeño",
+      "Ají amarillo o guindilla fresca"
     ],
-    "aisle": "Especias",
+    "aisle": "Verduras",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -1734,8 +1759,7 @@
     "id": "cilantro",
     "name": "Cilantro fresco",
     "aliases": [
-      "Cilantro",
-      "Cilantro molido"
+      "Cilantro"
     ],
     "aisle": "Verduras",
     "allergens": [],
@@ -1745,6 +1769,19 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 5
+  },
+  {
+    "id": "cilantro-molido",
+    "name": "Cilantro molido",
+    "aliases": [],
+    "aisle": "Especias",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 3
   },
   {
     "id": "cinta-de-lomo",
@@ -2695,9 +2732,7 @@
     "name": "Guindilla",
     "aliases": [
       "Guindilla en copos",
-      "Guindilla fresca",
       "Guindilla seca",
-      "Ají amarillo o guindilla fresca",
       "Cayena",
       "Cayena molida",
       "Copos de guindilla",
@@ -2941,6 +2976,19 @@
       "nombre": "huevo",
       "g": 60
     }
+  },
+  {
+    "id": "jalapenos-en-vinagre",
+    "name": "Jalapeños en vinagre",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 20
   },
   {
     "id": "jamon",
@@ -3330,9 +3378,7 @@
   {
     "id": "levadura",
     "name": "Levadura de panadería seca",
-    "aliases": [
-      "Levadura fresca"
-    ],
+    "aliases": [],
     "aisle": "Aceites y conservas",
     "allergens": [],
     "cookingAllergens": [],
@@ -3341,6 +3387,22 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 7,
+    "mayContain": [
+      "gluten"
+    ]
+  },
+  {
+    "id": "levadura-fresca",
+    "name": "Levadura fresca",
+    "aliases": [],
+    "aisle": "Panadería",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 10,
     "mayContain": [
       "gluten"
     ]
@@ -3523,8 +3585,7 @@
     "aliases": [
       "Maíz dulce",
       "Maíz dulce cocido",
-      "Maíz cocido",
-      "Maíz tostado"
+      "Maíz cocido"
     ],
     "aisle": "Verduras",
     "allergens": [],
@@ -3534,6 +3595,19 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 80
+  },
+  {
+    "id": "maiz-tostado",
+    "name": "Maíz tostado",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 40
   },
   {
     "id": "mango",
@@ -4265,7 +4339,6 @@
       "Pan de hogaza",
       "Pan frito",
       "Pan de barra",
-      "Pan tostado",
       "Pan de masa madre",
       "Pan de centeno",
       "Pan duro",
@@ -4365,6 +4438,24 @@
       "frutos_cascara",
       "huevos",
       "sesamo",
+      "soja"
+    ]
+  },
+  {
+    "id": "pan-tostado",
+    "name": "Pan tostado",
+    "aliases": [],
+    "aisle": "Panadería",
+    "allergens": [
+      "gluten"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 40,
+    "mayContain": [
       "soja"
     ]
   },
@@ -6185,9 +6276,7 @@
   {
     "id": "tomillo",
     "name": "Tomillo",
-    "aliases": [
-      "Tomillo fresco"
-    ],
+    "aliases": [],
     "aisle": "Especias",
     "allergens": [],
     "cookingAllergens": [],
@@ -6196,6 +6285,19 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 2
+  },
+  {
+    "id": "tomillo-fresco",
+    "name": "Tomillo fresco",
+    "aliases": [],
+    "aisle": "Verduras",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 3
   },
   {
     "id": "tortilla-de-maiz",
@@ -6374,8 +6476,7 @@
       "Vinagre de vino",
       "Vinagre de vino blanco",
       "Vinagre de arroz",
-      "Vinagre de vino tinto",
-      "Jalapeños en vinagre"
+      "Vinagre de vino tinto"
     ],
     "aisle": "Aceites y conservas",
     "allergens": [

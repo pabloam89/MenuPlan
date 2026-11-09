@@ -6784,7 +6784,7 @@
       },
       {
         "name": "Boletus secos",
-        "ingredientId": "boletus",
+        "ingredientId": "boletus-secos",
         "amount": 30,
         "unit": "g"
       },
@@ -19234,7 +19234,7 @@
       },
       {
         "name": "Guindilla fresca",
-        "ingredientId": "guindilla",
+        "ingredientId": "cayena",
         "amount": 5,
         "unit": "g"
       },
