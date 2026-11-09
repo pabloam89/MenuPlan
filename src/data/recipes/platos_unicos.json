@@ -229,7 +229,7 @@
       },
       {
         "name": "Levadura fresca",
-        "ingredientId": "levadura",
+        "ingredientId": "levadura-fresca",
         "amount": 10,
         "unit": "g"
       },
@@ -2508,7 +2508,7 @@
       },
       {
         "name": "Levadura fresca",
-        "ingredientId": "levadura",
+        "ingredientId": "levadura-fresca",
         "amount": 10,
         "unit": "g"
       },
