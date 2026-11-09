@@ -9177,7 +9177,7 @@
       },
       {
         "name": "Pan tostado",
-        "ingredientId": "pan",
+        "ingredientId": "pan-tostado",
         "amount": 100,
         "unit": "g"
       }
@@ -15090,7 +15090,7 @@
       },
       {
         "name": "Tomillo fresco",
-        "ingredientId": "tomillo",
+        "ingredientId": "tomillo-fresco",
         "amount": 3,
         "unit": "g"
       },

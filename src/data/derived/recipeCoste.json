@@ -191,8 +191,8 @@
       "nivel": "medio"
     },
     "legumbres_037": {
-      "porRacion": 0.56,
-      "cobertura": 0.9,
+      "porRacion": 0.45,
+      "cobertura": 0.8,
       "nivel": "economico"
     },
     "legumbres_038": {
@@ -216,8 +216,8 @@
       "nivel": "medio"
     },
     "legumbres_042": {
-      "porRacion": 2.02,
-      "cobertura": 1,
+      "porRacion": 1.96,
+      "cobertura": 0.9,
       "nivel": "medio"
     },
     "legumbres_043": {
@@ -781,8 +781,8 @@
       "nivel": "caro"
     },
     "carnes_072": {
-      "porRacion": 2.2,
-      "cobertura": 1,
+      "porRacion": 2.14,
+      "cobertura": 0.889,
       "nivel": "medio"
     },
     "carnes_073": {
@@ -1456,8 +1456,8 @@
       "nivel": "caro"
     },
     "pescados_036": {
-      "porRacion": 5.09,
-      "cobertura": 1,
+      "porRacion": 4.87,
+      "cobertura": 0.857,
       "nivel": "caro"
     },
     "pescados_037": {
@@ -3186,8 +3186,8 @@
       "nivel": "medio"
     },
     "sopas_cremas_053": {
-      "porRacion": 3.89,
-      "cobertura": 1,
+      "porRacion": 3.83,
+      "cobertura": 0.9,
       "nivel": "caro"
     },
     "sopas_cremas_054": {
@@ -3711,8 +3711,8 @@
       "nivel": null
     },
     "ensaladas_verduras_075": {
-      "porRacion": 2,
-      "cobertura": 1,
+      "porRacion": 1.89,
+      "cobertura": 0.833,
       "nivel": "medio"
     },
     "ensaladas_verduras_076": {

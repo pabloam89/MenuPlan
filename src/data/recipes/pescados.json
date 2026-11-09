@@ -5946,7 +5946,7 @@
       },
       {
         "name": "Tomillo fresco",
-        "ingredientId": "tomillo",
+        "ingredientId": "tomillo-fresco",
         "amount": 10,
         "unit": "g"
       },
@@ -6530,7 +6530,7 @@
       },
       {
         "name": "Ají amarillo o guindilla fresca",
-        "ingredientId": "guindilla",
+        "ingredientId": "cayena",
         "amount": 5,
         "unit": "g"
       },
@@ -6554,7 +6554,7 @@
       },
       {
         "name": "Maíz tostado",
-        "ingredientId": "maiz",
+        "ingredientId": "maiz-tostado",
         "amount": 40,
         "unit": "g"
       }
