@@ -2183,7 +2183,7 @@
       {
         "name": "Azafrán en hebras",
         "ingredientId": "azafran",
-        "amount": 1,
+        "amount": 0.2,
         "unit": "g"
       },
       {
