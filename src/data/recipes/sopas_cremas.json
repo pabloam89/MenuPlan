@@ -175,7 +175,16 @@
       "sofrito"
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "sopas_cremas_002",
@@ -526,7 +535,17 @@
       "sofrito"
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "suave"
+    ]
   },
   {
     "id": "sopas_cremas_004",
@@ -683,7 +702,16 @@
     ],
     "tecnica": "crudo",
     "formato": "sopa",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "casero",
+      "fresco"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "acido"
+    ]
   },
   {
     "id": "sopas_cremas_005",
@@ -840,7 +868,17 @@
     ],
     "tecnica": "crudo",
     "formato": "sopa",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "casero",
+      "fresco"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "intenso"
+    ]
   },
   {
     "id": "sopas_cremas_006",
