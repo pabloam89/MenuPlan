@@ -19,7 +19,7 @@ import { NO_EXISTE, PG_SIN_COLUMNA } from "../../src/lib/postgrest.js";
 import * as ids from "../../src/lib/ids.js";
 import { LLEGA_HASTA, LLEGA_HASTA_MERCADONA, deUnaCuenta, faltaPara } from "../../src/lib/mercadonaLlegaHasta.js";
 import { esSello } from "../../src/lib/mercadonaSello.js";
-import { NO_ELEGIDA, TRAS_LA_LISTA, TRAS_LA_LISTA_OTRO, hastaCuandoSeCambia, textoDeHoraEntrega } from "../../src/lib/mercadonaHoraEntrega.js";
+import { FRASE_HORA_ENTREGA, NO_ELEGIDA, TRAS_LA_LISTA, TRAS_LA_LISTA_OTRO, hastaCuandoSeCambia, textoDeHoraEntrega } from "../../src/lib/mercadonaHoraEntrega.js";
 import { formatEuro } from "../../src/lib/euros.js";
 
 const { PENDIENTE, RELLENANDO, ELIGIENDO, RESERVANDO, HECHO, FALLIDO } = ESTADO_ENCARGO_MERCADONA;
@@ -78,12 +78,12 @@ export function avisoDeCierre(fila) {
   if (!fila.chat_id) return null;
   if (fila.status === ELIGIENDO) {
     const total = fila.total == null ? "" : `, ${formatEuro(fila.total)}`;
-    return `Ya tienes la compra en tu carro de Mercadona${total}. ¿A qué hora te la llevan?`;
+    return `Ya tienes la compra en tu carro de Mercadona${total}. ${FRASE_HORA_ENTREGA.PREGUNTA}`;
   }
   if (fila.status === HECHO && fila.hora_entrega) {
     const hasta = hastaCuandoSeCambia(fila.cambiable_hasta);
-    const cambiar = hasta ? ` Puedes cambiar el pedido hasta ${hasta}.` : "";
-    return `Hecho: te lo llevan el ${textoDeHoraEntrega(fila.hora_entrega)}.${cambiar} Pagar lo haces tú, en la app de Mercadona.`;
+    const cambiar = hasta ? ` ${FRASE_HORA_ENTREGA.CAMBIAR} ${hasta}.` : "";
+    return `Hecho: ${FRASE_HORA_ENTREGA.LLEVAN.toLowerCase()} el ${textoDeHoraEntrega(fila.hora_entrega)}.${cambiar} ${FRASE_HORA_ENTREGA.PAGAR}`;
   }
   if (fila.status === FALLIDO && fila.lista_xid) {
     return `Ya tienes la lista en Mercadona, pero ${TRAS_LA_LISTA[fila.fallo] ?? TRAS_LA_LISTA_OTRO}\n${enlaceDeLista(fila.lista_xid)}`;

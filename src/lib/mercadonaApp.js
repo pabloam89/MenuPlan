@@ -4,7 +4,7 @@
  */
 import { apiUrl } from "./apiUrl.js";
 import { FALTA_MERCADONA } from "./mercadonaLlegaHasta.js";
-import { TRAS_LA_LISTA, TRAS_LA_LISTA_OTRO, textoDeHoraEntrega } from "./mercadonaHoraEntrega.js";
+import { FRASE_HORA_ENTREGA, TRAS_LA_LISTA, TRAS_LA_LISTA_OTRO, textoDeHoraEntrega } from "./mercadonaHoraEntrega.js";
 import { tokenDeSesion } from "./familiaCasa.js";
 import { ESTADO_ENCARGO_MERCADONA, FALLO_ENCARGO_MERCADONA, NO_ENCARGADO } from "./vocabularios.js";
 
@@ -26,13 +26,13 @@ export const AJUSTE_MERCADONA = Object.freeze({
   PRONTO: "Pronto",
 });
 
-/** Lo que dice la hoja en cada paso de la hora de entrega (0134). */
+/** Lo que dice la hoja en cada paso de la hora de entrega (0134): lo que también dice Lola sale de FRASE_HORA_ENTREGA. */
 export const HORA_ENTREGA = Object.freeze({
-  PREGUNTA: "¿A qué hora te la llevan?",
+  PREGUNTA: FRASE_HORA_ENTREGA.PREGUNTA,
   RESERVANDO: "Reservando tu hora…",
-  RESERVADA: "Te lo llevan",
-  CAMBIAR: "Puedes cambiar el pedido hasta",
-  PAGAR: "Pagar lo haces tú, en la app de Mercadona.",
+  RESERVADA: FRASE_HORA_ENTREGA.LLEVAN,
+  CAMBIAR: FRASE_HORA_ENTREGA.CAMBIAR,
+  PAGAR: FRASE_HORA_ENTREGA.PAGAR,
 });
 
 /** Cada cuánto mira la app cómo va un encargo, y cuánto espera antes de dejar de mirar. */
@@ -100,7 +100,7 @@ export const eligiendoHora = (e) => e?.status === ESTADO_ENCARGO_MERCADONA.ELIGI
 
 /** Lo que se le dice a la familia de un encargo acabado. */
 export function textoDeEncargo(e) {
-  if (e.status === ESTADO_ENCARGO_MERCADONA.HECHO && e.hora_entrega) return `Te lo llevan el ${textoDeHoraEntrega(e.hora_entrega)}.`;
+  if (e.status === ESTADO_ENCARGO_MERCADONA.HECHO && e.hora_entrega) return `${FRASE_HORA_ENTREGA.LLEVAN} el ${textoDeHoraEntrega(e.hora_entrega)}.`;
   if (e.status === ESTADO_ENCARGO_MERCADONA.ELIGIENDO) return "Ya está en tu carro. Elige a qué hora te lo llevan.";
   // Falló al reservar, con la lista ya hecha (0134): la lista está, y se dice qué pasó.
   if (e.status === ESTADO_ENCARGO_MERCADONA.FALLIDO && e.lista_xid) return `Tu lista ya está en Mercadona, pero ${TRAS_LA_LISTA[e.fallo] ?? TRAS_LA_LISTA_OTRO}`;
