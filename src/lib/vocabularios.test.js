@@ -75,6 +75,7 @@ const SIN_LISTA_MAX = 17;
  */
 const NO_ES_LISTA = {
   "mercadona_encargo.mercadona_encargo_tomado_con_fecha": "ata tomado_at al estado (0131): no define una lista de valores",
+  "mercadona_encargo.mercadona_encargo_hecho_con_lista": "ata lista_xid al estado (0134): no define una lista de valores",
   "bot_tareas.bot_tareas_cierre_check": "ata status y closed_at; la lista de status es bot_tareas_status_check",
   "ingredient_substitutions.chk_substitution_not_an_allergen": "not in: prohíbe valores, no los enumera (tabla borrada en la 0093)",
   "recipes.chk_no_guarnicion_role_outside_type": "ata type y meal_roles (tabla borrada en la 0093)",
