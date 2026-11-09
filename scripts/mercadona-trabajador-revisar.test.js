@@ -32,6 +32,18 @@ describe("la revisión de la cuenta", () => {
     expect(log).toHaveBeenCalledWith("revisión sin hacer: perfil 500");
   });
 
+  it("si la página lanza (sin red, una respuesta que no es JSON), la lista se rellena igual y queda en el log", async () => {
+    const log = vi.fn();
+    const p = pagina(null);
+    p.evaluate = vi.fn(async (f, l) => {
+      if (f === enPaginaRevisar) throw new SyntaxError("Unexpected token < in JSON");
+      return l ? CREADA : true;
+    });
+    const r = await atender(siguiente, dep(p, log));
+    expect(r).toEqual({ lista_xid: "7", entraron: 1, faltan: [] });
+    expect(log).toHaveBeenCalledWith("revisión sin hacer: lanzo SyntaxError");
+  });
+
   it("de la página solo se quedan los dos booleanos", () => {
     expect(revisionDe({ tiene_direccion: true, tiene_pago: true, direccion: "Calle Mayor 1" })).toEqual({ tiene_direccion: true, tiene_pago: true });
     expect(revisionDe({ tiene_direccion: "sí", tiene_pago: true })).toBeNull();

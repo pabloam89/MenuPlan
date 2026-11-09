@@ -6,6 +6,7 @@
  */
 import { compararLista, leerGuardada } from "../../src/lib/mercadonaLista.js";
 import { faltanEnCarro, sumarAlCarro, totalDelCarro } from "./mercadonaCarro.mjs";
+import { esRevision } from "../../src/lib/mercadonaLlegaHasta.js";
 
 export const TIENDA = "https://tienda.mercadona.es/";
 const ESPERA_CARGA_MS = 3000;
@@ -65,15 +66,27 @@ export const enPaginaRevisar = async () => {
   return { tiene_direccion: Number(count) > 0, tiene_pago: has_active_billing === true };
 };
 
-/** Pura. Lo que vuelve de la página: la revisión (`{ tiene_direccion, tiene_pago }`) o null si no se pudo mirar. */
-export const revisionDe = (r) =>
-  typeof r?.tiene_direccion === "boolean" && typeof r?.tiene_pago === "boolean"
-    ? { tiene_direccion: r.tiene_direccion, tiene_pago: r.tiene_pago }
-    : null;
+/**
+ * Pura. Lo que vuelve de la página: la revisión (`{ tiene_direccion, tiene_pago }`, la forma de `esRevision`) o null si
+ * no se pudo mirar. Cualquier otra cosa que traiga se queda fuera.
+ */
+export const revisionDe = (r) => {
+  const revision = r ? { tiene_direccion: r.tiene_direccion, tiene_pago: r.tiene_pago } : null;
+  return esRevision(revision) ? revision : null;
+};
 
-/** Mira la cuenta: la revisión, o `{ fallo: paso, status }` si una llamada no contestó bien. */
+/**
+ * Mira la cuenta: la revisión, o `{ fallo: paso, status }` si una llamada no contestó bien. Si la página lanza (sin red,
+ * una respuesta que no es JSON), `{ fallo: "lanzo", status: 0, error }` con el nombre del error: no saber si hay
+ * dirección no tumba el encargo, y quien llama lo escribe en el log.
+ */
 export async function revisarCuenta(pagina) {
-  const r = await pagina.evaluate(enPaginaRevisar);
+  let r;
+  try {
+    r = await pagina.evaluate(enPaginaRevisar);
+  } catch (e) {
+    return { fallo: "lanzo", status: 0, error: e?.name ?? "Error" };
+  }
   return revisionDe(r) ?? { fallo: r?.paso ?? "desconocido", status: r?.status ?? 0 };
 }
 

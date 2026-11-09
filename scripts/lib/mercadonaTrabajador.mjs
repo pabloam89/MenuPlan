@@ -51,7 +51,7 @@ async function hastaLaLista(pagina, lista, log) {
   const portada = await entrarEnTienda(pagina);
   if (portada.resultado) return resultadoDeEncargo(portada);
   const revision = await revisarCuenta(pagina);
-  if (revision.fallo) log(`revisión sin hacer: ${revision.fallo} ${revision.status}`);
+  if (revision.fallo) log(`revisión sin hacer: ${revision.fallo} ${revision.error ?? revision.status}`);
   const cierre = resultadoDeEncargo(await crearLista(pagina, lista));
   return revision.fallo ? cierre : { ...cierre, revision };
 }
