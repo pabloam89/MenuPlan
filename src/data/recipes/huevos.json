@@ -9,7 +9,6 @@
       "cena",
       "plato_unico"
     ],
-    "clasico": true,
     "type": "completo",
     "time": 30,
     "difficulty": "normal",
@@ -720,7 +719,6 @@
       "cena",
       "segundo"
     ],
-    "clasico": true,
     "type": "principal",
     "time": 10,
     "difficulty": "facil",
@@ -1076,7 +1074,6 @@
       "primero",
       "cena"
     ],
-    "clasico": true,
     "type": "principal",
     "time": 20,
     "difficulty": "facil",

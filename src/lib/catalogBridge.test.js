@@ -59,7 +59,6 @@ const NO_CRUZAN = {
   season: "filtro del generador, no se pinta",
   occasion: "filtro del generador, no se pinta",
   estrella: "filtro del generador (pool principal), no se pinta",
-  clasico: "lo leen el recetario y la pizarra sobre la receta del catálogo, antes de elegir; no se pinta",
   apetecible: "sesgo del generador, no se pinta",
   kidFavourite: "sesgo del generador, no se pinta",
   sauceCompat: "del emparejamiento, que está apagado",

@@ -53,6 +53,7 @@ import { recipeCatalog, recipeCatalogById } from "../data/recipeCatalog.js";
 import { loadRecipeStats } from "../lib/social.js";
 import { esRecetaDelTitular } from "../lib/userRecipesFila.js";
 import { isMontaje, PAPELES_DE_HUECO } from "../data/recipeSchema.js";
+import { esClasico } from "../data/clasicos.js";
 import { isCompatibleWith } from "../lib/substitutions.js";
 import guarnicionesData from "../data/recipes/guarniciones.json";
 import salsasData from "../data/recipes/salsas.json";
@@ -504,9 +505,9 @@ export function CatalogBrowserSheet({
       // aquí es lo que colaba un plato así en el menú para que pairGarnishes
       // le pegara encima una guarnición automática — el plato "recargado"
       // reportado. Las recetas propias del usuario siempre valen, sean o no
-      // Recetario Estrella. Y los clásicos (`clasico`, recipeSchema.js) también:
+      // Recetario Estrella. Y los clásicos de casa (data/clasicos.js) también:
       // se ponen solo a mano, y este recetario es a mano.
-      const onlyPrimaryCatalog = (list) => list.filter((r) => r.source === "user" || Boolean(r.estrella) || r.clasico === true);
+      const onlyPrimaryCatalog = (list) => list.filter((r) => r.source === "user" || Boolean(r.estrella) || esClasico(r));
 
       if (gatePickSourceTabs && gatePick) {
         if (sourceTab === "mine") return mineRecipes;

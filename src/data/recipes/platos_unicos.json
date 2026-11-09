@@ -396,7 +396,6 @@
       "cena",
       "plato_unico"
     ],
-    "clasico": true,
     "type": "principal",
     "time": 45,
     "difficulty": "normal",
@@ -621,7 +620,6 @@
       "plato_unico",
       "cena"
     ],
-    "clasico": true,
     "type": "completo",
     "requiredAppliance": "horno",
     "time": 60,

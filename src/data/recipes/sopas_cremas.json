@@ -8,7 +8,6 @@
       "primero",
       "cena"
     ],
-    "clasico": true,
     "type": "completo",
     "time": 25,
     "difficulty": "facil",
@@ -191,7 +190,6 @@
     "mealRole": [
       "primero"
     ],
-    "clasico": true,
     "type": "completo",
     "time": 20,
     "difficulty": "facil",
@@ -331,7 +329,6 @@
       "primero",
       "cena"
     ],
-    "clasico": true,
     "type": "completo",
     "time": 30,
     "difficulty": "facil",
@@ -540,7 +537,6 @@
       "primero",
       "cena"
     ],
-    "clasico": true,
     "type": "completo",
     "time": 15,
     "difficulty": "facil",
@@ -701,7 +697,6 @@
       "primero",
       "cena"
     ],
-    "clasico": true,
     "type": "completo",
     "time": 10,
     "difficulty": "facil",
@@ -1804,7 +1799,6 @@
       "primero",
       "cena"
     ],
-    "clasico": true,
     "type": "completo",
     "time": 25,
     "difficulty": "facil",

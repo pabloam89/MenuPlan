@@ -487,15 +487,6 @@ export const RecipeSchema = z
     // va aislado aparte. Para que una receta del fondo de armario se use,
     // se la promueve a mano marcándola aquí (y entonces necesita foto).
     estrella: z.boolean().optional(),
-    // ¿Es un CLÁSICO de casa (macarrones con tomate, lentejas, tortilla…)?
-    // Los que salen en el paso «¿Qué no puede faltar?» de la
-    // pizarra (decisión de Pablo, 9 nov 2026). No es `estrella`: el motor no
-    // los propone por su cuenta, solo se ponen A MANO —ese paso y el
-    // recetario de un hueco—. Muchos son del fondo de armario: la versión
-    // sencilla, la que la estrella sustituyó por otra con un toque. Se marca
-    // a mano, con foto y con un `mealRole` que quepa en una comida o una cena
-    // (src/data/clasicos.test.js lo comprueba). Ausente = no es clásico.
-    clasico: z.boolean().optional(),
     // ¿Es plato de OCASIÓN? Marisco de ración (cigalas, navajas, percebes),
     // arroces de bogavante, paellas de marisco… Cocina real y del catálogo,
     // pero que nadie se hace un martes para comer: se comen un fin de semana,
