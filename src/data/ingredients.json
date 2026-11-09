@@ -353,6 +353,9 @@
     "aliases": [
       "Almejas frescas"
     ],
+    "relacionPorAlias": {
+      "Almejas frescas": "mismo_estado"
+    },
     "aisle": "Pescado",
     "allergens": [
       "moluscos"
@@ -374,6 +377,12 @@
       "Almendra molida",
       "Almendras crudas"
     ],
+    "relacionPorAlias": {
+      "Almendra tostada": "se_hace_en_casa",
+      "Almendras tostadas": "se_hace_en_casa",
+      "Almendra molida": "se_hace_en_casa",
+      "Almendras crudas": "mismo_estado"
+    },
     "aisle": "Aceites y conservas",
     "allergens": [
       "frutos_cascara"
@@ -634,6 +643,10 @@
       "Avellana tostada",
       "Avellanas tostadas"
     ],
+    "relacionPorAlias": {
+      "Avellana tostada": "se_hace_en_casa",
+      "Avellanas tostadas": "se_hace_en_casa"
+    },
     "aisle": "Aceites y conservas",
     "allergens": [
       "frutos_cascara"
@@ -953,6 +966,9 @@
     "aliases": [
       "Boquerones frescos limpios en lomos"
     ],
+    "relacionPorAlias": {
+      "Boquerones frescos limpios en lomos": "mismo_estado"
+    },
     "aisle": "Pescado",
     "allergens": [
       "pescado"
@@ -1169,6 +1185,9 @@
     "aliases": [
       "Caldo de cocido"
     ],
+    "relacionPorAlias": {
+      "Caldo de cocido": "otro_estado_de_compra"
+    },
     "aisle": "Aceites y conservas",
     "allergens": [],
     "cookingAllergens": [],
@@ -1291,6 +1310,9 @@
       "Canela en polvo",
       "Canela"
     ],
+    "relacionPorAlias": {
+      "Canela en polvo": "mismo_estado"
+    },
     "aisle": "Especias",
     "allergens": [],
     "cookingAllergens": [],
@@ -1585,6 +1607,9 @@
     "aliases": [
       "Cebollino fresco"
     ],
+    "relacionPorAlias": {
+      "Cebollino fresco": "mismo_estado"
+    },
     "aisle": "Verduras",
     "allergens": [],
     "cookingAllergens": [],
@@ -2025,6 +2050,10 @@
       "Corvina fresca",
       "Corvina fresca en lomo limpio"
     ],
+    "relacionPorAlias": {
+      "Corvina fresca": "mismo_estado",
+      "Corvina fresca en lomo limpio": "mismo_estado"
+    },
     "aisle": "Pescado",
     "allergens": [
       "pescado"
@@ -2456,6 +2485,9 @@
     "aliases": [
       "Foie fresco o mi-cuit"
     ],
+    "relacionPorAlias": {
+      "Foie fresco o mi-cuit": "otro_estado_de_compra"
+    },
     "aisle": "Carne",
     "allergens": [
       "leche"
@@ -2490,6 +2522,9 @@
       "Frutos rojos (frambuesa, mora, arándano)",
       "Frutos rojos congelados"
     ],
+    "relacionPorAlias": {
+      "Frutos rojos congelados": "otro_estado_de_compra"
+    },
     "aisle": "Frutas",
     "allergens": [],
     "cookingAllergens": [],
@@ -2554,6 +2589,10 @@
       "Gambas cocidas peladas",
       "Gambas peladas congeladas"
     ],
+    "relacionPorAlias": {
+      "Gambas cocidas peladas": "otro_estado_de_compra",
+      "Gambas peladas congeladas": "otro_estado_de_compra"
+    },
     "aisle": "Pescado",
     "allergens": [
       "crustaceos"
@@ -2576,6 +2615,9 @@
       "Gambas con cáscara",
       "Gambas frescas o congeladas"
     ],
+    "relacionPorAlias": {
+      "Gambas frescas o congeladas": "otro_estado_de_compra"
+    },
     "aisle": "Pescado",
     "allergens": [
       "crustaceos"
@@ -2738,6 +2780,10 @@
       "Copos de guindilla",
       "Guindilla roja"
     ],
+    "relacionPorAlias": {
+      "Guindilla seca": "mismo_estado",
+      "Cayena molida": "mismo_estado"
+    },
     "aisle": "Especias",
     "allergens": [],
     "cookingAllergens": [],
@@ -2758,6 +2804,10 @@
       "Guisantes congelados",
       "Guisantes cocidos"
     ],
+    "relacionPorAlias": {
+      "Guisantes congelados": "otro_estado_de_compra",
+      "Guisantes cocidos": "otro_estado_de_compra"
+    },
     "aisle": "Verduras",
     "allergens": [],
     "cookingAllergens": [],
@@ -2845,6 +2895,9 @@
     "aliases": [
       "Higos frescos"
     ],
+    "relacionPorAlias": {
+      "Higos frescos": "mismo_estado"
+    },
     "aisle": "Frutas",
     "allergens": [],
     "cookingAllergens": [],
@@ -2962,6 +3015,9 @@
     "aliases": [
       "Huevo cocido"
     ],
+    "relacionPorAlias": {
+      "Huevo cocido": "se_hace_en_casa"
+    },
     "aisle": "Huevos",
     "allergens": [
       "huevos"
@@ -3193,6 +3249,10 @@
       "Langostinos cocidos pelados",
       "Langostinos frescos con cáscara"
     ],
+    "relacionPorAlias": {
+      "Langostinos cocidos pelados": "otro_estado_de_compra",
+      "Langostinos frescos con cáscara": "otro_estado_de_compra"
+    },
     "aisle": "Pescado",
     "allergens": [
       "crustaceos"
@@ -3527,6 +3587,9 @@
       "Lubina (filetes)",
       "Lubina entera"
     ],
+    "relacionPorAlias": {
+      "Lomo de lubina fresca": "mismo_estado"
+    },
     "aisle": "Pescado",
     "allergens": [
       "pescado"
@@ -3587,6 +3650,10 @@
       "Maíz dulce cocido",
       "Maíz cocido"
     ],
+    "relacionPorAlias": {
+      "Maíz dulce cocido": "otro_estado_de_compra",
+      "Maíz cocido": "otro_estado_de_compra"
+    },
     "aisle": "Verduras",
     "allergens": [],
     "cookingAllergens": [],
@@ -3616,6 +3683,9 @@
       "Mango maduro",
       "Mango congelado"
     ],
+    "relacionPorAlias": {
+      "Mango congelado": "otro_estado_de_compra"
+    },
     "aisle": "Frutas",
     "allergens": [],
     "cookingAllergens": [],
@@ -3803,6 +3873,10 @@
       "Mejillones cocidos",
       "Mejillones frescos"
     ],
+    "relacionPorAlias": {
+      "Mejillones cocidos": "otro_estado_de_compra",
+      "Mejillones frescos": "mismo_estado"
+    },
     "aisle": "Pescado",
     "allergens": [
       "moluscos"
@@ -4229,6 +4303,9 @@
     "aliases": [
       "Nuez moscada molida"
     ],
+    "relacionPorAlias": {
+      "Nuez moscada molida": "mismo_estado"
+    },
     "aisle": "Especias",
     "allergens": [],
     "cookingAllergens": [],
@@ -4293,6 +4370,9 @@
     "aliases": [
       "Orégano seco"
     ],
+    "relacionPorAlias": {
+      "Orégano seco": "mismo_estado"
+    },
     "aisle": "Especias",
     "allergens": [],
     "cookingAllergens": [],
@@ -4467,6 +4547,11 @@
       "Panceta ahumada en lonchas finas",
       "Panceta ahumada en taquitos"
     ],
+    "relacionPorAlias": {
+      "Panceta ahumada": "otro_estado_de_compra",
+      "Panceta ahumada en lonchas finas": "otro_estado_de_compra",
+      "Panceta ahumada en taquitos": "otro_estado_de_compra"
+    },
     "aisle": "Carne",
     "allergens": [],
     "cookingAllergens": [],
@@ -4720,6 +4805,9 @@
       "Pepinillos encurtidos",
       "Pepinillos en rodajas"
     ],
+    "relacionPorAlias": {
+      "Pepinillos en vinagre": "mismo_estado"
+    },
     "aisle": "Aceites y conservas",
     "allergens": [
       "sulfitos"
@@ -4790,6 +4878,9 @@
       "Perejil fresco",
       "Perejil picado"
     ],
+    "relacionPorAlias": {
+      "Perejil fresco": "mismo_estado"
+    },
     "aisle": "Verduras",
     "allergens": [],
     "cookingAllergens": [],
@@ -4845,6 +4936,9 @@
       "Pimentón picante",
       "Pimentón ahumado"
     ],
+    "relacionPorAlias": {
+      "Pimentón ahumado": "otro_estado_de_compra"
+    },
     "aisle": "Especias",
     "allergens": [],
     "cookingAllergens": [],
@@ -4864,6 +4958,9 @@
       "Pimienta negra en grano machacada",
       "Pimienta negra molida"
     ],
+    "relacionPorAlias": {
+      "Pimienta negra molida": "mismo_estado"
+    },
     "aisle": "Especias",
     "allergens": [],
     "cookingAllergens": [],
@@ -5043,6 +5140,9 @@
     "aliases": [
       "Plátano congelado"
     ],
+    "relacionPorAlias": {
+      "Plátano congelado": "otro_estado_de_compra"
+    },
     "aisle": "Frutas",
     "allergens": [],
     "cookingAllergens": [],
@@ -5163,6 +5263,9 @@
     "aliases": [
       "Pulpo congelado limpio"
     ],
+    "relacionPorAlias": {
+      "Pulpo congelado limpio": "otro_estado_de_compra"
+    },
     "aisle": "Pescado",
     "allergens": [
       "moluscos"
@@ -5852,6 +5955,10 @@
       "Sardinas ahumadas",
       "Sardinas frescas limpias"
     ],
+    "relacionPorAlias": {
+      "Sardinas ahumadas": "otro_estado_de_compra",
+      "Sardinas frescas limpias": "mismo_estado"
+    },
     "aisle": "Pescado",
     "allergens": [
       "pescado"
@@ -5916,6 +6023,10 @@
       "Semillas de sésamo tostado",
       "Sésamo blanco y negro"
     ],
+    "relacionPorAlias": {
+      "Sésamo tostado": "se_hace_en_casa",
+      "Semillas de sésamo tostado": "se_hace_en_casa"
+    },
     "aisle": "Especias",
     "allergens": [
       "sesamo"
@@ -6000,6 +6111,9 @@
       "Solomillo de ternera muy fresco",
       "Solomillo de ternera picado"
     ],
+    "relacionPorAlias": {
+      "Solomillo de ternera muy fresco": "mismo_estado"
+    },
     "aisle": "Carne",
     "allergens": [],
     "cookingAllergens": [],
@@ -6397,6 +6511,9 @@
     "aliases": [
       "Trufa negra fresca"
     ],
+    "relacionPorAlias": {
+      "Trufa negra fresca": "mismo_estado"
+    },
     "aisle": "Aceites y conservas",
     "allergens": [],
     "cookingAllergens": [],

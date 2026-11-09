@@ -164,7 +164,29 @@ describe("validateIngredients", () => {
       id: "tomate-triturado",
       name: "Tomate triturado",
       aliases: ["Tomate en conserva"],
+      relacionPorAlias: { "Tomate en conserva": "mismo_estado" },
     };
     expect(validateIngredients([VALID, otro])).toEqual([]);
+  });
+});
+
+// Un alias es el mismo ingrediente. El que nombra otro estado (fresco, seco,
+// congelado…) dice por qué lo sigue siendo, o es otro ingrediente: así
+// entraron el tomillo fresco como el seco y la levadura fresca como la seca.
+describe("relacionPorAlias", () => {
+  const conAlias = (aliases, relacionPorAlias) => ({ ...VALID, id: "tomillo", name: "Tomillo", aliases, ...(relacionPorAlias ? { relacionPorAlias } : {}) });
+  it("rechaza un alias que cambia el estado sin decir su relación", () => {
+    const errores = validateIngredients([conAlias(["Tomillo fresco"])]);
+    expect(errores.some((e) => e.includes("Tomillo fresco"))).toBe(true);
+  });
+  it("acepta el mismo alias con su relación, de la lista cerrada", () => {
+    expect(validateIngredients([conAlias(["Tomillo seco"], { "Tomillo seco": "mismo_estado" })])).toEqual([]);
+    expect(validateIngredients([conAlias(["Tomillo seco"], { "Tomillo seco": "parecido" })]).length).toBeGreaterThan(0);
+  });
+  it("rechaza una relación de un alias que no existe", () => {
+    expect(validateIngredients([conAlias([], { "Tomillo fresco": "mismo_estado" })]).length).toBeGreaterThan(0);
+  });
+  it("«fresca» y «fresco» son el mismo estado", () => {
+    expect(validateIngredients([{ ...conAlias(["Chile fresco"]), id: "guindilla-fresca", name: "Guindilla fresca" }])).toEqual([]);
   });
 });
