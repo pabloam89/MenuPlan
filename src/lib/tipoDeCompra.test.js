@@ -45,6 +45,19 @@ describe("tipoDeCompra", () => {
     expect(tipoDeCompra("Algo que no está en el catálogo")).toBe(RECETA);
     expect(tipoDeCompra("")).toBe(RECETA);
   });
+
+  // Los alias que eran otro alimento (9 nov 2026): la hierba fresca, el chile
+  // fresco y el ajo negro no se dan por hechos; la especia molida, sí.
+  it("el estado del alimento cuenta: fresco o negro, de receta; molido, de fondo", () => {
+    expect(tipoDeCompra("Tomillo fresco")).toBe(RECETA);
+    expect(tipoDeCompra("Tomillo")).toBe(FONDO);
+    expect(tipoDeCompra("Guindilla fresca")).toBe(RECETA);
+    expect(tipoDeCompra("Chile fresco")).toBe(RECETA);
+    expect(tipoDeCompra("Guindilla seca")).toBe(FONDO);
+    expect(tipoDeCompra("Ajo negro")).toBe(RECETA);
+    expect(tipoDeCompra("Cilantro molido")).toBe(FONDO);
+    expect(tipoDeCompra("Cilantro fresco")).toBe(RECETA);
+  });
 });
 
 describe("separarFondo", () => {

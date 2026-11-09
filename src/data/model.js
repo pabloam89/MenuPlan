@@ -125,7 +125,7 @@ const DECLARADAS = [
     campos: [
       { campo: "id", plano: "identidad", cobertura_min: 100 },
       { campo: "name", plano: "identidad", cobertura_min: 100 },
-      { campo: "aliases", plano: "identidad", cobertura_min: 46, nota: "vacío = sin variantes en el catálogo, no es hueco" },
+      { campo: "aliases", plano: "identidad", cobertura_min: 45, nota: "vacío = sin variantes en el catálogo, no es hueco. Bajó de 46 a 45 el 9 nov 2026: ocho alias que eran otro alimento (tomillo fresco, levadura fresca, ajo negro…) pasaron a ingredientes propios, sin alias" },
       { campo: "aisle", plano: "identidad", cobertura_min: 100, nota: "el nodo de identidad más usado: pasillo del súper. La categoría (seis grupos) sale de aquí, de CATEGORIA_DE_PASILLO en src/lib/ingredientCategories.js; no se guarda" },
       { campo: "allergens", plano: "identidad", cobertura_min: 38, nota: "vacío = sin alérgeno; el cruce con las recetas da 0 falsos vacíos" },
       // Vacío desde el 30 sep 2026 A PROPÓSITO: vino, vinagre y licores pasaron
@@ -148,6 +148,7 @@ const DECLARADAS = [
       // la calidad y uno que castiga por crecer.
       { campo: "pieza", plano: "logistica", cobertura_min: 12, objetivo: "todo ingrediente que alguna receta pida en `ud`", nota: "regex PIECE_WEIGHTS de red; ver piezaRoundTrip.test.js" },
       { campo: "piezaPorAlias", plano: "logistica", cobertura_min: 2 },
+      { campo: "relacionPorAlias", plano: "identidad", cobertura_min: 9, nota: "solo los alias que nombran otro estado (fresco, seco, congelado…); vacío = ninguno así. Lo lee el esquema, que rechaza el alias de estado sin su relación" },
     ],
   },
   {
