@@ -7340,7 +7340,7 @@
       {
         "name": "Azafrán en hebras",
         "ingredientId": "azafran",
-        "amount": 1,
+        "amount": 0.1,
         "unit": "g"
       },
       {
@@ -7554,7 +7554,7 @@
       {
         "name": "Azafrán en hebras",
         "ingredientId": "azafran",
-        "amount": 1,
+        "amount": 0.2,
         "unit": "g"
       },
       {
@@ -9263,7 +9263,7 @@
       {
         "name": "Azafrán en hebras",
         "ingredientId": "azafran",
-        "amount": 1,
+        "amount": 0.2,
         "unit": "g"
       },
       {
@@ -17660,7 +17660,7 @@
       {
         "name": "Azafrán",
         "ingredientId": "azafran",
-        "amount": 1,
+        "amount": 0.2,
         "unit": "g"
       }
     ],
