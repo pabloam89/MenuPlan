@@ -1169,8 +1169,10 @@ export function ShoppingScreen({
   const renderAisleSection = (section, idx, total) => {
     const open = isSectionOpen(section.key);
     const isLastSection = idx === total - 1;
+    const esFondo = section.key === SECCION_FONDO;
     return (
-      <div key={section.key}>
+      // El fondo de armario va el primero y separado del resto (Pablo, 9 nov).
+      <div key={section.key} style={esFondo ? { marginBottom: "var(--esp-12)" } : undefined}>
         <button
           type="button"
           aria-expanded={open}
@@ -1183,12 +1185,15 @@ export function ShoppingScreen({
             padding: "8px 12px",
             border: "none",
             position: "relative",
-            background: section.key === SECCION_FONDO
+            background: esFondo
               ? (open ? FONDO_FRANJA.abierta : FONDO_FRANJA.plegada)
               : open ? AISLE_OPEN_BAND : "#fff",
-            borderRadius: open ? "12px 12px 0 0" : 0,
+            // Abierta, la misma forma que las demás (redondeada arriba); el
+            // fondo plegado también lleva color, así que se redondea entero
+            // en vez de quedar como un bloque de esquinas rectas.
+            borderRadius: open ? "12px 12px 0 0" : esFondo ? 12 : 0,
             borderBottom:
-              !open && !isLastSection ? AISLE_DIVIDER : "none",
+              !open && !isLastSection && !esFondo ? AISLE_DIVIDER : "none",
             cursor: "pointer",
             fontFamily: "inherit",
             textAlign: "left",
