@@ -3,7 +3,6 @@ import { z } from "zod";
 import { NUTRIENTES, CAMPOS_NUTRICION } from "./nutrientes.js";
 
 import { SHOPPING_AISLES, normalizeName } from "../lib/ingredientCategories.js";
-import { INGREDIENT_CATEGORIES } from "./recipes.js";
 
 // Taxonomía canónica del catálogo de ingredientes. Mismo criterio que
 // recipeSchema.js: añadir un valor nuevo obliga a tocar este fichero, para que
@@ -52,7 +51,6 @@ export const IngredientSchema = z
     aliases: z.array(z.string().min(1)),
 
     aisle: z.enum(SHOPPING_AISLES),
-    category: z.enum(INGREDIENT_CATEGORIES),
 
     // Alérgeno declarable: el producto lo lleva y se come tal cual.
     allergens: z.array(z.enum(EU_ALLERGEN_IDS)),

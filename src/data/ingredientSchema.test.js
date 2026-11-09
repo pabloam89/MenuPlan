@@ -8,7 +8,6 @@ const VALID = {
   name: "Tomate frito",
   aliases: ["Salsa de tomate"],
   aisle: "Aceites y conservas",
-  category: "Despensa",
   allergens: [],
   cookingAllergens: [],
   conflictsWith: [],

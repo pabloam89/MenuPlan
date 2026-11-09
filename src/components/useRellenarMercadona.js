@@ -2,8 +2,11 @@ import { useEffect, useState } from "react";
 import { PEDIDO_MINIMO_MERCADONA, enlaceDeLista, faltaParaMinimo } from "../lib/mercadonaList.js";
 import { formatEuro } from "../lib/priceHistory.js";
 import {
-  CADA_MS, ESPERA_MAX_MS, FALLOS_MAX, PASO_COMPRAR, encargoEnMarcha, leerEstado, pedirLista, quitarCuenta, TEXTO_NO_ENCARGADO, textoDeEncargo,
+  CADA_MS, ESPERA_MAX_MS, FALLOS_MAX, PASO_COMPRAR, TELEFONO, cambiarHasta, encargoEnMarcha, enviarTelefono, leerEstado, pedirLista, quitarCuenta, TEXTO_NO_ENCARGADO, textoDeEncargo,
 } from "../lib/mercadonaApp.js";
+import { llegaHastaDe } from "../lib/mercadonaLlegaHasta.js";
+import { telefonoDe, textoParaSellar } from "../lib/mercadonaTelefono.js";
+import { sellar } from "../lib/mercadonaSello.js";
 import { NO_ENCARGADO, ESTADO_CUENTA_MERCADONA } from "../lib/vocabularios.js";
 
 /**
@@ -66,6 +69,34 @@ export function useRellenarMercadona(casa, lista) {
     else setAviso("No se ha podido desconectar. Inténtalo otra vez.");
   };
 
+  /** Cambia hasta dónde llega el bot. Devuelve lo que falta (`faltaPara`) o []. */
+  const cambiarLlegaHasta = async (valor) => {
+    setAviso(null);
+    const r = await cambiarHasta(casa, valor);
+    if (r.falta) return r.falta;
+    if (r.llega_hasta) setEstado((s) => ({ ...s, llega_hasta: r.llega_hasta }));
+    else setAviso("No se ha podido cambiar. Inténtalo otra vez.");
+    return [];
+  };
+
+  /**
+   * Sella el teléfono aquí, en el móvil, y lo guarda. true si se guardó; false si no es un teléfono; null si no se pudo
+   * guardar (sin clave, la red o el servidor), con el aviso puesto.
+   */
+  const guardarTelefono = async (texto) => {
+    setAviso(null);
+    const telefono = telefonoDe(texto);
+    if (!telefono) return false;
+    // Lo demás no es culpa del número: sin clave, la red o el servidor. Se dice aparte, y se puede volver a intentar.
+    const r = estado?.clave_publica ? await enviarTelefono(casa, await sellar(textoParaSellar(telefono), estado.clave_publica)) : {};
+    if (!r.guardado) {
+      setAviso(TELEFONO.NO_GUARDADO);
+      return null;
+    }
+    setEstado((s) => ({ ...s, tiene_telefono: true }));
+    return true;
+  };
+
   const servicio = Boolean(estado?.ok && estado.disponible && estado.clave_publica);
   return {
     servicio,
@@ -79,6 +110,13 @@ export function useRellenarMercadona(casa, lista) {
     rellenar,
     mirar: () => setSinNoticias(false),
     desconectar,
+    // Lo de la cuenta ya viene resumido del servidor (deUnaCuenta en estadoDeCasa).
+    llega_hasta: llegaHastaDe(estado?.llega_hasta),
+    tiene_direccion: estado?.tiene_direccion ?? null,
+    tiene_pago: estado?.tiene_pago ?? null,
+    tiene_telefono: estado?.tiene_telefono ?? null,
+    cambiarLlegaHasta,
+    guardarTelefono,
   };
 }
 
