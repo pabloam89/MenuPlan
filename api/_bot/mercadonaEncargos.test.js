@@ -140,7 +140,7 @@ describe("estadoDeCasa", () => {
   });
 
   it("el barrido del cron avisa a quien lo pidió por Lola", async () => {
-    update.mockResolvedValueOnce([{ id: "e1", canal: "telegram", chat_id: "9", status: "fallido", fallo: "caducado" }]).mockResolvedValueOnce([]);
+    update.mockResolvedValueOnce([{ id: "e1", canal: "telegram", chat_id: "9", status: "fallido", fallo: "caducado" }]).mockResolvedValueOnce([]).mockResolvedValueOnce([]).mockResolvedValueOnce([]).mockResolvedValueOnce([]);
     expect(await m.barrerCaducados()).toBe(1);
     expect(enviar.mock.calls[0][0]).toBe("9");
     expect(update.mock.calls[0][1]).not.toContain("household_id");

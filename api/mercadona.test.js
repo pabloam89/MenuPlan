@@ -160,6 +160,30 @@ describe("el trabajador", () => {
     expect(r.statusCode).toBe(200);
   });
 
+  // 0134: el pedido y las horas de entrega que trae el trabajador.
+  const HORA = { id: "f1", start: "2026-11-12T14:00:00Z", end: "2026-11-12T15:00:00Z", price: "7.21", available: true };
+  const PEDIDO = { pedido_xid: "p9", total: 64.1, horas_entrega: [HORA] };
+
+  it.each([
+    [{ lista_xid: "1", entraron: 2, faltan: [], pedido: PEDIDO }],
+    [{ lista_xid: "1", entraron: 2, faltan: [], fallo: "bajo_minimo" }],
+    [{ fallo: "sin_horas" }],
+  ])("cierra la lista con su pedido, o con lo que falló tras ella: %j", async (resultado) => {
+    expect((await trabajador({ accion: "cerrar", id: CASA, resultado })).statusCode).toBe(200);
+  });
+
+  it.each([
+    [{ lista_xid: "1", entraron: 2, faltan: [], pedido: { ...PEDIDO, horas_entrega: [] } }],
+    [{ lista_xid: "1", entraron: 2, faltan: [], pedido: { ...PEDIDO, horas_entrega: [HORA, HORA, HORA, HORA, HORA] } }],
+    [{ lista_xid: "1", entraron: 2, faltan: [], pedido: { ...PEDIDO, horas_entrega: [{ id: "f1", start: "mañana" }] } }],
+    [{ lista_xid: "1", entraron: 2, faltan: [], pedido: { ...PEDIDO, pedido_xid: 9 } }],
+    [{ lista_xid: "1", entraron: 2, faltan: [], pedido: { ...PEDIDO, total: -1 } }],
+    [{ lista_xid: "1", entraron: -1, faltan: [], fallo: "bajo_minimo" }],
+  ])("un pedido mal formado no se cierra: %j", async (resultado) => {
+    expect((await trabajador({ accion: "cerrar", id: CASA, resultado })).statusCode).toBe(400);
+    expect(e.cerrar).not.toHaveBeenCalled();
+  });
+
   it.each([
     [{ fallo: "raro" }],
     [{ lista_xid: "1", entraron: null, faltan: [] }],

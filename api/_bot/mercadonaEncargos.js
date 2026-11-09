@@ -18,8 +18,10 @@ import { enlaceDeLista } from "../../src/lib/mercadonaList.js";
 import { NO_EXISTE, PG_SIN_COLUMNA } from "../../src/lib/postgrest.js";
 import { LLEGA_HASTA, LLEGA_HASTA_MERCADONA, deUnaCuenta, faltaPara } from "../../src/lib/mercadonaLlegaHasta.js";
 import { esSello } from "../../src/lib/mercadonaSello.js";
+import { TRAS_LA_LISTA, TRAS_LA_LISTA_OTRO } from "../../src/lib/mercadonaHoraEntrega.js";
+import { formatEuro } from "../../src/lib/euros.js";
 
-const { PENDIENTE, RELLENANDO, HECHO, FALLIDO } = ESTADO_ENCARGO_MERCADONA;
+const { PENDIENTE, RELLENANDO, ELIGIENDO, HECHO, FALLIDO } = ESTADO_ENCARGO_MERCADONA;
 
 /** Encargos de una casa al día: un uso normal son uno o dos; más, y la cuenta de la familia parece un robot. */
 export const TOPE_DIARIO = 10;
@@ -27,11 +29,15 @@ export const TOPE_DIARIO = 10;
 export const CADUCA_PENDIENTE_MIN = 15;
 /** Cogido y sin acabar: el trabajador murió. Mayor que su tope por encargo (TOPE_ENCARGO_MS); un test los ata. */
 export const CADUCA_RELLENANDO_MIN = 10;
+/** Reservar la hora (0134, cabecera): sin elegir, las horas de entrega ya no valen. */
+export const CADUCA_ELIGIENDO_MIN = 30;
 const DIA_MS = 24 * 60 * 60 * 1000;
 /** La sesión sellada: unas decenas de KB como mucho. */
 export const TOPE_SESION = 64 * 1024;
 
 const VISIBLES = "id,status,entraron,faltan,fallo,lista_xid,created_at";
+/** Lo de reservar que enseñan la app y Lola (0134). El id del pedido en Mercadona, no: es del trabajador. */
+const VISIBLES_RESERVA = `${VISIBLES},total,horas_entrega,hora_entrega,cambiable_hasta`;
 
 /** Lo que quien llama ha mandado mal: 400, sin aviso. El resto es fallo nuestro. */
 export class PeticionMala extends Error {}
@@ -47,9 +53,17 @@ export function casaPermitida(casa, entorno = process.env.MERCADONA_CASAS) {
   return String(entorno ?? "").split(",").map((c) => c.trim()).includes(casa);
 }
 
+
 /** Lo que Lola le dice al chat al acabar, o null si se pidió desde la app. */
 export function avisoDeCierre(fila) {
   if (!fila.chat_id) return null;
+  if (fila.status === ELIGIENDO) {
+    const total = fila.total == null ? "" : `, ${formatEuro(fila.total)}`;
+    return `Ya tienes la compra en tu carro de Mercadona${total}. ¿A qué hora te la llevan?`;
+  }
+  if (fila.status === FALLIDO && fila.lista_xid) {
+    return `Ya tienes la lista en Mercadona, pero ${TRAS_LA_LISTA[fila.fallo] ?? TRAS_LA_LISTA_OTRO}\n${enlaceDeLista(fila.lista_xid)}`;
+  }
   if (fila.status === HECHO) {
     const enlace = enlaceDeLista(fila.lista_xid);
     if (fila.entraron === null) return `Ya tienes la lista en Mercadona, pero no he podido comprobar que estén todos.\n${enlace}`;
@@ -91,10 +105,17 @@ export async function barrerCaducados({ casa = null, ahora = Date.now() } = {}) 
       await Promise.all(filas.map(avisar));
       cerrados += filas.length;
     }
-    return cerrados;
+    return cerrados + (await barrerEligiendo(deCasa, cierre, antes));
   } catch (e) {
     return conPlanB(0)(e); // a propósito: sin la 0131 no hay nada que barrer; otro fallo, conPlanB lo relanza
   }
+}
+
+/** Sin elegir a tiempo (0134, cabecera): se cierra y suelta sus horas de entrega en el mismo cambio, o la base lo rechaza. */
+async function barrerEligiendo(deCasa, cierre, antes) {
+  const filas = (await update("mercadona_encargo", `${deCasa}status=eq.${ELIGIENDO}&eligiendo_at=lt.${antes(CADUCA_ELIGIENDO_MIN)}`, { ...cierre, horas_entrega: null })) ?? [];
+  await Promise.all(filas.map(avisar));
+  return filas.length;
 }
 
 /** Las columnas de la 0133 en `mercadona_cuenta`. */
@@ -130,7 +151,7 @@ export async function estadoDeCasa(casa, ahora = Date.now()) {
   try {
     await barrerCaducados({ casa, ahora });
     const cuenta = await leerCuenta(casa);
-    const [encargo] = await select("mercadona_encargo", `household_id=${eq(casa)}&order=created_at.desc&limit=1`, VISIBLES);
+    const [encargo] = await select("mercadona_encargo", `household_id=${eq(casa)}&order=created_at.desc&limit=1`, VISIBLES_RESERVA);
     return { disponible: true, cuenta: cuenta?.estado ?? null, encargo: encargo ?? null, ...deUnaCuenta(cuenta) };
   } catch (e) {
     return conPlanB(nada)(e); // a propósito: sin la 0131, sin servicio; otro fallo, conPlanB lo relanza
@@ -199,18 +220,12 @@ export async function tomar() {
 
 /**
  * Para el trabajador: hasta dónde llega y qué tiene la cuenta (0133), leído como estadoDeCasa. El teléfono sellado no:
- * solo hace falta al reservar, y lo da tomarReserva.
+ * solo hace falta al reservar.
  */
 async function hastaDondeDe(casa) {
   return deUnaCuenta(await leerCuenta(casa));
 }
 
-/**
- * El trabajador acaba: `{ lista_xid, entraron, faltan }` o `{ fallo }`. Repetirlo no hace nada dos veces: un reintento
- * no pisa el resultado ni avisa otra vez, y por eso la cuenta se marca antes que el encargo: si eso falla, el reintento
- * lo completa. Un `hecho` tardío sí entra sobre un `caducado`: la lista existe y la familia tiene que saberlo.
- * @returns {Promise<boolean>} si lo ha cerrado esta llamada
- */
 /**
  * Apunta lo que el trabajador vio en la cuenta (0133): `tiene_direccion`, `tiene_pago` y cuándo. Solo la cuenta que
  * sigue conectada: si se ha caducado o la han quitado, no hay nada que apuntar. La 0133 ya está aplicada (9 nov 2026):
@@ -220,6 +235,36 @@ export async function apuntarRevision(casa, { tiene_direccion, tiene_pago }, cua
   await update("mercadona_cuenta", `household_id=${eq(casa)}&estado=eq.${ESTADO_CUENTA_MERCADONA.CONECTADA}`, { tiene_direccion, tiene_pago, revisada_at: cuando });
 }
 
+/**
+ * Pura. Lo que se escribe al cerrar de `rellenando` (o un caducado), según lo que trae el trabajador: `{ fallo }` sin
+ * lista → fallido; `{ lista_xid, entraron, faltan }` → hecho; con `pedido` (`{ pedido_xid, total, horas_entrega }`) →
+ * eligiendo, a elegir la hora; con lista y `fallo` → fallido con la lista (0134).
+ */
+export function cambiosDeCierre(antes, resultado, cuando) {
+  const fallo = Boolean(resultado.fallo);
+  const fallido = () => ({
+    status: paraEscribir("estados_encargo_mercadona", FALLIDO),
+    fallo: paraEscribir("fallos_encargo_mercadona", resultado.fallo),
+    fallido_at: cuando,
+  });
+  if (fallo && !resultado.lista_xid) return fallido();
+  const lista = { lista_xid: String(resultado.lista_xid), entraron: resultado.entraron, faltan: resultado.faltan };
+  const hecho = { status: paraEscribir("estados_encargo_mercadona", HECHO), ...lista, hecho_at: cuando, fallo: null, fallido_at: null };
+  if (fallo) return { ...fallido(), ...lista };
+  // Un caducado no vuelve a abrirse para elegir: el hecho tardío solo cierra la lista (0134, trigger).
+  if (resultado.pedido && antes.status === RELLENANDO) {
+    const { pedido_xid, total, horas_entrega } = resultado.pedido;
+    return { status: paraEscribir("estados_encargo_mercadona", ELIGIENDO), ...lista, pedido_xid: String(pedido_xid), total, horas_entrega, eligiendo_at: cuando };
+  }
+  return hecho;
+}
+
+/**
+ * El trabajador acaba de rellenar (cambiosDeCierre). Repetirlo no hace nada dos veces: un reintento no
+ * pisa el resultado ni avisa otra vez, y por eso la cuenta se marca antes que el encargo: si eso falla, el reintento lo
+ * completa. Un `hecho` tardío sí entra sobre un `caducado`: la lista existe y la familia tiene que saberlo.
+ * @returns {Promise<boolean>} si lo ha cerrado esta llamada
+ */
 export async function cerrar(id, resultado, ahora = Date.now()) {
   const cuando = new Date(ahora).toISOString();
   const fallo = resultado.fallo ? paraEscribir("fallos_encargo_mercadona", resultado.fallo) : null;
@@ -236,18 +281,7 @@ export async function cerrar(id, resultado, ahora = Date.now()) {
       estado: paraEscribir("estados_cuenta_mercadona", ESTADO_CUENTA_MERCADONA.CADUCADA),
     });
   }
-  const cambios = fallo
-    ? { status: paraEscribir("estados_encargo_mercadona", FALLIDO), fallo: paraEscribir("fallos_encargo_mercadona", fallo), fallido_at: cuando }
-    : {
-        status: paraEscribir("estados_encargo_mercadona", HECHO),
-        lista_xid: String(resultado.lista_xid),
-        entraron: resultado.entraron,
-        faltan: resultado.faltan,
-        hecho_at: cuando,
-        fallo: null,
-        fallido_at: null,
-      };
-  const [fila] = await update("mercadona_encargo", `id=${eq(id)}&status=eq.${antes.status}`, cambios);
+  const [fila] = await update("mercadona_encargo", `id=${eq(id)}&status=eq.${antes.status}`, cambiosDeCierre(antes, resultado, cuando));
   if (!fila) return false;
   await avisar(fila);
   return true;
