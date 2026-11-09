@@ -17,12 +17,26 @@ metadata:
 
 ## Qué es
 
-Prototipo: un navegador real rellena una **lista** en la cuenta de la persona.
-Luego ella la revisa en Listas de la app de Mercadona y paga allí. Sin API
-pública: se usa la misma llamada que su propia web.
+Prototipo: un navegador real hace la compra en la cuenta de la persona, **hasta
+donde ella lo haya encendido**. Sin API pública: se usan las mismas llamadas que
+su propia web (`referencias/pedido.md`).
 
-**Lista y no carrito:** el carrito se sustituye entero y pisaría lo que hubiera.
-**Nunca paga:** no hay ningún paso de carrito, reparto ni pago, y no se añade.
+**Tres pasos, en orden** (Pablo, 8 nov 2026; trozos 12 a 24 de
+`specs/plan-comprar-mercadona.md`). Cada uno solo si la persona lo ha encendido
+(`mercadona_cuenta.llega_hasta`), y cada uno lleva los de antes:
+
+1. **Rellenar la lista** (`lista`): una lista nueva en su cuenta. No toca el carro.
+2. **Reservar la hora de entrega** (`reservar`): suma la lista al carro sin quitar
+   lo que ya tenía, crea el pedido y reserva la hora que la persona elija.
+3. **Pagar la compra** (`pagar`): confirma el pedido.
+
+**El carro se suma, nunca se pisa.** Mercadona sustituye el carro entero en cada
+escritura: se lee con su `version`, se suma la lista y se escribe una vez.
+
+**Nunca se paga sin que la persona confirme ese importe en ese pedido**, y nunca
+más de lo confirmado. Si no se puede leer el total, no se paga. Además, el pago lo
+aprueba siempre la persona en su banco: confirmar manda a la autenticación del
+banco, y el bot no puede cerrarlo solo.
 
 ## Reglas
 
@@ -154,7 +168,7 @@ lista desde el servidor de Hetzner, con la sesión exportada (3 de 3).
 
 La respuesta de su lista no trae cantidades: `products_quantity` cuenta productos distintos. La cantidad sí se guarda: una lista con cantidad 3 sale en su web como «Añadir 3 uds. al carro» (visto el 6 nov). El script solo comprueba productos.
 
-Sin comprobar: pasar la lista al carrito, una compra de ~30 productos, cuánto dura
+Sin comprobar: que el trabajador pase la lista al carrito (a mano sí, el 8 nov: `referencias/pedido.md`), una compra de ~30 productos, cuánto dura
 la sesión (ver «La sesión: cuánto dura»), varias familias a la vez, qué hace
 Mercadona con un uso repetido, la entrada en versión de ordenador dentro de la app,
 y si el enlace de una lista abre la app en la lista o en su portada. Dos pasadas no
