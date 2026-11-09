@@ -26,7 +26,6 @@ vi.mock("./telegram.js", () => ({ enviar: vi.fn(async () => null) }));
 vi.mock("./avisar.js", () => ({ avisarFallo: vi.fn() }));
 
 const { enviar } = await import("./telegram.js");
-const { avisarFallo } = await import("./avisar.js");
 const m = await import("./mercadonaEncargos.js");
 const { TRAS_LA_LISTA } = await import("../../src/lib/mercadonaHoraEntrega.js");
 const lola = await import("./mercadonaLola.js");
@@ -60,11 +59,6 @@ describe("cambiosDeCierre: qué se escribe según de dónde viene", () => {
     });
   });
 
-  it("sin la 0134, la lista va a un hecho, como antes", () => {
-    expect(m.cambiosDeCierre(rellenando, { ...LISTA, fallo: "sin_horas" }, CUANDO, { sinReservar: true })).toMatchObject({ status: "hecho", lista_xid: "77" });
-    expect(m.cambiosDeCierre(rellenando, { ...LISTA, pedido: PEDIDO }, CUANDO, { sinReservar: true })).not.toHaveProperty("horas_entrega");
-  });
-
   it("un caducado no vuelve a abrirse para elegir: solo cierra la lista", () => {
     expect(m.cambiosDeCierre({ status: "fallido", fallo: "caducado" }, { ...LISTA, pedido: PEDIDO }, CUANDO).status).toBe("hecho");
   });
@@ -88,14 +82,6 @@ describe("cerrar", () => {
       [{ texto: "jueves 12 nov, 15:00–16:00 · 7,21 €", dato: `mhe:${ID}:0` }],
       [{ texto: "jueves 12 nov, 17:00–18:00 · gratis", dato: `mhe:${ID}:1` }],
     ]);
-  });
-
-  it("sin la 0134 (42703) guarda la lista como hecho, y lo cuenta", async () => {
-    db.encargo = [{ household_id: CASA, status: "rellenando", fallo: null, tomado_at: CUANDO }];
-    db.fallaUpdate = [error("42703")];
-    expect(await m.cerrar(ID, { ...LISTA, pedido: PEDIDO }, AHORA)).toBe(true);
-    expect(db.escrito.at(-1).cambios).toMatchObject({ status: "hecho", lista_xid: "77" });
-    expect(avisarFallo).toHaveBeenCalledWith("mercadona_cierre_sin_reservar", expect.anything(), { grave: false });
   });
 
   it("otro fallo de la base no se traga", async () => {
@@ -175,7 +161,7 @@ describe("tomarReserva", () => {
     expect(await m.tomarReserva()).toEqual({ reserva: { id: ID, pedido_xid: "p9", hora_entrega: F1 }, sesion_cifrada: "sellada", telefono_sellado: "tel" });
   });
 
-  it("sin reservas, o sin la 0134, null", async () => {
+  it("sin reservas, o sin la función, null", async () => {
     expect(await m.tomarReserva()).toBeNull();
     const { rpc } = await import("./db.js");
     vi.mocked(rpc).mockRejectedValueOnce(error("PGRST202"));
@@ -196,11 +182,6 @@ describe("el barrido de lo de reservar", () => {
     expect(db.escrito[3].cambios).not.toHaveProperty("horas_entrega");
   });
 
-  it("sin la 0134, las dos de antes y nada más", async () => {
-    db.fallaUpdate = [undefined, undefined, error("42703")];
-    expect(await m.barrerCaducados({ ahora: AHORA })).toBe(0);
-  });
-
   it("los plazos son los de la 0134", () => {
     const sql = readFileSync(join(process.cwd(), "supabase/migrations/0134_mercadona_hora_entrega.sql"), "utf8");
     expect(sql).toContain(`reservando_at > now() - interval '${m.CADUCA_RESERVA_SIN_COGER_MIN} minutes'`);
@@ -210,15 +191,9 @@ describe("el barrido de lo de reservar", () => {
 });
 
 describe("estadoDeCasa enseña lo de reservar", () => {
-  it("con la 0134, las horas_entrega y la elegida; sin ella, lo de antes", async () => {
+  it("las horas_entrega y la elegida", async () => {
     const { select } = await import("./db.js");
     await m.estadoDeCasa(CASA);
     expect(vi.mocked(select).mock.calls.find(([t]) => t === "mercadona_encargo")[2]).toContain("horas_entrega,hora_entrega,cambiable_hasta");
-    vi.mocked(select).mockImplementation(async (tabla, _f, columnas) => {
-      if (tabla === "mercadona_encargo" && columnas.includes("horas_entrega")) throw error("42703");
-      return tabla === "mercadona_cuenta" ? db.cuenta : [{ id: ID, status: "hecho" }];
-    });
-    expect((await m.estadoDeCasa(CASA)).encargo).toEqual({ id: ID, status: "hecho" });
-    vi.mocked(select).mockReset();
   });
 });

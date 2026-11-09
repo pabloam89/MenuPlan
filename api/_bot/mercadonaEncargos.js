@@ -15,7 +15,7 @@ import { avisarFallo } from "./avisar.js";
 import { erroresDeLista } from "../../src/lib/mercadonaLista.js";
 import { CANAL, ESTADO_CUENTA_MERCADONA, ESTADO_ENCARGO_MERCADONA, FALLO_ENCARGO_MERCADONA, NO_ENCARGADO, paraEscribir } from "../../src/lib/vocabularios.js";
 import { enlaceDeLista } from "../../src/lib/mercadonaList.js";
-import { NO_EXISTE, PG_SIN_COLUMNA, PG_VIOLA_CHECK } from "../../src/lib/postgrest.js";
+import { NO_EXISTE, PG_SIN_COLUMNA } from "../../src/lib/postgrest.js";
 import * as ids from "../../src/lib/ids.js";
 import { LLEGA_HASTA, LLEGA_HASTA_MERCADONA, deUnaCuenta, faltaPara } from "../../src/lib/mercadonaLlegaHasta.js";
 import { esSello } from "../../src/lib/mercadonaSello.js";
@@ -41,7 +41,7 @@ const DIA_MS = 24 * 60 * 60 * 1000;
 export const TOPE_SESION = 64 * 1024;
 
 const VISIBLES = "id,status,entraron,faltan,fallo,lista_xid,created_at";
-/** Con la 0134: lo de reservar que enseñan la app y Lola. El id del pedido en Mercadona, no: es del trabajador. */
+/** Lo de reservar que enseñan la app y Lola (0134). El id del pedido en Mercadona, no: es del trabajador. */
 const VISIBLES_RESERVA = `${VISIBLES},total,horas_entrega,hora_entrega,cambiable_hasta`;
 
 /** Por qué no se ha podido elegir la hora (elegirHoraEntrega). No va a ninguna tabla: lo explican la app y Lola. */
@@ -148,7 +148,7 @@ export async function barrerCaducados({ casa = null, ahora = Date.now() } = {}) 
 const DE_LA_0133 = ["llega_hasta", "revisada_at", "tiene_direccion", "tiene_pago", "telefono_sellado"];
 /**
  * Lo de reservar que lleva demasiado (0134, cabecera): sin elegir, elegida y sin coger, o cogida y sin acabar. El que
- * se cierra eligiendo suelta sus horas de entrega en el mismo cambio, o la base lo rechaza. Sin la 0134 (42703), nada.
+ * se cierra eligiendo suelta sus horas de entrega en el mismo cambio, o la base lo rechaza.
  */
 async function barrerReservas(deCasa, cierre, antes) {
   const tandas = [
@@ -157,27 +157,12 @@ async function barrerReservas(deCasa, cierre, antes) {
     [`status=eq.${RESERVANDO}&reserva_tomada_at=lt.${antes(CADUCA_RESERVANDO_MIN)}`, {}],
   ];
   let cerrados = 0;
-  try {
-    for (const [filtro, extra] of tandas) {
-      const filas = (await update("mercadona_encargo", `${deCasa}${filtro}`, { ...cierre, ...extra })) ?? [];
-      await Promise.all(filas.map(avisar));
-      cerrados += filas.length;
-    }
-  } catch (e) {
-    if (e?.codigo !== PG_SIN_COLUMNA) throw e; // a propósito: sin la 0134 no hay reservas que barrer
+  for (const [filtro, extra] of tandas) {
+    const filas = (await update("mercadona_encargo", `${deCasa}${filtro}`, { ...cierre, ...extra })) ?? [];
+    await Promise.all(filas.map(avisar));
+    cerrados += filas.length;
   }
   return cerrados;
-}
-
-/** El último encargo de la casa, con lo de reservar si está la 0134; sin ella (42703), lo de antes. */
-async function ultimoEncargo(casa) {
-  const filtro = `household_id=${eq(casa)}&order=created_at.desc&limit=1`;
-  try {
-    return await select("mercadona_encargo", filtro, VISIBLES_RESERVA);
-  } catch (e) {
-    if (e?.codigo !== PG_SIN_COLUMNA) throw e;
-    return select("mercadona_encargo", filtro, VISIBLES); // a propósito: plan B de la 0134
-  }
 }
 
 /** Lo de la cuenta que se enseña (0133): sin la sesión ni el teléfono, solo si lo hay. */
@@ -211,7 +196,7 @@ export async function estadoDeCasa(casa, ahora = Date.now()) {
   try {
     await barrerCaducados({ casa, ahora });
     const cuenta = await leerCuenta(casa);
-    const [encargo] = await ultimoEncargo(casa);
+    const [encargo] = await select("mercadona_encargo", `household_id=${eq(casa)}&order=created_at.desc&limit=1`, VISIBLES_RESERVA);
     return { disponible: true, cuenta: cuenta?.estado ?? null, encargo: encargo ?? null, ...deUnaCuenta(cuenta) };
   } catch (e) {
     return conPlanB(nada)(e); // a propósito: sin la 0131, sin servicio; otro fallo, conPlanB lo relanza
@@ -300,9 +285,8 @@ export async function apuntarRevision(casa, { tiene_direccion, tiene_pago }, cua
  *   · de `reservando`: `{ cambiable_hasta }` → hecho con la hora; `{ fallo }` → fallido, con la lista que ya tenía;
  *   · de `rellenando` (o un caducado): `{ fallo }` sin lista → fallido; `{ lista_xid, entraron, faltan }` → hecho; con
  *     `pedido` (`{ pedido_xid, total, horas de entrega }`) → eligiendo; con lista y `fallo` → fallido con la lista (0134).
- * `sinReservar`: lo mismo que la 0131 sabía guardar (la lista, hecha o no), para el plan B sin la 0134.
  */
-export function cambiosDeCierre(antes, resultado, cuando, { sinReservar = false } = {}) {
+export function cambiosDeCierre(antes, resultado, cuando) {
   const fallo = Boolean(resultado.fallo);
   const fallido = () => ({
     status: paraEscribir("estados_encargo_mercadona", FALLIDO),
@@ -315,8 +299,6 @@ export function cambiosDeCierre(antes, resultado, cuando, { sinReservar = false 
   if (fallo && !resultado.lista_xid) return fallido();
   const lista = { lista_xid: String(resultado.lista_xid), entraron: resultado.entraron, faltan: resultado.faltan };
   const hecho = { status: paraEscribir("estados_encargo_mercadona", HECHO), ...lista, hecho_at: cuando, fallo: null, fallido_at: null };
-  // Sin la 0134 la lista solo cabe en un hecho: la familia la tiene, y eso es lo que se le dice.
-  if (sinReservar) return hecho;
   if (fallo) return { ...fallido(), ...lista };
   // Un caducado no vuelve a abrirse para elegir: el hecho tardío solo cierra la lista (0134, trigger).
   if (resultado.pedido && antes.status === RELLENANDO) {
@@ -348,17 +330,7 @@ export async function cerrar(id, resultado, ahora = Date.now()) {
       estado: paraEscribir("estados_cuenta_mercadona", ESTADO_CUENTA_MERCADONA.CADUCADA),
     });
   }
-  const donde = `id=${eq(id)}&status=eq.${antes.status}`;
-  let fila;
-  try {
-    [fila] = await update("mercadona_encargo", donde, cambiosDeCierre(antes, resultado, cuando));
-  } catch (e) {
-    // Sin la 0134: ni sus columnas (42703) ni un fallido con lista (23514, el check de la 0131). Se guarda la lista.
-    if (e?.codigo !== PG_SIN_COLUMNA && e?.codigo !== PG_VIOLA_CHECK) throw e;
-    // Se cuenta: con la 0134 ya aplicada, un 23514 aquí es un fallo nuestro, no el plan B.
-    avisarFallo("mercadona_cierre_sin_reservar", e, { grave: false });
-    [fila] = await update("mercadona_encargo", donde, cambiosDeCierre(antes, resultado, cuando, { sinReservar: true }));
-  }
+  const [fila] = await update("mercadona_encargo", `id=${eq(id)}&status=eq.${antes.status}`, cambiosDeCierre(antes, resultado, cuando));
   if (!fila) return false;
   await avisar(fila);
   return true;
@@ -371,13 +343,7 @@ export async function cerrar(id, resultado, ahora = Date.now()) {
  */
 export async function elegirHoraEntrega({ casa, encargo, hora_id = undefined, posicion = undefined }, ahora = Date.now()) {
   if (!ids.operacion.esNuevo(encargo)) throw new PeticionMala("encargo no válido");
-  let filas;
-  try {
-    filas = await select("mercadona_encargo", `id=${eq(encargo)}&household_id=${eq(casa)}&status=eq.${ELIGIENDO}`, "id,horas_entrega");
-  } catch (e) {
-    if (e?.codigo !== PG_SIN_COLUMNA && !sinMigracion(e)) throw e;
-    return { fallo: NO_ELEGIDA.SIN_ELEGIR }; // a propósito: sin la 0134 no hay nada que elegir
-  }
+  const filas = await select("mercadona_encargo", `id=${eq(encargo)}&household_id=${eq(casa)}&status=eq.${ELIGIENDO}`, "id,horas_entrega");
   const ofrecidas = filas[0]?.horas_entrega ?? null;
   if (!ofrecidas) return { fallo: NO_ELEGIDA.SIN_ELEGIR };
   const elegida = posicion !== undefined ? ofrecidas[posicion] : ofrecidas.find((f) => String(f.id) === String(hora_id));
@@ -396,7 +362,7 @@ export async function elegirHoraEntrega({ casa, encargo, hora_id = undefined, po
 
 /**
  * El trabajador coge la siguiente reserva: `{ reserva: { id, pedido_xid, hora de entrega }, sesion_cifrada, telefono_sellado }`,
- * o null si no hay. Sin la 0134, nunca hay.
+ * o null si no hay.
  */
 export async function tomarReserva() {
   const filas = await rpc("tomar_reserva_mercadona", {}).catch(conPlanB([]));
