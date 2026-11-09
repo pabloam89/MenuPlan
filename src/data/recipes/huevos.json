@@ -123,7 +123,16 @@
     "mainBase": "patatas",
     "baseMode": "dentro",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "huevos_002",
@@ -800,7 +809,16 @@
     "freezable": false,
     "tecnica": "sarten",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "huevos_008",
@@ -1196,7 +1214,16 @@
     "tecnica": "sarten",
     "llevaSalsa": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "huevos_011",
