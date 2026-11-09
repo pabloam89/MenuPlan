@@ -67,6 +67,7 @@
 import { readFileSync, readdirSync } from "fs";
 import { gramsPerPiece } from "../src/lib/kitchenUnits.js";
 import { ES_ACEITE_DE_FREIR, factorAceite, fraccionServida } from "../src/lib/derive/masaServida.js";
+import { PAPELES_DE_HUECO } from "../src/data/recipeSchema.js";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
@@ -110,7 +111,7 @@ const nutricionDe = (ingredientId) =>
   (ingredientId ? NUTRICION.get(alimentoPorIngrediente[ingredientId] ?? ingredientId) : null) ?? null;
 
 const estrella = recipes.filter((r) => r.estrella);
-const ROLES_PRINCIPALES = new Set(["primero", "segundo", "plato_unico", "cena"]);
+const ROLES_PRINCIPALES = new Set(PAPELES_DE_HUECO);
 const ROLES_APARTE = new Set(["guarnicion", "salsa", "postre", "desayuno", "merienda"]);
 const principales = estrella.filter(
   (r) => (r.mealRole ?? []).some((x) => ROLES_PRINCIPALES.has(x))
