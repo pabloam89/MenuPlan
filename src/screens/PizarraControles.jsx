@@ -31,6 +31,9 @@ import {
   conSemanaCompleta,
   diasDeSemana,
 } from "../lib/semanaDias.js";
+import { clasicosPorPestana } from "../lib/clasicos.js";
+import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
+import { deckImg } from "../lib/dishPhotoOptimize.js";
 
 /**
  * Los mandos de la pizarra: dos pestañas metidas en el borde izquierdo.
@@ -1362,6 +1365,129 @@ function Electrodomesticos({ data, setData }) {
 }
 
 /**
+ * ¿Qué no puede faltar? — los clásicos de casa, por pestañas.
+ *
+ * Una rejilla de fotos de tres en fondo, con su nombre, que se marca a toques;
+ * arriba, las seis pestañas (lib/clasicos.js) con cuántos llevas en cada una.
+ * La rejilla tiene alto fijo y se desliza dentro: la hoja mide lo que el paso
+ * más alto, y once platos de una pestaña la harían crecer. Lo elegido no toca
+ * `data`: se pone en la semana al pulsar Empezar (App.jsx, `colocarClasicos`).
+ */
+const PESTANAS_CON_CLASICOS = clasicosPorPestana(recipeCatalogById);
+
+function ClasicosDeCasa({ elegidos, onAlternar }) {
+  const [pestana, setPestana] = useState(PESTANAS_CON_CLASICOS[0].id);
+  const actual = PESTANAS_CON_CLASICOS.find((p) => p.id === pestana);
+  return (
+    <div>
+      <div
+        role="tablist"
+        style={{ display: "flex", gap: "var(--esp-6)", overflowX: "auto", paddingBottom: "var(--esp-8)", scrollbarWidth: "none" }}
+      >
+        {PESTANAS_CON_CLASICOS.map((p) => {
+          const sel = p.id === pestana;
+          const cuantos = p.recetas.filter((r) => elegidos.includes(r.id)).length;
+          return (
+            <button
+              key={p.id}
+              type="button"
+              role="tab"
+              aria-selected={sel}
+              className="mp-press"
+              onClick={() => setPestana(p.id)}
+              style={{
+                flex: "0 0 auto", height: 32, padding: "0 var(--esp-12)", borderRadius: "var(--radio-pildora)",
+                border: `1.5px solid ${sel ? "var(--color-marca)" : "var(--color-linea)"}`,
+                background: sel ? "var(--color-marca)" : "var(--color-superficie)",
+                color: sel ? "var(--color-superficie)" : "var(--color-tinta-media)",
+                fontSize: "var(--tipo-paso-12)", fontWeight: "var(--tipo-peso-800)", fontFamily: "inherit", cursor: "pointer",
+                display: "inline-flex", alignItems: "center", gap: "var(--esp-6)",
+              }}
+            >
+              {p.titulo}
+              {cuantos > 0 && (
+                <span style={{
+                  minWidth: 18, height: 18, padding: "0 var(--esp-4)", boxSizing: "border-box", borderRadius: "var(--radio-pildora)",
+                  background: sel ? "var(--color-superficie)" : "var(--color-marca-fondo)", color: "var(--color-marca)",
+                  fontSize: "var(--tipo-paso-11)", fontWeight: "var(--tipo-peso-900)", lineHeight: 1,
+                  display: "inline-flex", alignItems: "center", justifyContent: "center", fontVariantNumeric: "tabular-nums",
+                }}>
+                  {cuantos}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      <div
+        key={pestana}
+        className="mp-arranque-paso"
+        style={{
+          height: 292, overflowY: "auto", padding: "var(--esp-2) 0 var(--esp-4)",
+          display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "var(--esp-8)", alignContent: "start",
+        }}
+      >
+        {actual.recetas.map((r) => {
+          const sel = elegidos.includes(r.id);
+          const foto = dishImageForRecipe(r);
+          return (
+            <button
+              key={r.id}
+              type="button"
+              className="mp-press"
+              onClick={() => onAlternar(r.id)}
+              aria-pressed={sel}
+              style={{
+                position: "relative", padding: 0, border: "none", background: "none", cursor: "pointer",
+                fontFamily: "inherit", textAlign: "center", display: "flex", flexDirection: "column", gap: "var(--esp-4)",
+              }}
+            >
+              <span
+                style={{
+                  display: "block", aspectRatio: "1 / 1", borderRadius: "var(--radio-tarjeta)", overflow: "hidden",
+                  background: "var(--color-fondo-suave)", boxSizing: "border-box",
+                  outline: sel ? "2.5px solid var(--color-seleccionado)" : "none", outlineOffset: -2.5,
+                }}
+              >
+                {foto && (
+                  <img
+                    src={deckImg(foto, 200)}
+                    alt=""
+                    loading="lazy"
+                    style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", opacity: sel ? 1 : 0.92 }}
+                  />
+                )}
+              </span>
+              {sel && (
+                <span
+                  style={{
+                    position: "absolute", top: "var(--esp-6)", right: "var(--esp-6)", width: 20, height: 20, borderRadius: "50%",
+                    background: "var(--color-seleccionado)", display: "flex", alignItems: "center", justifyContent: "center",
+                    boxShadow: "var(--sombra-1)",
+                  }}
+                >
+                  <Check size={12} color="var(--color-superficie)" strokeWidth={3.2} />
+                </span>
+              )}
+              <span
+                style={{
+                  fontSize: "var(--tipo-paso-11)", fontWeight: "var(--tipo-peso-800)", lineHeight: 1.2,
+                  color: sel ? "var(--color-tinta)" : "var(--color-tinta-media)",
+                  display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
+                }}
+              >
+                {r.name}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/**
  * ¿Qué días pones? — semanas enteras arriba, calendario para afinar debajo.
  *
  * Vivía dentro de un panel lateral de la pizarra y ahora es lo PRIMERO que se
@@ -1574,18 +1700,23 @@ export const SALIDA_ARRANQUE_MS = 240;
 
 const PASOS_ARRANQUE = [
   { id: "dias", titulo: "¿Qué días quieres?" },
+  { id: "clasicos", titulo: "¿Qué no puede faltar?" },
   { id: "cocina", titulo: "¿Qué tienes en la cocina?" },
 ];
 
 export function ArranqueDePizarra({ data, setData, onAplicar, onEmpezar, onSalir }) {
-  // Dos pasos, deslizando: los días y luego los electrodomésticos, que
-  // cambian las recetas y los minutos del Batch. Los dos pasos están siempre
+  // Tres pasos, deslizando: los días, los clásicos que no pueden faltar
+  // (opcional: sin ninguno elegido, el botón dice «Omitir») y los
+  // electrodomésticos, que cambian las recetas y los minutos del Batch. Los pasos están siempre
   // montados y la hoja mide lo que el más alto —el calendario—: si cambiara
   // de tamaño al pasar de uno a otro, el salto se come el deslizamiento.
   const [paso, setPaso] = useState(0);
   const irA = (n) => setPaso(n);
   const ultimo = paso === PASOS_ARRANQUE.length - 1;
   const actual = PASOS_ARRANQUE[paso];
+  const [clasicos, setClasicos] = useState([]);
+  const alternarClasico = (id) => setClasicos((c) => (c.includes(id) ? c.filter((x) => x !== id) : [...c, id]));
+  const omitible = actual.id === "clasicos" && clasicos.length === 0;
   // Tres momentos: la hoja, la hoja yéndose, y el montaje. El del medio existe
   // para que no se solapen —la franja entrando mientras la hoja aún está daba
   // un salto— y el tercero para que el hueco entre una cosa y otra no parezca
@@ -1604,7 +1735,7 @@ export function ArranqueDePizarra({ data, setData, onAplicar, onEmpezar, onSalir
     // está montado debajo— sino el corte entre la pregunta y la respuesta.
     setTimeout(() => {
       setFase("montando");
-      setTimeout(onEmpezar, 1150);
+      setTimeout(() => onEmpezar(clasicos), 1150);
     }, SALIDA_ARRANQUE_MS);
   };
 
@@ -1699,7 +1830,9 @@ export function ArranqueDePizarra({ data, setData, onAplicar, onEmpezar, onSalir
         {/* Sola y centrada. Debajo iba un «Luego rellenas los huecos a mano»
             que explicaba la pantalla siguiente a quien todavía no ha salido de
             esta. El título viaja con su paso (key) y entra deslizando igual. */}
-        <div key={actual.id} className="mp-arranque-paso" style={{ textAlign: "center", margin: "0 0 14px" }}>
+        {/* A los lados, el ancho de la X: un título largo («¿Qué no puede
+            faltar?») no se mete debajo de ella. */}
+        <div key={actual.id} className="mp-arranque-paso" style={{ textAlign: "center", margin: "0 0 14px", padding: "0 var(--tam-tactil)" }}>
           <p style={{ margin: 0, fontSize: 19, fontWeight: 900, color: INK, letterSpacing: "-.3px" }}>
             {actual.titulo}
           </p>
@@ -1720,6 +1853,7 @@ export function ArranqueDePizarra({ data, setData, onAplicar, onEmpezar, onSalir
           >
             {[
               <SelectorDeDias key="dias" data={data} onAplicar={onAplicar} />,
+              <ClasicosDeCasa key="clasicos" elegidos={clasicos} onAlternar={alternarClasico} />,
               <Electrodomesticos key="cocina" data={data} setData={setData} />,
             ].map((contenido, i) => (
               <div
@@ -1770,8 +1904,8 @@ export function ArranqueDePizarra({ data, setData, onAplicar, onEmpezar, onSalir
               display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
             }}
           >
-            {ultimo ? "Empezar" : "Siguiente"}
-            {!ultimo && <ArrowRight size={17} strokeWidth={2.8} />}
+            {ultimo ? "Empezar" : omitible ? "Omitir" : "Siguiente"}
+            {!ultimo && !omitible && <ArrowRight size={17} strokeWidth={2.8} />}
           </button>
         </div>
       </div>

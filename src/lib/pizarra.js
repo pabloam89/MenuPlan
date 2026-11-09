@@ -384,3 +384,19 @@ export function sinHueco(plan, { groupId, day, meal }) {
   delete copia[key];
   return { ...plan, [groupId]: copia };
 }
+
+/**
+ * Pura. Una copia del plan para trabajar sobre ella, hueco a hueco: grupos y
+ * huecos copiados (un nivel), sin `_warnings`. La usan «Rellenar» y los
+ * clásicos de la hoja (App.jsx): cada plato que se pone va sobre la copia, y
+ * el siguiente hueco ya lo ve.
+ */
+export function copiaDeTrabajo(plan) {
+  const trabajo = {};
+  for (const gid of Object.keys(plan ?? {})) {
+    if (gid === "_warnings") continue;
+    trabajo[gid] = {};
+    for (const k of Object.keys(plan[gid] ?? {})) trabajo[gid][k] = { ...plan[gid][k] };
+  }
+  return trabajo;
+}

@@ -83,7 +83,7 @@ describe("cambiar un plato apunta el plato en el hueco (#1246, paso 2b)", () => 
     for (const f of ["../App.jsx", "./pizarraIA.js"]) {
       expect(fuente(f), f).not.toMatch(/(?:firstRecipeId|recipeId): (?:result|r|c|p|first)\.recipeId/);
     }
-    expect(fuente("../App.jsx").match(/\.\.\.(?:result|r|c|first)\.hueco|Object\.assign\(base, p\.hueco\)/g)).toHaveLength(6);
+    expect(fuente("../App.jsx").match(/\.\.\.(?:result|r|c|first)\.hueco|Object\.assign\(base, p\.hueco\)/g)).toHaveLength(7);
     expect(fuente("./pizarraIA.js")).toContain("...r.hueco");
   });
 });
