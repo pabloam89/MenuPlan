@@ -57,7 +57,7 @@ import { lowerFirst } from "./dishNaming.js";
 import { aporteDe, fundirMicros } from "./derive/aporteAcompanamiento.js";
 import { computeRecipeNutrition } from "./ingredients.js";
 import { isoLocalDate } from "./weekCalendar.js";
-import { DIA_SLUG as DAY_SLUG, DIA_LARGO_MINUSCULAS, diaDeSlug, tipoDeComida, comidaDeTipo, huecoMotor } from "./dias.js";
+import { DIA_SLUG as DAY_SLUG, DIA_LARGO_MINUSCULAS, diaDeSlug, tipoDeComida, comidaDeTipo, huecoMotor, papelesDelHueco } from "./dias.js";
 import { HUECO_EN_AVISO } from "./huecosDelPlan.js";
 
 /** Cada regla relajable (REGLAS_RELAJABLES) en palabras, para el aviso: qué se salta el plato que se puso. */
@@ -3092,14 +3092,7 @@ export function pickCatalogReplacement(dataOEntrada, menuPlan, { groupId, day, m
   // two ensaladas shown as 1º and 2º of the same comida. Slot shape is the
   // one thing that's always correct, since it comes from where the recipe is
   // stored (firstRecipeId vs recipeId), not from what was placed there.
-  let targetRoles;
-  if (course === "first") {
-    targetRoles = new Set(["primero"]);
-  } else if (tipoDeComida(meal) === "cena") {
-    targetRoles = new Set(["cena", "plato_unico"]);
-  } else {
-    targetRoles = new Set(currentSlot.firstRecipeId ? ["segundo"] : ["plato_unico"]);
-  }
+  const targetRoles = new Set(papelesDelHueco({ meal, course, partida: Boolean(currentSlot.firstRecipeId) }));
 
   // Same constrained pool the AI planner would see for this group.
   const { recipes: pool } = filterRecipes(ctx.filterOpts);

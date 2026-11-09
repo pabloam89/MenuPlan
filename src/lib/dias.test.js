@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+  papelesDelHueco,
   DIAS,
   DIAS_LABORABLES,
   DIAS_FINDE,
@@ -164,5 +165,18 @@ describe("dias.js: el hoy de la casa (Europe/Madrid salvo otra zona)", () => {
     expect(h.iso).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(h.dia).toBe(diaDeISO(h.iso));
     expect(isoDeCasa()).toBe(h.iso);
+  });
+});
+
+describe("papelesDelHueco", () => {
+  it("el primer plato solo admite primero", () => {
+    expect(papelesDelHueco({ meal: "Comida", course: "first", partida: true })).toEqual(["primero"]);
+  });
+  it("una cena admite cena o plato único, partida o no", () => {
+    expect(papelesDelHueco({ meal: "Cena", partida: true })).toEqual(["cena", "plato_unico"]);
+  });
+  it("el principal de una comida partida es segundo; el de una de un plato, plato único", () => {
+    expect(papelesDelHueco({ meal: "Comida", partida: true })).toEqual(["segundo"]);
+    expect(papelesDelHueco({ meal: "Comida" })).toEqual(["plato_unico"]);
   });
 });
