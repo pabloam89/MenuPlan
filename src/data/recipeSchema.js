@@ -91,7 +91,7 @@ const TECNICAS = ["horno", "plancha", "sarten", "olla", "crudo"];
 // "espanola" no está en la lista, y por eso el panel no puede pedirla.
 // Atributos «blandos» (30 sep 2026): los que piden las familias en voz alta
 // («algo reconfortante», «de cuchara», «que no pique»). Los rellena
-// scripts/recetas-atributos-blandos.mjs en el Recetario Estrella: dos pasadas
+// scripts/recetas-atributos-blandos.mjs en el Recetario Estrella y los clásicos: dos pasadas
 // independientes de un modelo y un juez donde no coinciden.
 const CONNOTACIONES = ["reconfortante", "fresco", "casero", "festivo"];
 const TEXTURAS = ["cuchara", "tenedor", "mano"];
@@ -100,6 +100,9 @@ const PICANTES = ["no", "suave", "picante"];
 // niveles guardados; entre las dos los cubren todos (lo comprueba su test).
 const PICANTE_PEDIDO = { sin: ["no"], con: ["suave", "picante"] };
 const SABORES = ["suave", "intenso", "especiado", "dulce", "acido", "ahumado"];
+// Los cuatro campos que escribe ese script y que llevan las estrella y los
+// clásicos (lo exige data/clasicos.test.js).
+const ATRIBUTOS_BLANDOS = ["connotacion", "textura", "picante", "sabor"];
 
 const COCINAS = [
   "italiana", "asiatica", "mexicana", "arabe",
@@ -509,8 +512,9 @@ export const RecipeSchema = z
     // kidFriendly + dificultad, que es justo la aproximación que se quedaba
     // corta (ver utils/recipeIntents.js).
     kidFavourite: z.boolean().optional(),
-    // Atributos blandos (ver CONNOTACIONES y compañía arriba). Solo en el
-    // Recetario Estrella; ausentes en el resto del catálogo.
+    // Atributos blandos (ver CONNOTACIONES y compañía arriba). En el
+    // Recetario Estrella y en los clásicos de casa (data/clasicos.js); ausentes
+    // en el resto del catálogo.
     //   connotacion  cómo sienta: reconfortante, fresco, casero, festivo (eje 13)
     //   textura      cómo se come: cuchara, tenedor, mano (eje 8)
     //   picante      no, suave, picante — tal como sale la receta escrita
@@ -1047,7 +1051,7 @@ export function effectiveRecipeTime(recipe, eaters) {
   return recipe.time * (1 + 0.12 * extra);
 }
 
-export { CONNOTACIONES, TEXTURAS, PICANTES, PICANTE_PEDIDO, SABORES };
+export { ATRIBUTOS_BLANDOS, CONNOTACIONES, TEXTURAS, PICANTES, PICANTE_PEDIDO, SABORES };
 
 /**
  * Campos que la receta NO trae en el JSON y se le añaden al cargar

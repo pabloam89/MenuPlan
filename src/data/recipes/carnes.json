@@ -197,7 +197,16 @@
     ],
     "tecnica": "horno",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "carnes_002",
@@ -326,7 +335,15 @@
     "freezable": false,
     "tecnica": "plancha",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "carnes_003",
@@ -544,7 +561,16 @@
       "sofrito"
     ],
     "formato": "guiso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso"
+    ]
   },
   {
     "id": "carnes_004",
@@ -675,7 +701,15 @@
     "freezable": false,
     "tecnica": "sarten",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "carnes_005",
@@ -903,7 +937,16 @@
       "sofrito"
     ],
     "formato": "guiso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "intenso"
+    ]
   },
   {
     "id": "carnes_006",
@@ -1073,7 +1116,15 @@
     "tecnica": "sarten",
     "llevaSalsa": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "suave",
+    "sabor": [
+      "intenso"
+    ]
   },
   {
     "id": "carnes_007",
@@ -1618,7 +1669,15 @@
     "tecnica": "plancha",
     "cocina": "americana",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "intenso"
+    ]
   },
   {
     "id": "carnes_010",
@@ -2623,7 +2682,16 @@
     ],
     "tecnica": "plancha",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "carnes_015",
@@ -3073,7 +3141,18 @@
       "sofrito"
     ],
     "formato": "guiso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "especiado",
+      "suave"
+    ]
   },
   {
     "id": "carnes_017",
@@ -4232,7 +4311,15 @@
       "sofrito"
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "carnes_023",
