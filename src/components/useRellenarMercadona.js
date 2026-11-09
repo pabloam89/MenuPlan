@@ -2,12 +2,13 @@ import { useEffect, useState } from "react";
 import { PEDIDO_MINIMO_MERCADONA, enlaceDeLista, faltaParaMinimo } from "../lib/mercadonaList.js";
 import { formatEuro } from "../lib/priceHistory.js";
 import {
-  CADA_MS, ESPERA_MAX_MS, FALLOS_MAX, PASO_COMPRAR, TELEFONO, cambiarHasta, encargoEnMarcha, enviarTelefono, leerEstado, pedirLista, quitarCuenta, TEXTO_NO_ENCARGADO, textoDeEncargo,
+  CADA_MS, ESPERA_MAX_MS, FALLOS_MAX, PASO_COMPRAR, TELEFONO, cambiarHasta, elegirHora, eligiendoHora, encargoEnMarcha, enviarTelefono, leerEstado, pedirLista, quitarCuenta, TEXTO_NO_ENCARGADO, textoDeEncargo,
 } from "../lib/mercadonaApp.js";
 import { llegaHastaDe } from "../lib/mercadonaLlegaHasta.js";
 import { telefonoDe, textoParaSellar } from "../lib/mercadonaTelefono.js";
 import { sellar } from "../lib/mercadonaSello.js";
-import { NO_ENCARGADO, ESTADO_CUENTA_MERCADONA } from "../lib/vocabularios.js";
+import { NO_ENCARGADO, ESTADO_CUENTA_MERCADONA, ESTADO_ENCARGO_MERCADONA } from "../lib/vocabularios.js";
+import { TEXTO_NO_ELEGIDA } from "../lib/mercadonaHoraEntrega.js";
 
 /**
  * Cómo va rellenar la lista en Mercadona de una casa. Vive en la pantalla y no en la hoja: el botón de comprar lo pide
@@ -100,6 +101,26 @@ export function useRellenarMercadona(casa, lista) {
     return true;
   };
 
+  /**
+   * Elige la hora de entrega (0134). Mientras se pide, `eligiendo` es su id: la hoja la marca y apaga las demás. Si ya
+   * no vale, se dice y se vuelve a leer, por si se eligió en el chat.
+   */
+  const [eligiendo, setEligiendo] = useState(null);
+  const elegir = async (hora_id) => {
+    if (!encargo || eligiendo) return;
+    setAviso(null);
+    setEligiendo(String(hora_id));
+    const r = await elegirHora(casa, encargo.id, hora_id);
+    setEligiendo(null);
+    if (r.encargo) {
+      setSinNoticias(false);
+      setEstado((s) => ({ ...s, encargo: { ...s.encargo, ...r.encargo, horas_entrega: null } }));
+      return;
+    }
+    setAviso(TEXTO_NO_ELEGIDA[r.fallo] ?? "No se ha podido elegir. Inténtalo otra vez.");
+    setEstado(await leerEstado(casa));
+  };
+
   const servicio = Boolean(estado?.ok && estado.disponible && estado.clave_publica);
   return {
     casa,
@@ -122,12 +143,21 @@ export function useRellenarMercadona(casa, lista) {
     tiene_telefono: estado?.tiene_telefono ?? null,
     cambiarLlegaHasta,
     guardarTelefono,
+    // La hora de entrega (0134).
+    eligiendoHora: eligiendoHora(encargo),
+    eligiendo,
+    elegir,
   };
 }
 
 /** Qué dice el botón de comprar: `{ texto, nota, href, ocupado, mirar }`; `bloqueado` lo pone pasoConMinimo. Si la lista ha cambiado, se vuelve a comprar. */
 export function pasoDeComprar(m) {
-  if (m.esperando) return m.sinNoticias ? { texto: PASO_COMPRAR.MIRAR, nota: "Ahora mismo no sé cómo va.", mirar: true } : { texto: PASO_COMPRAR.RELLENANDO, ocupado: true };
+  if (m.eligiendoHora) return { texto: PASO_COMPRAR.ELEGIR, nota: textoDeEncargo(m.encargo), abrirHoja: true };
+  if (m.esperando) {
+    if (m.sinNoticias) return { texto: PASO_COMPRAR.MIRAR, nota: "Ahora mismo no sé cómo va.", mirar: true };
+    const reservando = m.encargo?.status === ESTADO_ENCARGO_MERCADONA.RESERVANDO;
+    return { texto: reservando ? PASO_COMPRAR.RESERVANDO : PASO_COMPRAR.RELLENANDO, ocupado: true };
+  }
   const encargo = m.vigente ? m.encargo : null;
   if (encargo?.lista_xid) return { texto: PASO_COMPRAR.ABRIR, nota: textoDeEncargo(encargo), href: enlaceDeLista(encargo.lista_xid) };
   return { texto: PASO_COMPRAR.COMPRAR, nota: m.aviso ?? (encargo ? textoDeEncargo(encargo) : null) };
