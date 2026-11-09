@@ -79,7 +79,6 @@ import {
   ingredientStem,
   normalizeName,
   guessShoppingAisle,
-  guessIngredientCategory,
 } from "../src/lib/ingredientCategories.js";
 import { ingredientImageSrc } from "../src/lib/ingredientImages.js";
 import { normalizeAllergenId, EU_ALLERGENS } from "../src/lib/allergens.js";
@@ -257,7 +256,6 @@ for (const entry of byId.values()) {
   // en el de cocinado.
   entry.cookingAllergens = entry.cookingAllergens.filter((a) => !entry.allergens.includes(a)).sort();
   entry.aisle = guessShoppingAisle(entry.name);
-  entry.category = guessIngredientCategory(entry.name);
   const n = normalizeName(entry.name);
   entry.isVegetarian = !NON_VEGETARIAN_RE.test(n);
   entry.isVegan = entry.isVegetarian && !NON_VEGAN_RE.test(n);
@@ -283,7 +281,6 @@ const catalog = allEntries
     name: e.name,
     aliases: e.aliases,
     aisle: e.aisle,
-    category: e.category,
     allergens: e.allergens,
     cookingAllergens: e.cookingAllergens,
     conflictsWith: e.conflictsWith,
