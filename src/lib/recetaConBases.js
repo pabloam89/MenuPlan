@@ -25,7 +25,8 @@
  */
 
 import { BASE_POR_CLAVE, clavesDeReceta } from "./bases.js";
-import { ingredientCategoryFor } from "./ingredients.js";
+import { tipoDeCompra } from "./tipoDeCompra.js";
+import { TIPO_DE_COMPRA } from "../data/fondoDeArmarioSchema.js";
 import { findIngredientForMarker, markerIngredientNames } from "./recipeSteps.js";
 
 
@@ -35,9 +36,11 @@ import { findIngredientForMarker, markerIngredientNames } from "./recipeSteps.js
  * El aceite y la sal salen nombrados al pochar la cebolla y en ningún sitio
  * más, así que la derivación se los llevaba: la ficha decía que ya los tienes
  * y la lista de la compra los perdía. Son de despensa, se usan en todo y no
- * pertenecen a ninguna tanda.
+ * pertenecen a ninguna tanda: es el fondo de armario (src/data/fondoDeArmario.json).
+ * Antes se miraba la categoría «Despensa», que mezclaba esto con conservas,
+ * caldos y vinos que una tanda sí gasta enteros.
  */
-const esDeDespensa = (nombre) => ingredientCategoryFor(nombre) === "Despensa";
+const esDeFondoDeArmario = (nombre) => tipoDeCompra(nombre) === TIPO_DE_COMPRA.FONDO_DE_ARMARIO;
 
 /**
  * Qué ingredientes resuelve cada base, por los marcadores de sus pasos.
@@ -62,7 +65,7 @@ function ingredientesPorBase(receta, listas) {
   }
 
   for (const [ing, clave] of porIngrediente) {
-    if (clave && esDeDespensa(ing.name)) porIngrediente.set(ing, null);
+    if (clave && esDeFondoDeArmario(ing.name)) porIngrediente.set(ing, null);
   }
   return porIngrediente;
 }

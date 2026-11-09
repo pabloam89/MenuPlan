@@ -39,6 +39,36 @@ export function isPerishableAisle(aisle) {
   return PERISHABLE_AISLES.has(aisle);
 }
 
+// La categoría (seis grupos gruesos: «Verduras y frutas», «Despensa»…) NO se
+// guarda: sale del pasillo, y esta tabla es el único sitio que la decide. Antes
+// cada ingrediente la llevaba escrita en ingredients.json, y además había unas
+// reglas por nombre; 129 de 396 decían «Verduras y frutas» sin serlo (el valor
+// por defecto de esas reglas, copiado a la tabla). Cada pasillo cae en un solo
+// grupo, y el test exige que estén todos los pasillos.
+export const CATEGORIA_DE_PASILLO = {
+  Verduras: "Verduras y frutas",
+  Frutas: "Verduras y frutas",
+  Carne: "Carnes y pescados",
+  Pescado: "Carnes y pescados",
+  Legumbres: "Legumbres y pasta",
+  "Pasta y arroz": "Legumbres y pasta",
+  Lácteos: "Lácteos y huevos",
+  Huevos: "Lácteos y huevos",
+  Panadería: "Panadería y cereales",
+  Especias: "Despensa",
+  "Aceites y conservas": "Despensa",
+};
+
+/** La categoría de un pasillo (ver CATEGORIA_DE_PASILLO). */
+export function categoriaDePasillo(aisle) {
+  return CATEGORIA_DE_PASILLO[aisle] ?? null;
+}
+
+/** Categoría de un nombre que no está en el catálogo: la de su pasillo adivinado. */
+export function guessIngredientCategory(name) {
+  return categoriaDePasillo(guessShoppingAisle(name));
+}
+
 export function normalizeName(name) {
   return String(name ?? "")
     .toLowerCase()
@@ -128,28 +158,6 @@ export function normalizeIngredientKey(name, unit = "ud") {
   return `${ingredientStem(name)}|${unit}`;
 }
 
-const INGREDIENT_CATEGORY_HINTS = [
-  [/pollo|pavo|ternera|cerdo|carne|lomo|chorizo|salchich|jamon|bacon|cordero|solomillo|chuleta|morcilla/, "Carnes y pescados"],
-  [
-    /merluza|salmon|bacalao|atun|gamba|langostino|sardina|anchoa|calamar|sepia|mejillon|pescado|rape|lubina|rodaballo|dorada|boqueron|besugo|lenguado|emperador|caballa|trucha|almeja|pulpo/,
-    "Carnes y pescados",
-  ],
-  [/lentej|garbanz|alubi|judia|pasta|espagueti|macarron|fideo|arroz|cuscus|quinoa|noodle/, "Legumbres y pasta"],
-  [/leche|nata|queso|yogur|mantequilla|huevo|requeson|mozzarella|parmesano/, "Lácteos y huevos"],
-  [/pan |harina|avena|cereales|tostada|panader|boller/, "Panadería y cereales"],
-  [
-    /aceite|vinagre|sal|pimienta|especias|pimenton|comino|oregano|caldo|azucar|vino|laurel|tomate triturado|miel|mostaza|salsa|soja|harina|levadura|maicena|almendra|nuez|panko|pan rallado/,
-    "Despensa",
-  ],
-];
-
-export function guessIngredientCategory(name) {
-  const lower = normalizeName(name);
-  for (const [regex, cat] of INGREDIENT_CATEGORY_HINTS) {
-    if (regex.test(lower)) return cat;
-  }
-  return "Verduras y frutas";
-}
 
 const SHOPPING_AISLE_HINTS = [
   // Breads/buns first: "pan de hamburguesa" / "pan de perrito" contain
@@ -260,13 +268,3 @@ export function guessShoppingAisle(name) {
   return "Verduras";
 }
 
-export function isValidCategory(cat) {
-  return INGREDIENT_CATEGORIES.includes(cat);
-}
-
-export function categoryForIngredient(name, fallback) {
-  const guessed = guessIngredientCategory(name);
-  if (!fallback || !isValidCategory(fallback)) return guessed;
-  if (fallback === "Verduras y frutas" && guessed !== "Verduras y frutas") return guessed;
-  return fallback;
-}
