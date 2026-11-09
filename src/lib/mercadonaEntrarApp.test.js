@@ -1,0 +1,128 @@
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("@capgo/capacitor-inappbrowser", () => ({ InAppBrowser: {}, ToolBarType: { COMPACT: "compact" } }));
+const { CADA_MS, ESPERA_ENTRAR_MS, MIRAR_SESION, UA_ORDENADOR, entrarEnMercadona, textoDeCookies } = await import("./mercadonaEntrarApp.js");
+const { NO_ENTRADO_MERCADONA: NO_ENTRADO } = await import("./vocabularios.js");
+const { ORIGEN_TIENDA } = await import("./mercadonaConectar.js");
+
+const MO = JSON.stringify({ token: "t", uuid: "u" });
+
+/** Un navegador del complemento, de mentira: guarda lo que se le pide y deja lanzar sus eventos. */
+function navegadorFalso({ cookies = { a: "1", sesion: "2" }, abrir = async () => ({ id: "w" }) } = {}) {
+  const oyentes = {};
+  return {
+    oyentes,
+    abierto: null,
+    scripts: 0,
+    cerrado: 0,
+    async addListener(evento, f) {
+      oyentes[evento] = f;
+      return { remove: async () => { delete oyentes[evento]; } };
+    },
+    async openWebView(o) { this.abierto = o; return abrir(o); },
+    async executeScript() { this.scripts += 1; },
+    getCookies: vi.fn(async () => cookies),
+    async close() { this.cerrado += 1; },
+  };
+}
+
+/** Un reloj a mano: los temporizadores solo corren cuando el test lo dice. */
+function relojFalso() {
+  let siguiente = 1;
+  const intervalos = new Map();
+  const tiempos = new Map();
+  return {
+    setInterval: (f) => { intervalos.set(siguiente, f); return siguiente++; },
+    clearInterval: (id) => intervalos.delete(id),
+    setTimeout: (f) => { tiempos.set(siguiente, f); return siguiente++; },
+    clearTimeout: (id) => tiempos.delete(id),
+    vuelta: () => [...intervalos.values()].forEach((f) => f()),
+    agotar: () => [...tiempos.values()].forEach((f) => f()),
+  };
+}
+
+const ESTADO = async () => ({ ok: true, clave_publica: "clave" });
+const esperar = () => new Promise((r) => setTimeout(r, 0));
+
+async function empezar(opciones = {}) {
+  const navegador = opciones.navegador ?? navegadorFalso();
+  const reloj = relojFalso();
+  const guardar = opciones.guardar ?? vi.fn(async () => ({ ok: true }));
+  const sellarCon = vi.fn(async (texto) => `sellado:${texto.length}`);
+  const promesa = entrarEnMercadona("casa-1", { navegador, reloj, guardar, sellarCon, estado: opciones.estado ?? ESTADO });
+  await esperar();
+  return { navegador, reloj, guardar, sellarCon, promesa };
+}
+
+describe("entrar en Mercadona desde la app (trozo 8)", () => {
+  it("abre la página de Mercadona en versión de ordenador, con el puente solo para Mercadona", async () => {
+    const { navegador } = await empezar();
+    expect(navegador.abierto.url).toBe(ORIGEN_TIENDA);
+    expect(navegador.abierto.customUserAgent).toBe(UA_ORDENADOR);
+    expect(navegador.abierto.javascriptBridgeOrigins).toEqual(["https://tienda.mercadona.es"]);
+  });
+
+  it("mira la sesión en cada vuelta, y el script solo lee MO-user, no las casillas", async () => {
+    const { navegador, reloj } = await empezar();
+    reloj.vuelta();
+    reloj.vuelta();
+    expect(navegador.scripts).toBe(2);
+    expect(MIRAR_SESION).toContain('localStorage.getItem("MO-user")');
+    expect(MIRAR_SESION).not.toMatch(/input|password|querySelector/i);
+  });
+
+  it("con sesión: lee las cookies (también httpOnly), sella, guarda la casa y cierra", async () => {
+    const { navegador, guardar, sellarCon, promesa } = await empezar();
+    await navegador.oyentes.messageFromWebview({ detail: { mo: MO } });
+    await expect(promesa).resolves.toEqual({ ok: true });
+    expect(navegador.getCookies).toHaveBeenCalledWith({ url: ORIGEN_TIENDA, includeHttpOnly: true });
+    const estadoSellado = JSON.parse(sellarCon.mock.calls[0][0]);
+    expect(estadoSellado.origins[0].localStorage).toEqual([{ name: "MO-user", value: MO }]);
+    expect(estadoSellado.cookies.map((c) => c.name)).toEqual(["a", "sesion"]);
+    expect(sellarCon.mock.calls[0][1]).toBe("clave");
+    expect(guardar).toHaveBeenCalledWith("casa-1", expect.stringMatching(/^sellado:/));
+    expect(navegador.cerrado).toBe(1);
+  });
+
+  it("si no se puede guardar, lo dice y cierra", async () => {
+    const { navegador, promesa } = await empezar({ guardar: vi.fn(async () => ({ ok: false })) });
+    await navegador.oyentes.messageFromWebview({ detail: { mo: MO } });
+    await expect(promesa).resolves.toEqual({ ok: false, motivo: NO_ENTRADO.NO_GUARDADA });
+    expect(navegador.cerrado).toBe(1);
+  });
+
+  it("si la persona cierra la ventana, no guarda nada", async () => {
+    const { navegador, guardar, promesa } = await empezar();
+    await navegador.oyentes.closeEvent({ url: ORIGEN_TIENDA });
+    await expect(promesa).resolves.toEqual({ ok: false, motivo: NO_ENTRADO.CERRADA });
+    expect(guardar).not.toHaveBeenCalled();
+    expect(navegador.cerrado).toBe(0);
+  });
+
+  it("pasado el tope, cierra y lo dice", async () => {
+    const { navegador, reloj, promesa } = await empezar();
+    reloj.agotar();
+    await expect(promesa).resolves.toEqual({ ok: false, motivo: NO_ENTRADO.TIEMPO });
+    expect(navegador.cerrado).toBe(1);
+    expect(ESPERA_ENTRAR_MS).toBeGreaterThan(CADA_MS);
+  });
+
+  it("sin la clave pública del servicio no abre nada", async () => {
+    const navegador = navegadorFalso();
+    const r = await entrarEnMercadona("casa-1", { navegador, reloj: relojFalso(), estado: async () => ({ ok: true, clave_publica: null }) });
+    expect(r).toEqual({ ok: false, motivo: NO_ENTRADO.SIN_CLAVE });
+    expect(navegador.abierto).toBeNull();
+  });
+
+  it("un mensaje sin sesión no hace nada", async () => {
+    const { navegador, guardar } = await empezar();
+    await navegador.oyentes.messageFromWebview({ detail: {} });
+    expect(guardar).not.toHaveBeenCalled();
+    expect(navegador.cerrado).toBe(0);
+  });
+
+  it("las cookies salen como las da document.cookie", () => {
+    expect(textoDeCookies({ a: "1", b: "x=y" })).toBe("a=1; b=x=y");
+    expect(textoDeCookies(null)).toBe("");
+  });
+});

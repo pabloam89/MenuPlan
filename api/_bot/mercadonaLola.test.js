@@ -6,7 +6,7 @@ vi.mock("./menu.js", async () => {
   const { priceShoppingList } = await import("../../src/lib/listPricing.js");
   return { lineasPorComprar: vi.fn(async () => prueba.items), motor: async () => ({ fijarCatalogo, priceShoppingList }) };
 });
-vi.mock("./mercadonaEncargos.js", () => ({ encargar: vi.fn(async () => prueba.encargo) }));
+vi.mock("./mercadonaEncargos.js", async (original) => ({ ...(await original()), encargar: vi.fn(async () => prueba.encargo) }));
 
 const { TEXTO_SIN_ENCARGO, pasarAMercadona } = await import("./mercadonaLola.js");
 const { encargar } = await import("./mercadonaEncargos.js");
@@ -16,7 +16,7 @@ const { NOMBRE_LISTA_MERCADONA } = await import("../../src/lib/mercadonaList.js"
 
 const CATALOGO = {
   store: "Mercadona",
-  products: [{ id: "10379", name: "Leche entera Hacendado", price: "5.76", unitSize: 6, unitFormat: "l", bulkPrice: "0.96", section: "Huevos, leche y mantequilla", category: "Leche y bebidas vegetales" }],
+  products: [{ id: "10380", name: "Leche entera Hacendado", price: "0.96", unitSize: 1, unitFormat: "l", bulkPrice: "0.96", section: "Huevos, leche y mantequilla", category: "Leche y bebidas vegetales" }],
 };
 const leerCatalogo = async () => CATALOGO;
 const QUIEN = { householdId: "h", userId: "u", chatId: "7", canal: "telegram" };
@@ -46,11 +46,20 @@ describe("pasarAMercadona", () => {
     const texto = await pasarAMercadona(QUIEN, { leerCatalogo });
     expect(encargar).toHaveBeenCalledWith({
       casa: "h", por: "u", canal: "telegram", chat_id: "7",
-      lista: { name: NOMBRE_LISTA_MERCADONA, products: [{ merca_code: "10379", quantity: 1 }] },
+      lista: { name: NOMBRE_LISTA_MERCADONA, products: [{ merca_code: "10380", quantity: 1 }] },
     });
     expect(texto).toContain("con 1 producto.");
     expect(texto).toContain("Unicornio");
     expect(texto).toContain("Pagar y pedir lo haces tú");
+  });
+
+  it("dice hasta dónde llegará, con el mismo dato que la app (trozo 18)", async () => {
+    prueba.encargo = { encargo: { id: "e", status: "pendiente" }, llega_hasta: "reservar" };
+    const texto = await pasarAMercadona(QUIEN, { leerCatalogo });
+    expect(texto).toContain("rellenando la lista y metiéndola en el carro");
+    expect(texto).toContain("Luego eliges la hora de entrega.");
+    prueba.encargo = { encargo: { id: "e", status: "pendiente" }, llega_hasta: "pagar" };
+    expect(await pasarAMercadona(QUIEN, { leerCatalogo })).toContain("me confirmas el importe");
   });
 
   it("sin ningún producto no encarga", async () => {

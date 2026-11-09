@@ -3,7 +3,6 @@ import { z } from "zod";
 import { NUTRIENTES, CAMPOS_NUTRICION } from "./nutrientes.js";
 
 import { SHOPPING_AISLES, normalizeName } from "../lib/ingredientCategories.js";
-import { INGREDIENT_CATEGORIES } from "./recipes.js";
 
 // Taxonomía canónica del catálogo de ingredientes. Mismo criterio que
 // recipeSchema.js: añadir un valor nuevo obliga a tocar este fichero, para que
@@ -37,6 +36,32 @@ export const UNITS = ["g", "ml", "ud"];
 
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
+/**
+ * Por qué un alias que nombra otro estado sigue siendo el mismo ingrediente:
+ *  - mismo_estado: el ingrediente ya es así («Perejil fresco» del perejil,
+ *    «Orégano seco» del orégano, que es el seco).
+ *  - se_hace_en_casa: se compra el ingrediente y el estado lo pone la cocina
+ *    («Huevo cocido», «Almendra tostada»).
+ *  - otro_estado_de_compra: se compra en otro estado (congelado, cocido,
+ *    ahumado), pero el pasillo, el fondo de armario y la nutrición del
+ *    ingrediente le valen; el producto, si cambia, lo decide su fila por
+ *    alias en productoPorIngrediente.json.
+ */
+export const RELACIONES_DE_ALIAS = ["mismo_estado", "se_hace_en_casa", "otro_estado_de_compra"];
+
+// Las palabras que nombran un estado del alimento. Un alias que trae una que
+// su nombre no trae tiene que decir su relación (relacionPorAlias).
+const PALABRAS_DE_ESTADO = /\b(fresc[oa]s?|sec[oa]s?|en polvo|molid[oa]s?|congelad[oa]s?|en conserva|cocid[oa]s?|ahumad[oa]s?|en vinagre|deshidratad[oa]s?|tostad[oa]s?|crud[oa]s?)\b/;
+const sinTildes = (t) => String(t).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+/** La palabra de estado que `alias` añade a `nombre`, o null. */
+export function estadoQueAñade(alias, nombre) {
+  // «fresca» y «fresco» son el mismo estado: se compara sin género ni número.
+  const raiz = (t) => sinTildes(t).match(PALABRAS_DE_ESTADO)?.[0]?.replace(/[oa]s?$/, "") ?? null;
+  const delAlias = raiz(alias);
+  return delAlias && delAlias !== raiz(nombre) ? delAlias : null;
+}
+
 export const IngredientSchema = z
   .object({
     // Id estable, en kebab-case. Es la clave con la que `recipe_ingredients`
@@ -52,7 +77,6 @@ export const IngredientSchema = z
     aliases: z.array(z.string().min(1)),
 
     aisle: z.enum(SHOPPING_AISLES),
-    category: z.enum(INGREDIENT_CATEGORIES),
 
     // Alérgeno declarable: el producto lo lleva y se come tal cual.
     allergens: z.array(z.enum(EU_ALLERGEN_IDS)),
@@ -125,6 +149,17 @@ export const IngredientSchema = z
       )
       .optional(),
 
+    // Qué es un alias que nombra otro ESTADO del alimento (fresco, seco,
+    // molido, congelado, cocido, ahumado…). Un alias es el mismo ingrediente,
+    // así que todo lo del ingrediente (pasillo, fondo de armario, nutrición) le
+    // vale; si el estado lo cambia, no es un alias: es otro ingrediente (así
+    // salieron el 9 nov 2026 el tomillo fresco, la levadura fresca o el ajo
+    // negro, #1438). Después quedaban 49 alias de estado en 34 ingredientes
+    // sin decidir (estadoQueAñade sobre el catálogo). Ahora cada uno lleva su
+    // razón, de una lista cerrada, y el esquema rechaza el que no la tiene.
+    // La clave es el alias literal, tal y como aparece en `aliases`.
+    relacionPorAlias: z.record(z.enum(RELACIONES_DE_ALIAS)).optional(),
+
     // ── LA NUTRICIÓN YA NO VIVE AQUÍ ────────────────────────────────────────
     // Estuvo en esta tabla y en `alimentos.json` a la vez, idéntica campo a
     // campo, sostenida por un test de espejo. Dos copias del mismo número no
@@ -187,6 +222,23 @@ export const IngredientSchema = z
         code: z.ZodIssueCode.custom,
         message: `mayContain repite lo ya declarado: ${repetidos.join(", ")}`,
         path: ["mayContain"],
+      });
+    }
+    const relacion = ing.relacionPorAlias ?? {};
+    const sobran = Object.keys(relacion).filter((a) => !ing.aliases.includes(a));
+    if (sobran.length) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `relacionPorAlias habla de alias que no existen: ${sobran.join(", ")}`,
+        path: ["relacionPorAlias"],
+      });
+    }
+    const sinDecidir = ing.aliases.filter((a) => estadoQueAñade(a, ing.name) && !relacion[a]);
+    if (sinDecidir.length) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `alias que cambian el estado sin relacionPorAlias (¿es el mismo alimento u otro ingrediente?): ${sinDecidir.join(", ")}`,
+        path: ["relacionPorAlias"],
       });
     }
     if (ing.aliases.includes(ing.name)) {

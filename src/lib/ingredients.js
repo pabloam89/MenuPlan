@@ -35,7 +35,7 @@ import densidadJson from "../data/densidad.json" with { type: "json" };
 import { NUTRIENTES, CAMPOS_NUTRICION, CAMPOS_DUROS, CAMPOS_SECUNDARIOS } from "../data/nutrientes.js";
 import { validateIngredients } from "../data/ingredientSchema.js";
 import { createIngredientResolver } from "./ingredientResolver.js";
-import { guessShoppingAisle, guessIngredientCategory, normalizeName } from "./ingredientCategories.js";
+import { guessShoppingAisle, categoriaDePasillo, normalizeName } from "./ingredientCategories.js";
 import { gramsForRecipeQuantity, gramsPerPiece, registerPieceCatalog, registerDensityCatalog } from "./kitchenUnits.js";
 
 // Mismo criterio que recipeCatalog.js, y por el mismo motivo: solo en
@@ -97,9 +97,9 @@ export function ingredientAisleFor(name) {
   return resolveIngredient(name)?.aisle ?? guessShoppingAisle(name);
 }
 
-/** Categoría de despensa, del catálogo si lo conoce y si no por heurística. */
+/** Categoría: la del pasillo del ingrediente (CATEGORIA_DE_PASILLO). */
 export function ingredientCategoryFor(name) {
-  return resolveIngredient(name)?.category ?? guessIngredientCategory(name);
+  return categoriaDePasillo(ingredientAisleFor(name));
 }
 
 /**

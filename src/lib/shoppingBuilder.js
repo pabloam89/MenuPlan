@@ -1,9 +1,9 @@
 import { RECIPES_BY_ID } from "../data/recipes.js";
-import { categoryForIngredient, normalizeIngredientKey, ingredientStem, isQualitativeUnit, qualitativeUnitLabel } from "./ingredientCategories.js";
+import { normalizeIngredientKey, ingredientStem, isQualitativeUnit, qualitativeUnitLabel } from "./ingredientCategories.js";
 import { DAYS, MEALS } from "./planner.js";
 import { ingredientWords, wordsOverlapEither, isWordSubsetOf } from "../utils/normalizePantryInput.js";
 import { cookedEatersFor, slotUsesPrepared, slotGarnishInTupper } from "./freezer.js";
-import { resolveIngredientId, pieceGramsFor } from "./ingredients.js";
+import { resolveIngredientId, pieceGramsFor, ingredientCategoryFor } from "./ingredients.js";
 
 // Whole-word match (not raw substring — see normalizePantryInput.js's
 // "Repollo" note) between a shopping-list ingredient name and the user's
@@ -277,7 +277,7 @@ export function buildShoppingList(menuPlan, groups, meals = MEALS, pantryIngredi
             const aggQty =
               aggUnit === ing.unit ? scaled.qty : scaled.qty * pieceGramsFor(ing.name);
             const key = normalizeIngredientKey(ing.name, aggUnit);
-            const category = categoryForIngredient(ing.name, ing.category);
+            const category = ingredientCategoryFor(ing.name);
             if (!aggregate[key]) {
               aggregate[key] = {
                 id: key,

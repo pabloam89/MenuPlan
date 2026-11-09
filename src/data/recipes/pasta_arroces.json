@@ -6069,7 +6069,7 @@
       {
         "name": "Azafrán",
         "ingredientId": "azafran",
-        "amount": 1,
+        "amount": 0.2,
         "unit": "g"
       },
       {
@@ -6784,7 +6784,7 @@
       },
       {
         "name": "Boletus secos",
-        "ingredientId": "boletus",
+        "ingredientId": "boletus-secos",
         "amount": 30,
         "unit": "g"
       },
@@ -8930,7 +8930,7 @@
       {
         "name": "Azafrán",
         "ingredientId": "azafran",
-        "amount": 1,
+        "amount": 0.2,
         "unit": "g"
       },
       {
@@ -16894,7 +16894,7 @@
       {
         "name": "Azafrán",
         "ingredientId": "azafran",
-        "amount": 0.3,
+        "amount": 0.1,
         "unit": "g"
       },
       {
@@ -17170,7 +17170,7 @@
       {
         "name": "Azafrán",
         "ingredientId": "azafran",
-        "amount": 1,
+        "amount": 0.1,
         "unit": "g"
       }
     ],
@@ -19234,7 +19234,7 @@
       },
       {
         "name": "Guindilla fresca",
-        "ingredientId": "guindilla",
+        "ingredientId": "cayena",
         "amount": 5,
         "unit": "g"
       },
@@ -22798,7 +22798,7 @@
       {
         "name": "Azafrán",
         "ingredientId": "azafran",
-        "amount": 1,
+        "amount": 0.2,
         "unit": "g"
       },
       {

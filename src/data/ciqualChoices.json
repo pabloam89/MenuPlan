@@ -1139,5 +1139,29 @@
     "confianza": 0.8,
     "modelo": "decision-humana-2026-09-22",
     "motivo": "«Calf, foot, raw», 184 kcal. Se había dado por imposible —«no hay pata ni manita de ternera en ninguna tabla»— y sí está, en CIQUAL y con el nombre exacto. Era el único de los siete huecos sin fuente que sí tenía una. Entra en los callos a 300 g con fracción comestible 0,4: el hueso es la mayor parte del peso y esta ficha es de la pieza entera."
+  },
+  "tomillo-fresco": {
+    "foodId": "11070",
+    "confianza": 0.9,
+    "modelo": "decision-humana-2026-11-09",
+    "motivo": "«Thyme, fresh». Nace el 9 nov 2026 partiendo `tomillo`, que es el seco (fondo de armario) y tenía «Tomillo fresco» de alias: la ficha del seco para once líneas de hierba fresca. Mismo caso que el romero fresco del 22 sep. USDA lo respalda («Thyme, fresh», 173470)."
+  },
+  "cilantro-molido": {
+    "foodId": "11026",
+    "confianza": 0.9,
+    "modelo": "decision-humana-2026-11-09",
+    "motivo": "«Coriander, seed». El cilantro molido es la semilla seca molida, una especia; era alias de `cilantro`, que es la hoja fresca."
+  },
+  "pan-tostado": {
+    "foodId": "7300",
+    "confianza": 0.8,
+    "modelo": "decision-humana-2026-11-09",
+    "motivo": "«Rusk»: el pan tostado de paquete (biscote), que es el producto que se compra. Era alias de `pan`, con la ficha del pan fresco, que tiene mucha más agua."
+  },
+  "ajo-negro": {
+    "foodId": "11306",
+    "confianza": 0.5,
+    "modelo": "decision-humana-2026-11-09",
+    "motivo": "Ficha PRESTADA: «Garlic, roasted/baked». No hay ajo negro en BEDCA, CIQUAL ni USDA. El ajo negro es ajo calentado durante semanas, así que el asado es lo más cercano en proceso; el crudo (la ficha que llevaba como alias de `ajo`) tiene más agua. Su azúcar real es algo mayor."
   }
 }

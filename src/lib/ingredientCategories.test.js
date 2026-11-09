@@ -244,3 +244,28 @@ describe("ingredientStem", () => {
     expect(normalizeIngredientKey("Judías verdes", "g")).toBe(normalizeIngredientKey("Judía verde", "g"));
   });
 });
+
+// La categoría sale del pasillo, en un solo sitio (CATEGORIA_DE_PASILLO). Antes
+// se guardaba en ingredients.json y 138 de 396 decían «Verduras y frutas» sin
+// serlo: el valor por defecto de unas reglas por nombre, copiado a la tabla.
+import { CATEGORIA_DE_PASILLO, SHOPPING_AISLES as PASILLOS, categoriaDePasillo } from "./ingredientCategories.js";
+import { INGREDIENT_CATEGORIES as CATEGORIAS } from "../data/recipes.js";
+import ingredientesDelCatalogo from "../data/ingredients.json";
+import { ingredientCategoryFor } from "./ingredients.js";
+
+describe("la categoría sale del pasillo", () => {
+  it("cada pasillo tiene su categoría, y cada categoría es del vocabulario", () => {
+    expect(Object.keys(CATEGORIA_DE_PASILLO).sort()).toEqual([...PASILLOS].sort());
+    expect(Object.values(CATEGORIA_DE_PASILLO).filter((c) => !CATEGORIAS.includes(c))).toEqual([]);
+  });
+  it("ningún ingrediente guarda la categoría: no hay una segunda fuente", () => {
+    expect(ingredientesDelCatalogo.filter((i) => "category" in i).map((i) => i.id)).toEqual([]);
+  });
+  it("la del catálogo es la de su pasillo", () => {
+    expect(ingredientCategoryFor("Semillas de sésamo")).toBe("Despensa");
+    expect(ingredientCategoryFor("Salmón")).toBe("Carnes y pescados");
+    expect(ingredientCategoryFor("Caldo de pollo")).toBe("Despensa");
+    expect(ingredientCategoryFor("Salsa de soja")).toBe("Despensa");
+    expect(categoriaDePasillo("No es un pasillo")).toBe(null);
+  });
+});

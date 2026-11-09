@@ -56,7 +56,7 @@ import {
   recetaEnTexto, semanaEnTexto, copiarReceta, cuentasDeQuien,
 } from "../_bot/compartir.js";
 import { motor } from "../_bot/menu.js";
-import { enlazarChat, apuntarEnlace, crearCodigo, gastarCodigo, baseDe, confirmarEnlace, casaPropia, idDePersona, codigoDeGrupo, esCodigoDeGrupo, cuentaDeTelegram, pideCambioDeCuenta, preguntaDeCambio, personasDeCasa, personasDeCasas, dejariaCasaSinEntrada, NO_SE_PASA_LA_LLAVE, CAMBIO } from "../_bot/enlace.js";
+import { enlazarChat, apuntarEnlace, crearCodigo, gastarCodigo, baseDe, confirmarEnlace, casaPropia, idDePersona, codigoDeGrupo, esCodigoDeGrupo, cuentaDeTelegram, pideCambioDeCuenta, avisoDeCambioDeCuenta, dejariaCasaSinEntrada, NO_SE_PASA_LA_LLAVE, CAMBIO } from "../_bot/enlace.js";
 import { papelDeQuien, casaActivaDe } from "../_bot/papel.js";
 import { unirsePorInvitacion, ES_INVITACION } from "../_bot/invitacion.js";
 import { traducir } from "../_bot/traducir.js";
@@ -66,8 +66,8 @@ import { hoyISO, cargarCasa } from "../_bot/casa.js";
 import { puedeBorrar, borrarCuenta, limpiarPantalla } from "../_bot/borrar.js";
 import { partirStart, fraseDePedido } from "../../src/lib/pedidoLola.js";
 import { payloadStart } from "../../src/lib/ids.js";
-import { enviarAcceso, verificarCodigoEmail, cuentaNacidaAqui } from "../_bot/cuentas.js";
-import { cuentaYChat as cuentaYChatDe } from "../_bot/altaTelegram.js";
+import { enviarAcceso, verificarCodigoEmail, cuentaNacidaAqui, hayVueltaALaNacida, emailDeCuenta } from "../_bot/cuentas.js";
+import { cuentaYChat as cuentaYChatDe, volverACuentaNacida } from "../_bot/altaTelegram.js";
 import { DOMINIO_LOGIN_TELEGRAM } from "../../src/lib/cuentaTelegram.js";
 import { primeraVez } from "../_bot/entradas.js";
 import { preguntoConAviso } from "../_bot/silencio.js";
@@ -75,6 +75,8 @@ import { CANAL, CAMINO_ENLACE, RESULTADO_ENLACE, PRUEBA_IDENTIDAD } from "../../
 import { conOperacion, operacion } from "../_bot/operacion.js";
 import { RE_BOTON } from "../_bot/formatoMensaje.js";
 import { BOTON_ELEGIDO, tecladoElegido } from "../_bot/botonElegido.js";
+import { leerBotonHora } from "../_bot/mercadonaEncargos.js";
+import { elegirHoraConBoton } from "../_bot/mercadonaLola.js";
 import { esProbador, comandoFallo, abrirReporte, completarReporte, esBotonReporte, pulsarReporte, EVENTO_RUTA } from "../_bot/reporte.js";
 
 const EMAIL_RE = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]{2,}$/;
@@ -291,13 +293,12 @@ async function atender(msg, base, host = "") {
   const conPedido = !esGrupo && start?.[1] ? partirStart(start[1]) : null;
   if (conPedido?.pedido) {
     const frase = fraseDePedido(conPedido.pedido, hoyISO());
-    if (conPedido.codigo) {
-      const r = await enlazarDesdeAjustes(msg, chatId, false, conPedido.codigo, { callado: true });
-      if (r?.ocupado) return;
-    }
+    const r = conPedido.codigo ? await enlazarDesdeAjustes(msg, chatId, false, conPedido.codigo, { callado: true }) : null;
+    if (r?.ocupado) return;
     const casa = await casaDelTurno(chatId);
     if (!casa) return bienvenida(chatId, msg.from, base);
-    await avisarSiCambio(chatId, casa);
+    // Tras un cambio de cuenta, Lola ya lo ha dicho (avisoDeCambioDeCuenta): sin un segundo «ahora estoy con…».
+    if (!r?.cambio) await avisarSiCambio(chatId, casa);
     return enTurno(chatId, itemDe(msg.from, frase ?? COMANDOS.start, { mid: msg.message_id }),
       atenderCola({ chatId, householdId: casa, esGrupo: false, base }), { alSobrar: relevo(chatId, host) });
   }
@@ -380,6 +381,8 @@ async function atender(msg, base, host = "") {
   }
 
   if (/^\/grupo(?:@\w+)?$/.test(texto)) return enlaceGrupo(chatId, esGrupo, chat.household_id, msg.from);
+  // /cuentadeantes (VOLVER_A_LA_DE_ANTES, enlace.js): volver a la cuenta nacida en este Telegram.
+  if (/^\/cuentadeantes(?:@\w+)?$/.test(texto) && !esGrupo) return volverALaDeAntes(msg.from, chatId);
   if (/^\/nueva(?:@\w+)?$/.test(texto)) {
     // Sin pasar por el modelo: es un corte en la memoria, nada más. Y dicho de
     // forma que nadie tema haber borrado su menú.
@@ -1521,17 +1524,23 @@ export function datoDeBoton(o) {
 // Empieza por lo que ofrece, no por la cuenta: quien escribe «somos cuatro»
 // ya está dando el alta. A quien ya conocemos por su Telegram ni se le
 // pregunta (reconocer); uno que nunca se ha conectado es nuevo casi siempre, y
-// quien ya usa la app entra por «Conecta con Lola» en Inicio (o escribe aquí su
-// email: pedirAcceso lo sigue atendiendo, sin botón que lo anuncie).
+// quien ya usa la app entra por «Conecta con Lola» en Inicio o por «Ya uso
+// HoMenu» aquí (su email, que atiende pedirAcceso).
 // A quien prefiere tocar a escribir, un botón secundario: el alta de la app
 // (botonAlta). El texto sigue invitando a escribir; el botón es la otra vía.
+// Y a quien ya usa la app, «Ya uso HoMenu» (#1238): sin él, su primer mensaje
+// le creaba otra cuenta y otra casa, y Lola y la app quedaban en cuentas
+// distintas. Es el código por email, todo dentro de Telegram: un botón que
+// abriera la app no vale, porque en el navegador de Telegram Google no deja
+// entrar (specs/auth.md §7, trozo 5).
+const YA_USO_HOMENU = Object.freeze({ texto: "Ya uso HoMenu", dato: "cuenta:si" });
 async function bienvenida(chatId, from = null, base = null) {
   return enviar(chatId, [
     "¡Hola! Soy <b>Lola</b> 👩‍🍳 Te preparo el menú de la semana y la lista de la compra, y te lo cambio cuando quieras.",
     "Para empezar, cuéntame <b>quiénes coméis en casa</b> (y la edad de los peques). Escríbemelo o mándame un audio 🎙️",
     "<i>Lo que me cuentes solo sirve para vuestro menú; no se lo paso a nadie.</i>",
   ].join("\n\n"), {
-    botones: [[await botonAlta(chatId, from, base)]],
+    botones: [[await botonAlta(chatId, from, base)], [YA_USO_HOMENU]],
   });
 }
 
@@ -1616,17 +1625,25 @@ async function pulsado(cq, base, host = "") {
       atenderCola({ chatId, householdId: chat.household_id, esGrupo, base }), { alSobrar: relevo(chatId, host) });
   }
 
+  // La hora de entrega de Mercadona (0134): el botón la elige en la casa del turno, sin pasar por Lola.
+  const horaPulsada = leerBotonHora(cq.data);
+  if (horaPulsada) {
+    if (!chat) return bienvenida(chatId, cq.from, base);
+    return enviar(chatId, await elegirHoraConBoton({ householdId: chat.household_id, ...horaPulsada }));
+  }
+
   // El botón de un recordatorio: se hace en la casa del recordatorio, y solo si es la del turno (#1238).
   if (idRecordatorio) {
     if (!chat) return bienvenida(chatId, cq.from, base);
     return pulsarRecordatorio(cq, chatId, idRecordatorio, chat.household_id, { base, host });
   }
 
-  // El «sí» o el «no» del cambio de cuenta (#1238): solo en el privado de quien lo pidió.
+  // El «sí» o el «no» de la pregunta del cambio de cuenta, que ya no se hace (#1238): quedan en mensajes de antes. El
+  // «sí» sigue el camino de hoy (el enlace de la app, que cambia solo); solo en el privado de quien lo pidió.
   if (cq.data?.startsWith(CAMBIAR_CUENTA) && !esGrupoDe(cq.message.chat) && chatId === idDePersona(cq.from)) {
     const token = cq.data.slice(CAMBIAR_CUENTA.length);
     if (token === "no") return enviar(chatId, "Vale, lo dejo como estaba.");
-    return enlazarDesdeAjustes({ from: cq.from }, chatId, false, token, { cambiar: true });
+    return enlazarDesdeAjustes({ from: cq.from }, chatId, false, token);
   }
 
   // Quien recibe una receta: guardársela o ponerla en su menú.
@@ -1666,14 +1683,16 @@ async function pulsado(cq, base, host = "") {
   if (chat) return enviar(chatId, "Este chat ya está conectado a tu casa. Escríbeme cuando quieras.");
 
   if (cq.data === "cuenta:si") {
-    return enviar(chatId, "Escríbeme el <b>email</b> con el que entras en HoMenu y te mando un código para conectarnos.");
+    // Quien no tiene cuenta propia pero su familia sí (#1238): la invitación, no otra casa vacía.
+    return enviar(chatId, "Escríbeme el <b>email</b> con el que entras en HoMenu y te mando un código para conectarnos.\n\n"
+      + "<i>Si en tu casa HoMenu lo usa otra persona, pídele que te invite desde la app y pulsa su enlace: así veis lo mismo.</i>");
   }
   // «Soy nuevo» pide confirmación: el bot no puede saber que ya tienes cuenta
   // (Telegram no nos da tu email), y crear una vacía por error despista mucho.
   if (cq.data === "cuenta:nuevo") {
     return enviar(chatId, "¿Seguro que no usas HoMenu todavía? Si ya entras en la app (por ejemplo, con Google), conecta esa cuenta para ver tu casa y tu menú.", {
       botones: [[
-        { texto: "Ya uso HoMenu", dato: "cuenta:si" },
+        YA_USO_HOMENU,
         { texto: "Es mi primera vez", dato: "cuenta:nuevo:ok" },
       ]],
     });
@@ -1743,6 +1762,14 @@ async function comprobarCodigo(msg, chatId, token) {
   if (!(await gastarCodigo(pendiente.codigo, "vincular"))) return bienvenida(chatId);
   const hogar = await casaPropia(userId);
   if (!hogar) {
+    // Con una casa abierta en la app que no es suya (está invitada): el código del email solo conecta al titular, y
+    // lo que la lleva a la misma casa es la invitación; crear otra la dejaría en dos sitios (#1238).
+    // Sin poder leerlo, no se adivina: «crea la tuya» sería justo la segunda casa que esto quiere evitar.
+    const activa = await casaActivaDe(userId).catch(fallaCon("cuentas_hogar", SIN_LEER));
+    if (activa === SIN_LEER) return enviar(chatId, noPude("cuenta", msg.from?.language_code));
+    if (activa) {
+      return enviar(chatId, "Tu cuenta está en una casa que lleva otra persona. Pídele que te mande la invitación de vuestra casa desde la app y pulsa su enlace aquí: así veis lo mismo.");
+    }
     return enviar(chatId, "Tu cuenta no gestiona ninguna casa todavía. Entra en la app de HoMenu para crear la tuya y vuelve a escribirme.");
   }
   const r = await enlazarChat({
@@ -1850,7 +1877,7 @@ async function abrirApp(msg, chatId, esGrupo, base) {
  * toca es atender lo pedido. Devuelve `{ ocupado: true }` si el chat es de
  * otra casa (y entonces no se atiende nada).
  */
-async function enlazarDesdeAjustes(msg, chatId, esGrupo, token, { callado = false, cambiar = false } = {}) {
+async function enlazarDesdeAjustes(msg, chatId, esGrupo, token, { callado = false } = {}) {
   const [fila] = await select("bot_link_tokens", `token=${eq(token)}`, "token,user_id,household_id,expires_at,used_at");
   // Cada intento se apunta (bot_enlaces, #1238), también los rechazados: el camino, por el chat y el código. Callado
   // (un botón de la app con algo pedido), un código ya gastado no es un intento de enlazar: el chat ya lo estaba.
@@ -1881,21 +1908,21 @@ async function enlazarDesdeAjustes(msg, chatId, esGrupo, token, { callado = fals
     return enviar(chatId, "Ese enlace ya no vale. Pide otro a quien gestiona la casa.");
   }
 
-  // Este Telegram ya es otra cuenta (#1238, recorrido 4): antes de gastar el enlace, se pregunta. El «sí» trae el
-  // mismo enlace y vuelve aquí con `cambiar`. Lo pedido desde la app (callado) no se hace, porque sería en la otra
-  // casa, ni se guarda: el «sí» no lo lleva, y la pregunta dice que hay que pedirlo otra vez.
+  // Este Telegram ya es otra cuenta (#1238, recorrido 4): manda la cuenta con la que se ha entrado en la app, sin
+  // preguntar (un «No» por despiste dejaba a la persona en la cuenta que ya no usa). Lo pedido desde la app (callado)
+  // se atiende ya en la casa nueva, y Lola dice con qué cuenta habla y cómo volver.
   const deAntes = esGrupo ? null : await cuentaDeTelegram(idDePersona(msg.from));
-  if (pideCambioDeCuenta({ esGrupo, deAntes, userId: fila.user_id })) {
-    // La llave no se mueve si deja una casa con gente sin entrada (#1302), tampoco con un «sí» de antes. Sin poder
-    // saberlo, tampoco: mover es lo que no se puede deshacer.
-    const atrapa = await dejariaCasaSinEntrada(deAntes).catch(fallaCon("cambio_de_cuenta", SIN_LEER));
+  const cambia = pideCambioDeCuenta({ esGrupo, deAntes, userId: fila.user_id });
+  let volver = false;
+  if (cambia) {
+    // ¿/cuentadeantes la recuperaría? Lo dice la misma búsqueda que hace la vuelta (hayVueltaALaNacida): quitar el
+    // freno y prometer la vuelta salen de un solo sitio. Sin poder saberlo, sin vuelta: se mira el freno.
+    volver = await hayVueltaALaNacida(idDePersona(msg.from), deAntes).catch(fallaCon("cambio_de_cuenta", false));
+    // La llave no se mueve si deja una casa con gente sin entrada y sin vuelta (#1302). Sin poder saberlo, tampoco.
+    const atrapa = volver ? false : await dejariaCasaSinEntrada(deAntes).catch(fallaCon("cambio_de_cuenta", SIN_LEER));
     if (atrapa) {
       await rechazo(RESULTADO_ENLACE.OCUPADO);
       await enviar(chatId, atrapa === SIN_LEER ? noPude("cuenta") : NO_SE_PASA_LA_LLAVE);
-      return callado ? { ocupado: true } : null;
-    }
-    if (!cambiar) {
-      await preguntarCambioDeCuenta(chatId, token, deAntes, fila.household_id, { conPedido: callado });
       return callado ? { ocupado: true } : null;
     }
   }
@@ -1918,27 +1945,32 @@ async function enlazarDesdeAjustes(msg, chatId, esGrupo, token, { callado = fals
     lang: msg.from?.language_code,
     // Solo en privado (enlazarChat lo vuelve a mirar): en un grupo, quien
     // pulsa no tiene por qué ser quien sacó el enlace.
-    identidad: esGrupo ? null : cambiar ? CAMBIO : PRUEBA_IDENTIDAD.AJUSTES,
+    identidad: esGrupo ? null : cambia ? CAMBIO : PRUEBA_IDENTIDAD.AJUSTES,
   });
   if (r.ocupado) {
     await enviar(chatId, "Este chat ya está conectado a otra casa. Solo quien lo conectó puede cambiarlo.");
     return { ocupado: true };
   }
-  if (callado) return { ok: true };
+  if (cambia) {
+    // a propósito: sin el email, el aviso sale igual, sin decir cuál es la cuenta.
+    const email = await emailDeCuenta(fila.user_id).catch(seguirCon("cambio_de_cuenta", null));
+    // Sin el «¡Listo!» de después: el aviso ya lo dice todo (Álvaro: una línea y ya).
+    await enviar(chatId, avisoDeCambioDeCuenta({ email, volver }), callado ? {} : { teclado: TECLADO });
+    return callado ? { ok: true, cambio: true } : null;
+  }
+  if (callado) return { ok: true, cambio: false };
   return confirmarEnlace(chatId, fila.household_id, esGrupo);
 }
 
-/** La pregunta del cambio de cuenta, con «Sí» (que lleva el mismo enlace, `cc:<enlace>`) y «No». */
-async function preguntarCambioDeCuenta(chatId, token, deAntes, casaApp, { conPedido = false } = {}) {
-  const casaAntes = await casaActivaDe(deAntes).catch(fallaCon("cambio_de_cuenta", null));
-  const casas = [casaAntes, casaApp].filter(Boolean);
-  const nombres = await select("households", `id=in.(${casas.map(encodeURIComponent).join(",")})`, "id,name").catch(fallaCon("cambio_de_cuenta", []));
-  // Sin leerlas, null: la pregunta no dice cuántas, en vez de decir que no hay nadie.
-  const personas = await personasDeCasas(casas).catch(fallaCon("cambio_de_cuenta", null));
-  const nombre = (h) => nombres.find((n) => n.id === h)?.name ?? null;
-  return enviar(chatId, preguntaDeCambio({ casaAntes: nombre(casaAntes), casaApp: nombre(casaApp), personasAntes: personasDeCasa(personas, casaAntes), personasApp: personasDeCasa(personas, casaApp), conPedido }), {
-    botones: [[{ texto: "Sí, pasarlo a esta cuenta", dato: `${CAMBIAR_CUENTA}${token}` }, { texto: "No", dato: `${CAMBIAR_CUENTA}no` }]],
-  });
+/** /cuentadeantes (#1238): este Telegram vuelve a la cuenta que nació en él. Solo en el privado de esa persona. */
+async function volverALaDeAntes(from, chatId) {
+  if (idDePersona(from) !== String(chatId)) return enviar(chatId, "Eso solo lo puedes pedir en tu chat privado conmigo.");
+  const r = await volverACuentaNacida({ telegramId: from.id, chatId, nombre: nombreDe(from) });
+  if (r.ya) return enviar(chatId, "Ya estoy con la cuenta que nació en este Telegram: no hay otra de antes a la que volver.", { teclado: TECLADO });
+  if (r.sin) return enviar(chatId, "Este Telegram no tiene una cuenta propia de antes a la que volver. Para cambiar de cuenta, entra en la app con la que quieras y pulsa «Pídeselo a Lola».", { teclado: TECLADO });
+  if (r.ocupado) return enviar(chatId, "No he podido volver a tu cuenta de antes: este chat lo conectó otra cuenta.");
+  // Sin nombrar la casa: si la activa de esa cuenta es otra (una a la que se unió), Lola contesta en esa.
+  return enviar(chatId, "↩️ Hecho: vuelvo a tu cuenta de antes, con todo lo que tenías. Para pasar otra vez a la de la app, pulsa «Pídeselo a Lola» desde la app.", { teclado: TECLADO });
 }
 
 function secretoValido(recibido) {

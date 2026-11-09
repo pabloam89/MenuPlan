@@ -1,11 +1,14 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { priceShoppingList } from "./listPricing.js";
 import { resetStoreCatalogCache } from "./storeCatalog.js";
+import { compraDeLaLista } from "./shoppingListUtils.js";
 
 // El total de caja: envases enteros (el €/ración a granel es lib/coste.js).
+// Los ids son los que decide productoPorIngrediente.json para la merluza y el
+// aceite de oliva: la lista busca el producto decidido por id, no por nombre.
 const PRODUCTS = [
-  { id: "1", name: "Merluza en lomos congelada", price: 4.5, unitSize: 500, unitFormat: "g" },
-  { id: "2", name: "Aceite de oliva virgen extra", price: 5, unitSize: 1, unitFormat: "l" },
+  { id: "62113", name: "Merluza en lomos congelada", price: 4.5, unitSize: 500, unitFormat: "g" },
+  { id: "4640", name: "Aceite de oliva virgen extra", price: 5, unitSize: 1, unitFormat: "l" },
 ];
 
 function mockCatalog(products = PRODUCTS) {
@@ -47,4 +50,38 @@ describe("priceShoppingList: lo que se paga en caja", () => {
     expect(estimate.total).toBe(0);
   });
 
+});
+
+describe("varias semanas: se suma y se redondea una vez", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    resetStoreCatalogCache();
+  });
+
+  // Como las pinta Compra con dos semanas marcadas: un fresco, una línea por semana.
+  const SEMANAS = [
+    { id: "2026-11-09::merluza|g", name: "Merluza", unit: "g", qty: 300 },
+    { id: "2026-11-16::merluza|g", name: "Merluza", unit: "g", qty: 300 },
+  ];
+
+  it("300 g + 300 g de merluza son dos paquetes de 500 g, no uno", async () => {
+    mockCatalog();
+    const { aPreciar, cuenta } = compraDeLaLista(SEMANAS);
+    const { map } = await priceShoppingList("Mercadona", aPreciar);
+    const compra = cuenta(map, "x");
+    expect(compra.lista.products).toEqual([{ merca_code: "62113", quantity: 2 }]);
+    expect(compra.total).toBe(9);
+  });
+
+  it("las filas de cada semana siguen llevando su precio", async () => {
+    mockCatalog();
+    const { aPreciar } = compraDeLaLista(SEMANAS);
+    const { map } = await priceShoppingList("Mercadona", aPreciar);
+    expect(SEMANAS.map((f) => map.get(f.id)?.storePacks)).toEqual([1, 1]);
+  });
+
+  it("con una sola semana se pone precio a las mismas filas", () => {
+    const una = [{ id: "merluza|g", name: "Merluza", unit: "g", qty: 300 }];
+    expect(compraDeLaLista(una).aPreciar).toEqual(una);
+  });
 });

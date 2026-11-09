@@ -70,7 +70,7 @@
       {
         "name": "Azafrán",
         "ingredientId": "azafran",
-        "amount": 1,
+        "amount": 0.1,
         "unit": "g"
       }
     ],
@@ -229,7 +229,7 @@
       },
       {
         "name": "Levadura fresca",
-        "ingredientId": "levadura",
+        "ingredientId": "levadura-fresca",
         "amount": 10,
         "unit": "g"
       },
@@ -2508,7 +2508,7 @@
       },
       {
         "name": "Levadura fresca",
-        "ingredientId": "levadura",
+        "ingredientId": "levadura-fresca",
         "amount": 10,
         "unit": "g"
       },
@@ -3437,7 +3437,7 @@
       {
         "name": "Azafrán",
         "ingredientId": "azafran",
-        "amount": 1,
+        "amount": 0.1,
         "unit": "g"
       }
     ],

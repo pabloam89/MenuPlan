@@ -164,7 +164,7 @@
       },
       {
         "name": "Tomillo fresco",
-        "ingredientId": "tomillo",
+        "ingredientId": "tomillo-fresco",
         "amount": 3,
         "unit": "g"
       },
@@ -1583,7 +1583,7 @@
       },
       {
         "name": "Tomillo fresco",
-        "ingredientId": "tomillo",
+        "ingredientId": "tomillo-fresco",
         "amount": 2,
         "unit": "g"
       },
@@ -2037,7 +2037,7 @@
       },
       {
         "name": "Tomillo fresco",
-        "ingredientId": "tomillo",
+        "ingredientId": "tomillo-fresco",
         "amount": 2,
         "unit": "g"
       },
@@ -3515,7 +3515,7 @@
       },
       {
         "name": "Tomillo fresco",
-        "ingredientId": "tomillo",
+        "ingredientId": "tomillo-fresco",
         "amount": 2,
         "unit": "g"
       }
@@ -4823,7 +4823,7 @@
       },
       {
         "name": "Tomillo fresco",
-        "ingredientId": "tomillo",
+        "ingredientId": "tomillo-fresco",
         "amount": 2,
         "unit": "g"
       },

@@ -102,6 +102,24 @@ export function hoyDeCasa({ ahora = new Date(), zona = ZONA_CASA } = {}) {
 /** Solo la fecha «AAAA-MM-DD» de hoyDeCasa. */
 export const isoDeCasa = (opciones) => hoyDeCasa(opciones).iso;
 
+const formatosHora = new Map();
+function formatoHora(zona) {
+  if (!formatosHora.has(zona)) formatosHora.set(zona, new Intl.DateTimeFormat("es-ES", { timeZone: zona, hour: "2-digit", minute: "2-digit", hourCycle: "h23" }));
+  return formatosHora.get(zona);
+}
+
+/**
+ * Un instante (una fecha ISO con su zona, como las da Mercadona en UTC) en la hora de la casa:
+ * `{ iso: "AAAA-MM-DD", dia: "Mié", hora: "15:00" }`. Para decir «el miércoles de 15:00 a 16:00» sin echar la cuenta
+ * del horario de verano a mano. null si no es una fecha.
+ */
+export function momentoDeCasa(instante, { zona = ZONA_CASA } = {}) {
+  const fecha = new Date(instante);
+  if (Number.isNaN(fecha.getTime())) return null;
+  const { iso, dia } = hoyDeCasa({ ahora: fecha, zona });
+  return { iso, dia, hora: formatoHora(zona || ZONA_CASA).format(fecha) };
+}
+
 // ── Entre formas del día ────────────────────────────────────────────────────
 
 /** «Mié» → 2; -1 si no es un día. */
@@ -133,6 +151,20 @@ export const esLaborable = (dia) => DIAS_LABORABLES.includes(dia);
 export const tipoDeComida = (comida) => (String(comida ?? "").toLowerCase() === "cena" ? "cena" : "comida");
 /** «cena» → «Cena»; cualquier otro → «Comida». */
 export const comidaDeTipo = (tipo) => (tipo === "cena" ? "Cena" : "Comida");
+
+/**
+ * Qué papeles (`mealRole`) admite un plato de un hueco: el primer plato, solo
+ * primero; el principal de una cena, cena o plato único; el de una comida
+ * partida, segundo; el de una comida de un plato, plato único. Una sola tabla
+ * para «Cambiar plato» (pickCatalogReplacement) y el reparto de los clásicos
+ * (lib/clasicos.js). `partida`: cada uno dice cómo sabe que la comida lleva
+ * primero.
+ */
+export function papelesDelHueco({ meal, course = "main", partida = false }) {
+  if (course === "first") return ["primero"];
+  if (tipoDeComida(meal) === "cena") return ["cena", "plato_unico"];
+  return partida ? ["segundo"] : ["plato_unico"];
+}
 
 // ── Hueco del motor: «lun_comida_1», «lun_cena» ─────────────────────────────
 

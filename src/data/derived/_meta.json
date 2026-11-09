@@ -1,10 +1,10 @@
 {
   "generado_por": "scripts/build-derived.mjs",
   "hash_fuentes": {
-    "ingredientes": "0bfb824edbe5739f",
-    "recetas": "37bf62f1aadbbc14",
-    "alimentos": "effcc6d80ca0d39b",
-    "operador": "aaf3f1fb4c4f1261"
+    "ingredientes": "52701310550d4c03",
+    "recetas": "072afb65c86e439c",
+    "alimentos": "c0a36f3a27c2375f",
+    "operador": "929be25cfaadfa48"
   },
   "recetas": 1033,
   "recipeNutrition": {
@@ -26,7 +26,7 @@
       "selenium_ug": 0.934,
       "iodine_ug": 0.874,
       "retinol_ug": 0.862,
-      "beta_carotene_ug": 0.749,
+      "beta_carotene_ug": 0.75,
       "vitamin_d_ug": 0.841,
       "vitamin_e_mg": 0.899,
       "vitamin_k_ug": 0.668,
@@ -63,7 +63,7 @@
       "cobertura_media": 0.998,
       "cobertura_media_por_campo": {
         "fiber_g": 0.994,
-        "sugar_g": 0.591,
+        "sugar_g": 0.592,
         "saturated_fat_g": 0.922,
         "sodium_mg": 0.983,
         "calcium_mg": 0.991,
@@ -71,11 +71,11 @@
         "magnesium_mg": 0.988,
         "phosphorus_mg": 0.987,
         "potassium_mg": 0.986,
-        "zinc_mg": 0.948,
+        "zinc_mg": 0.949,
         "copper_mg": 0.75,
         "manganese_mg": 0.747,
         "selenium_ug": 0.922,
-        "iodine_ug": 0.864,
+        "iodine_ug": 0.863,
         "retinol_ug": 0.849,
         "beta_carotene_ug": 0.735,
         "vitamin_d_ug": 0.821,
@@ -88,7 +88,7 @@
         "pantothenic_acid_mg": 0.73,
         "vitamin_b6_mg": 0.977,
         "folate_ug": 0.964,
-        "vitamin_b12_ug": 0.92,
+        "vitamin_b12_ug": 0.919,
         "cholesterol_mg": 0.924
       },
       "reparto_masa": {
@@ -102,7 +102,7 @@
       },
       "reparto_micros": {
         "min": 0.105,
-        "p05": 0.743,
+        "p05": 0.745,
         "mediana": 0.899,
         "bajo_95": 586,
         "bajo_90": 378,
@@ -152,7 +152,7 @@
         },
         {
           "id": "ensaladas_verduras_088",
-          "micros": 0.618,
+          "micros": 0.619,
           "masa": 1
         },
         {
@@ -170,8 +170,8 @@
       "carne": 265,
       "pescado": 197,
       "legumbres": 104,
-      "huevos": 169,
       "pasta_arroz": 157,
+      "huevos": 169,
       "verdura": 194
     },
     "sin_familia": 100,
@@ -189,7 +189,7 @@
     },
     "operador_determinista": {
       "modulo": "src/lib/derive/stepParts.js",
-      "concordancia_con_curado": 0.544,
+      "concordancia_con_curado": 0.546,
       "pasos_medidos": 3330,
       "promocionable": false,
       "motivo": "la parte es propiedad del plato, no del ingrediente: el mismo ingrediente cambia de parte segun la receta"

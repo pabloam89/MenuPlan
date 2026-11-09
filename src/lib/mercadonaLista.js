@@ -3,6 +3,10 @@
  * valida lo que se va a mandar y compara lo mandado con lo que quedó guardado.
  */
 
+/** El pedido mínimo de Mercadona para que lo lleven a casa, en euros (Pablo, 8 nov 2026). Lo leen la app (Comprar no
+ * se pulsa por debajo) y el trabajador (no tramita por debajo): aquí porque el contenedor del trabajador lleva este fichero. */
+export const PEDIDO_MINIMO_MERCADONA = 60;
+
 /** Tope de líneas del prototipo: una compra grande de una familia cabe de sobra. */
 const MAX_LINEAS = 80;
 /** Tope del nombre: sobra para «Compra HoMenu» y frena un texto enorme. */

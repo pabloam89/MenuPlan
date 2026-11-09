@@ -31,6 +31,15 @@ describe("BarraComprar", () => {
     expect(onComprar).toHaveBeenCalledTimes(1);
   });
 
+  it("bloqueado, Comprar no se pulsa y la nota dice por qué", async () => {
+    const onComprar = vi.fn();
+    await pintar({ onComprar, paso: { texto: "Comprar", nota: "Faltan 12,40 € para el pedido mínimo de 60 €", bloqueado: true } });
+    expect(boton("Comprar · 92,70 €").disabled).toBe(true);
+    expect(caja.textContent).toContain("Faltan 12,40 €");
+    await act(async () => boton("Comprar · 92,70 €").click());
+    expect(onComprar).not.toHaveBeenCalled();
+  });
+
   it("el total abre el detalle", async () => {
     const onDetalle = vi.fn();
     await pintar({ onDetalle });
