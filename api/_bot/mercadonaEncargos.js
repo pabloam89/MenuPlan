@@ -19,6 +19,7 @@ import { NO_EXISTE, PG_SIN_COLUMNA } from "../../src/lib/postgrest.js";
 import { LLEGA_HASTA, LLEGA_HASTA_MERCADONA, deUnaCuenta, faltaPara } from "../../src/lib/mercadonaLlegaHasta.js";
 import { esSello } from "../../src/lib/mercadonaSello.js";
 import { TRAS_LA_LISTA, TRAS_LA_LISTA_OTRO } from "../../src/lib/mercadonaHoraEntrega.js";
+import { formatEuro } from "../../src/lib/euros.js";
 
 const { PENDIENTE, RELLENANDO, ELIGIENDO, HECHO, FALLIDO } = ESTADO_ENCARGO_MERCADONA;
 
@@ -52,13 +53,12 @@ export function casaPermitida(casa, entorno = process.env.MERCADONA_CASAS) {
   return String(entorno ?? "").split(",").map((c) => c.trim()).includes(casa);
 }
 
-const euros = (n) => `${Number(n).toFixed(2).replace(".", ",")} €`;
 
 /** Lo que Lola le dice al chat al acabar, o null si se pidió desde la app. */
 export function avisoDeCierre(fila) {
   if (!fila.chat_id) return null;
   if (fila.status === ELIGIENDO) {
-    const total = fila.total == null ? "" : `, ${euros(fila.total)}`;
+    const total = fila.total == null ? "" : `, ${formatEuro(fila.total)}`;
     return `Ya tienes la compra en tu carro de Mercadona${total}. ¿A qué hora te la llevan?`;
   }
   if (fila.status === FALLIDO && fila.lista_xid) {

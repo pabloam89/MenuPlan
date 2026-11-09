@@ -6,6 +6,7 @@
  */
 import { MESES_CORTOS, momentoDeCasa, nombreDia } from "./dias.js";
 import { FALLO_ENCARGO_MERCADONA } from "./mercadonaFallos.js";
+import { formatEuro } from "./euros.js";
 
 /** Lo que admite la 0134 en `horas_entrega`: de 1 a 4. Quién elige cuáles es el trabajador (scripts/lib). */
 export const TOPE_HORAS_ENTREGA = 4;
@@ -31,7 +32,6 @@ export function precioDeHoraEntrega(hora_entrega) {
   return hora_entrega?.price != null && hora_entrega.price !== "" && Number.isFinite(n) ? n : null;
 }
 
-const euros = (n) => `${n.toFixed(2).replace(".", ",")} €`;
 
 /**
  * Pura. Cómo se dice una hora de entrega, en la hora de la casa: `{ dia: "miércoles 12 nov", horas: "15:00–16:00", precio:
@@ -46,7 +46,7 @@ export function partesDeHoraEntrega(hora_entrega) {
   return {
     dia: `${nombreDia(desde.dia, { minusculas: true })} ${dia} ${MESES_CORTOS[mes - 1]}`,
     horas: `${desde.hora}–${hasta.hora}`,
-    precio: precio === null ? null : precio === 0 ? "gratis" : euros(precio),
+    precio: precio === null ? null : precio === 0 ? "gratis" : formatEuro(precio),
   };
 }
 
