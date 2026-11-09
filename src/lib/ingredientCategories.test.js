@@ -246,7 +246,7 @@ describe("ingredientStem", () => {
 });
 
 // La categoría sale del pasillo, en un solo sitio (CATEGORIA_DE_PASILLO). Antes
-// se guardaba en ingredients.json y 129 de 396 decían «Verduras y frutas» sin
+// se guardaba en ingredients.json y 138 de 396 decían «Verduras y frutas» sin
 // serlo: el valor por defecto de unas reglas por nombre, copiado a la tabla.
 import { CATEGORIA_DE_PASILLO, SHOPPING_AISLES as PASILLOS, categoriaDePasillo } from "./ingredientCategories.js";
 import { INGREDIENT_CATEGORIES as CATEGORIAS } from "../data/recipes.js";

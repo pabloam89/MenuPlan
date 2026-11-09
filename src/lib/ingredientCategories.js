@@ -42,7 +42,7 @@ export function isPerishableAisle(aisle) {
 // La categoría (seis grupos gruesos: «Verduras y frutas», «Despensa»…) NO se
 // guarda: sale del pasillo, y esta tabla es el único sitio que la decide. Antes
 // cada ingrediente la llevaba escrita en ingredients.json, y además había unas
-// reglas por nombre; 129 de 396 decían «Verduras y frutas» sin serlo (el valor
+// reglas por nombre; 138 de 396 decían «Verduras y frutas» sin serlo (el valor
 // por defecto de esas reglas, copiado a la tabla). Cada pasillo cae en un solo
 // grupo, y el test exige que estén todos los pasillos.
 export const CATEGORIA_DE_PASILLO = {
