@@ -1,11 +1,12 @@
 import { FRONTAL_BOT, GUIAS_ACTIVAS, abrirLola } from "../lib/frontalBot.js";
 import { pedidoMenu } from "../lib/pedidoLola.js";
 import { BaldosaFranja, RayaBaldosas } from "../components/wizard/ControlRow.jsx";
-import { color as tono } from "../design/tokens.js";
+import { color as tono, tipografia } from "../design/tokens.js";
 import BarraComprar, { PildoraLola } from "../components/BarraComprar.jsx";
 import ResumenCompra from "../components/ResumenCompra.jsx";
-import { pasoDeComprar, useRellenarMercadona } from "../components/useRellenarMercadona.js";
+import { pasoConMinimo, pasoDeComprar, useRellenarMercadona } from "../components/useRellenarMercadona.js";
 import HojaComprar from "../components/HojaComprar.jsx";
+import { separarFondo } from "../lib/tipoDeCompra.js";
 import { Suspense, lazy, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -211,6 +212,10 @@ function applyPantryCoverage(rows, stock) {
   }
 }
 
+// La sección de fondo de armario: va la última y empieza plegada, porque casi
+// siempre está en casa y en el súper se baja la lista sin pararse en ella.
+const SECCION_FONDO = "__fondo";
+
 const AISLE_UI = {
   Verduras:              { Icon: Leaf,         color: "#3d9b5f", img: "/categories/ensaladas_verduras.png" },
   Frutas:                { Icon: Apple,        color: "#e07b39", img: "/categories/frutas.png" },
@@ -228,6 +233,10 @@ const AISLE_UI = {
   // (non-perishable aisles still to buy).
   __pantry:              { Icon: Refrigerator, color: "#2d5a3d" },
 };
+// Tampoco es un pasillo: lo de fondo de armario (aceite, sal, especias…),
+// juntado al final de la lista (src/data/fondoDeArmario.json). Lleva la cara
+// de las especias, que es lo que más hay en ella.
+AISLE_UI[SECCION_FONDO] = AISLE_UI.Especias;
 
 // Title-band tint shared across En casa / Menú / Recetas / Compra — a soft
 // green (accent-tinted), distinct from the white list body below it.
@@ -388,7 +397,9 @@ export function ShoppingScreen({
   const [openSections, setOpenSections] = useState(
     initialOpenAisle ? { [initialOpenAisle]: true } : {},
   );
-  const isSectionOpen = (key) => openSections[key] !== false;
+  // Salvo el fondo de armario, que empieza plegado: cuenta su `true`.
+  const isSectionOpen = (key) =>
+    key === SECCION_FONDO ? openSections[key] === true : openSections[key] !== false;
   const [showIconCoach, setShowIconCoach] = useState(false);
   const [receiptBusy, setReceiptBusy] = useState(false);
   // Unified spend capture: one money button → chooser (escanear / a mano).
@@ -756,11 +767,19 @@ export function ShoppingScreen({
   const visibleItems = filterItemsByDays(enrichedItems, SHOPPING_DAY_WEEK).filter(
     buyTab === "bought" ? isDoneItem : isActiveItem,
   );
-  const sections = itemsByAisle(visibleItems).map((g) => ({
-    key: g.aisle,
-    title: g.aisle,
-    items: g.items,
-  }));
+  // Primero lo de las recetas, por pasillo; al final, junto y plegado, lo de
+  // fondo de armario. Las dos partes suman en la cuenta igual que antes.
+  const { receta: itemsReceta, fondo: itemsFondo } = separarFondo(visibleItems);
+  const sections = [
+    ...itemsByAisle(itemsReceta).map((g) => ({
+      key: g.aisle,
+      title: g.aisle,
+      items: g.items,
+    })),
+    ...(itemsFondo.length
+      ? [{ key: SECCION_FONDO, title: "Fondo de armario", nota: "Lo que suele haber en casa: mira si te falta algo", items: itemsFondo }]
+      : []),
+  ];
 
   const isEmpty = sections.every((s) => s.items.length === 0);
 
@@ -803,7 +822,8 @@ export function ShoppingScreen({
   // La hoja de Comprar (HojaComprar): solo el paso siguiente, nunca la lista.
   const [comprarAbierto, setComprarAbierto] = useState(false);
   const mercadona = useRellenarMercadona(pantryHouseholdId, paraComprar?.lista);
-  const paso = pasoDeComprar(mercadona);
+  // Por debajo del pedido mínimo de Mercadona, Comprar no se pulsa (pasoConMinimo).
+  const paso = pasoConMinimo(pasoDeComprar(mercadona), paraComprar?.total);
   // Con la cuenta conectada, comprar va directo; sin ella, lo que se puede hacer está en la hoja.
   const comprar = async () => {
     if (paso.mirar) return mercadona.mirar();
@@ -1147,9 +1167,7 @@ export function ShoppingScreen({
         <button
           type="button"
           aria-expanded={open}
-          onClick={() =>
-            setOpenSections((c) => ({ ...c, [section.key]: c[section.key] === false }))
-          }
+          onClick={() => setOpenSections((c) => ({ ...c, [section.key]: !open }))}
           style={{
             width: "100%",
             display: "flex",
@@ -1168,19 +1186,24 @@ export function ShoppingScreen({
           }}
         >
           <AisleIcon aisle={section.key} size={38} soft />
-          <span
-            style={{
-              flex: 1,
-              minWidth: 0,
-              fontSize: 13.5,
-              fontWeight: 800,
-              color: open ? "#fff" : "#142f1d",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {section.title}
+          <span style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
+            <span
+              style={{
+                fontSize: 13.5,
+                fontWeight: 800,
+                color: open ? "#fff" : "#142f1d",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {section.title}
+            </span>
+            {section.nota && (
+              <span style={{ fontSize: tipografia["paso-11"], fontWeight: tipografia["peso-700"], color: open ? tono.superficie : tono["tinta-tenue"] }}>
+                {section.nota}
+              </span>
+            )}
           </span>
           {/* Siempre nº de items, nunca € (2026-08-26) — así Por comprar +
               Comprado suman la compra completa que se pensó, en vez de que
@@ -1462,7 +1485,7 @@ export function ShoppingScreen({
 
       {comprarAbierto && paraComprar && (
         <HojaComprar
-          resumen={`${paraComprar.lineas.length} productos · ${conCentimos(paraComprar.total)}`}
+          resumen={`${paraComprar.lineas.length} productos por ${conCentimos(paraComprar.total)}`}
           mercadona={mercadona}
           onClose={() => setComprarAbierto(false)}
         />

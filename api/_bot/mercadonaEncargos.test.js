@@ -26,7 +26,7 @@ const { enviar } = await import("./telegram.js");
 const m = await import("./mercadonaEncargos.js");
 const lista = { name: "Compra", products: [{ merca_code: "1", quantity: 2 }] };
 const pedido = { casa: "c1", por: "u1", canal: "app", lista };
-const error = (codigo) => Object.assign(new Error("x"), { codigo });
+const error = (codigo, mensaje = "x") => Object.assign(new Error(mensaje), { codigo });
 const EN_MARCHA = { household_id: "c1", status: "rellenando", fallo: null, tomado_at: "2026-11-06T11:58:00.000Z" };
 
 beforeEach(() => {
@@ -106,10 +106,18 @@ describe("estadoDeCasa", () => {
   });
 
   it("sin las columnas de la 0133 (42703) lee solo el estado: llega hasta la lista y nada mirado", async () => {
-    select.mockRejectedValueOnce(error("42703"));
+    select.mockRejectedValueOnce(error("42703", "column mercadona_cuenta.llega_hasta does not exist"));
+    const aviso = vi.spyOn(console, "warn").mockImplementation(() => {});
     const r = await m.estadoDeCasa("c1");
+    expect(aviso).toHaveBeenCalledWith(expect.stringContaining("sin la 0133"), expect.stringContaining("llega_hasta"));
+    aviso.mockRestore();
     expect(select.mock.calls.filter((c) => c[0] === "mercadona_cuenta").map((c) => c[2])).toEqual([expect.stringContaining("llega_hasta"), "estado"]);
     expect(r).toMatchObject({ disponible: true, cuenta: "conectada", llega_hasta: "lista", tiene_direccion: null, tiene_pago: null, tiene_telefono: false });
+  });
+
+  it("si falta otra columna (no una de la 0133), no se traga: lanza", async () => {
+    select.mockRejectedValueOnce(error("42703", "column mercadona_cuenta.estdo does not exist"));
+    await expect(m.estadoDeCasa("c1")).rejects.toThrow("estdo");
   });
 
   it("sin cuenta, nada que decir de ella", async () => {
@@ -202,6 +210,22 @@ describe("tomar y cerrar", () => {
     expect(await m.cerrar("e1", { lista_xid: 77, entraron: 3, faltan: ["9"] })).toBe(true);
     expect(update.mock.calls[0][1]).toContain("status=eq.rellenando");
     expect(update.mock.calls[0][2]).toMatchObject({ status: "hecho", lista_xid: "77", entraron: 3, faltan: ["9"], fallo: null });
+  });
+
+  it("con la revisión de la cuenta, la apunta con su fecha, solo si sigue conectada", async () => {
+    db.encargo = [EN_MARCHA];
+    await m.cerrar("e1", { lista_xid: 77, entraron: 1, faltan: [], revision: { tiene_direccion: true, tiene_pago: false } }, Date.parse("2026-11-08T22:00:00Z"));
+    const [tabla, filtro, cambios] = update.mock.calls.find((c) => c[0] === "mercadona_cuenta");
+    expect(tabla).toBe("mercadona_cuenta");
+    expect(filtro).toContain("estado=eq.conectada");
+    expect(cambios).toEqual({ tiene_direccion: true, tiene_pago: false, revisada_at: "2026-11-08T22:00:00.000Z" });
+  });
+
+  it("un fallo al apuntar la revisión no se traga, tampoco un 42703: la 0133 ya está aplicada", async () => {
+    update.mockRejectedValueOnce(error("42703"));
+    await expect(m.apuntarRevision("c1", { tiene_direccion: true, tiene_pago: true }, "x")).rejects.toThrow("x");
+    update.mockRejectedValueOnce(error("57014"));
+    await expect(m.apuntarRevision("c1", { tiene_direccion: true, tiene_pago: true }, "x")).rejects.toThrow("x");
   });
 
   it("repetir el cierre no pisa nada ni avisa otra vez", async () => {

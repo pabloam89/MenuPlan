@@ -347,7 +347,7 @@ export const PREGUNTAS = [
     lee: (data) => data?.mealStructure ?? null,
     // Para toda la casa, también los grupos que tenían la suya: si no, en modo
     // experto el cambio no se notaba (estructuraPlatos.js, #958). Lo usan la
-    // app y Lola (ajustes.js, ajustar_cocina).
+    // app y Lola (ajustes.js, ajustar_casa).
     escribe: (data, valor) => conEstructura(data, valor),
     // Los dos valores que el planner entiende de VERDAD. Ojo con "1_plato":
     // parece un histórico y no lo es — es el valor que compara aiPlanner.js

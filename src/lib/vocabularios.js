@@ -399,7 +399,7 @@ export const ESTADO_CUENTA_MERCADONA = porNombre(ESTADOS_CUENTA_MERCADONA);
 /** Por dónde se pidió rellenar la lista (mercadona_encargo.canal, 0131). */
 export const CANALES_ENCARGO = ["app", ...CANALES];
 /** Por dónde va un encargo de Mercadona (mercadona_encargo.status, 0131). */
-export const ESTADOS_ENCARGO_MERCADONA = ["pendiente", "rellenando", "hecho", "fallido"];
+export const ESTADOS_ENCARGO_MERCADONA = ["pendiente", "rellenando", "eligiendo", "reservando", "hecho", "fallido"];
 export const ESTADO_ENCARGO_MERCADONA = porNombre(ESTADOS_ENCARGO_MERCADONA);
 export { FALLOS_ENCARGO_MERCADONA, FALLO_ENCARGO_MERCADONA };
 /** Hasta dónde llega el bot (mercadona_cuenta.llega_hasta, 0133); vive en mercadonaLlegaHasta.js por el trabajador. */

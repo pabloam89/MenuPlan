@@ -11,7 +11,7 @@ vi.mock("../lib/mercadonaApp.js", async (original) => ({
 }));
 
 const { RellenarMercadona: Hoja } = await import("./ComprarMercadona.jsx");
-const { pasoDeComprar, useRellenarMercadona } = await import("./useRellenarMercadona.js");
+const { pasoConMinimo, pasoDeComprar, useRellenarMercadona } = await import("./useRellenarMercadona.js");
 const app = await import("../lib/mercadonaApp.js");
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -41,6 +41,24 @@ afterEach(() => {
   act(() => root?.unmount());
   document.body.innerHTML = "";
   delete window.opener;
+});
+
+describe("pasoConMinimo: el pedido mínimo de 60 €", () => {
+  const comprar = { texto: "Comprar", nota: null };
+
+  it("por debajo, Comprar no se pulsa y dice cuánto falta", () => {
+    expect(pasoConMinimo(comprar, 47.6)).toEqual({ texto: "Comprar", nota: "Faltan 12,40 € para el pedido mínimo de 60 €", bloqueado: true });
+  });
+
+  it("con 60 € justos o más, el paso sigue como estaba", () => {
+    expect(pasoConMinimo(comprar, 60)).toBe(comprar);
+    expect(pasoConMinimo(comprar, 109.14)).toBe(comprar);
+  });
+
+  it("una lista que se está rellenando o ya hecha no se bloquea", () => {
+    const rellenando = { texto: "Rellenando…", ocupado: true };
+    expect(pasoConMinimo(rellenando, 10)).toBe(rellenando);
+  });
 });
 
 describe("pasoDeComprar", () => {
@@ -99,13 +117,13 @@ describe("RellenarMercadona", () => {
     app.leerEstado.mockResolvedValue({ ...BASE, cuenta: null });
     await pintar(<RellenarMercadona casa="c" lista={LISTA} />);
     expect(contenedor.querySelector("a").getAttribute("href")).toMatch(/^javascript:/);
-    expect(contenedor.textContent).toContain("Nunca veo tu contraseña");
+    expect(contenedor.textContent).toContain("HoMenu no ve ni guarda tu contraseña");
   });
 
-  it("con la sesión caducada pide conectar otra vez", async () => {
+  it("con la sesión caducada pide entrar otra vez", async () => {
     app.leerEstado.mockResolvedValue({ ...BASE, cuenta: "caducada" });
     await pintar(<RellenarMercadona casa="c" lista={LISTA} />);
-    expect(contenedor.textContent).toContain("ha cerrado la sesión");
+    expect(contenedor.textContent).toContain("Vuelve a entrar en Mercadona");
   });
 
   it("pide la lista y espera", async () => {
@@ -175,7 +193,7 @@ describe("RellenarMercadona", () => {
     app.pedirLista.mockResolvedValue({ ok: true, fallo: "sesion_caducada" });
     await pintar(<RellenarMercadona casa="c" lista={LISTA} />);
     await pulsar(boton("Rellenar mi lista"));
-    expect(contenedor.textContent).toContain("ha cerrado la sesión");
+    expect(contenedor.textContent).toContain("Vuelve a entrar en Mercadona");
   });
 
   it("sin casa no pregunta nada", async () => {
@@ -188,6 +206,6 @@ describe("RellenarMercadona", () => {
     await pintar(<RellenarMercadona casa="c" lista={LISTA} />);
     await pulsar(boton("Desconectar"));
     expect(app.quitarCuenta).toHaveBeenCalledWith("c");
-    expect(contenedor.textContent).toContain("Conecta tu cuenta");
+    expect(contenedor.textContent).toContain("Entra en tu cuenta de Mercadona");
   });
 });

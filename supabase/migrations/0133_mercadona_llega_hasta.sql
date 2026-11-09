@@ -55,7 +55,10 @@ alter table public.mercadona_cuenta
   add column telefono_sellado text
     constraint mercadona_cuenta_telefono_sellado_largo check (char_length(telefono_sellado) <= 2000),
   add constraint mercadona_cuenta_revisada_con_fecha
-    check (revisada_at is not null or (not tiene_direccion and not tiene_pago));
+    check (revisada_at is not null or (not tiene_direccion and not tiene_pago)) not valid;
+
+-- Las filas que ya hay acaban de nacer con tiene_* = false: el check se cumple, y se valida aquí mismo.
+alter table public.mercadona_cuenta validate constraint mercadona_cuenta_revisada_con_fecha;
 
 comment on column public.mercadona_cuenta.llega_hasta is
   'Hasta dónde llega el bot: lista, reservar o pagar, cada uno con los de antes (src/lib/mercadonaLlegaHasta.js).';

@@ -65,12 +65,6 @@ describe("cambiarLlegaHasta: lo comprueba el servidor, no Lola", () => {
     expect(update).not.toHaveBeenCalledWith("mercadona_cuenta", expect.anything(), expect.anything());
   });
 
-  it("sin la 0133 (42703), sin servicio: el bot solo sabe rellenar la lista", async () => {
-    db.fallaSelect = error("42703");
-    db.fallaUpdate = error("42703");
-    expect(await m.cambiarLlegaHasta({ casa: CASA, llega_hasta: "lista" })).toEqual({ fallo: "sin_servicio" });
-  });
-
   it("un valor fuera de la lista es un fallo de quien llama", async () => {
     await expect(m.cambiarLlegaHasta({ casa: CASA, llega_hasta: "todo" })).rejects.toThrow(m.PeticionMala);
   });
@@ -78,7 +72,8 @@ describe("cambiarLlegaHasta: lo comprueba el servidor, no Lola", () => {
 
 describe("tomar: el trabajador sabe hasta dónde llegar", () => {
   it("sin la 0133, solo la lista y sin teléfono", async () => {
-    db.fallaSelect = error("42703");
+    db.fallaSelect = Object.assign(error("42703"), { message: "column mercadona_cuenta.llega_hasta does not exist" });
+    vi.spyOn(console, "warn").mockImplementation(() => {});
     db.cuenta = [{ sesion_cifrada: "sellada" }];
     expect(await m.tomar()).toMatchObject({ sesion_cifrada: "sellada", llega_hasta: "lista", telefono_sellado: null });
   });

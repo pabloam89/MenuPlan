@@ -97,19 +97,24 @@ export async function barrerCaducados({ casa = null, ahora = Date.now() } = {}) 
   }
 }
 
+/** Las columnas de la 0133 en `mercadona_cuenta`. */
+const DE_LA_0133 = ["llega_hasta", "revisada_at", "tiene_direccion", "tiene_pago", "telefono_sellado"];
 /** Lo de la cuenta que se enseña (0133): sin la sesión ni el teléfono, solo si lo hay. */
-const DE_LA_CUENTA = "estado,llega_hasta,revisada_at,tiene_direccion,tiene_pago,telefono_sellado";
+const DE_LA_CUENTA = ["estado", ...DE_LA_0133].join(",");
+/** Falta una columna de la 0133 (aún sin aplicar): PostgREST (PGRST204) o Postgres (42703) la nombran. Otra, no. */
+const sinLa0133 = (e) => [PG_SIN_COLUMNA, "PGRST204"].includes(e?.codigo) && DE_LA_0133.some((c) => String(e?.message ?? "").includes(c));
 
 /**
- * La cuenta de la casa, o undefined. Sin las columnas de la 0133 (42703), solo `estado`: el resto sale como una fila de
- * antes, `lista` y sin mirar. Otro fallo, lanza.
+ * La cuenta de la casa, o undefined. Sin las columnas de la 0133 (42703 que nombra una de ellas), solo `estado`, y lo
+ * registra: el resto sale como una fila de antes, `lista` y sin mirar. Otro fallo, también otra columna que falte, lanza.
  */
 async function leerCuenta(casa) {
   try {
     const [cuenta] = await select("mercadona_cuenta", `household_id=${eq(casa)}`, DE_LA_CUENTA);
     return cuenta;
   } catch (e) {
-    if (e?.codigo !== PG_SIN_COLUMNA) throw e;
+    if (!sinLa0133(e)) throw e;
+    console.warn("mercadona: sin la 0133, la cuenta se lee como antes (lista y sin mirar):", e.message);
     const [cuenta] = await select("mercadona_cuenta", `household_id=${eq(casa)}`, "estado"); // a propósito: plan B de la 0133
     return cuenta;
   }
@@ -192,18 +197,10 @@ export async function tomar() {
   return { encargo: { id: encargo.id, lista: encargo.lista }, sesion_cifrada: cuenta.sesion_cifrada, ...(await hastaDondeDe(encargo.household_id)) };
 }
 
-/**
- * Para el trabajador: hasta dónde llega, qué tiene la cuenta y el teléfono sellado (0133). Sin las columnas (42703),
- * solo la lista y sin teléfono: lo que el bot hacía antes. Otro fallo, lanza.
- */
+/** Para el trabajador: hasta dónde llega, qué tiene la cuenta y el teléfono sellado (0133), leído como estadoDeCasa. */
 async function hastaDondeDe(casa) {
-  try {
-    const [cuenta] = await select("mercadona_cuenta", `household_id=${eq(casa)}`, DE_LA_CUENTA);
-    return { ...deUnaCuenta(cuenta), telefono_sellado: cuenta?.telefono_sellado ?? null };
-  } catch (e) {
-    if (e?.codigo !== PG_SIN_COLUMNA) throw e;
-    return { ...deUnaCuenta(null), telefono_sellado: null }; // a propósito: plan B de la 0133, como una fila de antes
-  }
+  const cuenta = await leerCuenta(casa);
+  return { ...deUnaCuenta(cuenta), telefono_sellado: cuenta?.telefono_sellado ?? null };
 }
 
 /**
@@ -212,6 +209,15 @@ async function hastaDondeDe(casa) {
  * lo completa. Un `hecho` tardío sí entra sobre un `caducado`: la lista existe y la familia tiene que saberlo.
  * @returns {Promise<boolean>} si lo ha cerrado esta llamada
  */
+/**
+ * Apunta lo que el trabajador vio en la cuenta (0133): `tiene_direccion`, `tiene_pago` y cuándo. Solo la cuenta que
+ * sigue conectada: si se ha caducado o la han quitado, no hay nada que apuntar. La 0133 ya está aplicada (9 nov 2026):
+ * sin plan B, un fallo lanza.
+ */
+export async function apuntarRevision(casa, { tiene_direccion, tiene_pago }, cuando) {
+  await update("mercadona_cuenta", `household_id=${eq(casa)}&estado=eq.${ESTADO_CUENTA_MERCADONA.CONECTADA}`, { tiene_direccion, tiene_pago, revisada_at: cuando });
+}
+
 export async function cerrar(id, resultado, ahora = Date.now()) {
   const cuando = new Date(ahora).toISOString();
   const fallo = resultado.fallo ? paraEscribir("fallos_encargo_mercadona", resultado.fallo) : null;
@@ -219,6 +225,7 @@ export async function cerrar(id, resultado, ahora = Date.now()) {
   if (!antes) throw new Error("encargo desconocido");
   const caducado = antes.status === FALLIDO && antes.fallo === FALLO_ENCARGO_MERCADONA.CADUCADO;
   if (antes.status !== RELLENANDO && !(caducado && !fallo)) return false;
+  if (resultado.revision) await apuntarRevision(antes.household_id, resultado.revision, cuando);
 
   if (fallo === FALLO_ENCARGO_MERCADONA.SESION_CADUCADA) {
     // Solo la sesión con la que se intentó: si la familia ha reconectado después, la nueva vale.
@@ -256,14 +263,9 @@ export async function cambiarLlegaHasta({ casa, llega_hasta }, ahora = Date.now(
   if (!estado.cuenta) return { fallo: NO_ENCARGADO.SIN_CUENTA };
   const falta = faltaPara(estado, llega_hasta);
   if (falta.length) return { falta };
-  try {
-    const filas = await update("mercadona_cuenta", `household_id=${eq(casa)}`, { llega_hasta: paraEscribir("llega_hasta_mercadona", llega_hasta) });
-    if (!filas?.length) return { fallo: NO_ENCARGADO.SIN_CUENTA }; // se desconectó entre medias
-    return { llega_hasta };
-  } catch (e) {
-    if (e?.codigo !== PG_SIN_COLUMNA) throw e;
-    return { fallo: NO_ENCARGADO.SIN_SERVICIO }; // a propósito: plan B de la 0133
-  }
+  const filas = await update("mercadona_cuenta", `household_id=${eq(casa)}`, { llega_hasta: paraEscribir("llega_hasta_mercadona", llega_hasta) });
+  if (!filas?.length) return { fallo: NO_ENCARGADO.SIN_CUENTA }; // se desconectó entre medias
+  return { llega_hasta };
 }
 
 /**
@@ -274,11 +276,6 @@ export async function guardarTelefono({ casa, telefono_sellado }) {
   const valido = typeof telefono_sellado === "string" && telefono_sellado.length <= TOPE_SESION && esSello(telefono_sellado);
   if (!valido) throw new PeticionMala("teléfono no sellado");
   if (!casaPermitida(casa)) return { fallo: NO_ENCARGADO.SIN_SERVICIO };
-  try {
-    const filas = await update("mercadona_cuenta", `household_id=${eq(casa)}`, { telefono_sellado });
-    return filas?.length ? { guardado: true } : { fallo: NO_ENCARGADO.SIN_CUENTA };
-  } catch (e) {
-    if (e?.codigo !== PG_SIN_COLUMNA && !sinMigracion(e)) throw e;
-    return { fallo: NO_ENCARGADO.SIN_SERVICIO }; // a propósito: sin la 0131 o la 0133
-  }
+  const filas = await update("mercadona_cuenta", `household_id=${eq(casa)}`, { telefono_sellado });
+  return filas?.length ? { guardado: true } : { fallo: NO_ENCARGADO.SIN_CUENTA };
 }

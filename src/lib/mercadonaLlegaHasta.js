@@ -40,3 +40,7 @@ export function faltaPara(cuenta, hasta) {
   if (llegaA(hasta, LLEGA_HASTA.PAGAR) && cuenta?.tiene_pago !== true) falta.push(FALTA_MERCADONA.PAGO);
   return falta;
 }
+
+/** Pura. ¿Es una revisión de la cuenta tal como la manda el trabajador (`{ tiene_direccion, tiene_pago }`, dos booleanos)? */
+export const esRevision = (r) =>
+  typeof r?.tiene_direccion === "boolean" && typeof r?.tiene_pago === "boolean" && Object.keys(r).length === 2;
