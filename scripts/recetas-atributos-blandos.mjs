@@ -4,7 +4,10 @@
  * «algo especial») sean un filtro y no una intuición de Lola.
  *
  * Pedido por Pablo (30 sep 2026). Solo recetas `estrella: true` (la política
- * del catálogo: el antiguo no se propone nunca).
+ * del catálogo: el antiguo no se propone nunca) y, desde el 9 nov 2026, los
+ * clásicos de casa (`esClasico`), que se eligen a mano en la pizarra y se
+ * buscan en el recetario como cualquier otra. Y solo las que aún no los
+ * tienen: las ya hechas no se vuelven a pagar.
  *
  * Campos (vocabulario cerrado, validado):
  *   connotacion  [] de reconfortante · fresco · casero · festivo   (eje n13 del registro)
@@ -28,6 +31,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { leerEnv } from "./lib/env.mjs";
 import { CONNOTACIONES, OCCASIONS, PICANTES, SABORES, TEXTURAS } from "../src/data/recipeSchema.js";
+import { esClasico } from "../src/data/clasicos.js";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 const OUT = path.join(ROOT, "output");
@@ -57,7 +61,10 @@ const guardar = (n, d) => fs.writeFileSync(ruta(n), `${JSON.stringify(d, null, 2
 
 const ficheros = fs.readdirSync(DIR).filter((f) => f.endsWith(".json"));
 const porFichero = Object.fromEntries(ficheros.map((f) => [f, JSON.parse(fs.readFileSync(path.join(DIR, f), "utf8"))]));
-const estrella = Object.values(porFichero).flat().filter((r) => r.estrella === true);
+const ESCRITOS = ["connotacion", "textura", "picante", "sabor"];
+const porHacer = Object.values(porFichero)
+  .flat()
+  .filter((r) => (r.estrella === true || esClasico(r)) && ESCRITOS.some((k) => r[k] === undefined));
 
 const ENFOQUE = {
   a: "Eres editora de un recetario familiar español. Clasifica cada receta como la vería una madre o un padre que busca qué cocinar.",
@@ -119,8 +126,8 @@ async function enParalelo(tareas, n) {
 
 async function pasada(clave) {
   const hechos = leer(clave);
-  const pendientes = estrella.filter((r) => !hechos[r.id]);
-  console.log(`Pasada ${clave}: ${pendientes.length} de ${estrella.length} por hacer`);
+  const pendientes = porHacer.filter((r) => !hechos[r.id]);
+  console.log(`Pasada ${clave}: ${pendientes.length} de ${porHacer.length} por hacer`);
   const lotes = [];
   for (let k = 0; k < pendientes.length; k += LOTE) lotes.push(pendientes.slice(k, k + LOTE));
   let hechosN = 0;
@@ -145,7 +152,7 @@ async function juez() {
   const b = leer("b");
   const final = leer("final");
   const dudas = [];
-  for (const r of estrella) {
+  for (const r of porHacer) {
     if (final[r.id] || !a[r.id] || !b[r.id]) continue;
     const acordado = {};
     const enDuda = {};
@@ -177,8 +184,8 @@ async function juez() {
 
 function informe() {
   const final = leer("final");
-  const faltan = estrella.filter((r) => !final[r.id]);
-  console.log(`Decididas: ${estrella.length - faltan.length}/${estrella.length}${faltan.length ? ` — faltan ${faltan.map((r) => r.id).slice(0, 8).join(", ")}…` : ""}`);
+  const faltan = porHacer.filter((r) => !final[r.id]);
+  console.log(`Decididas: ${porHacer.length - faltan.length}/${porHacer.length}${faltan.length ? ` — faltan ${faltan.map((r) => r.id).slice(0, 8).join(", ")}…` : ""}`);
   const juez = Object.values(final).filter((x) => x.via === "juez");
   console.log(`Por acuerdo: ${Object.values(final).length - juez.length} · por juez: ${juez.length}`);
   for (const k of CAMPOS) {
@@ -194,7 +201,7 @@ function informe() {
 
 function aplicar() {
   const final = leer("final");
-  const faltan = estrella.filter((r) => !final[r.id]);
+  const faltan = porHacer.filter((r) => !final[r.id]);
   if (faltan.length) throw new Error(`Faltan ${faltan.length} recetas por decidir: no se aplica a medias.`);
   let cambios = 0;
   for (const [f, recetas] of Object.entries(porFichero)) {
@@ -202,7 +209,7 @@ function aplicar() {
     for (const r of recetas) {
       const x = final[r.id];
       if (!x) continue;
-      for (const k of ["connotacion", "textura", "picante", "sabor"]) {
+      for (const k of ESCRITOS) {
         if (x[k] !== undefined && !igual(r[k], x[k])) { r[k] = x[k]; tocado = true; cambios++; }
       }
       // Lo curado a mano manda: occasion y kidFavourite solo donde faltan. Y
