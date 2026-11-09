@@ -106,6 +106,8 @@ async function abrirMenu(page) {
   const dias = page.getByRole("dialog", { name: "¿Qué días pones?" });
   await expect(dias).toBeVisible();
   await dias.getByRole("button", { name: "Siguiente" }).click();
+  // «¿Qué no puede faltar?»: sin clásicos elegidos, el botón dice «Omitir».
+  await dias.getByRole("button", { name: "Omitir" }).click();
   await dias.getByRole("button", { name: "Empezar" }).click();
   await expect(dias).toBeHidden();
   // La baldosa lleva delante cuántos huecos quedan («14 Rellenar»).
