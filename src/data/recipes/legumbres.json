@@ -1137,7 +1137,7 @@
     "ingredients": [
       {
         "name": "Fabes secas",
-        "ingredientId": "alubia-grande",
+        "ingredientId": "fabes",
         "amount": 250,
         "unit": "g"
       },
@@ -2170,7 +2170,7 @@
     "ingredients": [
       {
         "name": "Judiones",
-        "ingredientId": "alubia-grande",
+        "ingredientId": "fabes",
         "amount": 250,
         "unit": "g"
       },
@@ -5900,7 +5900,7 @@
     "ingredients": [
       {
         "name": "Fabes de la granja secas",
-        "ingredientId": "alubia-grande",
+        "ingredientId": "fabes",
         "amount": 200,
         "unit": "g"
       },
@@ -7530,7 +7530,7 @@
     "ingredients": [
       {
         "name": "Judiones secos",
-        "ingredientId": "alubia-grande",
+        "ingredientId": "fabes",
         "amount": 250,
         "unit": "g"
       },
@@ -8588,7 +8588,7 @@
     "ingredients": [
       {
         "name": "Fabes de la granja secas",
-        "ingredientId": "alubia-grande",
+        "ingredientId": "fabes",
         "amount": 400,
         "unit": "g"
       },

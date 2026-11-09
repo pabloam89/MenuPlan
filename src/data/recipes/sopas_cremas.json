@@ -7886,7 +7886,7 @@
       },
       {
         "name": "Rape",
-        "ingredientId": "monkfish",
+        "ingredientId": "rape",
         "amount": 150,
         "unit": "g"
       },
@@ -14805,7 +14805,7 @@
       },
       {
         "name": "Pan de baguette en rebanadas",
-        "ingredientId": "baguette",
+        "ingredientId": "pan-chapata",
         "amount": 60,
         "unit": "g"
       },
@@ -16969,7 +16969,7 @@
     "ingredients": [
       {
         "name": "Rape",
-        "ingredientId": "monkfish",
+        "ingredientId": "rape",
         "amount": 150,
         "unit": "g"
       },
@@ -18366,7 +18366,7 @@
       },
       {
         "name": "Chile fresco",
-        "ingredientId": "cayena",
+        "ingredientId": "guindilla-fresca",
         "amount": 5,
         "unit": "g"
       },

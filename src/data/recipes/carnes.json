@@ -1466,7 +1466,7 @@
       },
       {
         "name": "Pan de hamburguesa",
-        "ingredientId": "hamburguesa",
+        "ingredientId": "pan-de-hamburguesa",
         "amount": 2,
         "unit": "ud"
       },
@@ -13183,7 +13183,7 @@
       },
       {
         "name": "Pan de hamburguesa brioche",
-        "ingredientId": "hamburguesa",
+        "ingredientId": "pan-de-hamburguesa",
         "amount": 2,
         "unit": "ud"
       },
@@ -24407,7 +24407,7 @@
       },
       {
         "name": "Pan de hamburguesa",
-        "ingredientId": "hamburguesa",
+        "ingredientId": "pan-de-hamburguesa",
         "amount": 2,
         "unit": "ud"
       },
@@ -25583,7 +25583,7 @@
       },
       {
         "name": "Pan de hamburguesa",
-        "ingredientId": "hamburguesa",
+        "ingredientId": "pan-de-hamburguesa",
         "amount": 2,
         "unit": "ud"
       },
@@ -27974,7 +27974,7 @@
       },
       {
         "name": "Queso semicurado en lonchas",
-        "ingredientId": "queso-tierno",
+        "ingredientId": "queso-semicurado",
         "amount": 80,
         "unit": "g"
       },

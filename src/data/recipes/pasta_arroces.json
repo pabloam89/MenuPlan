@@ -3857,7 +3857,7 @@
       },
       {
         "name": "Rape",
-        "ingredientId": "monkfish",
+        "ingredientId": "rape",
         "amount": 100,
         "unit": "g"
       },
@@ -11295,7 +11295,7 @@
     "ingredients": [
       {
         "name": "Tortellini frescos rellenos de carne",
-        "ingredientId": "ravioli",
+        "ingredientId": "tortellini",
         "amount": 300,
         "unit": "g"
       },
@@ -16641,7 +16641,7 @@
       },
       {
         "name": "Rape",
-        "ingredientId": "monkfish",
+        "ingredientId": "rape",
         "amount": 100,
         "unit": "g"
       },
@@ -19234,7 +19234,7 @@
       },
       {
         "name": "Guindilla fresca",
-        "ingredientId": "cayena",
+        "ingredientId": "guindilla-fresca",
         "amount": 5,
         "unit": "g"
       },
@@ -21811,7 +21811,7 @@
       },
       {
         "name": "Chile fresco",
-        "ingredientId": "cayena",
+        "ingredientId": "guindilla-fresca",
         "amount": 5,
         "unit": "g"
       },
