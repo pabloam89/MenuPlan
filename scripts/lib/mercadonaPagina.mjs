@@ -122,8 +122,8 @@ export async function crearLista(pagina, lista) {
 
 /**
  * Suma la lista al carro: lo lee, le suma la lista (mercadonaCarro.mjs) y lo escribe una vez con la `version` leída.
- * `{ resultado, total?, faltan?, status? }`: `carro_lleno` (con el total que dice Mercadona, null si no se lee, y los
- * productos que no quedaron como se mandaron), `fallo_carro` o `fallo_sesion`. Una sola pasada: si el carro cambió
+ * `{ resultado, total?, faltan?, carro?, status? }`: `carro_lleno` (con el total que dice Mercadona, null si no se lee,
+ * los productos que no quedaron como se mandaron y el carro escrito, para crear el pedido), `fallo_carro` o `fallo_sesion`. Una sola pasada: si el carro cambió
  * entre leer y escribir, Mercadona lo rechaza y se cuenta, sin reintentar.
  */
 export async function llenarCarro(pagina, lista) {
@@ -134,5 +134,5 @@ export async function llenarCarro(pagina, lista) {
   const escrito = await pagina.evaluate(enPagina, { carro: nuevo });
   if (escrito.paso === "sesion") return { resultado: "fallo_sesion", status: escrito.status };
   if (!escrito.carro) return { resultado: "fallo_carro", status: escrito.status };
-  return { resultado: "carro_lleno", total: totalDelCarro(escrito.carro), faltan: faltanEnCarro(nuevo, escrito.carro) };
+  return { resultado: "carro_lleno", total: totalDelCarro(escrito.carro), faltan: faltanEnCarro(nuevo, escrito.carro), carro: escrito.carro };
 }
