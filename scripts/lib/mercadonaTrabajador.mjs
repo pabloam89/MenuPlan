@@ -50,12 +50,13 @@ async function hastaLaLista(pagina, lista) {
 }
 
 /**
- * El carro, con su propio tope: lo que lance aquí se cuenta como carro sin llenar y no llega a `unaVuelta`, que
- * cerraría el encargo como `error` y perdería el `lista_xid` de una lista que ya está.
+ * El carro, con lo que quede del tope del encargo (`quedaMs`): lista y carro juntos nunca pasan de TOPE_ENCARGO_MS.
+ * Lo que lance aquí, o se pase de tiempo, se cuenta como carro sin llenar y no llega a `unaVuelta`, que cerraría el
+ * encargo como `error` y perdería el `lista_xid` de una lista que ya está.
  */
-async function alCarro(pagina, lista, topeMs, log) {
+async function alCarro(pagina, lista, quedaMs, log) {
   try {
-    return resultadoDeCarro(await conTope(llenarCarro(pagina, lista), topeMs));
+    return resultadoDeCarro(await conTope(llenarCarro(pagina, lista), quedaMs));
   } catch (e) {
     log(`carro: ${e.name}`);
     return { lleno: false, motivo: "error" };
@@ -75,7 +76,7 @@ function conTope(promesa, ms) {
  * @param {{ encargo: { id: string, lista: object }, sesion_cifrada: string, llega_hasta?: string }} siguiente  sin `llega_hasta`, solo la lista
  * @param {{ abrirSesion: (sello: string) => Promise<string>, abrirNavegador: (estado: object) => Promise<{ pagina: object, cerrar: () => Promise<void> }> }} d
  */
-export async function atender({ encargo, sesion_cifrada, llega_hasta }, { abrirSesion, abrirNavegador, log = () => {}, topeMs = TOPE_ENCARGO_MS }) {
+export async function atender({ encargo, sesion_cifrada, llega_hasta }, { abrirSesion, abrirNavegador, log = () => {}, topeMs = TOPE_ENCARGO_MS, ahora = Date.now }) {
   if (erroresDeLista(encargo.lista).length) return { fallo: FALLO.LISTA_NO_VALIDA };
   let estado;
   try {
@@ -88,10 +89,11 @@ export async function atender({ encargo, sesion_cifrada, llega_hasta }, { abrirS
   }
   const { pagina, cerrar } = await abrirNavegador(estado);
   try {
+    const fin = ahora() + topeMs;
     const hecho = await conTope(hastaLaLista(pagina, encargo.lista), topeMs);
     // Sin la lista no se toca el carro; y solo si la casa ha encendido «Reservar» o «Pagar».
     if (hecho.fallo || !llegaA(llega_hasta, LLEGA_HASTA.RESERVAR)) return hecho;
-    return { ...hecho, carro: await alCarro(pagina, encargo.lista, topeMs, log) };
+    return { ...hecho, carro: await alCarro(pagina, encargo.lista, Math.max(0, fin - ahora()), log) };
   } finally {
     await cerrar();
   }

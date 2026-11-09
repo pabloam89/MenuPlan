@@ -159,6 +159,24 @@ describe("el carro no se lleva la lista por delante", () => {
     expect(await atender(encargo("reservar"), { ...dep(p), topeMs: 20 })).toMatchObject({ lista_xid: "7", carro: { lleno: false, motivo: "error" } });
   });
 
+  it("el carro solo tiene lo que le queda del tope del encargo, no otro entero", async () => {
+    // Reloj falso: la lista se come 80 de los 100 ms; al carro le quedan 20, y un carro que no acaba se corta ahí.
+    let t = 0;
+    const p = pagina();
+    const evaluar = p.evaluate;
+    p.evaluate = vi.fn((f, orden) => {
+      if (orden && "carro" in orden) return new Promise(() => {});
+      if (orden?.products) t = 80;
+      return evaluar(f, orden);
+    });
+    const relojes = vi.spyOn(globalThis, "setTimeout");
+    const r = await atender(encargo("reservar"), { ...dep(p), topeMs: 100, ahora: () => t });
+    expect(r).toMatchObject({ lista_xid: "7", carro: { lleno: false, motivo: "error" } });
+    // Dos topes: el de la lista (100) y el del carro, con lo que quedaba (20).
+    expect(relojes.mock.calls.map((c) => c[1]).filter((ms) => ms === 100 || ms === 20)).toEqual([100, 20]);
+    relojes.mockRestore();
+  });
+
   it("un carro lleno al que le faltan productos no sale como lleno a secas en el log", async () => {
     const log = vi.fn();
     const api = { tomar: async () => encargo("reservar"), cerrar: vi.fn(async () => {}) };
