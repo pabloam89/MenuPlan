@@ -205,14 +205,11 @@ export async function tomar() {
  */
 /**
  * Apunta lo que el trabajador vio en la cuenta (0133): `tiene_direccion`, `tiene_pago` y cuándo. Solo la cuenta que
- * sigue conectada: si se ha caducado o la han quitado, no hay nada que apuntar. Sin la 0133 (42703), no apunta nada.
+ * sigue conectada: si se ha caducado o la han quitado, no hay nada que apuntar. La 0133 ya está aplicada (9 nov 2026):
+ * sin plan B, un fallo lanza.
  */
 export async function apuntarRevision(casa, { tiene_direccion, tiene_pago }, cuando) {
-  try {
-    await update("mercadona_cuenta", `household_id=${eq(casa)}&estado=eq.${ESTADO_CUENTA_MERCADONA.CONECTADA}`, { tiene_direccion, tiene_pago, revisada_at: cuando });
-  } catch (e) {
-    if (e?.codigo !== PG_SIN_COLUMNA) throw e; // a propósito: sin la 0133 no hay dónde apuntarlo; otro fallo, se relanza
-  }
+  await update("mercadona_cuenta", `household_id=${eq(casa)}&estado=eq.${ESTADO_CUENTA_MERCADONA.CONECTADA}`, { tiene_direccion, tiene_pago, revisada_at: cuando });
 }
 
 export async function cerrar(id, resultado, ahora = Date.now()) {

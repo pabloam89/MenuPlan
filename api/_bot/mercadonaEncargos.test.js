@@ -219,10 +219,9 @@ describe("tomar y cerrar", () => {
     expect(cambios).toEqual({ tiene_direccion: true, tiene_pago: false, revisada_at: "2026-11-08T22:00:00.000Z" });
   });
 
-  it("sin la 0133 (42703) no apunta la revisión y cierra igual; otro fallo lanza", async () => {
-    db.encargo = [EN_MARCHA];
+  it("un fallo al apuntar la revisión no se traga, tampoco un 42703: la 0133 ya está aplicada", async () => {
     update.mockRejectedValueOnce(error("42703"));
-    expect(await m.cerrar("e1", { lista_xid: 77, entraron: 1, faltan: [], revision: { tiene_direccion: true, tiene_pago: true } })).toBe(true);
+    await expect(m.apuntarRevision("c1", { tiene_direccion: true, tiene_pago: true }, "x")).rejects.toThrow("x");
     update.mockRejectedValueOnce(error("57014"));
     await expect(m.apuntarRevision("c1", { tiene_direccion: true, tiene_pago: true }, "x")).rejects.toThrow("x");
   });
