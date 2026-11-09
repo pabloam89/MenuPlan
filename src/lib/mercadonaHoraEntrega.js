@@ -2,22 +2,15 @@
  * Las horas de entrega de Mercadona (0134, trozo 20 de #1407): una hora de entrega libre, tal como la da su web
  * (`{ id, start, end, price, available, open, timezone }`, `.claude/skills/mercadona/referencias/pedido.md`,
  * «Horas de entrega»). En lo que se ve se dice «hora de entrega»; `hora_entrega`, en el código y los datos. Lo leen la app, Lola y el
- * servidor. El trabajador no la importa (su contenedor solo lleva lo suyo): elige las suyas en scripts/lib.
+ * servidor. La forma y el tope viven en mercadonaHoraEntregaForma.js, que el trabajador también lleva.
  */
 import { MESES_CORTOS, momentoDeCasa, nombreDia } from "./dias.js";
 import { FALLO_ENCARGO_MERCADONA } from "./mercadonaFallos.js";
 import { formatEuro } from "./euros.js";
 
-/** Lo que admite la 0134 en `horas_entrega`: de 1 a 4. Quién elige cuáles es el trabajador (scripts/lib). */
-export const TOPE_HORAS_ENTREGA = 4;
+import { TOPE_HORAS_ENTREGA, esHoraEntrega } from "./mercadonaHoraEntregaForma.js";
 
-/** Pura. ¿Tiene forma de hora de entrega de Mercadona? Un id y dos fechas que se leen, la de fin después de la de inicio. */
-export function esHoraEntrega(f) {
-  if (!f || typeof f !== "object" || Array.isArray(f) || f.id == null || String(f.id) === "") return false;
-  const desde = new Date(f.start).getTime();
-  const hasta = new Date(f.end).getTime();
-  return Number.isFinite(desde) && Number.isFinite(hasta) && hasta > desde;
-}
+export { TOPE_HORAS_ENTREGA, esHoraEntrega };
 
 /** Pura. ¿Lo que el trabajador dice del pedido tiene la forma que guarda la 0134? */
 export function esPedido(p) {
