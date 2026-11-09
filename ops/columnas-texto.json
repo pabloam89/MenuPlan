@@ -629,6 +629,10 @@
       "class": "excluded",
       "reason": "La sesión sellada de Mercadona: un secreto opaco, ni vocabulario ni texto de nadie"
     },
+    "mercadona_cuenta.telefono_sellado": {
+      "class": "excluded",
+      "reason": "El teléfono para el pedido, sellado como la sesión (0133): un secreto opaco que solo abre el trabajador"
+    },
     "mercadona_encargo.chat_id": {
       "class": "identifier",
       "reason": "Id de chat del canal de mensajería, lo da Telegram o WhatsApp"
