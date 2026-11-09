@@ -124,7 +124,7 @@ export function AjustesMercadona({ m, encendido = false }) {
           <ToggleSwitch checked={false} disabled ariaLabel={AJUSTE_MERCADONA.PAGAR} onChange={() => {}} />
         </Fila>
       </div>
-      {entrando && !m.conectada && <Conectar caducada={m.caducada} />}
+      {entrando && !m.conectada && <Conectar caducada={m.caducada} casa={m.casa} alEntrar={m.recargar} />}
       {lineas.map((l) => <p key={l} style={TEXTO}>{l}</p>)}
       {!sinMirar && falta.includes(FALTA_MERCADONA.TELEFONO) && <PedirTelefono guardar={conTelefono} />}
       {m.aviso && <p style={TEXTO}>{m.aviso}</p>}

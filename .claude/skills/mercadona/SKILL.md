@@ -46,8 +46,11 @@ banco, y el bot no puede cerrarlo solo.
   `specs/plan-comprar-mercadona.md` propone cambiar esta regla.
 - **Sin disfraces.** Ni ocultar que es automático, ni cambiar huella o IP, ni
   repartir cuentas entre servidores, ni esquivar captchas. Si bloquean, se para y
-  se cuenta: ese es el resultado. El trozo 6 del plan propone una excepción (la
-  página de entrada en versión de ordenador).
+  se cuenta: ese es el resultado. **Una excepción** (Pablo, 8 nov 2026; trozo 8
+  del plan): en la app, la página de entrada de Mercadona se abre en versión de
+  ordenador (`UA_ORDENADOR` de `src/lib/mercadonaEntrarApp.js`), porque en un
+  teléfono manda a descargar su app. Solo esa página, la abre la persona y entra
+  ella; el trabajador no cambia.
 - **La contraseña, nunca por el chat y nunca guardada.** La escribe la persona en
   la página de Mercadona. Se guarda la sesión, no la contraseña: ni en el servidor
   ni en el móvil. Volver a entrar pide el captcha, así que guardarla no serviría.
