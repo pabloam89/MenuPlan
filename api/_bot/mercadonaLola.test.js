@@ -6,7 +6,7 @@ vi.mock("./menu.js", async () => {
   const { priceShoppingList } = await import("../../src/lib/listPricing.js");
   return { lineasPorComprar: vi.fn(async () => prueba.items), motor: async () => ({ fijarCatalogo, priceShoppingList }) };
 });
-vi.mock("./mercadonaEncargos.js", () => ({ encargar: vi.fn(async () => prueba.encargo) }));
+vi.mock("./mercadonaEncargos.js", async (original) => ({ ...(await original()), encargar: vi.fn(async () => prueba.encargo) }));
 
 const { TEXTO_SIN_ENCARGO, pasarAMercadona } = await import("./mercadonaLola.js");
 const { encargar } = await import("./mercadonaEncargos.js");

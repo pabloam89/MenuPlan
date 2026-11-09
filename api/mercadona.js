@@ -7,10 +7,12 @@
  *   POST { casa, encargar: { lista } }         { encargo } o { fallo }; quien edita la casa
  *   POST { casa, conectar: { sesion_cifrada } }  guarda la sesión ya sellada en el navegador; quien edita la casa
  *   POST { casa, desconectar: true }           borra la sesión; quien edita la casa
+ *   POST { casa, elegir: { encargo, hora_id } }  la hora de entrega, una de las ofrecidas (0134); quien edita la casa
  *
  * El trabajador, con MERCADONA_TRABAJADOR_TOKEN, que solo vale aquí (?trabajador=1):
- *   POST { accion: "tomar" }                   { siguiente: { encargo, sesion_cifrada } | null }
- *   POST { accion: "cerrar", id, resultado }   { cerrado }; repetirlo no hace nada dos veces
+ *   POST { accion: "tomar" }                   { siguiente: { encargo, sesion_cifrada, … } | null }
+ *   POST { accion: "tomar_reserva" }           { siguiente: { reserva, sesion_cifrada, telefono_sellado } | null } (0134)
+ *   POST { accion: "cerrar", id, resultado }   { cerrado }; de rellenar o de reservar; repetirlo no hace nada dos veces
  *
  * El trabajador no tiene acceso a la base: ve solo lo que le da este endpoint. Esta función nunca abre la sesión:
  * la clave para abrirla vive solo en el servidor del trabajador.
@@ -19,9 +21,10 @@ import { timingSafeEqual } from "node:crypto";
 import { cors, blocked } from "./_guard.js";
 import { usuarioDeToken } from "./_bot/db.js";
 import { papelDeUsuario } from "./_bot/papel.js";
-import { cambiarLlegaHasta, casaPermitida, cerrar, conectar, contarFallo, desconectar, encargar, estadoDeCasa, guardarTelefono, PeticionMala, tomar } from "./_bot/mercadonaEncargos.js";
+import { cambiarLlegaHasta, casaPermitida, cerrar, conectar, contarFallo, desconectar, elegirHoraEntrega, encargar, estadoDeCasa, guardarTelefono, PeticionMala, tomar, tomarReserva } from "./_bot/mercadonaEncargos.js";
 import { FALLOS_ENCARGO_MERCADONA } from "../src/lib/vocabularios.js";
 import { esRevision } from "../src/lib/mercadonaLlegaHasta.js";
+import { esPedido } from "../src/lib/mercadonaHoraEntrega.js";
 import { puede } from "../src/lib/papeles.js";
 import * as ids from "../src/lib/ids.js";
 
@@ -40,20 +43,30 @@ async function trabajador(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
   const { accion, id, resultado } = req.body ?? {};
   if (accion === "tomar") return res.status(200).json({ siguiente: await tomar() });
+  if (accion === "tomar_reserva") return res.status(200).json({ siguiente: await tomarReserva() });
   if (accion !== "cerrar" || !ids.operacion.esNuevo(id) || !resultadoValido(resultado)) {
     return res.status(400).json({ error: "petición no válida" });
   }
   return res.status(200).json({ cerrado: await cerrar(id, resultado) });
 }
 
-function resultadoValido(r) {
-  // La revisión de la cuenta viaja con el cierre, sea cual sea el resultado; si viene, con su forma exacta.
-  if (r?.revision !== undefined && !esRevision(r.revision)) return false;
-  if (r?.fallo !== undefined) return FALLOS_ENCARGO_MERCADONA.includes(r.fallo);
-  if (!r?.lista_xid) return false;
-  // Sin releer la lista no se sabe qué entró: los dos null, y no a medias.
+/** La lista que trae el cierre: sin releerla no se sabe qué entró, y entonces los dos null, no a medias. */
+function listaValida(r) {
+  if (!r.lista_xid) return false;
   if (r.entraron === null && r.faltan === null) return true;
   return Number.isInteger(r.entraron) && r.entraron >= 0 && Array.isArray(r.faltan);
+}
+
+const esInstante = (v) => typeof v === "string" && Number.isFinite(new Date(v).getTime());
+
+function resultadoValido(r) {
+  if (!r || typeof r !== "object") return false;
+  // La revisión de la cuenta viaja con el cierre, sea cual sea el resultado; si viene, con su forma exacta.
+  if (r.revision !== undefined && !esRevision(r.revision)) return false;
+  if (r.fallo !== undefined) return FALLOS_ENCARGO_MERCADONA.includes(r.fallo) && (r.lista_xid === undefined || listaValida(r));
+  // Reservada la hora (0134): solo hasta cuándo se puede cambiar el pedido, si Mercadona lo dijo.
+  if (r.cambiable_hasta !== undefined) return r.lista_xid === undefined && (r.cambiable_hasta === null || esInstante(r.cambiable_hasta));
+  return listaValida(r) && (r.pedido === undefined || esPedido(r.pedido));
 }
 
 async function app(req, res) {
@@ -71,7 +84,8 @@ async function app(req, res) {
     return res.status(200).json({ ...estado, clave_publica: process.env.MERCADONA_CLAVE_PUBLICA ?? null });
   }
   if (!puede(papel, "editar_casa")) return res.status(403).json({ error: "sin permiso" });
-  const { encargar: pedido, conectar: conexion, desconectar: quitar, llega_hasta, telefono } = req.body;
+  const { encargar: pedido, conectar: conexion, desconectar: quitar, llega_hasta, telefono, elegir } = req.body;
+  if (elegir) return res.status(200).json(await elegirHoraEntrega({ casa, encargo: elegir.encargo, hora_id: elegir.hora_id }));
   if (pedido) return res.status(200).json(await encargar({ casa, por: user.id, canal: "app", lista: pedido.lista }));
   // Desconectar no pasa por esta puerta: una casa fuera de la lista tiene que poder borrar su sesión.
   if (conexion && !casaPermitida(casa)) return res.status(403).json({ error: "sin permiso" });
