@@ -97,19 +97,24 @@ export async function barrerCaducados({ casa = null, ahora = Date.now() } = {}) 
   }
 }
 
+/** Las columnas de la 0133 en `mercadona_cuenta`. */
+const DE_LA_0133 = ["llega_hasta", "revisada_at", "tiene_direccion", "tiene_pago", "telefono_sellado"];
 /** Lo de la cuenta que se enseña (0133): sin la sesión ni el teléfono, solo si lo hay. */
-const DE_LA_CUENTA = "estado,llega_hasta,revisada_at,tiene_direccion,tiene_pago,telefono_sellado";
+const DE_LA_CUENTA = ["estado", ...DE_LA_0133].join(",");
+/** Falta una columna de la 0133 (aún sin aplicar): PostgREST (PGRST204) o Postgres (42703) la nombran. Otra, no. */
+const sinLa0133 = (e) => [PG_SIN_COLUMNA, "PGRST204"].includes(e?.codigo) && DE_LA_0133.some((c) => String(e?.message ?? "").includes(c));
 
 /**
- * La cuenta de la casa, o undefined. Sin las columnas de la 0133 (42703), solo `estado`: el resto sale como una fila de
- * antes, `lista` y sin mirar. Otro fallo, lanza.
+ * La cuenta de la casa, o undefined. Sin las columnas de la 0133 (42703 que nombra una de ellas), solo `estado`, y lo
+ * registra: el resto sale como una fila de antes, `lista` y sin mirar. Otro fallo, también otra columna que falte, lanza.
  */
 async function leerCuenta(casa) {
   try {
     const [cuenta] = await select("mercadona_cuenta", `household_id=${eq(casa)}`, DE_LA_CUENTA);
     return cuenta;
   } catch (e) {
-    if (e?.codigo !== PG_SIN_COLUMNA) throw e;
+    if (!sinLa0133(e)) throw e;
+    console.warn("mercadona: sin la 0133, la cuenta se lee como antes (lista y sin mirar):", e.message);
     const [cuenta] = await select("mercadona_cuenta", `household_id=${eq(casa)}`, "estado"); // a propósito: plan B de la 0133
     return cuenta;
   }
