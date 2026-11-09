@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 import { enPaginaPedido, horasParaOfrecer, pedirHorasEntrega, reservarHoraEntrega } from "./lib/mercadonaPedido.mjs";
 import { atenderReserva, unaVuelta } from "./lib/mercadonaTrabajador.mjs";
 import { PEDIDO_MINIMO_MERCADONA } from "../src/lib/mercadonaLista.js";
+import { TOPE_HORAS_ENTREGA, esPedido } from "../src/lib/mercadonaHoraEntrega.js";
 
 // Como las de pedido.md, «Horas de entrega», con datos inventados.
 const hora_entrega = (n, o = {}) => ({ id: `f${n}`, start: `2026-11-1${n}T14:00:00Z`, end: `2026-11-1${n}T15:00:00Z`, price: "7.21", available: true, open: true, timezone: "Europe/Madrid", ...o });
@@ -17,6 +18,9 @@ describe("horasParaOfrecer", () => {
     expect(r.map((f) => f.id)).toEqual(["f3", "f4", "f5", "f6"]);
     expect(Object.keys(r[0]).sort()).toEqual(["available", "end", "id", "open", "price", "start", "timezone"]);
     expect(horasParaOfrecer([{ ...hora_entrega(8), extra: "x" }])[0]).not.toHaveProperty("extra");
+    // El tope es el mismo con el que el servidor acepta el pedido (esPedido): lo que se ofrece siempre se guarda.
+    expect(r).toHaveLength(TOPE_HORAS_ENTREGA);
+    expect(esPedido({ pedido_xid: "p9", total: 64.1, horas_entrega: r })).toBe(true);
   });
 
   it("lo que no se lee como hora_entrega no se ofrece", () => {
@@ -48,6 +52,7 @@ describe("pedirHorasEntrega", () => {
     [{ paso: "crear_pedido", status: 500 }, "error"],
     [{ paso: "sin_direccion", status: 201, pedido_xid: "p9" }, "sin_direccion"],
     [{ paso: "horas_entrega", status: 503, pedido_xid: "p9" }, "error"],
+    [{ paso: "horas_entrega", status: 200, pedido_xid: "p9", horas_entrega: null }, "error"],
     [{ paso: "horas_entrega", status: 200, pedido_xid: "p9", horas_entrega: [hora_entrega(3, { available: false })] }, "sin_horas"],
   ])("%j → %s", async (r, fallo) => {
     expect(await pedirHorasEntrega(pagina(r), CARRO)).toEqual({ fallo });
@@ -74,6 +79,7 @@ describe("reservarHoraEntrega", () => {
     const p = pagina({ paso: "reservado", status: 200, cambiable_hasta: null, telefono: 400 });
     expect(await reservarHoraEntrega(p, { pedido_xid: "p9", hora_entrega: hora_entrega(3), telefono: TELEFONO }, log)).toEqual({ cambiable_hasta: null });
     expect(log).toHaveBeenCalledWith("teléfono sin poner: 400");
+    expect(log).toHaveBeenCalledWith("reservada sin cambiable_hasta legible");
   });
 });
 
@@ -82,6 +88,20 @@ describe("en la página", () => {
     const codigo = readFileSync(new URL("./lib/mercadonaPedido.mjs", import.meta.url), "utf8");
     expect(codigo).not.toMatch(/confirm\//);
     expect(enPaginaPedido.toString()).not.toMatch(/confirm/);
+  });
+
+  it("un 200 sin la lista de horas no es «no hay horas»: va como null", async () => {
+    const respuestas = [
+      { ok: true, status: 201, json: async () => ({ id: 9, address: { id: 3 }, summary: { total: "64.10" } }) },
+      { ok: true, status: 200, json: async () => ({ otra: "forma" }) },
+    ];
+    vi.stubGlobal("localStorage", { getItem: () => JSON.stringify({ token: "t", uuid: "u" }) });
+    vi.stubGlobal("fetch", vi.fn(async () => respuestas.shift()));
+    try {
+      expect((await enPaginaPedido({ crear: CARRO })).horas_entrega).toBeNull();
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });
 

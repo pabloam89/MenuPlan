@@ -10,16 +10,15 @@
 import { totalDelCarro } from "./mercadonaCarro.mjs";
 import { PEDIDO_MINIMO_MERCADONA } from "../../src/lib/mercadonaLista.js";
 import { FALLO_ENCARGO_MERCADONA as FALLO } from "../../src/lib/mercadonaFallos.js";
+import { TOPE_HORAS_ENTREGA, esHoraEntrega } from "../../src/lib/mercadonaHoraEntregaForma.js";
 
-/** Cuántas se ofrecen: las primeras libres, para elegir sin agobiar. El tope de la 0134 es 4. */
-export const HORAS_QUE_SE_OFRECEN = 4;
 
 /** Lo que se guarda de cada hora de entrega: lo que Mercadona pide de vuelta para reservarla, nada más. */
 const CAMPOS_HORA = ["id", "start", "end", "price", "available", "open", "timezone"];
 
 /** Pura. Las que se ofrecen de las que da Mercadona: solo las libres, por orden de hora, como mucho cuatro. */
-export function horasParaOfrecer(todas, cuantas = HORAS_QUE_SE_OFRECEN) {
-  const sePuede = (f) => f && f.id != null && f.available === true && Number.isFinite(Date.parse(f.start)) && Date.parse(f.end) > Date.parse(f.start);
+export function horasParaOfrecer(todas, cuantas = TOPE_HORAS_ENTREGA) {
+  const sePuede = (f) => esHoraEntrega(f) && f.available === true;
   return (Array.isArray(todas) ? todas : [])
     .filter(sePuede)
     .sort((a, b) => Date.parse(a.start) - Date.parse(b.start))
@@ -29,7 +28,7 @@ export function horasParaOfrecer(todas, cuantas = HORAS_QUE_SE_OFRECEN) {
 
 // Corre dentro de su página, como enPagina (mercadonaPagina.mjs): la sesión y la dirección no salen de ahí.
 //   { crear: carro }                     crea el pedido y pide las horas de entrega de su dirección
-//   { reservar: { pedido, hora de entrega, telefono } }  reserva la hora de entrega con la dirección del pedido, y pone el teléfono
+//   { reservar: { pedido, hora_entrega, telefono } }  reserva la hora de entrega con la dirección del pedido, y pone el teléfono
 export const enPaginaPedido = async (orden) => {
   let u = null;
   try {
@@ -52,8 +51,9 @@ export const enPaginaPedido = async (orden) => {
     if (direccion == null) return { paso: "sin_direccion", status: c.status, pedido_xid: String(pedido.id), summary: pedido.summary ?? null };
     const f = await pedir(`addresses/${direccion}/slots/`);
     if (!f.ok) return { paso: "horas_entrega", status: f.status, pedido_xid: String(pedido.id), summary: pedido.summary ?? null };
+    // Un 200 sin la lista no es «no hay horas»: va como null, y pedirHorasEntrega lo cuenta como error.
     const { results } = await f.json();
-    return { paso: "horas_entrega", status: f.status, pedido_xid: String(pedido.id), summary: pedido.summary ?? null, horas_entrega: results ?? [] };
+    return { paso: "horas_entrega", status: f.status, pedido_xid: String(pedido.id), summary: pedido.summary ?? null, horas_entrega: Array.isArray(results) ? results : null };
   }
 
   const { pedido, hora_entrega, telefono } = orden.reservar;
@@ -101,5 +101,10 @@ export async function reservarHoraEntrega(pagina, { pedido_xid, hora_entrega, te
   if (r.paso === "reservar" && [400, 409, 422].includes(r.status)) return { fallo: FALLO.HORA_OCUPADA };
   if (r.paso !== "reservado") return { fallo: falloDe(r.status) };
   if (telefono && !(r.telefono >= 200 && r.telefono < 300)) log(`teléfono sin poner: ${r.telefono}`);
-  return { cambiable_hasta: Number.isFinite(Date.parse(r.cambiable_hasta)) ? new Date(r.cambiable_hasta).toISOString() : null };
+  // La reserva ya está hecha en Mercadona: sin hasta cuándo se cambia se cierra igual (el aviso lo calla), pero se dice.
+  if (!Number.isFinite(Date.parse(r.cambiable_hasta))) {
+    log("reservada sin cambiable_hasta legible");
+    return { cambiable_hasta: null };
+  }
+  return { cambiable_hasta: new Date(r.cambiable_hasta).toISOString() };
 }
