@@ -123,7 +123,7 @@ export async function atender({ encargo, sesion_cifrada, llega_hasta }, { abrirS
 /**
  * Atiende una reserva (0134): la hora que eligió la persona, en el pedido que ya está a medias en Mercadona, y el
  * teléfono que pide el repartidor, abierto del sello con la misma clave que la sesión. `{ cambiable_hasta }` o `{ fallo }`.
- * @param {{ reserva: { id: string, pedido_xid: string, hora de entrega: object }, sesion_cifrada: string, telefono_sellado: string|null }} siguiente
+ * @param {{ reserva: { id: string, pedido_xid: string, hora_entrega: object }, sesion_cifrada: string, telefono_sellado: string|null }} siguiente
  */
 export async function atenderReserva({ reserva, sesion_cifrada, telefono_sellado }, { abrirSesion, abrirNavegador, log = () => {}, topeMs = TOPE_ENCARGO_MS }) {
   let estado;

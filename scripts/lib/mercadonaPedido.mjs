@@ -73,7 +73,7 @@ const falloDe = (status) => (status === 401 ? FALLO.SESION_CADUCADA : status ===
 
 /**
  * Tras el carro, el pedido y sus horas de entrega. Lo que se suma al cierre de la lista: `{ pedido: { pedido_xid, total,
- * horas de entrega } }` o `{ fallo }` (la lista ya está: el servidor la guarda igual, 0134). Por debajo del mínimo no se
+ * horas_entrega } }` o `{ fallo }` (la lista ya está: el servidor la guarda igual, 0134). Por debajo del mínimo no se
  * tramita: Mercadona no deja, y crear un pedido a medias que no sirve deja basura en la cuenta.
  * @param {{ id, version, lines, summary }} carro el que devolvió Mercadona al escribirlo
  */
