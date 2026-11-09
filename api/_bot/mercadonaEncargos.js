@@ -269,3 +269,15 @@ export async function cambiarLlegaHasta({ casa, llega_hasta }, ahora = Date.now(
   if (!filas?.length) return { fallo: NO_ENCARGADO.SIN_CUENTA }; // se desconectó entre medias
   return { llega_hasta };
 }
+
+/**
+ * Guarda el teléfono del pedido, ya sellado (src/lib/mercadonaTelefono.js): aquí nunca llega en claro. Devuelve
+ * `{ guardado: true }` o `{ fallo }` (NO_ENCARGADO).
+ */
+export async function guardarTelefono({ casa, telefono_sellado }) {
+  const valido = typeof telefono_sellado === "string" && telefono_sellado.length <= TOPE_SESION && esSello(telefono_sellado);
+  if (!valido) throw new PeticionMala("teléfono no sellado");
+  if (!casaPermitida(casa)) return { fallo: NO_ENCARGADO.SIN_SERVICIO };
+  const filas = await update("mercadona_cuenta", `household_id=${eq(casa)}`, { telefono_sellado });
+  return filas?.length ? { guardado: true } : { fallo: NO_ENCARGADO.SIN_CUENTA };
+}
