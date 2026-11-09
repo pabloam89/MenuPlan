@@ -2,7 +2,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { faltanEnCarro, sumarAlCarro, totalDelCarro } from "./lib/mercadonaCarro.mjs";
 import { llenarCarro } from "./lib/mercadonaPagina.mjs";
-import { atender, resultadoDeCarro } from "./lib/mercadonaTrabajador.mjs";
+import { atender, resultadoDeCarro, unaVuelta } from "./lib/mercadonaTrabajador.mjs";
 
 // Un carro como el que devuelve `GET …/cart/` (pedido.md, «Carrito»), con datos inventados.
 const CARRO = {
@@ -119,6 +119,23 @@ describe("atender: hasta dónde llega", () => {
   it("un carro que falla no tumba la lista, que ya está", async () => {
     const p = pagina({ leer: { paso: "leer_carro", status: 403, carro: null } });
     expect(await atender(encargo("reservar"), dep(p))).toEqual({ lista_xid: "7", entraron: 2, faltan: [], carro: { lleno: false, motivo: "bloqueado" } });
+  });
+});
+
+describe("unaVuelta: el carro, en el log", () => {
+  it("un carro que falla se ve en el log, no sale como «hecho» a secas", async () => {
+    const log = vi.fn();
+    const api = { tomar: async () => encargo("reservar"), cerrar: vi.fn(async () => {}) };
+    const p = pagina({ leer: { paso: "leer_carro", status: 403, carro: null } });
+    expect(await unaVuelta({ api, log, entreCierresMs: 0, ...dep(p) })).toBe(true);
+    expect(log).toHaveBeenCalledWith("encargo e1: hecho, carro sin llenar: bloqueado");
+  });
+
+  it("un carro lleno también se dice", async () => {
+    const log = vi.fn();
+    const api = { tomar: async () => encargo("reservar"), cerrar: vi.fn(async () => {}) };
+    await unaVuelta({ api, log, entreCierresMs: 0, ...dep(pagina()) });
+    expect(log).toHaveBeenCalledWith("encargo e1: hecho, carro lleno");
   });
 });
 

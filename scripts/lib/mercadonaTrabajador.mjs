@@ -104,7 +104,9 @@ export async function unaVuelta({ api, log, dormir = esperar, entreCierresMs = E
     log(`encargo ${id}: ${e.name}`);
     resultado = { fallo: FALLO.ERROR };
   }
-  log(`encargo ${id}: ${resultado.fallo ?? "hecho"}`);
+  // El carro aún no se guarda (la API lo ignora hasta el trozo 22): que al menos un carro que falla se vea en el log.
+  const carro = !resultado.carro ? "" : resultado.carro.lleno ? ", carro lleno" : `, carro sin llenar: ${resultado.carro.motivo}`;
+  log(`encargo ${id}: ${resultado.fallo ?? "hecho"}${carro}`);
   // Una lista ya creada no se pierde por un corte: cerrar se puede repetir sin hacer nada dos veces.
   for (let intento = 1; ; intento++) {
     try {
