@@ -126,8 +126,7 @@ const DECLARADAS = [
       { campo: "id", plano: "identidad", cobertura_min: 100 },
       { campo: "name", plano: "identidad", cobertura_min: 100 },
       { campo: "aliases", plano: "identidad", cobertura_min: 46, nota: "vacío = sin variantes en el catálogo, no es hueco" },
-      { campo: "aisle", plano: "identidad", cobertura_min: 100, nota: "el nodo de identidad más usado: pasillo del súper" },
-      { campo: "category", plano: "identidad", cobertura_min: 100 },
+      { campo: "aisle", plano: "identidad", cobertura_min: 100, nota: "el nodo de identidad más usado: pasillo del súper. La categoría (seis grupos) sale de aquí, de CATEGORIA_DE_PASILLO en src/lib/ingredientCategories.js; no se guarda" },
       { campo: "allergens", plano: "identidad", cobertura_min: 38, nota: "vacío = sin alérgeno; el cruce con las recetas da 0 falsos vacíos" },
       // Vacío desde el 30 sep 2026 A PROPÓSITO: vino, vinagre y licores pasaron
       // sus sulfitos a `allergens` (decisión de Pablo: para una alergia, la
@@ -374,7 +373,7 @@ const DECLARADAS = [
     actualizacion: "release",
     procedencia: "decisión por ingrediente con el criterio de fondoDeArmarioSchema.js (aguanta meses, cada receta gasta un poco del envase, lo tiene casi cualquier casa), contrastado con guías de despensa (OCU y otras, en _doc.fuentes)",
     productor: [],
-    consumidores: ["src/lib/tipoDeCompra.js", "src/screens/Shopping.jsx (via tipoDeCompra)"],
+    consumidores: ["src/lib/tipoDeCompra.js", "src/screens/Shopping.jsx (via tipoDeCompra)", "src/lib/recetaConBases.js (vía tipoDeCompra.js)"],
     esquema: "src/data/fondoDeArmarioSchema.js",
     campos: [],
     nota: "Solo lista los de fondo de armario; el ingrediente que no está es de receta. La Compra los junta arriba, plegados.",

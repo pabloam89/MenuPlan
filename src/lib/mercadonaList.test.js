@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { enlaceDeLista, fichaMercadona, listaParaMercadona } from "./mercadonaList.js";
+import { PEDIDO_MINIMO_MERCADONA, enlaceDeLista, faltaParaMinimo, fichaMercadona, listaParaMercadona } from "./mercadonaList.js";
 
 const merca = (id, packs, precio = 1) => ({
   storeProductId: id,
@@ -121,5 +121,19 @@ describe("enlaceDeLista", () => {
 describe("fichaMercadona", () => {
   it("lleva a la ficha del producto, también con código con punto", () => {
     expect(fichaMercadona("82380.1")).toBe("https://tienda.mercadona.es/product/82380.1");
+  });
+});
+
+describe("pedido mínimo de Mercadona", () => {
+  it("son 60 € y dice cuánto falta, con céntimos", () => {
+    expect(PEDIDO_MINIMO_MERCADONA).toBe(60);
+    expect(faltaParaMinimo(47.6)).toBe(12.4);
+    expect(faltaParaMinimo(59.99)).toBe(0.01);
+  });
+
+  it("con 60 € o más no falta nada; sin total, falta todo", () => {
+    expect(faltaParaMinimo(60)).toBe(0);
+    expect(faltaParaMinimo(109.14)).toBe(0);
+    expect(faltaParaMinimo(undefined)).toBe(60);
   });
 });

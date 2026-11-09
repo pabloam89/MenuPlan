@@ -857,10 +857,7 @@ function round2(n) {
   return Math.round((Number(n) || 0) * 100) / 100;
 }
 
-export function formatEuro(n) {
-  const v = Number(n) || 0;
-  return `${v.toFixed(2).replace(".", ",")} €`;
-}
+export { formatEuro } from "./euros.js";
 
 /** Whole-euro formatting (no decimals) for headline numbers. */
 export function formatEuro0(n) {

@@ -4,7 +4,6 @@
     "name": "Aceite de sésamo",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Despensa",
     "allergens": [
       "sesamo"
     ],
@@ -20,7 +19,6 @@
     "name": "Aceite de girasol",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Despensa",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -40,7 +38,6 @@
       "Aceite de trufa"
     ],
     "aisle": "Aceites y conservas",
-    "category": "Despensa",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -54,7 +51,6 @@
     "name": "Aceite de oliva virgen extra",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Despensa",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -68,7 +64,6 @@
     "name": "Aceitunas",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [
       "sulfitos"
     ],
@@ -86,7 +81,6 @@
       "Aceitunas negras (kalamata)"
     ],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [
       "sulfitos"
     ],
@@ -102,7 +96,6 @@
     "name": "Acelgas",
     "aliases": [],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -118,7 +111,6 @@
       "Agua fría"
     ],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -132,7 +124,6 @@
     "name": "Aguacate",
     "aliases": [],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -150,7 +141,6 @@
     "name": "Ajetes",
     "aliases": [],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -164,7 +154,6 @@
     "name": "Ajetes tiernos",
     "aliases": [],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -178,7 +167,6 @@
     "name": "Ají amarillo",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -195,7 +183,6 @@
       "Ajo negro"
     ],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -219,7 +206,6 @@
     "name": "Ajo en polvo",
     "aliases": [],
     "aisle": "Especias",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -235,7 +221,6 @@
       "Albahaca"
     ],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -251,7 +236,6 @@
       "Alcachofa"
     ],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -269,7 +253,6 @@
     "name": "Corazones de alcachofa",
     "aliases": [],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [
       "sulfitos"
     ],
@@ -285,7 +268,6 @@
     "name": "Alcaparras",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [
       "sulfitos"
     ],
@@ -301,7 +283,6 @@
     "name": "Alga nori",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -315,7 +296,6 @@
     "name": "Alga wakame",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -329,7 +309,6 @@
     "name": "Alioli",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [
       "huevos"
     ],
@@ -348,7 +327,6 @@
     "name": "Alitas de pollo",
     "aliases": [],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -364,7 +342,6 @@
       "Almejas frescas"
     ],
     "aisle": "Pescado",
-    "category": "Carnes y pescados",
     "allergens": [
       "moluscos"
     ],
@@ -386,7 +363,6 @@
       "Almendras crudas"
     ],
     "aisle": "Aceites y conservas",
-    "category": "Despensa",
     "allergens": [
       "frutos_cascara"
     ],
@@ -406,7 +382,6 @@
       "Judiones secos"
     ],
     "aisle": "Legumbres",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -424,7 +399,6 @@
       "Alubias negras cocidas"
     ],
     "aisle": "Legumbres",
-    "category": "Legumbres y pasta",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -438,7 +412,6 @@
     "name": "Alubias rojas",
     "aliases": [],
     "aisle": "Legumbres",
-    "category": "Legumbres y pasta",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -455,7 +428,6 @@
       "Judías blancas secas"
     ],
     "aisle": "Legumbres",
-    "category": "Legumbres y pasta",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -472,7 +444,6 @@
       "Filetes de anchoa en aceite"
     ],
     "aisle": "Pescado",
-    "category": "Carnes y pescados",
     "allergens": [
       "pescado"
     ],
@@ -488,7 +459,6 @@
     "name": "Apio",
     "aliases": [],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [
       "apio"
     ],
@@ -508,7 +478,6 @@
     "name": "Apionabo",
     "aliases": [],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [
       "apio"
     ],
@@ -524,7 +493,6 @@
     "name": "Arándanos",
     "aliases": [],
     "aisle": "Frutas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -543,7 +511,6 @@
       "Arroz sushi"
     ],
     "aisle": "Pasta y arroz",
-    "category": "Legumbres y pasta",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -557,7 +524,6 @@
     "name": "Arroz arborio",
     "aliases": [],
     "aisle": "Pasta y arroz",
-    "category": "Legumbres y pasta",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -571,7 +537,6 @@
     "name": "Arroz bomba",
     "aliases": [],
     "aisle": "Pasta y arroz",
-    "category": "Legumbres y pasta",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -585,7 +550,6 @@
     "name": "Arroz cocido",
     "aliases": [],
     "aisle": "Pasta y arroz",
-    "category": "Legumbres y pasta",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -601,7 +565,6 @@
       "Atún en aceite de oliva"
     ],
     "aisle": "Pescado",
-    "category": "Carnes y pescados",
     "allergens": [
       "pescado"
     ],
@@ -624,7 +587,6 @@
       "Atún rojo fresco de calidad sashimi"
     ],
     "aisle": "Pescado",
-    "category": "Carnes y pescados",
     "allergens": [
       "pescado"
     ],
@@ -643,7 +605,6 @@
       "Atún en lata"
     ],
     "aisle": "Pescado",
-    "category": "Carnes y pescados",
     "allergens": [
       "pescado"
     ],
@@ -662,7 +623,6 @@
       "Avellanas tostadas"
     ],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [
       "frutos_cascara"
     ],
@@ -678,7 +638,6 @@
     "name": "Copos de avena",
     "aliases": [],
     "aisle": "Panadería",
-    "category": "Panadería y cereales",
     "allergens": [
       "gluten"
     ],
@@ -697,7 +656,6 @@
       "Hebras de azafrán"
     ],
     "aisle": "Especias",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -711,7 +669,6 @@
     "name": "Azúcar",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Despensa",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -725,7 +682,6 @@
     "name": "Azúcar glas",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Despensa",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -739,7 +695,6 @@
     "name": "Azúcar moreno",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Despensa",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -762,7 +717,6 @@
       "Kokotxas de bacalao"
     ],
     "aisle": "Pescado",
-    "category": "Carnes y pescados",
     "allergens": [
       "pescado"
     ],
@@ -784,7 +738,6 @@
       "Beicon en lonchas"
     ],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -800,7 +753,6 @@
       "Pan de baguette en rebanadas"
     ],
     "aisle": "Panadería",
-    "category": "Panadería y cereales",
     "allergens": [
       "gluten"
     ],
@@ -819,7 +771,6 @@
     "name": "Bechamel",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [
       "gluten",
       "leche"
@@ -838,7 +789,6 @@
     "name": "Berberechos frescos",
     "aliases": [],
     "aisle": "Pescado",
-    "category": "Verduras y frutas",
     "allergens": [
       "moluscos"
     ],
@@ -854,7 +804,6 @@
     "name": "Berenjena",
     "aliases": [],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -872,7 +821,6 @@
     "name": "Bicarbonato",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -886,7 +834,6 @@
     "name": "Bizcochos de soletilla",
     "aliases": [],
     "aisle": "Panadería",
-    "category": "Verduras y frutas",
     "allergens": [
       "gluten"
     ],
@@ -906,7 +853,6 @@
     "name": "Bogavante",
     "aliases": [],
     "aisle": "Pescado",
-    "category": "Verduras y frutas",
     "allergens": [
       "crustaceos"
     ],
@@ -924,7 +870,6 @@
       "Boletus secos"
     ],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -938,7 +883,6 @@
     "name": "Boniato",
     "aliases": [],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -952,7 +896,6 @@
     "name": "Bonito en conserva",
     "aliases": [],
     "aisle": "Pescado",
-    "category": "Carnes y pescados",
     "allergens": [
       "pescado"
     ],
@@ -971,7 +914,6 @@
       "Lomo de bonito"
     ],
     "aisle": "Pescado",
-    "category": "Carnes y pescados",
     "allergens": [
       "pescado"
     ],
@@ -989,7 +931,6 @@
       "Boquerones frescos limpios en lomos"
     ],
     "aisle": "Pescado",
-    "category": "Carnes y pescados",
     "allergens": [
       "pescado"
     ],
@@ -1005,7 +946,6 @@
     "name": "Brandy",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [
       "sulfitos"
     ],
@@ -1023,7 +963,6 @@
     "name": "Brócoli",
     "aliases": [],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -1037,7 +976,6 @@
     "name": "Brotes tiernos",
     "aliases": [],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -1051,7 +989,6 @@
     "name": "Burrata",
     "aliases": [],
     "aisle": "Lácteos",
-    "category": "Verduras y frutas",
     "allergens": [
       "leche"
     ],
@@ -1067,7 +1004,6 @@
     "name": "Butifarra",
     "aliases": [],
     "aisle": "Carne",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -1084,7 +1020,6 @@
     "name": "Caballa",
     "aliases": [],
     "aisle": "Pescado",
-    "category": "Carnes y pescados",
     "allergens": [
       "pescado"
     ],
@@ -1102,7 +1037,6 @@
       "Cabracho (o rape/merluza)"
     ],
     "aisle": "Pescado",
-    "category": "Verduras y frutas",
     "allergens": [
       "pescado"
     ],
@@ -1118,7 +1052,6 @@
     "name": "Cacahuetes tostados",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [
       "cacahuetes"
     ],
@@ -1134,7 +1067,6 @@
     "name": "Cacao en polvo",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -1148,7 +1080,6 @@
     "name": "Café espresso",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -1162,7 +1093,6 @@
     "name": "Calabacín",
     "aliases": [],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -1180,7 +1110,6 @@
     "name": "Calabaza",
     "aliases": [],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -1201,7 +1130,6 @@
       "Chipirones limpios"
     ],
     "aisle": "Pescado",
-    "category": "Carnes y pescados",
     "allergens": [
       "moluscos"
     ],
@@ -1219,7 +1147,6 @@
       "Caldo de cocido"
     ],
     "aisle": "Aceites y conservas",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -1242,7 +1169,6 @@
       "Fumet de marisco"
     ],
     "aisle": "Aceites y conservas",
-    "category": "Despensa",
     "allergens": [
       "crustaceos",
       "pescado"
@@ -1267,7 +1193,6 @@
       "Fumet de pescado"
     ],
     "aisle": "Aceites y conservas",
-    "category": "Carnes y pescados",
     "allergens": [
       "pescado"
     ],
@@ -1290,7 +1215,6 @@
     "name": "Caldo de pollo",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -1311,7 +1235,6 @@
       "Caldo casero sin sal"
     ],
     "aisle": "Aceites y conservas",
-    "category": "Despensa",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -1330,7 +1253,6 @@
     "name": "Callos de ternera limpios",
     "aliases": [],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -1347,7 +1269,6 @@
       "Canela"
     ],
     "aisle": "Especias",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -1361,7 +1282,6 @@
     "name": "Placas de canelones",
     "aliases": [],
     "aisle": "Pasta y arroz",
-    "category": "Verduras y frutas",
     "allergens": [
       "gluten"
     ],
@@ -1384,7 +1304,6 @@
       "Hierba de los canónigos"
     ],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -1398,7 +1317,6 @@
     "name": "Carne de cerdo en dados (aguja o secreto)",
     "aliases": [],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -1415,7 +1333,6 @@
       "Carne de cocido variada"
     ],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -1429,7 +1346,6 @@
     "name": "Carne de jabalí picada",
     "aliases": [],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -1443,7 +1359,6 @@
     "name": "Carne de ternera para guisar",
     "aliases": [],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -1457,7 +1372,6 @@
     "name": "Carne de txangurro",
     "aliases": [],
     "aisle": "Pescado",
-    "category": "Carnes y pescados",
     "allergens": [
       "crustaceos"
     ],
@@ -1476,7 +1390,6 @@
       "Carne picada"
     ],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -1490,7 +1403,6 @@
     "name": "Carne picada de cerdo",
     "aliases": [],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -1507,7 +1419,6 @@
       "Carrilleras de cerdo"
     ],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -1521,7 +1432,6 @@
     "name": "Carrillera de ternera",
     "aliases": [],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -1540,7 +1450,6 @@
       "Cabezas de langostino"
     ],
     "aisle": "Pescado",
-    "category": "Carnes y pescados",
     "allergens": [
       "crustaceos"
     ],
@@ -1558,7 +1467,6 @@
       "Castañas cocidas y peladas"
     ],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -1572,7 +1480,6 @@
     "name": "Cava",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [
       "sulfitos"
     ],
@@ -1592,7 +1499,6 @@
       "Chile jalapeño"
     ],
     "aisle": "Especias",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -1608,7 +1514,6 @@
       "Cebolla dulce"
     ],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -1628,7 +1533,6 @@
       "Cebolla roja"
     ],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -1642,7 +1546,6 @@
     "name": "Cebolleta",
     "aliases": [],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -1658,7 +1561,6 @@
       "Cebollino fresco"
     ],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -1672,7 +1574,6 @@
     "name": "Cereales",
     "aliases": [],
     "aisle": "Panadería",
-    "category": "Panadería y cereales",
     "allergens": [
       "gluten"
     ],
@@ -1690,7 +1591,6 @@
       "Cerveza fría"
     ],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [
       "gluten"
     ],
@@ -1708,7 +1608,6 @@
     "name": "Chalota",
     "aliases": [],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -1726,7 +1625,6 @@
       "Champiñones portobello"
     ],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -1754,7 +1652,6 @@
     "name": "Chocolate negro",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -1775,7 +1672,6 @@
       "Chorizo asturiano"
     ],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -1792,7 +1688,6 @@
     "name": "Chuletas de cerdo",
     "aliases": [],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -1808,7 +1703,6 @@
       "Chuletón de ternera madurada"
     ],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -1822,7 +1716,6 @@
     "name": "Cigalas frescas",
     "aliases": [],
     "aisle": "Pescado",
-    "category": "Verduras y frutas",
     "allergens": [
       "crustaceos"
     ],
@@ -1845,7 +1738,6 @@
       "Cilantro molido"
     ],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -1863,7 +1755,6 @@
       "Lomo de cerdo (filetes)"
     ],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -1879,7 +1770,6 @@
       "Ciruelas pasas sin hueso"
     ],
     "aisle": "Frutas",
-    "category": "Verduras y frutas",
     "allergens": [
       "sulfitos"
     ],
@@ -1897,7 +1787,6 @@
       "Claras de huevo"
     ],
     "aisle": "Huevos",
-    "category": "Lácteos y huevos",
     "allergens": [
       "huevos"
     ],
@@ -1917,7 +1806,6 @@
     "name": "Coco rallado",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -1933,7 +1821,6 @@
       "Codorniz limpia entera"
     ],
     "aisle": "Carne",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -1951,7 +1838,6 @@
     "name": "Cointreau",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -1970,7 +1856,6 @@
       "Col kale"
     ],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -1984,7 +1869,6 @@
     "name": "Coles de Bruselas",
     "aliases": [],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -2000,7 +1884,6 @@
       "Coliflor entera"
     ],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -2014,7 +1897,6 @@
     "name": "Colorante rojo alimentario",
     "aliases": [],
     "aisle": "Especias",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -2030,7 +1912,6 @@
       "Comino"
     ],
     "aisle": "Especias",
-    "category": "Despensa",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -2044,7 +1925,6 @@
     "name": "Conejo troceado",
     "aliases": [],
     "aisle": "Carne",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -2058,7 +1938,6 @@
     "name": "Congrio en rodajas",
     "aliases": [],
     "aisle": "Pescado",
-    "category": "Verduras y frutas",
     "allergens": [
       "pescado"
     ],
@@ -2078,7 +1957,6 @@
       "Muslos y contramuslos de pollo"
     ],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -2095,7 +1973,6 @@
       "Costillas de cordero (chuletillas)"
     ],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -2112,7 +1989,6 @@
       "Corvina fresca en lomo limpio"
     ],
     "aisle": "Pescado",
-    "category": "Verduras y frutas",
     "allergens": [
       "pescado"
     ],
@@ -2132,7 +2008,6 @@
       "Costillas de cerdo troceadas"
     ],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -2148,7 +2023,6 @@
       "Costillas de ternera (corte fino estilo galbi)"
     ],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -2162,7 +2036,6 @@
     "name": "Cúrcuma",
     "aliases": [],
     "aisle": "Especias",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -2176,7 +2049,6 @@
     "name": "Curry en polvo",
     "aliases": [],
     "aisle": "Especias",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -2193,7 +2065,6 @@
     "name": "Cuscús",
     "aliases": [],
     "aisle": "Pasta y arroz",
-    "category": "Legumbres y pasta",
     "allergens": [
       "gluten"
     ],
@@ -2212,7 +2083,6 @@
       "Dorada entera limpia sin escamar"
     ],
     "aisle": "Pescado",
-    "category": "Carnes y pescados",
     "allergens": [
       "pescado"
     ],
@@ -2230,7 +2100,6 @@
       "Edamame desvainado"
     ],
     "aisle": "Legumbres",
-    "category": "Verduras y frutas",
     "allergens": [
       "soja"
     ],
@@ -2248,7 +2117,6 @@
       "Endivias"
     ],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -2268,7 +2136,6 @@
       "Eneldo"
     ],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -2282,7 +2149,6 @@
     "name": "Entraña de ternera",
     "aliases": [],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -2296,7 +2162,6 @@
     "name": "Entrecot de ternera",
     "aliases": [],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -2310,7 +2175,6 @@
     "name": "Escalopines de ternera",
     "aliases": [],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -2324,7 +2188,6 @@
     "name": "Espaguetis",
     "aliases": [],
     "aisle": "Pasta y arroz",
-    "category": "Legumbres y pasta",
     "allergens": [
       "gluten"
     ],
@@ -2342,7 +2205,6 @@
       "Espárragos verdes"
     ],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -2356,7 +2218,6 @@
     "name": "Espárragos blancos en conserva",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -2370,7 +2231,6 @@
     "name": "Especias cajún",
     "aliases": [],
     "aisle": "Especias",
-    "category": "Despensa",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -2392,7 +2252,6 @@
       "Espinaca fresca"
     ],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -2406,7 +2265,6 @@
     "name": "Extracto de vainilla",
     "aliases": [],
     "aisle": "Especias",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -2420,7 +2278,6 @@
     "name": "Falafel congelado",
     "aliases": [],
     "aisle": "Legumbres",
-    "category": "Verduras y frutas",
     "allergens": [
       "gluten"
     ],
@@ -2439,7 +2296,6 @@
     "name": "Farfalle",
     "aliases": [],
     "aisle": "Pasta y arroz",
-    "category": "Verduras y frutas",
     "allergens": [
       "gluten"
     ],
@@ -2455,7 +2311,6 @@
     "name": "Fettuccine",
     "aliases": [],
     "aisle": "Pasta y arroz",
-    "category": "Verduras y frutas",
     "allergens": [
       "gluten",
       "huevos"
@@ -2472,7 +2327,6 @@
     "name": "Fideos n°2",
     "aliases": [],
     "aisle": "Pasta y arroz",
-    "category": "Legumbres y pasta",
     "allergens": [
       "gluten"
     ],
@@ -2492,7 +2346,6 @@
       "Fideos huecos nº 2"
     ],
     "aisle": "Pasta y arroz",
-    "category": "Legumbres y pasta",
     "allergens": [
       "gluten"
     ],
@@ -2508,7 +2361,6 @@
     "name": "Filetes de cerdo",
     "aliases": [],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -2522,7 +2374,6 @@
     "name": "Filetes de pez espada",
     "aliases": [],
     "aisle": "Pescado",
-    "category": "Carnes y pescados",
     "allergens": [
       "pescado"
     ],
@@ -2541,7 +2392,6 @@
       "Filete de ternera para milanesa"
     ],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -2555,7 +2405,6 @@
     "name": "Filetes finos de ternera",
     "aliases": [],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -2571,7 +2420,6 @@
       "Foie fresco o mi-cuit"
     ],
     "aisle": "Carne",
-    "category": "Verduras y frutas",
     "allergens": [
       "leche"
     ],
@@ -2590,7 +2438,6 @@
     "name": "Fresas",
     "aliases": [],
     "aisle": "Frutas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -2607,7 +2454,6 @@
       "Frutos rojos congelados"
     ],
     "aisle": "Frutas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -2621,7 +2467,6 @@
     "name": "Fuet",
     "aliases": [],
     "aisle": "Carne",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -2635,7 +2480,6 @@
     "name": "Fusilli",
     "aliases": [],
     "aisle": "Pasta y arroz",
-    "category": "Verduras y frutas",
     "allergens": [
       "gluten"
     ],
@@ -2651,7 +2495,6 @@
     "name": "Galletas María",
     "aliases": [],
     "aisle": "Panadería",
-    "category": "Verduras y frutas",
     "allergens": [
       "gluten"
     ],
@@ -2675,7 +2518,6 @@
       "Gambas peladas congeladas"
     ],
     "aisle": "Pescado",
-    "category": "Carnes y pescados",
     "allergens": [
       "crustaceos"
     ],
@@ -2698,7 +2540,6 @@
       "Gambas frescas o congeladas"
     ],
     "aisle": "Pescado",
-    "category": "Carnes y pescados",
     "allergens": [
       "crustaceos"
     ],
@@ -2720,7 +2561,6 @@
       "Garbanzos cocidos de bote"
     ],
     "aisle": "Legumbres",
-    "category": "Legumbres y pasta",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -2736,7 +2576,6 @@
       "Garbanzos secos crudos (en remojo)"
     ],
     "aisle": "Legumbres",
-    "category": "Legumbres y pasta",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -2750,7 +2589,6 @@
     "name": "Garrofón",
     "aliases": [],
     "aisle": "Legumbres",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -2764,7 +2602,6 @@
     "name": "Gazpacho de bote",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [
       "sulfitos"
     ],
@@ -2780,7 +2617,6 @@
     "name": "Gochujang",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -2800,7 +2636,6 @@
       "Granada (arilos)"
     ],
     "aisle": "Frutas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -2814,7 +2649,6 @@
     "name": "Granola",
     "aliases": [],
     "aisle": "Panadería",
-    "category": "Verduras y frutas",
     "allergens": [
       "gluten"
     ],
@@ -2835,7 +2669,6 @@
     "name": "Grelos",
     "aliases": [],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -2849,7 +2682,6 @@
     "name": "Guanciale",
     "aliases": [],
     "aisle": "Carne",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -2872,7 +2704,6 @@
       "Guindilla roja"
     ],
     "aisle": "Especias",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -2893,7 +2724,6 @@
       "Guisantes cocidos"
     ],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -2909,7 +2739,6 @@
       "Pan de hamburguesa brioche"
     ],
     "aisle": "Panadería",
-    "category": "Panadería y cereales",
     "allergens": [
       "gluten"
     ],
@@ -2939,7 +2768,6 @@
       "Harina fina de trigo"
     ],
     "aisle": "Panadería",
-    "category": "Panadería y cereales",
     "allergens": [
       "gluten"
     ],
@@ -2955,7 +2783,6 @@
     "name": "Harissa",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -2969,7 +2796,6 @@
     "name": "Hígado de ternera",
     "aliases": [],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -2985,7 +2811,6 @@
       "Higos frescos"
     ],
     "aisle": "Frutas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -3003,7 +2828,6 @@
     "name": "Hinojo",
     "aliases": [],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -3017,7 +2841,6 @@
     "name": "Hojas de gelatina",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -3033,7 +2856,6 @@
       "Masa de hojaldre"
     ],
     "aisle": "Panadería",
-    "category": "Verduras y frutas",
     "allergens": [
       "gluten",
       "leche"
@@ -3058,7 +2880,6 @@
       "Mezclum de lechugas"
     ],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -3075,7 +2896,6 @@
       "Hueso de jamón serrano"
     ],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -3093,7 +2913,6 @@
     "name": "Hueso de ternera",
     "aliases": [],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -3109,7 +2928,6 @@
       "Huevo cocido"
     ],
     "aisle": "Huevos",
-    "category": "Lácteos y huevos",
     "allergens": [
       "huevos"
     ],
@@ -3139,7 +2957,6 @@
       "Jamón serrano picado"
     ],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -3158,7 +2975,6 @@
       "Jamón cocido en tiras"
     ],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -3182,7 +2998,6 @@
       "Jarrete de ternera con hueso (ossobuco)"
     ],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -3199,7 +3014,6 @@
       "Jengibre"
     ],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -3213,7 +3027,6 @@
     "name": "Jerez seco",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [
       "sulfitos"
     ],
@@ -3231,7 +3044,6 @@
       "Judías blancas"
     ],
     "aisle": "Legumbres",
-    "category": "Legumbres y pasta",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -3245,7 +3057,6 @@
     "name": "Judías negras cocidas",
     "aliases": [],
     "aisle": "Legumbres",
-    "category": "Legumbres y pasta",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -3262,7 +3073,6 @@
       "Judía verde plana"
     ],
     "aisle": "Verduras",
-    "category": "Legumbres y pasta",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -3278,7 +3088,6 @@
       "Judías pintas"
     ],
     "aisle": "Legumbres",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -3292,7 +3101,6 @@
     "name": "Kéfir",
     "aliases": [],
     "aisle": "Lácteos",
-    "category": "Verduras y frutas",
     "allergens": [
       "leche"
     ],
@@ -3308,7 +3116,6 @@
     "name": "Ketchup",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -3322,7 +3129,6 @@
     "name": "Lacón",
     "aliases": [],
     "aisle": "Carne",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -3340,7 +3146,6 @@
       "Langostinos frescos con cáscara"
     ],
     "aisle": "Pescado",
-    "category": "Carnes y pescados",
     "allergens": [
       "crustaceos"
     ],
@@ -3358,7 +3163,6 @@
       "Placas de lasaña"
     ],
     "aisle": "Pasta y arroz",
-    "category": "Verduras y frutas",
     "allergens": [
       "gluten",
       "huevos"
@@ -3377,7 +3181,6 @@
       "Hoja de laurel"
     ],
     "aisle": "Especias",
-    "category": "Despensa",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -3398,7 +3201,6 @@
       "Suero de leche"
     ],
     "aisle": "Lácteos",
-    "category": "Lácteos y huevos",
     "allergens": [
       "leche"
     ],
@@ -3416,7 +3218,6 @@
     "name": "Leche de coco",
     "aliases": [],
     "aisle": "Lácteos",
-    "category": "Lácteos y huevos",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -3430,7 +3231,6 @@
     "name": "Leche condensada",
     "aliases": [],
     "aisle": "Lácteos",
-    "category": "Lácteos y huevos",
     "allergens": [
       "leche"
     ],
@@ -3452,7 +3252,6 @@
       "Lechugas variadas"
     ],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -3469,7 +3268,6 @@
       "Lenguado limpio"
     ],
     "aisle": "Pescado",
-    "category": "Carnes y pescados",
     "allergens": [
       "pescado"
     ],
@@ -3491,7 +3289,6 @@
       "Lentejas pardinas"
     ],
     "aisle": "Legumbres",
-    "category": "Legumbres y pasta",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -3507,7 +3304,6 @@
       "Lentejas pardinas cocidas"
     ],
     "aisle": "Legumbres",
-    "category": "Legumbres y pasta",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -3523,7 +3319,6 @@
       "Lentejas rojas peladas"
     ],
     "aisle": "Legumbres",
-    "category": "Legumbres y pasta",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -3539,7 +3334,6 @@
       "Levadura fresca"
     ],
     "aisle": "Aceites y conservas",
-    "category": "Panadería y cereales",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -3556,7 +3350,6 @@
     "name": "Levadura química",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Despensa",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -3570,7 +3363,6 @@
     "name": "Licor de café",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [
       "sulfitos"
     ],
@@ -3591,7 +3383,6 @@
       "Lima (zumo)"
     ],
     "aisle": "Frutas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -3612,7 +3403,6 @@
       "Ralladura de limón"
     ],
     "aisle": "Frutas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -3630,7 +3420,6 @@
     "name": "Linguine",
     "aliases": [],
     "aisle": "Pasta y arroz",
-    "category": "Verduras y frutas",
     "allergens": [
       "gluten"
     ],
@@ -3646,7 +3435,6 @@
     "name": "Lombarda",
     "aliases": [],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -3660,7 +3448,6 @@
     "name": "Lomo de cerdo en filetes",
     "aliases": [],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -3679,7 +3466,6 @@
       "Lubina entera"
     ],
     "aisle": "Pescado",
-    "category": "Carnes y pescados",
     "allergens": [
       "pescado"
     ],
@@ -3695,7 +3481,6 @@
     "name": "Macarrones",
     "aliases": [],
     "aisle": "Pasta y arroz",
-    "category": "Legumbres y pasta",
     "allergens": [
       "gluten"
     ],
@@ -3711,7 +3496,6 @@
     "name": "Magro de cerdo",
     "aliases": [],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -3725,7 +3509,6 @@
     "name": "Maicena",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Despensa",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -3744,7 +3527,6 @@
       "Maíz tostado"
     ],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -3761,7 +3543,6 @@
       "Mango congelado"
     ],
     "aisle": "Frutas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -3777,7 +3558,6 @@
       "Manitas de cerdo partidas por la mitad"
     ],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -3791,7 +3571,6 @@
     "name": "Manteca de cerdo",
     "aliases": [],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -3805,7 +3584,6 @@
     "name": "Mantequilla",
     "aliases": [],
     "aisle": "Lácteos",
-    "category": "Lácteos y huevos",
     "allergens": [
       "leche"
     ],
@@ -3821,7 +3599,6 @@
     "name": "Mantequilla de cacahuete",
     "aliases": [],
     "aisle": "Lácteos",
-    "category": "Lácteos y huevos",
     "allergens": [
       "cacahuetes"
     ],
@@ -3846,7 +3623,6 @@
       "Manzana verde"
     ],
     "aisle": "Frutas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -3864,7 +3640,6 @@
     "name": "Masa de pizza",
     "aliases": [],
     "aisle": "Panadería",
-    "category": "Verduras y frutas",
     "allergens": [
       "gluten"
     ],
@@ -3880,7 +3655,6 @@
     "name": "Masa quebrada",
     "aliases": [],
     "aisle": "Panadería",
-    "category": "Verduras y frutas",
     "allergens": [
       "gluten"
     ],
@@ -3904,7 +3678,6 @@
     "name": "Mascarpone",
     "aliases": [],
     "aisle": "Lácteos",
-    "category": "Verduras y frutas",
     "allergens": [
       "leche"
     ],
@@ -3922,7 +3695,6 @@
     "name": "Mayonesa",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [
       "huevos"
     ],
@@ -3941,7 +3713,6 @@
     "name": "Medio cochinillo",
     "aliases": [],
     "aisle": "Carne",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -3959,7 +3730,6 @@
       "Mejillones frescos"
     ],
     "aisle": "Pescado",
-    "category": "Carnes y pescados",
     "allergens": [
       "moluscos"
     ],
@@ -3975,7 +3745,6 @@
     "name": "Melocotón",
     "aliases": [],
     "aisle": "Frutas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -3989,7 +3758,6 @@
     "name": "Melón",
     "aliases": [],
     "aisle": "Frutas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -4006,7 +3774,6 @@
       "Menta"
     ],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -4027,7 +3794,6 @@
       "Rosada en lomos"
     ],
     "aisle": "Pescado",
-    "category": "Carnes y pescados",
     "allergens": [
       "pescado"
     ],
@@ -4045,7 +3811,6 @@
       "Lomos de merluza"
     ],
     "aisle": "Pescado",
-    "category": "Carnes y pescados",
     "allergens": [
       "pescado"
     ],
@@ -4061,7 +3826,6 @@
     "name": "Mermelada",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -4077,7 +3841,6 @@
       "Miel de caña"
     ],
     "aisle": "Aceites y conservas",
-    "category": "Despensa",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -4091,7 +3854,6 @@
     "name": "Mirin",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -4107,7 +3869,6 @@
       "Miso blanco"
     ],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [
       "soja"
     ],
@@ -4130,7 +3891,6 @@
       "Rape (cola, en medallones)"
     ],
     "aisle": "Pescado",
-    "category": "Carnes y pescados",
     "allergens": [
       "pescado"
     ],
@@ -4149,7 +3909,6 @@
       "Morcilla asturiana"
     ],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -4167,7 +3926,6 @@
     "name": "Carne para mechar (morcillo de ternera)",
     "aliases": [],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -4181,7 +3939,6 @@
     "name": "Morcillo de ternera",
     "aliases": [],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -4199,7 +3956,6 @@
       "Mostaza americana"
     ],
     "aisle": "Aceites y conservas",
-    "category": "Despensa",
     "allergens": [
       "mostaza"
     ],
@@ -4221,7 +3977,6 @@
       "Queso mozzarella"
     ],
     "aisle": "Lácteos",
-    "category": "Lácteos y huevos",
     "allergens": [
       "leche"
     ],
@@ -4239,7 +3994,6 @@
     "name": "Muffin inglés",
     "aliases": [],
     "aisle": "Panadería",
-    "category": "Verduras y frutas",
     "allergens": [
       "gluten"
     ],
@@ -4268,7 +4022,6 @@
       "Muslos de pollo deshuesados"
     ],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -4282,7 +4035,6 @@
     "name": "Nabo",
     "aliases": [],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -4296,7 +4048,6 @@
     "name": "Nachos de maíz",
     "aliases": [],
     "aisle": "Panadería",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -4317,7 +4068,6 @@
       "Ralladura de naranja"
     ],
     "aisle": "Frutas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -4338,7 +4088,6 @@
       "Nata líquida"
     ],
     "aisle": "Lácteos",
-    "category": "Lácteos y huevos",
     "allergens": [
       "leche"
     ],
@@ -4356,7 +4105,6 @@
     "name": "Nata para montar",
     "aliases": [],
     "aisle": "Lácteos",
-    "category": "Lácteos y huevos",
     "allergens": [
       "leche"
     ],
@@ -4374,7 +4122,6 @@
     "name": "Navajas frescas",
     "aliases": [],
     "aisle": "Pescado",
-    "category": "Verduras y frutas",
     "allergens": [
       "moluscos"
     ],
@@ -4392,7 +4139,6 @@
       "Nuez"
     ],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [
       "frutos_cascara"
     ],
@@ -4410,7 +4156,6 @@
       "Nuez moscada molida"
     ],
     "aisle": "Especias",
-    "category": "Despensa",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -4428,7 +4173,6 @@
       "Obleas para gyoza"
     ],
     "aisle": "Panadería",
-    "category": "Verduras y frutas",
     "allergens": [
       "gluten"
     ],
@@ -4459,7 +4203,6 @@
     "name": "Orecchiette",
     "aliases": [],
     "aisle": "Pasta y arroz",
-    "category": "Verduras y frutas",
     "allergens": [
       "gluten"
     ],
@@ -4477,7 +4220,6 @@
       "Orégano seco"
     ],
     "aisle": "Especias",
-    "category": "Despensa",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -4491,7 +4233,6 @@
     "name": "Oreja de cerdo",
     "aliases": [],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -4505,7 +4246,6 @@
     "name": "Orzo",
     "aliases": [],
     "aisle": "Pasta y arroz",
-    "category": "Verduras y frutas",
     "allergens": [
       "gluten"
     ],
@@ -4532,7 +4272,6 @@
       "Pan de pueblo"
     ],
     "aisle": "Panadería",
-    "category": "Verduras y frutas",
     "allergens": [
       "gluten"
     ],
@@ -4563,7 +4302,6 @@
       "Pan payés del día anterior"
     ],
     "aisle": "Panadería",
-    "category": "Panadería y cereales",
     "allergens": [
       "gluten"
     ],
@@ -4588,7 +4326,6 @@
       "Pan de molde para picatostes"
     ],
     "aisle": "Panadería",
-    "category": "Panadería y cereales",
     "allergens": [
       "gluten"
     ],
@@ -4615,7 +4352,6 @@
     "name": "Pan rallado",
     "aliases": [],
     "aisle": "Panadería",
-    "category": "Panadería y cereales",
     "allergens": [
       "gluten"
     ],
@@ -4641,7 +4377,6 @@
       "Panceta ahumada en taquitos"
     ],
     "aisle": "Carne",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -4662,7 +4397,6 @@
       "Queso pecorino"
     ],
     "aisle": "Lácteos",
-    "category": "Lácteos y huevos",
     "allergens": [
       "leche"
     ],
@@ -4680,7 +4414,6 @@
       "Uvas pasas"
     ],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [
       "sulfitos"
     ],
@@ -4696,7 +4429,6 @@
     "name": "Pasta pequeña",
     "aliases": [],
     "aisle": "Pasta y arroz",
-    "category": "Legumbres y pasta",
     "allergens": [
       "gluten"
     ],
@@ -4712,7 +4444,6 @@
     "name": "Pasta corta",
     "aliases": [],
     "aisle": "Pasta y arroz",
-    "category": "Legumbres y pasta",
     "allergens": [
       "gluten"
     ],
@@ -4728,7 +4459,6 @@
     "name": "Pastrami de ternera en lonchas",
     "aliases": [],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -4742,7 +4472,6 @@
     "name": "Pata de ternera",
     "aliases": [],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -4760,7 +4489,6 @@
       "Patata grande"
     ],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -4788,7 +4516,6 @@
     "name": "Paté de cerdo",
     "aliases": [],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [
       "leche"
     ],
@@ -4810,7 +4537,6 @@
       "Pechuga de pato"
     ],
     "aisle": "Carne",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -4826,7 +4552,6 @@
       "Filetes de pavo"
     ],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -4842,7 +4567,6 @@
       "Pechuga de pavo en lonchas"
     ],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -4858,7 +4582,6 @@
       "Pechuga de pollo asada"
     ],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -4872,7 +4595,6 @@
     "name": "Pedro Ximénez",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -4889,7 +4611,6 @@
     "name": "Penne",
     "aliases": [],
     "aisle": "Pasta y arroz",
-    "category": "Verduras y frutas",
     "allergens": [
       "gluten"
     ],
@@ -4909,7 +4630,6 @@
       "Pepinillos en rodajas"
     ],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [
       "sulfitos"
     ],
@@ -4925,7 +4645,6 @@
     "name": "Pepino",
     "aliases": [],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -4943,7 +4662,6 @@
     "name": "Pera",
     "aliases": [],
     "aisle": "Frutas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -4961,7 +4679,6 @@
     "name": "Perdiz",
     "aliases": [],
     "aisle": "Carne",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -4983,7 +4700,6 @@
       "Perejil picado"
     ],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -4999,7 +4715,6 @@
       "Pescadilla en lomos"
     ],
     "aisle": "Pescado",
-    "category": "Verduras y frutas",
     "allergens": [
       "pescado"
     ],
@@ -5017,7 +4732,6 @@
       "Pesto de albahaca"
     ],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [
       "frutos_cascara",
       "leche"
@@ -5041,7 +4755,6 @@
       "Pimentón ahumado"
     ],
     "aisle": "Especias",
-    "category": "Despensa",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -5061,7 +4774,6 @@
       "Pimienta negra molida"
     ],
     "aisle": "Especias",
-    "category": "Despensa",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -5075,7 +4787,6 @@
     "name": "Pimienta blanca",
     "aliases": [],
     "aisle": "Especias",
-    "category": "Despensa",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -5096,7 +4807,6 @@
       "Pimientos choriceros"
     ],
     "aisle": "Especias",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -5117,7 +4827,6 @@
       "Pimientos rojos"
     ],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -5140,7 +4849,6 @@
       "Pimiento verde italiano"
     ],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -5164,7 +4872,6 @@
     "name": "Pimientos del piquillo",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -5182,7 +4889,6 @@
     "name": "Piña natural",
     "aliases": [],
     "aisle": "Frutas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -5196,7 +4902,6 @@
     "name": "Piñones",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [
       "frutos_cascara"
     ],
@@ -5215,7 +4920,6 @@
       "Pistachos pelados"
     ],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [
       "frutos_cascara"
     ],
@@ -5231,7 +4935,6 @@
     "name": "Placas de cannelones",
     "aliases": [],
     "aisle": "Pasta y arroz",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -5250,7 +4953,6 @@
       "Plátano congelado"
     ],
     "aisle": "Frutas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -5264,7 +4966,6 @@
     "name": "Plátano macho",
     "aliases": [],
     "aisle": "Frutas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -5278,7 +4979,6 @@
     "name": "Pluma ibérica",
     "aliases": [],
     "aisle": "Carne",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -5298,7 +4998,6 @@
       "Pollo entero"
     ],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -5312,7 +5011,6 @@
     "name": "Pomelo",
     "aliases": [],
     "aisle": "Frutas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -5330,7 +5028,6 @@
     "name": "Presa ibérica",
     "aliases": [],
     "aisle": "Carne",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -5344,7 +5041,6 @@
     "name": "Puerro",
     "aliases": [],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -5362,7 +5058,6 @@
     "name": "Pulpa de açaí congelada",
     "aliases": [],
     "aisle": "Frutas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -5378,7 +5073,6 @@
       "Pulpo congelado limpio"
     ],
     "aisle": "Pescado",
-    "category": "Carnes y pescados",
     "allergens": [
       "moluscos"
     ],
@@ -5394,7 +5088,6 @@
     "name": "Quesito en porciones",
     "aliases": [],
     "aisle": "Lácteos",
-    "category": "Verduras y frutas",
     "allergens": [
       "leche"
     ],
@@ -5424,7 +5117,6 @@
       "Queso rallado curado"
     ],
     "aisle": "Lácteos",
-    "category": "Lácteos y huevos",
     "allergens": [
       "leche"
     ],
@@ -5462,7 +5154,6 @@
     "name": "Queso azul",
     "aliases": [],
     "aisle": "Lácteos",
-    "category": "Lácteos y huevos",
     "allergens": [
       "leche"
     ],
@@ -5478,7 +5169,6 @@
     "name": "Queso brie",
     "aliases": [],
     "aisle": "Lácteos",
-    "category": "Lácteos y huevos",
     "allergens": [
       "leche"
     ],
@@ -5496,7 +5186,6 @@
       "Queso de cabra en rulo"
     ],
     "aisle": "Lácteos",
-    "category": "Lácteos y huevos",
     "allergens": [
       "leche"
     ],
@@ -5512,7 +5201,6 @@
     "name": "Queso crema",
     "aliases": [],
     "aisle": "Lácteos",
-    "category": "Lácteos y huevos",
     "allergens": [
       "leche"
     ],
@@ -5528,7 +5216,6 @@
     "name": "Queso en lonchas",
     "aliases": [],
     "aisle": "Lácteos",
-    "category": "Lácteos y huevos",
     "allergens": [
       "leche"
     ],
@@ -5544,7 +5231,6 @@
     "name": "Queso feta",
     "aliases": [],
     "aisle": "Lácteos",
-    "category": "Lácteos y huevos",
     "allergens": [
       "leche"
     ],
@@ -5560,7 +5246,6 @@
     "name": "Queso fresco",
     "aliases": [],
     "aisle": "Lácteos",
-    "category": "Lácteos y huevos",
     "allergens": [
       "leche"
     ],
@@ -5578,7 +5263,6 @@
     "name": "Queso semicurado en lonchas",
     "aliases": [],
     "aisle": "Lácteos",
-    "category": "Lácteos y huevos",
     "allergens": [
       "leche"
     ],
@@ -5594,7 +5278,6 @@
     "name": "Quinoa",
     "aliases": [],
     "aisle": "Pasta y arroz",
-    "category": "Legumbres y pasta",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -5608,7 +5291,6 @@
     "name": "Rabo de toro troceado",
     "aliases": [],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -5622,7 +5304,6 @@
     "name": "Tortellini frescos rellenos de carne",
     "aliases": [],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [
       "gluten",
       "huevos"
@@ -5639,7 +5320,6 @@
     "name": "Redondo de ternera",
     "aliases": [],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -5655,7 +5335,6 @@
       "Remolacha"
     ],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -5671,7 +5350,6 @@
       "Repollo morado"
     ],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -5685,7 +5363,6 @@
     "name": "Requesón",
     "aliases": [],
     "aisle": "Lácteos",
-    "category": "Lácteos y huevos",
     "allergens": [
       "leche"
     ],
@@ -5705,7 +5382,6 @@
       "Ricotta salada"
     ],
     "aisle": "Lácteos",
-    "category": "Verduras y frutas",
     "allergens": [
       "leche"
     ],
@@ -5723,7 +5399,6 @@
     "name": "Rigatoni",
     "aliases": [],
     "aisle": "Pasta y arroz",
-    "category": "Verduras y frutas",
     "allergens": [
       "gluten"
     ],
@@ -5743,7 +5418,6 @@
       "Rodaballo entero limpio"
     ],
     "aisle": "Pescado",
-    "category": "Carnes y pescados",
     "allergens": [
       "pescado"
     ],
@@ -5759,7 +5433,6 @@
     "name": "Rodajas de emperador",
     "aliases": [],
     "aisle": "Pescado",
-    "category": "Carnes y pescados",
     "allergens": [
       "pescado"
     ],
@@ -5775,7 +5448,6 @@
     "name": "Romero",
     "aliases": [],
     "aisle": "Especias",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -5792,7 +5464,6 @@
       "Romero en rama"
     ],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -5806,7 +5477,6 @@
     "name": "Ron",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [
@@ -5822,7 +5492,6 @@
     "name": "Queso roquefort",
     "aliases": [],
     "aisle": "Lácteos",
-    "category": "Lácteos y huevos",
     "allergens": [
       "leche"
     ],
@@ -5838,7 +5507,6 @@
     "name": "Rúcula",
     "aliases": [],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -5852,7 +5520,6 @@
     "name": "Sal",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Despensa",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -5866,7 +5533,6 @@
     "name": "Sal en escamas",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Despensa",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -5882,7 +5548,6 @@
       "Sal gruesa"
     ],
     "aisle": "Aceites y conservas",
-    "category": "Despensa",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -5898,7 +5563,6 @@
       "Salchicha fresca italiana"
     ],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -5924,7 +5588,6 @@
       "Salmón"
     ],
     "aisle": "Pescado",
-    "category": "Carnes y pescados",
     "allergens": [
       "pescado"
     ],
@@ -5940,7 +5603,6 @@
     "name": "Salmón ahumado",
     "aliases": [],
     "aisle": "Pescado",
-    "category": "Carnes y pescados",
     "allergens": [
       "pescado"
     ],
@@ -5961,7 +5623,6 @@
       "Salmón fresco para sushi"
     ],
     "aisle": "Pescado",
-    "category": "Carnes y pescados",
     "allergens": [
       "pescado"
     ],
@@ -5981,7 +5642,6 @@
       "Salmonetes pequeños"
     ],
     "aisle": "Pescado",
-    "category": "Carnes y pescados",
     "allergens": [
       "pescado"
     ],
@@ -5997,7 +5657,6 @@
     "name": "Salsa barbacoa",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Despensa",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -6014,7 +5673,6 @@
     "name": "Salsa César",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Despensa",
     "allergens": [
       "huevos",
       "mostaza",
@@ -6034,8 +5692,7 @@
     "id": "salsa-soja",
     "name": "Salsa de soja",
     "aliases": [],
-    "aisle": "Legumbres",
-    "category": "Despensa",
+    "aisle": "Aceites y conservas",
     "allergens": [
       "gluten",
       "soja"
@@ -6055,7 +5712,6 @@
       "Salsa Perrins"
     ],
     "aisle": "Aceites y conservas",
-    "category": "Despensa",
     "allergens": [
       "pescado"
     ],
@@ -6077,7 +5733,6 @@
       "Hojas de salvia fresca"
     ],
     "aisle": "Verduras",
-    "category": "Despensa",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -6091,7 +5746,6 @@
     "name": "Sandía",
     "aliases": [],
     "aisle": "Frutas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -6108,7 +5762,6 @@
       "Sardinas frescas limpias"
     ],
     "aisle": "Pescado",
-    "category": "Carnes y pescados",
     "allergens": [
       "pescado"
     ],
@@ -6124,7 +5777,6 @@
     "name": "Secreto ibérico",
     "aliases": [],
     "aisle": "Carne",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -6138,7 +5790,6 @@
     "name": "Sémola de trigo",
     "aliases": [],
     "aisle": "Pasta y arroz",
-    "category": "Verduras y frutas",
     "allergens": [
       "gluten"
     ],
@@ -6156,7 +5807,6 @@
       "Sepia limpia"
     ],
     "aisle": "Pescado",
-    "category": "Carnes y pescados",
     "allergens": [
       "moluscos"
     ],
@@ -6176,7 +5826,6 @@
       "Sésamo blanco y negro"
     ],
     "aisle": "Especias",
-    "category": "Verduras y frutas",
     "allergens": [
       "sesamo"
     ],
@@ -6196,7 +5845,6 @@
       "Setas silvestres variadas"
     ],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -6210,7 +5858,6 @@
     "name": "Sidra natural",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [
       "sulfitos"
     ],
@@ -6228,7 +5875,6 @@
     "name": "Sirope de arce",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -6242,7 +5888,6 @@
     "name": "Sobrasada",
     "aliases": [],
     "aisle": "Carne",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -6265,7 +5910,6 @@
       "Solomillo de ternera picado"
     ],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -6279,7 +5923,6 @@
     "name": "Solomillo de cerdo",
     "aliases": [],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -6293,7 +5936,6 @@
     "name": "Sriracha",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -6307,7 +5949,6 @@
     "name": "Palitos de cangrejo o surimi",
     "aliases": [],
     "aisle": "Pescado",
-    "category": "Verduras y frutas",
     "allergens": [
       "gluten",
       "crustaceos",
@@ -6329,7 +5970,6 @@
     "name": "Tabasco",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -6343,7 +5983,6 @@
     "name": "Tahini",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [
       "sesamo"
     ],
@@ -6363,7 +6002,6 @@
       "Tallarines"
     ],
     "aisle": "Pasta y arroz",
-    "category": "Verduras y frutas",
     "allergens": [
       "gluten",
       "huevos"
@@ -6380,7 +6018,6 @@
     "name": "Ternera magra",
     "aliases": [],
     "aisle": "Carne",
-    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -6397,7 +6034,6 @@
       "Bolsitas de tinta de calamar"
     ],
     "aisle": "Pescado",
-    "category": "Carnes y pescados",
     "allergens": [
       "moluscos",
       "sulfitos"
@@ -6418,7 +6054,6 @@
     "name": "Tocino",
     "aliases": [],
     "aisle": "Carne",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -6432,7 +6067,6 @@
     "name": "Tofu firme",
     "aliases": [],
     "aisle": "Legumbres",
-    "category": "Verduras y frutas",
     "allergens": [
       "soja"
     ],
@@ -6454,7 +6088,6 @@
       "Tomates grandes"
     ],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -6480,7 +6113,6 @@
       "Tomates cherry"
     ],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -6494,7 +6126,6 @@
     "name": "Tomate concentrado",
     "aliases": [],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -6510,7 +6141,6 @@
       "Salsa de tomate"
     ],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -6526,7 +6156,6 @@
       "Tomates secos en aceite"
     ],
     "aisle": "Aceites y conservas",
-    "category": "Despensa",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -6545,7 +6174,6 @@
       "Tomate triturado de bote"
     ],
     "aisle": "Aceites y conservas",
-    "category": "Despensa",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -6561,7 +6189,6 @@
       "Tomillo fresco"
     ],
     "aisle": "Especias",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -6577,7 +6204,6 @@
       "Tortilla de maíz"
     ],
     "aisle": "Panadería",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -6599,7 +6225,6 @@
       "Tortillas de trigo pequeñas"
     ],
     "aisle": "Panadería",
-    "category": "Verduras y frutas",
     "allergens": [
       "gluten"
     ],
@@ -6632,7 +6257,6 @@
     "name": "Trofie",
     "aliases": [],
     "aisle": "Pasta y arroz",
-    "category": "Verduras y frutas",
     "allergens": [
       "gluten"
     ],
@@ -6651,7 +6275,6 @@
       "Truchas limpias"
     ],
     "aisle": "Pescado",
-    "category": "Carnes y pescados",
     "allergens": [
       "pescado"
     ],
@@ -6673,7 +6296,6 @@
       "Trufa negra fresca"
     ],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -6687,7 +6309,6 @@
     "name": "Unto",
     "aliases": [],
     "aisle": "Carne",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -6701,7 +6322,6 @@
     "name": "Uvas",
     "aliases": [],
     "aisle": "Frutas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
@@ -6715,7 +6335,6 @@
     "name": "Ventresca de atún en aceite",
     "aliases": [],
     "aisle": "Pescado",
-    "category": "Carnes y pescados",
     "allergens": [
       "pescado"
     ],
@@ -6734,7 +6353,6 @@
       "Vieiras limpias en su concha"
     ],
     "aisle": "Pescado",
-    "category": "Verduras y frutas",
     "allergens": [
       "moluscos"
     ],
@@ -6760,7 +6378,6 @@
       "Jalapeños en vinagre"
     ],
     "aisle": "Aceites y conservas",
-    "category": "Despensa",
     "allergens": [
       "sulfitos"
     ],
@@ -6780,7 +6397,6 @@
       "Reducción de vinagre balsámico"
     ],
     "aisle": "Aceites y conservas",
-    "category": "Despensa",
     "allergens": [
       "sulfitos"
     ],
@@ -6796,7 +6412,6 @@
     "name": "Vinagre de Jerez",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Despensa",
     "allergens": [
       "sulfitos"
     ],
@@ -6812,7 +6427,6 @@
     "name": "Vinagre de manzana",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Despensa",
     "allergens": [
       "sulfitos"
     ],
@@ -6828,7 +6442,6 @@
     "name": "Vino blanco",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Despensa",
     "allergens": [
       "sulfitos"
     ],
@@ -6852,7 +6465,6 @@
       "Vino rancio"
     ],
     "aisle": "Aceites y conservas",
-    "category": "Despensa",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [
@@ -6871,7 +6483,6 @@
     "name": "Vino tinto",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Despensa",
     "allergens": [
       "sulfitos"
     ],
@@ -6889,7 +6500,6 @@
     "name": "Vodka",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [
@@ -6907,7 +6517,6 @@
       "Vol-au-vent de hojaldre (cestas precocidas)"
     ],
     "aisle": "Panadería",
-    "category": "Verduras y frutas",
     "allergens": [
       "gluten",
       "leche"
@@ -6932,7 +6541,6 @@
     "name": "Whisky",
     "aliases": [],
     "aisle": "Aceites y conservas",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [
@@ -6950,7 +6558,6 @@
       "Yemas de huevo"
     ],
     "aisle": "Huevos",
-    "category": "Lácteos y huevos",
     "allergens": [
       "huevos"
     ],
@@ -6974,7 +6581,6 @@
       "Yogur de sabores"
     ],
     "aisle": "Lácteos",
-    "category": "Lácteos y huevos",
     "allergens": [
       "leche"
     ],
@@ -6992,7 +6598,6 @@
     "name": "Carne de zamburiña",
     "aliases": [],
     "aisle": "Pescado",
-    "category": "Carnes y pescados",
     "allergens": [
       "moluscos"
     ],
@@ -7008,7 +6613,6 @@
     "name": "Zanahoria",
     "aliases": [],
     "aisle": "Verduras",
-    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],

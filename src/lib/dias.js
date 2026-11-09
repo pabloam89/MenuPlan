@@ -102,6 +102,24 @@ export function hoyDeCasa({ ahora = new Date(), zona = ZONA_CASA } = {}) {
 /** Solo la fecha «AAAA-MM-DD» de hoyDeCasa. */
 export const isoDeCasa = (opciones) => hoyDeCasa(opciones).iso;
 
+const formatosHora = new Map();
+function formatoHora(zona) {
+  if (!formatosHora.has(zona)) formatosHora.set(zona, new Intl.DateTimeFormat("es-ES", { timeZone: zona, hour: "2-digit", minute: "2-digit", hourCycle: "h23" }));
+  return formatosHora.get(zona);
+}
+
+/**
+ * Un instante (una fecha ISO con su zona, como las da Mercadona en UTC) en la hora de la casa:
+ * `{ iso: "AAAA-MM-DD", dia: "Mié", hora: "15:00" }`. Para decir «el miércoles de 15:00 a 16:00» sin echar la cuenta
+ * del horario de verano a mano. null si no es una fecha.
+ */
+export function momentoDeCasa(instante, { zona = ZONA_CASA } = {}) {
+  const fecha = new Date(instante);
+  if (Number.isNaN(fecha.getTime())) return null;
+  const { iso, dia } = hoyDeCasa({ ahora: fecha, zona });
+  return { iso, dia, hora: formatoHora(zona || ZONA_CASA).format(fecha) };
+}
+
 // ── Entre formas del día ────────────────────────────────────────────────────
 
 /** «Mié» → 2; -1 si no es un día. */

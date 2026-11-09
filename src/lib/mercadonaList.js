@@ -6,6 +6,7 @@
  */
 
 import { normalizeName } from "./ingredientCategories.js";
+import { PEDIDO_MINIMO_MERCADONA } from "./mercadonaLista.js";
 
 // Lo que sale en la lista de ingredientes pero no se compra: el agua del grifo.
 const NO_SE_COMPRA = /^agua\b(?! (?:mineral|con gas)\b)/;
@@ -51,6 +52,12 @@ export function listaParaMercadona(items, priceMap, name) {
 }
 
 /** La ficha del producto en Mercadona; en el móvil, su enlace abre su app. */
+/** El pedido mínimo vive con la lista del trabajador (su contenedor no lleva este fichero); aquí se reexporta. */
+export { PEDIDO_MINIMO_MERCADONA };
+
+/** Cuánto falta para el pedido mínimo, en euros con céntimos; 0 si ya llega. */
+export const faltaParaMinimo = (total) => Math.max(0, Math.round((PEDIDO_MINIMO_MERCADONA - (Number(total) || 0)) * 100) / 100);
+
 /** Cómo se llama en la cuenta de Mercadona la lista que crea HoMenu, desde la app o desde Lola. */
 export const NOMBRE_LISTA_MERCADONA = "Compra HoMenu";
 

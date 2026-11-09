@@ -69,3 +69,28 @@ describe("las especias, todas en el fondo de armario", () => {
     expect(fuera).toEqual([]);
   });
 });
+
+// La clase del azafrán de 25 €: una dosis irreal en una especia cara. Lo de
+// fondo de armario se gasta a pellizcos; si una línea cuesta más que esto por
+// ración, la cantidad de la receta está mal (el azafrán pedía 1 g para dos y
+// la dosis de cocina es 0,01-0,05 g por persona). Freír en aceite, lo más
+// caro de verdad, ronda 0,70 €/ración.
+const EUROS_POR_RACION_MAX = 1;
+
+describe("dosis de fondo de armario", () => {
+  it(`ninguna línea de fondo de armario cuesta más de ${EUROS_POR_RACION_MAX} € por ración`, async () => {
+    const { recipeCatalog } = await import("../data/recipeCatalog.js");
+    const { costeDeLinea } = await import("./derive/coste.js");
+    const tienda = (await import("../../public/store/mercadona.json")).default;
+    const caras = [];
+    for (const r of recipeCatalog) {
+      for (const l of r.ingredients ?? []) {
+        if (tipoDeCompra(l.name) !== FONDO) continue;
+        const c = costeDeLinea(l, tienda.products);
+        const porRacion = c ? c.euros / (r.baseServings || 4) : 0;
+        if (porRacion > EUROS_POR_RACION_MAX) caras.push(`${r.id}: ${l.amount} ${l.unit} ${l.name} (${porRacion.toFixed(2)} €)`);
+      }
+    }
+    expect(caras).toEqual([]);
+  });
+});

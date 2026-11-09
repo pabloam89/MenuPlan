@@ -7055,10 +7055,10 @@
         "ingredientes": 10,
         "pasos": 13,
         "minutos": 840,
-        "masa_g": 925,
+        "masa_g": 924,
         "cobertura": 1,
-        "kcal": 2843,
-        "protein_g": 166,
+        "kcal": 2840,
+        "protein_g": 165,
         "carbs_g": 262,
         "fat_g": 131,
         "fraccion": 0.985
@@ -8983,19 +8983,19 @@
         "protein_g": 57,
         "carbs_g": 2,
         "fat_g": 4,
-        "fraccion": 0.59
+        "fraccion": 0.591
       },
       "salsa": {
         "ingredientes": 6,
         "pasos": 5,
         "minutos": 7,
-        "masa_g": 222,
+        "masa_g": 221,
         "cobertura": 1,
-        "kcal": 1318,
+        "kcal": 1315,
         "protein_g": 8,
         "carbs_g": 3,
         "fat_g": 144,
-        "fraccion": 0.41
+        "fraccion": 0.409
       }
     }
   },

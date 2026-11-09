@@ -1,6 +1,6 @@
 import { INGREDIENT_CATEGORIES } from "../data/recipes.js";
+import { ingredientCategoryFor } from "./ingredients.js";
 import {
-  categoryForIngredient,
   guessShoppingAisle,
   normalizeIngredientKey,
   normalizeName,
@@ -94,7 +94,7 @@ export function mergeShoppingItems(items) {
   const map = new Map();
   for (const it of items) {
     const key = normalizeIngredientKey(it.name, it.unit ?? "ud");
-    const category = categoryForIngredient(it.name, it.category);
+    const category = ingredientCategoryFor(it.name);
     if (!map.has(key)) {
       map.set(key, {
         ...it,
@@ -160,7 +160,7 @@ export function itemsByAisle(items) {
 export function itemsByCategory(items) {
   const byCategoryMap = {};
   for (const it of items) {
-    const cat = categoryForIngredient(it.name, it.category) || "Otros";
+    const cat = ingredientCategoryFor(it.name) || "Otros";
     if (!byCategoryMap[cat]) byCategoryMap[cat] = [];
     byCategoryMap[cat].push(it);
   }
