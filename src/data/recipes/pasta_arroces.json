@@ -1588,8 +1588,8 @@
         "unit": "ml"
       },
       {
-        "name": "Plátano macho",
-        "ingredientId": "platano-macho",
+        "name": "Plátano",
+        "ingredientId": "platano",
         "amount": 1,
         "unit": "ud"
       },
@@ -1608,17 +1608,17 @@
     ],
     "steps": [
       "Pelar ajo y picar fino. Reservar.",
-      "Pelar plátano macho y cortar en rodajas de 1 cm. Reservar.",
+      "Pelar plátano y cortar en rodajas de 1 cm. Reservar.",
       "Llevar a ebullición una olla con agua y sal a fuego fuerte.",
       "Añadir arroz al agua hirviendo y cocer a fuego medio durante 18 min hasta que esté tierno.",
       "Calentar aceite de oliva en sartén a fuego medio y sofreír el ajo picado 1 min hasta que empiece a dorarse.",
       "Añadir tomate triturado a la sartén con el ajo y cocer a fuego suave 8 min hasta que la salsa espese.",
       "Retirar la salsa de tomate de la sartén y reservar.",
-      "Calentar aceite de oliva en sartén a fuego fuerte y freír las rodajas de plátano macho 2 min hasta que estén doradas.",
-      "Dar la vuelta a las rodajas de plátano macho y freír 2 min más hasta que estén doradas por el otro lado. Retirar y reservar.",
+      "Calentar aceite de oliva en sartén a fuego fuerte y freír las rodajas de plátano 2 min hasta que estén doradas.",
+      "Dar la vuelta a las rodajas de plátano y freír 2 min más hasta que estén doradas por el otro lado. Retirar y reservar.",
       "Freír huevo en la misma sartén a fuego medio hasta que la clara esté cuajada y el borde dorado.",
       "Escurrir el arroz cocido.",
-      "Servir el arroz en plato junto a la salsa de tomate, el huevo frito y las rodajas de plátano macho."
+      "Servir el arroz en plato junto a la salsa de tomate, el huevo frito y las rodajas de plátano."
     ],
     "description": "Arroz blanco con tomate frito, huevo frito y plátano",
     "methods": [],
@@ -1630,7 +1630,7 @@
         "part": "salsa"
       },
       {
-        "text": "Pelar {{Plátano macho}} y cortar en rodajas de 1 cm. Reservar.",
+        "text": "Pelar {{Plátano}} y cortar en rodajas de 1 cm. Reservar.",
         "minutes": 2,
         "kind": "prep",
         "part": "guarnicion"
@@ -1668,13 +1668,13 @@
         "part": "salsa"
       },
       {
-        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego fuerte y freír las rodajas de plátano macho 2 min hasta que estén doradas.",
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego fuerte y freír las rodajas de plátano 2 min hasta que estén doradas.",
         "minutes": 2,
         "kind": "activo",
         "part": "guarnicion"
       },
       {
-        "text": "Dar la vuelta a las rodajas de plátano macho y freír 2 min más hasta que estén doradas por el otro lado. Retirar y reservar.",
+        "text": "Dar la vuelta a las rodajas de plátano y freír 2 min más hasta que estén doradas por el otro lado. Retirar y reservar.",
         "minutes": 2,
         "kind": "activo",
         "part": "guarnicion"
@@ -1693,7 +1693,7 @@
         "part": "principal"
       },
       {
-        "text": "Servir el arroz en plato junto a la salsa de tomate, el huevo frito y las rodajas de plátano macho.",
+        "text": "Servir el arroz en plato junto a la salsa de tomate, el huevo frito y las rodajas de plátano.",
         "minutes": 1,
         "kind": "emplatado",
         "part": "combinado"

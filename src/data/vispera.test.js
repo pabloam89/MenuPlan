@@ -27,6 +27,21 @@ describe("necesitaVispera", () => {
     expect(necesitaVispera({ stepsRich: [{ minutes: 719 }] })).toBe(false);
     expect(necesitaVispera({ stepsRich: [{ minutes: 720 }] })).toBe(true);
   });
+
+  /**
+   * La función solo ve minutos: un remojo que dice «12 horas» o «toda la
+   * noche» y lleva 1 min, o ninguno, no la enciende. Pasó con la fabada, los
+   * judiones y dos platos más: salían como plato de hoy.
+   */
+  it("un remojo de 12 h o de toda la noche lleva sus minutos", () => {
+    const LARGO = /\b(1[2-9]|[2-9]\d)\s*(h|horas)\b|toda la noche/i;
+    const sinMinutos = recipeCatalog.flatMap((r) =>
+      (r.stepsRich ?? [])
+        .filter((s) => /remoj/i.test(s.text) && LARGO.test(s.text) && (s.minutes ?? 0) < MINUTOS_DE_VISPERA)
+        .map((s) => `${r.id} ${r.name}: ${s.text.slice(0, 60)}`),
+    );
+    expect(sinMinutos).toEqual([]);
+  });
 });
 
 describe("los platos rápidos", () => {
