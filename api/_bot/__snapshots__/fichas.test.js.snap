@@ -16,6 +16,7 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
       "despensa",
       "compra",
       "cole",
+      "mercadona",
       "recordatorios"
      ],
      "description": "Qué mirar."
@@ -26,7 +27,7 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
    ],
    "additionalProperties": false
   },
-  "description": "Mira un dato de la casa, sin cambiar nada. que: casa = quién vive en la casa (nombres, edades, alergias, intolerancias, lo que no les gusta), los grupos de menú, qué comidas se planifican y qué día es hoy; ajustes = cómo está configurada la casa: estructura de comidas, nivel de cocina, trastos, gustos anotados (con su estado: fijado/inferido/delegado), quién come fuera y reglas/invitados; despensa = lo que hay apuntado en la despensa de la casa (nevera, despensa, congelador); compra = la lista de la compra de la semana activa: lo que falta por comprar, por secciones; cole = el menú del cole guardado (lo que comen los niños en el comedor); recordatorios = los recordatorios pendientes de este chat, con su id."
+  "description": "Mira un dato de la casa, sin cambiar nada. que: casa = quién vive en la casa (nombres, edades, alergias, intolerancias, lo que no les gusta), los grupos de menú, qué comidas se planifican y qué día es hoy; ajustes = cómo está configurada la casa: estructura de comidas, nivel de cocina, trastos, gustos anotados (con su estado: fijado/inferido/delegado), quién come fuera y reglas/invitados; despensa = lo que hay apuntado en la despensa de la casa (nevera, despensa, congelador); compra = la lista de la compra de la semana activa: lo que falta por comprar, por secciones; cole = el menú del cole guardado (lo que comen los niños en el comedor); mercadona = hasta dónde llega Lola en la cuenta de Mercadona (solo la lista; también el carro y la hora de entrega; o también pagar) y qué falta para el paso siguiente; recordatorios = los recordatorios pendientes de este chat, con su id."
  },
  {
   "type": "custom",
@@ -227,6 +228,28 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
    "additionalProperties": false
   },
   "description": "Rellena una lista en la cuenta de Mercadona de la familia con lo que queda por comprar («pásalo a Mercadona», «méteme la compra en Mercadona»). Solo crea la lista: no compra ni paga. Tarda unos minutos y el aviso llega solo a este chat. Dile lo que devuelve, sin añadir nada."
+ },
+ {
+  "type": "custom",
+  "name": "cambiar_mercadona",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "llega_hasta": {
+     "type": "string",
+     "enum": [
+      "lista",
+      "reservar",
+      "pagar"
+     ]
+    }
+   },
+   "required": [
+    "llega_hasta"
+   ],
+   "additionalProperties": false
+  },
+  "description": "Cambia hasta dónde llega Lola en Mercadona, solo si la persona lo pide: lista = solo rellenar la lista; reservar = además meterla en el carro y reservar la hora de entrega; pagar = además pagar, siempre confirmando antes el importe y con la aprobación de su banco. «Ya no pagues tú» es reservar; «solo la lista», lista. Si devuelve que falta algo, díselo tal cual. Dile lo que devuelve, sin añadir nada."
  },
  {
   "type": "custom",

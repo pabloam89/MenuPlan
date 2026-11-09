@@ -83,6 +83,7 @@ const PODIAN = {
   despensa: ["owner", "editor", "viewer", "viewer-grupo"],
   compra: ["owner", "editor", "viewer", "viewer-grupo", "ajeno", "sin-papel"],
   cole: ["owner", "editor", "viewer", "viewer-grupo", "ajeno", "sin-papel"],
+  mercadona: ["owner", "editor"],
   recordatorios: ["owner", "editor", "viewer"],
 };
 const QUIENES = { owner: { papel: "owner" }, editor: { papel: "editor" }, viewer: { papel: "viewer" }, "viewer-grupo": { papel: "viewer", esGrupo: true }, ajeno: { papel: "ajeno", esGrupo: true }, "sin-papel": {} };
