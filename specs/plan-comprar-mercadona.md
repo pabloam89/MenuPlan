@@ -190,7 +190,7 @@ grep -q "Nunca se paga sin que la persona confirme" .claude/skills/mercadona/SKI
 ```
 
 ### 15. Hasta dónde llega el bot y qué tiene la cuenta, en un solo sitio
-Files: `supabase/migrations/0133_mercadona_llega_hasta.sql`, `src/lib/mercadonaLlegaHasta.js`, `src/lib/mercadonaLlegaHasta.test.js`, `src/lib/vocabularios.js`, `scripts/lib/columnasVocabulario.mjs`, `src/lib/postgrest.js`, `api/_bot/mercadonaEncargos.js`, `api/_bot/mercadonaEncargos.test.js`, `supabase/migrations.test.js`
+Files: `supabase/migrations/0133_mercadona_llega_hasta.sql`, `src/lib/mercadonaLlegaHasta.js`, `src/lib/mercadonaLlegaHasta.test.js`, `src/lib/vocabularios.js`, `scripts/lib/columnasVocabulario.mjs`, `src/lib/postgrest.js`, `api/_bot/mercadonaEncargos.js`, `api/_bot/mercadonaEncargos.test.js`, `supabase/migrations.test.js`, `supabase/ESTADO.md`, `ops/columnas-texto.json`, `src/lib/exportarCasa.js`, `scripts/lib/inventarioDiccionario.mjs`
 Depends on: none
 Blocked by: none
 Existing: `mercadona_cuenta` (0131) guarda la sesión cerrada y `estado` (`conectada`, `caducada`), y nada más de la cuenta (`supabase/migrations/0131_mercadona_encargos.sql:27`). Al escribir el trozo (8 nov), la última migración de staging era la 0131; hoy es la 0134 (trozo 20), y la 0132 es de otro PR abierto (#1325, `0132_franjas_extra.sql`), así que la 0133 queda para este trozo. `ls src/lib/mercadonaLlegaHasta.js src/lib/mercadonaLlegaHasta.test.js` → No such file or directory.
@@ -289,14 +289,14 @@ npx vitest run src/components/ElegirHoraEntrega.test.jsx
 ```
 
 ### 21. Pagar: la persona confirma el importe, y nunca más de eso
-Files: `scripts/lib/mercadonaTrabajador.mjs`, `api/mercadona.js`, `api/_bot/mercadonaEncargos.js`, `src/components/ComprarMercadona.jsx`, `scripts/mercadona-trabajador-pago.test.js`
+Files: `scripts/lib/mercadonaTrabajador.mjs`, `api/mercadona.js`, `api/_bot/mercadonaEncargos.js`, `src/components/ComprarMercadona.jsx`, `scripts/mercadona-trabajador-pago.test.js`, `api/_bot/mercadonaPago.test.js`, `src/components/ConfirmarPago.test.jsx`
 Depends on: 14, 23, 24
 Blocked by: none
-Existing: no hay ningún paso de pago (skill, «Nunca paga»). `ls scripts/mercadona-trabajador-pago.test.js` → No such file or directory.
-Not done: con `llega_hasta` en `pagar` y la hora de entrega reservada, la app y Lola enseñan el total y la persona lo confirma («Pagar 87,40 €»). Quién lo hace se decide cuando estén el 19 y el 24 (`menuplan-f4` y `menuplan-8b`). El trabajador confirma el pedido (`POST …/confirm/`) solo si el medio guardado está vigente (`payment_method.expiration_status` = `valid`) y el total que lee es igual o menor que el confirmado; si no puede leerlo, no confirma. Mercadona contesta 202 con `authentication_mode: "redirection"`: la persona aprueba el pago en su banco, desde la app o desde el enlace que le da Lola, y el trabajador mira cómo va (`GET …/status/`). Cómo se vuelve de la página del banco no se ha visto (`.claude/skills/mercadona/referencias/pedido.md` (#1410), «Sin comprobar»). Pagar es irreversible: el test prueba que sin confirmación, o con un total mayor, no se llama a pagar.
+Existing: no hay ningún paso de pago (skill, «Nunca paga»). `ls scripts/mercadona-trabajador-pago.test.js api/_bot/mercadonaPago.test.js src/components/ConfirmarPago.test.jsx` → No such file or directory.
+Not done: anular o devolver un pedido ya pagado, y pagar sin la hora reservada. Con `llega_hasta` en `pagar` y la hora de entrega reservada, la app y Lola enseñan el total y la persona lo confirma («Pagar 87,40 €»). Quién lo hace se decide cuando estén el 19 y el 24 (`menuplan-f4` y `menuplan-8b`). El trabajador confirma el pedido (`POST …/confirm/`) solo si el medio guardado está vigente (`payment_method.expiration_status` = `valid`) y el total que lee es igual o menor que el confirmado; si no puede leerlo, no confirma. Mercadona contesta 202 con `authentication_mode: "redirection"`: la persona aprueba el pago en su banco, desde la app o desde el enlace que le da Lola, y el trabajador mira cómo va (`GET …/status/`). Cómo se vuelve de la página del banco no se ha visto (`.claude/skills/mercadona/referencias/pedido.md` (#1410), «Sin comprobar»). Pagar es irreversible: el test prueba que sin confirmación, o con un total mayor, no se llama a pagar.
 Done:
 ```sh
-npx vitest run scripts/mercadona-trabajador-pago.test.js
+npx vitest run scripts/mercadona-trabajador-pago.test.js api/_bot/mercadonaPago.test.js src/components/ConfirmarPago.test.jsx
 ```
 
 ## Decisions taken
@@ -305,7 +305,7 @@ npx vitest run scripts/mercadona-trabajador-pago.test.js
 - principio 4 | eligió: la columna se llama `llega_hasta`, porque `alcance` ya es otra cosa (`receta_descartes.alcance`: cuánto se tira al regenerar) | descartó: `alcance` para dos significados | motivo: decidido
 - principio 4 | eligió: un solo dato, `mercadona_cuenta.llega_hasta` (`lista`, `reservar`, `pagar`), del que salen los tres interruptores y lo que hace Lola | descartó: tres casillas, que dejarían guardar «pagar sin reservar» | motivo: decidido
 - principio 4 | eligió: de la dirección y del medio de pago, solo «tiene o no» (`tiene_direccion`, `tiene_pago`) | descartó: copiar la dirección o la tarjeta, que ya viven en Mercadona y serían una segunda fuente | motivo: decidido
-- principio 1 | eligió: las horas de entrega libres se piden en el momento y solo se guarda la elegida | descartó: una tabla de horas, que se quedaría vieja en un minuto | motivo: decidido
+- principio 4 | eligió: las horas de entrega libres se piden en el momento y solo se guarda la elegida | descartó: una tabla de horas, que se quedaría vieja en un minuto | motivo: decidido
 - principio 4 | eligió: «hora de entrega» en la pantalla, el código y los datos (`hora_entrega`, `horas_entrega`, `mercadonaHoraEntrega.js`) | descartó: `franja`, que en HoMenu ya es la franja de comida (`franjasDelDia` en `src/lib/pizarra.js`, `0132_franjas_extra`) | motivo: decidido
 - principio 6 | eligió: el teléfono, sellado con la clave pública y abierto solo por el trabajador (`telefono_sellado`), como la sesión | descartó: guardarlo en claro en la base, un atajo que deja leerlo a quien lea la tabla | motivo: decidido
 - principio 4 | eligió: un campo nuevo en el paso de la barra, `bloqueado`, para «Comprar» por debajo del mínimo (trozo 12) | descartó: reutilizar `ocupado`, que ya significa «rellenando»: una palabra con dos significados | motivo: decidido
@@ -329,8 +329,8 @@ npx vitest run scripts/mercadona-trabajador-pago.test.js
 - principio 4 | eligió: la hoja de Comprar se queda con el título que ya tiene en staging, «Comprar en Mercadona» (`HojaComprar`, #1394), y su línea de debajo pierde el punto separador, como el resto de la app (Pablo, 8 nov 2026) | descartó: un título nuevo, «Tu lista en Mercadona», para la misma hoja | motivo: decidido
 - principio 4 | eligió: la pieza dicha («cabeza») se convierte con el peso del catálogo (`piezaPorAlias`) | descartó: una tabla de pesos propia en `despensa.js`, que sería una segunda fuente | motivo: decidido
 - principio 3 | eligió: una excepción al principio 3: sin la columna de la 0133, `llega_hasta` se lee como `lista` (plan B de los trozos 15 y 18), porque CLAUDE.md pide que el código no dependa de que la migración esté y `lista` es lo que el bot ya hace hoy; el coste es que, hasta que Pablo la aplique, nadie puede encender «Reservar la hora» | descartó: devolver un error sin la columna, que dejaría a todas las casas sin rellenar la lista entre el despliegue y la migración | motivo: decidido
-- principio 6 | eligió: el trozo 8 pasa sus `Files:` a los de su rama (la entrada vive en `AjustesMercadona`, el mismo componente que la hoja, trozo 6) y su `Done:` a `ConectarMercadonaApp.test.jsx`, nuevo | descartó: `ConectarMercadona.test.jsx`, que ya existe en staging y pasa hoy, así que no probaría el trozo | motivo: decidido
-- principio 6 | eligió: reservar la hora en cuatro trozos, uno por PR (20, 22, 23 y 24) | descartó: un solo trozo de 34 ficheros | motivo: decidido
+- principio 2 | eligió: el trozo 8 pasa sus `Files:` a los de su rama (la entrada vive en `AjustesMercadona`, el mismo componente que la hoja, trozo 6) y su `Done:` a `ConectarMercadonaApp.test.jsx`, nuevo | descartó: `ConectarMercadona.test.jsx`, que ya existe en staging y pasa hoy, así que no probaría el trozo | motivo: decidido
+- principio 2 | eligió: reservar la hora en cuatro trozos, uno por PR (20, 22, 23 y 24), cada uno con un Done que lo prueba | descartó: un solo trozo de 34 ficheros, que ningún revisor puede comprobar entero | motivo: decidido
 
 ## Not verified
 
