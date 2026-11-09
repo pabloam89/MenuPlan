@@ -203,6 +203,15 @@ export async function tomar() {
  * lo completa. Un `hecho` tardío sí entra sobre un `caducado`: la lista existe y la familia tiene que saberlo.
  * @returns {Promise<boolean>} si lo ha cerrado esta llamada
  */
+/**
+ * Apunta lo que el trabajador vio en la cuenta (0133): `tiene_direccion`, `tiene_pago` y cuándo. Solo la cuenta que
+ * sigue conectada: si se ha caducado o la han quitado, no hay nada que apuntar. La 0133 ya está aplicada (9 nov 2026):
+ * sin plan B, un fallo lanza.
+ */
+export async function apuntarRevision(casa, { tiene_direccion, tiene_pago }, cuando) {
+  await update("mercadona_cuenta", `household_id=${eq(casa)}&estado=eq.${ESTADO_CUENTA_MERCADONA.CONECTADA}`, { tiene_direccion, tiene_pago, revisada_at: cuando });
+}
+
 export async function cerrar(id, resultado, ahora = Date.now()) {
   const cuando = new Date(ahora).toISOString();
   const fallo = resultado.fallo ? paraEscribir("fallos_encargo_mercadona", resultado.fallo) : null;
@@ -210,6 +219,7 @@ export async function cerrar(id, resultado, ahora = Date.now()) {
   if (!antes) throw new Error("encargo desconocido");
   const caducado = antes.status === FALLIDO && antes.fallo === FALLO_ENCARGO_MERCADONA.CADUCADO;
   if (antes.status !== RELLENANDO && !(caducado && !fallo)) return false;
+  if (resultado.revision) await apuntarRevision(antes.household_id, resultado.revision, cuando);
 
   if (fallo === FALLO_ENCARGO_MERCADONA.SESION_CADUCADA) {
     // Solo la sesión con la que se intentó: si la familia ha reconectado después, la nueva vale.

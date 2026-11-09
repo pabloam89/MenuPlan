@@ -1,11 +1,12 @@
 /**
  * Lo que un navegador hace en la web de Mercadona: la misma para el prototipo a mano (scripts/mercadona-navegador.mjs)
- * y para el trabajador (scripts/mercadona-trabajador.mjs). La lista y, si la casa lo ha encendido, el carro (trozo 19
- * de #1407): nunca el pago.
+ * y para el trabajador (scripts/mercadona-trabajador.mjs). La lista, mirar si la cuenta tiene dirección y medio de pago
+ * (referencias/pedido.md de la skill) y, si la casa lo ha encendido, el carro (trozo 19 de #1407): nunca el pago.
  * Sin disfraces: si Mercadona bloquea, se para y se cuenta.
  */
 import { compararLista, leerGuardada } from "../../src/lib/mercadonaLista.js";
 import { faltanEnCarro, sumarAlCarro, totalDelCarro } from "./mercadonaCarro.mjs";
+import { esRevision } from "../../src/lib/mercadonaLlegaHasta.js";
 
 export const TIENDA = "https://tienda.mercadona.es/";
 const ESPERA_CARGA_MS = 3000;
@@ -43,6 +44,51 @@ export const enPagina = async (lista) => {
   const g = await fetch(`${base}${id}/?lang=es`, { headers: cabeceras });
   return { paso: "leer", status: g.status, id, guardada: g.ok ? await g.json() : null };
 };
+
+// Corre dentro de su página: si la cuenta tiene dirección (`count` de sus direcciones) y medio de pago
+// (`has_active_billing` del perfil). Solo vuelven dos booleanos, o el paso que falló: ni la dirección ni la tarjeta salen.
+export const enPaginaRevisar = async () => {
+  let u = null;
+  try {
+    u = JSON.parse(localStorage.getItem("MO-user"));
+  } catch {
+    return { paso: "sesion" };
+  }
+  if (!u?.token || !u?.uuid) return { paso: "sesion" };
+  const cabeceras = { authorization: `Bearer ${u.token}` };
+  const base = `/api/customers/${u.uuid}/`;
+  const d = await fetch(`${base}addresses/?lang=es`, { headers: cabeceras });
+  if (!d.ok) return { paso: "direcciones", status: d.status };
+  const p = await fetch(`${base}?lang=es`, { headers: cabeceras });
+  if (!p.ok) return { paso: "perfil", status: p.status };
+  const { count } = await d.json();
+  const { has_active_billing } = await p.json();
+  return { tiene_direccion: Number(count) > 0, tiene_pago: has_active_billing === true };
+};
+
+/**
+ * Pura. Lo que vuelve de la página: la revisión (`{ tiene_direccion, tiene_pago }`, la forma de `esRevision`) o null si
+ * no se pudo mirar. Cualquier otra cosa que traiga se queda fuera.
+ */
+export const revisionDe = (r) => {
+  const revision = r ? { tiene_direccion: r.tiene_direccion, tiene_pago: r.tiene_pago } : null;
+  return esRevision(revision) ? revision : null;
+};
+
+/**
+ * Mira la cuenta: la revisión, o `{ fallo: paso, status }` si una llamada no contestó bien. Si la página lanza (sin red,
+ * una respuesta que no es JSON), `{ fallo: "lanzo", status: 0, error }` con el nombre del error: no saber si hay
+ * dirección no tumba el encargo, y quien llama lo escribe en el log.
+ */
+export async function revisarCuenta(pagina) {
+  let r;
+  try {
+    r = await pagina.evaluate(enPaginaRevisar);
+  } catch (e) {
+    return { fallo: "lanzo", status: 0, error: e?.name ?? "Error" };
+  }
+  return revisionDe(r) ?? { fallo: r?.paso ?? "desconocido", status: r?.status ?? 0 };
+}
 
 /** Abre la tienda: `{ resultado, status }`, con `resultado` null si no ha bloqueado. */
 export async function abrirPortada(pagina) {
