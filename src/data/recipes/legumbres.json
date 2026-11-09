@@ -438,7 +438,17 @@
     "basesAparte": [
       "sofrito"
     ],
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "ahumado",
+      "intenso"
+    ]
   },
   {
     "id": "legumbres_003",
@@ -645,7 +655,17 @@
     "basesAparte": [
       "salsa_tomate"
     ],
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "especiado",
+      "intenso"
+    ]
   },
   {
     "id": "legumbres_004",
@@ -661,7 +681,7 @@
       "plato_unico"
     ],
     "type": "completo",
-    "time": 120,
+    "time": 165,
     "difficulty": "elaborada",
     "kcal": 618,
     "protein_g": 38,
@@ -732,7 +752,7 @@
       "Llevar a ebullición a fuego fuerte.",
       "Espumar la superficie con una espumadera hasta que el caldo salga limpio.",
       "Añadir los garbanzos escurridos y la zanahoria; bajar el fuego a suave y tapar.",
-      "Cocer tapado a fuego suave durante 45 min.",
+      "Cocer tapado a fuego suave durante 90 min, hasta que los garbanzos empiecen a estar tiernos.",
       "Incorporar la patata y el repollo a la olla.",
       "Añadir chorizo entero; tapar y cocer a fuego suave durante 20 min hasta que la patata esté tierna.",
       "Retirar el morcillo de ternera, el pollo, el tocino y el chorizo de la olla.",
@@ -807,8 +827,8 @@
         "kind": "activo"
       },
       {
-        "text": "Cocer tapado a fuego suave durante 45 min.",
-        "minutes": 45,
+        "text": "Cocer tapado a fuego suave durante 90 min, hasta que los garbanzos empiecen a estar tiernos.",
+        "minutes": 90,
         "kind": "pasivo"
       },
       {
@@ -881,7 +901,17 @@
     "mainBase": "legumbre",
     "baseMode": "dentro",
     "formato": "guiso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "intenso"
+    ]
   },
   {
     "id": "legumbres_005",
@@ -1109,7 +1139,16 @@
       "sofrito"
     ],
     "formato": "guiso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "intenso"
+    ]
   },
   {
     "id": "legumbres_006",
@@ -1223,7 +1262,8 @@
     "stepsRich": [
       {
         "text": "Remojar {{Fabes}} en agua fría abundante durante un mínimo de 12 horas antes de cocinar.",
-        "kind": "espera"
+        "kind": "espera",
+        "minutes": 720
       },
       {
         "text": "Escurrir las fabes y colocarlas en una olla grande; cubrir con agua fría hasta 4 cm por encima.",
@@ -1325,7 +1365,18 @@
     ],
     "tecnica": "olla",
     "formato": "guiso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "ahumado",
+      "intenso"
+    ]
   },
   {
     "id": "legumbres_007",
@@ -2259,8 +2310,8 @@
     "stepsRich": [
       {
         "text": "Poner {{Judiones}} en un bol grande con agua fría y dejar en remojo un mínimo de 12 h.",
-        "minutes": 1,
-        "kind": "prep"
+        "minutes": 720,
+        "kind": "espera"
       },
       {
         "text": "Escurrir los judiones y reservar.",
@@ -7664,7 +7715,7 @@
     "stepsRich": [
       {
         "text": "Poner {{Judiones secos}} en un bol cubiertos de agua fría y dejar en remojo toda la noche.",
-        "minutes": 480,
+        "minutes": 720,
         "kind": "espera"
       },
       {
@@ -11423,7 +11474,7 @@
     "stepsRich": [
       {
         "text": "Dejar {{Alubias blancas}} en remojo con agua fría abundante durante al menos 8 horas o toda la noche.",
-        "minutes": 480,
+        "minutes": 720,
         "kind": "espera"
       },
       {

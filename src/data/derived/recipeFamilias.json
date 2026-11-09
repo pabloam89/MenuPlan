@@ -3918,9 +3918,9 @@
       "huevos"
     ],
     "cuotas": {
-      "huevos": 0.5358,
-      "pescado": 0.1786,
-      "verdura": 0.1962
+      "huevos": 0.5394,
+      "pescado": 0.1798,
+      "verdura": 0.1908
     }
   },
   "huevos_011": {
@@ -5654,9 +5654,9 @@
       "pasta_arroz"
     ],
     "cuotas": {
-      "huevos": 0.1285,
-      "pasta_arroz": 0.482,
-      "verdura": 0.2314
+      "huevos": 0.1344,
+      "pasta_arroz": 0.5041,
+      "verdura": 0.242
     }
   },
   "pasta_arroces_010": {

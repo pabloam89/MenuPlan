@@ -177,8 +177,8 @@ const DECLARADOS = [
     n: 8, id: "textura", nombre: "Textura",
     ambito: AMBITO.RECETA, tipo: "enum", estado: "activo",
     campo: "textura", vocabulario: TEXTURAS,
-    consumidores: ["menu.js"], cobertura: 0.723,
-    nota: "Cómo se come: cuchara, tenedor, mano. Todo el Recetario Estrella (30 sep 2026, scripts/recetas-atributos-blandos.mjs: dos pasadas y un juez). La lee el bot al recomendar («de cuchara»). Antes solo implícita en `etapaBebe`.",
+    consumidores: ["menu.js"], cobertura: 0.761,
+    nota: "Cómo se come: cuchara, tenedor, mano. Todo el Recetario Estrella (30 sep 2026) y los clásicos de casa (9 nov 2026), con scripts/recetas-atributos-blandos.mjs: dos pasadas y un juez. La lee el bot al recomendar («de cuchara»). Antes solo implícita en `etapaBebe`.",
   },
   {
     n: 9, id: "sabor", nombre: "Perfil de sabor + intensidad",
@@ -212,8 +212,8 @@ const DECLARADOS = [
     n: 13, id: "connotacion", nombre: "Connotación emocional",
     ambito: AMBITO.RECETA, tipo: "tags", estado: "activo",
     campo: "connotacion", vocabulario: CONNOTACIONES,
-    consumidores: ["menu.js"], cobertura: 0.716,
-    nota: "Responde a «algo reconfortante», que es una petición real. Todo el Recetario Estrella desde el 30 sep 2026 (scripts/recetas-atributos-blandos.mjs); la lee el bot al recomendar.",
+    consumidores: ["menu.js"], cobertura: 0.754,
+    nota: "Responde a «algo reconfortante», que es una petición real. Todo el Recetario Estrella desde el 30 sep 2026 y los clásicos de casa desde el 9 nov 2026 (scripts/recetas-atributos-blandos.mjs); la lee el bot al recomendar.",
   },
 
   // ── Cultura y rito (14-22) ───────────────────────────────────────────────
@@ -549,14 +549,14 @@ const DECLARADOS = [
     n: 62, id: "picante", nombre: "Nivel de picante",
     ambito: AMBITO.RECETA, tipo: "enum", estado: "activo",
     campo: "picante", vocabulario: PICANTES,
-    consumidores: ["rasgosBusqueda", "menu.js", "vectores"], cobertura: 0.723,
+    consumidores: ["rasgosBusqueda", "menu.js", "vectores"], cobertura: 0.761,
     nota: "Se guarda en tres niveles y se pide en dos: `PICANTE_PEDIDO` (recipeSchema.js) dice qué niveles agrupa cada forma de pedirlo.",
   },
   {
     n: 63, id: "saborDominante", nombre: "Sabor dominante",
     ambito: AMBITO.RECETA, tipo: "tags", estado: "activo",
     campo: "sabor", vocabulario: SABORES,
-    consumidores: ["rasgosBusqueda", "menu.js", "vectores"], cobertura: 0.723,
+    consumidores: ["rasgosBusqueda", "menu.js", "vectores"], cobertura: 0.761,
     nota: "No es el eje 9 (`sabor`, que vive en healthFlags y mezcla salud): este es el sabor que se nota (suave, intenso, ácido…).",
   },
   {

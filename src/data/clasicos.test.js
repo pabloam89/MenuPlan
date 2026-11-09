@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { recipeCatalogById } from "./recipeCatalog.js";
-import { PAPELES_DE_HUECO } from "./recipeSchema.js";
+import { ATRIBUTOS_BLANDOS, PAPELES_DE_HUECO } from "./recipeSchema.js";
 import manifest from "../assets/dishes/dishImages.json";
 import { CLASICOS, esClasico } from "./clasicos.js";
 
@@ -27,6 +27,18 @@ describe("los clásicos de casa (clasicos.json)", () => {
   it("todos caben en una comida o una cena", () => {
     const fuera = CLASICOS.filter((id) => !(recipeCatalogById[id]?.mealRole ?? []).some((p) => PAPELES_DE_HUECO.includes(p)));
     expect(fuera).toEqual([]);
+  });
+
+  it("todos llevan sabor, textura, picante y connotación, como las estrella", () => {
+    // Se buscan en el recetario y Lola los recomienda: sin estos campos, un
+    // clásico no sale al pedir «de cuchara» o «que no pique». Los rellena
+    // scripts/recetas-atributos-blandos.mjs.
+    const lleno = (v) => (Array.isArray(v) ? v.length > 0 : v != null);
+    const faltan = CLASICOS.filter((id) => {
+      const r = recipeCatalogById[id];
+      return !ATRIBUTOS_BLANDOS.every((k) => lleno(r?.[k]));
+    });
+    expect(faltan).toEqual([]);
   });
 
   it("esClasico reconoce la receta por su id", () => {

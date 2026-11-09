@@ -644,7 +644,16 @@
     "basesAparte": [
       "sofrito"
     ],
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_004",
@@ -1906,7 +1915,15 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_011",

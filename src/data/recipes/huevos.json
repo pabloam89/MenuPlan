@@ -123,7 +123,16 @@
     "mainBase": "patatas",
     "baseMode": "dentro",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "huevos_002",
@@ -800,7 +809,16 @@
     "freezable": false,
     "tecnica": "sarten",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "huevos_008",
@@ -1109,8 +1127,8 @@
         "unit": "g"
       },
       {
-        "name": "Tomate triturado",
-        "ingredientId": "tomate-triturado",
+        "name": "Tomate frito",
+        "ingredientId": "tomate-frito",
         "amount": 60,
         "unit": "ml"
       },
@@ -1129,7 +1147,7 @@
       "Cortar pimiento morrón en trozos muy pequeños.",
       "Añadir al bol con las yemas atún en conserva, mayonesa y el pimiento morrón picado. Mezclar hasta obtener una pasta homogénea.",
       "Rellenar cada clara con la mezcla usando una cucharilla, formando un montículo generoso.",
-      "Napar cada huevo relleno con tomate triturado y servir."
+      "Napar cada huevo relleno con tomate frito y servir."
     ],
     "description": "Huevos cocidos rellenos de atún y mayonesa con tomate",
     "methods": [
@@ -1183,7 +1201,7 @@
         "kind": "activo"
       },
       {
-        "text": "Napar cada huevo relleno con {{Tomate triturado}} y servir.",
+        "text": "Napar cada huevo relleno con {{Tomate frito}} y servir.",
         "minutes": 1,
         "kind": "emplatado"
       }
@@ -1196,7 +1214,16 @@
     "tecnica": "sarten",
     "llevaSalsa": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "huevos_011",
