@@ -89,7 +89,7 @@ const botonComprar = {
  * El pie de la compra: cuánto es, cuántos productos, y el paso de comprar.
  * Pegado al menú de abajo (sticky, no fixed): al final de la lista ocupa su
  * sitio y no tapa la última fila. `onLola` es opcional: sin él no hay foto.
- * `paso` es lo que dice el botón (`pasoDeComprar`); el total abre el detalle.
+ * `paso` es lo que dice el botón (`pasoDeComprar`, y `pasoConMinimo`: con `bloqueado`, no se pulsa); el total abre el detalle.
  */
 export default function BarraComprar({ total, productos, paso = { texto: PASO_COMPRAR.COMPRAR }, onComprar, onDetalle, onLola }) {
   const nombre = paso.texto === PASO_COMPRAR.COMPRAR ? `Comprar · ${total}` : paso.texto;
@@ -107,7 +107,7 @@ export default function BarraComprar({ total, productos, paso = { texto: PASO_CO
       {paso.href ? (
         <a href={paso.href} target="_blank" rel="noreferrer" style={botonComprar}>{paso.texto}</a>
       ) : (
-        <button type="button" onClick={onComprar} disabled={paso.ocupado} aria-label={nombre} style={{ ...botonComprar, opacity: paso.ocupado ? 0.6 : 1 }}>
+        <button type="button" onClick={onComprar} disabled={paso.ocupado || paso.bloqueado} aria-label={nombre} style={{ ...botonComprar, opacity: paso.ocupado || paso.bloqueado ? 0.6 : 1 }}>
           {paso.texto}
         </button>
       )}

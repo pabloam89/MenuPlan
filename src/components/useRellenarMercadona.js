@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { enlaceDeLista } from "../lib/mercadonaList.js";
+import { PEDIDO_MINIMO_MERCADONA, enlaceDeLista, faltaParaMinimo } from "../lib/mercadonaList.js";
+import { formatEuro } from "../lib/priceHistory.js";
 import {
   CADA_MS, ESPERA_MAX_MS, FALLOS_MAX, PASO_COMPRAR, encargoEnMarcha, leerEstado, pedirLista, quitarCuenta, TEXTO_NO_ENCARGADO, textoDeEncargo,
 } from "../lib/mercadonaApp.js";
@@ -81,10 +82,22 @@ export function useRellenarMercadona(casa, lista) {
   };
 }
 
-/** Qué dice el botón de comprar: `{ texto, nota, href, ocupado, mirar }`. Si la lista ha cambiado, se vuelve a comprar. */
+/** Qué dice el botón de comprar: `{ texto, nota, href, ocupado, mirar }`; `bloqueado` lo pone pasoConMinimo. Si la lista ha cambiado, se vuelve a comprar. */
 export function pasoDeComprar(m) {
   if (m.esperando) return m.sinNoticias ? { texto: PASO_COMPRAR.MIRAR, nota: "Ahora mismo no sé cómo va.", mirar: true } : { texto: PASO_COMPRAR.RELLENANDO, ocupado: true };
   const encargo = m.vigente ? m.encargo : null;
   if (encargo?.lista_xid) return { texto: PASO_COMPRAR.ABRIR, nota: textoDeEncargo(encargo), href: enlaceDeLista(encargo.lista_xid) };
   return { texto: PASO_COMPRAR.COMPRAR, nota: m.aviso ?? (encargo ? textoDeEncargo(encargo) : null) };
+}
+
+/**
+ * El paso de comprar con el pedido mínimo de Mercadona: por debajo, Comprar no
+ * se puede pulsar (`bloqueado`) y la nota dice cuánto falta. Lo demás (una
+ * lista que se está rellenando o ya hecha) sigue como esté. `total` es el de la
+ * cuenta de la lista, con los precios del catálogo.
+ */
+export function pasoConMinimo(paso, total) {
+  const falta = faltaParaMinimo(total);
+  if (paso.texto !== PASO_COMPRAR.COMPRAR || falta === 0) return paso;
+  return { texto: PASO_COMPRAR.COMPRAR, nota: `Faltan ${formatEuro(falta)} para el pedido mínimo de ${PEDIDO_MINIMO_MERCADONA} €`, bloqueado: true };
 }
