@@ -1076,6 +1076,7 @@
       "primero",
       "cena"
     ],
+    "clasico": true,
     "type": "principal",
     "time": 20,
     "difficulty": "facil",
