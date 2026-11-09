@@ -30,7 +30,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { leerEnv } from "./lib/env.mjs";
-import { CONNOTACIONES, OCCASIONS, PICANTES, SABORES, TEXTURAS } from "../src/data/recipeSchema.js";
+import { ATRIBUTOS_BLANDOS, CONNOTACIONES, OCCASIONS, PICANTES, SABORES, TEXTURAS } from "../src/data/recipeSchema.js";
 import { esClasico } from "../src/data/clasicos.js";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
@@ -61,10 +61,9 @@ const guardar = (n, d) => fs.writeFileSync(ruta(n), `${JSON.stringify(d, null, 2
 
 const ficheros = fs.readdirSync(DIR).filter((f) => f.endsWith(".json"));
 const porFichero = Object.fromEntries(ficheros.map((f) => [f, JSON.parse(fs.readFileSync(path.join(DIR, f), "utf8"))]));
-const ESCRITOS = ["connotacion", "textura", "picante", "sabor"];
 const porHacer = Object.values(porFichero)
   .flat()
-  .filter((r) => (r.estrella === true || esClasico(r)) && ESCRITOS.some((k) => r[k] === undefined));
+  .filter((r) => (r.estrella === true || esClasico(r)) && ATRIBUTOS_BLANDOS.some((k) => r[k] === undefined));
 
 const ENFOQUE = {
   a: "Eres editora de un recetario familiar español. Clasifica cada receta como la vería una madre o un padre que busca qué cocinar.",
@@ -209,7 +208,7 @@ function aplicar() {
     for (const r of recetas) {
       const x = final[r.id];
       if (!x) continue;
-      for (const k of ESCRITOS) {
+      for (const k of ATRIBUTOS_BLANDOS) {
         if (x[k] !== undefined && !igual(r[k], x[k])) { r[k] = x[k]; tocado = true; cambios++; }
       }
       // Lo curado a mano manda: occasion y kidFavourite solo donde faltan. Y

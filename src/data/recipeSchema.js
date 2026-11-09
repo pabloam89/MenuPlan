@@ -100,6 +100,9 @@ const PICANTES = ["no", "suave", "picante"];
 // niveles guardados; entre las dos los cubren todos (lo comprueba su test).
 const PICANTE_PEDIDO = { sin: ["no"], con: ["suave", "picante"] };
 const SABORES = ["suave", "intenso", "especiado", "dulce", "acido", "ahumado"];
+// Los cuatro campos que escribe ese script y que llevan las estrella y los
+// clásicos (lo exige data/clasicos.test.js).
+const ATRIBUTOS_BLANDOS = ["connotacion", "textura", "picante", "sabor"];
 
 const COCINAS = [
   "italiana", "asiatica", "mexicana", "arabe",
@@ -1048,7 +1051,7 @@ export function effectiveRecipeTime(recipe, eaters) {
   return recipe.time * (1 + 0.12 * extra);
 }
 
-export { CONNOTACIONES, TEXTURAS, PICANTES, PICANTE_PEDIDO, SABORES };
+export { ATRIBUTOS_BLANDOS, CONNOTACIONES, TEXTURAS, PICANTES, PICANTE_PEDIDO, SABORES };
 
 /**
  * Campos que la receta NO trae en el JSON y se le añaden al cargar

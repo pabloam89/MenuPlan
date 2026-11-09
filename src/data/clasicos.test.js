@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { recipeCatalogById } from "./recipeCatalog.js";
-import { PAPELES_DE_HUECO } from "./recipeSchema.js";
+import { ATRIBUTOS_BLANDOS, PAPELES_DE_HUECO } from "./recipeSchema.js";
 import manifest from "../assets/dishes/dishImages.json";
 import { CLASICOS, esClasico } from "./clasicos.js";
 
@@ -36,7 +36,7 @@ describe("los clásicos de casa (clasicos.json)", () => {
     const lleno = (v) => (Array.isArray(v) ? v.length > 0 : v != null);
     const faltan = CLASICOS.filter((id) => {
       const r = recipeCatalogById[id];
-      return !["sabor", "textura", "picante", "connotacion"].every((k) => lleno(r?.[k]));
+      return !ATRIBUTOS_BLANDOS.every((k) => lleno(r?.[k]));
     });
     expect(faltan).toEqual([]);
   });
