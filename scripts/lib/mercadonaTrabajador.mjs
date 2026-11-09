@@ -1,12 +1,14 @@
 /**
- * El trabajador de Comprar: coge un encargo, abre la sesión sellada en un navegador limpio, crea la lista y cuenta qué
- * pasó (0131, skill `mercadona`). Aquí la lógica; el navegador y la API se le pasan, para probarla sin ninguno de los
+ * El trabajador de Comprar: coge un encargo, abre la sesión sellada en un navegador limpio, crea la lista y, si la casa
+ * ha encendido «Reservar» o «Pagar» (`llega_hasta`, trozo 15 de #1407), la suma al carro; y cuenta qué pasó (0131, skill
+ * `mercadona`). Aquí la lógica; el navegador y la API se le pasan, para probarla sin ninguno de los
  * dos y para cambiar de navegador sin tocarla.
  *
  * Nunca se imprime la sesión, ni se guarda en disco: vive en memoria lo que dura un encargo.
  */
 import { erroresDeLista } from "../../src/lib/mercadonaLista.js";
-import { crearLista, entrarEnTienda } from "./mercadonaPagina.mjs";
+import { crearLista, entrarEnTienda, llenarCarro } from "./mercadonaPagina.mjs";
+import { LLEGA_HASTA, llegaA } from "../../src/lib/mercadonaLlegaHasta.js";
 import { FALLO_ENCARGO_MERCADONA as FALLO } from "../../src/lib/mercadonaFallos.js";
 
 /** Lo que se permite por encargo: pasado esto, lo da por fallido y sigue. Menor que CADUCA_RELLENANDO_MIN; un test los ata. */
@@ -30,10 +32,35 @@ export function resultadoDeEncargo(r) {
   return { fallo: FALLO.ERROR };
 }
 
-async function trabajar(pagina, lista) {
+/**
+ * Cómo fue el carro, para el encargo: `{ lleno, total, faltan }` o `{ lleno: false, motivo }`. Aún no se guarda (la
+ * API lo ignora hasta el trozo 22), pero la lista ya está: un carro que falla, o que lanza o se pasa de tiempo, no
+ * tumba el encargo.
+ */
+export function resultadoDeCarro(c) {
+  if (c.resultado === "carro_lleno") return { lleno: true, total: c.total, faltan: c.faltan };
+  const motivo = c.resultado === "fallo_sesion" || c.status === 401 ? "sesion" : c.status === 403 || c.status === 429 ? "bloqueado" : "error";
+  return { lleno: false, motivo };
+}
+
+async function hastaLaLista(pagina, lista) {
   const portada = await entrarEnTienda(pagina);
   if (portada.resultado) return resultadoDeEncargo(portada);
   return resultadoDeEncargo(await crearLista(pagina, lista));
+}
+
+/**
+ * El carro, con lo que quede del tope del encargo (`quedaMs`): lista y carro juntos nunca pasan de TOPE_ENCARGO_MS.
+ * Lo que lance aquí, o se pase de tiempo, se cuenta como carro sin llenar y no llega a `unaVuelta`, que cerraría el
+ * encargo como `error` y perdería el `lista_xid` de una lista que ya está.
+ */
+async function alCarro(pagina, lista, quedaMs, log) {
+  try {
+    return resultadoDeCarro(await conTope(llenarCarro(pagina, lista), quedaMs));
+  } catch (e) {
+    log(`carro: ${e.name}`);
+    return { lleno: false, motivo: "error" };
+  }
 }
 
 function conTope(promesa, ms) {
@@ -46,10 +73,10 @@ function conTope(promesa, ms) {
 
 /**
  * Atiende un encargo y devuelve lo que hay que cerrar.
- * @param {{ encargo: { id: string, lista: object }, sesion_cifrada: string }} siguiente
+ * @param {{ encargo: { id: string, lista: object }, sesion_cifrada: string, llega_hasta?: string }} siguiente  sin `llega_hasta`, solo la lista
  * @param {{ abrirSesion: (sello: string) => Promise<string>, abrirNavegador: (estado: object) => Promise<{ pagina: object, cerrar: () => Promise<void> }> }} d
  */
-export async function atender({ encargo, sesion_cifrada }, { abrirSesion, abrirNavegador, log = () => {}, topeMs = TOPE_ENCARGO_MS }) {
+export async function atender({ encargo, sesion_cifrada, llega_hasta }, { abrirSesion, abrirNavegador, log = () => {}, topeMs = TOPE_ENCARGO_MS, ahora = Date.now }) {
   if (erroresDeLista(encargo.lista).length) return { fallo: FALLO.LISTA_NO_VALIDA };
   let estado;
   try {
@@ -62,7 +89,11 @@ export async function atender({ encargo, sesion_cifrada }, { abrirSesion, abrirN
   }
   const { pagina, cerrar } = await abrirNavegador(estado);
   try {
-    return await conTope(trabajar(pagina, encargo.lista), topeMs);
+    const fin = ahora() + topeMs;
+    const hecho = await conTope(hastaLaLista(pagina, encargo.lista), topeMs);
+    // Sin la lista no se toca el carro; y solo si la casa ha encendido «Reservar» o «Pagar».
+    if (hecho.fallo || !llegaA(llega_hasta, LLEGA_HASTA.RESERVAR)) return hecho;
+    return { ...hecho, carro: await alCarro(pagina, encargo.lista, Math.max(0, fin - ahora()), log) };
   } finally {
     await cerrar();
   }
@@ -89,7 +120,10 @@ export async function unaVuelta({ api, log, dormir = esperar, entreCierresMs = E
     log(`encargo ${id}: ${e.name}`);
     resultado = { fallo: FALLO.ERROR };
   }
-  log(`encargo ${id}: ${resultado.fallo ?? "hecho"}`);
+  // El carro aún no se guarda (la API lo ignora hasta el trozo 22): que al menos un carro que falla se vea en el log.
+  const c = resultado.carro;
+  const carro = !c ? "" : !c.lleno ? `, carro sin llenar: ${c.motivo}` : c.faltan?.length ? `, carro lleno salvo ${c.faltan.length}` : ", carro lleno";
+  log(`encargo ${id}: ${resultado.fallo ?? "hecho"}${carro}`);
   // Una lista ya creada no se pierde por un corte: cerrar se puede repetir sin hacer nada dos veces.
   for (let intento = 1; ; intento++) {
     try {

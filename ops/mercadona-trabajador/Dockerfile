@@ -6,8 +6,8 @@ WORKDIR /app
 RUN echo '{"type":"module"}' > package.json && npm install --no-save --ignore-scripts @playwright/test@1.64.1
 
 COPY scripts/mercadona-trabajador.mjs scripts/
-COPY scripts/lib/mercadonaTrabajador.mjs scripts/lib/mercadonaPagina.mjs scripts/lib/
-COPY src/lib/mercadonaSello.js src/lib/mercadonaFallos.js src/lib/mercadonaLista.js src/lib/
+COPY scripts/lib/mercadonaTrabajador.mjs scripts/lib/mercadonaPagina.mjs scripts/lib/mercadonaCarro.mjs scripts/lib/
+COPY src/lib/mercadonaSello.js src/lib/mercadonaFallos.js src/lib/mercadonaLista.js src/lib/mercadonaLlegaHasta.js src/lib/
 
 USER pwuser
 CMD ["node", "scripts/mercadona-trabajador.mjs"]
