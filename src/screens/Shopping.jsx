@@ -1,7 +1,7 @@
 import { FRONTAL_BOT, GUIAS_ACTIVAS, abrirLola } from "../lib/frontalBot.js";
 import { pedidoMenu } from "../lib/pedidoLola.js";
 import { BaldosaFranja, RayaBaldosas } from "../components/wizard/ControlRow.jsx";
-import { color as tono, tipografia } from "../design/tokens.js";
+import { color as tono } from "../design/tokens.js";
 import BarraComprar, { PildoraLola } from "../components/BarraComprar.jsx";
 import ResumenCompra from "../components/ResumenCompra.jsx";
 import { pasoDeComprar, useRellenarMercadona } from "../components/useRellenarMercadona.js";
@@ -212,8 +212,8 @@ function applyPantryCoverage(rows, stock) {
   }
 }
 
-// La sección de fondo de armario: va la última y empieza plegada, porque casi
-// siempre está en casa y en el súper se baja la lista sin pararse en ella.
+// La sección de fondo de armario: va la primera, con su franja ámbar, y empieza
+// plegada: casi siempre está en casa, y se abre para mirar si falta algo.
 const SECCION_FONDO = "__fondo";
 
 const AISLE_UI = {
@@ -234,9 +234,12 @@ const AISLE_UI = {
   __pantry:              { Icon: Refrigerator, color: "#2d5a3d" },
 };
 // Tampoco es un pasillo: lo de fondo de armario (aceite, sal, especias…),
-// juntado al final de la lista (src/data/fondoDeArmario.json). Lleva la cara
-// de las especias, que es lo que más hay en ella.
-AISLE_UI[SECCION_FONDO] = AISLE_UI.Especias;
+// juntado arriba de la lista (src/data/fondoDeArmario.json), con su ilustración
+// y su color, para que no se confunda con un pasillo. El color es el ámbar del
+// sistema de diseño, que está cerrado (78 valores, tokens.test.js): no hay otro
+// tono cálido y un rol nuevo repetiría el valor.
+const FONDO_FRANJA = { abierta: tono.aviso, plegada: tono["aviso-fondo"] };
+AISLE_UI[SECCION_FONDO] = { Icon: Package, color: FONDO_FRANJA.abierta, img: "/categories/fondo_de_armario.png" };
 
 // Title-band tint shared across En casa / Menú / Recetas / Compra — a soft
 // green (accent-tinted), distinct from the white list body below it.
@@ -767,18 +770,16 @@ export function ShoppingScreen({
   const visibleItems = filterItemsByDays(enrichedItems, SHOPPING_DAY_WEEK).filter(
     buyTab === "bought" ? isDoneItem : isActiveItem,
   );
-  // Primero lo de las recetas, por pasillo; al final, junto y plegado, lo de
-  // fondo de armario. Las dos partes suman en la cuenta igual que antes.
+  // Arriba, junto y plegado, lo de fondo de armario; debajo, lo de las recetas
+  // por pasillo. Las dos partes suman en la cuenta igual que antes.
   const { receta: itemsReceta, fondo: itemsFondo } = separarFondo(visibleItems);
   const sections = [
+    ...(itemsFondo.length ? [{ key: SECCION_FONDO, title: "Fondo de armario", items: itemsFondo }] : []),
     ...itemsByAisle(itemsReceta).map((g) => ({
       key: g.aisle,
       title: g.aisle,
       items: g.items,
     })),
-    ...(itemsFondo.length
-      ? [{ key: SECCION_FONDO, title: "Fondo de armario", nota: "Lo que suele haber en casa: mira si te falta algo", items: itemsFondo }]
-      : []),
   ];
 
   const isEmpty = sections.every((s) => s.items.length === 0);
@@ -1175,7 +1176,9 @@ export function ShoppingScreen({
             padding: "8px 12px",
             border: "none",
             position: "relative",
-            background: open ? AISLE_OPEN_BAND : "#fff",
+            background: section.key === SECCION_FONDO
+              ? (open ? FONDO_FRANJA.abierta : FONDO_FRANJA.plegada)
+              : open ? AISLE_OPEN_BAND : "#fff",
             borderRadius: open ? "12px 12px 0 0" : 0,
             borderBottom:
               !open && !isLastSection ? AISLE_DIVIDER : "none",
@@ -1198,11 +1201,6 @@ export function ShoppingScreen({
             >
               {section.title}
             </span>
-            {section.nota && (
-              <span style={{ fontSize: tipografia["paso-11"], fontWeight: tipografia["peso-700"], color: open ? tono.superficie : tono["tinta-tenue"] }}>
-                {section.nota}
-              </span>
-            )}
           </span>
           {/* Siempre nº de items, nunca € (2026-08-26) — así Por comprar +
               Comprado suman la compra completa que se pensó, en vez de que

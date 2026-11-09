@@ -18,6 +18,12 @@ import { porNombre } from "../lib/vocabularios.js";
  * lo duradero pero poco corriente (gochujang, tahini, mirin): si se diera por
  * hecho, la lista callaría algo que la familia no tiene.
  *
+ * LAS ESPECIAS, TODAS. Toda especia seca (el pasillo «Especias» del catálogo)
+ * es de fondo de armario, aunque no la tenga cualquier casa (la mezcla cajún):
+ * en la Compra se buscan juntas, en un sitio (Pablo, 9 nov 2026). El test lo
+ * exige. Las hierbas frescas no son especias: se estropean en días y van al
+ * pasillo de Verduras, como en Mercadona.
+ *
  * LO QUE NO ES. Arroz, pasta y legumbres aguantan meses, pero una receta gasta
  * un paquete entero: van por cantidad, son de receta. Las hierbas frescas, el
  * vino abierto y los caldos, igual.
