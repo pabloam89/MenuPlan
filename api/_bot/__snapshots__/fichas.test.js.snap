@@ -249,7 +249,24 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
    ],
    "additionalProperties": false
   },
-  "description": "Cambia hasta dónde llega Lola en Mercadona, solo si la persona lo pide: lista = solo rellenar la lista; reservar = además meterla en el carro y reservar la hora de entrega; pagar = además pagar, siempre confirmando antes el importe y con la aprobación de su banco. «Ya no pagues tú» es reservar; «solo la lista», lista. Si devuelve que falta algo, díselo tal cual. Dile lo que devuelve, sin añadir nada."
+  "description": "Cambia hasta dónde llega Lola en Mercadona, solo si la persona lo pide: lista = solo rellenar la lista; reservar = además meterla en el carro y reservar la hora de entrega; pagar = además pagar, siempre confirmando antes el importe y con la aprobación de su banco. «Ya no pagues tú» es reservar; «solo la lista», lista. Si devuelve que falta un teléfono, pídeselo y usa guardar_telefono_mercadona; luego vuelve a llamarla. Dile lo que devuelve, sin añadir nada."
+ },
+ {
+  "type": "custom",
+  "name": "guardar_telefono_mercadona",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "telefono": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "telefono"
+   ],
+   "additionalProperties": false
+  },
+  "description": "Guarda el teléfono que Mercadona pide para el repartidor, cuando la persona lo da para eso. Pásalo tal como lo escribió. Se guarda cerrado y no se repite: no lo escribas tú en la respuesta. Dile lo que devuelve, sin añadir nada."
  },
  {
   "type": "custom",
