@@ -72,7 +72,12 @@ export const TEXTO_FALTA = Object.freeze({
   [FALTA_MERCADONA.PAGO]: "Añade una tarjeta en la app de Mercadona.",
 });
 export const SIN_MIRAR = "Miraré tu cuenta de Mercadona la próxima vez que rellene tu lista.";
-export const TELEFONO = Object.freeze({ ETIQUETA: "Teléfono para el repartidor", GUARDAR: "Guardar", MAL: "Ese teléfono no parece bien." });
+export const TELEFONO = Object.freeze({
+  ETIQUETA: "Teléfono para el repartidor",
+  GUARDAR: "Guardar",
+  MAL: "Ese teléfono no parece bien.",
+  NO_GUARDADO: "No se ha podido guardar el teléfono. Inténtalo otra vez.",
+});
 
 const enMarcha = (e) => e?.status === ESTADO_ENCARGO_MERCADONA.PENDIENTE || e?.status === ESTADO_ENCARGO_MERCADONA.RELLENANDO;
 export { enMarcha as encargoEnMarcha };

@@ -74,6 +74,15 @@ describe("Ajustes → Mercadona: reservar la hora de entrega (trozo 17)", () => 
     expect(m.cambiarLlegaHasta).toHaveBeenCalledWith("reservar");
   });
 
+  it("si no se pudo guardar (red o servidor), no dice que el teléfono esté mal", async () => {
+    const { caja, m } = await pintar({ tiene_telefono: false, guardarTelefono: vi.fn(async () => null), aviso: TELEFONO.NO_GUARDADO });
+    await pulsar(reservar(caja));
+    await act(async () => caja.querySelector("form").requestSubmit());
+    expect(caja.textContent).not.toContain(TELEFONO.MAL);
+    expect(caja.textContent).toContain(TELEFONO.NO_GUARDADO);
+    expect(m.cambiarLlegaHasta).not.toHaveBeenCalled();
+  });
+
   it("un teléfono que no vale lo dice y no enciende nada", async () => {
     const { caja, m } = await pintar({ tiene_telefono: false, guardarTelefono: vi.fn(async () => false) });
     await pulsar(reservar(caja));

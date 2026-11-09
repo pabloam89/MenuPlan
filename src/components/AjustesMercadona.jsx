@@ -46,7 +46,7 @@ function PedirTelefono({ guardar }) {
   const [mal, setMal] = useState(false);
   const enviar = async (e) => {
     e.preventDefault();
-    setMal(!(await guardar(texto)));
+    setMal((await guardar(texto)) === false);
   };
   return (
     <form onSubmit={enviar} style={{ display: "grid", gap: espaciado["esp-8"] }}>
@@ -103,7 +103,8 @@ export function AjustesMercadona({ m, encendido = false }) {
     if (!antes.length) setFalta(await m.cambiarLlegaHasta(hasta));
   };
   const conTelefono = async (texto) => {
-    if (!(await m.guardarTelefono(texto))) return false;
+    const guardado = await m.guardarTelefono(texto);
+    if (guardado !== true) return guardado;
     const resto = falta.filter((f) => f !== FALTA_MERCADONA.TELEFONO);
     setFalta(resto.length ? resto : await m.cambiarLlegaHasta(LLEGA_HASTA.RESERVAR));
     return true;

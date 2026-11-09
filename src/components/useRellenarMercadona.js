@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { PEDIDO_MINIMO_MERCADONA, enlaceDeLista, faltaParaMinimo } from "../lib/mercadonaList.js";
 import { formatEuro } from "../lib/priceHistory.js";
 import {
-  CADA_MS, ESPERA_MAX_MS, FALLOS_MAX, PASO_COMPRAR, cambiarHasta, encargoEnMarcha, enviarTelefono, leerEstado, pedirLista, quitarCuenta, TEXTO_NO_ENCARGADO, textoDeEncargo,
+  CADA_MS, ESPERA_MAX_MS, FALLOS_MAX, PASO_COMPRAR, TELEFONO, cambiarHasta, encargoEnMarcha, enviarTelefono, leerEstado, pedirLista, quitarCuenta, TEXTO_NO_ENCARGADO, textoDeEncargo,
 } from "../lib/mercadonaApp.js";
 import { llegaHastaDe } from "../lib/mercadonaLlegaHasta.js";
 import { telefonoDe, textoParaSellar } from "../lib/mercadonaTelefono.js";
@@ -79,12 +79,20 @@ export function useRellenarMercadona(casa, lista) {
     return [];
   };
 
-  /** Sella el teléfono aquí, en el móvil, y lo guarda. false si no es un teléfono o no se pudo guardar. */
+  /**
+   * Sella el teléfono aquí, en el móvil, y lo guarda. true si se guardó; false si no es un teléfono; null si no se pudo
+   * guardar (sin clave, la red o el servidor), con el aviso puesto.
+   */
   const guardarTelefono = async (texto) => {
+    setAviso(null);
     const telefono = telefonoDe(texto);
-    if (!telefono || !estado?.clave_publica) return false;
-    const r = await enviarTelefono(casa, await sellar(textoParaSellar(telefono), estado.clave_publica));
-    if (!r.guardado) return false;
+    if (!telefono) return false;
+    // Lo demás no es culpa del número: sin clave, la red o el servidor. Se dice aparte, y se puede volver a intentar.
+    const r = estado?.clave_publica ? await enviarTelefono(casa, await sellar(textoParaSellar(telefono), estado.clave_publica)) : {};
+    if (!r.guardado) {
+      setAviso(TELEFONO.NO_GUARDADO);
+      return null;
+    }
     setEstado((s) => ({ ...s, tiene_telefono: true }));
     return true;
   };
