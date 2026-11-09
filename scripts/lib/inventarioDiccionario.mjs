@@ -264,6 +264,7 @@ export const esCopia = (lista, valores) =>
 const DUENO_DE = {
   "vocabularios.aparatos": "src/lib/electrodomesticos.js",
   "vocabularios.fallos_encargo_mercadona": "src/lib/mercadonaFallos.js",
+  "vocabularios.llega_hasta_mercadona": "src/lib/mercadonaLlegaHasta.js",
   "receta.healthFlags": "src/lib/healthFlags.js",
 };
 

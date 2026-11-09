@@ -8,5 +8,8 @@ export const PG_SIN_FUNCION = "42883";
 /** Lo que dice que la tabla o la función no existen: una migración sin aplicar. */
 export const NO_EXISTE = Object.freeze(new Set(["PGRST205", PGRST_SIN_FUNCION, "42P01", PG_SIN_FUNCION]));
 
+/** Postgres no tiene la columna (undefined_column): una columna nueva de una migración sin aplicar. */
+export const PG_SIN_COLUMNA = "42703";
+
 /** Pura. ¿El error de una llamada a una RPC dice que la función no existe? */
 export const esSinFuncion = (error) => error?.code === PGRST_SIN_FUNCION || error?.code === PG_SIN_FUNCION;
