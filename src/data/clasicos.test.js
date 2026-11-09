@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readdirSync, readFileSync } from "node:fs";
 import { recipeCatalogById } from "./recipeCatalog.js";
+import { PAPELES_DE_HUECO } from "./recipeSchema.js";
 import manifest from "../assets/dishes/dishImages.json";
 
 // Los marcados en el JSON, no en el catálogo ya cargado: si una receta marcada
@@ -11,8 +12,6 @@ const marcados = readdirSync(DIR)
   .filter((f) => f.endsWith(".json"))
   .flatMap((f) => JSON.parse(readFileSync(new URL(f, DIR), "utf8")))
   .filter((r) => r?.clasico === true);
-
-const PAPELES_DE_MENU = ["primero", "segundo", "plato_unico", "cena"];
 
 describe("los clásicos de casa (`clasico`)", () => {
   it("hay una tanda que elegir", () => {
@@ -29,7 +28,7 @@ describe("los clásicos de casa (`clasico`)", () => {
   });
 
   it("todos caben en una comida o una cena", () => {
-    const fuera = marcados.filter((r) => !(r.mealRole ?? []).some((p) => PAPELES_DE_MENU.includes(p)));
+    const fuera = marcados.filter((r) => !(r.mealRole ?? []).some((p) => PAPELES_DE_HUECO.includes(p)));
     expect(fuera.map((r) => r.id)).toEqual([]);
   });
 });

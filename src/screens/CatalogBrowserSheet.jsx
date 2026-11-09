@@ -52,7 +52,7 @@ import {
 import { recipeCatalog, recipeCatalogById } from "../data/recipeCatalog.js";
 import { loadRecipeStats } from "../lib/social.js";
 import { esRecetaDelTitular } from "../lib/userRecipesFila.js";
-import { isMontaje } from "../data/recipeSchema.js";
+import { isMontaje, PAPELES_DE_HUECO } from "../data/recipeSchema.js";
 import { isCompatibleWith } from "../lib/substitutions.js";
 import guarnicionesData from "../data/recipes/guarniciones.json";
 import salsasData from "../data/recipes/salsas.json";
@@ -251,7 +251,7 @@ function isSalsaRecipe(r) {
   return r?.type === "salsa" || r?.mealRole?.includes?.("salsa");
 }
 
-const MAIN_MEAL_ROLES = new Set(["primero", "segundo", "plato_unico", "cena"]);
+const MAIN_MEAL_ROLES = new Set(PAPELES_DE_HUECO);
 
 /** Plato elegible para un hueco de comida/cena (picker del menú). */
 function isGatePickPlato(r) {

@@ -248,6 +248,11 @@ const MEAL_ROLES = [
   "base",
 ];
 
+// Los papeles que ocupan un hueco de comida o cena del menú: el resto de
+// MEAL_ROLES vive en su propio pool o no es hueco nunca. Lo leen el recetario
+// de un hueco (CatalogBrowserSheet.jsx) y el test de los clásicos.
+const PAPELES_DE_HUECO = Object.freeze(["primero", "segundo", "plato_unico", "cena"]);
+
 const DIFFICULTIES = ["facil", "normal", "elaborada"];
 
 // Lo que aporta el plato al reparto semanal (override de lib/aporte.js).
@@ -483,13 +488,13 @@ export const RecipeSchema = z
     // se la promueve a mano marcándola aquí (y entonces necesita foto).
     estrella: z.boolean().optional(),
     // ¿Es un CLÁSICO de casa (macarrones con tomate, lentejas, tortilla…)?
-    // Los 50 que salen en el paso «¿Qué no puede faltar?» de la
+    // Los que salen en el paso «¿Qué no puede faltar?» de la
     // pizarra (decisión de Pablo, 9 nov 2026). No es `estrella`: el motor no
     // los propone por su cuenta, solo se ponen A MANO —ese paso y el
     // recetario de un hueco—. Muchos son del fondo de armario: la versión
     // sencilla, la que la estrella sustituyó por otra con un toque. Se marca
     // a mano, con foto y con un `mealRole` que quepa en una comida o una cena
-    // (clasicos.test.js lo comprueba). Ausente = no es clásico.
+    // (src/data/clasicos.test.js lo comprueba). Ausente = no es clásico.
     clasico: z.boolean().optional(),
     // ¿Es plato de OCASIÓN? Marisco de ración (cigalas, navajas, percebes),
     // arroces de bogavante, paellas de marisco… Cocina real y del catálogo,
@@ -1063,7 +1068,7 @@ export const CAMPOS_AL_CARGAR = {
   costeRacion: "src/data/derived/recipeCoste.json (lib/coste.js)",
   caloriasNivel: "src/lib/caloriasNivel.js",
 };
-export { ALLERGENS, APORTES, BASE_MODES, CATEGORIES, DESSERT_KINDS, DIFFICULTIES, EFFORTS, ETAPAS_BEBE_RECETA, FORMATOS, HEALTH_FLAGS, MEAL_ROLES, OCCASIONS, SEASONS, TEMPERATURAS, TYPES };
+export { ALLERGENS, APORTES, BASE_MODES, CATEGORIES, DESSERT_KINDS, DIFFICULTIES, EFFORTS, ETAPAS_BEBE_RECETA, FORMATOS, HEALTH_FLAGS, MEAL_ROLES, OCCASIONS, PAPELES_DE_HUECO, SEASONS, TEMPERATURAS, TYPES };
 export { CARB_TYPE_BY_BASE, COCINAS, DEPRECATED_CATEGORIES, MAIN_BASES, MAIN_INGREDIENTS, MAIN_PROTEINS, PROTEIN_GROUP_BY_MAIN_PROTEIN, SAUCE_COMPAT_TAGS, TECNICAS };
 
 /**
