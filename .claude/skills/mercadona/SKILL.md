@@ -21,9 +21,9 @@ Prototipo: un navegador real hace la compra en la cuenta de la persona, **hasta
 donde ella lo haya encendido**. Sin API pública: se usan las mismas llamadas que
 su propia web (`referencias/pedido.md`).
 
-**Tres pasos, en orden** (Pablo, 8 nov 2026; trozos 12 a 21 de
+**Tres pasos, en orden** (Pablo, 8 nov 2026; trozos 12 a 24 de
 `specs/plan-comprar-mercadona.md`). Cada uno solo si la persona lo ha encendido
-(`mercadona_cuenta.alcance`), y cada uno lleva los de antes:
+(`mercadona_cuenta.llega_hasta`), y cada uno lleva los de antes:
 
 1. **Rellenar la lista** (`lista`): una lista nueva en su cuenta. No toca el carro.
 2. **Reservar la hora de entrega** (`reservar`): suma la lista al carro sin quitar
