@@ -62,7 +62,7 @@ describe("separarFondo", () => {
 // La clase del azafrán de 25 €: una dosis irreal en una especia cara. Lo de
 // fondo de armario se gasta a pellizcos; si una línea cuesta más que esto por
 // ración, la cantidad de la receta está mal (el azafrán pedía 1 g para dos y
-// la dosis de cocina es 0,02-0,05 g por persona). Freír en aceite, lo más
+// la dosis de cocina es 0,01-0,05 g por persona). Freír en aceite, lo más
 // caro de verdad, ronda 0,70 €/ración.
 const EUROS_POR_RACION_MAX = 1;
 
