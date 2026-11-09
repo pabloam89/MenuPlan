@@ -365,6 +365,7 @@
     "mealRole": [
       "primero"
     ],
+    "clasico": true,
     "type": "completo",
     "time": 35,
     "difficulty": "normal",
@@ -1774,6 +1775,7 @@
     "mealRole": [
       "primero"
     ],
+    "clasico": true,
     "type": "completo",
     "time": 20,
     "difficulty": "facil",
@@ -2441,6 +2443,7 @@
     "mealRole": [
       "primero"
     ],
+    "clasico": true,
     "type": "completo",
     "time": 30,
     "difficulty": "facil",
@@ -15425,6 +15428,7 @@
       "segundo",
       "plato_unico"
     ],
+    "clasico": true,
     "type": "completo",
     "time": 40,
     "difficulty": "facil",

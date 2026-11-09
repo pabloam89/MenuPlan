@@ -2558,6 +2558,7 @@
     "mealRole": [
       "primero"
     ],
+    "clasico": true,
     "type": "principal",
     "requiredAppliance": "horno",
     "time": 40,

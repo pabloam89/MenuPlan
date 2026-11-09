@@ -13,6 +13,7 @@
       "primero",
       "plato_unico"
     ],
+    "clasico": true,
     "type": "completo",
     "time": 20,
     "difficulty": "facil",
@@ -204,6 +205,7 @@
     "mealRole": [
       "plato_unico"
     ],
+    "clasico": true,
     "type": "completo",
     "time": 35,
     "difficulty": "facil",
@@ -593,6 +595,7 @@
     "mealRole": [
       "plato_unico"
     ],
+    "clasico": true,
     "type": "completo",
     "requiredAppliance": "horno",
     "time": 50,
@@ -767,6 +770,7 @@
     "mealRole": [
       "plato_unico"
     ],
+    "clasico": true,
     "type": "completo",
     "time": 20,
     "difficulty": "facil",
@@ -1554,6 +1558,7 @@
       "plato_unico",
       "cena"
     ],
+    "clasico": true,
     "type": "completo",
     "time": 20,
     "difficulty": "facil",
@@ -12390,6 +12395,7 @@
       "plato_unico",
       "primero"
     ],
+    "clasico": true,
     "type": "completo",
     "requiredAppliance": "horno",
     "time": 70,
@@ -12731,6 +12737,7 @@
       "plato_unico",
       "primero"
     ],
+    "clasico": true,
     "type": "completo",
     "requiredAppliance": "horno",
     "time": 90,
@@ -16826,6 +16833,7 @@
     "mealRole": [
       "plato_unico"
     ],
+    "clasico": true,
     "type": "completo",
     "time": 60,
     "difficulty": "elaborada",

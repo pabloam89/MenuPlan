@@ -504,8 +504,9 @@ export function CatalogBrowserSheet({
       // aquí es lo que colaba un plato así en el menú para que pairGarnishes
       // le pegara encima una guarnición automática — el plato "recargado"
       // reportado. Las recetas propias del usuario siempre valen, sean o no
-      // Recetario Estrella.
-      const onlyPrimaryCatalog = (list) => list.filter((r) => r.source === "user" || Boolean(r.estrella));
+      // Recetario Estrella. Y los clásicos (`clasico`, recipeSchema.js) también:
+      // se ponen solo a mano, y este recetario es a mano.
+      const onlyPrimaryCatalog = (list) => list.filter((r) => r.source === "user" || Boolean(r.estrella) || r.clasico === true);
 
       if (gatePickSourceTabs && gatePick) {
         if (sourceTab === "mine") return mineRecipes;
