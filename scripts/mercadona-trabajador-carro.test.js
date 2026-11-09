@@ -139,6 +139,35 @@ describe("unaVuelta: el carro, en el log", () => {
   });
 });
 
+describe("el carro no se lleva la lista por delante", () => {
+  it("si el carro lanza, la lista sigue: carro sin llenar y su lista_xid", async () => {
+    const p = pagina();
+    const evaluar = p.evaluate;
+    p.evaluate = vi.fn(async (f, orden) => {
+      if (orden && "carro" in orden) throw new TypeError("sin JSON");
+      return evaluar(f, orden);
+    });
+    const log = vi.fn();
+    expect(await atender(encargo("reservar"), { ...dep(p), log })).toEqual({ lista_xid: "7", entraron: 2, faltan: [], carro: { lleno: false, motivo: "error" } });
+    expect(log).toHaveBeenCalledWith("carro: TypeError");
+  });
+
+  it("si el carro se pasa de tiempo, la lista sigue", async () => {
+    const p = pagina();
+    const evaluar = p.evaluate;
+    p.evaluate = vi.fn((f, orden) => (orden && "carro" in orden ? new Promise(() => {}) : evaluar(f, orden)));
+    expect(await atender(encargo("reservar"), { ...dep(p), topeMs: 20 })).toMatchObject({ lista_xid: "7", carro: { lleno: false, motivo: "error" } });
+  });
+
+  it("un carro lleno al que le faltan productos no sale como lleno a secas en el log", async () => {
+    const log = vi.fn();
+    const api = { tomar: async () => encargo("reservar"), cerrar: vi.fn(async () => {}) };
+    const p = pagina({ escribir: { paso: "escribir_carro", status: 200, carro: { ...CARRO, summary: { total: "64.10" } } } });
+    await unaVuelta({ api, log, entreCierresMs: 0, ...dep(p) });
+    expect(log).toHaveBeenCalledWith(expect.stringMatching(/^encargo e1: hecho, carro lleno salvo \d+$/));
+  });
+});
+
 describe("resultadoDeCarro", () => {
   it.each([
     [{ resultado: "fallo_sesion", status: 0 }, { lleno: false, motivo: "sesion" }],
