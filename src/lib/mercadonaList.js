@@ -51,6 +51,12 @@ export function listaParaMercadona(items, priceMap, name) {
 }
 
 /** La ficha del producto en Mercadona; en el móvil, su enlace abre su app. */
+/** El pedido mínimo de Mercadona para que lo lleven a casa, en euros (Pablo, 8 nov 2026). */
+export const PEDIDO_MINIMO_MERCADONA = 60;
+
+/** Cuánto falta para el pedido mínimo, en euros con céntimos; 0 si ya llega. */
+export const faltaParaMinimo = (total) => Math.max(0, Math.round((PEDIDO_MINIMO_MERCADONA - (Number(total) || 0)) * 100) / 100);
+
 /** Cómo se llama en la cuenta de Mercadona la lista que crea HoMenu, desde la app o desde Lola. */
 export const NOMBRE_LISTA_MERCADONA = "Compra HoMenu";
 

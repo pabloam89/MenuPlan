@@ -11,7 +11,7 @@ vi.mock("../lib/mercadonaApp.js", async (original) => ({
 }));
 
 const { RellenarMercadona: Hoja } = await import("./ComprarMercadona.jsx");
-const { pasoDeComprar, useRellenarMercadona } = await import("./useRellenarMercadona.js");
+const { pasoConMinimo, pasoDeComprar, useRellenarMercadona } = await import("./useRellenarMercadona.js");
 const app = await import("../lib/mercadonaApp.js");
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -41,6 +41,24 @@ afterEach(() => {
   act(() => root?.unmount());
   document.body.innerHTML = "";
   delete window.opener;
+});
+
+describe("pasoConMinimo: el pedido mínimo de 60 €", () => {
+  const comprar = { texto: "Comprar", nota: null };
+
+  it("por debajo, Comprar no se pulsa y dice cuánto falta", () => {
+    expect(pasoConMinimo(comprar, 47.6)).toEqual({ texto: "Comprar", nota: "Faltan 12,40 € para el pedido mínimo de 60 €", bloqueado: true });
+  });
+
+  it("con 60 € justos o más, el paso sigue como estaba", () => {
+    expect(pasoConMinimo(comprar, 60)).toBe(comprar);
+    expect(pasoConMinimo(comprar, 109.14)).toBe(comprar);
+  });
+
+  it("una lista que se está rellenando o ya hecha no se bloquea", () => {
+    const rellenando = { texto: "Rellenando…", ocupado: true };
+    expect(pasoConMinimo(rellenando, 10)).toBe(rellenando);
+  });
 });
 
 describe("pasoDeComprar", () => {
