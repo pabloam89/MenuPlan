@@ -402,13 +402,13 @@ export async function tomarReserva() {
   const filas = await rpc("tomar_reserva_mercadona", {}).catch(conPlanB([]));
   const reserva = filas?.[0];
   if (!reserva) return null;
-  const [cuenta] = await select("mercadona_cuenta", `household_id=${eq(reserva.household_id)}`, "sesion_cifrada");
+  // El teléfono sellado solo viaja aquí, que es quien lo usa (0133, aplicada).
+  const [cuenta] = await select("mercadona_cuenta", `household_id=${eq(reserva.household_id)}`, "sesion_cifrada,telefono_sellado");
   if (!cuenta) {
     await cerrar(reserva.id, { fallo: FALLO_ENCARGO_MERCADONA.SIN_CUENTA });
     return null;
   }
-  const { telefono_sellado } = await hastaDondeDe(reserva.household_id);
-  return { reserva: { id: reserva.id, pedido_xid: reserva.pedido_xid, hora_entrega: reserva.hora_entrega }, sesion_cifrada: cuenta.sesion_cifrada, telefono_sellado };
+  return { reserva: { id: reserva.id, pedido_xid: reserva.pedido_xid, hora_entrega: reserva.hora_entrega }, sesion_cifrada: cuenta.sesion_cifrada, telefono_sellado: cuenta.telefono_sellado ?? null };
 }
 
 /**
