@@ -199,13 +199,33 @@ jobs:
           echo "Build $BUILD_NUMBER"
 
           cd ios/App
+          # La firma manual va solo en el objetivo App (su configuración Release),
+          # no en la línea de xcodebuild: ahí se aplica a todos los objetivos,
+          # también a los paquetes de recursos de los complementos, que no admiten
+          # perfil («does not support provisioning profiles»; pasó el 9 nov 2026
+          # con @capgo/capacitor-inappbrowser). Se cambia la copia del runner: el
+          # proyecto del repo sigue con firma automática para compilar en un Mac.
+          python3 - "$PROFILE_NAME" << 'PY'
+          import sys
+          ruta = "App.xcodeproj/project.pbxproj"
+          perfil = sys.argv[1]
+          texto = open(ruta, encoding="utf-8").read()
+          inicio = texto.index("504EC3181FED79650016851F /* Release */ = {")
+          fin = texto.index("name = Release;", inicio)
+          bloque = texto[inicio:fin]
+          viejo = "CODE_SIGN_STYLE = Automatic;"
+          if bloque.count(viejo) != 1:
+              sys.exit("::error title=Firma::No encuentro CODE_SIGN_STYLE = Automatic en la configuración Release del objetivo App.")
+          nuevo = ('CODE_SIGN_STYLE = Manual;\n\t\t\t\tCODE_SIGN_IDENTITY = "Apple Distribution";'
+                   '\n\t\t\t\tPROVISIONING_PROFILE_SPECIFIER = "' + perfil + '";')
+          open(ruta, "w", encoding="utf-8").write(texto[:inicio] + bloque.replace(viejo, nuevo) + texto[fin:])
+          print("Firma manual puesta en el objetivo App (Release).")
+          PY
+
           xcodebuild -project App.xcodeproj -scheme App -configuration Release \
             -destination 'generic/platform=iOS' \
             -archivePath "$RUNNER_TEMP/HoMenu.xcarchive" archive \
-            CODE_SIGN_STYLE=Manual \
             DEVELOPMENT_TEAM="$TEAM_ID" \
-            PROVISIONING_PROFILE_SPECIFIER="$PROFILE_NAME" \
-            CODE_SIGN_IDENTITY="Apple Distribution" \
             CURRENT_PROJECT_VERSION="$BUILD_NUMBER"
 
       - name: Subir a TestFlight
