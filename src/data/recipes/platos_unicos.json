@@ -704,7 +704,7 @@
       "Añadir el atún desmenuzado al sofrito, mezclar bien y retirar del fuego. Reservar.",
       "Precalentar el horno a 190 °C con calor arriba y abajo.",
       "Poner harina en un bol grande. Añadir sal y el aceite de oliva restante.",
-      "Añadir 65 ml de agua tibia a la mezcla de harina y amasar hasta obtener una masa homogénea.",
+      "Añadir 125 ml de agua tibia a la mezcla de harina y amasar hasta obtener una masa homogénea.",
       "Dividir la masa en 2 porciones iguales.",
       "Estirar cada porción con un rodillo hasta obtener 2 láminas finas del tamaño de la bandeja.",
       "Disponer la primera lámina sobre una bandeja de horno ligeramente engrasada.",
@@ -791,7 +791,7 @@
         "kind": "prep"
       },
       {
-        "text": "Añadir 65 ml de agua tibia a la mezcla de harina y amasar hasta obtener una masa homogénea.",
+        "text": "Añadir 125 ml de agua tibia a la mezcla de harina y amasar hasta obtener una masa homogénea.",
         "minutes": 3,
         "kind": "activo"
       },
