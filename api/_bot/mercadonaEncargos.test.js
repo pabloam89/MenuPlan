@@ -183,11 +183,13 @@ describe("tomar y cerrar", () => {
     expect(await m.tomar()).toBeNull();
   });
 
-  it("da solo el id, la lista, la sesión sellada, hasta dónde llega y el teléfono sellado", async () => {
+  it("da solo el id, la lista, la sesión sellada y hasta dónde llega; el teléfono sellado, no", async () => {
     db.tomado = [{ id: "e1", household_id: "c1", lista, created_by: "u1", chat_id: "9" }];
-    expect(await m.tomar()).toEqual({ encargo: { id: "e1", lista }, sesion_cifrada: "sellada", llega_hasta: "lista", tiene_direccion: null, tiene_pago: null, tiene_telefono: false, telefono_sellado: null });
+    expect(await m.tomar()).toEqual({ encargo: { id: "e1", lista }, sesion_cifrada: "sellada", llega_hasta: "lista", tiene_direccion: null, tiene_pago: null, tiene_telefono: false });
     db.cuenta = [{ estado: "conectada", sesion_cifrada: "sellada", llega_hasta: "reservar", telefono_sellado: "tel-sellado" }];
-    expect(await m.tomar()).toMatchObject({ llega_hasta: "reservar", telefono_sellado: "tel-sellado" });
+    const tomado = await m.tomar();
+    expect(tomado).toMatchObject({ llega_hasta: "reservar", tiene_telefono: true });
+    expect(tomado).not.toHaveProperty("telefono_sellado");
   });
 
   it("si la cuenta ya no está, lo cierra como sin_cuenta", async () => {

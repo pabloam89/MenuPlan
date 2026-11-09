@@ -74,11 +74,14 @@ describe("tomar: el trabajador sabe hasta dónde llegar", () => {
     db.fallaSelect = Object.assign(error("42703"), { message: "column mercadona_cuenta.llega_hasta does not exist" });
     vi.spyOn(console, "warn").mockImplementation(() => {});
     db.cuenta = [{ sesion_cifrada: "sellada" }];
-    expect(await m.tomar()).toMatchObject({ sesion_cifrada: "sellada", llega_hasta: "lista", telefono_sellado: null });
+    expect(await m.tomar()).toMatchObject({ sesion_cifrada: "sellada", llega_hasta: "lista", tiene_telefono: false });
   });
 
   it("con lo que miró el trabajador: sin revisar, «sin mirar» (null), no false", async () => {
-    expect(await m.tomar()).toMatchObject({ llega_hasta: "lista", tiene_direccion: true, tiene_pago: true, tiene_telefono: true, telefono_sellado: "tel" });
+    const tomado = await m.tomar();
+    expect(tomado).toMatchObject({ llega_hasta: "lista", tiene_direccion: true, tiene_pago: true, tiene_telefono: true });
+    // El teléfono sellado no viaja aquí: lo da tomarReserva, al reservar.
+    expect(tomado).not.toHaveProperty("telefono_sellado");
     db.cuenta = cuenta({ revisada_at: null, tiene_direccion: false, tiene_pago: false });
     expect(await m.tomar()).toMatchObject({ tiene_direccion: null, tiene_pago: null });
   });

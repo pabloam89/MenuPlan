@@ -197,10 +197,12 @@ export async function tomar() {
   return { encargo: { id: encargo.id, lista: encargo.lista }, sesion_cifrada: cuenta.sesion_cifrada, ...(await hastaDondeDe(encargo.household_id)) };
 }
 
-/** Para el trabajador: hasta dónde llega, qué tiene la cuenta y el teléfono sellado (0133), leído como estadoDeCasa. */
+/**
+ * Para el trabajador: hasta dónde llega y qué tiene la cuenta (0133), leído como estadoDeCasa. El teléfono sellado no:
+ * solo hace falta al reservar, y lo da tomarReserva.
+ */
 async function hastaDondeDe(casa) {
-  const cuenta = await leerCuenta(casa);
-  return { ...deUnaCuenta(cuenta), telefono_sellado: cuenta?.telefono_sellado ?? null };
+  return deUnaCuenta(await leerCuenta(casa));
 }
 
 /**
