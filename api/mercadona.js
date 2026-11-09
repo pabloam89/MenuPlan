@@ -21,6 +21,7 @@ import { usuarioDeToken } from "./_bot/db.js";
 import { papelDeUsuario } from "./_bot/papel.js";
 import { casaPermitida, cerrar, conectar, contarFallo, desconectar, encargar, estadoDeCasa, PeticionMala, tomar } from "./_bot/mercadonaEncargos.js";
 import { FALLOS_ENCARGO_MERCADONA } from "../src/lib/vocabularios.js";
+import { esRevision } from "../src/lib/mercadonaLlegaHasta.js";
 import { puede } from "../src/lib/papeles.js";
 import * as ids from "../src/lib/ids.js";
 
@@ -46,6 +47,8 @@ async function trabajador(req, res) {
 }
 
 function resultadoValido(r) {
+  // La revisión de la cuenta viaja con el cierre, sea cual sea el resultado; si viene, con su forma exacta.
+  if (r?.revision !== undefined && !esRevision(r.revision)) return false;
   if (r?.fallo !== undefined) return FALLOS_ENCARGO_MERCADONA.includes(r.fallo);
   if (!r?.lista_xid) return false;
   // Sin releer la lista no se sabe qué entró: los dos null, y no a medias.

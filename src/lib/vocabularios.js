@@ -28,6 +28,7 @@ import { KITCHEN_TOOL_IDS } from "./electrodomesticos.js";
 import { COMIDAS_PLANIFICABLES } from "./comidas.js";
 import { SUPERMERCADOS } from "./supermercados.js";
 import { FALLOS_ENCARGO_MERCADONA, FALLO_ENCARGO_MERCADONA } from "./mercadonaFallos.js";
+import { LLEGA_HASTA_MERCADONA, LLEGA_HASTA } from "./mercadonaLlegaHasta.js";
 
 /** Días de la semana tal como se guardan (claves del plan, active_days de 0086). En NFC. */
 export const DIAS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
@@ -233,7 +234,7 @@ export const RIESGOS_HERRAMIENTA = ["lee", "escribe_reversible", "escribe_irreve
 export const RIESGO_HERRAMIENTA = porNombre(RIESGOS_HERRAMIENTA);
 
 /** Lo que Lola puede mirar con `consultar` (trozo 46 de #1037). No va a ninguna tabla. */
-export const QUE_CONSULTAS = ["casa", "ajustes", "despensa", "compra", "cole", "recordatorios"];
+export const QUE_CONSULTAS = ["casa", "ajustes", "despensa", "compra", "cole", "mercadona", "recordatorios"];
 
 /**
  * Cómo deshace «deshaz» lo que escribe una herramienta de Lola (su ficha, trozo 42; deshacer en api/_bot/casa.js).
@@ -401,6 +402,8 @@ export const CANALES_ENCARGO = ["app", ...CANALES];
 export const ESTADOS_ENCARGO_MERCADONA = ["pendiente", "rellenando", "eligiendo", "reservando", "hecho", "fallido"];
 export const ESTADO_ENCARGO_MERCADONA = porNombre(ESTADOS_ENCARGO_MERCADONA);
 export { FALLOS_ENCARGO_MERCADONA, FALLO_ENCARGO_MERCADONA };
+/** Hasta dónde llega el bot (mercadona_cuenta.llega_hasta, 0133); vive en mercadonaLlegaHasta.js por el trabajador. */
+export { LLEGA_HASTA_MERCADONA, LLEGA_HASTA };
 /** Por qué no se ha encolado un encargo (api/_bot/mercadonaEncargos.js): lo que la app y Lola tienen que explicar. */
 export const NO_ENCARGADO = Object.freeze({
   SIN_SERVICIO: "sin_servicio",
@@ -654,6 +657,7 @@ export const VOCABULARIOS = Object.freeze({
   canales_encargo: CANALES_ENCARGO,
   estados_encargo_mercadona: ESTADOS_ENCARGO_MERCADONA,
   fallos_encargo_mercadona: FALLOS_ENCARGO_MERCADONA,
+  llega_hasta_mercadona: LLEGA_HASTA_MERCADONA,
 });
 
 /** La lista de un vocabulario por su nombre, o null si no existe. */
