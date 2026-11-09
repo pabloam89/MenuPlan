@@ -1191,7 +1191,9 @@ export function ShoppingScreen({
             // Abierta, la misma forma que las demás (redondeada arriba); el
             // fondo plegado también lleva color, así que se redondea entero
             // en vez de quedar como un bloque de esquinas rectas.
-            borderRadius: open ? "12px 12px 0 0" : esFondo ? 12 : 0,
+            borderRadius: open
+              ? "var(--radio-control) var(--radio-control) 0 0"
+              : esFondo ? "var(--radio-control)" : 0,
             borderBottom:
               !open && !isLastSection && !esFondo ? AISLE_DIVIDER : "none",
             cursor: "pointer",
