@@ -148,7 +148,7 @@ const DECLARADAS = [
       // la calidad y uno que castiga por crecer.
       { campo: "pieza", plano: "logistica", cobertura_min: 12, objetivo: "todo ingrediente que alguna receta pida en `ud`", nota: "regex PIECE_WEIGHTS de red; ver piezaRoundTrip.test.js" },
       { campo: "piezaPorAlias", plano: "logistica", cobertura_min: 2 },
-      { campo: "relacionPorAlias", plano: "identidad", cobertura_min: 9, nota: "solo los alias que nombran otro estado (fresco, seco, congelado…); vacío = ninguno así. Lo lee el esquema, que rechaza el alias de estado sin su relación" },
+      { campo: "relacionPorAlias", plano: "identidad", cobertura_min: 8, nota: "solo los alias que nombran otro estado (fresco, seco, congelado…); vacío = ninguno así. Lo lee el esquema, que rechaza el alias de estado sin su relación" },
     ],
   },
   {

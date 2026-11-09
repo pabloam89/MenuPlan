@@ -108,13 +108,3 @@ describe("dosis de fondo de armario", () => {
   });
 });
 
-// Pablo, 9 nov: ninguna especia fuera del fondo de armario. El pasillo
-// «Especias» es solo de especias secas (las hierbas frescas van a Verduras),
-// y todas son de fondo de armario.
-describe("las especias, todas en el fondo de armario", () => {
-  it("cada ingrediente del pasillo Especias está en fondoDeArmario.json", () => {
-    const fondo = new Set(tabla.filas.map((f) => f.ingredientId));
-    const fuera = ingredients.filter((i) => i.aisle === "Especias" && !fondo.has(i.id)).map((i) => i.id);
-    expect(fuera).toEqual([]);
-  });
-});

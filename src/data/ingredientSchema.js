@@ -152,11 +152,11 @@ export const IngredientSchema = z
     // Qué es un alias que nombra otro ESTADO del alimento (fresco, seco,
     // molido, congelado, cocido, ahumado…). Un alias es el mismo ingrediente,
     // así que todo lo del ingrediente (pasillo, fondo de armario, nutrición) le
-    // vale; si el estado lo cambia, no es un alias: es otro ingrediente. El
-    // 9 nov 2026 había 62 alias así sin decidir, y ocho eran otro alimento
-    // (el tomillo fresco contaba como el seco, la levadura fresca como la seca,
-    // el ajo negro como ajo). Ahora cada uno lleva su razón, de una lista
-    // cerrada, y el esquema rechaza el que no la tiene (ver el refine).
+    // vale; si el estado lo cambia, no es un alias: es otro ingrediente (así
+    // salieron el 9 nov 2026 el tomillo fresco, la levadura fresca o el ajo
+    // negro, #1438). Después quedaban 49 alias de estado en 34 ingredientes
+    // sin decidir (estadoQueAñade sobre el catálogo). Ahora cada uno lleva su
+    // razón, de una lista cerrada, y el esquema rechaza el que no la tiene.
     // La clave es el alias literal, tal y como aparece en `aliases`.
     relacionPorAlias: z.record(z.enum(RELACIONES_DE_ALIAS)).optional(),
 

@@ -402,9 +402,6 @@
       "Judiones",
       "Judiones secos"
     ],
-    "relacionPorAlias": {
-      "Judiones secos": "mismo_estado"
-    },
     "aisle": "Legumbres",
     "allergens": [],
     "cookingAllergens": [],
@@ -2320,9 +2317,6 @@
       "Espinacas baby",
       "Espinaca fresca"
     ],
-    "relacionPorAlias": {
-      "Espinaca fresca": "mismo_estado"
-    },
     "aisle": "Verduras",
     "allergens": [],
     "cookingAllergens": [],
@@ -5762,9 +5756,6 @@
     "aliases": [
       "Salchicha fresca italiana"
     ],
-    "relacionPorAlias": {
-      "Salchicha fresca italiana": "mismo_estado"
-    },
     "aisle": "Carne",
     "allergens": [],
     "cookingAllergens": [],
@@ -6369,9 +6360,6 @@
     "aliases": [
       "Tomates secos en aceite"
     ],
-    "relacionPorAlias": {
-      "Tomates secos en aceite": "mismo_estado"
-    },
     "aisle": "Aceites y conservas",
     "allergens": [],
     "cookingAllergens": [],
