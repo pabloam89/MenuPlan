@@ -72,6 +72,27 @@ describe("recetaConBases", () => {
     expect(deBase(v, "Aceite de oliva virgen extra")).toBe(null);
   });
 
+  // Lo que nunca se da por resuelto es el fondo de armario, no la categoría
+  // «Despensa»: el comino (que la tabla guardaba como «Verduras y frutas») se
+  // queda, y el tomate triturado (que era «Despensa») lo gasta entero la tanda.
+  it("el fondo de armario se queda; una conserva que la base gasta entera, no", () => {
+    const conEspeciaYConserva = {
+      ...PLATO,
+      ingredients: [
+        ...PLATO.ingredients,
+        { name: "Comino molido", ingredientId: "comino", amount: 2, unit: "g" },
+        { name: "Tomate triturado", ingredientId: "tomate-triturado", amount: 200, unit: "g" },
+      ],
+      stepsRich: [
+        paso("Añadir {{Comino molido}} y {{Tomate triturado}} al sofrito.", 10, "pasivo", "sofrito"),
+        ...PLATO.stepsRich,
+      ],
+    };
+    const v = recetaConBases(conEspeciaYConserva);
+    expect(deBase(v, "Comino molido")).toBe(null);
+    expect(deBase(v, "Tomate triturado")).toBe("sofrito");
+  });
+
   it("un ingrediente que se usa también fuera de la base se queda", () => {
     const conTomateFuera = {
       ...PLATO,
