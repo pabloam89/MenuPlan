@@ -29,6 +29,18 @@ describe("los clásicos de casa (clasicos.json)", () => {
     expect(fuera).toEqual([]);
   });
 
+  it("todos llevan sabor, textura, picante y connotación, como las estrella", () => {
+    // Se buscan en el recetario y Lola los recomienda: sin estos campos, un
+    // clásico no sale al pedir «de cuchara» o «que no pique». Los rellena
+    // scripts/recetas-atributos-blandos.mjs.
+    const lleno = (v) => (Array.isArray(v) ? v.length > 0 : v != null);
+    const faltan = CLASICOS.filter((id) => {
+      const r = recipeCatalogById[id];
+      return !["sabor", "textura", "picante", "connotacion"].every((k) => lleno(r?.[k]));
+    });
+    expect(faltan).toEqual([]);
+  });
+
   it("esClasico reconoce la receta por su id", () => {
     expect(esClasico(recipeCatalogById[CLASICOS[0]])).toBe(true);
     expect(esClasico({ id: "no_existe" })).toBe(false);
