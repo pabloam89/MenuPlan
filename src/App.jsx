@@ -138,6 +138,7 @@ import { leerCocinados, mandarCocinado } from "./lib/cocinadosApp.js";
 import { apuntarMenuLocal, menusLocales, sinHistorialDeMenus } from "./lib/menusGenerados.js";
 import { leerMenusGenerados, mandarMenuGenerado } from "./lib/menusGeneradosApp.js";
 import { pizarraActiva, fotoAntesDePizarra, volverAntesDePizarra, huecosDelPlan, conHuecosAlDia, conSemanasAlDia, semanaEnBlanco, conHuecoAnadido, sinHueco, franjasDelDia } from "./lib/pizarra.js";
+import { plazasLibres, repartirClasicos } from "./lib/clasicos.js";
 import { aplicarDiasDeSemana, diasPorDefecto, buildCalendarWeeks } from "./lib/semanaDias.js";
 import { reglaDeInvitado, invitadosPorHueco, sinInvitadosDelHueco } from "./lib/reglas.js";
 import {
@@ -2964,9 +2965,12 @@ export default function App() {
   // abren en el menú las semanas marcadas. Una sola vez y al final, no en cada
   // toque: abrirlas al marcar dejaba la semana con el primer día y perdía los
   // siguientes, y desmarcar dejaba semanas sin días.
-  const empezarPizarra = useCallback(() => {
+  const empezarPizarra = useCallback((clasicos = []) => {
     setPizarraArrancando(false);
     antesDePizarraRef.current = null;
+    // Los clásicos elegidos en la hoja se ponen cuando el tablero ya está
+    // montado, no aquí: ver el efecto junto a `colocarClasicos`.
+    if (clasicos.length > 0) setClasicosPorPoner(clasicos);
     const menuId = data.activeMenuId;
     const actual = data.menus?.[menuId];
     if (actual?.origin !== "pizarra") return;
@@ -3003,6 +3007,8 @@ export default function App() {
   // Mientras es `true`, la pizarra recién creada enseña el tablero vacío con
   // la hoja de «¿Qué días?» delante y sin franja de mandos.
   const [pizarraArrancando, setPizarraArrancando] = useState(false);
+  // Los ids de los clásicos que se eligieron en la hoja y aún no están puestos.
+  const [clasicosPorPoner, setClasicosPorPoner] = useState(null);
   // Cómo estaba todo antes de abrirla: mientras la hoja sigue delante, cerrarla
   // devuelve el menú de antes. El nuevo ya ha sustituido al activo.
   const antesDePizarraRef = useRef(null);
@@ -5104,6 +5110,71 @@ export default function App() {
     showToast(puestos === 1 ? "Hueco rellenado" : `${puestos} huecos rellenados`);
     trackEvent(user, "pizarra_autorelleno", "menu", { puestos, ambito: marcados ? "seleccion" : ambito?.day ? "dia" : ambito?.meal ? "hueco" : "semana" });
   }, [data, menuPlan, user, householdReadOnly, showToast, despensaPizarra]);
+
+  /**
+   * Los clásicos que se eligieron en la hoja de arranque, puestos en la semana:
+   * una vez cada uno y repartidos por días (`repartirClasicos`, lib/clasicos.js).
+   *
+   * El hueco lo decide el reparto mirando el primer grupo; el plato se pone en
+   * ese hueco en todos los grupos que lo tengan libre, por el mismo camino que
+   * «Elegir a mano» (`forcedRecipe`): si choca con una alergia del grupo, en
+   * ese grupo no se pone.
+   */
+  const colocarClasicos = useCallback((ids) => {
+    if (householdReadOnly) return;
+    const groups = gruposVigentes(data).filter((g) => menuPlan?.[g.id]);
+    if (groups.length === 0) return;
+    const recetas = ids.map((id) => recipeCatalogById[id]).filter(Boolean);
+    const plazas = plazasLibres(menuPlan[groups[0].id], DAYS, getDayMeals(data));
+    const { colocados, sinSitio } = repartirClasicos(recetas, plazas);
+
+    const trabajo = {};
+    for (const gid of Object.keys(menuPlan)) {
+      if (gid === "_warnings") continue;
+      trabajo[gid] = {};
+      for (const k of Object.keys(menuPlan[gid] ?? {})) trabajo[gid][k] = { ...menuPlan[gid][k] };
+    }
+    const nuevas = [];
+    let puestos = 0;
+    for (const { recetaId, day, meal, course } of colocados) {
+      const key = `${day}-${meal}`;
+      for (const g of groups) {
+        const slot = trabajo[g.id]?.[key];
+        if (!slot) continue;
+        const libre = course === "first" ? slot.dosPlatos && !slot.firstRecipeId : !slot.recipeId;
+        if (!libre) continue;
+        const r = pickCatalogReplacement(data, trabajo, { groupId: g.id, day, meal, course, forcedRecipe: recipeCatalogById[recetaId] });
+        if (!r) continue;
+        nuevas.push(r.frontendRecipe);
+        trabajo[g.id][key] = { ...slot, ...r.hueco, cleared: false, warnings: [] };
+        puestos++;
+      }
+    }
+
+    if (puestos > 0) {
+      registerRecipes(nuevas);
+      setAiRecipes((cur) => {
+        const byId = new Map(cur.map((r) => [r.id, r]));
+        for (const r of nuevas) byId.set(r.id, r);
+        return Array.from(byId.values());
+      });
+      setMenuPlan(() => trabajo);
+      if (puestos > 1) setRepartoKey((k) => k + 1);
+    }
+    // Lo que no cabe se dice: en silencio parecería que el plato se ha perdido.
+    if (sinSitio.length > 0) {
+      showToast(sinSitio.length === 1 ? "Un clásico no cabía en la semana" : `${sinSitio.length} clásicos no cabían en la semana`);
+    }
+    trackEvent(user, "pizarra_clasicos", "menu", { elegidos: ids.length, colocados: colocados.length, sinSitio: sinSitio.length });
+  }, [data, menuPlan, user, householdReadOnly, showToast]);
+
+  // Se ponen en cuanto la hoja se ha ido y el tablero está montado, sobre el
+  // plan vivo: así pasan por el mismo guardado que cualquier plato puesto a mano.
+  useEffect(() => {
+    if (!clasicosPorPoner || pizarraArrancando) return;
+    setClasicosPorPoner(null);
+    colocarClasicos(clasicosPorPoner);
+  }, [clasicosPorPoner, pizarraArrancando, colocarClasicos]);
 
   /**
    * La burbuja de la pizarra: una frase → cambios en el tablero.
