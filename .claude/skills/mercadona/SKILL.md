@@ -60,11 +60,11 @@ cierra el encargo. No tiene acceso a la base. Con el servidor de 1 GB, de uno en
 - **Variables.** En Vercel: `MERCADONA_TRABAJADOR_TOKEN` (secreto), `MERCADONA_CLAVE_PUBLICA`
   y `MERCADONA_CASAS`. En el servidor, `/opt/mercadona/.env` (600): `MERCADONA_API`, el
   mismo token y `MERCADONA_CLAVE_PRIVADA`, que solo vive ahí y en 1Password.
-  **El 8 nov 2026 Vercel no tenía ninguna variable `MERCADONA_*`**, en ningún entorno:
-  Comprar no está encendido. Se prueba en producción (`https://homenu.vercel.app`,
-  decisión de Pablo del 8 nov), así que van en el entorno Production, y
-  `MERCADONA_API` es `https://homenu.vercel.app/api/mercadona` (trozo 11 de
-  `specs/plan-comprar-mercadona.md`).
+  Las tres están **en Production desde el 8 nov 2026** (las puso Pablo; antes no había
+  ninguna `MERCADONA_*` en ningún entorno). Se prueba en producción
+  (`https://homenu.vercel.app`, decisión de Pablo del 8 nov), y `MERCADONA_API` es
+  `https://homenu.vercel.app/api/mercadona` (trozo 11 de `specs/plan-comprar-mercadona.md`).
+  Staging y las vistas previas no tienen las variables: ahí Comprar no se enciende.
 - **Rotar la clave** deja fuera las cuentas conectadas: hay que volver a conectarlas.
 
 ## Operaciones
@@ -77,7 +77,7 @@ cierra el encargo. No tiene acceso a la base. Con el servidor de 1 GB, de uno en
 | Otra lista | añadir `--lista fichero.json` | `{ name, products: [{ merca_code, quantity }] }` |
 | Exportar la sesión | `--exportar fichero` | `resultado: sesion_exportada` |
 | Crear las claves (en el servidor) | `node scripts/mercadona-trabajador.mjs --claves fichero` | guarda la privada en el fichero y escribe la pública |
-| Levantar el trabajador | `cd /opt/mercadona/repo/ops/mercadona-trabajador && docker compose up -d --build` | `docker compose logs` dice `en marcha` |
+| Levantar el trabajador | `chmod -R a+rX /opt/mercadona/repo && cd /opt/mercadona/repo/ops/mercadona-trabajador && docker compose up -d --build` | `docker compose logs` dice `en marcha` |
 | Cómo van los encargos | `npm run consulta -- "select status, fallo, count(*) from mercadona_encargo group by 1, 2"` | los `fallido`, con su motivo |
 | Usar esa sesión en un servidor | `--estado fichero`, en un contenedor desechable | igual que en el PC |
 
@@ -136,6 +136,15 @@ Sin comprobar con nuestra cuenta: lo comprueba el trozo 1 del plan
   contraseña de Mercadona (con «¿Has olvidado tu contraseña?» si no tiene).
 - **2026-11-06 · aviso `--no-sandbox` en Chrome.** Causa: valor por defecto de
   Playwright. Arreglo: `chromiumSandbox: true` en el PC.
+- **2026-11-08 · el contenedor del trabajador se reiniciaba sin parar.** Causa: el
+  contenedor no podía abrir su script (`docker compose logs`: `syscall: 'open'`,
+  `path: '/app/scripts/mercadona-trabajador.mjs'`), porque la copia del repo en el
+  servidor no dejaba leer a otros usuarios (sin comprobar si por el `umask`). Arreglo: `chmod -R a+rX /opt/mercadona/repo` y
+  reconstruir; el comando de «Levantar el trabajador» ya lo lleva.
+- **2026-11-08 · el trabajador recibía `HTTP 401`.** Causa: el token pegado en Vercel no
+  era el del servidor. Arreglo: copiarlo del servidor al portapapeles sin verlo
+  (`ssh … | clip.exe`), comprobar que son 64 caracteres hexadecimales, editar la
+  variable y volver a desplegar: sin variables nuevas, el despliegue viejo no las ve.
 
 ## Fuentes y comprobación
 

@@ -47,8 +47,10 @@ const DUPLICADOS_HEREDADOS = new Set(["0003", "0006", "0051"]);
  *     migración») la daba al trozo 34; la numeración siguió (la 0108, la 0109 y la 0111 a la 0121
  *     llegaron antes) y el trozo 34 fue a la 0122 (0122_recordatorios_en_tareas). No se usará:
  *     queda aquí para que el hueco esté explicado.
+ *   0132: datos/franjas-extra (0132_franjas_extra), PR #1325; la 0133 de Mercadona llegó antes.
+ *   0133: datos/mercadona-alcance (0133_mercadona_llega_hasta), trozo 15 de #1407; la 0134 no depende de ella.
  */
-const RESERVADOS = new Set(["0093", "0110"]);
+const RESERVADOS = new Set(["0093", "0110", "0132", "0133"]);
 
 describe("las migraciones se pueden nombrar sin ambigüedad", () => {
   it("ningún número nuevo repetido", () => {
