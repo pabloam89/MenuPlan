@@ -235,8 +235,11 @@ const AISLE_UI = {
 };
 // Tampoco es un pasillo: lo de fondo de armario (aceite, sal, especias…),
 // juntado arriba de la lista (src/data/fondoDeArmario.json), con su ilustración
-// y su color, para que no se confunda con un pasillo.
-AISLE_UI[SECCION_FONDO] = { Icon: Package, color: tono["fondo-de-armario"], img: "/categories/fondo_de_armario.png" };
+// y su color, para que no se confunda con un pasillo. El color es el ámbar del
+// sistema de diseño, que está cerrado (78 valores, tokens.test.js): no hay otro
+// tono cálido y un rol nuevo repetiría el valor.
+const FONDO_FRANJA = { abierta: tono.aviso, plegada: tono["aviso-fondo"] };
+AISLE_UI[SECCION_FONDO] = { Icon: Package, color: FONDO_FRANJA.abierta, img: "/categories/fondo_de_armario.png" };
 
 // Title-band tint shared across En casa / Menú / Recetas / Compra — a soft
 // green (accent-tinted), distinct from the white list body below it.
@@ -1174,7 +1177,7 @@ export function ShoppingScreen({
             border: "none",
             position: "relative",
             background: section.key === SECCION_FONDO
-              ? tono[open ? "fondo-de-armario" : "fondo-de-armario-franja"]
+              ? (open ? FONDO_FRANJA.abierta : FONDO_FRANJA.plegada)
               : open ? AISLE_OPEN_BAND : "#fff",
             borderRadius: open ? "12px 12px 0 0" : 0,
             borderBottom:
