@@ -827,9 +827,15 @@ export function ShoppingScreen({
   // Con la cuenta conectada, comprar va directo; sin ella, lo que se puede hacer está en la hoja.
   const comprar = async () => {
     if (paso.mirar) return mercadona.mirar();
+    if (paso.abrirHoja) return setComprarAbierto(true);
     if (!mercadona.conectada || !(await mercadona.rellenar())) setComprarAbierto(true);
     return undefined;
   };
+  // Cuando el carro está lleno y llegan las horas de entrega, la hoja se abre sola: la siguiente cosa es elegir una.
+  const eligiendoHora = mercadona.eligiendoHora;
+  useEffect(() => {
+    if (eligiendoHora) setComprarAbierto(true);
+  }, [eligiendoHora]);
 
   // Date label for the current selection: real span of the selected weeks in
   // menú mode; the single-week label otherwise.

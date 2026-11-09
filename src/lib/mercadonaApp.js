@@ -4,6 +4,7 @@
  */
 import { apiUrl } from "./apiUrl.js";
 import { FALTA_MERCADONA } from "./mercadonaLlegaHasta.js";
+import { FRASE_HORA_ENTREGA, TRAS_LA_LISTA, TRAS_LA_LISTA_OTRO, textoDeHoraEntrega } from "./mercadonaHoraEntrega.js";
 import { tokenDeSesion } from "./familiaCasa.js";
 import { ESTADO_ENCARGO_MERCADONA, FALLO_ENCARGO_MERCADONA, NO_ENCARGADO } from "./vocabularios.js";
 
@@ -13,6 +14,8 @@ export const PASO_COMPRAR = Object.freeze({
   RELLENANDO: "Rellenando…",
   ABRIR: "Abrir lista",
   MIRAR: "Mirar cómo va",
+  ELEGIR: "Elegir la hora",
+  RESERVANDO: "Reservando…",
 });
 
 /** Los textos de Ajustes → Mercadona (trozo 9 de specs/plan-comprar-mercadona.md). */
@@ -21,6 +24,15 @@ export const AJUSTE_MERCADONA = Object.freeze({
   RESERVAR: "Reservar la hora",
   PAGAR: "Pagar la compra",
   PRONTO: "Pronto",
+});
+
+/** Lo que dice la hoja en cada paso de la hora de entrega (0134): lo que también dice Lola sale de FRASE_HORA_ENTREGA. */
+export const HORA_ENTREGA = Object.freeze({
+  PREGUNTA: FRASE_HORA_ENTREGA.PREGUNTA,
+  RESERVANDO: "Reservando tu hora…",
+  RESERVADA: FRASE_HORA_ENTREGA.LLEVAN,
+  CAMBIAR: FRASE_HORA_ENTREGA.CAMBIAR,
+  PAGAR: FRASE_HORA_ENTREGA.PAGAR,
 });
 
 /** Cada cuánto mira la app cómo va un encargo, y cuánto espera antes de dejar de mirar. */
@@ -79,11 +91,19 @@ export const TELEFONO = Object.freeze({
   NO_GUARDADO: "No se ha podido guardar el teléfono. Inténtalo otra vez.",
 });
 
-const enMarcha = (e) => e?.status === ESTADO_ENCARGO_MERCADONA.PENDIENTE || e?.status === ESTADO_ENCARGO_MERCADONA.RELLENANDO;
+/** Lo que hace el trabajador ahora: rellenar la lista o reservar la hora (0134). La app mira cómo va mientras dure. */
+const EN_MARCHA = new Set([ESTADO_ENCARGO_MERCADONA.PENDIENTE, ESTADO_ENCARGO_MERCADONA.RELLENANDO, ESTADO_ENCARGO_MERCADONA.RESERVANDO]);
+const enMarcha = (e) => EN_MARCHA.has(e?.status);
 export { enMarcha as encargoEnMarcha };
+/** La persona tiene que elegir la hora de entrega (0134). */
+export const eligiendoHora = (e) => e?.status === ESTADO_ENCARGO_MERCADONA.ELIGIENDO;
 
 /** Lo que se le dice a la familia de un encargo acabado. */
 export function textoDeEncargo(e) {
+  if (e.status === ESTADO_ENCARGO_MERCADONA.HECHO && e.hora_entrega) return `${FRASE_HORA_ENTREGA.LLEVAN} el ${textoDeHoraEntrega(e.hora_entrega)}.`;
+  if (e.status === ESTADO_ENCARGO_MERCADONA.ELIGIENDO) return "Ya está en tu carro. Elige a qué hora te lo llevan.";
+  // Falló al reservar, con la lista ya hecha (0134): la lista está, y se dice qué pasó.
+  if (e.status === ESTADO_ENCARGO_MERCADONA.FALLIDO && e.lista_xid) return `Tu lista ya está en Mercadona, pero ${TRAS_LA_LISTA[e.fallo] ?? TRAS_LA_LISTA_OTRO}`;
   if (e.status === ESTADO_ENCARGO_MERCADONA.HECHO) {
     if (e.entraron === null) return "Lista creada. No he podido comprobar que estén todos los productos.";
     const faltan = e.faltan?.length ?? 0;
@@ -100,3 +120,6 @@ export const TEXTO_NO_ENCARGADO = Object.freeze({
   [NO_ENCARGADO.EN_MARCHA]: "Ya estoy rellenando una lista.",
   [NO_ENCARGADO.TOPE]: "Has pedido muchas listas hoy. Prueba mañana.",
 });
+
+/** Elige la hora de entrega, una de las ofrecidas (0134): `{ ok, encargo }` o `{ ok, fallo }` (NO_ELEGIDA). */
+export const elegirHora = (casa, encargo, hora_id, o) => pedir({ casa, cuerpo: { elegir: { encargo, hora_id } }, ...opciones(o) });
