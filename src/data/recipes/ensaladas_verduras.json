@@ -4439,7 +4439,7 @@
       },
       {
         "name": "Jalapeños en vinagre",
-        "ingredientId": "vinagre",
+        "ingredientId": "jalapenos-en-vinagre",
         "amount": 20,
         "unit": "g"
       },
@@ -12460,7 +12460,7 @@
       },
       {
         "name": "Tomillo fresco",
-        "ingredientId": "tomillo",
+        "ingredientId": "tomillo-fresco",
         "amount": 5,
         "unit": "g"
       },
@@ -14831,7 +14831,7 @@
       },
       {
         "name": "Guindilla fresca",
-        "ingredientId": "guindilla",
+        "ingredientId": "cayena",
         "amount": 2,
         "unit": "g"
       },
@@ -18431,7 +18431,7 @@
       },
       {
         "name": "Ajo negro",
-        "ingredientId": "ajo",
+        "ingredientId": "ajo-negro",
         "amount": 20,
         "unit": "g"
       },
@@ -21927,7 +21927,7 @@
       },
       {
         "name": "Levadura fresca",
-        "ingredientId": "levadura",
+        "ingredientId": "levadura-fresca",
         "amount": 5,
         "unit": "g"
       },

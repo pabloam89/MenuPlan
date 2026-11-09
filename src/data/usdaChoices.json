@@ -275,5 +275,29 @@
     "confianza": 0.7,
     "modelo": "decision-humana-2026-09-22",
     "motivo": "«Alcoholic beverage, wine, dessert, sweet», 160 kcal. Pedro Ximénez, Oporto, Jerez, oloroso y vino rancio colgaban de `vino-blanco` y cobraban sus 60 kcal: son vinos de 15-20° contra los 12° de un vino de mesa. Se usa UNA sola ficha para los cinco porque USDA separa el dulce (160) del seco (152) y entre ellos hay 8 kcal, que es ruido al lado de los 100 que se estaban perdiendo. NO se usa BEDCA —sus tres fichas de «Vino dulce, tipo oporto» (308, 1444, 2463) vienen VACÍAS— ni CIQUAL, que da 17 kcal a un vino blanco seco porque su energía no cuenta el etanol. Salvedad escrita: un Pedro Ximénez de verdad ronda los 350 kcal, así que sus 370 g siguen quedándose cortos; lo que se corrige es el orden de magnitud."
+  },
+  "jalapenos-en-vinagre": {
+    "foodId": "170080",
+    "confianza": 0.8,
+    "modelo": "decision-humana-2026-11-09",
+    "motivo": "«Peppers, jalapeno, canned, solids and liquids»: el jalapeño de bote. Era alias de `vinagre`: se contaba como vinagre."
+  },
+  "maiz-tostado": {
+    "foodId": "167950",
+    "confianza": 0.7,
+    "modelo": "decision-humana-2026-11-09",
+    "motivo": "«Snacks, CORNNUTS, plain»: el maíz tostado o frito de aperitivo (kikos). Era alias de `maiz`, el grano dulce."
+  },
+  "boletus-secos": {
+    "foodId": "168436",
+    "confianza": 0.5,
+    "modelo": "decision-humana-2026-11-09",
+    "motivo": "Ficha PRESTADA: «Mushrooms, shiitake, dried». No hay boletus seco en BEDCA, CIQUAL ni USDA (CIQUAL solo tiene el boletus crudo, con el agua del fresco, que daría una décima parte de lo que pesa en seco). El shiitake seco es otra seta pero el mismo estado, y en seco las setas se parecen mucho más entre sí que una seta seca y una fresca. Era alias de `boletus`."
+  },
+  "levadura-fresca": {
+    "foodId": "175042",
+    "confianza": 0.9,
+    "modelo": "decision-humana-2026-11-09",
+    "motivo": "«Leavening agents, yeast, baker's, compressed»: la levadura fresca prensada. Era alias de `levadura`, que es la seca (deshidratada), con otra agua y otra conservación. CIQUAL tiene la misma ficha (11010) pero sin energía declarada."
   }
 }

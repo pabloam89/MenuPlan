@@ -5659,7 +5659,7 @@
       },
       {
         "name": "Cilantro molido",
-        "ingredientId": "cilantro",
+        "ingredientId": "cilantro-molido",
         "amount": 3,
         "unit": "g"
       },
@@ -7839,7 +7839,7 @@
       },
       {
         "name": "Tomillo fresco",
-        "ingredientId": "tomillo",
+        "ingredientId": "tomillo-fresco",
         "amount": 5,
         "unit": "g"
       },
@@ -9204,7 +9204,7 @@
       },
       {
         "name": "Tomillo fresco",
-        "ingredientId": "tomillo",
+        "ingredientId": "tomillo-fresco",
         "amount": 3,
         "unit": "g"
       },

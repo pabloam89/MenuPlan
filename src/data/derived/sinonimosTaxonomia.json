@@ -49,7 +49,8 @@
    "ajo en polvo",
    "ajo negro",
    "ajos",
-   "cabeza de ajos"
+   "cabeza de ajos",
+   "garlic roasted baked"
   ]
  },
  {
@@ -217,16 +218,6 @@
  },
  {
   "eje": "alimento",
-  "valor": "chile",
-  "formas": [
-   "chile",
-   "chile fresco",
-   "chile jalapeno",
-   "chiles"
-  ]
- },
- {
-  "eje": "alimento",
   "valor": "ciruela",
   "formas": [
    "ciruela",
@@ -325,6 +316,10 @@
    "cayena",
    "cayena molida",
    "cayenas",
+   "chile",
+   "chile fresco",
+   "chile jalapeno",
+   "chiles",
    "copos de guindilla",
    "guindilla",
    "guindilla en copos",
