@@ -64,6 +64,11 @@ env:
   PROFILE_NAME: HoMenu App Store
   APPSTORE_KEY_ID: 2DD2NWMR54
   APPSTORE_ISSUER_ID: da38af23-d5a3-4d1e-b45f-d90810243b2e
+  # Las banderas de la app (scripts/lib/banderas.mjs) salen de la rama, que en
+  # Vercel llega en esta variable. Aquí no llega, y sin ella la app se
+  # compilaba como en local: sin pizarra y con el motor viejo. La app de iOS
+  # habla con producción, así que lleva las banderas de producción.
+  VERCEL_GIT_COMMIT_REF: main
   # Mismos valores que sirve la web en producción (son públicos, ver cabecera).
   VITE_SUPABASE_URL: https://mdzwbrworucnummibxrq.supabase.co
   VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kendicndvcnVjbnVtbWlieHJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNzgzOTAsImV4cCI6MjA5Nzc1NDM5MH0.2WN6FT9we4EFXOArWIfBEy8m0ufNQJw4MBKHXsMixRU

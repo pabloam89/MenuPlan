@@ -106,7 +106,15 @@ async function abrirMenu(page) {
   const dias = page.getByRole("dialog", { name: "¿Qué días pones?" });
   await expect(dias).toBeVisible();
   await dias.getByRole("button", { name: "Siguiente" }).click();
-  // «¿Qué no puede faltar?»: sin clásicos elegidos, el botón dice «Omitir».
+  // «¿Qué no puede faltar?»: el buscador encuentra un clásico de cualquier
+  // pestaña y dice cuándo no hay ninguno. Sin clásicos elegidos, el botón
+  // dice «Omitir».
+  const buscador = dias.getByLabel("Buscar un clásico");
+  await buscador.fill("lentejas");
+  await expect(dias.getByRole("button", { name: /lentejas/i })).toHaveCount(2);
+  await buscador.fill("xyz");
+  await expect(dias.getByText("Ningún clásico se llama así.")).toBeVisible();
+  await dias.getByRole("button", { name: "Limpiar búsqueda" }).click();
   await dias.getByRole("button", { name: "Omitir" }).click();
   await dias.getByRole("button", { name: "Empezar" }).click();
   await expect(dias).toBeHidden();

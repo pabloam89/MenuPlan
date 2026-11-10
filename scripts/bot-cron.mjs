@@ -2,7 +2,7 @@
  * Programa (o reprograma) el job de pg_cron que manda los recordatorios del
  * bot: cada CADA_MINUTOS (api/_bot/cadencia.js), POST a /api/bot/recordatorios con el secreto.
  *
- *   node scripts/bot-cron.mjs                    → contra staging
+ *   node scripts/bot-cron.mjs                    → contra producción (BASE_URL, donde vive Lola)
  *   node scripts/bot-cron.mjs https://otra.url   → contra otro despliegue
  *   node scripts/bot-cron.mjs --quitar           → lo borra
  *
@@ -13,6 +13,7 @@
 import fs from "node:fs";
 import pg from "pg";
 import { leerEnv } from "./lib/env.mjs";
+import { BASE_URL } from "../api/_moderation.js";
 import { HORARIO_CRON } from "../api/_bot/cadencia.js";
 
 const NOMBRE = "bot-recordatorios";
@@ -23,7 +24,7 @@ if (!dbUrl || !secreto) throw new Error("Faltan SUPABASE_DB_URL o BOT_CRON_SECRE
 if (!/^[A-Za-z0-9]+$/.test(secreto)) throw new Error("BOT_CRON_SECRET solo con letras y números");
 
 const quitar = process.argv.includes("--quitar");
-const base = (process.argv.find((a) => a.startsWith("https://")) ?? "https://homenu-staging.vercel.app").replace(/\/$/, "");
+const base = (process.argv.find((a) => a.startsWith("https://")) ?? BASE_URL).replace(/\/$/, "");
 if (!/^https:\/\/[a-z0-9.-]+$/i.test(base)) throw new Error(`URL rara: ${base}`);
 
 const c = new pg.Client({ connectionString: dbUrl, ssl: { rejectUnauthorized: false } });
