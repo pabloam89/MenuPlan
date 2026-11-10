@@ -1691,6 +1691,7 @@
         "unit": "ml"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Laminar cebolla en juliana fina.",
       "Calentar mantequilla en una olla a fuego medio hasta que se funda.",
@@ -4218,6 +4219,7 @@
         "unit": "ml"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Picar cebolla, zanahoria, puerro y ajo en trozos pequeños.",
       "Calentar aceite de oliva en una olla a fuego fuerte.",
@@ -5707,6 +5709,7 @@
         "unit": "g"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Pelar cebolla y laminar en juliana fina.",
       "Calentar mantequilla y aceite de oliva en una olla a fuego medio hasta que la mantequilla se funda.",
@@ -7983,6 +7986,7 @@
         "unit": "g"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Limpiar mejillones raspando las conchas y retirando las barbas.",
       "Pelar langostinos, reservando las cáscaras y la mitad de los langostinos enteros para emplatar.",
@@ -8719,6 +8723,7 @@
         "unit": "g"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Limpiar mejillones raspando las valvas y retirando las barbas.",
       "Pelar gambas y reservar las cáscaras por separado.",
@@ -12161,6 +12166,7 @@
         "unit": "g"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Pelar langostinos, reservando cáscaras y cabezas por separado. Guardar la carne en la nevera.",
       "Picar cebolla, zanahoria y puerro en trozos pequeños.",
@@ -14400,6 +14406,7 @@
         "unit": "ml"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Pelar gambas, separando las colas de las cáscaras y cabezas.",
       "Picar cebolla, puerro y zanahoria en trozos finos.",
@@ -14866,6 +14873,7 @@
         "unit": "g"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Pelar cebolla y cortarla en juliana fina.",
       "Fundir mantequilla en una olla a fuego medio-bajo.",
@@ -17090,6 +17098,7 @@
         "unit": "g"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Limpiar mejillones raspando las conchas y retirando las barbas.",
       "Pelar gambas y reservar.",
