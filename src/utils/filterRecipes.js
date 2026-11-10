@@ -60,6 +60,22 @@ export function nombraAlcohol(name) {
 }
 
 /**
+ * ¿Esta receta deja fuera a un grupo con niños por el alcohol? Solo si lleva
+ * alcohol y NO está marcada `alcoholCocido`: el vino de una boloñesa o de un
+ * estofado se cuece y no cuenta (decidido por Pablo el 10 nov 2026; antes
+ * caían 124 recetas, entre ellas la boloñesa y la lasaña). Sin la marca, el
+ * alcohol cuenta: una receta nueva o propia con vino sigue fuera hasta que
+ * alguien diga que se cuece, que es el lado seguro. Lo que se añade crudo
+ * (tiramisú, tarta borracha, el jerez del consomé) no lleva la marca.
+ * La usan las tres puertas de este fichero: recipeViolatesHardSafety,
+ * filterRecipes y filterGarnishes.
+ */
+export function alcoholParaNinos(recipe) {
+  if (recipe?.alcoholCocido === true) return false;
+  return (recipe?.ingredients ?? []).some((ing) => nombraAlcohol(ing.name));
+}
+
+/**
  * Whether a single recipe violates any HARD safety restriction (allergen,
  * non-adaptable intolerance, alcohol-for-kids, baby-category isolation) for a
  * group — the subset of filterRecipes' rules that can never be relaxed
@@ -135,7 +151,7 @@ export function recipeViolatesHardSafety(
   if (hardIntolerances.length > 0 && recipeHitsIntolerances(recipe, hardIntolerances)) return true;
   if (recipeViolatesDiet(recipe, hardIntolerances)) return true;
 
-  if (hasKids && (recipe.ingredients ?? []).some((ing) => ALCOHOL_RE.test(normalizeForAlcoholCheck(ing.name)))) {
+  if (hasKids && alcoholParaNinos(recipe)) {
     return true;
   }
 
@@ -392,13 +408,10 @@ export function filterRecipes({
     pool = pool.filter((r) => r.kidFriendly);
   }
 
-  // 3b. Alcohol — block recipes whose ingredient list contains alcohol, even
-  // when the recipe is otherwise marked kidFriendly (wine "cooks off" in theory
-  // but parents rightly expect a kids menu to have zero alcohol ingredients).
+  // 3b. Alcohol sin cocer fuera, aunque la receta sea kidFriendly. El que se
+  // cuece (`alcoholCocido`) sí entra: ver alcoholParaNinos.
   if (hasKids) {
-    pool = pool.filter(
-      (r) => !r.ingredients.some((ing) => ALCOHOL_RE.test(normalizeForAlcoholCheck(ing.name))),
-    );
+    pool = pool.filter((r) => !alcoholParaNinos(r));
   }
 
   // 4. Season — keep "all" + current season, drop opposite
@@ -581,7 +594,7 @@ export function filterGarnishes(
     if (recetaChocaConAlergias(g, blockedAllergens, allergies)) return false;
     if (hardIds.length > 0 && recipeHitsIntolerances(g, hardIds)) return false;
     if (hardIds.length > 0 && recipeViolatesDiet(g, hardIds)) return false;
-    if (hasKids && g.ingredients.some((ing) => ALCOHOL_RE.test(normalizeForAlcoholCheck(ing.name)))) {
+    if (hasKids && alcoholParaNinos(g)) {
       return false;
     }
     // Adaptable (lactosa_fina): only excludes when the conflict is name-only
