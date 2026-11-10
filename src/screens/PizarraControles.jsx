@@ -31,7 +31,7 @@ import {
   conSemanaCompleta,
   diasDeSemana,
 } from "../lib/semanaDias.js";
-import { clasicosPorPestana } from "../lib/clasicos.js";
+import { buscarClasicos, clasicosPorPestana } from "../lib/clasicos.js";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { deckImg } from "../lib/dishPhotoOptimize.js";
 
@@ -1368,7 +1368,9 @@ function Electrodomesticos({ data, setData }) {
  * ¿Qué no puede faltar? — los clásicos de casa, por pestañas.
  *
  * Una rejilla de fotos de tres en fondo, con su nombre, que se marca a toques;
- * arriba, las seis pestañas (lib/clasicos.js) con cuántos llevas en cada una.
+ * arriba, un buscador y las seis pestañas (lib/clasicos.js) con cuántos llevas
+ * en cada una. Al escribir, la rejilla enseña los de todas las pestañas que
+ * casan (`buscarClasicos`); tocar una pestaña borra la búsqueda.
  * La rejilla tiene alto fijo y se desliza dentro: la hoja mide lo que el paso
  * más alto, y once platos de una pestaña la harían crecer. Lo elegido no toca
  * `data`: se pone en la semana al pulsar Empezar (App.jsx, `colocarClasicos`).
@@ -1377,15 +1379,48 @@ const PESTANAS_CON_CLASICOS = clasicosPorPestana(recipeCatalogById);
 
 function ClasicosDeCasa({ elegidos, onAlternar }) {
   const [pestana, setPestana] = useState(PESTANAS_CON_CLASICOS[0].id);
+  const [texto, setTexto] = useState("");
+  const buscando = texto.trim() !== "";
   const actual = PESTANAS_CON_CLASICOS.find((p) => p.id === pestana);
+  const lista = buscando ? buscarClasicos(PESTANAS_CON_CLASICOS, texto) : actual.recetas;
   return (
     <div>
+      <div
+        style={{
+          display: "flex", alignItems: "center", gap: "var(--esp-8)", height: 36, padding: "0 var(--esp-12)",
+          marginBottom: "var(--esp-8)", borderRadius: "var(--radio-control)", boxSizing: "border-box",
+          background: "var(--color-superficie)", border: "1.5px solid var(--color-linea)",
+        }}
+      >
+        <Search size={15} color="var(--color-tinta-tenue)" />
+        <input
+          value={texto}
+          onChange={(e) => setTexto(e.target.value)}
+          placeholder="Buscar un clásico…"
+          aria-label="Buscar un clásico"
+          style={{
+            flex: 1, minWidth: 0, border: "none", background: "transparent", outline: "none",
+            fontSize: "var(--tipo-paso-13)", color: "var(--color-tinta)", fontFamily: "inherit",
+          }}
+        />
+        {buscando && (
+          <button
+            type="button"
+            onClick={() => setTexto("")}
+            aria-label="Limpiar búsqueda"
+            style={{ border: "none", background: "transparent", cursor: "pointer", padding: 0, display: "flex" }}
+          >
+            <X size={15} color="var(--color-tinta-tenue)" />
+          </button>
+        )}
+      </div>
       <div
         role="tablist"
         style={{ display: "flex", gap: "var(--esp-6)", overflowX: "auto", paddingBottom: "var(--esp-8)", scrollbarWidth: "none" }}
       >
         {PESTANAS_CON_CLASICOS.map((p) => {
-          const sel = p.id === pestana;
+          // Buscando, no manda ninguna pestaña: la rejilla es de todas.
+          const sel = p.id === pestana && !buscando;
           const cuantos = p.recetas.filter((r) => elegidos.includes(r.id)).length;
           return (
             <button
@@ -1394,7 +1429,7 @@ function ClasicosDeCasa({ elegidos, onAlternar }) {
               role="tab"
               aria-selected={sel}
               className="mp-press"
-              onClick={() => setPestana(p.id)}
+              onClick={() => { setPestana(p.id); setTexto(""); }}
               style={{
                 flex: "0 0 auto", height: 32, padding: "0 var(--esp-12)", borderRadius: "var(--radio-pildora)",
                 border: `1.5px solid ${sel ? "var(--color-marca)" : "var(--color-linea)"}`,
@@ -1421,14 +1456,23 @@ function ClasicosDeCasa({ elegidos, onAlternar }) {
       </div>
 
       <div
-        key={pestana}
+        key={buscando ? "busqueda" : pestana}
         className="mp-arranque-paso"
         style={{
-          height: 292, overflowY: "auto", padding: "var(--esp-2) 0 var(--esp-4)",
+          // 292 menos lo que ocupa el buscador: la hoja no crece.
+          height: 248, overflowY: "auto", padding: "var(--esp-2) 0 var(--esp-4)",
           display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "var(--esp-8)", alignContent: "start",
         }}
       >
-        {actual.recetas.map((r) => {
+        {buscando && lista.length === 0 && (
+          <p style={{
+            gridColumn: "1 / -1", margin: "var(--esp-16) 0 0", textAlign: "center",
+            fontSize: "var(--tipo-paso-12)", color: "var(--color-tinta-suave)",
+          }}>
+            Ningún clásico se llama así.
+          </p>
+        )}
+        {lista.map((r) => {
           const sel = elegidos.includes(r.id);
           const foto = dishImageForRecipe(r);
           return (
