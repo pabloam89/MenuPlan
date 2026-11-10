@@ -23,8 +23,10 @@ Esto es operar la plataforma. Cómo se escribe el código de Lola está en
 - **Un solo bot que habla con familias**, «Lola de HoMenu». Su usuario sale de
   `TELEGRAM_BOT_USERNAME`. Un bot tiene **un único webhook**: apunta a un
   despliegue (producción o staging) y no a los dos. Antes de tocarlo, mira a
-  cuál apunta (`info`, abajo). Al día de «Fechas» de Fuentes y comprobación apuntaba a staging
-  (`homenu-staging.vercel.app`).
+  cuál apunta (`info`, abajo). **Desde el 10 nov 2026 apunta a producción**
+  (`https://homenu.vercel.app/api/bot/telegram`), por decisión de Pablo: Lola
+  contesta solo desde producción y staging queda para ver la pantalla. El job
+  `bot-recordatorios` de pg_cron también llama a producción.
 - **Bot de avisos «HoMenu avisos»** (#267, pendiente de crear; día en «Fechas» de Fuentes y comprobación):
   solo escribe en un grupo con Pablo, Álvaro y Manu lo que manda el vigía
   (`.github/workflows/vigia-lola.yml`, `scripts/vigia.mjs`). No tiene webhook
