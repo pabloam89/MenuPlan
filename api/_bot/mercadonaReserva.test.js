@@ -41,7 +41,6 @@ const CUANDO = new Date(AHORA).toISOString();
 
 beforeEach(() => {
   vi.clearAllMocks();
-  process.env.MERCADONA_CASAS = CASA;
   Object.assign(db, { encargo: [], cuenta: [{ sesion_cifrada: "sellada", estado: "conectada" }], reserva: [], fallaUpdate: [], escrito: [] });
 });
 

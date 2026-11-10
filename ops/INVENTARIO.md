@@ -81,7 +81,7 @@ fichero de entorno de la sesión de Claude (`CLAUDE_ENV_FILE`, perfil de Windows
 
 ### Secretos internos (no son de un servicio)
 
-`MERCADONA_TRABAJADOR_TOKEN`: valor inventado por nosotros; lo usa el trabajador de Comprar y solo vale en `api/mercadona.js`. En Vercel y en `/opt/mercadona/.env` del servidor. `MERCADONA_CLAVE_PRIVADA`: abre las sesiones de Mercadona; solo en ese `.env` y en 1Password (`Panel HoMenu`). `MERCADONA_CLAVE_PUBLICA` y `MERCADONA_CASAS` no son secretos: en Vercel. Skill `mercadona`.
+`MERCADONA_TRABAJADOR_TOKEN`: valor inventado por nosotros; lo usa el trabajador de Comprar y solo vale en `api/mercadona.js`. En Vercel y en `/opt/mercadona/.env` del servidor. `MERCADONA_CLAVE_PRIVADA`: abre las sesiones de Mercadona; solo en ese `.env` y en 1Password (`Panel HoMenu`). `MERCADONA_CLAVE_PUBLICA` no es secreto: en Vercel. `MERCADONA_CASAS` ya no se lee (10 nov 2026, sin lista de casas): se puede borrar de Vercel. Skill `mercadona`.
 
 `CRON_SECRET`, `BOT_CRON_SECRET`, `MODERATION_SECRET`: valores inventados por
 nosotros para que solo nuestros crons puedan llamar a ciertos endpoints. Viven
