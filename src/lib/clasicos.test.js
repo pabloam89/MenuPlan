@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { CLASICOS } from "../data/clasicos.js";
-import { PESTANAS_CLASICOS, clasicosPorPestana, plazasLibres, repartirClasicos } from "./clasicos.js";
+import { PESTANAS_CLASICOS, buscarClasicos, clasicosPorPestana, plazasLibres, repartirClasicos } from "./clasicos.js";
 
 // Lo que leen el paso de la hoja y el tablero (PizarraControles.jsx, App.jsx).
 // Que cada marcado llegue aquí, con foto y papel de menú, lo vigila
@@ -35,6 +35,35 @@ describe("las pestañas de los clásicos", () => {
   it("las pestañas no se pisan", () => {
     const cats = PESTANAS_CLASICOS.flatMap((p) => p.categorias);
     expect(new Set(cats).size).toBe(cats.length);
+  });
+});
+
+describe("buscarClasicos", () => {
+  const pestanas = [
+    { recetas: [{ id: "a", name: "Lentejas con chorizo" }, { id: "b", name: "Garbanzos con espinacas" }] },
+    { recetas: [{ id: "c", name: "Macarrones con tomate" }, { id: "d", name: "Arroz a la cubana" }] },
+  ];
+  const ids = (texto) => buscarClasicos(pestanas, texto).map((r) => r.id);
+
+  it("busca en todas las pestañas, sin tildes ni mayúsculas", () => {
+    expect(ids("MACARRÓN")).toEqual(["c"]);
+    expect(ids("con")).toEqual(["a", "b", "c"]);
+  });
+
+  it("pide todas las palabras, en cualquier orden", () => {
+    expect(ids("chorizo lentejas")).toEqual(["a"]);
+    expect(ids("lentejas tomate")).toEqual([]);
+  });
+
+  it("sin texto no da ninguno", () => {
+    expect(ids("")).toEqual([]);
+    expect(ids("   ")).toEqual([]);
+  });
+
+  it("con el catálogo de verdad encuentra las lentejas", () => {
+    const reales = buscarClasicos(clasicosPorPestana(recipeCatalogById), "lentejas");
+    expect(reales.length).toBeGreaterThan(0);
+    expect(reales.every((r) => r.name.toLowerCase().includes("lentejas"))).toBe(true);
   });
 });
 
