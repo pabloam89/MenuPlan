@@ -21052,6 +21052,7 @@
         "unit": "g"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Laminar ajo.",
       "Cortar zanahoria en rodajas y cebolla en rodajas.",
@@ -21644,6 +21645,7 @@
         "unit": "g"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Cortar berenjena en láminas de 0,5 cm de grosor.",
       "Salar las láminas de berenjena y dejar reposar para que suelten el amargor.",

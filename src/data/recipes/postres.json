@@ -5000,6 +5000,7 @@
         "unit": "ml"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Verter la leche condensada y la leche en un cazo de fondo grueso.",
       "Cocer a fuego medio removiendo sin parar 25 min, hasta que espese y se vea el fondo del cazo.",

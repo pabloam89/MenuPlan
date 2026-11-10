@@ -4890,6 +4890,7 @@
         "unit": "ml"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Pelar patata y cortarlas en bastones finos tipo paja.",
       "Calentar aceite de oliva en sartén honda a fuego fuerte.",
@@ -11791,6 +11792,7 @@
         "unit": "ml"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Picar cebolla y ajo muy finos.",
       "Limpiar y cortar setas variadas en trozos medianos.",
@@ -12243,6 +12245,7 @@
         "unit": "ml"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Llevar a ebullición agua en un cazo e introducir huevo. Cocer 10 min a fuego medio.",
       "Transferir los huevos a un bol con agua fría hasta que estén templados.",
@@ -14442,6 +14445,7 @@
         "unit": "ml"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Pelar patata y rallar en juliana muy fina con mandolina o rallador.",
       "Secar la patata rallada con papel absorbente hasta eliminar toda la humedad.",
