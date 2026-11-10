@@ -5,7 +5,9 @@
 
 // La rama de staging, la que imita la prueba de punta a punta.
 export const RAMA_STAGING = "staging";
-const RAMA_PRODUCCION = "main";
+// La de producción. La app de iOS se compila en GitHub, no en Vercel, y se
+// hace pasar por esta (ios-testflight.yml): habla con producción.
+export const RAMA_PRODUCCION = "main";
 
 /**
  * Las banderas para una rama. `leer(nombre)` devuelve lo que traiga el
