@@ -1416,7 +1416,14 @@ function ClasicosDeCasa({ elegidos, onAlternar }) {
       </div>
       <div
         role="tablist"
-        style={{ display: "flex", gap: "var(--esp-6)", overflowX: "auto", paddingBottom: "var(--esp-8)", scrollbarWidth: "none" }}
+        className="deck-scroller"
+        // Pestañas de texto subrayadas, sin cajas: con el buscador encima y la
+        // rejilla de fotos debajo, seis píldoras con borde eran demasiado
+        // ruido. Mismo alto que antes (32 + 8) para que la hoja no crezca.
+        style={{
+          display: "flex", gap: "var(--esp-16)", overflowX: "auto", scrollbarWidth: "none",
+          marginBottom: "var(--esp-8)", boxShadow: "inset 0 -1px 0 var(--color-linea)",
+        }}
       >
         {PESTANAS_CON_CLASICOS.map((p) => {
           // Buscando, no manda ninguna pestaña: la rejilla es de todas.
@@ -1428,25 +1435,19 @@ function ClasicosDeCasa({ elegidos, onAlternar }) {
               type="button"
               role="tab"
               aria-selected={sel}
-              className="mp-press"
               onClick={() => { setPestana(p.id); setTexto(""); }}
               style={{
-                flex: "0 0 auto", height: 32, padding: "0 var(--esp-12)", borderRadius: "var(--radio-pildora)",
-                border: `1.5px solid ${sel ? "var(--color-marca)" : "var(--color-linea)"}`,
-                background: sel ? "var(--color-marca)" : "var(--color-superficie)",
-                color: sel ? "var(--color-superficie)" : "var(--color-tinta-media)",
-                fontSize: "var(--tipo-paso-12)", fontWeight: "var(--tipo-peso-800)", fontFamily: "inherit", cursor: "pointer",
-                display: "inline-flex", alignItems: "center", gap: "var(--esp-6)",
+                flex: "0 0 auto", height: 32, padding: 0, border: "none", background: "none",
+                boxShadow: sel ? "inset 0 -2.5px 0 var(--color-marca)" : "none",
+                color: sel ? "var(--color-tinta)" : "var(--color-tinta-suave)",
+                fontSize: "var(--tipo-paso-13)", fontWeight: sel ? "var(--tipo-peso-800)" : "var(--tipo-peso-700)",
+                fontFamily: "inherit", cursor: "pointer", whiteSpace: "nowrap",
+                display: "inline-flex", alignItems: "center", gap: "var(--esp-4)",
               }}
             >
               {p.titulo}
               {cuantos > 0 && (
-                <span style={{
-                  minWidth: 18, height: 18, padding: "0 var(--esp-4)", boxSizing: "border-box", borderRadius: "var(--radio-pildora)",
-                  background: sel ? "var(--color-superficie)" : "var(--color-marca-fondo)", color: "var(--color-marca)",
-                  fontSize: "var(--tipo-paso-11)", fontWeight: "var(--tipo-peso-900)", lineHeight: 1,
-                  display: "inline-flex", alignItems: "center", justifyContent: "center", fontVariantNumeric: "tabular-nums",
-                }}>
+                <span style={{ color: "var(--color-marca)", fontWeight: "var(--tipo-peso-900)", fontVariantNumeric: "tabular-nums" }}>
                   {cuantos}
                 </span>
               )}
@@ -1457,7 +1458,9 @@ function ClasicosDeCasa({ elegidos, onAlternar }) {
 
       <div
         key={buscando ? "busqueda" : pestana}
-        className="mp-arranque-paso"
+        // Sin barra de scroll: en el ordenador se comía el borde de la foto
+        // de la derecha. Que hay más lo dice la fila cortada de abajo.
+        className="mp-arranque-paso deck-scroller"
         style={{
           // 292 menos lo que ocupa el buscador: la hoja no crece.
           height: 248, overflowY: "auto", padding: "var(--esp-2) 0 var(--esp-4)",
