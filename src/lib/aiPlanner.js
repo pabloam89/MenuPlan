@@ -2929,13 +2929,14 @@ export function chocaConElGrupo(receta, dataOEntrada, group, meal = "Comida", ct
 }
 
 /**
- * POR QUÉ choca una receta, en una frase para quien la ha elegido, o null si
- * no choca. No repite las reglas: le pregunta a recipeViolatesHardSafety por
- * cada persona y cada restricción suelta, así que siempre coincide con la
+ * POR QUÉ choca una receta, la razón sola («Ana tiene alergia a pescado»), o
+ * null si no choca. No repite las reglas: le pregunta a recipeViolatesHardSafety
+ * por cada persona y cada restricción suelta, así que siempre coincide con la
  * puerta. Lo apuntado por alguien va antes que las alergias sin revisar, que
- * bloquean casi todo y dirían menos.
+ * bloquean casi todo y dirían menos. La frase entera es motivoDelChoque; la
+ * razón sola la juntan los avisos de varios platos (avisoDeClasicosPerdidos).
  */
-export function motivoDelChoque(receta, dataOEntrada, group, meal = "Comida") {
+export function porQueChoca(receta, dataOEntrada, group, meal = "Comida") {
   if (!receta || !group) return null;
   const entrada = comoEntrada(dataOEntrada);
   const { filterOpts } = contextoDe(entrada, group);
@@ -2945,18 +2946,23 @@ export function motivoDelChoque(receta, dataOEntrada, group, meal = "Comida") {
 
   const miembros = membersOfGroup(group, entrada.personas);
   const nombre = (m) => m.name?.trim() || "alguien de la casa";
-  const no = (porque) => `«${receta.name}» no entra: ${porque}`;
   for (const m of miembros) {
     const alergia = (m.allergies ?? []).find((a) => choca({ allergies: [a] }));
-    if (alergia) return no(`${nombre(m)} tiene alergia a ${String(alergia).toLowerCase()}`);
+    if (alergia) return `${nombre(m)} tiene alergia a ${String(alergia).toLowerCase()}`;
     const regla = [...(m.intolerances ?? []), ...(m.dietaryStates ?? [])].find((id) => choca({ intolerances: [id] }));
-    if (regla) return no(`${nombre(m)}: ${(INTOLERANCE_RULES[regla]?.label ?? DIET_RULES[regla]?.label ?? regla).toLowerCase()}`);
+    if (regla) return `${nombre(m)}: ${(INTOLERANCE_RULES[regla]?.label ?? DIET_RULES[regla]?.label ?? regla).toLowerCase()}`;
   }
-  if (choca({ hasKids: filterOpts.hasKids })) return no("lleva alcohol sin cocer y hay niños en este menú");
+  if (choca({ hasKids: filterOpts.hasKids })) return "lleva alcohol sin cocer y hay niños en este menú";
   const sinRevisar = miembros.filter((m) => !entrada.alergiasRevisadas[m.id]);
   if (sinRevisar.length === 0) return null;
   const quienes = sinRevisar.map((m) => m.name?.trim()).filter(Boolean);
-  return no(`faltan por revisar las alergias de ${quienes.join(", ") || "la casa"}`);
+  return `faltan por revisar las alergias de ${quienes.join(", ") || "la casa"}`;
+}
+
+/** La frase entera para quien ha elegido el plato: «X» no entra: <porQueChoca>. */
+export function motivoDelChoque(receta, dataOEntrada, group, meal = "Comida") {
+  const porque = porQueChoca(receta, dataOEntrada, group, meal);
+  return porque ? `«${receta.name}» no entra: ${porque}` : null;
 }
 
 /**
