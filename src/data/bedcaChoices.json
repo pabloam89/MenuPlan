@@ -150,7 +150,7 @@
     "motivo": "Grasa de pollo no es alitas de pollo",
     "modelo": "claude-sonnet-5"
   },
-  "alubia-grande": {
+  "fabes": {
     "foodId": null,
     "confianza": 0,
     "motivo": "Conejo no corresponde a fabes secas",
@@ -216,7 +216,7 @@
     "motivo": "Bacon crudo con grasa, coincide con bacon en lonchas sin cocinar",
     "modelo": "claude-sonnet-5"
   },
-  "baguette": {
+  "pan-chapata": {
     "foodId": null,
     "confianza": 0,
     "motivo": "Ni avena ni cebada corresponden a chapata",

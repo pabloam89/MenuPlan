@@ -51,7 +51,7 @@ describe("scorePantryMatch", () => {
   it("matches via canonical id even with zero word overlap, when a pantry row carries it", () => {
     const r = recipe(["Fabes de la granja secas"]);
     expect(scorePantryMatch(r, ["judiones"])).toBe(0);
-    expect(scorePantryMatch(r, ["judiones"], ["alubia-grande"])).toBe(1);
+    expect(scorePantryMatch(r, ["judiones"], ["fabes"])).toBe(1);
   });
 
   it("omitting pantryIngredientIds behaves exactly as before (no regression)", () => {

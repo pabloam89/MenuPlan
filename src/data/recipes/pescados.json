@@ -2261,7 +2261,7 @@
     "ingredients": [
       {
         "name": "Rape",
-        "ingredientId": "monkfish",
+        "ingredientId": "rape",
         "amount": 350,
         "unit": "g"
       },
@@ -6602,7 +6602,7 @@
       },
       {
         "name": "Ají amarillo o guindilla fresca",
-        "ingredientId": "cayena",
+        "ingredientId": "guindilla-fresca",
         "amount": 5,
         "unit": "g"
       },
@@ -9268,7 +9268,7 @@
     "ingredients": [
       {
         "name": "Rape",
-        "ingredientId": "monkfish",
+        "ingredientId": "rape",
         "amount": 250,
         "unit": "g"
       },
@@ -11924,7 +11924,7 @@
     "ingredients": [
       {
         "name": "Medallones de rape",
-        "ingredientId": "monkfish",
+        "ingredientId": "rape",
         "amount": 350,
         "unit": "g"
       },
@@ -15147,7 +15147,7 @@
       },
       {
         "name": "Chile fresco",
-        "ingredientId": "cayena",
+        "ingredientId": "guindilla-fresca",
         "amount": 5,
         "unit": "g"
       },
@@ -17677,7 +17677,7 @@
       },
       {
         "name": "Colas de rape en trozos",
-        "ingredientId": "monkfish",
+        "ingredientId": "rape",
         "amount": 250,
         "unit": "g"
       },
@@ -20452,7 +20452,7 @@
     "ingredients": [
       {
         "name": "Rape (cola, en medallones)",
-        "ingredientId": "monkfish",
+        "ingredientId": "rape",
         "amount": 350,
         "unit": "g"
       },

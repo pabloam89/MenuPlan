@@ -128,7 +128,7 @@ describe("buildShoppingList pantry discount (Phase 6)", () => {
       },
     ]);
     const plan = planWith("Lun", "Comida", "test_shopping_exact_id");
-    const pantry = [{ ingredientName: "Judiones", ingredientNormalized: "judiones", ingredientId: "alubia-grande" }];
+    const pantry = [{ ingredientName: "Judiones", ingredientNormalized: "judiones", ingredientId: "fabes" }];
     const sh = buildShoppingList(plan, GROUPS, ["Comida"], pantry);
     expect(sh.pantryItems.map((it) => it.name)).toContain("Fabes de la granja secas");
   });
@@ -520,7 +520,7 @@ describe("findMatchingPantryItem", () => {
   // mismo ingrediente canónico (alubia-grande) sin ninguna palabra en común.
   it("matches via ingredientId even when the words share nothing", () => {
     const stock = [
-      { id: "9", ingredientName: "Judiones", ingredientNormalized: "judiones", ingredientId: "alubia-grande", qty: 500, unit: "g" },
+      { id: "9", ingredientName: "Judiones", ingredientNormalized: "judiones", ingredientId: "fabes", qty: 500, unit: "g" },
     ];
     expect(findMatchingPantryItem("Fabes de la granja secas", stock)?.id).toBe("9");
   });

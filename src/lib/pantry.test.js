@@ -28,7 +28,7 @@ describe("addLocalPantryItems resolves ingredientId on write (Fase 8)", () => {
   it("stores the same id for a real alias with different words (Fabes / Judiones)", () => {
     addLocalPantryItems([{ name: "Judiones", normalized: "judiones", qty: 500, unit: "g" }]);
     const [row] = loadLocalPantry();
-    expect(row.ingredientId).toBe("alubia-grande");
+    expect(row.ingredientId).toBe("fabes");
   });
 
   it("stores null (never throws or invents an id) for a name outside the catalog", () => {
