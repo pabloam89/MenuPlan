@@ -23,8 +23,11 @@ Esto es operar la plataforma. Cómo se escribe el código de Lola está en
 - **Un solo bot que habla con familias**, «Lola de HoMenu». Su usuario sale de
   `TELEGRAM_BOT_USERNAME`. Un bot tiene **un único webhook**: apunta a un
   despliegue (producción o staging) y no a los dos. Antes de tocarlo, mira a
-  cuál apunta (`info`, abajo). Al día de «Fechas» de Fuentes y comprobación apuntaba a staging
-  (`homenu-staging.vercel.app`).
+  cuál apunta (`info`, abajo). **Apunta a producción**
+  (`https://homenu.vercel.app/api/bot/telegram`; día en «Fechas» de Fuentes y
+  comprobación), por decisión de Pablo: Lola contesta solo desde producción y
+  staging queda para ver la pantalla. El job `bot-recordatorios` de pg_cron
+  también llama a producción.
 - **Bot de avisos «HoMenu avisos»** (#267, pendiente de crear; día en «Fechas» de Fuentes y comprobación):
   solo escribe en un grupo con Pablo, Álvaro y Manu lo que manda el vigía
   (`.github/workflows/vigia-lola.yml`, `scripts/vigia.mjs`). No tiene webhook
@@ -132,6 +135,6 @@ true`, que en Telegram significa el modo privacidad **apagado**, en contra de lo
 que dice esta skill arriba. Mientras no se mire en @BotFather (`/setprivacy`),
 no te fíes de que en un grupo Lola solo vea comandos y menciones.
 
-Fechas que estaban repartidas por el cuerpo (#411): el webhook apuntaba a staging el 9 oct 2026; el bot de avisos seguía sin crear el 9 oct 2026; Mini App retirada el 30 sep 2026; lista de la compra viva decidida el 2 oct 2026.
+Fechas que estaban repartidas por el cuerpo (#411): el webhook apuntaba a staging el 9 oct 2026, y desde el 10 nov 2026 apunta a producción, igual que el job `bot-recordatorios`; el bot de avisos seguía sin crear el 9 oct 2026; Mini App retirada el 30 sep 2026; lista de la compra viva decidida el 2 oct 2026.
 
 Comprobado el 2026-10-09: `telegram-webhook.mjs info` (solo lectura) da el webhook en `https://homenu-staging.vercel.app/api/bot/telegram`, sin cola ni errores, y el canario (salud) pasó sus cuatro chequeos contra él; lo demás viene de la versión del 8 oct sin volver a ejecutarlo. Sin comprobar: la checklist nativa (no está implementada), un bot de pruebas (no existe), el bot de avisos y el chat_id de su grupo (no existen aún).
