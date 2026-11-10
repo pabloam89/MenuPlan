@@ -144,7 +144,7 @@
     "motivo": "«Paprika», 319 kcal. El choricero es pimiento rojo seco, y el pimentón es ese mismo pimiento molido: comparten composición porque solo cambia el triturado. Los candidatos de BEDCA eran pimiento FRESCO (20-30 kcal), diez veces menos, porque el fresco es casi todo agua.",
     "modelo": "decision-humana-2026-09-21"
   },
-  "monkfish": {
+  "rape": {
     "foodId": "26018",
     "confianza": 0.9,
     "motivo": "«Anglerfish, raw», 67,2 kcal. «Anglerfish» es el nombre inglés del rape; BEDCA solo lo tenía ya cocinado a la parrilla o plancha.",
@@ -252,7 +252,7 @@
     "motivo": "«Cocoa powder, without sugar, powder, instant», 387 kcal. Sin azúcar, que es el cacao de repostería. BEDCA ofrecía cacao para bebida infantil, ya azucarado.",
     "modelo": "decision-humana-2026-09-21"
   },
-  "hamburguesa": {
+  "pan-de-hamburguesa": {
     "foodId": "7259",
     "confianza": 0.9,
     "motivo": "«Rolls for hamburger/hotdog (buns), prepacked», 293 kcal. Producto exacto.",
@@ -318,7 +318,7 @@
     "motivo": "«Mung bean, sprouted or soy sprouts, raw», 29,5 kcal. Los brotes tiernos del catálogo son germinados de soja.",
     "modelo": "decision-humana-2026-09-21"
   },
-  "cayena": {
+  "guindilla-fresca": {
     "foodId": "20151",
     "confianza": 0.9,
     "motivo": "«Chili pepper, raw», 44,5 kcal. El ingrediente se llama «Chile fresco».",
@@ -420,7 +420,7 @@
     "motivo": "«Pork, shoulder, raw», 178 kcal. La carrillada es de CERDO —sus dos recetas son ibéricas— y tenía la ficha de la carrillera de TERNERA, que es otro animal. Ninguna de las dos tablas publica carrillera de cerdo: los 26 cortes crudos de cerdo de CIQUAL no la traen, y el «jowl» (475 kcal) es la papada, que es grasa, no el músculo del carrillo. Va la paleta: mismo animal y mismo uso, un guiso largo de colágeno. Sobrestima la grasa (11,2 g contra ~7 reales) y por eso la confianza baja — entre el corte exacto del animal equivocado y el animal correcto con el corte de al lado, manda el animal, que es lo que leen `mainProtein` y el árbol.",
     "modelo": "decision-humana-2026-09-21"
   },
-  "ravioli": {
+  "tortellini": {
     "foodId": "25157",
     "confianza": 0.85,
     "motivo": "«Fresh pasta, stuffed with meat (e.g. bolognese-style ravioli), prepacked, raw», 265 kcal. RETIRA un proxy que se declaraba como tal: el ingrediente son «Tortellini frescos rellenos de carne» y tenía la ficha de USDA de pasta fresca LISA, 288 kcal con 2,3 g de grasa —los números de la masa sola, sin relleno— aceptada «porque la masa es la mayor parte del peso». CIQUAL sí publica la rellena y además cruda, que es como se compra. Cuadra con Atwater a mano: 4×11,4 + 4×40,3 + 9×5,79 + 2×3,15 = 265,2 contra 265 declaradas.",
@@ -684,7 +684,7 @@
     "motivo": "«Brie cheese, from cow's milk», 297 kcal.",
     "modelo": "decision-humana-2026-09-21"
   },
-  "queso-tierno": {
+  "queso-semicurado": {
     "foodId": "12827",
     "confianza": 0.75,
     "motivo": "«Semi-hard cheese, from ewe's milk», 384 kcal. El ingrediente es queso semicurado en lonchas.",

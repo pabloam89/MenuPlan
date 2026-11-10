@@ -70,7 +70,7 @@
     "Paprika"
   ],
   "pan-molde": "Bread, sliced",
-  "monkfish": "Anglerfish, raw",
+  "rape": "Anglerfish, raw",
   "chalota": "Shallot, raw",
   "frutos-rojos": [
     "Red currant, raw",
@@ -121,7 +121,7 @@
     "Pasta, raw",
     "Pasta, dry"
   ],
-  "hamburguesa": [
+  "pan-de-hamburguesa": [
     "Hamburger bun",
     "Bun, hamburger"
   ],
@@ -140,7 +140,7 @@
   "cacahuete": "Peanut, grilled, salted",
   "carrillera": "Beef, cheek, raw",
   "carrillada": "Pork, shoulder, raw",
-  "ravioli": "Fresh pasta, stuffed with meat, prepacked, raw",
+  "tortellini": "Fresh pasta, stuffed with meat, prepacked, raw",
   "lentejas-cocidas": "Lentil, boiled/cooked in water",
   "garbanzos-secos": "Chick pea, dried",
   "alubias-secas": "Haricot bean, dry",
@@ -193,16 +193,16 @@
   "melocoton": "Peach, pulp, raw",
   "pina": "Pineapple, pulp, raw",
   "platano-macho": "Plantain, raw",
-  "cayena": "Chili pepper, raw",
+  "guindilla-fresca": "Chili pepper, raw",
   "brote-tierno": "Bean sprout, raw",
   "ajete": "Garlic, raw",
   "ajetes-tiernos": "Garlic, raw",
   "coco": "Coconut, dried",
-  "alubia-grande": "Haricot bean, dried, raw",
+  "fabes": "Haricot bean, dried, raw",
   "mascarpone": "Mascarpone",
   "roquefort": "Roquefort cheese",
   "queso-brie": "Brie cheese",
-  "queso-tierno": "Semi-hard cheese",
+  "queso-semicurado": "Semi-hard cheese",
   "bechamel": "Bechamel sauce",
   "pesto": "Pesto sauce",
   "tomate-concentrado": "Tomato purée, concentrated",
@@ -215,7 +215,7 @@
   "galletas-maria": "Biscuit, plain",
   "bizcocho-de-soletilla": "Sponge finger",
   "masa-de-pizza": "Pizza dough",
-  "baguette": "Bread, ciabatta",
+  "pan-chapata": "Bread, ciabatta",
   "muffin-ingle": "Muffin",
   "nachos": "Tortilla chips",
   "tortilla-de-maiz": "Corn tortilla",
