@@ -362,7 +362,9 @@ describe("filterRecipes hasKids", () => {
       nombre.replace(/\bvinagres?\b( de \w+)?/gi, " "),
     );
 
-  it("excludes recipes with alcohol ingredients, even if marked kidFriendly", () => {
+  // Desde el 10 nov 2026 el alcohol que se cuece (`alcoholCocido`) no cuenta:
+  // ver alcoholParaNinos en filterRecipes.js.
+  it("excludes recipes with uncooked alcohol, even if marked kidFriendly", () => {
     const { recipes: all } = filterRecipes(baseOpts);
     const hadAlcohol = all.filter((r) =>
       (r.ingredients ?? []).some((ing) => NOMBRA_ALCOHOL(ing.name)),
@@ -370,9 +372,10 @@ describe("filterRecipes hasKids", () => {
     expect(hadAlcohol.length).toBeGreaterThan(0); // sanity: fixture data has some
 
     const { recipes: kidsPool } = filterRecipes({ ...baseOpts, hasKids: true });
-    for (const r of kidsPool) {
-      expect((r.ingredients ?? []).some((ing) => NOMBRA_ALCOHOL(ing.name))).toBe(false);
-    }
+    const conAlcohol = kidsPool.filter((r) => (r.ingredients ?? []).some((ing) => NOMBRA_ALCOHOL(ing.name)));
+    expect(conAlcohol.filter((r) => r.alcoholCocido !== true).map((r) => r.id)).toEqual([]);
+    // Y el cocido sí llega: si no, la marca no estaría sirviendo de nada.
+    expect(conAlcohol.length).toBeGreaterThan(0);
   });
 
   it("only keeps kidFriendly recipes", () => {

@@ -784,6 +784,7 @@
         "unit": "ud"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Pelar patata y cortar en trozos de unos 3 cm.",
       "Pelar zanahoria y cortar en rodajas de 1 cm.",
@@ -1008,6 +1009,7 @@
         "unit": "ud"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Salpimentar pollo troceado por todos los lados.",
       "Laminar ajo en láminas finas.",
@@ -1329,6 +1331,7 @@
         "unit": "ml"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Cortar carne de ternera para guisar en dados de unos 3 cm.",
       "Pelar y picar cebolla en brunoise fina.",
@@ -2373,6 +2376,7 @@
         "unit": "g"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Precalentar el horno a 200 °C con calor arriba y abajo.",
       "Cortar cebolla en gajos de tamaño mediano.",
@@ -2767,6 +2771,7 @@
         "unit": "ud"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Cortar carne de ternera para guisar en trozos de unos 4 cm y salpimentar.",
       "Pelar y picar cebolla en brunoise fina.",
@@ -2996,6 +3001,7 @@
         "unit": "g"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Pelar y picar cebolla en brunoise fina.",
       "Pelar y picar ajo fino.",
@@ -3930,6 +3936,7 @@
         "unit": "ml"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Cortar carne de ternera para guisar en dados de unos 3 cm.",
       "Pelar y picar cebolla en brunoise fina.",
@@ -4149,6 +4156,7 @@
         "unit": "ud"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Cortar cebolla en juliana fina.",
       "Picar ajo muy fino.",
@@ -5200,6 +5208,7 @@
         "unit": "g"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Cortar pechuga de pollo en filetes de unos 2 cm de grosor.",
       "Salpimentar los filetes de pechuga de pollo al gusto por ambas caras.",
@@ -5438,6 +5447,7 @@
         "unit": "ml"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Pelar y cortar zanahoria en rodajas gruesas y cebolla en cuartos.",
       "Pelar y laminar ajo.",
@@ -5823,6 +5833,7 @@
         "unit": "ud"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Cortar cebolla en brunoise fina.",
       "Limpiar setas y cortar en láminas gruesas.",
@@ -6169,6 +6180,7 @@
         "unit": "ud"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Cortar carne de ternera para guisar en dados de unos 3 cm.",
       "Pelar y picar cebolla en brunoise fina.",
@@ -6369,6 +6381,7 @@
         "unit": "ml"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Pelar y cortar cebolla en juliana fina.",
       "Pelar y picar ajo fino.",
@@ -6821,6 +6834,7 @@
         "unit": "g"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Cortar apionabo en trozos de tamaño similar para que cuezan de manera uniforme.",
       "Llevar a ebullición una olla con agua abundante y sal.",
@@ -7688,6 +7702,7 @@
         "unit": "g"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Marcar la piel de pechuga de pato con cortes en rombo sin llegar a la carne.",
       "Salpimentar las pechugas con sal y pimienta negra por ambos lados.",
@@ -7925,6 +7940,7 @@
         "unit": "g"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Laminar la piel de magret de pato con cortes en rombo sin llegar a la carne.",
       "Salpimentar el magret por ambas caras con sal y pimienta negra.",
@@ -8205,6 +8221,7 @@
         "unit": "ml"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Salpimentar rabo de toro troceado por todos los lados.",
       "Enharinar el rabo de toro con harina, sacudiendo el exceso.",
@@ -8532,6 +8549,7 @@
         "unit": "ml"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Salar medio cochinillo por ambos lados con sal gorda.",
       "Reposar el cochinillo a temperatura ambiente hasta que la sal penetre.",
@@ -8800,6 +8818,7 @@
         "unit": "g"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Pelar patata y cortar en rodajas finas de unos 3 mm.",
       "Cortar cebolla en juliana fina.",
@@ -9737,6 +9756,7 @@
         "unit": "g"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Picar cebolla, zanahoria y apio en dados pequeños y reservar.",
       "Salpimentar jarrete de ternera con hueso (ossobuco) por ambas caras con sal y pimienta negra.",
@@ -10035,6 +10055,7 @@
         "unit": "ml"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Pelar pera y cortar cada una en cuartos.",
       "Retirar el corazón de cada cuarto de pera.",
@@ -10275,6 +10296,7 @@
         "unit": "g"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Salpimentar codorniz limpia entera por dentro y por fuera con sal.",
       "Enharinar las codornices con harina, sacudiendo el exceso.",
@@ -10813,6 +10835,7 @@
         "unit": "g"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Remojar pan rallado en leche durante 5 min hasta que quede bien empapado.",
       "Picar ajo muy fino y picar perejil fresco fino.",
@@ -11459,6 +11482,7 @@
         "unit": "g"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Cortar cebolla en brunoise fina y zanahoria en rodajas finas.",
       "Picar ajo fino.",
@@ -14333,6 +14357,7 @@
         "unit": "g"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Retirar filete de solomillo de ternera de la nevera y dejar atemperar 15 min antes de cocinar.",
       "Escurrir pimienta verde en grano y machacar ligeramente la mitad con el dorso de un cuchillo.",
@@ -14950,6 +14975,7 @@
         "unit": "g"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Picar ajo fino y dividirlo en dos mitades iguales.",
       "Picar cebolla en brunoise fina.",
@@ -15888,6 +15914,7 @@
         "unit": "g"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Pelar patata y cortarlas en juliana muy fina con mandolina.",
       "Secar bien las patatas con un paño limpio para eliminar el exceso de humedad.",
@@ -16120,6 +16147,7 @@
         "unit": "g"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Pelar y picar fino cebolla y ajo.",
       "Pelar y cortar zanahoria en rodajas finas.",
@@ -16385,6 +16413,7 @@
         "unit": "g"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Pelar y picar cebolla en brunoise fina.",
       "Pelar y picar zanahoria en trozos pequeños.",
@@ -16695,6 +16724,7 @@
         "unit": "g"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Pelar y picar cebolla en brunoise fina.",
       "Pelar y picar zanahoria en brunoise fina.",
@@ -17448,6 +17478,7 @@
         "unit": "g"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Cortar carne de ternera para guisar en trozos de bocado.",
       "Picar cebolla y ajo fino.",
@@ -18125,6 +18156,7 @@
         "unit": "g"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Precalentar el horno a 180 °C.",
       "Pelar patata y cortarlas en rodajas finas de unos 3 mm.",
@@ -18364,6 +18396,7 @@
         "unit": "g"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Precalentar el horno a 180 °C.",
       "Extender cinta de lomo de cerdo abierta en libro sobre la mesa y salpimentar por dentro con sal y pimienta negra.",
@@ -19066,6 +19099,7 @@
         "unit": "g"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Cortar carne de ternera para guisar en trozos de bocado uniformes.",
       "Salpimentar la carne con sal y pimienta negra por todos los lados.",
@@ -19526,6 +19560,7 @@
         "unit": "g"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Laminar champiñones en láminas de unos 3 mm.",
       "Salpimentar escalopines de ternera por ambas caras con sal y pimienta negra.",
@@ -20640,6 +20675,7 @@
         "unit": "g"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Pelar y picar cebolla, zanahoria, puerro y ajo en trozos pequeños.",
       "Salpimentar carrillada de cerdo por ambos lados.",
@@ -21441,6 +21477,7 @@
         "unit": "g"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Precalentar el horno a 180 °C.",
       "Pelar y cortar zanahoria en trozos grandes.",
@@ -22247,6 +22284,7 @@
         "unit": "g"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Pelar patata y laminar en rodajas finas de unos 3 mm.",
       "Cortar cebolla en juliana fina.",
@@ -23286,6 +23324,7 @@
         "unit": "ml"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Pelar boniato y cortar en trozos medianos.",
       "Cocer el boniato en una olla con agua salada hasta que esté tierno.",
@@ -24025,6 +24064,7 @@
         "unit": "g"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Precalentar el horno a 200 °C.",
       "Pelar patata y cortarla en rodajas finas de unos 3 mm.",
@@ -24304,6 +24344,7 @@
         "unit": "ml"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Pelar patata y cortar en bastones de unos 1 cm de grosor.",
       "Calentar aceite de girasol en una olla o sartén honda a fuego fuerte hasta que alcance unos 180 °C.",
@@ -25968,6 +26009,7 @@
         "unit": "ml"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Cortar chorizo y morcilla en rodajas gruesas y jamón en trozos pequeños. Reservar.",
       "Picar cebolla fina y ajo fino. Reservar por separado.",
@@ -26228,6 +26270,7 @@
         "unit": "g"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Cortar cebolla en juliana fina.",
       "Calentar aceite de oliva en sartén a fuego medio.",
@@ -26457,6 +26500,7 @@
         "unit": "ml"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Chamuscar manitas de cerdo partidas por la mitad con un soplete o llama para eliminar los pelos restantes.",
       "Enjuagar las manitas bajo agua fría hasta que el agua salga limpia.",
@@ -30062,6 +30106,7 @@
         "unit": "g"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Picar cebolla fino.",
       "Limpiar setas variadas y cortar en trozos medianos.",
@@ -33123,6 +33168,7 @@
         "unit": "ml"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Cortar cebolla en juliana fina.",
       "Calentar aceite de oliva en sartén a fuego suave.",
@@ -33989,6 +34035,7 @@
         "unit": "ml"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Picar cebolla en trozos finos.",
       "Cortar pimientos del piquillo en tiras gruesas.",
@@ -34430,6 +34477,7 @@
         "unit": "ml"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Laminar champiñones.",
       "Rallar zanahoria.",
@@ -36589,6 +36637,7 @@
         "unit": "g"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Cortar la carne de ternera para guisar en dados grandes y secarlos bien con papel de cocina.",
       "Salpimentar y dorar la carne por tandas en una cocotte con aceite de oliva; reservar.",

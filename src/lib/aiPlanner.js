@@ -2952,7 +2952,7 @@ export function motivoDelChoque(receta, dataOEntrada, group, meal = "Comida") {
     const regla = [...(m.intolerances ?? []), ...(m.dietaryStates ?? [])].find((id) => choca({ intolerances: [id] }));
     if (regla) return no(`${nombre(m)}: ${(INTOLERANCE_RULES[regla]?.label ?? DIET_RULES[regla]?.label ?? regla).toLowerCase()}`);
   }
-  if (choca({ hasKids: filterOpts.hasKids })) return no("lleva alcohol y hay niños en este menú");
+  if (choca({ hasKids: filterOpts.hasKids })) return no("lleva alcohol sin cocer y hay niños en este menú");
   const sinRevisar = miembros.filter((m) => !entrada.alergiasRevisadas[m.id]);
   if (sinRevisar.length === 0) return null;
   const quienes = sinRevisar.map((m) => m.name?.trim()).filter(Boolean);
