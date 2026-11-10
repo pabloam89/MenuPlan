@@ -9,6 +9,7 @@
  */
 import { CLASICOS } from "../data/clasicos.js";
 import { papelesDelHueco, tipoDeComida } from "./dias.js";
+import { sinTildes } from "./alergiasBase.js";
 
 /**
  * Las pestañas del paso, en orden, y qué categorías del catálogo recoge cada
@@ -35,6 +36,26 @@ export function clasicosPorPestana(porId) {
     ...p,
     recetas: clasicos.filter((r) => p.categorias.includes(r.category)),
   }));
+}
+
+/**
+ * Pura. Los clásicos cuyo nombre lleva todas las palabras de `texto`, sin
+ * mirar tildes ni mayúsculas («lentejas chorizo» da «Lentejas con chorizo»), en
+ * el orden de las pestañas. Es el buscador del paso: encuentra un plato sin ir
+ * pestaña a pestaña. Sin texto, ninguno: entonces mandan las pestañas.
+ *
+ * @param {{ recetas: { name: string }[] }[]} pestanas  las de clasicosPorPestana
+ * @param {string} texto  lo escrito
+ */
+export function buscarClasicos(pestanas, texto) {
+  const palabras = sinTildes(texto).split(/\s+/).filter(Boolean);
+  if (palabras.length === 0) return [];
+  return pestanas
+    .flatMap((p) => p.recetas)
+    .filter((r) => {
+      const nombre = sinTildes(r.name);
+      return palabras.every((w) => nombre.includes(w));
+    });
 }
 
 /**
