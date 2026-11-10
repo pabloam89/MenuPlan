@@ -1001,7 +1001,7 @@
     "ingredients": [
       {
         "name": "Pan chapata",
-        "ingredientId": "baguette",
+        "ingredientId": "pan-chapata",
         "amount": 150,
         "unit": "g"
       },

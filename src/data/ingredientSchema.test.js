@@ -190,3 +190,27 @@ describe("relacionPorAlias", () => {
     expect(validateIngredients([{ ...conAlias(["Chile fresco"]), id: "guindilla-fresca", name: "Guindilla fresca" }])).toEqual([]);
   });
 });
+
+// El id es una clave, pero la leen personas: tiene que nombrar lo mismo que el
+// ingrediente. Así entraron «cayena» para la guindilla fresca, «hamburguesa»
+// para el pan de hamburguesa o «queso-tierno» para un semicurado, y se
+// clasificaron mal por el id (9 nov 2026).
+describe("el id dice lo que es", () => {
+  it("cada palabra del id está en el nombre o en un alias", async () => {
+    const { default: catalogo } = await import("./ingredients.json");
+    const palabras = (t) =>
+      [t.replace(/ñ/g, "ni"), t]
+        .flatMap((x) => x.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().split(/[^a-z0-9]+/))
+        .filter(Boolean)
+        .map((w) => w.replace(/(es|s)$/, ""));
+    const VACIAS = new Set(["de", "del", "la", "en", "con"]);
+    const mal = [];
+    for (const i of catalogo) {
+      const suyas = new Set([i.name, ...i.aliases].flatMap(palabras));
+      const faltan = i.id.split("-").filter((t) => t.length >= 3 && !VACIAS.has(t))
+        .filter((t) => { const r = t.replace(/(es|s)$/, ""); return ![...suyas].some((p) => p.startsWith(r) || (p.length >= 4 && r.startsWith(p))); });
+      if (faltan.length) mal.push(`${i.id} [${faltan.join(", ")}] → ${i.name}`);
+    }
+    expect(mal).toEqual([]);
+  });
+});

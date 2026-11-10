@@ -160,8 +160,8 @@ describe("el orden de las palabras no puede cambiar el resultado", () => {
    * con la espina central dentro. Es un corte, no un despiece.
    */
   it.each([
-    ["Medallones de rape", "monkfish"],
-    ["Rape (cola, en medallones)", "monkfish"],
+    ["Medallones de rape", "rape"],
+    ["Rape (cola, en medallones)", "rape"],
     ["Rodajas de emperador", "rodajas-de-emperador"],
     ["Merluza en rodajas", "merluza"],
   ])("«%s» nombra un corte que SÍ lleva hueso, y sigue pagando", (nombre, id) => {

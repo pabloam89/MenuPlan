@@ -263,7 +263,12 @@
   {
     "id": "alcachofa-conserva",
     "name": "Corazones de alcachofa",
-    "aliases": [],
+    "aliases": [
+      "Alcachofas en conserva"
+    ],
+    "relacionPorAlias": {
+      "Alcachofas en conserva": "mismo_estado"
+    },
     "aisle": "Verduras",
     "allergens": [
       "sulfitos"
@@ -393,23 +398,6 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 30
-  },
-  {
-    "id": "alubia-grande",
-    "name": "Fabes de la granja secas",
-    "aliases": [
-      "Fabes secas",
-      "Judiones",
-      "Judiones secos"
-    ],
-    "aisle": "Legumbres",
-    "allergens": [],
-    "cookingAllergens": [],
-    "conflictsWith": [],
-    "isVegetarian": true,
-    "isVegan": true,
-    "defaultUnit": "g",
-    "medianAmount": 250
   },
   {
     "id": "alubias",
@@ -772,26 +760,6 @@
     "medianAmount": 80
   },
   {
-    "id": "baguette",
-    "name": "Pan chapata",
-    "aliases": [
-      "Pan de baguette en rebanadas"
-    ],
-    "aisle": "Panadería",
-    "allergens": [
-      "gluten"
-    ],
-    "cookingAllergens": [],
-    "conflictsWith": [],
-    "isVegetarian": true,
-    "isVegan": true,
-    "defaultUnit": "g",
-    "medianAmount": 105,
-    "mayContain": [
-      "soja"
-    ]
-  },
-  {
     "id": "bechamel",
     "name": "Bechamel",
     "aliases": [],
@@ -930,7 +898,9 @@
   {
     "id": "bonito-del-norte",
     "name": "Bonito en conserva",
-    "aliases": [],
+    "aliases": [
+      "Bonito del norte"
+    ],
     "aisle": "Pescado",
     "allergens": [
       "pescado"
@@ -1536,23 +1506,6 @@
     "isVegan": true,
     "defaultUnit": "ml",
     "medianAmount": 150
-  },
-  {
-    "id": "cayena",
-    "name": "Guindilla fresca",
-    "aliases": [
-      "Chile fresco",
-      "Chile jalapeño",
-      "Ají amarillo o guindilla fresca"
-    ],
-    "aisle": "Verduras",
-    "allergens": [],
-    "cookingAllergens": [],
-    "conflictsWith": [],
-    "isVegetarian": true,
-    "isVegan": true,
-    "defaultUnit": "g",
-    "medianAmount": 10
   },
   {
     "id": "cebolla",
@@ -2340,6 +2293,23 @@
     "medianAmount": 5
   },
   {
+    "id": "fabes",
+    "name": "Fabes de la granja secas",
+    "aliases": [
+      "Fabes secas",
+      "Judiones",
+      "Judiones secos"
+    ],
+    "aisle": "Legumbres",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 250
+  },
+  {
     "id": "falafel-congelado",
     "name": "Falafel congelado",
     "aliases": [],
@@ -2391,7 +2361,9 @@
   {
     "id": "fideo-mediano",
     "name": "Fideos n°2",
-    "aliases": [],
+    "aliases": [
+      "Fideos medianos"
+    ],
     "aisle": "Pasta y arroz",
     "allergens": [
       "gluten"
@@ -2798,6 +2770,23 @@
     }
   },
   {
+    "id": "guindilla-fresca",
+    "name": "Guindilla fresca",
+    "aliases": [
+      "Chile fresco",
+      "Chile jalapeño",
+      "Ají amarillo o guindilla fresca"
+    ],
+    "aisle": "Verduras",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 10
+  },
+  {
     "id": "guisantes",
     "name": "Guisantes",
     "aliases": [
@@ -2816,33 +2805,6 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 80
-  },
-  {
-    "id": "hamburguesa",
-    "name": "Pan de hamburguesa",
-    "aliases": [
-      "Pan de hamburguesa brioche"
-    ],
-    "aisle": "Panadería",
-    "allergens": [
-      "gluten"
-    ],
-    "cookingAllergens": [],
-    "conflictsWith": [],
-    "isVegetarian": false,
-    "isVegan": false,
-    "defaultUnit": "ud",
-    "medianAmount": 2,
-    "pieza": {
-      "nombre": "pan",
-      "g": 70
-    },
-    "mayContain": [
-      "huevos",
-      "leche",
-      "sesamo",
-      "soja"
-    ]
   },
   {
     "id": "harina",
@@ -3076,7 +3038,8 @@
       "Jamón cocido en lonchas",
       "Jamón cocido en dados",
       "Jamón cocido en tacos",
-      "Jamón cocido en tiras"
+      "Jamón cocido en tiras",
+      "Jamón York"
     ],
     "aisle": "Carne",
     "allergens": [],
@@ -4031,25 +3994,6 @@
     ]
   },
   {
-    "id": "monkfish",
-    "name": "Rape",
-    "aliases": [
-      "Colas de rape en trozos",
-      "Medallones de rape",
-      "Rape (cola, en medallones)"
-    ],
-    "aisle": "Pescado",
-    "allergens": [
-      "pescado"
-    ],
-    "cookingAllergens": [],
-    "conflictsWith": [],
-    "isVegetarian": false,
-    "isVegan": false,
-    "defaultUnit": "g",
-    "medianAmount": 250
-  },
-  {
     "id": "morcilla",
     "name": "Morcilla",
     "aliases": [
@@ -4445,6 +4389,53 @@
       }
     },
     "mayContain": [
+      "soja"
+    ]
+  },
+  {
+    "id": "pan-chapata",
+    "name": "Pan chapata",
+    "aliases": [
+      "Pan de baguette en rebanadas"
+    ],
+    "aisle": "Panadería",
+    "allergens": [
+      "gluten"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 105,
+    "mayContain": [
+      "soja"
+    ]
+  },
+  {
+    "id": "pan-de-hamburguesa",
+    "name": "Pan de hamburguesa",
+    "aliases": [
+      "Pan de hamburguesa brioche"
+    ],
+    "aisle": "Panadería",
+    "allergens": [
+      "gluten"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "ud",
+    "medianAmount": 2,
+    "pieza": {
+      "nombre": "pan",
+      "g": 70
+    },
+    "mayContain": [
+      "huevos",
+      "leche",
+      "sesamo",
       "soja"
     ]
   },
@@ -5453,7 +5444,7 @@
     "medianAmount": 80
   },
   {
-    "id": "queso-tierno",
+    "id": "queso-semicurado",
     "name": "Queso semicurado en lonchas",
     "aliases": [],
     "aisle": "Lácteos",
@@ -5494,20 +5485,23 @@
     "medianAmount": 800
   },
   {
-    "id": "ravioli",
-    "name": "Tortellini frescos rellenos de carne",
-    "aliases": [],
-    "aisle": "Carne",
+    "id": "rape",
+    "name": "Rape",
+    "aliases": [
+      "Colas de rape en trozos",
+      "Medallones de rape",
+      "Rape (cola, en medallones)"
+    ],
+    "aisle": "Pescado",
     "allergens": [
-      "gluten",
-      "huevos"
+      "pescado"
     ],
     "cookingAllergens": [],
     "conflictsWith": [],
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 300
+    "medianAmount": 250
   },
   {
     "id": "redondo-de-ternera",
@@ -6412,6 +6406,22 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 3
+  },
+  {
+    "id": "tortellini",
+    "name": "Tortellini frescos rellenos de carne",
+    "aliases": [],
+    "aisle": "Carne",
+    "allergens": [
+      "gluten",
+      "huevos"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 300
   },
   {
     "id": "tortilla-de-maiz",

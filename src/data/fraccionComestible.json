@@ -390,7 +390,7 @@
     "confianza": 0.9,
     "motivo": "La bolsita se vacía entera en el arroz; no queda descarte. Se declara sobre todo para apagar el aviso de clase `cefalopodo`, que aquí es falso: no es carne de calamar sino un condimento."
   },
-  "monkfish": {
+  "rape": {
     "valor": 0.73,
     "confianza": 0.7,
     "motivo": "Cola de rape con su espina central, la piel y la telilla. Porción comestible de BEDCA, ficha «Rape, crudo» f_id 2623 (Lophius piscatorius), repetida al decimal en su duplicado f_id 1918 y consultada en vivo el 22 sep 2026. NO es la merma del pez entero —esa rondaría 0,35, porque en el rape la cabeza es medio animal—: es la del despiece que se vende, y así lo dicen cuatro de sus nueve líneas («Colas de rape en trozos», «Medallones de rape»). El día que una línea pida un rape entero, este número se le queda corto. Chirría contra `merluza`, curada en 0,70 CON cabeza: si alguien quiere bajar el rape, ese es el argumento y no BEDCA."

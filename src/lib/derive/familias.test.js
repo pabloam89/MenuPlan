@@ -87,7 +87,7 @@ describe("la cuota de verdura no es un plano, y se nota", () => {
 
   it("pero el condimento no: la cayena es hortaliza en el árbol y no es verdura en el plato", () => {
     const conGuindilla = recipeCatalog.filter((r) =>
-      (r.ingredients ?? []).some((i) => i.ingredientId === "guindilla" || i.ingredientId === "cayena"));
+      (r.ingredients ?? []).some((i) => i.ingredientId === "guindilla" || i.ingredientId === "guindilla-fresca"));
     // Ninguna receta es «de verdura» por llevar guindilla: o tiene verdura de
     // verdad por otro lado, o no la tiene.
     for (const r of conGuindilla.slice(0, 20)) {

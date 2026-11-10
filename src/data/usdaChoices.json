@@ -12,13 +12,13 @@
     "motivo": "«Seaweed, wakame, raw», 45 kcal. La ficha exacta, por su nombre.",
     "modelo": "decision-humana-2026-09-21"
   },
-  "alubia-grande": {
+  "fabes": {
     "foodId": "175202",
     "confianza": 0.85,
     "motivo": "«Beans, white, mature seeds, raw», 333 kcal. Las fabes son alubia blanca grande SECA, y «mature seeds, raw» es exactamente ese estado. Se descarta «small white» (336) por el tamaño, aunque la diferencia sean 3 kcal.",
     "modelo": "decision-humana-2026-09-21"
   },
-  "baguette": {
+  "pan-chapata": {
     "foodId": "172675",
     "confianza": 0.8,
     "motivo": "«Bread, french or vienna (includes sourdough)», 272 kcal. El ingrediente se llama «Pan chapata» pese al id. La chapata es pan blanco rústico de corteza, que es lo que describe esta ficha. Antes casaba pan de avena y pan de cebada, que son variedades y no el genérico.",
