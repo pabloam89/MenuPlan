@@ -107,13 +107,29 @@ describe("alcohol cocido en casas con niños", () => {
     }
   });
 
+  // Tiramisú (licor en el café), tarta borracha (ron en el almíbar templado),
+  // Café de París (brandy en la mantequilla) y consomé con jerez (al final).
+  const CRUDO = ["carnes_099", "postres_023", "postres_034", "sopas_cremas_058"];
+
   it("lo que se añade crudo sigue fuera", () => {
-    // Tiramisú (licor en el café), tarta borracha (ron en el almíbar templado),
-    // Café de París (brandy en la mantequilla) y consomé con jerez (al final).
-    for (const id of ["postres_023", "postres_034", "carnes_099", "sopas_cremas_058"]) {
+    for (const id of CRUDO) {
       expect(porId[id], `${id} ya no está en el catálogo`).toBeTruthy();
       expect(fuera(porId[id]), porId[id].name).toBe(true);
     }
+  });
+
+  /**
+   * Y lo demás está decidido: cada receta con alcohol o lleva la marca o es
+   * de las crudas. Una receta nueva con vino hace fallar esto hasta que
+   * alguien lea sus pasos y diga si se cuece; mientras, queda fuera del menú
+   * con niños (alcoholParaNinos), que es el lado seguro.
+   */
+  it("toda receta con alcohol está decidida: cocida o de las crudas", () => {
+    const sinDecidir = recetas
+      .filter((r) => (r.ingredients ?? []).some((i) => nombraAlcohol(i.name)) && r.alcoholCocido !== true)
+      .map((r) => r.id)
+      .sort();
+    expect(sinDecidir).toEqual(CRUDO);
   });
 
   it("solo lleva la marca quien tiene alcohol", () => {

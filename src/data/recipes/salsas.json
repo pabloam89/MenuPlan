@@ -401,6 +401,7 @@
         "unit": "g"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Picar cebolla en trozos pequeños.",
       "Picar zanahoria en trozos pequeños.",
@@ -3144,6 +3145,7 @@
         "unit": "g"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Picar chalota muy fina.",
       "Calentar mantequilla en un cazo a fuego suave hasta que se funda.",

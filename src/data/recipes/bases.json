@@ -2095,6 +2095,7 @@
         "unit": "ud"
       }
     ],
+    "alcoholCocido": true,
     "stepsRich": [
       {
         "text": "Picar muy fino {{Cebolla}}, {{Zanahoria}} y {{Apio}}: cuanto más menudo, mejor liga la salsa.",

@@ -3857,6 +3857,7 @@
         "unit": "g"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Poner almejas en un bol con agua fría y sal durante 20 min para que suelten la arena.",
       "Escurrir y aclarar las almejas bajo agua fría; reservar.",
@@ -6010,6 +6011,7 @@
         "unit": "g"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Poner fabes de la granja secas en un bol grande cubiertas de agua fría y dejar en remojo.",
       "Pelar cebolla y dejarla entera.",
@@ -7640,6 +7642,7 @@
         "unit": "g"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Poner judiones secos en un bol cubiertos de agua fría y dejar en remojo toda la noche.",
       "Escurrir los judiones y trasladarlos a una olla grande.",
@@ -7919,6 +7922,7 @@
         "unit": "g"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Lavar lentejas pardinas bajo el grifo y escurrir.",
       "Limpiar boletus con un paño húmedo y laminar en láminas gruesas.",
@@ -9710,6 +9714,7 @@
         "unit": "g"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Escurrir garbanzos cocidos bajo el grifo y reservar.",
       "Cortar calamar limpio en anillas de unos 2 cm.",
@@ -13509,6 +13514,7 @@
         "unit": "ml"
       }
     ],
+    "alcoholCocido": true,
     "steps": [
       "Limpiar setas variadas con un paño húmedo y cortar en trozos las que sean grandes.",
       "Picar cebolla en dados finos.",
