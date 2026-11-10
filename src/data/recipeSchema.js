@@ -634,6 +634,11 @@ export const RecipeSchema = z
     // ingredientes separan los dos grupos — la cualidad no vive hoy en ningún
     // campo estructurado, así que se declara.
     montaje: z.boolean().optional(),
+    // El alcohol que lleva se cuece (el vino de un guiso, de una boloñesa):
+    // para un grupo con niños no cuenta. Sin la marca, cuenta. Lo lee
+    // alcoholParaNinos (utils/filterRecipes.js); que solo la lleve quien tiene
+    // alcohol lo vigila utils/alcoholParaNinos.test.js.
+    alcoholCocido: z.literal(true).optional(),
     // ¿Puede además hacer de guarnición de otro plato? Capacidad independiente
     // del rol: una ensalada o un arroz sencillo acompañan un filete un día y
     // son la cena entera otro. Solo mete el plato en el pool de
