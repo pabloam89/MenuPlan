@@ -20,8 +20,9 @@ const CLAVE = "mp_mercadona_abrir";
 const almacenDe = () => {
   try {
     return globalThis.localStorage ?? null;
-  } catch {
-    // Con el almacén bloqueado no hay nada que leer: se pregunta cada vez.
+  } catch (e) {
+    // Con el almacén bloqueado no hay nada que leer ni guardar: se dice, y se pregunta cada vez.
+    console.error("[mercadona] sin almacén para recordar dónde abrir la lista:", String(e?.message ?? e));
     return null;
   }
 };

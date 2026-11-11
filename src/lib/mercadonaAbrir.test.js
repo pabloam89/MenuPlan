@@ -41,6 +41,20 @@ describe("dónde se abre la lista de Mercadona", () => {
     error.mockRestore();
   });
 
+  it("si ni siquiera se puede llegar al almacén (bloqueado por el navegador), lo dice y se pregunta", () => {
+    const original = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
+    Object.defineProperty(globalThis, "localStorage", { configurable: true, get: () => { throw new Error("SecurityError"); } });
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      expect(leerAbrirEn()).toBeNull();
+      expect(error).toHaveBeenCalledWith(expect.stringContaining("sin almacén"), "SecurityError");
+    } finally {
+      error.mockRestore();
+      if (original) Object.defineProperty(globalThis, "localStorage", original);
+      else delete globalThis.localStorage;
+    }
+  });
+
   it("abrir en la app de Mercadona manda la dirección de la lista fuera de HoMenu", () => {
     const abrirFuera = vi.fn();
     abrirEnAppMercadona("https://tienda.mercadona.es/shopping-lists/7", abrirFuera);
