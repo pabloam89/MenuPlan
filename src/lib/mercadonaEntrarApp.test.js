@@ -2,7 +2,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@capgo/capacitor-inappbrowser", () => ({ InAppBrowser: {}, ToolBarType: { COMPACT: "compact" } }));
-const { ANCHO_ORDENADOR, CADA_MS, ESPERA_CARGA_MS, ESPERA_ENTRAR_MS, FIJAR_ANCHO, MIRAR_SESION, UA_ORDENADOR, entrarEnMercadona, textoDeCookies } = await import("./mercadonaEntrarApp.js");
+const { ANCHO_ORDENADOR, PAGINA_ORDENADOR, abrirEnMercadona, CADA_MS, ESPERA_CARGA_MS, ESPERA_ENTRAR_MS, FIJAR_ANCHO, MIRAR_SESION, UA_ORDENADOR, entrarEnMercadona, textoDeCookies } = await import("./mercadonaEntrarApp.js");
 const { NO_ENTRADO_MERCADONA: NO_ENTRADO } = await import("./vocabularios.js");
 const { ORIGEN_TIENDA } = await import("./mercadonaConectar.js");
 
@@ -188,5 +188,68 @@ describe("entrar en Mercadona desde la app (trozo 8)", () => {
   it("las cookies salen como las da document.cookie", () => {
     expect(textoDeCookies({ a: "1", b: "x=y" })).toBe("a=1; b=x=y");
     expect(textoDeCookies(null)).toBe("");
+  });
+});
+
+describe("abrir la lista de Lola en la app", () => {
+  const LISTA = "https://tienda.mercadona.es/shopping-lists/7";
+
+  it("la abre dentro de HoMenu, como la de entrar: versión de ordenador y a su ancho", async () => {
+    const navegador = navegadorFalso();
+    await expect(abrirEnMercadona(LISTA, { navegador, reloj: relojFalso() })).resolves.toEqual({ ok: true });
+    expect(navegador.abierto).toEqual({ ...PAGINA_ORDENADOR, url: LISTA });
+    // Sin puente: aquí no se lee nada de la página.
+    expect(navegador.abierto.javascriptBridgeOrigins).toBeUndefined();
+    await navegador.oyentes.closeEvent({});
+  });
+
+  it("una segunda pulsación mientras está abierta no abre otra ventana encima; cerrada, se puede volver a abrir", async () => {
+    const navegador = navegadorFalso();
+    const abrir = vi.spyOn(navegador, "openWebView");
+    await expect(abrirEnMercadona(LISTA, { navegador, reloj: relojFalso() })).resolves.toEqual({ ok: true });
+    await expect(abrirEnMercadona(LISTA, { navegador, reloj: relojFalso() })).resolves.toEqual({ ok: false });
+    expect(abrir).toHaveBeenCalledTimes(1);
+    await navegador.oyentes.closeEvent({});
+    await expect(abrirEnMercadona(LISTA, { navegador, reloj: relojFalso() })).resolves.toEqual({ ok: true });
+    expect(abrir).toHaveBeenCalledTimes(2);
+    await navegador.oyentes.closeEvent({});
+  });
+
+  it("fuera de la tienda de Mercadona no abre nada", async () => {
+    const navegador = navegadorFalso();
+    await expect(abrirEnMercadona("https://otra.example/x", { navegador, reloj: relojFalso() })).resolves.toEqual({ ok: false });
+    await expect(abrirEnMercadona("no es una dirección", { navegador, reloj: relojFalso() })).resolves.toEqual({ ok: false });
+    expect(navegador.abierto).toBeNull();
+  });
+
+  it("si la página no carga, la cierra y suelta los oyentes", async () => {
+    const navegador = navegadorFalso();
+    const reloj = relojFalso();
+    await abrirEnMercadona(LISTA, { navegador, reloj });
+    expect(reloj.pendientes()).toEqual([ESPERA_CARGA_MS]);
+    reloj.agotarEl(ESPERA_CARGA_MS);
+    await esperar();
+    expect(navegador.cerrado).toBe(1);
+    expect(Object.keys(navegador.oyentes)).toEqual([]);
+  });
+
+  it("si carga, deja de vigilar; al cerrarla la persona, suelta los oyentes", async () => {
+    const navegador = navegadorFalso();
+    const reloj = relojFalso();
+    await abrirEnMercadona(LISTA, { navegador, reloj });
+    navegador.oyentes.browserPageLoaded({});
+    expect(reloj.pendientes()).toEqual([]);
+    await navegador.oyentes.closeEvent({});
+    expect(Object.keys(navegador.oyentes)).toEqual([]);
+    expect(navegador.cerrado).toBe(0);
+  });
+
+  it("si el complemento falla al abrir, lo dice y no deja oyentes", async () => {
+    const navegador = navegadorFalso({ abrir: async () => { throw new Error("sin ventana"); } });
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    await expect(abrirEnMercadona(LISTA, { navegador, reloj: relojFalso() })).resolves.toEqual({ ok: false });
+    expect(Object.keys(navegador.oyentes)).toEqual([]);
+    expect(error).toHaveBeenCalled();
+    error.mockRestore();
   });
 });

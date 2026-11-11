@@ -168,6 +168,12 @@ Sin comprobar con nuestra cuenta: lo comprueba el trozo 1 del plan
   `preferredContentMode: "desktop"` y un `preShowScript` en `documentStart` que fija la
   viewport a 1280 px. El complemento solo acepta el script con `isPresentAfterPageLoad`,
   y entonces la ventana no se ve hasta que carga: por eso hay un tope de 30 s a la carga.
+- **2026-11-11 · en la app de iPhone, «Abrir lista» pasaba por Safari sin sesión.** Causa:
+  un `<a target=_blank>` en Capacitor va a `UIApplication.open`, que abría Safari (sin la
+  sesión de Mercadona); tras entrar, saltaba a la app de Mercadona, si la había. Arreglo:
+  en la app, la lista se abre en el mismo navegador interno con el que se entró
+  (`abrirEnMercadona`, `src/components/EnlaceMercadona.jsx`); el complemento guarda cookies y
+  localStorage entre aperturas. Sigue igual el enlace que Lola manda por el chat.
 
 ## Fuentes y comprobación
 
@@ -180,5 +186,6 @@ La respuesta de su lista no trae cantidades: `products_quantity` cuenta producto
 Sin comprobar: que el trabajador pase la lista al carrito (a mano sí, el 8 nov: `referencias/pedido.md`), una compra de ~30 productos, cuánto dura
 la sesión (ver «La sesión: cuánto dura»), varias familias a la vez, qué hace
 Mercadona con un uso repetido, la entrada en versión de ordenador dentro de la app,
-y si el enlace de una lista abre la app en la lista o en su portada. Dos pasadas no
+que la sesión siga al abrir la lista dentro de la app (ver «Lo que falló», 11 nov),
+y si el enlace de una lista abre la app de Mercadona en la lista o en su portada. Dos pasadas no
 demuestran que no vayan a bloquearlo.
