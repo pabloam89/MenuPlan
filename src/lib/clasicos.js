@@ -127,3 +127,33 @@ export function repartirClasicos(recetas, plazas) {
   const sinSitio = sinPapel.filter(({ r }) => !poner(r, (p) => p.course === "main")).map(({ r }) => r.id);
   return { colocados, sinSitio };
 }
+
+const SIN_HUECO = "no queda hueco libre en la semana";
+
+/** «A», «A» y «B», «A», «B» y «C». */
+function enLista(nombres) {
+  const q = nombres.map((n) => `«${n}»`);
+  return q.length <= 1 ? q.join("") : `${q.slice(0, -1).join(", ")} y ${q[q.length - 1]}`;
+}
+
+/**
+ * Pura. El aviso de los clásicos elegidos que no han entrado en la semana,
+ * con su nombre y su porqué: antes, con dos o más, solo decía cuántos («2
+ * clásicos no se pudieron poner»), y Pablo no supo por qué (10 nov 2026).
+ * Los que comparten porqué van juntos, para que quepa en las dos líneas del
+ * aviso. `porque` null es que no quedaba hueco libre.
+ *
+ * @param {{ nombre: string, porque: string|null }[]} perdidos
+ * @returns {string|null}  null si no se ha perdido ninguno
+ */
+export function avisoDeClasicosPerdidos(perdidos) {
+  if (!perdidos?.length) return null;
+  const grupos = new Map();
+  for (const { nombre, porque } of perdidos) {
+    const clave = porque ?? SIN_HUECO;
+    grupos.set(clave, [...(grupos.get(clave) ?? []), nombre]);
+  }
+  return [...grupos]
+    .map(([porque, nombres]) => `${enLista(nombres)} no ${nombres.length === 1 ? "entra" : "entran"}: ${porque}`)
+    .join(". ");
+}

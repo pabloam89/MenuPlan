@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { CLASICOS } from "../data/clasicos.js";
-import { PESTANAS_CLASICOS, buscarClasicos, clasicosPorPestana, plazasLibres, repartirClasicos } from "./clasicos.js";
+import { PESTANAS_CLASICOS, avisoDeClasicosPerdidos, buscarClasicos, clasicosPorPestana, plazasLibres, repartirClasicos } from "./clasicos.js";
 
 // Lo que leen el paso de la hoja y el tablero (PizarraControles.jsx, App.jsx).
 // Que cada marcado llegue aquí, con foto y papel de menú, lo vigila
@@ -157,5 +157,29 @@ describe("repartirClasicos", () => {
     );
     expect(colocados).toHaveLength(1);
     expect(sinSitio).toEqual(["b"]);
+  });
+});
+
+describe("avisoDeClasicosPerdidos", () => {
+  it("sin perdidos, ningún aviso", () => {
+    expect(avisoDeClasicosPerdidos([])).toBeNull();
+  });
+
+  it("uno: su nombre y su porqué", () => {
+    expect(avisoDeClasicosPerdidos([{ nombre: "Tiramisú", porque: "Ana tiene alergia a huevo" }]))
+      .toBe("«Tiramisú» no entra: Ana tiene alergia a huevo");
+  });
+
+  it("varios con el mismo porqué van juntos; sin porqué es que no había hueco", () => {
+    expect(avisoDeClasicosPerdidos([
+      { nombre: "Cocido", porque: null },
+      { nombre: "Fabada", porque: null },
+      { nombre: "Croquetas", porque: "Ana tiene alergia a gluten" },
+    ])).toBe("«Cocido» y «Fabada» no entran: no queda hueco libre en la semana. «Croquetas» no entra: Ana tiene alergia a gluten");
+  });
+
+  it("tres con el mismo porqué, en lista", () => {
+    const n = (nombre) => ({ nombre, porque: "x" });
+    expect(avisoDeClasicosPerdidos([n("A"), n("B"), n("C")])).toBe("«A», «B» y «C» no entran: x");
   });
 });
