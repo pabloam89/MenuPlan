@@ -18,6 +18,8 @@ export const UA_ORDENADOR =
 /** Cuánto se espera a que la persona entre, y cada cuánto se mira si ya hay sesión. */
 export const ESPERA_ENTRAR_MS = 5 * 60 * 1000;
 export const CADA_MS = 2000;
+/** Cuánto se espera a que la página cargue; hasta entonces la ventana no se ve (`isPresentAfterPageLoad`). */
+export const ESPERA_CARGA_MS = 30 * 1000;
 
 /**
  * Ancho, en píxeles CSS, al que se dibuja la página de ordenador. Solo con el disfraz, Mercadona servía su página
@@ -71,6 +73,7 @@ export async function entrarEnMercadona(casa, { navegador = InAppBrowser, estado
     const asas = [];
     let mirar = null;
     let tope = null;
+    let carga = null;
     let acabado = false;
 
     const acabar = async (resultado, { cerrar = true } = {}) => {
@@ -78,6 +81,7 @@ export async function entrarEnMercadona(casa, { navegador = InAppBrowser, estado
       acabado = true;
       reloj.clearInterval(mirar);
       reloj.clearTimeout(tope);
+      reloj.clearTimeout(carga);
       for (const asa of asas) await asa.remove();
       if (cerrar) {
         try {
@@ -107,6 +111,7 @@ export async function entrarEnMercadona(casa, { navegador = InAppBrowser, estado
     (async () => {
       asas.push(await navegador.addListener("messageFromWebview", conSesion));
       asas.push(await navegador.addListener("closeEvent", () => acabar({ ok: false, motivo: NO_ENTRADO.CERRADA }, { cerrar: false })));
+      asas.push(await navegador.addListener("browserPageLoaded", () => reloj.clearTimeout(carga)));
       await navegador.openWebView({
         url: ORIGEN_TIENDA,
         title: "Mercadona",
@@ -128,6 +133,9 @@ export async function entrarEnMercadona(casa, { navegador = InAppBrowser, estado
         });
       }, CADA_MS);
       tope = reloj.setTimeout(() => acabar({ ok: false, motivo: NO_ENTRADO.TIEMPO }), ESPERA_ENTRAR_MS);
+      // La ventana no se enseña hasta que la página carga, y sin ventana no hay X para cancelar: si no carga (sin
+      // red, Mercadona caído), se deja de esperar pronto. `pageLoadError` no sirve: salta también en cada apertura.
+      carga = reloj.setTimeout(() => acabar({ ok: false, motivo: NO_ENTRADO.TIEMPO }), ESPERA_CARGA_MS);
     })().catch(async (e) => {
       console.error("[mercadona] no se ha podido abrir Mercadona:", String(e?.message ?? e));
       await acabar({ ok: false, motivo: NO_ENTRADO.CERRADA });

@@ -162,6 +162,12 @@ Sin comprobar con nuestra cuenta: lo comprueba el trozo 1 del plan
   era el del servidor. Arreglo: copiarlo del servidor al portapapeles sin verlo
   (`ssh … | clip.exe`), comprobar que son 64 caracteres hexadecimales, editar la
   variable y volver a desplegar: sin variables nuevas, el despliegue viejo no las ve.
+- **2026-11-11 · en la app de iPhone, la página de Mercadona salía descuadrada** (una
+  imagen tapaba todo). Causa: el disfraz de ordenador cambia lo que se pide, no el ancho:
+  la web de ordenador se dibujaba en ~390 px. Arreglo (`src/lib/mercadonaEntrarApp.js`):
+  `preferredContentMode: "desktop"` y un `preShowScript` en `documentStart` que fija la
+  viewport a 1280 px. El complemento solo acepta el script con `isPresentAfterPageLoad`,
+  y entonces la ventana no se ve hasta que carga: por eso hay un tope de 30 s a la carga.
 
 ## Fuentes y comprobación
 
