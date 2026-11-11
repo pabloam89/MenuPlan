@@ -69,6 +69,9 @@ export const PAGINA_ORDENADOR = {
   isPresentAfterPageLoad: true,
 };
 
+/** Si hay una página de la tienda abierta (o abriéndose) con abrirEnMercadona. */
+let abriendo = false;
+
 /**
  * Abre una página de la tienda (la lista que ha hecho Lola) dentro de HoMenu, en la misma ventana en la que se entró:
  * el complemento guarda sus cookies entre aperturas (`persistWebViewData`, por defecto), así que la sesión sigue. Así
@@ -84,11 +87,16 @@ export async function abrirEnMercadona(url, { navegador = InAppBrowser, reloj = 
     return { ok: false };
   }
   if (destino.origin !== ORIGEN_TIENDA) return { ok: false };
+  // Mientras carga no se ve nada: una segunda pulsación abriría otra ventana encima, y el cierre de una soltaría los
+  // oyentes de las dos. Una sola a la vez.
+  if (abriendo) return { ok: false };
+  abriendo = true;
   const asas = [];
   let carga = null;
   const soltar = async () => {
     reloj.clearTimeout(carga);
     for (const asa of asas.splice(0)) await asa.remove();
+    abriendo = false;
   };
   try {
     asas.push(await navegador.addListener("browserPageLoaded", () => reloj.clearTimeout(carga)));

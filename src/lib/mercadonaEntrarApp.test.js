@@ -200,6 +200,19 @@ describe("abrir la lista de Lola en la app", () => {
     expect(navegador.abierto).toEqual({ ...PAGINA_ORDENADOR, url: LISTA });
     // Sin puente: aquí no se lee nada de la página.
     expect(navegador.abierto.javascriptBridgeOrigins).toBeUndefined();
+    await navegador.oyentes.closeEvent({});
+  });
+
+  it("una segunda pulsación mientras está abierta no abre otra ventana encima; cerrada, se puede volver a abrir", async () => {
+    const navegador = navegadorFalso();
+    const abrir = vi.spyOn(navegador, "openWebView");
+    await expect(abrirEnMercadona(LISTA, { navegador, reloj: relojFalso() })).resolves.toEqual({ ok: true });
+    await expect(abrirEnMercadona(LISTA, { navegador, reloj: relojFalso() })).resolves.toEqual({ ok: false });
+    expect(abrir).toHaveBeenCalledTimes(1);
+    await navegador.oyentes.closeEvent({});
+    await expect(abrirEnMercadona(LISTA, { navegador, reloj: relojFalso() })).resolves.toEqual({ ok: true });
+    expect(abrir).toHaveBeenCalledTimes(2);
+    await navegador.oyentes.closeEvent({});
   });
 
   it("fuera de la tienda de Mercadona no abre nada", async () => {
