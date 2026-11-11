@@ -19,6 +19,31 @@ export const UA_ORDENADOR =
 export const ESPERA_ENTRAR_MS = 5 * 60 * 1000;
 export const CADA_MS = 2000;
 
+/**
+ * Ancho, en píxeles CSS, al que se dibuja la página de ordenador. Solo con el disfraz, Mercadona servía su página
+ * de ordenador metida en el ancho de un iPhone (~390 px): no cabía y una imagen se montaba encima de todo. Con este
+ * ancho el iPhone la dibuja como un ordenador y la reduce para que quepa, como Safari con «Ver versión de ordenador».
+ */
+export const ANCHO_ORDENADOR = 1280;
+
+// Corre en la página de Mercadona antes que su propio código: deja la etiqueta viewport en ANCHO_ORDENADOR, y la
+// vuelve a dejar si la página la cambia o la crea después. No toca nada más.
+export const FIJAR_ANCHO = `(() => {
+  const ancho = "width=${ANCHO_ORDENADOR}";
+  const fijar = () => {
+    const metas = document.querySelectorAll('meta[name="viewport"]');
+    if (!metas.length && document.head) {
+      const m = document.createElement("meta");
+      m.name = "viewport";
+      m.content = ancho;
+      document.head.appendChild(m);
+      return;
+    }
+    metas.forEach((m) => { if (m.content !== ancho) m.content = ancho; });
+  };
+  new MutationObserver(fijar).observe(document, { childList: true, subtree: true, attributes: true, attributeFilter: ["content"] });
+  fijar();
+})()`;
 
 // Corre dentro de la página de Mercadona: si ya hay sesión, se la pasa a la app por el puente del complemento.
 export const MIRAR_SESION = `(() => {
@@ -87,6 +112,12 @@ export async function entrarEnMercadona(casa, { navegador = InAppBrowser, estado
         title: "Mercadona",
         toolbarType: ToolBarType.COMPACT,
         customUserAgent: UA_ORDENADOR,
+        // El disfraz cambia lo que pide el navegador, no el ancho al que dibuja: esto le da también el ancho.
+        // El complemento solo acepta un script con `isPresentAfterPageLoad`: la ventana sale al acabar de cargar.
+        preferredContentMode: "desktop",
+        preShowScript: FIJAR_ANCHO,
+        preShowScriptInjectionTime: "documentStart",
+        isPresentAfterPageLoad: true,
         // El puente de la app, solo para la página de Mercadona.
         javascriptBridgeOrigins: [new URL(ORIGEN_TIENDA).origin],
       });

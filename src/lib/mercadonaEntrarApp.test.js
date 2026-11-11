@@ -1,7 +1,8 @@
+// @vitest-environment jsdom
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@capgo/capacitor-inappbrowser", () => ({ InAppBrowser: {}, ToolBarType: { COMPACT: "compact" } }));
-const { CADA_MS, ESPERA_ENTRAR_MS, MIRAR_SESION, UA_ORDENADOR, entrarEnMercadona, textoDeCookies } = await import("./mercadonaEntrarApp.js");
+const { ANCHO_ORDENADOR, CADA_MS, ESPERA_ENTRAR_MS, FIJAR_ANCHO, MIRAR_SESION, UA_ORDENADOR, entrarEnMercadona, textoDeCookies } = await import("./mercadonaEntrarApp.js");
 const { NO_ENTRADO_MERCADONA: NO_ENTRADO } = await import("./vocabularios.js");
 const { ORIGEN_TIENDA } = await import("./mercadonaConectar.js");
 
@@ -60,6 +61,26 @@ describe("entrar en Mercadona desde la app (trozo 8)", () => {
     expect(navegador.abierto.url).toBe(ORIGEN_TIENDA);
     expect(navegador.abierto.customUserAgent).toBe(UA_ORDENADOR);
     expect(navegador.abierto.javascriptBridgeOrigins).toEqual(["https://tienda.mercadona.es"]);
+  });
+
+  it("dibuja la página de ordenador a su ancho, y no en el de un móvil", async () => {
+    const { navegador } = await empezar();
+    expect(navegador.abierto.preferredContentMode).toBe("desktop");
+    expect(navegador.abierto.preShowScript).toBe(FIJAR_ANCHO);
+    expect(navegador.abierto.preShowScriptInjectionTime).toBe("documentStart");
+    // Sin esto el complemento rechaza el script y no abre la ventana.
+    expect(navegador.abierto.isPresentAfterPageLoad).toBe(true);
+  });
+
+  it("el script del ancho pone la etiqueta viewport y la vuelve a poner si la página la cambia", async () => {
+    document.head.innerHTML = '<meta name="viewport" content="width=device-width, initial-scale=1">';
+    new Function(FIJAR_ANCHO)();
+    const meta = document.querySelector('meta[name="viewport"]');
+    expect(meta.content).toBe(`width=${ANCHO_ORDENADOR}`);
+    meta.content = "width=device-width";
+    await esperar();
+    expect(meta.content).toBe(`width=${ANCHO_ORDENADOR}`);
+    expect(FIJAR_ANCHO).not.toMatch(/input|password|localStorage|cookie/i);
   });
 
   it("mira la sesión en cada vuelta, y el script solo lee MO-user, no las casillas", async () => {
