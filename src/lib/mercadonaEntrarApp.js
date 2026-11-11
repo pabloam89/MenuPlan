@@ -18,7 +18,34 @@ export const UA_ORDENADOR =
 /** Cuánto se espera a que la persona entre, y cada cuánto se mira si ya hay sesión. */
 export const ESPERA_ENTRAR_MS = 5 * 60 * 1000;
 export const CADA_MS = 2000;
+/** Cuánto se espera a que la página cargue; hasta entonces la ventana no se ve (`isPresentAfterPageLoad`). */
+export const ESPERA_CARGA_MS = 30 * 1000;
 
+/**
+ * Ancho, en píxeles CSS, al que se dibuja la página de ordenador. Solo con el disfraz, Mercadona servía su página
+ * de ordenador metida en el ancho de un iPhone (~390 px): no cabía y una imagen se montaba encima de todo. Con este
+ * ancho el iPhone la dibuja como un ordenador y la reduce para que quepa, como Safari con «Ver versión de ordenador».
+ */
+export const ANCHO_ORDENADOR = 1280;
+
+// Corre en la página de Mercadona antes que su propio código: deja la etiqueta viewport en ANCHO_ORDENADOR, y la
+// vuelve a dejar si la página la cambia o la crea después. No toca nada más.
+export const FIJAR_ANCHO = `(() => {
+  const ancho = "width=${ANCHO_ORDENADOR}";
+  const fijar = () => {
+    const metas = document.querySelectorAll('meta[name="viewport"]');
+    if (!metas.length && document.head) {
+      const m = document.createElement("meta");
+      m.name = "viewport";
+      m.content = ancho;
+      document.head.appendChild(m);
+      return;
+    }
+    metas.forEach((m) => { if (m.content !== ancho) m.content = ancho; });
+  };
+  new MutationObserver(fijar).observe(document, { childList: true, subtree: true, attributes: true, attributeFilter: ["content"] });
+  fijar();
+})()`;
 
 // Corre dentro de la página de Mercadona: si ya hay sesión, se la pasa a la app por el puente del complemento.
 export const MIRAR_SESION = `(() => {
@@ -46,6 +73,7 @@ export async function entrarEnMercadona(casa, { navegador = InAppBrowser, estado
     const asas = [];
     let mirar = null;
     let tope = null;
+    let carga = null;
     let acabado = false;
 
     const acabar = async (resultado, { cerrar = true } = {}) => {
@@ -53,6 +81,7 @@ export async function entrarEnMercadona(casa, { navegador = InAppBrowser, estado
       acabado = true;
       reloj.clearInterval(mirar);
       reloj.clearTimeout(tope);
+      reloj.clearTimeout(carga);
       for (const asa of asas) await asa.remove();
       if (cerrar) {
         try {
@@ -82,11 +111,18 @@ export async function entrarEnMercadona(casa, { navegador = InAppBrowser, estado
     (async () => {
       asas.push(await navegador.addListener("messageFromWebview", conSesion));
       asas.push(await navegador.addListener("closeEvent", () => acabar({ ok: false, motivo: NO_ENTRADO.CERRADA }, { cerrar: false })));
+      asas.push(await navegador.addListener("browserPageLoaded", () => reloj.clearTimeout(carga)));
       await navegador.openWebView({
         url: ORIGEN_TIENDA,
         title: "Mercadona",
         toolbarType: ToolBarType.COMPACT,
         customUserAgent: UA_ORDENADOR,
+        // El disfraz cambia lo que pide el navegador, no el ancho al que dibuja: esto le da también el ancho.
+        // El complemento solo acepta un script con `isPresentAfterPageLoad`: la ventana sale al acabar de cargar.
+        preferredContentMode: "desktop",
+        preShowScript: FIJAR_ANCHO,
+        preShowScriptInjectionTime: "documentStart",
+        isPresentAfterPageLoad: true,
         // El puente de la app, solo para la página de Mercadona.
         javascriptBridgeOrigins: [new URL(ORIGEN_TIENDA).origin],
       });
@@ -97,6 +133,9 @@ export async function entrarEnMercadona(casa, { navegador = InAppBrowser, estado
         });
       }, CADA_MS);
       tope = reloj.setTimeout(() => acabar({ ok: false, motivo: NO_ENTRADO.TIEMPO }), ESPERA_ENTRAR_MS);
+      // La ventana no se enseña hasta que la página carga, y sin ventana no hay X para cancelar: si no carga (sin
+      // red, Mercadona caído), se deja de esperar pronto. `pageLoadError` no sirve: salta también en cada apertura.
+      carga = reloj.setTimeout(() => acabar({ ok: false, motivo: NO_ENTRADO.TIEMPO }), ESPERA_CARGA_MS);
     })().catch(async (e) => {
       console.error("[mercadona] no se ha podido abrir Mercadona:", String(e?.message ?? e));
       await acabar({ ok: false, motivo: NO_ENTRADO.CERRADA });

@@ -1,7 +1,8 @@
+// @vitest-environment jsdom
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@capgo/capacitor-inappbrowser", () => ({ InAppBrowser: {}, ToolBarType: { COMPACT: "compact" } }));
-const { CADA_MS, ESPERA_ENTRAR_MS, MIRAR_SESION, UA_ORDENADOR, entrarEnMercadona, textoDeCookies } = await import("./mercadonaEntrarApp.js");
+const { ANCHO_ORDENADOR, CADA_MS, ESPERA_CARGA_MS, ESPERA_ENTRAR_MS, FIJAR_ANCHO, MIRAR_SESION, UA_ORDENADOR, entrarEnMercadona, textoDeCookies } = await import("./mercadonaEntrarApp.js");
 const { NO_ENTRADO_MERCADONA: NO_ENTRADO } = await import("./vocabularios.js");
 const { ORIGEN_TIENDA } = await import("./mercadonaConectar.js");
 
@@ -34,10 +35,13 @@ function relojFalso() {
   return {
     setInterval: (f) => { intervalos.set(siguiente, f); return siguiente++; },
     clearInterval: (id) => intervalos.delete(id),
-    setTimeout: (f) => { tiempos.set(siguiente, f); return siguiente++; },
+    setTimeout: (f, ms) => { tiempos.set(siguiente, { f, ms }); return siguiente++; },
     clearTimeout: (id) => tiempos.delete(id),
     vuelta: () => [...intervalos.values()].forEach((f) => f()),
-    agotar: () => [...tiempos.values()].forEach((f) => f()),
+    agotar: () => [...tiempos.values()].forEach(({ f }) => f()),
+    /** Los temporizadores que siguen en marcha, por su espera. */
+    pendientes: () => [...tiempos.values()].map(({ ms }) => ms).sort((a, b) => a - b),
+    agotarEl: (ms) => [...tiempos.values()].filter((t) => t.ms === ms).forEach(({ f }) => f()),
   };
 }
 
@@ -60,6 +64,66 @@ describe("entrar en Mercadona desde la app (trozo 8)", () => {
     expect(navegador.abierto.url).toBe(ORIGEN_TIENDA);
     expect(navegador.abierto.customUserAgent).toBe(UA_ORDENADOR);
     expect(navegador.abierto.javascriptBridgeOrigins).toEqual(["https://tienda.mercadona.es"]);
+  });
+
+  it("dibuja la página de ordenador a su ancho, y no en el de un móvil", async () => {
+    const { navegador } = await empezar();
+    expect(navegador.abierto.preferredContentMode).toBe("desktop");
+    expect(navegador.abierto.preShowScript).toBe(FIJAR_ANCHO);
+    expect(navegador.abierto.preShowScriptInjectionTime).toBe("documentStart");
+    // Sin esto el complemento rechaza el script y no abre la ventana.
+    expect(navegador.abierto.isPresentAfterPageLoad).toBe(true);
+  });
+
+  it("el script del ancho pone la etiqueta viewport y la vuelve a poner si la página la cambia", async () => {
+    document.head.innerHTML = '<meta name="viewport" content="width=device-width, initial-scale=1">';
+    new Function(FIJAR_ANCHO)();
+    const meta = document.querySelector('meta[name="viewport"]');
+    expect(meta.content).toBe(`width=${ANCHO_ORDENADOR}`);
+    meta.content = "width=device-width";
+    await esperar();
+    expect(meta.content).toBe(`width=${ANCHO_ORDENADOR}`);
+    expect(FIJAR_ANCHO).not.toMatch(/input|password|localStorage|cookie/i);
+  });
+
+  it("el script del ancho, como corre de verdad: antes de que la página ponga su viewport", async () => {
+    // En documentStart todavía no hay <head>: lo pone luego la página, con su viewport de móvil.
+    document.head.remove();
+    new Function(FIJAR_ANCHO)();
+    const head = document.createElement("head");
+    head.innerHTML = '<meta name="viewport" content="width=device-width">';
+    document.documentElement.prepend(head);
+    await esperar();
+    const metas = [...document.querySelectorAll('meta[name="viewport"]')];
+    expect(metas).toHaveLength(1);
+    expect(metas.every((m) => m.content === `width=${ANCHO_ORDENADOR}`)).toBe(true);
+  });
+
+  it("el script del ancho pone la etiqueta viewport si la página no trae ninguna", async () => {
+    document.head.remove();
+    new Function(FIJAR_ANCHO)();
+    const head = document.createElement("head");
+    head.innerHTML = "<title>Mercadona</title>";
+    document.documentElement.prepend(head);
+    await esperar();
+    const metas = document.querySelectorAll('meta[name="viewport"]');
+    expect(metas).toHaveLength(1);
+    expect(metas[0].content).toBe(`width=${ANCHO_ORDENADOR}`);
+  });
+
+  it("si la página no carga, no deja esperando 5 minutos sin ventana", async () => {
+    const { navegador, reloj, promesa } = await empezar();
+    expect(reloj.pendientes()).toEqual([ESPERA_CARGA_MS, ESPERA_ENTRAR_MS]);
+    reloj.agotarEl(ESPERA_CARGA_MS);
+    await expect(promesa).resolves.toEqual({ ok: false, motivo: NO_ENTRADO.TIEMPO });
+    expect(navegador.cerrado).toBe(1);
+    expect(ESPERA_CARGA_MS).toBeLessThan(ESPERA_ENTRAR_MS);
+  });
+
+  it("cuando la página carga, deja de vigilar la carga y sigue el tope de 5 minutos", async () => {
+    const { navegador, reloj } = await empezar();
+    navegador.oyentes.browserPageLoaded({});
+    expect(reloj.pendientes()).toEqual([ESPERA_ENTRAR_MS]);
   });
 
   it("mira la sesión en cada vuelta, y el script solo lee MO-user, no las casillas", async () => {
