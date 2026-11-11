@@ -1,5 +1,6 @@
 import { bottomNavSpacer } from "./ui.jsx";
 import { PASO_COMPRAR } from "../lib/mercadonaApp.js";
+import { EnlaceMercadona } from "./EnlaceMercadona.jsx";
 import lolaFoto from "../assets/lola/lola-perfil.jpg";
 
 const FALTA_ALGO = "¿Falta algo? Díselo a Lola";
@@ -105,7 +106,7 @@ export default function BarraComprar({ total, productos, paso = { texto: PASO_CO
         <span style={cuenta}>{paso.nota ?? (productos === 1 ? "1 producto" : `${productos} productos`)}</span>
       </button>
       {paso.href ? (
-        <a href={paso.href} target="_blank" rel="noreferrer" style={botonComprar}>{paso.texto}</a>
+        <EnlaceMercadona href={paso.href} style={botonComprar}>{paso.texto}</EnlaceMercadona>
       ) : (
         <button type="button" onClick={onComprar} disabled={paso.ocupado || paso.bloqueado} aria-label={nombre} style={{ ...botonComprar, opacity: paso.ocupado || paso.bloqueado ? 0.6 : 1 }}>
           {paso.texto}

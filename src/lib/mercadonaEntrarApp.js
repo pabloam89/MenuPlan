@@ -56,6 +56,64 @@ export const MIRAR_SESION = `(() => {
   if (s && s.token && s.uuid) window.mobileApp.postMessage({ detail: { mo } });
 })()`;
 
+/** Cómo se abre siempre la página de Mercadona en la app: la versión de ordenador, a su ancho. */
+export const PAGINA_ORDENADOR = {
+  title: "Mercadona",
+  toolbarType: ToolBarType.COMPACT,
+  customUserAgent: UA_ORDENADOR,
+  // El disfraz cambia lo que pide el navegador, no el ancho al que dibuja: esto le da también el ancho.
+  // El complemento solo acepta un script con `isPresentAfterPageLoad`: la ventana sale al acabar de cargar.
+  preferredContentMode: "desktop",
+  preShowScript: FIJAR_ANCHO,
+  preShowScriptInjectionTime: "documentStart",
+  isPresentAfterPageLoad: true,
+};
+
+/** Si hay una página de la tienda abierta (o abriéndose) con abrirEnMercadona. */
+let abriendo = false;
+
+/**
+ * Abre una página de la tienda (la lista que ha hecho Lola) dentro de HoMenu, en la misma ventana en la que se entró:
+ * el complemento guarda sus cookies entre aperturas (`persistWebViewData`, por defecto), así que la sesión sigue. Así
+ * no hace falta la app de Mercadona ni pasar por Safari, donde no hay sesión. Si la página no carga en
+ * ESPERA_CARGA_MS, se cierra (sin ventana no hay X). Fuera de la tienda no abre nada.
+ * @returns {Promise<{ ok: boolean }>}
+ */
+export async function abrirEnMercadona(url, { navegador = InAppBrowser, reloj = globalThis } = {}) {
+  let destino = null;
+  try {
+    destino = new URL(url);
+  } catch {
+    return { ok: false };
+  }
+  if (destino.origin !== ORIGEN_TIENDA) return { ok: false };
+  // Mientras carga no se ve nada: una segunda pulsación abriría otra ventana encima, y el cierre de una soltaría los
+  // oyentes de las dos. Una sola a la vez.
+  if (abriendo) return { ok: false };
+  abriendo = true;
+  const asas = [];
+  let carga = null;
+  const soltar = async () => {
+    reloj.clearTimeout(carga);
+    for (const asa of asas.splice(0)) await asa.remove();
+    abriendo = false;
+  };
+  try {
+    asas.push(await navegador.addListener("browserPageLoaded", () => reloj.clearTimeout(carga)));
+    asas.push(await navegador.addListener("closeEvent", soltar));
+    await navegador.openWebView({ ...PAGINA_ORDENADOR, url: destino.href });
+    carga = reloj.setTimeout(async () => {
+      await soltar();
+      await navegador.close().catch((e) => console.error("[mercadona] no se ha podido cerrar la ventana:", String(e?.message ?? e)));
+    }, ESPERA_CARGA_MS);
+    return { ok: true };
+  } catch (e) {
+    console.error("[mercadona] no se ha podido abrir la lista:", String(e?.message ?? e));
+    await soltar();
+    return { ok: false };
+  }
+}
+
 /** Las cookies como las da `document.cookie`, que es lo que entiende `estadoDeMarcador`. */
 export const textoDeCookies = (cookies) =>
   Object.entries(cookies ?? {}).map(([nombre, valor]) => `${nombre}=${valor}`).join("; ");
@@ -113,16 +171,8 @@ export async function entrarEnMercadona(casa, { navegador = InAppBrowser, estado
       asas.push(await navegador.addListener("closeEvent", () => acabar({ ok: false, motivo: NO_ENTRADO.CERRADA }, { cerrar: false })));
       asas.push(await navegador.addListener("browserPageLoaded", () => reloj.clearTimeout(carga)));
       await navegador.openWebView({
+        ...PAGINA_ORDENADOR,
         url: ORIGEN_TIENDA,
-        title: "Mercadona",
-        toolbarType: ToolBarType.COMPACT,
-        customUserAgent: UA_ORDENADOR,
-        // El disfraz cambia lo que pide el navegador, no el ancho al que dibuja: esto le da también el ancho.
-        // El complemento solo acepta un script con `isPresentAfterPageLoad`: la ventana sale al acabar de cargar.
-        preferredContentMode: "desktop",
-        preShowScript: FIJAR_ANCHO,
-        preShowScriptInjectionTime: "documentStart",
-        isPresentAfterPageLoad: true,
         // El puente de la app, solo para la página de Mercadona.
         javascriptBridgeOrigins: [new URL(ORIGEN_TIENDA).origin],
       });
