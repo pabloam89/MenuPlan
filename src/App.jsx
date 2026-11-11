@@ -63,7 +63,7 @@ const HouseholdsScreen = lazy(() => import("./screens/HouseholdsScreen.jsx").the
 const BibliotecaScreen = lazy(() => import("./screens/BibliotecaScreen.jsx").then(m => ({ default: m.BibliotecaScreen })));
 const UserStatsScreen = lazy(() => import("./screens/UserStatsScreen.jsx").then(m => ({ default: m.UserStatsScreen })));
 const MenuPeek = lazy(() => import("./screens/FeedScreen.jsx").then(m => ({ default: m.MenuPeek })));
-import { generateMenuWithAI, pickCatalogReplacement, motivoDelChoque, catalogToFrontendRecipe, createPlannerStats, platosDeMenus } from "./lib/aiPlanner.js";
+import { generateMenuWithAI, pickCatalogReplacement, motivoDelChoque, porQueChoca, catalogToFrontendRecipe, createPlannerStats, platosDeMenus } from "./lib/aiPlanner.js";
 import { activeDiscardIds } from "./lib/entradaMotor.js";
 import { sugerenciasDeHueco } from "./lib/sugerenciasDeHueco.js";
 import { minimosQueFaltan } from "./lib/minimosParaGenerar.js";
@@ -138,7 +138,7 @@ import { leerCocinados, mandarCocinado } from "./lib/cocinadosApp.js";
 import { apuntarMenuLocal, menusLocales, sinHistorialDeMenus } from "./lib/menusGenerados.js";
 import { leerMenusGenerados, mandarMenuGenerado } from "./lib/menusGeneradosApp.js";
 import { pizarraActiva, fotoAntesDePizarra, volverAntesDePizarra, huecosDelPlan, conHuecosAlDia, conSemanasAlDia, semanaEnBlanco, conHuecoAnadido, sinHueco, franjasDelDia, copiaDeTrabajo } from "./lib/pizarra.js";
-import { plazasLibres, repartirClasicos } from "./lib/clasicos.js";
+import { avisoDeClasicosPerdidos, plazasLibres, repartirClasicos } from "./lib/clasicos.js";
 import { aplicarDiasDeSemana, diasPorDefecto, buildCalendarWeeks } from "./lib/semanaDias.js";
 import { reglaDeInvitado, invitadosPorHueco, sinInvitadosDelHueco } from "./lib/reglas.js";
 import {
@@ -5132,13 +5132,10 @@ export default function App() {
   const colocarClasicos = useCallback((ids) => {
     if (householdReadOnly) return;
     const groups = gruposVigentes(data).filter((g) => menuPlan?.[g.id]);
-    const avisarPerdidos = (perdidos, motivo = null) => {
-      if (perdidos === 0) return;
-      showToast(perdidos === 1
-        ? motivo ?? "Un clásico no se pudo poner en la semana"
-        : `${perdidos} clásicos no se pudieron poner en la semana`);
-    };
-    if (groups.length === 0) { avisarPerdidos(ids.length); return; }
+    if (groups.length === 0) {
+      if (ids.length > 0) showToast("Los clásicos no se pudieron poner: no hay menú en la semana");
+      return;
+    }
     const recetas = ids.map((id) => recipeCatalogById[id]).filter(Boolean);
     const plazas = plazasLibres(menuPlan[groups[0].id], DAYS, getDayMeals(data));
     const { colocados, sinSitio } = repartirClasicos(recetas, plazas);
@@ -5164,14 +5161,19 @@ export default function App() {
     }
 
     if (puestos > 0) ponerPlatosEnElTablero(trabajo, nuevas, { repartir: puestos > 1 });
-    // Lo que no ha quedado puesto se dice: en silencio parecería que el plato
-    // se ha perdido. Si es uno solo y chocó con una alergia, con su motivo.
+    // Lo que no ha quedado puesto se dice, cada uno con su nombre y su porqué:
+    // en silencio parecería que el plato se ha perdido. Sin hueco (`sinSitio`),
+    // porque null; colocado y rechazado, lo que diga la puerta de seguridad.
     const perdidos = ids.filter((id) => !puestas.has(id));
-    const chocado = colocados.find((c) => !puestas.has(c.recetaId));
-    const motivo = perdidos.length === 1 && chocado
-      ? motivoDelChoque(recipeCatalogById[chocado.recetaId], data, groups[0], chocado.meal)
-      : null;
-    avisarPerdidos(perdidos.length, motivo);
+    const aviso = avisoDeClasicosPerdidos(perdidos.map((id) => {
+      const c = colocados.find((x) => x.recetaId === id);
+      const receta = recipeCatalogById[id];
+      return {
+        nombre: receta?.name ?? id,
+        porque: c ? porQueChoca(receta, data, groups[0], c.meal) ?? "no se pudo poner en su hueco" : null,
+      };
+    }));
+    if (aviso) showToast(aviso);
     trackEvent(user, "pizarra_clasicos", "menu", { elegidos: ids.length, puestos: puestas.size, sinSitio: sinSitio.length, perdidos: perdidos.length });
   }, [data, menuPlan, user, householdReadOnly, showToast, ponerPlatosEnElTablero]);
 
