@@ -4,6 +4,7 @@ import { ElegirHoraEntrega } from "./ElegirHoraEntrega.jsx";
 import { ESTADO_ENCARGO_MERCADONA } from "../lib/vocabularios.js";
 import { BOTON, TEXTO } from "./mercadonaEstilos.js";
 import { enlaceDeLista } from "../lib/mercadonaList.js";
+import { EnlaceMercadona } from "./EnlaceMercadona.jsx";
 import { PASO_COMPRAR, textoDeEncargo } from "../lib/mercadonaApp.js";
 
 /** La parte de la hoja de Comprar que rellena la lista. Si el servicio no está, no pinta nada. */
@@ -19,9 +20,9 @@ export function RellenarMercadona({ m }) {
         <ElegirHoraEntrega m={m} />
         {aviso && <p style={TEXTO}>{aviso}</p>}
         {reservada && (
-          <a href={enlaceDeLista(encargo.lista_xid)} target="_blank" rel="noreferrer" style={BOTON}>
+          <EnlaceMercadona href={enlaceDeLista(encargo.lista_xid)} style={BOTON}>
             Abrir en Mercadona <ArrowUpRight size={16} color="currentColor" />
-          </a>
+          </EnlaceMercadona>
         )}
       </div>
     );
@@ -32,9 +33,9 @@ export function RellenarMercadona({ m }) {
       {encargo?.lista_xid ? (
         <>
           <p style={TEXTO}>{textoDeEncargo(encargo)}</p>
-          <a href={enlaceDeLista(encargo.lista_xid)} target="_blank" rel="noreferrer" style={BOTON}>
+          <EnlaceMercadona href={enlaceDeLista(encargo.lista_xid)} style={BOTON}>
             Abrir en Mercadona <ArrowUpRight size={16} color="currentColor" />
-          </a>
+          </EnlaceMercadona>
         </>
       ) : (
         <>
