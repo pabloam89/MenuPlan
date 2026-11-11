@@ -87,18 +87,24 @@ describe("entrar en Mercadona desde la app (trozo 8)", () => {
   });
 
   it("el script del ancho, como corre de verdad: antes de que la página ponga su viewport", async () => {
-    document.head.innerHTML = "";
+    // En documentStart todavía no hay <head>: lo pone luego la página, con su viewport de móvil.
+    document.head.remove();
     new Function(FIJAR_ANCHO)();
-    // La página añade luego la suya, de móvil: se queda en el ancho de ordenador.
-    document.head.insertAdjacentHTML("beforeend", '<meta name="viewport" content="width=device-width">');
+    const head = document.createElement("head");
+    head.innerHTML = '<meta name="viewport" content="width=device-width">';
+    document.documentElement.prepend(head);
     await esperar();
-    expect(document.querySelector('meta[name="viewport"]').content).toBe(`width=${ANCHO_ORDENADOR}`);
+    const metas = [...document.querySelectorAll('meta[name="viewport"]')];
+    expect(metas).toHaveLength(1);
+    expect(metas.every((m) => m.content === `width=${ANCHO_ORDENADOR}`)).toBe(true);
   });
 
   it("el script del ancho pone la etiqueta viewport si la página no trae ninguna", async () => {
-    document.head.innerHTML = "";
+    document.head.remove();
     new Function(FIJAR_ANCHO)();
-    document.head.insertAdjacentHTML("beforeend", "<title>Mercadona</title>");
+    const head = document.createElement("head");
+    head.innerHTML = "<title>Mercadona</title>";
+    document.documentElement.prepend(head);
     await esperar();
     const metas = document.querySelectorAll('meta[name="viewport"]');
     expect(metas).toHaveLength(1);
