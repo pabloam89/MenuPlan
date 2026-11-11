@@ -52,6 +52,11 @@ describe("EnlaceMercadona", () => {
     expect(botonCon(TEXTO_ABRIR.WEB)).toBeTruthy();
     expect(botonCon(TEXTO_ABRIR.APP)).toBeTruthy();
     expect(document.body.textContent).toContain(TEXTO_ABRIR.SI_LA_TIENES);
+    // Fuera de donde está el botón (otra hoja o la barra de Compra), colgada del body y en la capa de hoja sobre hoja.
+    const eleccion = document.querySelector("[data-eleccion-mercadona]");
+    expect(eleccion.parentElement).toBe(document.body);
+    expect(caja.contains(eleccion)).toBe(false);
+    expect(eleccion.style.zIndex).toBe("var(--capa-hoja-2)");
     expect(p.abrirWeb).not.toHaveBeenCalled();
     expect(p.abrirApp).not.toHaveBeenCalled();
   });

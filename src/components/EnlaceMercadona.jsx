@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { WizardSheet } from "./ui.jsx";
 import { BOTON, TEXTO } from "./mercadonaEstilos.js";
 import { isNativeApp } from "../lib/apiUrl.js";
@@ -40,15 +41,22 @@ export function EnlaceMercadona({
       <button type="button" onClick={pulsar} style={style}>
         {children}
       </button>
-      {eligiendo && (
-        <WizardSheet title={TEXTO_ABRIR.PREGUNTA} onClose={() => setEligiendo(false)}>
-          <div style={{ display: "grid", gap: "var(--esp-8)" }}>
-            <button type="button" onClick={() => elegir(ABRIR_EN.WEB)} style={BOTON}>{TEXTO_ABRIR.WEB}</button>
-            <button type="button" onClick={() => elegir(ABRIR_EN.APP)} style={BOTON_SECUNDARIO}>{TEXTO_ABRIR.APP}</button>
-            <p style={{ ...TEXTO, textAlign: "center" }}>{TEXTO_ABRIR.SI_LA_TIENES}</p>
-          </div>
-        </WizardSheet>
-      )}
+      {/* En un portal y en la capa de «hoja sobre hoja»: pintada en su sitio, dentro de la hoja de Comprar quedaba
+          recortada (su tarjeta conserva un `transform` de la animación mp-sheet-up, y entonces `position: fixed` se
+          mide desde ella), y desde la barra de Compra quedaba debajo del menú (la barra es `sticky` con su capa). */}
+      {eligiendo &&
+        createPortal(
+          <div data-eleccion-mercadona style={{ position: "relative", zIndex: "var(--capa-hoja-2)" }}>
+            <WizardSheet title={TEXTO_ABRIR.PREGUNTA} onClose={() => setEligiendo(false)}>
+              <div style={{ display: "grid", gap: "var(--esp-8)" }}>
+                <button type="button" onClick={() => elegir(ABRIR_EN.WEB)} style={BOTON}>{TEXTO_ABRIR.WEB}</button>
+                <button type="button" onClick={() => elegir(ABRIR_EN.APP)} style={BOTON_SECUNDARIO}>{TEXTO_ABRIR.APP}</button>
+                <p style={{ ...TEXTO, textAlign: "center" }}>{TEXTO_ABRIR.SI_LA_TIENES}</p>
+              </div>
+            </WizardSheet>
+          </div>,
+          document.body,
+        )}
     </>
   );
 }

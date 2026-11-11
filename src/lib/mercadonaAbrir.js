@@ -51,6 +51,8 @@ export function guardarAbrirEn(donde, almacen = almacenDe()) {
  * Abre la lista en la app de Mercadona. Su dirección es un enlace universal de Mercadona (su
  * `apple-app-site-association` cubre toda la tienda): el iPhone abre su app si está, y si no, Safari. Capacitor manda
  * `window.open` a `UIApplication.open`. Su app abre la pantalla de Listas, no la lista.
+ * OJO: tiene que llamarse en el mismo toque, sin un `await` ni un temporizador antes. Capacitor no deja abrir ventanas
+ * desde JavaScript sin toque (`javaScriptCanOpenWindowsAutomatically`), y si no, iOS no lo abre y no avisa.
  */
 export function abrirEnAppMercadona(href, abrirFuera = (u) => globalThis.open?.(u, "_blank")) {
   abrirFuera(href);
