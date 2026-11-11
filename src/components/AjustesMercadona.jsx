@@ -5,6 +5,8 @@ import { BOTON, TEXTO } from "./mercadonaEstilos.js";
 import { AJUSTE_MERCADONA, SIN_MIRAR, TELEFONO, TEXTO_FALTA } from "../lib/mercadonaApp.js";
 import { FALTA_MERCADONA, LLEGA_HASTA, faltaPara, llegaA } from "../lib/mercadonaLlegaHasta.js";
 import { color as tono, tipografia, espaciado, radio, tamano } from "../design/tokens.js";
+import { isNativeApp } from "../lib/apiUrl.js";
+import { ABRIR_EN, TEXTO_ABRIR, guardarAbrirEn, leerAbrirEn } from "../lib/mercadonaAbrir.js";
 
 const caja = {
   background: tono.superficie,
@@ -86,8 +88,14 @@ function Fila({ nombre, primera, children, nota }) {
  * En la hoja de la primera vez (`encendido`), «Rellenar la lista» empieza encendido: es lo que se pidió al pulsar Comprar.
  * @param {{ m: ReturnType<typeof import("./useRellenarMercadona.js").useRellenarMercadona>, encendido?: boolean }} props
  */
-export function AjustesMercadona({ m, encendido = false }) {
+export function AjustesMercadona({ m, encendido = false, nativa = isNativeApp }) {
   const [entrando, setEntrando] = useState(encendido);
+  // Dónde se abren las listas (solo en la app; ver lib/mercadonaAbrir.js). Sin elegir, cuenta como la web.
+  const [enApp, setEnApp] = useState(() => leerAbrirEn() === ABRIR_EN.APP);
+  const cambiarAbrir = (encender) => {
+    setEnApp(encender);
+    guardarAbrirEn(encender ? ABRIR_EN.APP : ABRIR_EN.WEB);
+  };
   // Lo que falta para el paso que se quiso encender: se pinta debajo, y el teléfono se pide.
   const [falta, setFalta] = useState([]);
   const cambiarLista = (encender) => {
@@ -123,6 +131,11 @@ export function AjustesMercadona({ m, encendido = false }) {
         <Fila nombre={AJUSTE_MERCADONA.PAGAR} nota={AJUSTE_MERCADONA.PRONTO}>
           <ToggleSwitch checked={false} disabled ariaLabel={AJUSTE_MERCADONA.PAGAR} onChange={() => {}} />
         </Fila>
+        {nativa && (
+          <Fila nombre={TEXTO_ABRIR.AJUSTE}>
+            <ToggleSwitch checked={enApp} ariaLabel={TEXTO_ABRIR.AJUSTE} onChange={cambiarAbrir} />
+          </Fila>
+        )}
       </div>
       {entrando && !m.conectada && <Conectar caducada={m.caducada} casa={m.casa} alEntrar={m.recargar} />}
       {lineas.map((l) => <p key={l} style={TEXTO}>{l}</p>)}
