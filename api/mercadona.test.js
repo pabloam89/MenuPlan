@@ -8,7 +8,6 @@ vi.mock("./_bot/papel.js", () => ({ papelDeUsuario: vi.fn(async () => "editor") 
 vi.mock("./_bot/mercadonaEncargos.js", () => ({
   contarFallo: vi.fn(),
   PeticionMala: class extends Error {},
-  casaPermitida: vi.fn(() => true),
   cerrar: vi.fn(async () => true),
   conectar: vi.fn(async () => ({ conectada: true })),
   desconectar: vi.fn(async () => ({ conectada: false })),
@@ -70,15 +69,9 @@ describe("la app", () => {
     expect(e.encargar).not.toHaveBeenCalled();
   });
 
-  it("una casa sin permiso para el servicio no conecta ni encarga", async () => {
-    e.casaPermitida.mockReturnValueOnce(false);
-    expect((await llamar({ token: "buena", body: { casa: CASA, conectar: { sesion_cifrada: "x" } } })).statusCode).toBe(403);
-    expect(e.conectar).not.toHaveBeenCalled();
-  });
-
-  it("una casa sin permiso sí puede borrar su sesión", async () => {
-    e.casaPermitida.mockReturnValueOnce(false);
-    expect((await llamar({ token: "buena", body: { casa: CASA, desconectar: true } })).statusCode).toBe(200);
+  it("cualquier casa conecta su cuenta, sin lista de casas (10 nov 2026)", async () => {
+    expect((await llamar({ token: "buena", body: { casa: CASA, conectar: { sesion_cifrada: "x" } } })).statusCode).toBe(200);
+    expect(e.conectar).toHaveBeenCalled();
   });
 
   it("GET da el estado y la clave pública", async () => {

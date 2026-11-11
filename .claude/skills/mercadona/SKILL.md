@@ -40,10 +40,10 @@ banco, y el bot no puede cerrarlo solo.
 
 ## Reglas
 
-- **Solo cuentas de quien lo ha pedido.** Solo las casas de `MERCADONA_CASAS`:
-  Pablo y quien él nombre, con su consentimiento. Antes de abrirlo a otra familia:
-  visto bueno de Mercadona o de un abogado (ver «Condiciones»). El trozo 10 de
-  `specs/plan-comprar-mercadona.md` propone cambiar esta regla.
+- **Solo la cuenta de quien la conecta.** Cualquier casa puede usarlo, pero solo con
+  la cuenta de Mercadona que conecta ella misma, y entrando ella. Sin lista de casas
+  desde el 10 nov 2026 (Pablo: «tiene que ser cualquier casa»). Las «Condiciones»
+  siguen ahí: sin visto bueno de Mercadona ni de un abogado.
 - **Sin disfraces.** Ni ocultar que es automático, ni cambiar huella o IP, ni
   repartir cuentas entre servidores, ni esquivar captchas. Si bloquean, se para y
   se cuenta: ese es el resultado. **Una excepción** (Pablo, 8 nov 2026; trozo 8
@@ -75,7 +75,7 @@ cierra el encargo. No tiene acceso a la base. Con el servidor de 1 GB, de uno en
 - **Pasar a un navegador en la nube:** cambiar `abrirNavegador` en
   `scripts/mercadona-trabajador.mjs`, y nada más.
 - **Variables.** En Vercel: `MERCADONA_TRABAJADOR_TOKEN` (secreto), `MERCADONA_CLAVE_PUBLICA`
-  y `MERCADONA_CASAS`. En el servidor, `/opt/mercadona/.env` (600): `MERCADONA_API`, el
+  (`MERCADONA_CASAS` ya no se lee desde el 10 nov 2026). En el servidor, `/opt/mercadona/.env` (600): `MERCADONA_API`, el
   mismo token y `MERCADONA_CLAVE_PRIVADA`, que solo vive ahí y en 1Password.
   Las tres están **en Production desde el 8 nov 2026** (las puso Pablo; antes no había
   ninguna `MERCADONA_*` en ningún entorno). Se prueba en producción

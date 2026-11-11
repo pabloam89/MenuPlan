@@ -21,7 +21,7 @@ import { timingSafeEqual } from "node:crypto";
 import { cors, blocked } from "./_guard.js";
 import { usuarioDeToken } from "./_bot/db.js";
 import { papelDeUsuario } from "./_bot/papel.js";
-import { cambiarLlegaHasta, casaPermitida, cerrar, conectar, contarFallo, desconectar, elegirHoraEntrega, encargar, estadoDeCasa, guardarTelefono, PeticionMala, tomar, tomarReserva } from "./_bot/mercadonaEncargos.js";
+import { cambiarLlegaHasta, cerrar, conectar, contarFallo, desconectar, elegirHoraEntrega, encargar, estadoDeCasa, guardarTelefono, PeticionMala, tomar, tomarReserva } from "./_bot/mercadonaEncargos.js";
 import { FALLOS_ENCARGO_MERCADONA } from "../src/lib/vocabularios.js";
 import { esRevision } from "../src/lib/mercadonaLlegaHasta.js";
 import { esPedido } from "../src/lib/mercadonaHoraEntrega.js";
@@ -87,8 +87,6 @@ async function app(req, res) {
   const { encargar: pedido, conectar: conexion, desconectar: quitar, llega_hasta, telefono, elegir } = req.body;
   if (elegir) return res.status(200).json(await elegirHoraEntrega({ casa, encargo: elegir.encargo, hora_id: elegir.hora_id }));
   if (pedido) return res.status(200).json(await encargar({ casa, por: user.id, canal: "app", lista: pedido.lista }));
-  // Desconectar no pasa por esta puerta: una casa fuera de la lista tiene que poder borrar su sesión.
-  if (conexion && !casaPermitida(casa)) return res.status(403).json({ error: "sin permiso" });
   if (conexion) return res.status(200).json(await conectar({ casa, por: user.id, sesion_cifrada: conexion.sesion_cifrada }));
   if (quitar === true) return res.status(200).json(await desconectar(casa));
   // Hasta dónde llega el bot y el teléfono del pedido (trozo 17): las mismas funciones que usa Lola.

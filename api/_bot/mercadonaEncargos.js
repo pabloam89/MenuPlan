@@ -6,8 +6,7 @@
  * Solo lista: nada de carrito ni de pago. La sesión llega sellada y aquí nadie la puede abrir.
  * Sin la 0131 no se rompe nada: `sin_servicio`, y el botón sigue abriendo la lista con sus fichas.
  *
- * Solo para las casas de MERCADONA_CASAS (uuids separados por comas): quien dio su consentimiento, hasta tener el
- * visto bueno de Mercadona o de un abogado. Sin esa variable, para nadie.
+ * Para cualquier casa que conecte su propia cuenta de Mercadona (Pablo, 10 nov 2026: sin lista de casas).
  */
 import { select, insert, update, borrar, rpc, eq } from "./db.js";
 import { enviar } from "./telegram.js";
@@ -56,9 +55,6 @@ const conPlanB = (valor) => (e) => {
   return valor;
 };
 
-export function casaPermitida(casa, entorno = process.env.MERCADONA_CASAS) {
-  return String(entorno ?? "").split(",").map((c) => c.trim()).includes(casa);
-}
 
 
 /** El prefijo del botón de cada hora de entrega en Telegram: `mhe:<encargo>:<posición>` (64 bytes como mucho). */
@@ -184,7 +180,6 @@ async function leerCuenta(casa) {
  */
 export async function estadoDeCasa(casa, ahora = Date.now()) {
   const nada = { disponible: false, cuenta: null, encargo: null, ...deUnaCuenta(undefined) };
-  if (!casaPermitida(casa)) return nada;
   try {
     await barrerCaducados({ casa, ahora });
     const cuenta = await leerCuenta(casa);
@@ -397,7 +392,6 @@ export async function cambiarLlegaHasta({ casa, llega_hasta }, ahora = Date.now(
 export async function guardarTelefono({ casa, telefono_sellado }) {
   const valido = typeof telefono_sellado === "string" && telefono_sellado.length <= TOPE_SESION && esSello(telefono_sellado);
   if (!valido) throw new PeticionMala("teléfono no sellado");
-  if (!casaPermitida(casa)) return { fallo: NO_ENCARGADO.SIN_SERVICIO };
   const filas = await update("mercadona_cuenta", `household_id=${eq(casa)}`, { telefono_sellado });
   return filas?.length ? { guardado: true } : { fallo: NO_ENCARGADO.SIN_CUENTA };
 }

@@ -35,7 +35,6 @@ const cuenta = (o = {}) => [{ estado: "conectada", sesion_cifrada: "sellada", ll
 
 beforeEach(() => {
   vi.clearAllMocks();
-  process.env.MERCADONA_CASAS = CASA;
   Object.assign(db, { cuenta: cuenta(), encargo: [], fallaSelect: null, fallaUpdate: null, escrito: [] });
 });
 
@@ -57,11 +56,9 @@ describe("cambiarLlegaHasta: lo comprueba el servidor, no Lola", () => {
     expect(await m.cambiarLlegaHasta({ casa: CASA, llega_hasta: "lista" })).toEqual({ llega_hasta: "lista" });
   });
 
-  it("sin cuenta, o sin servicio para la casa, no escribe", async () => {
+  it("sin cuenta no escribe", async () => {
     db.cuenta = [];
     expect(await m.cambiarLlegaHasta({ casa: CASA, llega_hasta: "lista" })).toEqual({ fallo: "sin_cuenta" });
-    process.env.MERCADONA_CASAS = "otra";
-    expect(await m.cambiarLlegaHasta({ casa: CASA, llega_hasta: "lista" })).toEqual({ fallo: "sin_servicio" });
     expect(update).not.toHaveBeenCalledWith("mercadona_cuenta", expect.anything(), expect.anything());
   });
 

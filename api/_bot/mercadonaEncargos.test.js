@@ -31,7 +31,6 @@ const EN_MARCHA = { household_id: "c1", status: "rellenando", fallo: null, tomad
 
 beforeEach(() => {
   vi.clearAllMocks();
-  process.env.MERCADONA_CASAS = `otra, ${CASA}`;
   Object.assign(db, { cuenta: [{ estado: "conectada", sesion_cifrada: "sellada" }], encargo: [], insertar: null, tomado: [] });
 });
 
@@ -77,12 +76,11 @@ describe("encargar", () => {
     await expect(m.encargar({ ...pedido, canal: "fax" })).rejects.toThrow();
   });
 
-  it("una casa fuera de la lista no encola", async () => {
+  it("cualquier casa con su cuenta conectada encola, sin lista de casas (10 nov 2026)", async () => {
     process.env.MERCADONA_CASAS = "otra";
-    expect(await m.encargar(pedido)).toEqual({ fallo: "sin_servicio" });
+    expect(await m.encargar(pedido)).not.toEqual({ fallo: "sin_servicio" });
+    expect(insert).toHaveBeenCalled();
     delete process.env.MERCADONA_CASAS;
-    expect(await m.encargar(pedido)).toEqual({ fallo: "sin_servicio" });
-    expect(insert).not.toHaveBeenCalled();
   });
 
   it("de la lista solo guarda lo que se usa", async () => {
