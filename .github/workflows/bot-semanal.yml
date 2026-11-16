@@ -52,7 +52,7 @@ jobs:
         with:
           ref: staging
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         if: steps.config.outputs.listo == 'true'
         with:
           node-version: 22
